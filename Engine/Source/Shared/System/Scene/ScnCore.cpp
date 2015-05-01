@@ -207,56 +207,6 @@ void ScnCore::open()
 	DsCore::pImpl()->registerPanel(
 		"Component Editor", [ this ]( BcU32 )->void
 		{
-#if 0
-			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
-			ComponentNodeFunc RecurseNode = 
-				[ & ]( ScnComponent* Component )
-				{
-					ImGui::PushID( Component );
-					auto TreeNodeOpen = ImGui::TreeNode( Component, (*Component->getName()).c_str() );
-					if( TreeNodeOpen )
-					{
-						// List fields.
-						const auto* Class = Component->getClass();
-						for( size_t FieldIdx = 0; FieldIdx < Class->getNoofFields(); ++FieldIdx )
-						{
-							const auto* Field = Class->getField( FieldIdx );
-							ReFieldAccessor FieldAccessor( Component, Field );
-							if( !FieldAccessor.isTransient() && 
-								!FieldAccessor.isContainerType() &&
-								!FieldAccessor.isConst() )
-							{
-								// TODO: Different controls for different types.
-								auto FieldType = Field->getType();
-								auto FieldEditor = FieldType->getAttribute< DsImGuiFieldEditor >();
-								if( FieldEditor )
-								{
-									ImGui::PushID( Field );
-									FieldEditor->onEdit( *Field->getName(), FieldAccessor.getData(), FieldType );
-									ImGui::PopID();
-								}
-							}
-						}
-
-						ImGui::Separator();
-
-						if( Component->isTypeOf< ScnEntity >() )
-						{
-							BcU32 ChildIdx = 0;
-							while( auto Child = Component->getComponent( ChildIdx++ ) )
-							{
-								// Only recurse into non-entity components.
-								if( !Child->isTypeOf< ScnEntity >() )
-								{
-									RecurseNode( Child );
-								}
-							}
-						}
-						ImGui::TreePop();
-					}
-					ImGui::PopID();
-				};
-#endif
 			if ( ImGui::Begin( "Component Editor" ) )
 			{
 				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
@@ -276,7 +226,7 @@ void ScnCore::open()
 					}
 					if( FieldEditor )
 					{
-						FieldEditor->onEdit( "", Component, UpperClass );
+						FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
 					}
 				}
 			}

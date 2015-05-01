@@ -23,6 +23,8 @@
 #include "System/Scene/Import/ScnTextureImport.h"
 #endif
 
+#include "System/Debug/DsImGuiFieldEditor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnTexture );
@@ -46,6 +48,25 @@ void ScnTexture::StaticRegisterClass()
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnTextureImport::StaticGetClass(), 0 ) );
 #endif
+
+	// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				ScnTexture* Value = (ScnTexture*)Object;
+				if( Value != nullptr )
+				{
+					ImGui::Text( "Width: %u", Value->Width_ );
+					ImGui::Text( "Height: %u", Value->Height_ );
+					ImGui::Text( "Depth: %u", Value->Depth_ );
+					ImGui::Text( "Format: TODO" );
+					MaVec2d Size( Value->getWidth(), Value->getHeight() );
+					const auto WidthRequirement = 256.0f;
+					Size *= WidthRequirement / Size.x();
+					ImGui::Image( Value->getTexture(), Size );
+				}
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

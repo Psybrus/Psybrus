@@ -453,11 +453,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	// Add some custom editors.
 	ReManager::GetClass( "BcU8" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcU8* Value = (BcU8*)Object;
 				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = (BcU8)ValueInt;
 				}
@@ -465,11 +465,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcS8" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcS8* Value = (BcS8*)Object;
 				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = (BcS8)ValueInt;
 				}
@@ -477,11 +477,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcU16" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcU16* Value = (BcU16*)Object;
 				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = (BcU16)ValueInt;
 				}
@@ -489,11 +489,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcS16" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcS16* Value = (BcS16*)Object;
 				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = (BcS16)ValueInt;
 				}
@@ -501,11 +501,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcU32" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcU32* Value = (BcU32*)Object;
 				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = (BcU32)ValueInt;
 				}
@@ -513,11 +513,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcS32" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcS32* Value = (BcS32*)Object;
 				int ValueInt = *Value;
-				if( ImGui::InputInt( Name.c_str(), &ValueInt ) )
+				if( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = (BcS32)ValueInt;
 				}
@@ -525,11 +525,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcBool" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcBool* Value = (BcBool*)Object;
 				bool ValueBool = *Value ? true : false;
-				if( ImGui::Checkbox( Name.c_str(), &ValueBool ) )
+				if( ImGui::Checkbox( Name.c_str(), &ValueBool ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = ValueBool ? BcTrue : BcFalse;
 				}
@@ -537,11 +537,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "bool" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				bool* Value = (bool*)Object;
 				bool ValueBool = *Value;
-				if( ImGui::Checkbox( Name.c_str(), &ValueBool ) )
+				if( ImGui::Checkbox( Name.c_str(), &ValueBool ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = ValueBool;
 				}
@@ -549,11 +549,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcF32" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcF32* Value = (BcF32*)Object;
 				BcF32 ValueF32 = *Value;
-				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) )
+				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = ValueF32;
 				}
@@ -561,11 +561,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcF64" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcF64* Value = (BcF64*)Object;
 				float ValueF32 = *Value;
-				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) )
+				if( ImGui::InputFloat( Name.c_str(), &ValueF32 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = ValueF32;
 				}
@@ -573,12 +573,12 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "string" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				std::string* Value = (std::string*)Object;
 				char Buffer[ 1024 ] = { 0 };
 				BcStrCopyN( Buffer, Value->c_str(), BcArraySize( Buffer ) );
-				if( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) )
+				if( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = Buffer;
 				}
@@ -586,12 +586,12 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "BcName" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcName* Value = (BcName*)Object;
 				char Buffer[ 1024 ] = { 0 };
 				BcStrCopyN( Buffer, (**Value).c_str(), BcArraySize( Buffer ) );
-				if( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) )
+				if( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					*Value = Buffer;
 				}
@@ -599,11 +599,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "MaVec2d" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				MaVec2d* Value = (MaVec2d*)Object;
 				float Array[2] = { Value->x(), Value->y() };
-				if( ImGui::InputFloat2( Name.c_str(), Array ) )
+				if( ImGui::InputFloat2( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value->x( Array[ 0 ] );
 					Value->y( Array[ 1 ] );
@@ -612,11 +612,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "MaVec3d" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				MaVec3d* Value = (MaVec3d*)Object;
 				float Array[3] = { Value->x(), Value->y(), Value->z() };
-				if( ImGui::InputFloat3( Name.c_str(), Array ) )
+				if( ImGui::InputFloat3( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value->x( Array[ 0 ] );
 					Value->y( Array[ 1 ] );
@@ -626,11 +626,11 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "MaVec4d" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				MaVec4d* Value = (MaVec4d*)Object;
 				float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
-				if( ImGui::InputFloat4( Name.c_str(), Array ) )
+				if( ImGui::InputFloat4( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value->x( Array[ 0 ] );
 					Value->y( Array[ 1 ] );
@@ -641,16 +641,16 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "MaAABB" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				MaAABB* Value = (MaAABB*)Object;
 				float ArrayMin[3] = { Value->min().x(), Value->min().y(), Value->min().z() };
 				float ArrayMax[3] = { Value->max().x(), Value->max().y(), Value->max().z() };
-				if( ImGui::InputFloat3( "Min", ArrayMin ) )
+				if( ImGui::InputFloat3( "Min", ArrayMin ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value->min( MaVec3d( ArrayMin[ 0 ], ArrayMin[ 1 ], ArrayMin[ 2 ] ) );
 				}
-				if( ImGui::InputFloat3( "Max", ArrayMax ) )
+				if( ImGui::InputFloat3( "Max", ArrayMax ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value->max( MaVec3d( ArrayMax[ 0 ], ArrayMax[ 1 ], ArrayMax[ 2 ] ) );
 				}
@@ -658,12 +658,12 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "MaQuat" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				MaQuat* Value = (MaQuat*)Object;
 				float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
 				ImGui::Text( Name.c_str() );
-				if( ImGui::InputFloat4( "Values", Array ) )
+				if( ImGui::InputFloat4( "Values", Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value->x( Array[ 0 ] );
 					Value->y( Array[ 1 ] );
@@ -674,32 +674,32 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "MaMat4d" )->addAttribute( 
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				MaMat4d& Value = *(MaMat4d*)Object;
 				float* Array = (float*)&Value;
-				if( ImGui::InputFloat4( "Row0", &Array[0] ) )
+				if( ImGui::InputFloat4( "Row0", &Array[0] ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value[0][0] = Array[0];
 					Value[0][1] = Array[1];
 					Value[0][2] = Array[2];
 					Value[0][3] = Array[3];
 				}
-				if( ImGui::InputFloat4( "Row1", &Array[4] ) )
+				if( ImGui::InputFloat4( "Row1", &Array[4] ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value[1][0] = Array[4];
 					Value[1][1] = Array[5];
 					Value[1][2] = Array[6];
 					Value[1][3] = Array[7];
 				}
-				if( ImGui::InputFloat4( "Row2", &Array[8] ) )
+				if( ImGui::InputFloat4( "Row2", &Array[8] ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value[2][0] = Array[8];
 					Value[2][1] = Array[9];
 					Value[2][2] = Array[10];
 					Value[2][3] = Array[11];
 				}
-				if( ImGui::InputFloat4( "Row3", &Array[12] ) )
+				if( ImGui::InputFloat4( "Row3", &Array[12] ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 				{
 					Value[3][0] = Array[12];
 					Value[3][1] = Array[13];
@@ -710,7 +710,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 	ReManager::GetClass( "ReObject" )->addAttribute(
 		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* ObjectData, const ReClass* Class )
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* ObjectData, const ReClass* Class, ReFieldFlags Flags )
 			{
 				BcAssert( Class );
 				BcAssert( Class->hasBaseClass( ReObject::StaticGetClass() ) );
@@ -730,7 +730,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 						ImGui::PushID( Field );
 
 						ReFieldAccessor FieldAccessor( ObjectData, Field );
-						if( !FieldAccessor.isTransient() && 
+						if( !FieldAccessor.isTransient() &&
 							!FieldAccessor.isConst() )
 						{
 							if( !FieldAccessor.isContainerType() )
@@ -739,12 +739,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 								auto FieldType = UpperFieldType;
 
 								// Find editor.
-								DsImGuiFieldEditor* FieldEditor = nullptr;
-								while( FieldEditor == nullptr && FieldType != nullptr )
-								{
-									FieldEditor = FieldType->getAttribute< DsImGuiFieldEditor >();
-									FieldType = FieldType->getSuper();
-								}
+								DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( Field );
 								auto Value = FieldAccessor.getData();
 								if( Value != nullptr )
 								{
@@ -752,7 +747,8 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 									{
 										if( ImGui::TreeNode( Value, (*Field->getName()).c_str() ) )
 										{
-											FieldEditor->onEdit( " ", Value, UpperFieldType );
+											FieldEditor->onEdit( " ", Value, UpperFieldType,
+												ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
 											ImGui::TreePop();
 										}
 									}
@@ -781,21 +777,16 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 											{
 												auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
 												auto ValueType = UpperValueType;
-												// Find editor.
-												DsImGuiFieldEditor* FieldEditor = nullptr;
-												while( FieldEditor == nullptr && ValueType != nullptr )
-												{
-													FieldEditor = ValueType->getAttribute< DsImGuiFieldEditor >();
-													ValueType = ValueType->getSuper();
-												}
 
+												DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( ValueType );
 												if( FieldEditor )
 												{
 													std::string ShortName = *UpperValueType->getName();
 													ImGui::PushID( Idx );
 													if( ImGui::TreeNode( Value, "[%u] %s", Idx++, ShortName.c_str() ) )
 													{
-														FieldEditor->onEdit( " ", Value, UpperValueType );
+														FieldEditor->onEdit( " ", Value, UpperValueType, 
+															ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
 														ImGui::TreePop();
 													}
 													ImGui::PopID();
@@ -837,21 +828,8 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 												auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
 												auto ValueType = UpperValueType;
 
-												// Find editor for key.
-												DsImGuiFieldEditor* KeyFieldEditor = nullptr;
-												while( KeyFieldEditor == nullptr && KeyType != nullptr )
-												{
-													KeyFieldEditor = KeyType->getAttribute< DsImGuiFieldEditor >();
-													KeyType = KeyType->getSuper();
-												}
-
-												// Find editor for value.
-												DsImGuiFieldEditor* ValueFieldEditor = nullptr;
-												while( ValueFieldEditor == nullptr && ValueType != nullptr )
-												{
-													ValueFieldEditor = ValueType->getAttribute< DsImGuiFieldEditor >();
-													ValueType = ValueType->getSuper();
-												}
+												DsImGuiFieldEditor* KeyFieldEditor = DsImGuiFieldEditor::Get( KeyType );
+												DsImGuiFieldEditor* ValueFieldEditor = DsImGuiFieldEditor::Get( ValueType );
 
 												if( KeyFieldEditor || ValueFieldEditor )
 												{
@@ -861,7 +839,8 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 													{
 														if( KeyFieldEditor )
 														{
-															KeyFieldEditor->onEdit( " ", Key, UpperKeyType );
+															KeyFieldEditor->onEdit( " ", Key, UpperKeyType, 
+																ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
 														}
 														else
 														{
@@ -870,7 +849,8 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 														if( ValueFieldEditor )
 														{
-															ValueFieldEditor->onEdit( "", Value, UpperValueType );
+															ValueFieldEditor->onEdit( "", Value, UpperValueType, 
+																ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
 														}
 														else
 														{
@@ -893,23 +873,6 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 				}
 				ImGui::Unindent();
 				ImGui::PopID();
-			} ) );
-
-	ReManager::GetClass( "ScnTexture" )->addAttribute( 
-		new DsImGuiFieldEditor( 
-			[]( std::string Name, void* Object, const ReClass* Class )
-			{
-				ScnTexture* Value = (ScnTexture*)Object;
-				if( Value != nullptr )
-				{
-					ImGui::Text( "Width: %u", Value->getWidth() );
-					ImGui::Text( "Height: %u", Value->getHeight() );
-					ImGui::Text( "Format: TODO" );
-					MaVec2d Size( Value->getWidth(), Value->getHeight() );
-					const auto WidthRequirement = 256.0f;
-					Size *= WidthRequirement / Size.x();
-					ImGui::Image( Value->getTexture(), Size );
-				}
 			} ) );
 }
 

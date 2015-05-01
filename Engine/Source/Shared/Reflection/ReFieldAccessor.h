@@ -186,6 +186,14 @@ public:
 	}
 
 	/**
+		* @brief Get field flags.
+		*/
+	inline BcU32 getFlags() const
+	{
+		return Field_->getFlags();
+	}
+
+	/**
 		* @brief Is transient? I.e. ignore for serialisation.
 		*/
 	inline BcBool isTransient() const

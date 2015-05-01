@@ -485,6 +485,8 @@ const MaVec4d& ScnFontDrawParams::getShadowSettings() const
 	return ShadowSettings_;
 }
 
+#include "System/Debug/DsImGuiFieldEditor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnFont );
@@ -506,6 +508,17 @@ void ScnFont::StaticRegisterClass()
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnFontImport::StaticGetClass(), 0 ) );
+#endif
+
+#if 0
+	// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				ImGui::Text( "THIS IS FONT" );
+
+			} ) );
 #endif
 }
 
