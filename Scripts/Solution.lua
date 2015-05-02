@@ -9,7 +9,6 @@ function PsySolutionCommon( _name )
 
 	-- All appropriate configurations we want.
 	configurations { "Debug", "Release", "Profile", "Production" }
-	configurations { "x32", "x64" }
 
 	-- Setup toolchain.
 	PsySetupToolchain()

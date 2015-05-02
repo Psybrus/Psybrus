@@ -2608,8 +2608,16 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 // setScissorRect
 void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 {
+	auto FBHeight = getHeight();
+	if( FrameBuffer_ != nullptr )
+	{
+		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT );
+		FBHeight = RT->getDesc().Height_;
+	}
+
 	auto SX = X;
-	auto SY = getHeight() - Height;
+	auto SY = FBHeight - Height;
 	auto SW = Width - X;
 	auto SH = Height - Y;
 

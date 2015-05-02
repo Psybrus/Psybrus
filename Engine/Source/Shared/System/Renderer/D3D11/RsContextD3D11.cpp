@@ -478,20 +478,6 @@ void RsContextD3D11::takeScreenshot()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setViewport
-void RsContextD3D11::setViewport( class RsViewport& Viewport )
-{
-	D3D11_VIEWPORT D3DViewport;
-	D3DViewport.Width = (FLOAT)Viewport.width();
-	D3DViewport.Height = (FLOAT)Viewport.height();
-	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
-	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
-	D3DViewport.MinDepth = 0.0f;
-	D3DViewport.MaxDepth = 1.0f;
-	Context_->RSSetViewports( 1, &D3DViewport );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // create
 void RsContextD3D11::create()
 {
@@ -963,6 +949,34 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 
 	flushState();
 	Context_->DrawIndexed( NoofIndices, IndexOffset, VertexOffset );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// setViewport
+void RsContextD3D11::setViewport( class RsViewport& Viewport )
+{
+	D3D11_VIEWPORT D3DViewport;
+	D3DViewport.Width = (FLOAT)Viewport.width();
+	D3DViewport.Height = (FLOAT)Viewport.height();
+	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
+	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+	Context_->RSSetViewports( 1, &D3DViewport );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// setScissorRect
+void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
+{
+	D3D11_RECT D3DRect;
+	D3DRect.left = X;
+	D3DRect.top = Y;
+	D3DRect.right = X + Width;
+	D3DRect.bottom = Y + Height;
+	Context_->RSSetScissorRects( 1, &D3DRect );
 }
 
 //////////////////////////////////////////////////////////////////////////
