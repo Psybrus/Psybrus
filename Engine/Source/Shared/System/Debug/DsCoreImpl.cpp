@@ -718,7 +718,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 
 				Class = Object->getClass();
 				ImGui::BulletText( (*Object->getName()).c_str() );
-				ImGui::Indent();
+//				ImGui::Indent();
 				ImGui::PushID( Object );
 
 				// List fields.
@@ -871,7 +871,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 					}
 					Class = Class->getSuper();
 				}
-				ImGui::Unindent();
+//				ImGui::Unindent();
 				ImGui::PopID();
 			} ) );
 }

@@ -178,6 +178,7 @@ namespace
 				pContext_->setRenderState( RenderState_.get() );
 				pContext_->setSamplerState( 0, FontSampler_.get() );
 
+
  				BcU32 VertexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CmdListsCount_; ++CmdListIdx )
 				{
@@ -233,8 +234,11 @@ namespace
 		RenderNode->CmdLists_ = CmdLists;
 		RenderNode->CmdListsCount_ = CmdListsCount;
 		RenderNode->Viewport_ = 
-		RsViewport( 0, 0, IO.DisplaySize.x, IO.DisplaySize.y );
+			RsViewport( 0, 0, IO.DisplaySize.x, IO.DisplaySize.y );
 
+		BcAssert( RenderNode->Viewport_.width() > 0 );
+		BcAssert( RenderNode->Viewport_.height() > 0 );
+		
 		RenderThreadFence_.increment();
 		DrawFrame_->addRenderNode( RenderNode );
 	}
@@ -525,10 +529,8 @@ namespace Psybrus
 			if( OsCore::pImpl() )
 			{
 				OsClient* Client = OsCore::pImpl()->getClient( 0 );
-				if( Client )
-				{
-					IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
-				}
+				BcAssert( Client );
+				IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
 			}
 
 			// Update mouse wheel.
