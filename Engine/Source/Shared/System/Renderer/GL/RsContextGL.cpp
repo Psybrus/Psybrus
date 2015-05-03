@@ -2180,7 +2180,7 @@ void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			Width = TexDesc.Width_;
 			Height = TexDesc.Height_;
 		}
-		auto Viewport = RsViewport( 0.0f, 0.0f, Width, Height );
+		auto Viewport = RsViewport( 0, 0, Width, Height );
 		setViewport( Viewport );
 	}
 }
@@ -2214,25 +2214,7 @@ void RsContextGL::flushState()
 	if( RenderState_ != nullptr )
 	{
 		const auto& Desc = RenderState_->getDesc();
-#if 1
-		// TODO: State setting is a bit broken for some reason,
-		//       investigate this later.
 		setRenderStateDesc( Desc, BcFalse );
-#else
-		if( RenderState_->getHandle< BcU64 >() != LastRenderStateHandle_ )
-		{
-			LastRenderStateHandle_ = RenderState_->getHandle< BcU64 >();
-			++NoofRenderStateFlushes_;
-
-			setRenderStateDesc( Desc, BcTrue );
-		}
-#endif
-#if 0
-		else
-		{
-			BcAssertMsg( BoundRenderStateDesc_ == Desc, "Hash key collision for RsRenderState" );
-		}
-#endif
 	}	
 
 	// Bind texture states.
@@ -2590,13 +2572,22 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 void RsContextGL::setViewport( class RsViewport& Viewport )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	BcAssert( Viewport.width() > 0 );
+	BcAssert( Viewport.height() > 0 );
+
+	auto FBWidth = getWidth();
 	auto FBHeight = getHeight();
 	if( FrameBuffer_ != nullptr )
 	{
 		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
 		BcAssert( RT );
+		FBWidth = RT->getDesc().Width_;
 		FBHeight = RT->getDesc().Height_;
 	}
+
+	BcAssert( FBWidth > 0 );
+	BcAssert( FBHeight > 0 );
 
 	// Convert to top-left.
 	auto X = Viewport.x();
@@ -2604,6 +2595,7 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 	auto W = Viewport.width() - Viewport.x();
 	auto H = Viewport.height() - Viewport.y();
 	auto NewViewport = RsViewport( X, Y, W, H );
+
 	if( Viewport_.x() != NewViewport.x() ||
 		Viewport_.y() != NewViewport.y() ||
 		Viewport_.width() != NewViewport.width() ||
