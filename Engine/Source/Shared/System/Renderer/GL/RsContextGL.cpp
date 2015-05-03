@@ -2575,10 +2575,17 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 void RsContextGL::setViewport( class RsViewport& Viewport )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	auto FBHeight = getHeight();
+	if( FrameBuffer_ != nullptr )
+	{
+		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT );
+		FBHeight = RT->getDesc().Height_;
+	}
 
 	// Convert to top-left.
 	auto X = Viewport.x();
-	auto Y = getHeight() - Viewport.height();
+	auto Y = FBHeight - Viewport.height();
 	auto W = Viewport.width() - Viewport.x();
 	auto H = Viewport.height() - Viewport.y();
 	auto NewViewport = RsViewport( X, Y, W, H );
@@ -2601,8 +2608,16 @@ void RsContextGL::setViewport( class RsViewport& Viewport )
 // setScissorRect
 void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 {
+	auto FBHeight = getHeight();
+	if( FrameBuffer_ != nullptr )
+	{
+		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT );
+		FBHeight = RT->getDesc().Height_;
+	}
+
 	auto SX = X;
-	auto SY = getHeight() - Height;
+	auto SY = FBHeight - Height;
 	auto SW = Width - X;
 	auto SH = Height - Y;
 

@@ -227,6 +227,9 @@ namespace
 		auto RenderNode = DrawFrame_->newObject< ImGuiRenderNode >();
 		RenderNode->Sort_.Value_ = 0;
 		RenderNode->Sort_.Pass_ = RS_SORT_PASS_OVERLAY;		
+		RenderNode->Sort_.Viewport_ = RS_SORT_VIEWPORT_MAX;
+		RenderNode->Sort_.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
+		RenderNode->Sort_.NodeType_ = RS_SORT_NODETYPE_MAX;
 		RenderNode->CmdLists_ = CmdLists;
 		RenderNode->CmdListsCount_ = CmdListsCount;
 		RenderNode->Viewport_ = 

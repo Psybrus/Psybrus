@@ -68,7 +68,7 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 	RakNet::SocketDescriptor Desc( Port, 0 );
 	PeerInterface_->AttachPlugin( ConnectionGraph_ );
 	PeerInterface_->Startup( MaxClients, &Desc, 1 );
-	PeerInterface_->SetMaximumIncomingConnections( MaxClients );
+	PeerInterface_->SetMaximumIncomingConnections( static_cast< unsigned short >( MaxClients ) );
 
 	MessageHandlers_.fill( nullptr );
 

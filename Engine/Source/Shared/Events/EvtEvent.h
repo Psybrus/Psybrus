@@ -142,7 +142,7 @@ struct EvtEvent: EvtBaseEvent
 {
 public:
 	inline EvtEvent():
-		EvtBaseEvent( StaticEventTypeHash(), static_cast< BcU8 >( sizeof( _Ty ) ) )
+		EvtBaseEvent( StaticEventTypeHash(), static_cast< BcU8 >( sizeof( _Ty ) & 0xff ) )
 	{
 		BcAssert( sizeof( _Ty ) <= 255 );
 	}
