@@ -998,14 +998,16 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	{
 		if( Texture != nullptr )
 		{
-			PSY_LOG( "Attaching texture." );
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 				RsResourceBindFlags::NONE );
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) !=
+				RsResourceBindFlags::NONE );
+			RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
 			glFramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
 				GL_TEXTURE_2D,
-				Texture->getHandle< GLuint >(),
+				TextureImpl->Handle_,
 				0 );
 		}
 	}
@@ -1013,7 +1015,6 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
 	{
-		PSY_LOG( "Attaching depth stencil surface." );
 		const auto& DSDesc = Desc.DepthStencilTarget_->getDesc();
 		auto Attachment = GL_DEPTH_STENCIL_ATTACHMENT;
 		switch ( DSDesc.Format_ )
@@ -1034,11 +1035,15 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 
 		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 			RsResourceBindFlags::NONE );
+		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) !=
+			RsResourceBindFlags::NONE );
+
+		RsTextureImplGL* TextureImpl = Desc.DepthStencilTarget_->getHandle< RsTextureImplGL* >();
 		glFramebufferTexture2D( 
 			GL_FRAMEBUFFER,
 			Attachment,
 			GL_TEXTURE_2D,
-			Desc.DepthStencilTarget_->getHandle< GLuint >(),
+			TextureImpl->Handle_,
 			0 );
 	}
 
@@ -1198,7 +1203,7 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 	}
 
 	delete BufferImpl;
-	Buffer->setHandle< GLuint >( 0 );
+	Buffer->setHandle< int >( 0 );
 
 	return RetVal;
 }
@@ -1372,16 +1377,17 @@ bool RsContextGL::createTexture(
 	}
 
 	// Create GL texture.
-	GLuint Handle;
-	glGenTextures( 1, &Handle );
-	Texture->setHandle( Handle );
+	RsTextureImplGL* TextureImpl = new RsTextureImplGL();
+	Texture->setHandle( TextureImpl );
+
+	glGenTextures( 1, &TextureImpl->Handle_ );
 	
 	RsGLCatchError();
 
-	if( Handle != 0 )
+	if( TextureImpl->Handle_ != 0 )
 	{
 		// Bind texture.
-		glBindTexture( TypeGL, Handle );
+		glBindTexture( TypeGL, TextureImpl->Handle_ );
 		RsGLCatchError();
 
 #if !PLATFORM_HTML5
@@ -1437,17 +1443,17 @@ bool RsContextGL::destroyTexture(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Check that we haven't already freed it.
-	GLuint Handle = Texture->getHandle< GLuint >();
-	if( Handle != 0 )
+	RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
+	if( TextureImpl != nullptr )
 	{
 		// Delete it.
-		glDeleteTextures( 1, &Handle );
-		setHandle< GLuint >( 0 );
-
+		glDeleteTextures( 1, &TextureImpl->Handle_ );
 		RsGLCatchError();
 
-		--NoofTextures_;
+		setHandle< int >( 0 );
+		delete TextureImpl;
 
+		--NoofTextures_;
 		return true;
 	}
 
@@ -1464,11 +1470,11 @@ bool RsContextGL::updateTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	GLuint Handle = Texture->getHandle< GLuint >();
+	RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
 
 	const auto& TextureDesc = Texture->getDesc();
 
-	if( Handle != 0 )
+	if( TextureImpl->Handle_ != 0 )
 	{
 		// Allocate a temporary buffer.
 		// TODO: Use PBOs for this part.
@@ -2243,7 +2249,16 @@ void RsContextGL::flushState()
 			const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
 
 			glActiveTexture( GL_TEXTURE0 + TextureStateID );
-			glBindTexture( TextureType, pTexture ? pTexture->getHandle< GLuint >() : 0 );
+			if( pTexture != nullptr )
+			{
+				RsTextureImplGL* TextureImpl = pTexture->getHandle< RsTextureImplGL* >();
+				BcAssert( TextureImpl != nullptr );
+				glBindTexture( TextureType, TextureImpl->Handle_ );
+			}
+			else
+			{
+				glBindTexture( TextureType, 0 );
+			}
 			RsGLCatchError();
 
 			if( pTexture != nullptr && SamplerState != nullptr )
@@ -2730,7 +2745,7 @@ void RsContextGL::loadTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	GLuint Handle = Texture->getHandle< GLuint >();
+	RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
 
 	const auto& TextureDesc = Texture->getDesc();
 
@@ -2740,7 +2755,7 @@ void RsContextGL::loadTexture(
 	// Bind.
 	if( Bind )
 	{
-		glBindTexture( TypeGL, Handle );
+		glBindTexture( TypeGL, TextureImpl->Handle_ );
 	}
 		
 	// Load level.
