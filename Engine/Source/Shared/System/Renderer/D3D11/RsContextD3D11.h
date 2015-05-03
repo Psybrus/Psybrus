@@ -40,7 +40,6 @@ public:
 
 	void presentBackBuffer();
 	void takeScreenshot();
-	void setViewport( class RsViewport& Viewport );
 
 	void setDefaultState();
 	void invalidateRenderState();
@@ -70,6 +69,9 @@ public:
 
 	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
 	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+
+	void setViewport( class RsViewport& Viewport ) override;
+	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
 	bool createRenderState(
 		RsRenderState* RenderState );
