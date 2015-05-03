@@ -18,6 +18,7 @@
 #include "Base/BcDebug.h"
 
 #include <functional>
+#include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.

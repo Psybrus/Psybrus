@@ -2575,10 +2575,17 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 void RsContextGL::setViewport( class RsViewport& Viewport )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	auto FBHeight = getHeight();
+	if( FrameBuffer_ != nullptr )
+	{
+		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT );
+		FBHeight = RT->getDesc().Height_;
+	}
 
 	// Convert to top-left.
 	auto X = Viewport.x();
-	auto Y = getHeight() - Viewport.height();
+	auto Y = FBHeight - Viewport.height();
 	auto W = Viewport.width() - Viewport.x();
 	auto H = Viewport.height() - Viewport.y();
 	auto NewViewport = RsViewport( X, Y, W, H );

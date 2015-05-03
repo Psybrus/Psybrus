@@ -26,7 +26,7 @@
 
 #if PLATFORM_WINDOWS
 #include "System/Renderer/D3D11/RsContextD3D11.h"
-#include "System/Renderer/D3D12/RsContextD3D12.h"
+//#include "System/Renderer/D3D12/RsContextD3D12.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			}
 			else if( SysArgs_.find( "-d3d12" ) != std::string::npos)
 			{
-				pResource = new RsContextD3D12( pClient, nullptr );
+				pResource = nullptr; //new RsContextD3D12( pClient, nullptr );
 			}
 			else
 #endif
