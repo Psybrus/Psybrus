@@ -708,6 +708,39 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 				}
 			} ) );
 
+	ReManager::GetClass( "RsColour" )->addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				MaVec4d* Value = (MaVec4d*)Object;
+				{
+					ImGui::PushID( "RGB" );
+					ImGui::ColorEditMode( ImGuiColorEditMode_RGB );
+					float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
+					if( ImGui::ColorEdit4( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+					{
+						Value->x( Array[ 0 ] );
+						Value->y( Array[ 1 ] );
+						Value->z( Array[ 2 ] );
+						Value->w( Array[ 3 ] );
+					}
+					ImGui::PopID();
+				}
+				{
+					ImGui::PushID( "HSV" );
+					ImGui::ColorEditMode( ImGuiColorEditMode_HSV );
+					float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
+					if( ImGui::ColorEdit4( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+					{
+						Value->x( Array[ 0 ] );
+						Value->y( Array[ 1 ] );
+						Value->z( Array[ 2 ] );
+						Value->w( Array[ 3 ] );
+					}
+					ImGui::PopID();
+				}
+			} ) );
+
 	ReManager::GetClass( "ReObject" )->addAttribute(
 		new DsImGuiFieldEditor( 
 			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* ObjectData, const ReClass* Class, ReFieldFlags Flags )

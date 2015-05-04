@@ -255,8 +255,6 @@ namespace
 			IO.KeysDown[ Event.KeyCode_ ] = 1;
 		}
 
-		PSY_LOG( "Down: %c", Event.KeyCode_ );
-
 		if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL )
 		{
 			IO.KeyCtrl = true;
