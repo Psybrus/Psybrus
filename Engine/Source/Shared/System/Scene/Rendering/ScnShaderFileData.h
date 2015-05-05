@@ -226,4 +226,28 @@ struct ScnShaderAlphaTestUniformBlockData
 	MaVec4d AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 };
 
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessCopyBlockData
+struct ScnShaderPostProcessCopyBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderPostProcessCopyBlockData );
+	ScnShaderPostProcessCopyBlockData(){};
+
+	/// Colour transform to copy using.
+	MaMat4d ColourTransform_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessBlurBlockData
+struct ScnShaderPostProcessBlurBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderPostProcessBlurBlockData );
+	ScnShaderPostProcessBlurBlockData(){};
+
+	/// XY - Texture size. ZW - Unused.
+	MaVec4d TextureDimensions_;
+	/// Radius in texels.
+	BcF32 Radius_;
+};
+
 #endif
