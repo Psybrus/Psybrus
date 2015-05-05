@@ -374,6 +374,9 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	NoofTextures_ = 0;
 	NoofShaders_ = 0;
 	NoofPrograms_ = 0;
+
+	TransferFBOs_[ 0 ] = 0;
+	TransferFBOs_[ 1 ] = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -721,6 +724,9 @@ void RsContextGL::create()
 		RsGLCatchError();
 	}
 
+	// Create transfer FBO.
+	glGenFramebuffers( 2, TransferFBOs_ );
+
 	// Force set render state to the default.
 	// Initialises redundant state caching.
 	RsRenderStateDesc RenderStateDesc = BoundRenderStateDesc_;
@@ -749,6 +755,9 @@ void RsContextGL::update()
 //virtual
 void RsContextGL::destroy()
 {
+	// Destroy transfer FBO.
+	glDeleteFramebuffers( 2, TransferFBOs_ );
+
 	// Destroy global VAO.
 	glBindVertexArray( 0 );
 	glDeleteVertexArrays( 1, &GlobalVAO_ );
@@ -2564,6 +2573,153 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 		BcBreakpoint;	
 	}
 
+	RsGLCatchError();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// copyFrameBufferRenderTargetToTexture
+void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture )
+{
+	// Grab current width + height.
+	auto FBWidth = getWidth();
+	auto FBHeight = getHeight();
+	if( FrameBuffer_ != nullptr )
+	{
+		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT );
+		FBWidth = RT->getDesc().Width_;
+		FBHeight = RT->getDesc().Height_;
+	}
+
+	BcAssert( FBWidth > 0 );
+	BcAssert( FBHeight > 0 );
+
+	// Copying the back buffer.
+	if( FrameBuffer == nullptr )
+	{
+		BcAssert( Idx == 0 );
+	}
+	else
+	{
+		BcAssert( FrameBuffer->getDesc().RenderTargets_[ Idx ] != nullptr );
+	}
+
+	// Bind framebuffer.
+	if( FrameBuffer != nullptr )
+	{
+		glBindFramebuffer( GL_FRAMEBUFFER, FrameBuffer->getHandle< GLint >() );
+	}
+	else
+	{
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );	
+	}
+	DirtyFrameBuffer_ = BcTrue;
+
+	// Set read buffer
+	glReadBuffer( GL_COLOR_ATTACHMENT0 + Idx );
+
+	const auto& TextureDesc = Texture->getDesc();
+	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
+	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+
+	RsTextureImplGL* DestTextureImpl = Texture->getHandle< RsTextureImplGL* >();
+	if( DestTextureImpl->Handle_ != 0 )
+	{
+		// Bind texture.
+		glBindTexture( TypeGL, DestTextureImpl->Handle_ );
+		glCopyTexImage2D( 
+			TypeGL, 
+			0, 
+			FormatGL.InternalFormat_,
+			0,
+			0,
+			TextureDesc.Width_,
+			TextureDesc.Height_,
+			0 );
+		RsGLCatchError();
+		glBindTexture( TypeGL, 0 );
+	}
+	else
+	{
+		BcBreakpoint;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// copyTextureToFrameBufferRenderTarget
+void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx )
+{
+	// Grab current width + height.
+	auto FBWidth = getWidth();
+	auto FBHeight = getHeight();
+	if( FrameBuffer_ != nullptr )
+	{
+		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT );
+		FBWidth = RT->getDesc().Width_;
+		FBHeight = RT->getDesc().Height_;
+	}
+
+	BcAssert( FBWidth > 0 );
+	BcAssert( FBHeight > 0 );
+
+	// Copying the back buffer.
+	if( FrameBuffer == nullptr )
+	{
+		BcAssert( Idx == 0 );
+	}
+	else
+	{
+		BcAssert( FrameBuffer->getDesc().RenderTargets_[ Idx ] != nullptr );
+	}
+
+	const auto& TextureDesc = Texture->getDesc();
+	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
+	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+
+	DirtyFrameBuffer_ = BcTrue;
+	RsTextureImplGL* SrcTextureImpl = Texture->getHandle< RsTextureImplGL* >();
+
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] );
+	glFramebufferTexture2D( 
+		GL_READ_FRAMEBUFFER,
+		GL_COLOR_ATTACHMENT0,
+		GL_TEXTURE_2D,
+		SrcTextureImpl->Handle_,
+		0 );
+	auto ReadStatus = glCheckFramebufferStatus( GL_READ_FRAMEBUFFER );
+	BcAssertMsg( ReadStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
+
+	if( FrameBuffer != nullptr )
+	{
+		RsTextureImplGL* DestTextureImpl = 
+			FrameBuffer->getDesc().RenderTargets_[ Idx ]->getHandle< RsTextureImplGL* >();
+		glBindFramebuffer( GL_DRAW_FRAMEBUFFER, TransferFBOs_[ 1 ] );
+		glFramebufferTexture2D( 
+			GL_DRAW_FRAMEBUFFER,
+			GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D,
+			DestTextureImpl->Handle_,
+			0 );
+		auto DrawStatus = glCheckFramebufferStatus( GL_DRAW_FRAMEBUFFER );
+		BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
+	}
+	else
+	{
+		glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 );
+	}
+
+	auto Width = TextureDesc.Width_;
+	auto Height = TextureDesc.Height_;
+
+	glBlitFramebuffer( 
+		0, 0, Width, Height,
+		0, 0, Width, Height,
+		GL_COLOR_BUFFER_BIT, GL_NEAREST );
+	RsGLCatchError();
+
+	glBindFramebuffer( GL_READ_FRAMEBUFFER, 0 );
+	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 );
 	RsGLCatchError();
 }
 

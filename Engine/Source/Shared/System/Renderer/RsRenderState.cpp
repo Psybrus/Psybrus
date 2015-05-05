@@ -17,8 +17,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Assertions.
-#if 0
-// is_trivially_copyable needs libc++, which means rebuilding Boost. Do later.
 static_assert( std::is_trivially_copyable< RsRenderTargetBlendState >::value, "Unable to trivially copy RsRenderTargetBlendState" );
 static_assert( std::is_trivially_copyable< RsBlendState >::value, "Unable to trivially copy RsBlendState" );
 static_assert( std::is_trivially_copyable< RsStencilFaceState >::value, "Unable to trivially copy RsStencilFaceState" );
@@ -26,7 +24,6 @@ static_assert( std::is_trivially_copyable< RsStencilFaceState >::value, "Unable 
 static_assert( std::is_trivially_copyable< RsDepthStencilState >::value, "Unable to trivially copy RsDepthStencilState" );
 static_assert( std::is_trivially_copyable< RsRasteriserState >::value, "Unable to trivially copy RsRasteriserState" );
 static_assert( std::is_trivially_copyable< RsRenderStateDesc >::value, "Unable to trivially copy RsRenderStateDesc" );
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetBlendState
