@@ -210,6 +210,13 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFrameBuffer
+RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
+{
+	return FrameBuffer_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bind
 class ScnViewComponentViewport: public RsRenderNode
 {

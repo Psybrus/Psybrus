@@ -514,6 +514,12 @@ BcBool ScnTextureImport::import(
 	}
 	else
 	{
+		if( TextureType_ == RsTextureType::UNKNOWN )
+		{
+			CsResourceImporter::addMessage( CsMessageCategory::ERROR, "TextureType is UNKNOWN." );
+			return BcFalse;
+		}
+
 		// User created texture.
 		ScnTextureHeader Header = 
 		{ 

@@ -39,7 +39,7 @@ void ScnTexture::StaticRegisterClass()
 		new ReField( "Height_", &ScnTexture::Height_ ),
 		new ReField( "Depth_", &ScnTexture::Depth_ ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnTexture, Super >( Fields );
 	BcUnusedVar( Class );
 
@@ -61,7 +61,7 @@ void ScnTexture::StaticRegisterClass()
 					ImGui::Text( "Height: %u", Value->Height_ );
 					ImGui::Text( "Depth: %u", Value->Depth_ );
 					ImGui::Text( "Format: TODO" );
-					MaVec2d Size( Value->getWidth(), Value->getHeight() );
+					MaVec2d Size( Value->Width_, Value->Height_ );
 					const auto WidthRequirement = 256.0f;
 					Size *= WidthRequirement / Size.x();
 					ImGui::Image( Value->getTexture(), Size );
@@ -173,7 +173,7 @@ void ScnTexture::create()
 {
 	// If width or height is a fraction of client size, then register
 	// for recreation.
-	if( Header_.Width_ < 0 || Header_.Height_ < 0 )
+	if( Header_.Width_ <= 0 || Header_.Height_ <= 0 )
 	{
 		OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
 			[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
@@ -183,7 +183,7 @@ void ScnTexture::create()
 			} );
 	}
 
-	recreate();
+recreate();
 	markReady();
 }
 
@@ -261,14 +261,14 @@ void ScnTexture::recreate()
 	// If a target, use negative width + height as multiples of resolution.
 	if( Header_.RenderTarget_ || Header_.DepthStencilTarget_ )
 	{
-		if( Header_.Width_ < 0 )
+		if( Header_.Width_ <= 0 )
 		{
-			Width_ = Context->getWidth() / -Header_.Width_;
+			Width_ = Context->getWidth() << -Header_.Width_;
 		}
 
-		if( Header_.Height_ < 0 )
+		if( Header_.Height_ <= 0 )
 		{
-			Height_ = Context->getHeight() / -Header_.Height_;
+			Height_ = Context->getHeight() << -Header_.Height_;
 		}
 	}
 

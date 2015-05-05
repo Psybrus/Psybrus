@@ -53,6 +53,8 @@ public:
 
 	BcBool intersect( const MaAABB& AABB ) const;
 
+	RsFrameBuffer* getFrameBuffer() const;
+
 	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask );
