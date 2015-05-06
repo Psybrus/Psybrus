@@ -176,7 +176,25 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		// Attempt to read in as class members.
 		if( InputValue.type() == Json::objectValue )
 		{
-			serialiseClassMembers( pData, pClass, InputValue, ParentFlags );
+			// If it is a binary data object, we can serialise any POD type into it.
+			static const ReClass* BinaryDataClass = ReManager::GetClass( "BcBinaryData" );
+			if( pClass == BinaryDataClass )
+			{
+				auto ClassToSerialise = getSerialiseClass( InputValue, nullptr );
+				BcAssert( ClassToSerialise.pType_->getFlags() & bcRFF_POD );
+				if( ClassToSerialise.pType_->getFlags() & bcRFF_POD )
+				{
+					serialiseClass( ClassToSerialise.pData_, ClassToSerialise.pType_, InputValue, ParentFlags );
+
+					// Pass into binary data.
+					BcBinaryData* BinaryData = static_cast< BcBinaryData* >( pData );
+					*BinaryData = BcBinaryData( ClassToSerialise.pData_, ClassToSerialise.pType_->getSize() );
+				}
+			}
+			else
+			{
+				serialiseClassMembers( pData, pClass, InputValue, ParentFlags );
+			}
 		}
 	}
 }
@@ -189,6 +207,7 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 	// Iterate over members to add, all supers too.
 	const ReClass* pProcessingClass = pClass;
 	while( pProcessingClass != nullptr )
+
 	{
 		// If this class has fields, then iterate over them.
 		if( pProcessingClass->getNoofFields() > 0 )
@@ -276,7 +295,7 @@ void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 
 	else if( InputValue.type() == Json::objectValue )
 	{
 		ClassToSerialise = getSerialiseClass( InputValue, pClass );
-		auto ClassType( (const ReClass*)ClassToSerialise.pType_ ); // todo, a bit a hacky..
+		auto ClassType( ClassToSerialise.pType_ );
 		serialiseClass( ClassToSerialise.pData_, ClassType, InputValue, ParentFlags );
 	}
 
