@@ -343,7 +343,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	DirtyFrameBuffer_( BcTrue ),
 	FrameBuffer_( nullptr ),
 	DirtyViewport_( BcTrue ),
-	Viewport_(),
+	Viewport_( 0, 0, 0, 0 ),
 	DirtyScissor_( BcTrue ),
 	ScissorX_( 0 ),
 	ScissorY_( 0 ),

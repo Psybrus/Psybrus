@@ -82,12 +82,14 @@ void RsBlendState::StaticRegisterClass()
 	ReRegisterClass< RsBlendState >( Fields );
 }
 
-RsBlendState::RsBlendState( ReNoInit )
+RsBlendState::RsBlendState( ReNoInit ):
+	RenderTarget_()
 {
 
 }
 
-RsBlendState::RsBlendState()
+RsBlendState::RsBlendState():
+	RenderTarget_()
 {
 
 }
