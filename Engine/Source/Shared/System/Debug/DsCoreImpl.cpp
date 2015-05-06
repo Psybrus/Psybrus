@@ -339,6 +339,170 @@ void DsCoreImpl::deregisterPanel( BcU32 Handle )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// drawObjectEditor
+void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags )
+{
+	BcAssert( Class );
+	std::string Name = *Class->getName();
+	if( Class->hasBaseClass( ReObject::StaticGetClass() ) )
+	{
+		ReObject* Object = static_cast< ReObject* >( Data );
+		Class = Object->getClass();
+		Name = *Object->getName() + " (" + *Class->getName() + ")";
+	}
+	ImGui::BulletText( Name.c_str() );
+	ImGui::ScopedID ScopedIDData( Data );
+	ImGui::ScopedID ScopedIDClass( Class );
+	
+	// List fields.
+	while( Class != nullptr )
+	{
+		for( size_t FieldIdx = 0; FieldIdx < Class->getNoofFields(); ++FieldIdx )
+		{
+			const auto* Field = Class->getField( FieldIdx );
+			ImGui::ScopedID ScopedID( Field );
+
+			ReFieldAccessor FieldAccessor( Data, Field );
+			if( !FieldAccessor.isTransient() &&
+				!FieldAccessor.isConst() )
+			{
+				if( !FieldAccessor.isContainerType() )
+				{
+					auto UpperFieldType = FieldAccessor.getUpperClass();
+					auto FieldType = UpperFieldType;
+
+					// Find editor.
+					DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( Field );
+					auto Value = FieldAccessor.getData();
+					if( Value != nullptr )
+					{
+						if( FieldEditor )
+						{
+							if( ImGui::TreeNode( Value, (*Field->getName()).c_str() ) )
+							{
+								FieldEditor->onEdit( " ", Value, UpperFieldType,
+									ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
+								ImGui::TreePop();
+							}
+						}
+					}
+				}
+				else
+				{
+					if( ImGui::TreeNode( Field, (*Field->getName()).c_str() ) )
+					{
+						if( Field->getKeyType() == nullptr )
+						{
+							ReContainerAccessor::ReadIteratorUPtr It( FieldAccessor.newReadIterator() );
+							BcU32 Idx = 0;
+							for( ; It->isValid(); It->next() )
+							{
+								void* Value = nullptr;
+								if( FieldAccessor.isContainerOfPointerValues() )
+								{
+									Value = *reinterpret_cast< void** >( It->getValue() );
+								}
+								else
+								{
+									Value = It->getValue();
+								}
+								if( Value != nullptr )
+								{
+									auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
+									auto ValueType = UpperValueType;
+
+									DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( ValueType );
+									if( FieldEditor )
+									{
+										std::string ShortName = *UpperValueType->getName();
+										ImGui::ScopedID ScopedID( Idx );
+										if( ImGui::TreeNode( Value, "[%u] %s", Idx++, ShortName.c_str() ) )
+										{
+											FieldEditor->onEdit( " ", Value, UpperValueType, 
+												ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
+											ImGui::TreePop();
+										}
+									}
+								}
+							}
+						}
+						else
+						{
+							ReContainerAccessor::ReadIteratorUPtr It( FieldAccessor.newReadIterator() );
+							BcU32 Idx = 0;
+							for( ; It->isValid(); It->next() )
+							{
+								void* Key = nullptr;
+								void* Value = nullptr;
+								if( FieldAccessor.isContainerOfPointerKeys() )
+								{
+									Key = *reinterpret_cast< void** >( It->getKey() );
+								}
+								else
+								{
+									Key = It->getKey();
+								}
+
+								if( FieldAccessor.isContainerOfPointerValues() )
+								{
+									Value = *reinterpret_cast< void** >( It->getValue() );
+								}
+								else
+								{
+									Value = It->getValue();
+								}
+
+
+								if( Key != nullptr && Value != nullptr )
+								{
+									auto UpperKeyType = FieldAccessor.getKeyUpperClass( Value );
+									auto KeyType = UpperKeyType;
+									auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
+									auto ValueType = UpperValueType;
+
+									DsImGuiFieldEditor* KeyFieldEditor = DsImGuiFieldEditor::Get( KeyType );
+									DsImGuiFieldEditor* ValueFieldEditor = DsImGuiFieldEditor::Get( ValueType );
+
+									if( KeyFieldEditor || ValueFieldEditor )
+									{
+										std::string ShortName = " ";
+										ImGui::ScopedID ScopedID( Idx );
+										if( ImGui::TreeNode( Value, "[%u] %s", Idx++, ShortName.c_str() ) )
+										{
+											if( KeyFieldEditor )
+											{
+												KeyFieldEditor->onEdit( " ", Key, UpperKeyType, 
+													ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
+											}
+											else
+											{
+												ImGui::Text( "No key editor" );
+											}
+
+											if( ValueFieldEditor )
+											{
+												ValueFieldEditor->onEdit( "", Value, UpperValueType, 
+													ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
+											}
+											else
+											{
+												ImGui::Text( "No value editor" );
+											}
+											ImGui::TreePop();
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		Class = Class->getSuper();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // registerFunction
 BcU32 DsCoreImpl::registerFunction(std::string Display, std::function<void()> Function)
 {
@@ -714,7 +878,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			{
 				MaVec4d* Value = (MaVec4d*)Object;
 				{
-					ImGui::PushID( "RGB" );
+					ImGui::ScopedID ScopedID( "RGB" );
 					ImGui::ColorEditMode( ImGuiColorEditMode_RGB );
 					float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
 					if( ImGui::ColorEdit4( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
@@ -724,10 +888,9 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 						Value->z( Array[ 2 ] );
 						Value->w( Array[ 3 ] );
 					}
-					ImGui::PopID();
 				}
 				{
-					ImGui::PushID( "HSV" );
+					ImGui::ScopedID ScopedID( "HSV" );
 					ImGui::ColorEditMode( ImGuiColorEditMode_HSV );
 					float Array[4] = { Value->x(), Value->y(), Value->z(), Value->w() };
 					if( ImGui::ColorEdit4( Name.c_str(), Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
@@ -737,175 +900,14 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 						Value->z( Array[ 2 ] );
 						Value->w( Array[ 3 ] );
 					}
-					ImGui::PopID();
 				}
 			} ) );
 
 	ReManager::GetClass( "ReObject" )->addAttribute(
 		new DsImGuiFieldEditor( 
-			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* ObjectData, const ReClass* Class, ReFieldFlags Flags )
+			[ this ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* ObjectData, const ReClass* Class, ReFieldFlags Flags )
 			{
-				BcAssert( Class );
-				BcAssert( Class->hasBaseClass( ReObject::StaticGetClass() ) );
-				ReObject* Object = static_cast< ReObject* >( ObjectData );
-
-				Class = Object->getClass();
-				ImGui::BulletText( (*Object->getName()).c_str() );
-//				ImGui::Indent();
-				ImGui::PushID( Object );
-
-				// List fields.
-				while( Class != nullptr )
-				{
-					for( size_t FieldIdx = 0; FieldIdx < Class->getNoofFields(); ++FieldIdx )
-					{
-						const auto* Field = Class->getField( FieldIdx );
-						ImGui::PushID( Field );
-
-						ReFieldAccessor FieldAccessor( ObjectData, Field );
-						if( !FieldAccessor.isTransient() &&
-							!FieldAccessor.isConst() )
-						{
-							if( !FieldAccessor.isContainerType() )
-							{
-								auto UpperFieldType = FieldAccessor.getUpperClass();
-								auto FieldType = UpperFieldType;
-
-								// Find editor.
-								DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( Field );
-								auto Value = FieldAccessor.getData();
-								if( Value != nullptr )
-								{
-									if( FieldEditor )
-									{
-										if( ImGui::TreeNode( Value, (*Field->getName()).c_str() ) )
-										{
-											FieldEditor->onEdit( " ", Value, UpperFieldType,
-												ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
-											ImGui::TreePop();
-										}
-									}
-								}
-							}
-							else
-							{
-								if( ImGui::TreeNode( Field, (*Field->getName()).c_str() ) )
-								{
-									if( Field->getKeyType() == nullptr )
-									{
-										ReContainerAccessor::ReadIteratorUPtr It( FieldAccessor.newReadIterator() );
-										BcU32 Idx = 0;
-										for( ; It->isValid(); It->next() )
-										{
-											void* Value = nullptr;
-											if( FieldAccessor.isContainerOfPointerValues() )
-											{
-												Value = *reinterpret_cast< void** >( It->getValue() );
-											}
-											else
-											{
-												Value = It->getValue();
-											}
-											if( Value != nullptr )
-											{
-												auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
-												auto ValueType = UpperValueType;
-
-												DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( ValueType );
-												if( FieldEditor )
-												{
-													std::string ShortName = *UpperValueType->getName();
-													ImGui::PushID( Idx );
-													if( ImGui::TreeNode( Value, "[%u] %s", Idx++, ShortName.c_str() ) )
-													{
-														FieldEditor->onEdit( " ", Value, UpperValueType, 
-															ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
-														ImGui::TreePop();
-													}
-													ImGui::PopID();
-												}
-											}
-										}
-									}
-									else
-									{
-										ReContainerAccessor::ReadIteratorUPtr It( FieldAccessor.newReadIterator() );
-										BcU32 Idx = 0;
-										for( ; It->isValid(); It->next() )
-										{
-											void* Key = nullptr;
-											void* Value = nullptr;
-											if( FieldAccessor.isContainerOfPointerKeys() )
-											{
-												Key = *reinterpret_cast< void** >( It->getKey() );
-											}
-											else
-											{
-												Key = It->getKey();
-											}
-
-											if( FieldAccessor.isContainerOfPointerValues() )
-											{
-												Value = *reinterpret_cast< void** >( It->getValue() );
-											}
-											else
-											{
-												Value = It->getValue();
-											}
-
-
-											if( Key != nullptr && Value != nullptr )
-											{
-												auto UpperKeyType = FieldAccessor.getKeyUpperClass( Value );
-												auto KeyType = UpperKeyType;
-												auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
-												auto ValueType = UpperValueType;
-
-												DsImGuiFieldEditor* KeyFieldEditor = DsImGuiFieldEditor::Get( KeyType );
-												DsImGuiFieldEditor* ValueFieldEditor = DsImGuiFieldEditor::Get( ValueType );
-
-												if( KeyFieldEditor || ValueFieldEditor )
-												{
-													std::string ShortName = " ";
-													ImGui::PushID( Idx );
-													if( ImGui::TreeNode( Value, "[%u] %s", Idx++, ShortName.c_str() ) )
-													{
-														if( KeyFieldEditor )
-														{
-															KeyFieldEditor->onEdit( " ", Key, UpperKeyType, 
-																ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
-														}
-														else
-														{
-															ImGui::Text( "No key editor" );
-														}
-
-														if( ValueFieldEditor )
-														{
-															ValueFieldEditor->onEdit( "", Value, UpperValueType, 
-																ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
-														}
-														else
-														{
-															ImGui::Text( "No value editor" );
-														}
-														ImGui::TreePop();
-													}
-													ImGui::PopID();
-												}
-											}
-										}
-									}
-									ImGui::TreePop();
-								}
-							}
-						}
-						ImGui::PopID();
-					}
-					Class = Class->getSuper();
-				}
-//				ImGui::Unindent();
-				ImGui::PopID();
+				drawObjectEditor( ThisFieldEditor, ObjectData, Class, Flags );
 			} ) );
 }
 

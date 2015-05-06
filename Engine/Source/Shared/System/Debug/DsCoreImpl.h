@@ -114,6 +114,7 @@ public:
 
 	BcU32 registerPanel( std::string Name, std::function < void( BcU32 )> Func ) override;
 	void deregisterPanel( BcU32 Handle ) override;
+	void drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn, std::string display ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;
 	BcU32 registerPageNoHtml( std::string regex, std::vector<std::string> namedCaptures, std::function < void(DsParameters, BcHtmlNode&, std::string)> fn ) override;

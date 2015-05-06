@@ -52,11 +52,25 @@ public:
 	virtual void update() = 0;
 	virtual void close() = 0;
 
+	/**
+	 * Register for panel to be drawn.
+	 */
 	virtual BcU32 registerPanel( 
 		std::string Name,
 		std::function < void( BcU32 )> Func ) = 0;
 
+	/**
+	 * Deregister panl.
+	 */
 	virtual void deregisterPanel( BcU32 Handle ) = 0;
+
+	/**
+	 * Draw obejct editor.
+	 * Will handle any type represented by ReClass, will draw the default
+	 * object editor. Will handle upcasting ReObject types.
+	 */
+	virtual void drawObjectEditor( 
+		DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) = 0;
 
 	virtual BcU32 registerPage( 
 		std::string regex, 
