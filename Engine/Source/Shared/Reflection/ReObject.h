@@ -131,9 +131,9 @@ public:
 	/**
 	 *@brief Gets flags for resource
 	*/
-	inline const BcU32				getFlags() const
+	inline const BcU32				getObjectFlags() const
 	{
-		return Flags_;
+		return ObjectFlags_;
 	}
 
 	/**
@@ -160,7 +160,7 @@ private:
 #if REFLECTION_ENABLE_GC
 	mutable std::atomic< BcU32 >		RefCount_;			///!< Ref count.
 #endif
-	mutable std::atomic< BcU32 >		Flags_;				///!< Flags.
+	mutable std::atomic< BcU32 >		ObjectFlags_;				///!< Flags.
     ReObject*							Owner_;				///!< Owner.
     ReObject*							Basis_;				///!< Object we're based upon.
 	BcName								Name_;				///!< Name of object.
@@ -198,17 +198,17 @@ public:
 
 inline BcU32 ReObject::incRefCount() const
 {
-    BcAssert( ( Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
+    BcAssert( ( ObjectFlags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
 	return ++RefCount_;
 }
 
 inline BcU32 ReObject::decRefCount() const
 {
-    BcAssert( ( Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
+    BcAssert( ( ObjectFlags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 );
 	BcU32 RefCount;
 	if( ( RefCount = --RefCount_ ) == 0 )
 	{
-        Flags_ |= (BcU32)ReObject::Flags::MarkedForDeletion;
+        ObjectFlags_ |= (BcU32)ReObject::Flags::MarkedForDeletion;
 	}
 	return RefCount;
 }

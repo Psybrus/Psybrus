@@ -25,6 +25,7 @@ public:
 	template< typename _Ty >
 	void setType( ReITypeSerialiser* Serialiser )
 	{
+		setFlags( ReTypeTraits< _Ty >::Flags );
 		Size_ = sizeof( _Ty );
 		Serialiser_ = Serialiser;
 	}
@@ -35,6 +36,7 @@ public:
 	template< typename _Ty >
 	void setAbstractType()
 	{
+		setFlags( ReTypeTraits< _Ty >::Flags );
 		Size_ = sizeof( _Ty );
 		Serialiser_ = nullptr;
 	}
@@ -52,6 +54,16 @@ public:
 	 * Get size.
 	 */
 	size_t getSize() const;
+
+	/**
+	 * Set flags.
+	 */
+	void setFlags( BcU32 Flags );
+
+	/**
+	 * Get flags.
+	 */
+	BcU32 getFlags() const;
 
 	/**
 	 * Set super.
@@ -177,6 +189,9 @@ protected:
 
 	/// Total size of class in bytes.
 	size_t Size_;
+
+	/// Flags associated with class.
+	BcU32 ClassFlags_;
 
 	/// Fields in class.
 	ReFieldVector Fields_;
