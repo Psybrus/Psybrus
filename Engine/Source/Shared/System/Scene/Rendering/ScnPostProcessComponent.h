@@ -20,19 +20,33 @@ struct ScnPostProcessVertex
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnPostProcessUniforms
+struct ScnPostProcessUniforms
+{
+	REFLECTION_DECLARE_BASIC( ScnPostProcessUniforms );
+	ScnPostProcessUniforms();
+
+	std::string Name_;
+	BcBinaryData Data_;
+	RsBuffer* Buffer_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnPostProcessNode
 struct ScnPostProcessNode
 {
 	REFLECTION_DECLARE_BASIC( ScnPostProcessNode );
 	ScnPostProcessNode();
 
+	// TODO: Tidy up container usage. Using maps is not
+	// particularly efficient (not that it matters much here)
 	std::map< std::string, ScnTextureRef > InputTextures_;
 	std::map< std::string, RsSamplerStateDesc > InputSamplers_;
 	std::map< BcU32, ScnTextureRef > OutputTextures_;
 
 	class ScnShader* Shader_ = nullptr;
-
 	RsRenderStateDesc RenderState_;
+	std::vector< ScnPostProcessUniforms > Uniforms_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,9 +77,9 @@ protected:
 	std::vector< RsFrameBufferUPtr > FrameBuffers_;
 	std::vector< RsRenderStateUPtr > RenderStates_;
 	std::map< std::string, RsSamplerStateUPtr > SamplerStates_;
-
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	RsBufferUPtr VertexBuffer_;
+	std::vector< RsBufferUPtr > UniformBuffers_;
 
 	SysFence RenderFence_;
 };

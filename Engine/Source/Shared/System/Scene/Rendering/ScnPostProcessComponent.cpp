@@ -12,6 +12,8 @@
 
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
 
+#include "System/Debug/DsCore.h"
+
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
@@ -42,6 +44,26 @@ ScnPostProcessVertex::ScnPostProcessVertex( const MaVec4d& Position, const MaVec
 }
 
 //////////////////////////////////////////////////////////////////////////
+// ScnPostProcessUniforms
+REFLECTION_DEFINE_BASIC( ScnPostProcessUniforms );
+
+void ScnPostProcessUniforms::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Name_", &ScnPostProcessUniforms::Name_ ),
+		new ReField( "Data_", &ScnPostProcessUniforms::Data_ ),
+		new ReField( "Buffer_", &ScnPostProcessUniforms::Buffer_, bcRFF_TRANSIENT ),
+	};
+	ReRegisterClass< ScnPostProcessUniforms >( Fields );
+}
+
+ScnPostProcessUniforms::ScnPostProcessUniforms()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ScnPostProcessTexture
 REFLECTION_DEFINE_BASIC( ScnPostProcessNode );
 
@@ -54,8 +76,27 @@ void ScnPostProcessNode::StaticRegisterClass()
 		new ReField( "OutputTextures_", &ScnPostProcessNode::OutputTextures_, bcRFF_SHALLOW_COPY ),
 		new ReField( "Shader_", &ScnPostProcessNode::Shader_, bcRFF_SHALLOW_COPY ),
 		new ReField( "RenderState_", &ScnPostProcessNode::RenderState_ ),
+		new ReField( "Uniforms_", &ScnPostProcessNode::Uniforms_ ),
 	};
-	ReRegisterClass< ScnPostProcessNode >( Fields );
+	auto& Class = ReRegisterClass< ScnPostProcessNode >( Fields );
+
+	// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				auto Node = static_cast< ScnPostProcessNode* >( Object );
+				for( auto& Uniforms : Node->Uniforms_ )
+				{
+					DsCore::pImpl()->drawObjectEditor( 
+						ThisFieldEditor, 
+						Uniforms.Data_.getData< BcU8 >(),
+						ReManager::GetClass( Uniforms.Name_ ), Flags );
+				}
+
+				// Defaults.
+				DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Object, Class, Flags );
+			} ) );
 }
 
 ScnPostProcessNode::ScnPostProcessNode()
@@ -74,6 +115,13 @@ void ScnPostProcessComponent::StaticRegisterClass()
 		new ReField( "Input_", &ScnPostProcessComponent::Input_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "Output_", &ScnPostProcessComponent::Output_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "Nodes_", &ScnPostProcessComponent::Nodes_, bcRFF_IMPORTER ),
+
+		//new ReField( "FrameBuffers_", &ScnPostProcessComponent::FrameBuffers_, bcRFF_TRANSIENT ),
+		//new ReField( "RenderStates_", &ScnPostProcessComponent::RenderStates_, bcRFF_TRANSIENT ),
+		//new ReField( "SamplerStates_", &ScnPostProcessComponent::SamplerStates_, bcRFF_TRANSIENT ),
+		//new ReField( "VertexDeclaration_", &ScnPostProcessComponent::VertexDeclaration_, bcRFF_TRANSIENT ),
+		//new ReField( "VertexBuffer_", &ScnPostProcessComponent::VertexBuffer_, bcRFF_TRANSIENT ),
+		//new ReField( "UniformBuffers_", &ScnPostProcessComponent::UniformBuffers_, bcRFF_TRANSIENT ),
 	};
 	
 	ReRegisterClass< ScnPostProcessComponent, Super >( Fields )
@@ -168,19 +216,46 @@ void ScnPostProcessComponent::render(
 
  					// Bind program.
 					auto Program = Node.Shader_->getProgram( Permutation );
+					BcAssert( Program );
 					pContext_->setProgram( Program );
+					
 					// Bind samplers + textures.
 					// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
 					for( auto& InputTexture : Node.InputTextures_ )
 					{
 						BcU32 Slot = Program->findTextureSlot( InputTexture.first.c_str() );
-						pContext_->setTexture( Slot, InputTexture.second->getTexture() );
+						if( Slot != BcErrorCode )
+						{
+							pContext_->setTexture( Slot, InputTexture.second->getTexture() );
+						}
 					}
 
 					for( auto& InputSampler : Component_->SamplerStates_ )
 					{
 						BcU32 Slot = Program->findSamplerSlot( InputSampler.first.c_str() );
-						pContext_->setSamplerState( Slot, InputSampler.second.get() );
+						if( Slot != BcErrorCode )
+						{
+							pContext_->setSamplerState( Slot, InputSampler.second.get() );
+						}
+					}
+
+					// Bind uniform buffers.
+					// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
+					for( auto& Uniforms : Node.Uniforms_ )
+					{
+						BcU32 Slot = Program->findUniformBufferSlot( Uniforms.Name_.c_str() );
+						if( Slot != BcErrorCode )
+						{
+							pContext_->updateBuffer( 
+								Uniforms.Buffer_, 
+								0, Uniforms.Data_.getDataSize(),
+								RsResourceUpdateFlags::ASYNC,
+								[ &Uniforms ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+								{
+									memcpy( Lock.Buffer_, Uniforms.Data_.getData< BcU8* >(), Uniforms.Data_.getDataSize() );
+								} );
+							pContext_->setUniformBuffer( Slot, Uniforms.Buffer_ );
+						}
 					}
 
 					// Draw.
@@ -256,7 +331,7 @@ void ScnPostProcessComponent::recreateResources()
 			} );		
 	}
 
-	// Create framebuffers + render states for nodes.
+	// Create framebuffers, render states, and uniform buffers for nodes.
 	FrameBuffers_.clear();
 	RenderStates_.clear();
 	for( auto& Node : Nodes_ )
@@ -275,6 +350,16 @@ void ScnPostProcessComponent::recreateResources()
 			{
 				Desc.setRenderTarget( TextureSlot.first, TextureSlot.second->getTexture() );
 			}
+		}
+
+		for( auto& Uniforms : Node.Uniforms_ )
+		{
+			auto& BlockData = Uniforms.Data_;
+			auto BufferDesc = RsBufferDesc( 
+				RsBufferType::UNIFORM, RsResourceCreationFlags::DYNAMIC, BlockData.getDataSize() );
+			auto Buffer = RsCore::pImpl()->createBuffer( BufferDesc );
+			Uniforms.Buffer_ = Buffer;
+			UniformBuffers_.push_back( RsBufferUPtr( Buffer ) );
 		}
 
 		FrameBuffers_.push_back( RsCore::pImpl()->createFrameBuffer( Desc ) );		

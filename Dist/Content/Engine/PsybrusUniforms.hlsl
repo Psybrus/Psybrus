@@ -117,10 +117,9 @@ ScnShaderPostProcessCopyBlockData ScnShaderPostProcessCopyVS;
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessBlurBlockData
 BEGIN_CBUFFER( ScnShaderPostProcessBlurBlockData )
-	/// XY - Texture size. ZW - Unused.
-	ENTRY( float4, TextureDimensions_ ) 
-	/// Radius in texels.
+	ENTRY( float2, TextureDimensions_ ) 
 	ENTRY( float, Radius_ ) 
+	ENTRY( float, Unused_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
