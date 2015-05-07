@@ -55,6 +55,20 @@ namespace ImGui
 		}
 	};
 
+	class ScopedIndent
+	{
+	public:
+		ScopedIndent()
+		{
+			ImGui::Indent();
+		}
+
+		~ScopedIndent()
+		{
+			ImGui::Unindent();
+		}
+	};
+
 
 	namespace Psybrus
 	{
