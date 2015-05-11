@@ -227,6 +227,19 @@ struct ScnShaderAlphaTestUniformBlockData
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessConfigData
+struct ScnShaderPostProcessConfigData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderPostProcessConfigData );
+	ScnShaderPostProcessConfigData(){};
+
+	/// Input texture dimensions.
+	std::array< MaVec4d, 16 > InputDimensions_;
+	/// Output texture dimensions.
+	std::array< MaVec4d, 4 > OutputDimensions_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessCopyBlockData
 struct ScnShaderPostProcessCopyBlockData
 {

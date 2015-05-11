@@ -93,6 +93,21 @@ void ScnShaderAlphaTestUniformBlockData::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessConfigData
+REFLECTION_DEFINE_BASIC( ScnShaderPostProcessConfigData );
+
+void ScnShaderPostProcessConfigData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "InputDimensions_", &ScnShaderPostProcessConfigData::InputDimensions_ ),
+		new ReField( "OutputDimensions_", &ScnShaderPostProcessConfigData::OutputDimensions_ ),
+	};
+		
+	ReRegisterClass< ScnShaderPostProcessConfigData >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessCopyBlockData
 REFLECTION_DEFINE_BASIC( ScnShaderPostProcessCopyBlockData );
 

@@ -263,12 +263,12 @@ void ScnTexture::recreate()
 	{
 		if( Header_.Width_ <= 0 )
 		{
-			Width_ = Context->getWidth() << -Header_.Width_;
+			Width_ = Context->getWidth() >> -Header_.Width_;
 		}
 
 		if( Header_.Height_ <= 0 )
 		{
-			Height_ = Context->getHeight() << -Header_.Height_;
+			Height_ = Context->getHeight() >> -Header_.Height_;
 		}
 	}
 

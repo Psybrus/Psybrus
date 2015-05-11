@@ -101,6 +101,21 @@ ScnShaderAlphaTestUniformBlockData ScnShaderAlphaTestUniformBlockDataVS;
 #endif
 
 ////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessConfigData
+BEGIN_CBUFFER( ScnShaderPostProcessConfigData )
+	ENTRY( float4, InputDimensions_[16] ) 
+	ENTRY( float4, OutputDimensions_[4] ) 
+END_CBUFFER
+
+#if !PSY_USE_CBUFFER
+ScnShaderPostProcessConfigData ScnShaderPostProcessConfigDataVS;
+
+#  define InputDimensions_ ScnShaderPostProcessConfigDataVS.XInputDimensions_
+#  define OutputDimensions_ ScnShaderPostProcessConfigDataVS.XOutputDimensions_
+
+#endif
+
+////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessCopyBlockData
 BEGIN_CBUFFER( ScnShaderPostProcessCopyBlockData )
 	/// Colour transform to copy using.

@@ -193,6 +193,7 @@ void ScnPostProcessComponent::render(
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );
 
+
 			auto InputTexture = Component_->Input_->getTexture();
 			auto OutputTexture = Component_->Output_->getTexture();
 			if( OutputTexture != nullptr )
@@ -219,6 +220,18 @@ void ScnPostProcessComponent::render(
 					BcAssert( Program );
 					pContext_->setProgram( Program );
 					
+					// Copy in base config data.
+					ScnShaderPostProcessConfigData* ConfigUniformBlock = nullptr;
+					auto FoundConfigBlockIt = std::find_if( Node.Uniforms_.begin(), Node.Uniforms_.end(),
+						[ this ]( const ScnPostProcessUniforms& Uniforms )
+						{
+							return Uniforms.Name_ == "ScnShaderPostProcessConfigData";
+						} );
+					if( FoundConfigBlockIt != Node.Uniforms_.end() )
+					{
+						ConfigUniformBlock = FoundConfigBlockIt->Data_.getData< ScnShaderPostProcessConfigData >();
+					}
+
 					// Bind samplers + textures.
 					// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
 					for( auto& InputTexture : Node.InputTextures_ )
@@ -227,6 +240,15 @@ void ScnPostProcessComponent::render(
 						if( Slot != BcErrorCode )
 						{
 							pContext_->setTexture( Slot, InputTexture.second->getTexture() );
+						}
+
+						// TODO: Support for more than 16, and also D3D11 (need to change how it maps)
+						if( ConfigUniformBlock )
+						{
+							BcAssert( Slot < 16 );
+							const auto& Desc = InputTexture.second->getTexture()->getDesc();
+							ConfigUniformBlock->InputDimensions_[ Slot ] = 
+								MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
 						}
 					}
 
@@ -237,6 +259,35 @@ void ScnPostProcessComponent::render(
 						{
 							pContext_->setSamplerState( Slot, InputSampler.second.get() );
 						}
+					}
+
+					// Set output texture sizes.
+					if( ConfigUniformBlock )
+					{
+						const auto& FrameBufferDesc = FrameBuffer->getDesc(); 
+						for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
+						{
+							RsTexture* RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
+							if( RenderTarget )
+							{
+								const auto& Desc = RenderTarget->getDesc();
+								ConfigUniformBlock->OutputDimensions_[ Idx ] = 
+									MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
+							}
+						}
+					}
+
+					// Update config buffer.
+					if( FoundConfigBlockIt != Node.Uniforms_.end() )
+					{
+						pContext_->updateBuffer( 
+							FoundConfigBlockIt->Buffer_, 
+							0, sizeof( ConfigUniformBlock ),
+							RsResourceUpdateFlags::ASYNC,
+							[ &ConfigUniformBlock ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+							{
+								memcpy( Lock.Buffer_, &ConfigUniformBlock, sizeof( ConfigUniformBlock ) );
+							} );
 					}
 
 					// Bind uniform buffers.
