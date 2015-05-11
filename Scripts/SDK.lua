@@ -99,7 +99,8 @@ function PsyAddSystemLibs()
 			"GL",
 			"pthread",
 			"bluetooth",
-			"SDL2"
+			"SDL2",
+			"dl"
 		}
 
 end
