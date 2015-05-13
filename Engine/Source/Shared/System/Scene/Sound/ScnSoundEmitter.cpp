@@ -65,6 +65,7 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 	{
 		// Acquire before playing (callback is threaded)
 		getPackage()->acquire();
+		Sound->getPackage()->acquire();
 
 		// Get source from sound.
 		SsSource* Source = Sound->getSource();
@@ -72,7 +73,8 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 
 		// Temporary negate...hack.
 		Params_.Position_ = -getParentEntity()->getWorldPosition();
-
+		Params_.Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
+		
 		// Play sample.
 		SsChannel* Channel = SsCore::pImpl()->playSource( 
 			Source, 
@@ -89,6 +91,7 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 			else
 			{
 				getPackage()->release();
+				Sound->getPackage()->release();
 			}
 		}
 	}
@@ -98,41 +101,35 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 // stopAll
 void ScnSoundEmitterComponent::stopAll( BcBool ForceFlush )
 {
-	if( ForceFlush )
+	if( SsCore::pImpl() )
 	{
-		// Stop all channels. We are forcing a flush
-		// so we know items will all be removed in the callback.
-		ChannelSoundMutex_.lock();
-		while( ChannelSoundMap_.size() > 0 )
+		if( ForceFlush )
 		{
-			auto It = ChannelSoundMap_.begin();
-			ChannelSoundMutex_.unlock();
-	
-			// Stop channel.
-			SsCore::pImpl()->stopChannel( (*It).first, BcTrue );
+			// Stop all channels. We are forcing a flush
+			// so we know items will all be removed in the callback.
 			ChannelSoundMutex_.lock();
+			while( ChannelSoundMap_.size() > 0 )
+			{
+				auto It = ChannelSoundMap_.begin();
+				ChannelSoundMutex_.unlock();
+		
+				// Stop channel.
+				SsCore::pImpl()->stopChannel( (*It).first, BcTrue );
+				ChannelSoundMutex_.lock();
+			}
+			ChannelSoundMutex_.unlock();
 		}
-		ChannelSoundMutex_.unlock();
-	}
-	else
-	{
-		std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
-
-		// Stop channels.
-		for( auto Pair : ChannelSoundMap_ )
+		else
 		{
-			SsCore::pImpl()->stopChannel( Pair.first );
+			std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
+
+			// Stop channels.
+			for( auto Pair : ChannelSoundMap_ )
+			{
+				SsCore::pImpl()->stopChannel( Pair.first );
+			}
 		}
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onChannelDone
-void ScnSoundEmitterComponent::onChannelDone( SsChannel* Channel )
-{
-	std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
-	ChannelSoundMap_.erase( ChannelSoundMap_.find( Channel ) );
-	getPackage()->release();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -147,6 +144,21 @@ void ScnSoundEmitterComponent::setGain( BcF32 Gain )
 void ScnSoundEmitterComponent::setPitch( BcF32 Pitch )
 {
 	Params_.Pitch_ = Pitch;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// update
+void ScnSoundEmitterComponent::update( BcF32 Tick )
+{
+	if( SsCore::pImpl() )
+	{
+		std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
+		for( auto Channel : ChannelUpdateList_ )
+		{
+			SsCore::pImpl()->updateChannel( Channel, Params_ );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -165,4 +177,20 @@ void ScnSoundEmitterComponent::onDetach( ScnEntityWeakRef Parent )
 	stopAll( BcTrue );
 
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onChannelDone
+void ScnSoundEmitterComponent::onChannelDone( SsChannel* Channel )
+{
+	std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
+	auto FoundIt = ChannelSoundMap_.find( Channel );
+
+	// Release packages now that we're done with resources.
+	getPackage()->release();
+	FoundIt->second->getPackage()->release();
+
+	// Remove.
+	ChannelSoundMap_.erase( FoundIt );
+	std::remove( ChannelUpdateList_.begin(), ChannelUpdateList_.end(), Channel );
 }
