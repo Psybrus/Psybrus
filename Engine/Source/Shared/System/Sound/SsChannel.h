@@ -35,11 +35,17 @@ public:
 	SsChannelParams( 
 		BcF32 Gain = 1.0f,
 		BcF32 Pitch = 1.0f,
+		BcF32 Min = 1.0f,
+		BcF32 Max = 100.0f,
+		BcF32 RolloffFactor = 1.0f,
 		MaVec3d Position = MaVec3d( 0.0f, 0.0f, 0.0f ),
 		MaVec3d Velocity = MaVec3d( 0.0f, 0.0f, 0.0f ) );
 
 	BcF32 Gain_;
 	BcF32 Pitch_;
+	BcF32 Min_;
+	BcF32 Max_;
+	BcF32 RolloffFactor_;
 	MaVec3d Position_;
 	MaVec3d Velocity_;
 };

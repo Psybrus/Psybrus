@@ -46,42 +46,48 @@ public:
 	virtual ~SsCoreImplSoLoud();
 
 private:
-	void open();
-	void update();
-	void close();
+	void open() override;
+	void update() override;
+	void close() override;
 
 public:
 	SsBus* createBus( 
-		const SsBusParams& Params );
+		const SsBusParams& Params ) override;
 	
 	SsFilter* createFilter( 
-		const SsFilterParams& Params );
+		const SsFilterParams& Params ) override;
 
 	SsSource* createSource( 
 		const SsSourceParams& Params,
-		const SsSourceFileData* FileData );
+		const SsSourceFileData* FileData ) override;
 
 	void destroyResource( 
-		SsBus* Resource );
+		SsBus* Resource ) override;
 	
 	void destroyResource( 
-		SsFilter* Resource );
+		SsFilter* Resource ) override;
 
 	void destroyResource( 
-		SsSource* Resource );
+		SsSource* Resource ) override;
 
 	SsChannel* playSource( 
 		SsSource* Source, 
 		const SsChannelParams& Params,
-		SsChannelCallback DoneCallback );
+		SsChannelCallback DoneCallback ) override;
 
 	void stopChannel( 
 		SsChannel* Channel,
-		BcBool ForceFlush );
+		BcBool ForceFlush ) override;
 
 	void updateChannel(
 		SsChannel* Channel,
-		const SsChannelParams& Params );
+		const SsChannelParams& Params ) override;
+
+	void setListener( 
+		const MaMat4d& Transform ) override;
+
+	void getVisualisationData( 
+		std::vector< BcF32 >& OutFFT, std::vector< BcF32 >& OutWave ) override;
 
 private:
 	SsChannel* allocChannel();
