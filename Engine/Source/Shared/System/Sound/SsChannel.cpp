@@ -20,6 +20,7 @@ SsChannelParams::SsChannelParams(
 		BcF32 Pitch,
 		BcF32 Min,
 		BcF32 Max,
+		SsAttenuationModel AttenuationModel,
 		BcF32 RolloffFactor,
 		MaVec3d Position, 
 		MaVec3d Velocity ):
@@ -27,6 +28,7 @@ SsChannelParams::SsChannelParams(
 	Pitch_( Pitch ),
 	Min_( Min ),
 	Max_( Max ),
+	AttenuationModel_( AttenuationModel ),
 	RolloffFactor_( RolloffFactor ),
 	Position_( Position ),
 	Velocity_( Velocity )

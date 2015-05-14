@@ -359,7 +359,7 @@ SsChannel* SsCoreImplSoLoud::playSource(
 				Params.Min_,
 				Params.Max_ );
 			AudioSource->set3dAttenuation(
-				SoLoud::AudioSource::EXPONENTIAL_DISTANCE,
+				static_cast< int >( Params.AttenuationModel_ ),
 				Params.RolloffFactor_ );
 			AudioSource->setVolume( Params.Gain_ );
 			
@@ -462,7 +462,7 @@ void SsCoreImplSoLoud::updateChannel(
 			Params.Max_ );
 		SoLoudCore_->set3dSourceAttenuation(
 			Handle,
-			SoLoud::AudioSource::EXPONENTIAL_DISTANCE,
+			static_cast< int >( Params.AttenuationModel_ ),
 			Params.RolloffFactor_ );
 		SoLoudCore_->set3dSourceParameters( 
 			Handle,

@@ -33,7 +33,16 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Params_", &ScnSoundEmitterComponent::Params_, bcRFF_IMPORTER ),
+		new ReField( "Gain_", &ScnSoundEmitterComponent::Gain_, bcRFF_IMPORTER ),
+		new ReField( "Pitch_", &ScnSoundEmitterComponent::Pitch_, bcRFF_IMPORTER ),
+		new ReField( "MinDistance_", &ScnSoundEmitterComponent::MinDistance_, bcRFF_IMPORTER ),
+		new ReField( "MaxDistance_", &ScnSoundEmitterComponent::MaxDistance_, bcRFF_IMPORTER ),
+		new ReField( "AttenuationModel_", &ScnSoundEmitterComponent::AttenuationModel_, bcRFF_IMPORTER ),
+		new ReField( "RolloffFactor_", &ScnSoundEmitterComponent::RolloffFactor_, bcRFF_IMPORTER ),
+
+		new ReField( "LastPosition_", &ScnSoundEmitterComponent::LastPosition_, bcRFF_TRANSIENT ),
+		new ReField( "Position_", &ScnSoundEmitterComponent::Position_, bcRFF_TRANSIENT ),
+		new ReField( "Velocity_", &ScnSoundEmitterComponent::Velocity_, bcRFF_TRANSIENT ),
 	};
 		
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
@@ -42,7 +51,15 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnSoundEmitterComponent::ScnSoundEmitterComponent()
+ScnSoundEmitterComponent::ScnSoundEmitterComponent():
+	Gain_( 1.0f ),
+	Pitch_( 1.0f ),
+	MinDistance_( 1.0f ),
+	MaxDistance_( 1000.0f ),
+	AttenuationModel_( SsAttenuationModel::EXPONENTIAL ),
+	RolloffFactor_( 1.0f ),
+	Position_( MaVec3d( 0.0f, 0.0f, 0.0f ) ),
+	Velocity_( MaVec3d( 0.0f, 0.0f, 0.0f ) )
 {
 
 }
@@ -57,7 +74,7 @@ ScnSoundEmitterComponent::~ScnSoundEmitterComponent()
 
 //////////////////////////////////////////////////////////////////////////
 // play
-void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
+void ScnSoundEmitterComponent::play( ScnSoundRef Sound, bool ContinuousUpdate )
 {
 	using namespace std::placeholders;
 
@@ -71,22 +88,42 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 		SsSource* Source = Sound->getSource();
 		BcAssert( Source );
 
-		// Temporary negate...hack.
-		Params_.Position_ = -getParentEntity()->getWorldPosition();
-		Params_.Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
-		
+		// Setup channel params for play.
+		SsChannelParams Params;
+		Params.Gain_ = Gain_;
+		Params.Pitch_ = Pitch_;
+		Params.Min_ = MinDistance_;
+		Params.Max_ = MaxDistance_;
+		Params.AttenuationModel_ = AttenuationModel_;
+		Params.RolloffFactor_ = RolloffFactor_;
+		Params.Position_ = Position_;
+		// Only continuous update should have velocity.
+		if( ContinuousUpdate )
+		{
+			Params.Velocity_ = Velocity_;
+		}
+		else
+		{
+			Params.Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
+		}
+
+
 		// Play sample.
 		SsChannel* Channel = SsCore::pImpl()->playSource( 
 			Source, 
-			Params_,
+			Params,
 			std::bind( &ScnSoundEmitterComponent::onChannelDone, this, _1 ) );
 
 		// Add to map, or release if not played.
 		{
 			std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
-			if( Channel != NULL )
+			if( Channel != nullptr )
 			{
 				ChannelSoundMap_[ Channel ] = Sound;
+				if( ContinuousUpdate )
+				{
+					ChannelUpdateList_.push_back( Channel );
+				}
 			}
 			else
 			{
@@ -99,7 +136,7 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound )
 
 //////////////////////////////////////////////////////////////////////////
 // stopAll
-void ScnSoundEmitterComponent::stopAll( BcBool ForceFlush )
+void ScnSoundEmitterComponent::stopAll( bool ForceFlush )
 {
 	if( SsCore::pImpl() )
 	{
@@ -136,16 +173,36 @@ void ScnSoundEmitterComponent::stopAll( BcBool ForceFlush )
 // setGain
 void ScnSoundEmitterComponent::setGain( BcF32 Gain )
 {
-	Params_.Gain_ = Gain;
+	BcAssert( Gain >=- 0.0f );
+	Gain_ = Gain;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setPitch
 void ScnSoundEmitterComponent::setPitch( BcF32 Pitch )
 {
-	Params_.Pitch_ = Pitch;
+	BcAssert( Pitch > 0.0f );
+	Pitch_ = Pitch;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// setMinMaxDistance
+void ScnSoundEmitterComponent::setMinMaxDistance( BcF32 MinDistance, BcF32 MaxDistance )
+{
+	BcAssert( MinDistance > 0.0f );
+	BcAssert( MaxDistance > MinDistance );
+	MinDistance_ = MinDistance;
+	MaxDistance_ = MaxDistance;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setAttenuation
+void ScnSoundEmitterComponent::setAttenuation( SsAttenuationModel AttenuationModel, BcF32 RolloffFactor )
+{
+	BcAssert( RolloffFactor > 0.0f );
+	AttenuationModel_ = AttenuationModel;
+	RolloffFactor_ = RolloffFactor;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // update
@@ -153,10 +210,27 @@ void ScnSoundEmitterComponent::update( BcF32 Tick )
 {
 	if( SsCore::pImpl() )
 	{
+		// Calculate velocity from change in position.
+		LastPosition_ = Position_;
+		Position_ = getParentEntity()->getWorldPosition();
+		Velocity_ = ( Position_ - LastPosition_ ) / Tick;
+
+		// Setup parameters.		
+		SsChannelParams Params;
+		Params.Gain_ = Gain_;
+		Params.Pitch_ = Pitch_;
+		Params.Min_ = MinDistance_;
+		Params.Max_ = MaxDistance_;
+		Params.AttenuationModel_ = AttenuationModel_;
+		Params.RolloffFactor_ = RolloffFactor_;
+		Params.Position_ = Position_;
+		Params.Velocity_ = Velocity_;
+
+		// Update all channels required.
 		std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
 		for( auto Channel : ChannelUpdateList_ )
 		{
-			SsCore::pImpl()->updateChannel( Channel, Params_ );
+			SsCore::pImpl()->updateChannel( Channel, Params );
 		}
 	}
 }
@@ -167,6 +241,8 @@ void ScnSoundEmitterComponent::update( BcF32 Tick )
 void ScnSoundEmitterComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+
+	LastPosition_ = Position_ = getParentEntity()->getWorldPosition();
 }
 
 //////////////////////////////////////////////////////////////////////////
