@@ -142,10 +142,11 @@ public:
 	/**
 	 * Set listener.
 	 * @param Transform Listener transform local->world.
+	 * @param Velocity World space velocity of listener.
 	 * @pre SsCore has been created.
 	 */
 	virtual void setListener( 
-		const MaMat4d& Transform ) = 0;
+		const MaMat4d& Transform, const MaVec3d& Velocity ) = 0;
 
 	/**
 	 * Get visualisation data.

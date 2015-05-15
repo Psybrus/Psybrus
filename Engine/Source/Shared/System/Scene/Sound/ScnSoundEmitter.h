@@ -83,7 +83,8 @@ public:
 	void setAttenuation( SsAttenuationModel AttenuationModel, BcF32 RolloffFactor );
 
 private:
-	void update( BcF32 Tick ) override;
+	void postUpdate( BcF32 Tick ) override;
+	void updateVelocity( BcF32 Tick );
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 	void onChannelDone( SsChannel* Channel );
@@ -103,9 +104,14 @@ private:
 	SsAttenuationModel AttenuationModel_;
 	BcF32 RolloffFactor_;
 
+	BcF32 VelocityMultiplier_;
+	BcF32 VelocitySmoothingAmount_;
+	BcF32 MaxVelocity_;
+
 	MaVec3d LastPosition_;
 	MaVec3d Position_;
 	MaVec3d Velocity_;
+	MaVec3d SmoothedVelocity_;
 };
 
 

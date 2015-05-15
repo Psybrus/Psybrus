@@ -363,18 +363,21 @@ SsChannel* SsCoreImplSoLoud::playSource(
 				Params.RolloffFactor_ );
 			AudioSource->setVolume( Params.Gain_ );
 			
+			// TODO: Wait until SoLoud supports setting pitch + doppler.
+			auto Position = Params.Position_;
+			auto Velocity = MaVec3d( 0.0f, 0.0f, 0.0f ); //Params.Velocity_;
+
 			// Play sound.
 			SoLoud::handle Handle = SoLoudCore_->play3d( 
 				*AudioSource,
-				Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
-				Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z(),
+				Position.x(), Position.y(), Position.z(),
+				Velocity.x(), Velocity.y(), Velocity.z(),
 				Params.Gain_,
 				true, 
 				0 );
 			SoLoudCore_->setRelativePlaySpeed(
 				Handle,
 				Params.Pitch_ );
-
 			// NOTE: Should be updated by play3d, or 3d channels shouldn't
 			//       play until after they've been updated for the first time.
 			//       Could move the unpause until after this call in internalUpdate
@@ -456,6 +459,10 @@ void SsCoreImplSoLoud::updateChannel(
 	{
 		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
 
+		// TODO: Wait until SoLoud supports setting pitch + doppler.
+		auto Position = Params.Position_;
+		auto Velocity = MaVec3d( 0.0f, 0.0f, 0.0f ); //Params.Velocity_;
+
 		SoLoudCore_->set3dSourceMinMaxDistance(
 			Handle,
 			Params.Min_,
@@ -466,8 +473,8 @@ void SsCoreImplSoLoud::updateChannel(
 			Params.RolloffFactor_ );
 		SoLoudCore_->set3dSourceParameters( 
 			Handle,
-			Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
-			Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z() );
+			Position.x(), Position.y(), Position.z(),
+			Velocity.x(), Velocity.y(), Velocity.z() );
 		SoLoudCore_->setRelativePlaySpeed(
 			Handle,
 			Params.Pitch_ );
@@ -478,12 +485,12 @@ void SsCoreImplSoLoud::updateChannel(
 
 //////////////////////////////////////////////////////////////////////////
 // setListener
-void SsCoreImplSoLoud::setListener( const MaMat4d& Transform )
+void SsCoreImplSoLoud::setListener( const MaMat4d& Transform, const MaVec3d& Velocity )
 {
 	BcAssert( SoLoudCore_ != nullptr );
 
 	// Set listener func.
-	auto setListenerFunc = [ this, Transform ]()
+	auto setListenerFunc = [ this, Transform, Velocity ]()
 	{
 		auto Position = Transform.translation();
 		auto At = Transform.row2();
@@ -495,6 +502,11 @@ void SsCoreImplSoLoud::setListener( const MaMat4d& Transform )
 			At.x(), At.y(), At.z() );
 		SoLoudCore_->set3dListenerUp( 
 			Up.x(), Up.y(), Up.z() );
+		// TODO: Wait until SoLoud supports setting pitch + doppler.
+#if 0
+		SoLoudCore_->set3dListenerVelocity( 
+			Velocity.x(), Velocity.y(), Velocity.z() );
+#endif
 	};
 
 	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, setListenerFunc );

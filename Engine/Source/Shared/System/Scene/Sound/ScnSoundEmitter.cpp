@@ -20,6 +20,8 @@
 
 #include "Base/BcRandom.h"
 
+#include "Base/BcMath.h"
+
 #ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
@@ -39,12 +41,15 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 		new ReField( "MaxDistance_", &ScnSoundEmitterComponent::MaxDistance_, bcRFF_IMPORTER ),
 		new ReField( "AttenuationModel_", &ScnSoundEmitterComponent::AttenuationModel_, bcRFF_IMPORTER ),
 		new ReField( "RolloffFactor_", &ScnSoundEmitterComponent::RolloffFactor_, bcRFF_IMPORTER ),
+		new ReField( "VelocityMultiplier_", &ScnSoundEmitterComponent::VelocityMultiplier_, bcRFF_IMPORTER ),
+		new ReField( "VelocitySmoothingAmount_", &ScnSoundEmitterComponent::VelocitySmoothingAmount_, bcRFF_IMPORTER ),
+		new ReField( "MaxVelocity_", &ScnSoundEmitterComponent::MaxVelocity_, bcRFF_IMPORTER ),
 
 		new ReField( "LastPosition_", &ScnSoundEmitterComponent::LastPosition_, bcRFF_TRANSIENT ),
 		new ReField( "Position_", &ScnSoundEmitterComponent::Position_, bcRFF_TRANSIENT ),
 		new ReField( "Velocity_", &ScnSoundEmitterComponent::Velocity_, bcRFF_TRANSIENT ),
 	};
-		
+
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
 		.addAttribute( new ScnComponentAttribute( -2010 ) );
 }
@@ -57,9 +62,13 @@ ScnSoundEmitterComponent::ScnSoundEmitterComponent():
 	MinDistance_( 1.0f ),
 	MaxDistance_( 1000.0f ),
 	AttenuationModel_( SsAttenuationModel::EXPONENTIAL ),
-	RolloffFactor_( 1.0f ),
-	Position_( MaVec3d( 0.0f, 0.0f, 0.0f ) ),
-	Velocity_( MaVec3d( 0.0f, 0.0f, 0.0f ) )
+	RolloffFactor_( 0.01f ),
+	VelocityMultiplier_( 1.0f ),
+	VelocitySmoothingAmount_( 0.5f ),
+	MaxVelocity_( 10.0f ),
+	Position_( 0.0f, 0.0f, 0.0f ),
+	Velocity_( 0.0f, 0.0f, 0.0f ),
+	SmoothedVelocity_( 0.0f, 0.0f, 0.0f )
 {
 
 }
@@ -100,13 +109,12 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound, bool ContinuousUpdate )
 		// Only continuous update should have velocity.
 		if( ContinuousUpdate )
 		{
-			Params.Velocity_ = Velocity_;
+			Params.Velocity_ = SmoothedVelocity_;
 		}
 		else
 		{
 			Params.Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
 		}
-
 
 		// Play sample.
 		SsChannel* Channel = SsCore::pImpl()->playSource( 
@@ -205,17 +213,18 @@ void ScnSoundEmitterComponent::setAttenuation( SsAttenuationModel AttenuationMod
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
-void ScnSoundEmitterComponent::update( BcF32 Tick )
+// postUpdate
+void ScnSoundEmitterComponent::postUpdate( BcF32 Tick )
 {
 	if( SsCore::pImpl() )
 	{
 		// Calculate velocity from change in position.
 		LastPosition_ = Position_;
 		Position_ = getParentEntity()->getWorldPosition();
-		Velocity_ = ( Position_ - LastPosition_ ) / Tick;
+		updateVelocity( Tick );
 
-		// Setup parameters.		
+		// Setup parameters.
+		// TODO: Per sound modifiers?
 		SsChannelParams Params;
 		Params.Gain_ = Gain_;
 		Params.Pitch_ = Pitch_;
@@ -224,8 +233,8 @@ void ScnSoundEmitterComponent::update( BcF32 Tick )
 		Params.AttenuationModel_ = AttenuationModel_;
 		Params.RolloffFactor_ = RolloffFactor_;
 		Params.Position_ = Position_;
-		Params.Velocity_ = Velocity_;
-
+		Params.Velocity_ = SmoothedVelocity_;
+		
 		// Update all channels required.
 		std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
 		for( auto Channel : ChannelUpdateList_ )
@@ -236,7 +245,20 @@ void ScnSoundEmitterComponent::update( BcF32 Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPitch
+// updateVelocity
+void ScnSoundEmitterComponent::updateVelocity( BcF32 Tick )
+{
+	Velocity_ = ( ( LastPosition_ - Position_ ) / Tick ) * VelocityMultiplier_;
+	VelocitySmoothingAmount_ = BcClamp( VelocitySmoothingAmount_, 0.0f, 1.0f );
+	SmoothedVelocity_ = ( SmoothedVelocity_ * VelocitySmoothingAmount_ ) + ( Velocity_ * ( 1.0f - VelocitySmoothingAmount_ ) );
+	if( SmoothedVelocity_.magnitude() > MaxVelocity_ )
+	{
+		SmoothedVelocity_ = SmoothedVelocity_.normal() * MaxVelocity_;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
 //virtual
 void ScnSoundEmitterComponent::onAttach( ScnEntityWeakRef Parent )
 {
@@ -246,7 +268,7 @@ void ScnSoundEmitterComponent::onAttach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setPitch
+// onDetach
 //virtual
 void ScnSoundEmitterComponent::onDetach( ScnEntityWeakRef Parent )
 {

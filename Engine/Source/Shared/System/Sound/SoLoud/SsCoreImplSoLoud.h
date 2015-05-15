@@ -84,7 +84,7 @@ public:
 		const SsChannelParams& Params ) override;
 
 	void setListener( 
-		const MaMat4d& Transform ) override;
+		const MaMat4d& Transform, const MaVec3d& Velocity ) override;
 
 	void getVisualisationData( 
 		std::vector< BcF32 >& OutFFT, std::vector< BcF32 >& OutWave ) override;
