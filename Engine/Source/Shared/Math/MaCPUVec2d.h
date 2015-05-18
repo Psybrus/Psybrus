@@ -14,12 +14,11 @@
 #ifndef __BCCPUVEC2D_H__
 #define __BCCPUVEC2D_H__
 
-#include "Math/MaCPUVecQuad.h"
 #include "Reflection/ReReflection.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec2d
-class MaCPUVec2d: public MaCPUVecQuad
+class MaCPUVec2d
 {
 public:
 	REFLECTION_DECLARE_BASIC( MaCPUVec2d );
@@ -68,18 +67,23 @@ public:
 	// Comparison with epsilons
 	BcBool			operator == ( const MaCPUVec2d& Rhs ) const;	
 	BcBool			operator != ( const MaCPUVec2d& Rhs ) const;		      
+
+protected:
+	BcF32 X_, Y_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
 BcForceInline MaCPUVec2d::MaCPUVec2d():
-	MaCPUVecQuad( 0.0f, 0.0f )
+	X_( 0.0f ), // todo, remove these.
+	Y_( 0.0f ) // todo, remove these.
 {
 
 }
 
 BcForceInline MaCPUVec2d::MaCPUVec2d( BcF32 X, BcF32 Y ):
-	MaCPUVecQuad( X, Y )
+	X_( X ),
+	Y_( Y )
 {
 
 }

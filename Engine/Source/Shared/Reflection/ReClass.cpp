@@ -13,6 +13,7 @@ void ReClass::StaticRegisterClass()
 		new ReField( "Serialiser_", &ReClass::Serialiser_ ),
 		new ReField( "Super_", &ReClass::Super_ ),
 		new ReField( "Size_", &ReClass::Size_ ),
+		new ReField( "ClassFlags_", &ReClass::ClassFlags_ ),
 		new ReField( "Fields_", &ReClass::Fields_ ),
 	};
 	
@@ -25,6 +26,7 @@ ReClass::ReClass():
 	Serialiser_( nullptr ),
 	Super_( nullptr ),
 	Size_( 0 ),
+	ClassFlags_( 0 ),
 	Fields_()
 {
 }
@@ -35,6 +37,7 @@ ReClass::ReClass( BcName Name ):
 	Serialiser_( nullptr ),
 	Super_( nullptr ),
 	Size_( 0 ),
+	ClassFlags_( 0 ),
 	Fields_()
 {
 	setName( Name );
@@ -58,6 +61,20 @@ ReClass::~ReClass()
 size_t ReClass::getSize() const
 {
 	return Size_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setFlags
+void ReClass::setFlags( BcU32 Flags )
+{
+	ClassFlags_ = Flags;
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// getFlags
+BcU32 ReClass::getFlags() const
+{
+	return ClassFlags_;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -23,6 +23,8 @@
 #include "System/Scene/Import/ScnTextureImport.h"
 #endif
 
+#include "System/Debug/DsImGuiFieldEditor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnTexture );
@@ -37,7 +39,7 @@ void ScnTexture::StaticRegisterClass()
 		new ReField( "Height_", &ScnTexture::Height_ ),
 		new ReField( "Depth_", &ScnTexture::Depth_ ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnTexture, Super >( Fields );
 	BcUnusedVar( Class );
 
@@ -46,6 +48,25 @@ void ScnTexture::StaticRegisterClass()
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnTextureImport::StaticGetClass(), 0 ) );
 #endif
+
+	// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				ScnTexture* Value = (ScnTexture*)Object;
+				if( Value != nullptr )
+				{
+					ImGui::Text( "Width: %u", Value->Width_ );
+					ImGui::Text( "Height: %u", Value->Height_ );
+					ImGui::Text( "Depth: %u", Value->Depth_ );
+					ImGui::Text( "Format: TODO" );
+					MaVec2d Size( Value->Width_, Value->Height_ );
+					const auto WidthRequirement = 256.0f;
+					Size *= WidthRequirement / Size.x();
+					ImGui::Image( Value->getTexture(), Size );
+				}
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,7 +173,7 @@ void ScnTexture::create()
 {
 	// If width or height is a fraction of client size, then register
 	// for recreation.
-	if( Header_.Width_ < 0 || Header_.Height_ < 0 )
+	if( Header_.Width_ <= 0 || Header_.Height_ <= 0 )
 	{
 		OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
 			[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
@@ -162,7 +183,7 @@ void ScnTexture::create()
 			} );
 	}
 
-	recreate();
+recreate();
 	markReady();
 }
 
@@ -240,15 +261,33 @@ void ScnTexture::recreate()
 	// If a target, use negative width + height as multiples of resolution.
 	if( Header_.RenderTarget_ || Header_.DepthStencilTarget_ )
 	{
-		if( Header_.Width_ < 0 )
+		if( Header_.Width_ <= 0 )
 		{
-			Width_ = Context->getWidth() / -Header_.Width_;
+			Width_ = Context->getWidth() >> -Header_.Width_;
 		}
 
-		if( Header_.Height_ < 0 )
+		if( Header_.Height_ <= 0 )
 		{
-			Height_ = Context->getHeight() / -Header_.Height_;
+			Height_ = Context->getHeight() >> -Header_.Height_;
 		}
+	}
+
+	BcAssert( Width_ >= 0 );
+	BcAssert( Height_ >= 0 );
+	BcAssert( Depth_ >= 0 );
+
+	// Set to valid minimums.
+	if( Width_ == 0 )
+	{
+		Width_ = 1;
+	}
+	if( Height_ == 0 )
+	{
+		Height_ = 1;
+	}
+	if( Depth_ == 0 )
+	{
+		Depth_ = 1;
 	}
 
 	// Allocate if editable.
@@ -295,6 +334,9 @@ void ScnTexture::recreate()
 	if( !Header_.RenderTarget_ && !Header_.DepthStencilTarget_ )
 	{
 		BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
+		BcU32 Width = Width_;
+		BcU32 Height = Height_;
+		BcU32 Depth = Depth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 		{
 			auto Slice = pTexture_->getSlice( LevelIdx );
@@ -302,9 +344,9 @@ void ScnTexture::recreate()
 			BcU32 SliceSize = 
 				RsTextureFormatSize( 
 					Header_.Format_, 
-					Width_, 
-					Height_,
-					Depth_, 
+					Width, 
+					Height,
+					Depth, 
 					1 );
 
 			RsCore::pImpl()->updateTexture( 
@@ -320,9 +362,9 @@ void ScnTexture::recreate()
 				} );
 
 			// Down a level.
-			Width_ = BcMax( 1, Width_ >> 1 );
-			Height_ = BcMax( 1, Height_ >> 1 );
-			Depth_ = BcMax( 1, Depth_ >> 1 );
+			Width = BcMax( 1, Width >> 1 );
+			Height = BcMax( 1, Height >> 1 );
+			Depth = BcMax( 1, Depth >> 1 );
 
 			// Advance texture data.
 			TextureData += SliceSize;

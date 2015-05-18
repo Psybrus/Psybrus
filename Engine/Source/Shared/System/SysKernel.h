@@ -137,19 +137,15 @@ public:
 	 */
 	void enqueueCallback( const std::function< void() >& Function );
 
+	/**
+	 * Debug log.
+	 */
+	void debugLog();
+
 private:
 	friend class SysJobWorker;
 	friend class SysJobQueue;
-
-	/**
-	 * Wait for schedule.
-	 */
-	template < class _Predicate >
-	inline void waitForSchedule( _Predicate Pred )
-	{
-		std::unique_lock< std::mutex > Lock( JobQueuedMutex_ );
-		JobQueued_.wait( Lock, Pred );
-	}
+	friend class SysFence;
 
 	/**
 	 * Notify for scheduling.
@@ -202,8 +198,6 @@ private:
 	std::vector< class SysJobWorker* > JobWorkers_;
 	size_t CurrWorkerAllocIdx_;
 
-	std::condition_variable JobQueued_;
-	std::mutex JobQueuedMutex_;
 	SysDelegateDispatcher DelegateDispatcher_;
 };
 

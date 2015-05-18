@@ -16,6 +16,7 @@
 
 #include "Math/MaVec3d.h"
 #include "Math/MaMat4d.h"
+#include "Math/MaQuat.h"
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
@@ -32,6 +33,20 @@ BcForceInline MaVec3d ScnPhysicsFromBullet( const btVector3& From )
 BcForceInline btVector3 ScnPhysicsToBullet( const MaVec3d& From )
 {
 	return btVector3( From.x(), From.y(), From.z() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// FromBullet - Quaternion
+BcForceInline MaQuat ScnPhysicsFromBullet( const btQuaternion& From )
+{
+	return MaQuat( From.x(), From.y(), From.z(), From.w() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ToBullet - Quaternion
+BcForceInline btQuaternion ScnPhysicsToBullet( const MaQuat& From )
+{
+	return btQuaternion( From.x(), From.y(), From.z(), From.w() );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -16,7 +16,7 @@ function PsyProjectCommon( _name, _lang )
 	configuration "windows-*"
 		defines { "WINDOWS", "_WIN32", "WIN32" }
 
-	configuration "vs*"
+	configuration "vs* and x32"
 		flags { "EnableSSE", "EnableSSE2" }
 
 	-- Linux config defines.
@@ -25,6 +25,7 @@ function PsyProjectCommon( _name, _lang )
 
 	-- Common visual studio crap.
 	configuration "vs*"
+		defines { "_CRT_SECURE_NO_WARNINGS" }
 
 	-- Thread sanitiser support for later
 	configuration "gmake"
@@ -123,7 +124,7 @@ function PsyProjectCommonEngine( _name )
 
 	-- Extra warnings + fatal warnings.
 	configuration "vs*"
-		flags { "ExtraWarnings", "FatalWarnings" }
+		flags { "ExtraWarnings" }
 
 	-- Defines for all configurations
 	configuration "Debug"
@@ -146,6 +147,11 @@ function PsyProjectCommonEngine( _name )
 	configuration "windows-* or linux-*"
 		defines { "PSY_IMPORT_PIPELINE" }
 
+	-- Add default include paths.
+	configuration( "*" )
+		includedirs {
+			"../../External/imgui",
+		}
 
 	-- Include paths.
 	configuration( "windows-*" )
@@ -216,7 +222,7 @@ function PsyProjectGameExe( _name )
 			"$(SILENT) cp -r ../../Dist/PackedContent ./",
 			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g4 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	configuration { "asmjs", "Release" }
@@ -225,7 +231,7 @@ function PsyProjectGameExe( _name )
 			"$(SILENT) cp -r ../../Dist/PackedContent ./",
 			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --memory-init-file 1  --js-opts 1 --g4 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	configuration { "asmjs", "Production" }
@@ -234,7 +240,7 @@ function PsyProjectGameExe( _name )
 			"$(SILENT) cp -r ../../Dist/PackedContent ./",
 			"$(SILENT) echo Running asmjs finalise \\(Production\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O2 --memory-init-file 1  --js-opts 1 -s CLOSURE_COMPILER=1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 --llvm-lto 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	-- Terminate project.

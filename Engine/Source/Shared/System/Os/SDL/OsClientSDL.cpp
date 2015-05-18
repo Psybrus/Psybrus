@@ -31,6 +31,11 @@ OsClientSDL::OsClientSDL()
 	KeyCodeMap_[ SDLK_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
 	KeyCodeMap_[ SDLK_CLEAR ] = OsEventInputKeyboard::KEYCODE_CLEAR;
 	KeyCodeMap_[ SDLK_RETURN ] = OsEventInputKeyboard::KEYCODE_RETURN;
+	KeyCodeMap_[ SDLK_BACKSPACE ] = OsEventInputKeyboard::KEYCODE_BACKSPACE;	
+	KeyCodeMap_[ SDLK_LCTRL ] = OsEventInputKeyboard::KEYCODE_CONTROL;	
+	KeyCodeMap_[ SDLK_LSHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;	
+	KeyCodeMap_[ SDLK_RCTRL ] = OsEventInputKeyboard::KEYCODE_CONTROL;	
+	KeyCodeMap_[ SDLK_RSHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;	
 	KeyCodeMap_[ SDLK_MENU ] = OsEventInputKeyboard::KEYCODE_ALT;
 	KeyCodeMap_[ SDLK_PAUSE ] = OsEventInputKeyboard::KEYCODE_PAUSE;
 	KeyCodeMap_[ SDLK_ESCAPE ] = OsEventInputKeyboard::KEYCODE_ESCAPE;
@@ -152,6 +157,14 @@ BcHandle OsClientSDL::getDeviceHandle()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getWindowHandle
+//virtual
+BcHandle OsClientSDL::getWindowHandle()
+{
+	return (BcHandle)SDLWindow_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getWidth
 //virtual
 BcU32 OsClientSDL::getWidth() const
@@ -192,9 +205,14 @@ void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
 		handleKeyEvent( SDLEvent );
 		break;
 
+	case SDL_TEXTINPUT:
+		handleTextInputEvent( SDLEvent );
+		break;
+
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEMOTION:
+	case SDL_MOUSEWHEEL:
 		handleMouseEvent( SDLEvent );
 		break;
 	
@@ -205,7 +223,7 @@ void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// handleMouseEvent
+// handleKeyEvent
 void OsClientSDL::handleKeyEvent( const SDL_Event& SDLEvent )
 {
 	OsEventInputKeyboard Event;
@@ -231,6 +249,18 @@ void OsClientSDL::handleKeyEvent( const SDL_Event& SDLEvent )
 		OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
 		EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleTextInputEvent
+void OsClientSDL::handleTextInputEvent( const SDL_Event& SDLEvent )
+{
+	OsEventInputText Event;
+	Event.DeviceID_ = 0;
+	memcpy( Event.Text_, SDLEvent.text.text, sizeof( SDLEvent.text.text ) );
+
+	OsCore::pImpl()->publish( osEVT_INPUT_TEXT, Event ); // TODO: REMOVE OLD!
+	EvtPublisher::publish( osEVT_INPUT_TEXT, Event );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -300,6 +330,16 @@ void OsClientSDL::handleMouseEvent( const SDL_Event& SDLEvent )
 			PrevMouseY_ = Event.MouseY_;
 			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
+		}
+		break;
+
+	case SDL_MOUSEWHEEL:
+		{
+			OsEventInputMouseWheel WheelEvent;
+			WheelEvent.ScrollX_ = SDLEvent.wheel.x;
+			WheelEvent.ScrollY_ = SDLEvent.wheel.y;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEWHEEL, WheelEvent ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEWHEEL, WheelEvent );
 		}
 		break;
 	}

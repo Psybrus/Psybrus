@@ -16,11 +16,11 @@
 #include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
+#include "Serialisation/SeJsonReader.h"
+
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnComponentImport.h"
-#include "Serialisation/SeJsonReader.h"
-#include "System/Content/CsSerialiserPackageObjectCodec.h"
-
 #endif
 
 #include "System/Scene/Animation/ScnAnimationComponent.h"
@@ -310,7 +310,7 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponent
-ScnComponent* ScnComponent::getComponent( BcU32 Idx, const ReClass* Class )
+ScnComponent* ScnComponent::getComponent( size_t Idx, const ReClass* Class )
 {
 	BcAssert( ParentEntity_ != nullptr );
 	return ParentEntity_->getComponent( Idx, Class );
@@ -326,7 +326,7 @@ ScnComponent* ScnComponent::getComponent( BcName Name, const ReClass* Class )
 
 //////////////////////////////////////////////////////////////////////////
 // getComponentAnyParent
-ScnComponent* ScnComponent::getComponentAnyParent( BcU32 Idx, const ReClass* Class )
+ScnComponent* ScnComponent::getComponentAnyParent( size_t Idx, const ReClass* Class )
 {
 	BcAssert( ParentEntity_ != nullptr );
 	return ParentEntity_->getComponentAnyParent( Idx, Class );

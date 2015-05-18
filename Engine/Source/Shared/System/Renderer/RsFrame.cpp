@@ -16,6 +16,8 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsRenderNode.h"
 
+#include "Base/BcProfiler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsFrame::RsFrame( RsContext* pContext, BcU32 NoofNodes, BcU32 NodeMem )
@@ -76,6 +78,8 @@ void RsFrame::reset()
 // render
 void RsFrame::render()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::render" );
+
 	// Only render if we have a valid context.
 	if( pContext_ != NULL )
 	{

@@ -68,9 +68,12 @@ extern AGLContext GAGLContext;
 #  include "GL/wglew.h"
 #endif
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if !PSY_PRODUCTION && !PLATFORM_HTML5
+#define PSY_GL_CATCH_ERRORS ( 0 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
+
+#if PSY_GL_CATCH_ERRORS
 GLuint RsGLCatchError();
 #else
 inline GLuint RsGLCatchError(){ return 0; };
@@ -118,6 +121,7 @@ struct RsOpenGLVersion
 	BcBool SupportSeparateBlendState_;
 	BcBool SupportDXTTextures_;
 	BcBool SupportNpotTextures_;
+	BcBool SupportDepthTextures_;
 	BcBool SupportFloatTextures_;
 	BcBool SupportHalfFloatTextures_;
 	BcBool SupportAnisotropicFiltering_;

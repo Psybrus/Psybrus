@@ -13,6 +13,8 @@
 
 #include "System/Renderer/RsCoreImpl.h"
 
+#include "Base/BcProfiler.h"
+
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
@@ -20,12 +22,12 @@
 #include "System/SysKernel.h"
 
 #include "System/Renderer/GL/RsContextGL.h"
+#include "System/Renderer/Null/RsContextNull.h"
 
 #if PLATFORM_WINDOWS
 #include "System/Renderer/D3D11/RsContextD3D11.h"
+//#include "System/Renderer/D3D12/RsContextD3D12.h"
 #endif
-
-#include "Psybrus.h" // cyclic.
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -46,7 +48,7 @@ RsCoreImpl::RsCoreImpl()
 {
 	// Create our job queue.
 	// - 1 thread if we have 2 or more hardware threads.
-	//RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
+	RsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 2 );
 }
 
 
@@ -90,6 +92,8 @@ void RsCoreImpl::open()
 //virtual
 void RsCoreImpl::update()
 {
+	PSY_PROFILER_SECTION( UpdateRoot, "RsCoreImpl::update" );
+
 	BcAssert( BcIsGameThread() );
 
 	// Increment fence so we know how far we're getting ahead of ourselves.
@@ -154,8 +158,17 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			{
 				pResource = new RsContextD3D11( pClient, nullptr );
 			}
+			else if( SysArgs_.find( "-d3d12" ) != std::string::npos)
+			{
+				pResource = nullptr; //new RsContextD3D12( pClient, nullptr );
+			}
 			else
 #endif
+			if( SysArgs_.find( "-null" ) != std::string::npos)
+			{
+				pResource = new RsContextNull( pClient, nullptr );
+			}
+			else
 			{
 				pResource = new RsContextGL( pClient, nullptr );
 			}
@@ -291,7 +304,8 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 		RsCore::JOB_QUEUE_ID,
 		[ Context, pResource ]
 		{
-			Context->createTexture( pResource );
+			auto RetVal = Context->createTexture( pResource );
+			BcAssert( RetVal );
 		} );
 
 	// Return resource.
@@ -303,8 +317,17 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 //virtual
 RsVertexDeclaration* RsCoreImpl::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
 {
-	RsVertexDeclaration* pResource = new RsVertexDeclaration( getContext( NULL ), Desc );
-	createResource( pResource );
+	auto Context = getContext( nullptr );
+	RsVertexDeclaration* pResource = new RsVertexDeclaration( Context, Desc );
+
+	// Call create on render thread.
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource ]
+		{
+			Context->createVertexDeclaration( pResource );
+		} );
+
 	return pResource;
 }
 
@@ -514,6 +537,27 @@ void RsCoreImpl::destroyResource(
 			auto Context = Program->getContext();
 			auto RetVal = Context->destroyProgram( Program );
 			delete Program;
+			BcUnusedVar( RetVal );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+		RsVertexDeclaration* VertexDeclaration )
+{
+	BcAssert( BcIsGameThread() );
+	if( VertexDeclaration == nullptr )
+	{
+		return;
+	}
+
+	ResourceDeletionList_.push_back(
+		[ VertexDeclaration ]()
+		{
+			auto Context = VertexDeclaration->getContext();
+			auto RetVal = Context->destroyVertexDeclaration( VertexDeclaration );
+			delete VertexDeclaration;
 			BcUnusedVar( RetVal );
 		} );
 }

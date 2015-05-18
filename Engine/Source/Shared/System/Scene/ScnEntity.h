@@ -19,7 +19,7 @@
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnComponent.h"
 
-#define SCNENTITY_USES_EVTPUBLISHER ( 0 )
+#define SCNENTITY_USES_EVTPUBLISHER ( 1 )
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEntityHeader
@@ -88,12 +88,17 @@ public:
 	/**
 	 * Get number of components.
 	 */
-	BcU32 getNoofComponents() const;
+	size_t getNoofComponents() const;
+
+	/**
+	 * Get components.
+	 */
+	const ScnComponentList& getComponents() const;
 	
 	/**
 	 * Get component.
 	 */
-	ScnComponent* getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr ) override;
+	ScnComponent* getComponent( size_t Idx = 0, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component.
@@ -103,7 +108,7 @@ public:
 	/**
 	 * Get component on any parent or self.
 	 */
-	ScnComponent* getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr ) override;
+	ScnComponent* getComponentAnyParent( size_t Idx = 0, const ReClass* Class = nullptr ) override;
 
 	/**
 	 * Get component on any parent or self.

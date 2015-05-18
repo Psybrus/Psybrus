@@ -53,6 +53,8 @@ static const D3D11_BIND_FLAG gBufferType[] =
 // Texture formats
 static const DXGI_FORMAT gTextureFormats[] =
 {
+	DXGI_FORMAT_UNKNOWN,
+
 	// Colour.
 	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
 	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
@@ -80,6 +82,8 @@ static const DXGI_FORMAT gTextureFormats[] =
 // Depth stencil view formats.
 static const DXGI_FORMAT gDSVFormats[] =
 {
+	DXGI_FORMAT_UNKNOWN,
+
 	// Colour.
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8,
@@ -107,6 +111,8 @@ static const DXGI_FORMAT gDSVFormats[] =
 // Shader resource view formats.
 static const DXGI_FORMAT gSRVFormats[] = 
 {
+	DXGI_FORMAT_UNKNOWN,
+
 	// Colour.
 	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
 	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
@@ -472,20 +478,6 @@ void RsContextD3D11::takeScreenshot()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setViewport
-void RsContextD3D11::setViewport( class RsViewport& Viewport )
-{
-	D3D11_VIEWPORT D3DViewport;
-	D3DViewport.Width = (FLOAT)Viewport.width();
-	D3DViewport.Height = (FLOAT)Viewport.height();
-	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
-	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
-	D3DViewport.MinDepth = 0.0f;
-	D3DViewport.MaxDepth = 1.0f;
-	Context_->RSSetViewports( 1, &D3DViewport );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // create
 void RsContextD3D11::create()
 {
@@ -556,7 +548,7 @@ void RsContextD3D11::create()
 				RsTextureFormat::R8G8B8A8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
-				0 ) ) );
+				1 ) ) );
 	BackBufferRT_->setHandle< size_t >( BackBufferRTResourceIdx_ );
 
 	// Create back buffer DS.
@@ -570,7 +562,7 @@ void RsContextD3D11::create()
 				RsTextureFormat::D24S8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
-				0 ) ) );
+				1 ) ) );
 	const auto& TextureDesc = BackBufferDS_->getDesc();
 	D3D11_TEXTURE2D_DESC Desc;
 	Desc.Width = TextureDesc.Width_;
@@ -598,7 +590,7 @@ void RsContextD3D11::create()
 	RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
 	DepthStencilView_ = getD3DDepthStencilView( BackBufferDSResourceIdx_ );
 
-	Context_->OMSetRenderTargets( RenderTargetViews_.size(), &RenderTargetViews_[ 0 ], DepthStencilView_ );
+	Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	setDefaultState();
 }
@@ -959,6 +951,34 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 	Context_->DrawIndexed( NoofIndices, IndexOffset, VertexOffset );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// setViewport
+void RsContextD3D11::setViewport( class RsViewport& Viewport )
+{
+	D3D11_VIEWPORT D3DViewport;
+	D3DViewport.Width = (FLOAT)Viewport.width();
+	D3DViewport.Height = (FLOAT)Viewport.height();
+	D3DViewport.TopLeftX = (FLOAT)Viewport.x();
+	D3DViewport.TopLeftY = (FLOAT)Viewport.y();
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+	Context_->RSSetViewports( 1, &D3DViewport );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// setScissorRect
+void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
+{
+	D3D11_RECT D3DRect;
+	D3DRect.left = X;
+	D3DRect.top = Y;
+	D3DRect.right = X + Width;
+	D3DRect.bottom = Y + Height;
+	Context_->RSSetScissorRects( 1, &D3DRect );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // createRenderState
 bool RsContextD3D11::createRenderState(
@@ -1210,7 +1230,7 @@ bool RsContextD3D11::createBuffer(
 	// Buffer desc.
 	D3D11_BUFFER_DESC Desc;
 	Desc.Usage = D3D11_USAGE_DEFAULT;			// TODO.
-	Desc.ByteWidth = BcPotRoundUp( BufferDesc.SizeBytes_, 16 );
+	Desc.ByteWidth = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 16 ) );
 	Desc.BindFlags = gBufferType[ (BcU32)BufferDesc.Type_ ];
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	Desc.MiscFlags = 0;
@@ -1603,6 +1623,16 @@ bool RsContextD3D11::createShader(
 		}
 		break;
 
+	case RsShaderType::PIXEL:
+		{
+			Result = Device_->CreatePixelShader(
+				Shader->getData(),
+				Shader->getDataSize(),
+				nullptr,
+				reinterpret_cast< ID3D11PixelShader** >( &D3DShader ) );
+		}
+		break;
+
 	case RsShaderType::HULL:
 		{
 			Result = Device_->CreateHullShader(
@@ -1630,16 +1660,6 @@ bool RsContextD3D11::createShader(
 				Shader->getDataSize(),
 				nullptr,
 				reinterpret_cast< ID3D11GeometryShader** >( &D3DShader ) );
-		}
-		break;
-
-	case RsShaderType::PIXEL:
-		{
-			Result = Device_->CreatePixelShader(
-				Shader->getData(),
-				Shader->getDataSize(),
-				nullptr,
-				reinterpret_cast< ID3D11PixelShader** >( &D3DShader ) );
 		}
 		break;
 
@@ -1700,10 +1720,8 @@ bool RsContextD3D11::createProgram(
 	{
 		const auto& ShaderDesc = Shader->getDesc();
 		ID3D11ShaderReflection* Reflector = nullptr; 
-		D3D11Reflect( 
-			Shader->getData(), 
-			Shader->getDataSize(), 
-			&Reflector);
+		D3DReflect( Shader->getData(), Shader->getDataSize(),
+			IID_ID3D11ShaderReflection, (void**)&Reflector );
 
 		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
 		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
@@ -1816,6 +1834,22 @@ bool RsContextD3D11::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createVertexDeclaration
+bool RsContextD3D11::createVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyVertexDeclaration
+bool RsContextD3D11::destroyVertexDeclaration(
+	class RsVertexDeclaration* VertexDeclaration  )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // flushState
 //virtual
 void RsContextD3D11::flushState()
@@ -1823,7 +1857,7 @@ void RsContextD3D11::flushState()
 	HRESULT Result = 0;
 
 	// Set render targets.
-	Context_->OMSetRenderTargets( RenderTargetViews_.size(), &RenderTargetViews_[ 0 ], DepthStencilView_ );
+	Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	// Bind shaders.
 	RsShader* VertexShader = nullptr;

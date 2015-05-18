@@ -258,7 +258,7 @@ void MaQuat::calcFromXYZ()
 	}
 }
 
-void MaQuat::fromEular( BcF32 Yaw, BcF32 Pitch, BcF32 Roll )
+void MaQuat::fromEuler( BcF32 Yaw, BcF32 Pitch, BcF32 Roll )
 {
 	const BcF32 Sin2Y = BcSin( Yaw / 2.0f );
 	const BcF32 Cos2Y = BcCos( Yaw / 2.0f );
@@ -273,7 +273,7 @@ void MaQuat::fromEular( BcF32 Yaw, BcF32 Pitch, BcF32 Roll )
 	z(  ( Sin2Y * Sin2P * Cos2R ) - ( Cos2Y * Cos2P * Sin2R ) );
 }
 
-MaVec3d MaQuat::asEular() const
+MaVec3d MaQuat::asEuler() const
 {
 	//
 	BcF32 Sp = -2.0f * ( y() * z() - w() * x() );
@@ -353,6 +353,17 @@ BcF32 MaQuat::magnitude()
 {
 	return BcSqrt(w() * w() + x() * x() + y() * y() + z() * z());
 }
+
+void MaQuat::inverse()
+{
+	MaQuat Q = ~(*this);
+	auto DotThis = dot( *this );
+	x( Q.x() / DotThis );
+	y( Q.y() / DotThis );
+	z( Q.z() / DotThis );
+	w( Q.w() / DotThis );
+}
+
 
 // Quick speed up - needs optimising
 void MaQuat::rotateVector( MaVec3d& vec ) const

@@ -35,7 +35,7 @@ struct VertexDefault
 		_o = float4( _v.xy, 0.0, 1.0 );																	\
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = float3( 0.0f, 0.0f, 1.0 );																	\
+		_o = float4( 0.0, 0.0, 1.0, 0.0 );																\
 
 #elif defined( PERM_MESH_STATIC_3D )
 /**
@@ -48,7 +48,7 @@ struct VertexDefault
 		_o = PsyMatMul( WorldTransform_, _v ); \
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = PsyMatMul( (float3x3)NormalTransform_, _v ); \
+		_o = PsyMatMul( NormalTransform_, _v ); \
 
 
 #elif defined( PERM_MESH_SKINNED_3D )
@@ -61,11 +61,35 @@ struct VertexDefault
  */
 #if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
+// TODO: FIX BIG HACK: DOING THIS BECAUSE GLSL-OPTIMIZER ADDS CAST TO INT, WEBGL DO NOT LIKE.
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
-		_o = _v; // TODO: Implement skinning :<
-
+	int wsvIdx; 																						\
+	for( wsvIdx = 0; wsvIdx < 24; ++wsvIdx )															\
+	{																									\
+		if( wsvIdx == int(_p.BlendIndices_.x) )															\
+			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.x;						\
+		if( wsvIdx == int(_p.BlendIndices_.y) )															\
+			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.y;						\
+		if( wsvIdx == int(_p.BlendIndices_.z) )															\
+			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.z;						\
+		if( wsvIdx == int(_p.BlendIndices_.w) )															\
+			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.w;						\
+	}																									\
+			
+// TODO: FIX BIG HACK: DOING THIS BECAUSE GLSL-OPTIMIZER ADDS CAST TO INT, WEBGL DO NOT LIKE.
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
-		_o = _v; // TODO: Implement skinning :<
+	int wsnIdx; 																						\
+	for( wsnIdx = 0; wsnIdx < 24; ++wsnIdx )															\
+	{																									\
+		if( wsnIdx == int(_p.BlendIndices_.x) )															\
+			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.x;						\
+		if( wsnIdx == int(_p.BlendIndices_.y) )															\
+			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.y;						\
+		if( wsnIdx == int(_p.BlendIndices_.z) )															\
+			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.z;						\
+		if( wsnIdx == int(_p.BlendIndices_.w) )															\
+			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.w;						\
+	}																									\
 
 #else
 
@@ -82,11 +106,13 @@ struct VertexDefault
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
 		_o = PsyMatMul( 																				\
-			(float3x3)BoneTransform_[ (int)_p.BlendIndices_.x ], _v ) * _p.BlendWeights_.x;				\
+			BoneTransform_[ (int)_p.BlendIndices_.x ], _v ) * _p.BlendWeights_.x;						\
 		_o += PsyMatMul( 																				\
-			(float3x3)BoneTransform_[ (int)_p.BlendIndices_.y ], _v ) * _p.BlendWeights_.y;				\
+			BoneTransform_[ (int)_p.BlendIndices_.y ], _v ) * _p.BlendWeights_.y;						\
 		_o += PsyMatMul( 																				\
-			(float3x3)BoneTransform_[ (int)_p.BlendIndices_.z ], _v ) * _p.BlendWeights_.z;				\
+			BoneTransform_[ (int)_p.BlendIndices_.z ], _v ) * _p.BlendWeights_.z;						\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.w ], _v ) * _p.BlendWeights_.w;						\
 
 #endif // PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
@@ -104,7 +130,7 @@ struct VertexDefault
 				float4(																					\
 					PsyMatMul(																			\
 						(float3x3)InverseViewTransform_, 												\
-			 			_p.VertexOffset_.xyz ),	0.0 );													\
+			 			_p.VertexOffset_.xyz ),	1.0 );													\
 
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
@@ -129,9 +155,10 @@ struct VertexDefault
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
 		_o = PsyMatMul( 																				\
-				_p.WorldMatrix0_.xyz,																	\
-				_p.WorldMatrix1_.xyz,																	\
-				_p.WorldMatrix2_.xyz, _v );		 														\
+				_p.WorldMatrix0_,																		\
+				_p.WorldMatrix1_,																		\
+				_p.WorldMatrix2_,																		\
+				_p.WorldMatrix3_, _v );		 															\
 
 #endif
 

@@ -52,6 +52,9 @@ RsTextureDesc::RsTextureDesc(
 #ifdef PSY_DEBUG
 	// Check levels is valid.
 	BcAssert( Levels_ > 0 );
+	BcAssert( Width_ >= 1 );
+	BcAssert( Height_ >= 1 );
+ 	BcAssert( Depth_ >= 1 );
 
 	// Max num of mips...math fail...must be a simpler way to calculate it.
 	BcU32 MinWidth = BcMax( 1, Width_ );
@@ -84,16 +87,16 @@ RsTextureDesc::RsTextureDesc(
 	switch( Type_ )
 	{
 	case RsTextureType::TEX1D:
-		BcAssert( Width_ >= MinimumDimension && Height_ == 0 && Depth_ == 0 );
+		BcAssert( Width_ >= MinimumDimension && Height_ == 1 && Depth_ == 1 );
 		break;
 	case RsTextureType::TEX2D:
-		BcAssert( Width_ >= MinimumDimension && Height_ >= MinimumDimension && Depth_ == 0 );
+		BcAssert( Width_ >= MinimumDimension && Height_ >= MinimumDimension && Depth_ == 1 );
 		break;
 	case RsTextureType::TEX3D:
 		BcAssert( Width_ >= MinimumDimension && Height_ >= MinimumDimension && Depth_ >= 1 );
 		break;
 	case RsTextureType::TEXCUBE:
-		BcAssert( Width_ >= MinimumDimension && Height_ >= MinimumDimension && Depth_ == 0 );
+		BcAssert( Width_ >= MinimumDimension && Height_ >= MinimumDimension && Depth_ == 1 );
 		break;
 	default:
 		BcBreakpoint;

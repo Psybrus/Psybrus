@@ -71,9 +71,13 @@ typedef ScnEntityMap::const_iterator ScnEntityMapConstIterator;
 // ScnEntitySpawnParams
 struct ScnEntitySpawnParams
 {
+	ScnEntitySpawnParams();
+	ScnEntitySpawnParams( BcName InstanceName, BcName Package, BcName Name, const MaMat4d& Transform, ScnEntity* Parent );
+	ScnEntitySpawnParams( BcName InstanceName, ScnEntity* Template, const MaMat4d& Transform, ScnEntity* Parent );
+
+	BcName InstanceName_;
 	BcName Package_;
 	BcName Name_;
-	BcName InstanceName_;
 	MaMat4d Transform_;
 	ScnEntityRef Parent_;
 	std::function< void( ScnEntity* ) > OnSpawn_;

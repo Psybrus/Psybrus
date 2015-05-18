@@ -60,6 +60,7 @@ public:
 typedef std::unique_ptr< class RsBuffer, RsResourceDeleters > RsBufferUPtr;
 typedef std::unique_ptr< class RsContext, RsResourceDeleters > RsContextUPtr;
 typedef std::unique_ptr< class RsFrameBuffer, RsResourceDeleters > RsFrameBufferUPtr;
+typedef std::unique_ptr< class RsProgram, RsResourceDeleters > RsProgramUPtr;
 typedef std::unique_ptr< class RsRenderState, RsResourceDeleters > RsRenderStateUPtr;
 typedef std::unique_ptr< class RsSamplerState, RsResourceDeleters > RsSamplerStateUPtr;
 typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;
@@ -192,6 +193,8 @@ public:
 		RsShader* Shader ) = 0;
 	virtual void destroyResource( 
 		RsProgram* Program ) = 0;
+	virtual void destroyResource( 
+		RsVertexDeclaration* VertexDeclaration ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.

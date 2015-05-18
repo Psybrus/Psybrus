@@ -20,6 +20,7 @@
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsFrame.h"
 
+#include "Base/BcProfiler.h"
 
 #define SCN_ENTITYLIST_DIVIDESIZE	8
 
@@ -60,6 +61,7 @@ ScnSpatialTreeNode::~ScnSpatialTreeNode()
 // addComponent
 void ScnSpatialTreeNode::addComponent( ScnSpatialComponent* Component )
 {
+	PSY_PROFILE_FUNCTION;
 	// Add to self.
 	// TODO: Subdivide and such.
 	ComponentList_.push_back( Component );
@@ -73,6 +75,7 @@ void ScnSpatialTreeNode::addComponent( ScnSpatialComponent* Component )
 // removeComponent
 void ScnSpatialTreeNode::removeComponent( ScnSpatialComponent* Component )
 {
+	PSY_PROFILE_FUNCTION;
 	// Remove from self/owner.
 	ScnSpatialTreeNode* pNode = Component->getSpatialTreeNode();
 	if( pNode != NULL && pNode != this )
@@ -88,6 +91,7 @@ void ScnSpatialTreeNode::removeComponent( ScnSpatialComponent* Component )
 // reinsertComponent
 void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 {
+	PSY_PROFILE_FUNCTION;
 	// If we've got no children, check if we need to subdivide.
 	if( pChild( 0 ) == NULL )
 	{
@@ -144,6 +148,7 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 // visitView
 void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewComponent* View )
 {
+	PSY_PROFILE_FUNCTION;
 	// Visit this Components objects if they are inside the frustum.
 	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
 
@@ -177,6 +182,7 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewCom
 // visitBounds
 void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const MaAABB& Bounds )
 {
+	PSY_PROFILE_FUNCTION;
 	// Visit this Components objects if they are inside the frustum.
 	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
 

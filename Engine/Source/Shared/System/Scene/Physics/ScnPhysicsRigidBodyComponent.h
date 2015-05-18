@@ -16,6 +16,8 @@
 
 #include "System/Scene/ScnComponent.h"
 
+#include "Math/MaQuat.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnPhysicsRigidBodyComponent
 class ScnPhysicsRigidBodyComponent:
@@ -36,12 +38,17 @@ public:
 	void applyCentralImpulse( const MaVec3d& Impulse );
 
 	void setLinearVelocity( const MaVec3d& Velocity );
-	void setAngularVelocity( const MaVec3d& Velocity );
-
 	MaVec3d getLinearVelocity() const;
+	void setAngularVelocity( const MaVec3d& Velocity );
 	MaVec3d getAngularVelocity() const;
 
+	void setMass( BcF32 Mass );
 	BcF32 getMass() const;
+
+	void translate( const MaVec3d& V );
+	MaVec3d getPosition() const;
+
+	MaQuat getRotation() const;
 
 	virtual void update( BcF32 Tick );
 
@@ -64,7 +71,6 @@ private:
 	BcF32 Restitution_;
 	BcF32 LinearSleepingThreshold_;
 	BcF32 AngularSleepingThreshold_;
-
 };
 
 #endif

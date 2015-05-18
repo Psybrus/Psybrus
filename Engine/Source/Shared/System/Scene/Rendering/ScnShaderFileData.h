@@ -226,4 +226,45 @@ struct ScnShaderAlphaTestUniformBlockData
 	MaVec4d AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
 };
 
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessConfigData
+struct ScnShaderPostProcessConfigData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderPostProcessConfigData );
+	ScnShaderPostProcessConfigData(){};
+
+	/// Input texture dimensions.
+	std::array< MaVec4d, 16 > InputDimensions_;
+	/// Output texture dimensions.
+	std::array< MaVec4d, 4 > OutputDimensions_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessCopyBlockData
+struct ScnShaderPostProcessCopyBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderPostProcessCopyBlockData );
+	ScnShaderPostProcessCopyBlockData(){};
+
+	/// Colour transform to copy using.
+	MaMat4d ColourTransform_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessBlurBlockData
+struct ScnShaderPostProcessBlurBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderPostProcessBlurBlockData );
+	ScnShaderPostProcessBlurBlockData(){};
+
+	/// Texture size.
+	MaVec2d TextureDimensions_;
+
+	/// Radius in texels.
+	BcF32 Radius_;
+
+	/// Unued.
+	BcF32 Unused_;
+};
+
 #endif

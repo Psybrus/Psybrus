@@ -122,7 +122,7 @@ public:
 	/**
 	 * Get component.
 	 */
-	virtual ScnComponent* getComponent( BcU32 Idx = 0, const ReClass* Class = nullptr );
+	virtual ScnComponent* getComponent( size_t Idx = 0, const ReClass* Class = nullptr );
 
 	/**
 	 * Get component.
@@ -133,7 +133,7 @@ public:
 	 * Get component by type.
 	 */
 	template< typename _Ty >
-	_Ty* getComponentByType( BcU32 Idx = 0 )
+	_Ty* getComponentByType( size_t Idx = 0 )
 	{
 		return static_cast< _Ty* >( getComponent( Idx, _Ty::StaticGetClass() ) );
 	}
@@ -150,7 +150,7 @@ public:
 	/**
 	 * Get component on any parent or self.
 	 */
-	virtual ScnComponent* getComponentAnyParent( BcU32 Idx = 0, const ReClass* Class = nullptr );
+	virtual ScnComponent* getComponentAnyParent( size_t Idx = 0, const ReClass* Class = nullptr );
 
 	/**
 	 * Get component on any parent or self.

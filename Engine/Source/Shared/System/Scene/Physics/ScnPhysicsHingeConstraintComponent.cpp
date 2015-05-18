@@ -56,6 +56,7 @@ ScnPhysicsHingeConstraintComponent::ScnPhysicsHingeConstraintComponent():
 ScnPhysicsHingeConstraintComponent::~ScnPhysicsHingeConstraintComponent()
 {
 	delete Constraint_;
+	Constraint_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,14 +70,14 @@ void ScnPhysicsHingeConstraintComponent::onAttach( ScnEntityWeakRef Parent )
 			*RigidBodyB_->getRigidBody(),
 			ScnPhysicsToBullet( FrameA_ ),
 			ScnPhysicsToBullet( FrameB_ ),
-			UseReferenceFrameA_ );
+			UseReferenceFrameA_ ? true : false );
 	}
 	else if( RigidBodyA_ != nullptr && RigidBodyB_ == nullptr )
 	{
 		Constraint_ = new btHingeConstraint(
 			*RigidBodyA_->getRigidBody(),
 			ScnPhysicsToBullet( FrameA_ ),
-			UseReferenceFrameA_ );
+			UseReferenceFrameA_ ? true : false );
 	}
 	else
 	{
@@ -86,7 +87,7 @@ void ScnPhysicsHingeConstraintComponent::onAttach( ScnEntityWeakRef Parent )
 			Constraint_ = new btHingeConstraint(
 				*RigidBodyA_->getRigidBody(),
 				ScnPhysicsToBullet( FrameA_ ),
-				UseReferenceFrameA_ );
+				UseReferenceFrameA_ ? true : false );
 		}
 	}
 

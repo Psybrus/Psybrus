@@ -23,6 +23,7 @@
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "System/Scene/ScnCoreCallback.h"
+#include "System/Debug/DsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
@@ -112,6 +113,134 @@ void ScnCore::open()
 	BcAssert( NoofComponentLists_ > 0 );
 
 	pComponentLists_ = new ScnComponentList[ NoofComponentLists_ ];	 
+
+#if !PSY_PRODUCTION
+	DsCore::pImpl()->registerPanel( 
+		"Scene Stats", [ this ]( BcU32 )->void
+		{
+			static BcF32 GameTimeTotal = 0.0f;
+			static BcF32 FrameTimeTotal = 0.0f;
+			static BcF32 GameTimeAccum = 0.0f;
+			static BcF32 FrameTimeAccum = 0.0f;
+			static int CaptureAmount = 60;
+			static int CaptureAccum = 0;
+			GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
+			FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
+			++CaptureAccum;
+			if( CaptureAccum >= CaptureAmount )
+			{
+				GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
+				FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
+				GameTimeAccum = 0.0f;
+				FrameTimeAccum = 0.0f;
+				CaptureAccum = 0;
+			}
+
+			OsClient* Client = OsCore::pImpl()->getClient( 0 );
+			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
+			static bool ShowOpened = true;
+			ImGui::SetNextWindowPos( WindowPos );
+			if ( ImGui::Begin( "Scene Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			{
+				if( ImGui::Button( "Screenshot" ) )
+				{
+					RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
+				}
+
+				ImGui::Text( "Worker count: %u", 
+					SysKernel::pImpl()->workerCount() );
+				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
+				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
+
+			}
+			ImGui::End();
+		} );
+
+	DsCore::pImpl()->registerPanel(
+		"Scene Hierarchy", [ this ]( BcU32 )->void
+		{
+			// Render scene hierarchy.
+			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
+			ComponentNodeFunc RecurseNode = 
+				[ & ]( ScnComponent* Component )
+				{
+					ImGui::PushID( Component );
+					if( Component->isTypeOf< ScnEntity >() )
+					{
+						auto TreeNodeOpen = ImGui::TreeNode( Component, "" );
+						ImGui::SameLine();
+
+						if( ImGui::SmallButton( (*Component->getName()).c_str() ) )
+						{
+							DebugComponents_.clear();
+							DebugComponents_.push_back( Component );
+						}	
+
+						if( TreeNodeOpen )
+						{
+							BcU32 ChildIdx = 0;
+							while( auto Child = Component->getComponent( ChildIdx++ ) )
+							{
+								RecurseNode( Child );
+							}
+							ImGui::TreePop();
+						}
+					}
+					ImGui::PopID();
+				};
+
+			static bool ShowOpened = true;
+			if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
+			{
+				if( ImGui::TreeNode( "Scene Hierarchy" ) )
+				{
+					BcU32 Idx = 0;
+					while( ScnEntityRef Entity = getEntity( Idx++ ) )
+					{
+						if( Entity->getParentEntity() == nullptr )
+						{
+							RecurseNode( Entity );
+						}
+					}
+					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		} );
+
+	DsCore::pImpl()->registerPanel(
+		"Component Editor", [ this ]( BcU32 )->void
+		{
+			if ( ImGui::Begin( "Component Editor" ) )
+			{
+				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
+				ImGui::Separator();
+				for( auto Component : DebugComponents_ )
+				{
+					auto UpperClass = Component->getClass();
+					auto Class = UpperClass;
+
+					// Find editor.
+					DsImGuiFieldEditor* FieldEditor = nullptr;
+					while( FieldEditor == nullptr && Class != nullptr )
+					{
+						FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
+						Class = Class->getSuper();
+
+					}
+					if( FieldEditor )
+					{
+						FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
+					}
+				}
+			}
+			ImGui::End();
+		} );
+#endif // !PSY_PRODUCTION
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -131,6 +260,7 @@ void ScnCore::update()
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
 		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
+		BcUnusedVar( Class );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -147,6 +277,7 @@ void ScnCore::update()
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
 		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
+		BcUnusedVar( Class );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -163,6 +294,7 @@ void ScnCore::update()
 		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
 		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
 		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
+		BcUnusedVar( Class );
 
 		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 		{
@@ -174,6 +306,7 @@ void ScnCore::update()
 	}
 #endif
 
+
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
 	// TODO: Move the whole render process into the view component.
@@ -182,36 +315,43 @@ void ScnCore::update()
 	//         inside the renderer, and not be a fart on here.
 	//         Also, the view component should be aware of the frame
 	//         and provide access to it for renderable components.
-	for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
+	if( ViewComponentList_.size() > 0 )
 	{
-		PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnCore::render" ) );
-
-		// Grab client.
-		OsClient* pClient = OsCore::pImpl()->getClient( Idx );
-
-		// Get context.
-		RsContext* pContext = RsCore::pImpl()->getContext( pClient );
-
-		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-		// Iterate over all view components.
-		RsRenderSort Sort( 0 );
-		BcAssert( ViewComponentList_.size() < RS_SORT_VIEWPORT_MAX );
-		for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
+		for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
 		{
-			ScnViewComponentRef ViewComponent( *It );
+			PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnCore::render" ) );
+
+			// Grab client.
+			OsClient* pClient = OsCore::pImpl()->getClient( Idx );
+
+			// Get context.
+			RsContext* pContext = RsCore::pImpl()->getContext( pClient );
+
+			// Allocate a frame to render using default context.
+			RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+
+			// Iterate over all view components.
+			RsRenderSort Sort( 0 );
+			BcAssert( ViewComponentList_.size() < RS_SORT_VIEWPORT_MAX );
+			for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
+			{
+				ScnViewComponentRef ViewComponent( *It );
 			
-			ViewComponent->bind( pFrame, Sort );
+				ViewComponent->bind( pFrame, Sort );
 
-			ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
+				ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
 
-			// Increment viewport.
-			Sort.Viewport_++;
+				// Increment viewport.
+				Sort.Viewport_++;
+			}
+
+			// TODO: Move completely to DsCore.
+			// Render ImGui.
+			ImGui::Psybrus::Render( pContext, pFrame );
+
+			// Queue frame for render.
+			RsCore::pImpl()->queueFrame( pFrame );
 		}
-
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( pFrame );
 	}
 
 	// Process pending components at the end of the tick.
@@ -299,16 +439,17 @@ void ScnCore::removeAllEntities()
 
 //////////////////////////////////////////////////////////////////////////
 // createEntity
-ScnEntityRef ScnCore::createEntity(  const BcName& Package, const BcName& Name, const BcName& InstanceName )
+ScnEntityRef ScnCore::createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName )
 {
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
 
 	// Request template entity.
- 	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
+	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
 		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
+		BcUnusedVar( pPackage );
 #if 0
 		Entity = new ScnEntity( TemplateEntity );
 		Entity->setName( Name );
@@ -532,6 +673,7 @@ void ScnCore::processPendingComponents()
 					BcName::INVALID;
 			Component->onAttach( Component->getParentEntity() );
 			onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+			BcAssertMsg( Component->isFlagSet( scnCF_ATTACHED ), "Not attached? Did you call Super::onAttach?" );
 		}
 	}
 
@@ -558,6 +700,13 @@ void ScnCore::processPendingComponents()
 			Component->onDetach( Component->getParentEntity() );
 			BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
 				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
+
+			// Remove from debug components.
+			auto FoundIt = std::find( DebugComponents_.begin(), DebugComponents_.end(), Component );
+			if( FoundIt != DebugComponents_.end() )
+			{
+				DebugComponents_.erase( FoundIt );
+			}
 		}
 
 		// Handle destruction.

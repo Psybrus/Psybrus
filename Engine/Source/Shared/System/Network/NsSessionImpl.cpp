@@ -1,6 +1,8 @@
 #include "System/Network/NsSessionImpl.h"
 #include "System/SysKernel.h"
 
+#if !PLATFORM_HTML5
+
 #include "MessageIdentifiers.h"
 #include "RakPeer.h"
 #include "ConnectionGraph2.h"
@@ -66,7 +68,7 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 	RakNet::SocketDescriptor Desc( Port, 0 );
 	PeerInterface_->AttachPlugin( ConnectionGraph_ );
 	PeerInterface_->Startup( MaxClients, &Desc, 1 );
-	PeerInterface_->SetMaximumIncomingConnections( MaxClients );
+	PeerInterface_->SetMaximumIncomingConnections( static_cast< unsigned short >( MaxClients ) );
 
 	MessageHandlers_.fill( nullptr );
 
@@ -292,3 +294,5 @@ void NsSessionImpl::workerThread()
 		BcSleep( 0.005f );
 	}
 }
+
+#endif // !PLATFORM_HTML5

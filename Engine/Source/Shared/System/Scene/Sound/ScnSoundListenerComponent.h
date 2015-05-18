@@ -33,11 +33,20 @@ public:
 	
 	ScnSoundListenerComponent();
 	virtual ~ScnSoundListenerComponent();
+
+private:	
+	void postUpdate( BcF32 Tick ) override;
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+
+	BcF32 VelocityMultiplier_;
+	BcF32 VelocitySmoothingAmount_;
+	BcF32 MaxVelocity_;
 	
-	virtual void postUpdate( BcF32 Tick );
-	
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	MaVec3d LastPosition_;
+	MaVec3d Position_;
+	MaVec3d Velocity_;
+	MaVec3d SmoothedVelocity_;
 };
 
 

@@ -21,8 +21,8 @@ NsReplication::~NsReplication()
 // addObject
 void NsReplication::addObject( ReObject* Object )
 {
-	const auto* Class = Object->getClass();
-	auto ClassID = findClassID( Class );
+	//const auto* Class = Object->getClass();
+	//auto ClassID = findClassID( Class );
 }
 
 //////////////////////////////////////////////////////////////////////////

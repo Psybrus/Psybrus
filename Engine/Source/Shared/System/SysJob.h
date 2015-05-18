@@ -18,6 +18,7 @@
 #include "Base/BcDebug.h"
 
 #include <functional>
+#include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations.
@@ -42,7 +43,6 @@ private:
 	void				internalExecute();
 	
 	BcU32				WorkerMask_;
-	
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,8 @@ public:
 
 private:
 	std::function< void() > Function_;
-
+	static std::atomic< size_t > FunctionJobID_;
+	size_t JobID_;
 };
 
 

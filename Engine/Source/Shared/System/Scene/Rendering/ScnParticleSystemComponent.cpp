@@ -30,7 +30,7 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "NoofParticles_", &ScnParticleSystemComponent::NoofParticles_, bcRFF_IMPORTER ),
+		new ReField( "NoofParticles_", &ScnParticleSystemComponent::NoofParticles_, bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "IsLocalSpace_", &ScnParticleSystemComponent::IsLocalSpace_, bcRFF_IMPORTER ),
 		new ReField( "Material_", &ScnParticleSystemComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 
@@ -40,7 +40,7 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 		new ReField( "pParticleBuffer_", &ScnParticleSystemComponent::pParticleBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "PotentialFreeParticle_", &ScnParticleSystemComponent::PotentialFreeParticle_, bcRFF_TRANSIENT ),
 		new ReField( "MaterialComponent_", &ScnParticleSystemComponent::MaterialComponent_, bcRFF_TRANSIENT ),
-		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_ ),
+		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_, bcRFF_TRANSIENT ),
 		new ReField( "UVBounds_", &ScnParticleSystemComponent::UVBounds_ ),
 		new ReField( "AABB_", &ScnParticleSystemComponent::AABB_ ),
 	};
@@ -70,7 +70,7 @@ ScnParticleSystemComponent::ScnParticleSystemComponent():
 //virtual
 ScnParticleSystemComponent::~ScnParticleSystemComponent()
 {
-
+	//SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,12 +119,18 @@ void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
 
 	UpdateFence_.increment();
 
+#if 0
 	SysKernel::pImpl()->pushFunctionJob( 
 		SysKernel::DEFAULT_JOB_QUEUE_ID, 
 		[ this, Tick ]()
 		{
+			UploadFence_.wait();
 			updateParticles( Tick );
 		} );
+#else
+	updateParticles( Tick );
+#endif
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -311,6 +317,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	}
 
 	// Upload uniforms.
+	UploadFence_.increment();
 	RsCore::pImpl()->updateBuffer( 
 		VertexBuffer.UniformBuffer_,
 		0, sizeof( VertexBuffer.ObjectUniforms_ ),
@@ -318,6 +325,7 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		[ this, VertexBuffer ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
 			BcMemCopy( Lock.Buffer_, &VertexBuffer.ObjectUniforms_, sizeof( VertexBuffer.ObjectUniforms_ ) );
+			UploadFence_.decrement();
 		} );
 
 	// Draw particles last.
@@ -395,6 +403,9 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UpdateFence_.wait();
+	UploadFence_.wait();
+
 	Parent->detach( MaterialComponent_ );
 
 	MaterialComponent_ = nullptr;
@@ -424,6 +435,9 @@ ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
 // allocParticle
 BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 {
+	UpdateFence_.wait();
+	UploadFence_.wait();
+
 	// We can't be allocating whilst we're updating.
 	BcAssert( UpdateFence_.count() == 0 );
 

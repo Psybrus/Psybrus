@@ -20,14 +20,14 @@
  *
  * Compresses data into an output buffer. Will allocate the output buffer for you.
  */
-extern BcBool BcCompressData( const BcU8* pInputData, BcU32 InputSize, const BcU8*& pOutputData, BcU32& OutputSize );
+extern BcBool BcCompressData( const BcU8* pInputData, size_t InputSize, const BcU8*& pOutputData, size_t& OutputSize );
 
 //////////////////////////////////////////////////////////////////////////
 /* @class BcDecompressData
  * 
  * Decompresses data into the output buffer. Does not allocate the output buffer.
  */
-extern BcBool BcDecompressData( const BcU8* pInputData, BcU32 InputSize, BcU8* pOutputData, BcU32 OutputSize );
+extern BcBool BcDecompressData( const BcU8* pInputData, size_t InputSize, BcU8* pOutputData, size_t OutputSize );
 
 
 #endif

@@ -18,14 +18,74 @@
 #include "System/Renderer/GL/RsGL.h"
 
 #include "System/Renderer/RsBuffer.h"
-
 #include "System/Renderer/RsRenderState.h"
+#include "System/Renderer/RsViewport.h"
 
 #include "Base/BcMisc.h"
 
 #if PLATFORM_LINUX
 #include <SDL2/SDL.h>
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+// RsBufferImplGL
+struct RsBufferImplGL
+{
+	~RsBufferImplGL()
+	{
+		BcAssert( BufferData_ == nullptr );
+	}
+
+	GLuint Handle_ = 0;
+	BcU8* BufferData_ = nullptr;
+	BcU32 Version_ = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureImplGL
+struct RsTextureImplGL
+{
+	~RsTextureImplGL()
+	{
+	}
+
+	GLuint Handle_ = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramImplGL
+struct RsProgramImplGL
+{
+	struct UniformEntry
+	{
+		enum class Type
+		{
+			UNKNOWN,
+			UNIFORM_1IV,
+			UNIFORM_1FV,
+			UNIFORM_2FV,
+			UNIFORM_3FV,
+			UNIFORM_4FV,
+			UNIFORM_MATRIX_4FV,
+		};
+
+		BcU32 BindingPoint_ = 0;
+		Type Type_ = RsProgramImplGL::UniformEntry::Type::UNKNOWN;
+		GLint Loc_ = 0;
+		GLsizei Count_ = 0;
+		size_t Offset_ = 0;
+		size_t CachedOffset_ = 0;
+		size_t Size_ = 0;
+
+		// Used for redundancy checks.
+		RsBuffer* Buffer_ = nullptr;
+		BcU32 Version_ = 0;
+	};
+
+	GLuint Handle_ = 0;
+	std::vector< UniformEntry > UniformEntries_;
+	std::unique_ptr< BcU8[] > CachedUniforms_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // RsContextGL
@@ -92,6 +152,11 @@ public:
 	bool destroyProgram(
 		class RsProgram* Program );
 
+	bool createVertexDeclaration(
+		class RsVertexDeclaration* VertexDeclaration ) override;
+	bool destroyVertexDeclaration(
+		class RsVertexDeclaration* VertexDeclaration  ) override;
+
 	void setDefaultState();
 	void invalidateRenderState();
 	void invalidateTextureState();
@@ -116,11 +181,14 @@ public:
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
-		BcBool EnableClearStencil );
-	void drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+		BcBool EnableClearStencil ) override;
+	void drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices ) override;
+	void drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+	void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) override;
+	void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) override;
 
-	void setViewport( class RsViewport& Viewport );
+	void setViewport( class RsViewport& Viewport ) override;
+	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
@@ -169,6 +237,7 @@ private:
 
 	BcBool ScreenshotRequested_;
 	BcThreadId OwningThread_;
+	BcU64 FrameCount_;
 
 	struct TTextureStateValue
 	{
@@ -181,7 +250,7 @@ private:
 	{
 		NOOF_RENDERSTATES = (BcU32)RsRenderStateType::MAX,
 	};
-		
+	
 	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
 
 	// State setting.
@@ -192,7 +261,14 @@ private:
 	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
 
 	// Frame buffer.
+	BcBool DirtyFrameBuffer_;
 	class RsFrameBuffer* FrameBuffer_;
+	
+	// Viewport.
+	BcBool DirtyViewport_;
+	RsViewport Viewport_;
+	BcBool DirtyScissor_;
+	BcS32 ScissorX_, ScissorY_, ScissorW_, ScissorH_;
 
 	// Texture binding.
 	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;
@@ -232,6 +308,8 @@ private:
 	BcU32 NoofTextures_;
 	BcU32 NoofShaders_;
 	BcU32 NoofPrograms_;
+
+	GLuint TransferFBOs_[ 2 ];
 
 };
 

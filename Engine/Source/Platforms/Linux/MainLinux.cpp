@@ -12,6 +12,8 @@
 
 #include "System/SysProfilerChromeTracing.h"
 
+#include <boost/filesystem.hpp>
+
 namespace
 {
 	BcHandle GInstance_ = nullptr;
@@ -40,7 +42,9 @@ static OsClientSDL* GMainWindow = nullptr;
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
 	GMainWindow = new OsClientSDL();
-	if( GMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
+	std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + SysArgs_ + std::string( ")" ) );
+	
+	if( GMainWindow->create( Title.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
 		return evtRET_REMOVE;
@@ -64,6 +68,32 @@ eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 	GMainWindow = nullptr;
 	return evtRET_REMOVE;
 }
+
+// HACK HACK HACK: Offline package importing is a major hack for now.
+eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const EvtBaseEvent& )
+{
+	using namespace boost::filesystem;
+	path Path( "Content/" );
+
+	auto It = directory_iterator( Path );
+	while( It != directory_iterator() )
+	{
+		directory_entry Entry = *It;
+		std::cout << Entry.path().extension().string()  << std::endl;
+		if( Entry.path().extension().string()  == ".pkg" )
+		{
+			BcPath PackagePath( Entry.path().string() );
+			CsPackage* pPackage = new CsPackage( PackagePath.getFileNameNoExtension() );
+			BcUnusedVar( pPackage );
+		}
+		++It;
+	}
+
+	// HACK: We just wanna bail here. No clean shutdown yet.
+	exit(0);
+	//return evtRET_REMOVE;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -90,13 +120,12 @@ int main(int argc, char** argv)
 	{
 		new BcLogImpl();
 	}
-#endif
-
 	// Some default suppression.
 	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
 
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );
+#endif
 
 	// Initialise RNG.
 #if !PSY_DEBUG
@@ -126,27 +155,35 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-	SYS_REGISTER( "DsCore", DsCoreImpl );
-	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplLinux );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
+	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
 	// Main shared.
 	MainShared();
 
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
+	// HACK HACK HACK: Offline package importing is a major hack for now.
+	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
+	{
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
 
-	// Init game.
-	PsyGameInit();
+		// Init game.
+		PsyGameInit();
+	}
+	else
+	{
+		// HACK HACK HACK: Offline package importing is a major hack for now.
+		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostCsOpen_ImportPackages );
+	}
 
-	//
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
 	{
 		// Run kernel unthreaded.

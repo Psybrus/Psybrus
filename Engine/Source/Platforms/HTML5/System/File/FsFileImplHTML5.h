@@ -15,6 +15,7 @@
 #define __FsFileImplHTML5_H__
 
 #include "System/File/FsCore.h"
+#include "System/File/FsFile.h"
 #include <atomic>
 
 //////////////////////////////////////////////////////////////////////////

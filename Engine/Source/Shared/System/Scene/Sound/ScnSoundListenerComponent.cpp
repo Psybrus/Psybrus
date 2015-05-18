@@ -18,6 +18,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
 
+#include "Base/BcMath.h"
+
 #ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
@@ -28,14 +30,33 @@
 REFLECTION_DEFINE_DERIVED( ScnSoundListenerComponent );
 
 void ScnSoundListenerComponent::StaticRegisterClass()
-{	
-	ReRegisterClass< ScnSoundListenerComponent, Super >()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "VelocityMultiplier_", &ScnSoundListenerComponent::VelocityMultiplier_, bcRFF_IMPORTER ),
+		new ReField( "VelocitySmoothingAmount_", &ScnSoundListenerComponent::VelocitySmoothingAmount_, bcRFF_IMPORTER ),
+		new ReField( "MaxVelocity_", &ScnSoundListenerComponent::MaxVelocity_, bcRFF_IMPORTER ),
+
+		new ReField( "LastPosition_", &ScnSoundListenerComponent::LastPosition_, bcRFF_TRANSIENT ),
+		new ReField( "Position_", &ScnSoundListenerComponent::Position_, bcRFF_TRANSIENT ),
+		new ReField( "Velocity_", &ScnSoundListenerComponent::Velocity_, bcRFF_TRANSIENT ),
+		new ReField( "SmoothedVelocity_", &ScnSoundListenerComponent::SmoothedVelocity_, bcRFF_TRANSIENT ),
+	};
+
+	ReRegisterClass< ScnSoundListenerComponent, Super >( Fields )
 		.addAttribute( new ScnComponentProcessor( -2020 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnSoundListenerComponent::ScnSoundListenerComponent()
+ScnSoundListenerComponent::ScnSoundListenerComponent():
+	VelocityMultiplier_( 1.0f ),
+	VelocitySmoothingAmount_( 0.5f ),
+	MaxVelocity_( 10.0f ),
+	LastPosition_( 0.0f, 0.0f, 0.0f ),
+	Position_( 0.0f, 0.0f, 0.0f ),
+	Velocity_( 0.0f, 0.0f, 0.0f ),
+	SmoothedVelocity_( 0.0f, 0.0f, 0.0f )
 {
 
 }
@@ -53,16 +74,22 @@ ScnSoundListenerComponent::~ScnSoundListenerComponent()
 //virtual
 void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 {
-	if( SsCore::pImpl() != NULL )
+	if( SsCore::pImpl() != nullptr )
 	{
-		MaVec3d Up( 0.0f, 1.0f, 0.0f );
-		MaVec3d Forward( 0.0f, 0.0f, 1.0f );
+		LastPosition_ = Position_;
+		Position_ = getParentEntity()->getWorldPosition();
+		Velocity_ = ( ( LastPosition_ - Position_ ) / Tick ) * VelocityMultiplier_;
+
+		// TODO: Smooth this be smoothing based on tick.
+		VelocitySmoothingAmount_ = BcClamp( VelocitySmoothingAmount_, 0.0f, 1.0f );
+		SmoothedVelocity_ = ( SmoothedVelocity_ * VelocitySmoothingAmount_ ) + ( Velocity_ * ( 1.0f - VelocitySmoothingAmount_ ) );
+		if( SmoothedVelocity_.magnitude() > MaxVelocity_ )
+		{
+			SmoothedVelocity_ = SmoothedVelocity_.normal() * MaxVelocity_;
+		}
+
 		MaMat4d Matrix = getParentEntity()->getWorldMatrix();
-		MaMat4d RotationMatrix = Matrix;
-		RotationMatrix.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
-		Up = Up * RotationMatrix;
-		Forward = Forward * RotationMatrix;
-		//SsCore::pImpl()->setListener( Matrix.translation(), Forward, Up );
+		SsCore::pImpl()->setListener( Matrix, SmoothedVelocity_ );
 	}
 }
 
@@ -72,6 +99,8 @@ void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
 void ScnSoundListenerComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+
+	LastPosition_ = Position_ = getParentEntity()->getWorldPosition();;
 }
 
 //////////////////////////////////////////////////////////////////////////

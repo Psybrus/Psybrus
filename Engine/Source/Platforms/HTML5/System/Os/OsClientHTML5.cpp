@@ -31,6 +31,11 @@ OsClientHTML5::OsClientHTML5()
 	KeyCodeMap_[ SDLK_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
 	KeyCodeMap_[ SDLK_CLEAR ] = OsEventInputKeyboard::KEYCODE_CLEAR;
 	KeyCodeMap_[ SDLK_RETURN ] = OsEventInputKeyboard::KEYCODE_RETURN;
+	KeyCodeMap_[ SDLK_BACKSPACE ] = OsEventInputKeyboard::KEYCODE_BACKSPACE;	
+	KeyCodeMap_[ SDLK_LCTRL ] = OsEventInputKeyboard::KEYCODE_CONTROL;	
+	KeyCodeMap_[ SDLK_LSHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;	
+	KeyCodeMap_[ SDLK_RCTRL ] = OsEventInputKeyboard::KEYCODE_CONTROL;	
+	KeyCodeMap_[ SDLK_RSHIFT ] = OsEventInputKeyboard::KEYCODE_SHIFT;	
 	KeyCodeMap_[ SDLK_MENU ] = OsEventInputKeyboard::KEYCODE_ALT;
 	KeyCodeMap_[ SDLK_PAUSE ] = OsEventInputKeyboard::KEYCODE_PAUSE;
 	KeyCodeMap_[ SDLK_ESCAPE ] = OsEventInputKeyboard::KEYCODE_ESCAPE;
@@ -91,6 +96,7 @@ OsClientHTML5::OsClientHTML5()
 	MouseLocked_ = BcFalse;
 	Width_ = 0;
 	Height_ = 0;
+	IsFullScreen_ = 0;
 
 	MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
 	MouseDelta_ = MaVec2d( 0.0f, 0.0f );
@@ -118,7 +124,23 @@ BcBool OsClientHTML5::create( const BcChar* pTitle, BcHandle Instance, BcU32 Wid
 
 	Width_ = Width;
 	Height_ = Height;
-	
+
+#if 0
+	EmscriptenFullscreenStrategy Strategy;
+	Strategy.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_CENTER;
+	Strategy.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_NONE;
+	Strategy.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
+	Strategy.canvasResizedCallback = []( int EventType, const void* Reserved, void* UserData )->EM_BOOL
+		{
+			PSY_LOG( "Fullscreen callback." );
+			OsClientHTML5* Client = static_cast< OsClientHTML5* >( UserData );
+			Client->setWindowSize();
+			return 1;
+		};
+	Strategy.canvasResizedCallbackUserData = this;
+	auto RetVal = emscripten_enter_soft_fullscreen( "canvas", &Strategy );
+#endif
+
 	return BcTrue;
 }
 
@@ -126,13 +148,15 @@ BcBool OsClientHTML5::create( const BcChar* pTitle, BcHandle Instance, BcU32 Wid
 // update
 void OsClientHTML5::update()
 {
-
+	setWindowSize();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroy
 void OsClientHTML5::destroy()
 {	
+	emscripten_exit_fullscreen();
+
 	SDL_FreeSurface( SDLSurface_ );
 	SDLSurface_ = nullptr;
 }
@@ -141,6 +165,14 @@ void OsClientHTML5::destroy()
 // getDeviceHandle
 //virtual
 BcHandle OsClientHTML5::getDeviceHandle()
+{
+	return (BcHandle)SDLSurface_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getWindowHandle
+//virtual
+BcHandle OsClientHTML5::getWindowHandle()
 {
 	return (BcHandle)SDLSurface_;
 }
@@ -189,6 +221,7 @@ void OsClientHTML5::handleEvent( const SDL_Event& SDLEvent )
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEMOTION:
+	case SDL_MOUSEWHEEL:
 		handleMouseEvent( SDLEvent );
 		break;
 	
@@ -296,7 +329,29 @@ void OsClientHTML5::handleMouseEvent( const SDL_Event& SDLEvent )
 			EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, Event );
 		}
 		break;
+
+	case SDL_MOUSEWHEEL:
+		{
+			OsEventInputMouseWheel WheelEvent;
+			WheelEvent.ScrollX_ = SDLEvent.wheel.x;
+			WheelEvent.ScrollY_ = SDLEvent.wheel.y;
+			OsCore::pImpl()->publish( osEVT_INPUT_MOUSEWHEEL, WheelEvent ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_MOUSEWHEEL, WheelEvent );
+		}
+		break;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// handleTextInputEvent
+void OsClientHTML5::handleTextInputEvent( const SDL_Event& SDLEvent )
+{
+	OsEventInputText Event;
+	Event.DeviceID_ = 0;
+	memcpy( Event.Text_, SDLEvent.text.text, sizeof( SDLEvent.text.text ) );
+
+	OsCore::pImpl()->publish( osEVT_INPUT_TEXT, Event ); // TODO: REMOVE OLD!
+	EvtPublisher::publish( osEVT_INPUT_TEXT, Event );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -322,8 +377,19 @@ void OsClientHTML5::setWindowSize()
 {
 	int W = 0;
 	int H = 0;
-	int IsFullScreen = 0;
-	emscripten_get_canvas_size( &W, &H , &IsFullScreen);
+	emscripten_get_canvas_size( &W, &H , &IsFullScreen_ );
+
+	// Send event.
+	if( Width_ != W || Height_ != H )
+	{
+		OsEventClientResize Event;
+		Event.pClient_ = this;
+		Event.Width_ = Width_;
+		Event.Height_ = Height_;
+		OsCore::pImpl()->publish( osEVT_CLIENT_RESIZE, Event ); // TODO: REMOVE OLD!
+		EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
+	}
+
 	Width_ = W;
 	Height_ = H;
 }

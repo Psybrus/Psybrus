@@ -52,9 +52,14 @@ public:
 	void					addJobQueue( SysJobQueue* JobQueue );
 
 	/**
-	 * Do we have any jobs waiting on our queues?
+	 * Notify of schedule.
 	 */
-	BcBool					anyJobsWaiting();
+	void					notifySchedule();
+
+	/**
+	 * Log debug information.
+	 */
+	void					debugLog();
 
 private:
 	virtual void			execute();
@@ -63,7 +68,10 @@ private:
 	class SysKernel* Parent_;
 	SysFence& StartFence_;
 	BcBool Active_;
-	std::atomic< BcU32 > PendingJobQueue_;
+	std::atomic< size_t > PendingJobQueue_;
+	std::atomic< size_t > PendingJobSchedule_;
+	std::condition_variable WorkScheduled_;
+	std::mutex WorkScheduledMutex_;
 	std::thread ExecutionThread_;
 	std::mutex JobQueuesLock_;
 	SysJobQueueList NextJobQueues_;

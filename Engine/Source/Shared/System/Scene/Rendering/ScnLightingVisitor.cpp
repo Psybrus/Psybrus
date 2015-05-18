@@ -20,6 +20,7 @@
 #include "System/Scene/ScnCore.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 #include <algorithm>
 
@@ -35,6 +36,7 @@ public:
 
 	bool operator()( const class ScnLightComponent* A, const class ScnLightComponent* B ) const
 	{
+		PSY_PROFILE_FUNCTION;
 		BcF32 DistanceA = ( Position_ - A->getParentEntity()->getWorldPosition() ).magnitude();
 		BcF32 DistanceB = ( Position_ - B->getParentEntity()->getWorldPosition() ).magnitude();
 		BcF32 AttnA = A->findAttenuationByDistance( DistanceA );
@@ -50,6 +52,7 @@ private:
 // Ctor
 ScnLightingVisitor::ScnLightingVisitor( class ScnRenderableComponent* RenderableComponent )
 {
+	PSY_PROFILE_FUNCTION;
 	LightComponents_.reserve( MAX_LIGHTS );
 	ScnCore::pImpl()->visitBounds( this, RenderableComponent->getAABB() );
 
@@ -70,6 +73,7 @@ ScnLightingVisitor::~ScnLightingVisitor()
 //virtual
 void ScnLightingVisitor::visit( class ScnLightComponent* Component )
 {
+	PSY_PROFILE_FUNCTION;
 	if( LightComponents_.size() < MAX_LIGHTS )
 	{
 		LightComponents_.push_back( Component );
@@ -80,6 +84,7 @@ void ScnLightingVisitor::visit( class ScnLightComponent* Component )
 // setMaterialParameters
 void ScnLightingVisitor::setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const
 {
+	PSY_PROFILE_FUNCTION;
 	BcU32 Count = BcMin( (BcU32)4, (BcU32)LightComponents_.size() );
 	for( BcU32 Idx = 0; Idx < Count; ++Idx )
 	{

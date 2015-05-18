@@ -68,6 +68,7 @@ ScnPhysicsRigidBodyComponent::~ScnPhysicsRigidBodyComponent()
 void ScnPhysicsRigidBodyComponent::applyTorque( const MaVec3d& Torque )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyTorque( ScnPhysicsToBullet( Torque ) );
 }
 
@@ -76,6 +77,7 @@ void ScnPhysicsRigidBodyComponent::applyTorque( const MaVec3d& Torque )
 void ScnPhysicsRigidBodyComponent::applyForce( const MaVec3d& Force, const MaVec3d& RelativePos )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyForce( ScnPhysicsToBullet( Force ), ScnPhysicsToBullet( RelativePos ) );
 }
 
@@ -84,6 +86,7 @@ void ScnPhysicsRigidBodyComponent::applyForce( const MaVec3d& Force, const MaVec
 void ScnPhysicsRigidBodyComponent::applyCentralForce( const MaVec3d& Force )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyCentralForce( ScnPhysicsToBullet( Force ) );
 }
 
@@ -92,6 +95,7 @@ void ScnPhysicsRigidBodyComponent::applyCentralForce( const MaVec3d& Force )
 void ScnPhysicsRigidBodyComponent::applyTorqueImpulse( const MaVec3d& Torque )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyTorqueImpulse( ScnPhysicsToBullet( Torque ) );
 }
 
@@ -100,6 +104,7 @@ void ScnPhysicsRigidBodyComponent::applyTorqueImpulse( const MaVec3d& Torque )
 void ScnPhysicsRigidBodyComponent::applyImpulse( const MaVec3d& Impulse, const MaVec3d& RelativePos )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyImpulse( ScnPhysicsToBullet( Impulse ), ScnPhysicsToBullet( RelativePos ) );
 }
 
@@ -108,6 +113,7 @@ void ScnPhysicsRigidBodyComponent::applyImpulse( const MaVec3d& Impulse, const M
 void ScnPhysicsRigidBodyComponent::applyCentralImpulse( const MaVec3d& Impulse )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->applyCentralImpulse( ScnPhysicsToBullet( Impulse ) );
 }
 
@@ -116,15 +122,8 @@ void ScnPhysicsRigidBodyComponent::applyCentralImpulse( const MaVec3d& Impulse )
 void ScnPhysicsRigidBodyComponent::setLinearVelocity( const MaVec3d& Velocity )
 {
 	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
 	RigidBody_->setLinearVelocity( ScnPhysicsToBullet( Velocity ) );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setAngularVelocity
-void ScnPhysicsRigidBodyComponent::setAngularVelocity( const MaVec3d& Velocity )
-{
-	BcAssert( RigidBody_ != nullptr );	
-	RigidBody_->setAngularVelocity( ScnPhysicsToBullet( Velocity ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,11 +135,31 @@ MaVec3d ScnPhysicsRigidBodyComponent::getLinearVelocity() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setAngularVelocity
+void ScnPhysicsRigidBodyComponent::setAngularVelocity( const MaVec3d& Velocity )
+{
+	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
+	RigidBody_->setAngularVelocity( ScnPhysicsToBullet( Velocity ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getAngularVelocity
 MaVec3d ScnPhysicsRigidBodyComponent::getAngularVelocity() const
 {
 	BcAssert( RigidBody_ != nullptr );	
 	return ScnPhysicsFromBullet( RigidBody_->getAngularVelocity() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setMass
+void ScnPhysicsRigidBodyComponent::setMass( BcF32 Mass )
+{
+	btVector3 Inertia;
+	RigidBody_->getCollisionShape()->calculateLocalInertia( Mass, Inertia );
+	RigidBody_->setMassProps( Mass, Inertia );
+	RigidBody_->activate();
+	Mass_ = Mass;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -151,10 +170,35 @@ BcF32 ScnPhysicsRigidBodyComponent::getMass() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// translate
+void ScnPhysicsRigidBodyComponent::translate( const MaVec3d& V )
+{
+	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
+	RigidBody_->translate( ScnPhysicsToBullet( V ) ); 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPosition
+MaVec3d ScnPhysicsRigidBodyComponent::getPosition() const
+{
+	return ScnPhysicsFromBullet( RigidBody_->getCenterOfMassPosition() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRotation
+MaQuat ScnPhysicsRigidBodyComponent::getRotation() const
+{
+	return ScnPhysicsFromBullet( RigidBody_->getOrientation() );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnPhysicsRigidBodyComponent::update( BcF32 Tick )
 {
+	// TODO: Interpolate the results?
+
 	// Set transform from rigid body.
 	const btTransform& BulletTransform = RigidBody_->getCenterOfMassTransform();
 	MaMat4d Transform;
@@ -210,7 +254,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	ConstructionInfo.m_linearSleepingThreshold = LinearSleepingThreshold_;
 	ConstructionInfo.m_angularSleepingThreshold = AngularSleepingThreshold_;
 	RigidBody_ = new btRigidBody( ConstructionInfo );
-
+	RigidBody_->setUserPointer( this );
 	World_->addRigidBody( RigidBody_ );
 }
 

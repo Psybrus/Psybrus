@@ -166,11 +166,11 @@ void ScnMaterialComponent::StaticRegisterClass()
 			new ReField( "PermutationFlags_", &ScnMaterialComponent::PermutationFlags_, bcRFF_IMPORTER ),
 
 			new ReField( "pProgram_", &ScnMaterialComponent::pProgram_, bcRFF_SHALLOW_COPY ),
-			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_ ),
-			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_ ),
-			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_ ),
-			new ReField( "BoneUniformBlockIndex_", &ScnMaterialComponent::BoneUniformBlockIndex_ ),
-			new ReField( "ObjectUniformBlockIndex_", &ScnMaterialComponent::ObjectUniformBlockIndex_ ),
+			new ReField( "TextureBindingList_", &ScnMaterialComponent::TextureBindingList_, bcRFF_CONST ),
+			new ReField( "UniformBlockBindingList_", &ScnMaterialComponent::UniformBlockBindingList_, bcRFF_CONST ),
+			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_, bcRFF_CONST ),
+			new ReField( "BoneUniformBlockIndex_", &ScnMaterialComponent::BoneUniformBlockIndex_, bcRFF_CONST ),
+			new ReField( "ObjectUniformBlockIndex_", &ScnMaterialComponent::ObjectUniformBlockIndex_, bcRFF_CONST ),
 		};
 		ReRegisterClass< ScnMaterialComponent, Super >( Fields );
 	}
@@ -341,7 +341,7 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer
 {
 	if( Index == BcErrorCode )
 	{
-		PSY_LOG( "Error: Attempting to set uniform buffer to invalid slot." );
+		//PSY_LOG( "Error: Attempting to set uniform buffer to invalid slot." );
 		return;
 	}
 
@@ -423,9 +423,6 @@ public:
 
 		// Set program.
 		pContext_->setProgram( pProgram_ );
-
-		// Done.
-		pUpdateFence_->decrement();
 	}
 	
 	// Texture binding block.
@@ -445,10 +442,6 @@ public:
 	// Program.
 	RsProgram* pProgram_;
 	
-	// Update fence (for marking when in use/not)
-	// TODO: Make this a generic feature of the component system?
-	SysFence* pUpdateFence_;
-
 	// For debugging.
 	ScnMaterialComponent* pMaterial_;
 };
@@ -493,7 +486,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup uniform blocks.
 	pRenderNode->NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
 	pRenderNode->pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * pRenderNode->NoofUniformBlocks_ );
-	pRenderNode->ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer ) * pRenderNode->NoofUniformBlocks_ );
+	pRenderNode->ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer* ) * pRenderNode->NoofUniformBlocks_ );
 
 	for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
 	{
@@ -507,10 +500,6 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup program.
 	pRenderNode->pProgram_ = pProgram_;
 
-	// Update fence.
-	pRenderNode->pUpdateFence_ = &UpdateFence_;
-	UpdateFence_.increment();
-
 	// Add node to frame.
 	pRenderNode->Sort_ = Sort;
 	pFrame->addRenderNode( pRenderNode );
@@ -522,4 +511,12 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
+{
+	Super::onDetach( Parent );
 }

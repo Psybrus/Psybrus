@@ -279,7 +279,7 @@ void ScnModelComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
 		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
 		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
@@ -328,12 +328,7 @@ ScnModelComponent::~ScnModelComponent()
 // initialise
 void ScnModelComponent::initialise()
 {
-	// Setup base transform.
-	MaMat4d Scale;
-	Scale.scale( Scale_ );
-	BaseTransform_.rotation( Rotation_ );
-	BaseTransform_ = BaseTransform_ * Scale;
-	BaseTransform_.translation( Position_ );
+	setBaseTransform( Position_, Scale_, Rotation_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -458,15 +453,40 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 	return std::move( MaterialComponents );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// setBaseTransform
+void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation )
+{
+	Position_ = Position;
+	Scale_ = Scale;
+	Rotation_ = Rotation;
+
+	// Setup base transform.
+	MaMat4d ScaleMatrix;
+	ScaleMatrix.scale( Scale_ );
+	BaseTransform_.identity();
+	BaseTransform_.rotation( Rotation_ );
+	BaseTransform_ = BaseTransform_ * ScaleMatrix;
+	BaseTransform_.translation( Position_ );
+}
+
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
 void ScnModelComponent::postUpdate( BcF32 Tick )
 {
+	PSY_PROFILE_FUNCTION;
 	Super::postUpdate( Tick );
 
+	UploadFence_.wait();
 	UpdateFence_.increment();
-	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
+	MaMat4d Matrix = BaseTransform_ * getParentEntity()->getWorldMatrix();
+	SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+		[ this, Matrix ]()->void
+		{
+			updateNodes( Matrix );
+		} );
 
 #if DEBUG_RENDER_NODES
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
@@ -491,14 +511,15 @@ void ScnModelComponent::postUpdate( BcF32 Tick )
 #endif // DEBUG_RENDER_NODES
 }
 
-//////////////////////////////////////////////////////////////////////////pmatr
+//////////////////////////////////////////////////////////////////////////
 // updateNodes
 void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 {
-	MaAABB FullAABB;
+	PSY_PROFILE_FUNCTION;
 
-	// Wait for previous upload to finish.
-	UploadFence_.wait();
+	setBaseTransform( Position_, Scale_, Rotation_ );
+
+	MaAABB FullAABB;
 
 	// Update nodes.	
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
@@ -587,6 +608,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
+					PSY_PROFILE_FUNCTION;
 					ScnShaderBoneUniformBlockData* BoneUniformBlock = reinterpret_cast< ScnShaderBoneUniformBlockData* >( Lock.Buffer_ );
 					for( BcU32 Idx = 0; Idx < SCN_MODEL_BONE_PALETTE_SIZE; ++Idx )
 					{
@@ -609,6 +631,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
+					PSY_PROFILE_FUNCTION;
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
 					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
 
@@ -617,10 +640,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 
 					// Normal matrix.
 					ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
-					ObjectUniformBlock->NormalTransform_.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
-					ObjectUniformBlock->NormalTransform_.inverse();
-					ObjectUniformBlock->NormalTransform_.transpose();
-					ObjectUniformBlock->NormalTransform_.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
+					
 					UploadFence_.decrement();
 				} );
 		}
@@ -709,6 +729,7 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	// Wait for update + upload to complete.
 	UpdateFence_.wait();
 	UploadFence_.wait();
+	//SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
 
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
@@ -757,15 +778,17 @@ public:
 
 void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnModelComponent::render" ) );
+	PSY_PROFILE_FUNCTION;
 
 	Super::render( pViewComponent, pFrame, Sort );
 
 	// Wait for model to have updated.
 	UpdateFence_.wait();
 
+#if 0
 	// Gather lights.
 	ScnLightingVisitor LightingVisitor( this );
+#endif
 
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
@@ -793,9 +816,10 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_ );
 		}
 
+#if 0
 		// Set lighting parameters.
 		LightingVisitor.setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
-			
+#endif		
 		// Set material components for view.
 		pViewComponent->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 			

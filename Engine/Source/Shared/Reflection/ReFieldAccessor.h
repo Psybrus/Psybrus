@@ -186,6 +186,14 @@ public:
 	}
 
 	/**
+		* @brief Get field flags.
+		*/
+	inline BcU32 getFlags() const
+	{
+		return Field_->getFlags();
+	}
+
+	/**
 		* @brief Is transient? I.e. ignore for serialisation.
 		*/
 	inline BcBool isTransient() const
@@ -193,6 +201,14 @@ public:
 		return Field_->getFlags() & bcRFF_TRANSIENT;
 	}
 			
+	/**
+		* @brief Is const?
+		*/
+	inline BcBool isConst() const
+	{
+		return Field_->getFlags() & bcRFF_CONST;
+	}
+
 	/**
 		* @brief Is to be a shallow copy?
 		*/

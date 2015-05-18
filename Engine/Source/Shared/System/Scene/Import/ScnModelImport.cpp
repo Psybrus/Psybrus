@@ -193,7 +193,8 @@ BcBool ScnModelImport::import( const Json::Value& )
 		Source_.c_str(), 
 		aiProcessPreset_TargetRealtime_MaxQuality | 
 			aiProcess_SplitByBoneCount |
-			aiProcess_LimitBoneWeights,
+			aiProcess_LimitBoneWeights |
+			aiProcess_MakeLeftHanded,
 		nullptr, 
 		PropertyStore );
 
@@ -639,7 +640,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Normal.x;
 						*OutVal++ = Normal.y;
 						*OutVal++ = Normal.z;
-						*OutVal++ = 1.0f;
+						*OutVal++ = 0.0f;
 					}
 				}
 				break;
@@ -657,7 +658,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Tangent.x;
 						*OutVal++ = Tangent.y;
 						*OutVal++ = Tangent.z;
-						*OutVal++ = 1.0f;
+						*OutVal++ = 0.0f;
 					}
 				}
 				break;
@@ -675,7 +676,7 @@ void ScnModelImport::serialiseVertices(
 						*OutVal++ = Bitangent.x;
 						*OutVal++ = Bitangent.y;
 						*OutVal++ = Bitangent.z;
-						*OutVal++ = 1.0f;
+						*OutVal++ = 0.0f;
 					}
 				}
 				break;

@@ -25,6 +25,7 @@ SysJobWorker::SysJobWorker( class SysKernel* Parent, SysFence& StartFence ):
 	Parent_( Parent ),
 	StartFence_( StartFence ),
 	Active_( BcTrue ),
+	PendingJobSchedule_( 0 ),
 	PendingJobQueue_( 0 ),
 	JobQueueIndex_( 0 )
 {
@@ -66,13 +67,8 @@ void SysJobWorker::start()
 // stop
 void SysJobWorker::stop()
 {
-	// Set to not be active, trigger resume, and join thread.
 	Active_ = BcFalse;
-
-	// Signal parent to notify waiting workers.
-	Parent_->notifySchedule();
-
-	// Wait for join.
+	WorkScheduled_.notify_all();
 	ExecutionThread_.join();
 }
 
@@ -85,24 +81,26 @@ void SysJobWorker::addJobQueue( SysJobQueue* JobQueue )
 	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
 	NextJobQueues_.push_back( JobQueue );
 	PendingJobQueue_++;
+	WorkScheduled_.notify_all();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// anyJobsWaiting
-BcBool SysJobWorker::anyJobsWaiting()
+// notifySchedule
+void SysJobWorker::notifySchedule()
 {
-	BcBool RetVal = BcFalse;
-	for( auto JobQueue : CurrJobQueues_ )
-	{
-		// Check if job queue has any jobs waiting.
-		if( JobQueue->anyJobsWaiting() )
-		{
-			RetVal = BcTrue;
-			break;
-		}
-	}
+	PendingJobSchedule_++;
+	WorkScheduled_.notify_all();
+}
 
-	return RetVal;
+//////////////////////////////////////////////////////////////////////////
+// debugLog
+void SysJobWorker::debugLog()
+{
+	std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
+
+	PSY_LOG( "PendingJobQueue: %u", PendingJobQueue_.load() );
+	PSY_LOG( "NextJobQueues: %u", NextJobQueues_.size() );
+	PSY_LOG( "CurrJobQueues: %u", CurrJobQueues_.size() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,12 +119,13 @@ void SysJobWorker::execute()
 		PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker_WaitSchedule" );
 
 		// Wait to be scheduled.
-		Parent_->waitForSchedule( [ this ]()
-		{
-			const BcBool AnyJobsWaiting = anyJobsWaiting();
-			const BcBool PendingJobQueue = PendingJobQueue_.load() > 0;
-			return AnyJobsWaiting || PendingJobQueue || !Active_;
-		});
+		std::unique_lock< std::mutex > Lock( WorkScheduledMutex_ );
+		WorkScheduled_.wait( Lock, [ this ]()
+			{
+				const BcBool PendingJobSchedule = PendingJobSchedule_.load() > 0;
+				const BcBool PendingJobQueue = PendingJobQueue_.load() > 0;
+				return PendingJobSchedule || PendingJobQueue || !Active_;
+			} );
 
 		PSY_PROFILER_SECTION( DoneSchedule_Profiler, "SysJobWorker_DoneSchedule" );
 
@@ -145,38 +144,43 @@ void SysJobWorker::execute()
 		}
 
 		// Grab job from current job queue.
-		SysJob* Job = nullptr;
-		for( size_t Idx = 0; Idx < CurrJobQueues_.size(); ++Idx )
+		if( PendingJobSchedule_.load() > 0 )
 		{
-			// Grab job queue.
-			auto JobQueue( CurrJobQueues_[ JobQueueIndex_ ] );
-
-			// Advance.
-			JobQueueIndex_ = ( JobQueueIndex_ + 1 ) % CurrJobQueues_.size();
-
-			// If we can pop, execute and break out.
-			if( JobQueue->popJob( Job ) )
+			SysJob* Job = nullptr;
+			for( size_t Idx = 0; Idx < CurrJobQueues_.size(); ++Idx )
 			{
-				PSY_PROFILER_SECTION( ExecuteJob_Profiler, "SysJobWorker_ExecuteJob" );
+				// Grab job queue.
+				auto JobQueue( CurrJobQueues_[ JobQueueIndex_ ] );
 
-				// Execute.
-				try
+				// Advance.
+				JobQueueIndex_ = ( JobQueueIndex_ + 1 ) % CurrJobQueues_.size();
+
+				// If we can pop, execute and break out.
+				if( JobQueue->popJob( Job ) )
 				{
-					Job->internalExecute();
+					PSY_PROFILER_SECTION( ExecuteJob_Profiler, "SysJobWorker_ExecuteJob" );
+
+					// Execute.
+					try
+					{
+						Job->internalExecute();
+					}
+					catch( ... )
+					{
+						PSY_LOG( "Unhandled exception in job.\n" );
+					}
+
+					// Delete job.
+					delete Job;
+
+					// Tell job queue we've completed the job.
+					JobQueue->completedJob();
+
+					break;
 				}
-				catch( ... )
-				{
-					PSY_LOG( "Unhandled exception in job.\n" );
-				}
-
-				// Delete job.
-				delete Job;
-
-				// Tell job queue we've completed the job.
-				JobQueue->completedJob();
-
-				break;
 			}
+
+			PendingJobSchedule_--;
 		}
 	}
 }

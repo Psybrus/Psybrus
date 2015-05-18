@@ -7,10 +7,11 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 #include "System/Os/OsClientHTML5.h"
+#include "System/Scene/ScnCore.h"
 
 #include <emscripten.h>
 
-eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const EvtBaseEvent& )
 {
 	extern void PsyLaunchGame();
 	PsyLaunchGame();
@@ -21,7 +22,7 @@ eEvtReturn OnPostOpenScnCore_LaunchGame( EvtID, const SysSystemEvent& )
 extern BcU32 GResolutionWidth;
 extern BcU32 GResolutionHeight;
 
-eEvtReturn OnPostOsOpen_CreateClient( EvtID, const SysSystemEvent& )
+eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
 	OsClientHTML5* pMainWindow = new OsClientHTML5();
 	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), 0, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
@@ -53,6 +54,12 @@ int main(int argc, char** argv)
 	{
 		new BcLogImpl();
 	}
+	// Some default suppression.
+	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+
+	// Setup basic log Category.
+	BcLogScopedCategory LogCategory( "Main" );
+
 #endif
 
 	// Initialise RNG.
@@ -67,24 +74,21 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-//	SYS_REGISTER( "DsCore", DsCoreImpl );
-//	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplHTML5 );
 	SYS_REGISTER( "FsCore", FsCoreImplHTML5 );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
+	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
 	// Main shared.
 	MainShared();
 
 	// Hook up create client delegate
-	SysSystemEvent::Delegate OsPostOpenDelegateCreateClient = SysSystemEvent::Delegate::bind< OnPostOsOpen_CreateClient >();
-	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OsPostOpenDelegateCreateClient );
-
-	SysSystemEvent::Delegate OnPostOpenDelegateLaunchGame = SysSystemEvent::Delegate::bind< OnPostOpenScnCore_LaunchGame >();
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenDelegateLaunchGame );
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
 
 	// Init game.
 	PsyGameInit();

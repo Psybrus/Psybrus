@@ -78,7 +78,9 @@ MaCPUVec3d::MaCPUVec3d( const BcChar* pString )
 }
 
 MaCPUVec3d::MaCPUVec3d( const MaCPUVec2d& V, BcF32 Z ):
-	MaCPUVecQuad( V.x(), V.y(), Z )
+	X_( V.x() ),
+	Y_( V.y() ),
+	Z_( Z )
 {
 
 }

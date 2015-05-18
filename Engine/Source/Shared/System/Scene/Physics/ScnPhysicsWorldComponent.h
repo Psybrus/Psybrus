@@ -15,6 +15,7 @@
 #define __ScnPhysicsWorldComponent_H__
 
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/Physics/ScnPhysicsEvents.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnIPhysicsWorldUpdate
@@ -29,6 +30,15 @@ public:
 	 * Can be called multiple times per frame.
 	 */
 	virtual void onPhysicsUpdate( BcF32 Tick ) = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnPhysicsLineCastResult
+struct ScnPhysicsLineCastResult
+{
+	MaVec3d Intersection_;
+	MaVec3d Normal_;
+	class ScnEntity* Entity_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,7 +70,8 @@ public:
 	void registerWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 	void deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 
-	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal );
+	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result );
+	BcBool sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result );
 
 
 private:
@@ -79,6 +90,8 @@ private:
 	friend class UpdateActions;
 	class UpdateActions* UpdateActions_;
 	std::vector< ScnIPhysicsWorldUpdate* > WorldUpdateHandler_;
+
+	std::vector< ScnPhysicsEventCollision > Collisions_;
 
 	BcU32 DebugRenderingHandle_;
 };

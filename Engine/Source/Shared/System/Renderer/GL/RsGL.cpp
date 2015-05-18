@@ -13,6 +13,8 @@
 
 #include "System/Renderer/GL/RsGL.h"
 
+#include "Base/BcProfiler.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Utility.
 namespace
@@ -43,6 +45,7 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportSeparateBlendState_( BcFalse ),
 	SupportDXTTextures_( BcFalse ),
 	SupportNpotTextures_( BcFalse ),
+	SupportDepthTextures_( BcFalse ),
 	SupportFloatTextures_( BcFalse ),
 	SupportHalfFloatTextures_( BcFalse ),
 	SupportAnisotropicFiltering_( BcFalse ),
@@ -63,6 +66,9 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 // setupFeatureSupport
 void RsOpenGLVersion::setupFeatureSupport()
 {
+	auto Extensions = (const char*)glGetString( GL_EXTENSIONS );
+	PSY_LOG( "Extensions: %s", Extensions );
+
 	switch( Type_ )
 	{
 	case RsOpenGLType::COMPATIBILITY:
@@ -77,6 +83,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 			SupportMRT_ = BcTrue;
 			SupportDXTTextures_ = BcTrue; // Ubiquous.
 			SupportNpotTextures_ = BcTrue;
+			SupportDepthTextures_ = BcTrue;
 			SupportFloatTextures_ = BcTrue;
 			SupportHalfFloatTextures_ = BcTrue;
 			SupportAnisotropicFiltering_ = BcTrue;
@@ -129,9 +136,13 @@ void RsOpenGLVersion::setupFeatureSupport()
 		SupportDXTTextures_ |= HaveExtension( "WEBGL_compressed_texture_s3tc" );
 		SupportDXTTextures_ |= HaveExtension( "EXT_texture_compression_s3tc" );
 
+		SupportDepthTextures_ |= HaveExtension( "OES_depth_texture" );
+		SupportDepthTextures_ |= HaveExtension( "WEBGL_depth_texture" );
 		SupportFloatTextures_ |= HaveExtension( "OES_texture_float" );
+		SupportFloatTextures_ |= HaveExtension( "WEBGL_texture_float" );
 
 		SupportHalfFloatTextures_ |= HaveExtension( "OES_texture_half_float" );
+		SupportHalfFloatTextures_ |= HaveExtension( "WEBGL_texture_half_float" );
 
 		SupportAnisotropicFiltering_ |= HaveExtension( "EXT_texture_filter_anisotropic" );
 
@@ -238,9 +249,11 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if !PSY_PRODUCTION && !PLATFORM_HTML5
+#if PSY_GL_CATCH_ERRORS
 GLuint RsGLCatchError()
 {
+	PSY_PROFILER_SECTION( CatchRoot, "RsGLCatchError" );
+
 	BcU32 TotalErrors = 0;
 	GLuint Error;
 	do

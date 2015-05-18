@@ -23,6 +23,34 @@ namespace
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Object notifier.
+ReIObjectNotify::ReIObjectNotify()
+{
+
+}
+
+//virtual
+ReIObjectNotify::~ReIObjectNotify()
+{
+	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
+
+	for( auto PairIt = ObjectNotifyMap_.begin(); PairIt != ObjectNotifyMap_.end(); ++PairIt )
+	{
+		auto& List = PairIt->second;
+
+		auto FoundIt = std::find_if( List.begin(), List.end(), 
+			[ this ]( ReIObjectNotify* Notify )
+			{
+				return Notify == this;
+			} );
+		if( FoundIt != List.end() )
+		{
+			List.erase( FoundIt );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Object class definition
 REFLECTION_DEFINE_BASE( ReObject );
 	
@@ -31,14 +59,14 @@ void ReObject::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 #if REFLECTION_ENABLE_GC
-		new ReField( "RefCount_", &ReObject::RefCount_, bcRFF_TRANSIENT ),
+		new ReField( "RefCount_", &ReObject::RefCount_, bcRFF_TRANSIENT | bcRFF_CONST ),
 #endif
-		new ReField( "Flags_", &ReObject::Flags_ ),
-		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY ),
-		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY | bcRFF_BASIS ),
-		new ReField( "Name_", &ReObject::Name_ ),
+		new ReField( "ObjectFlags_", &ReObject::ObjectFlags_, bcRFF_CONST ),
+		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY | bcRFF_CONST ),
+		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY | bcRFF_BASIS | bcRFF_CONST ),
+		new ReField( "Name_", &ReObject::Name_, bcRFF_CONST ),
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
-		new ReField( "UniqueId_", &ReObject::UniqueId_, bcRFF_TRANSIENT ),
+		new ReField( "UniqueId_", &ReObject::UniqueId_, bcRFF_TRANSIENT | bcRFF_CONST ),
 #endif
 	};
 		
@@ -51,7 +79,7 @@ ReObject::ReObject():
 #if REFLECTION_ENABLE_GC
 	RefCount_( 0 ),
 #endif
-	Flags_( 0 ),
+	ObjectFlags_( 0 ),
 	Owner_( nullptr ),
 	Basis_( nullptr )
 {
@@ -64,7 +92,7 @@ ReObject::ReObject( ReNoInit ):
 #if REFLECTION_ENABLE_GC
 	RefCount_( 0 ),
 #endif
-	Flags_( 0 ),
+	ObjectFlags_( 0 ),
 	Owner_( nullptr ),
 	Basis_( nullptr )
 {
@@ -79,7 +107,7 @@ ReObject::~ReObject()
 	StaticRemove( this );
 
 	// Handle destruction notification.
-	if( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion )
+	if( ObjectFlags_ & (BcU32)ReObject::Flags::NotifyOnDeletion )
 	{
 		std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 		auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
@@ -146,7 +174,7 @@ std::string ReObject::getFullName() const
 void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 {
 	// Add notifier flag so it knows to notify.
-	Flags_ |= (BcU32)ReObject::Flags::NotifyOnDeletion;
+	ObjectFlags_ |= (BcU32)ReObject::Flags::NotifyOnDeletion;
 
 	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
@@ -158,7 +186,7 @@ void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 	}
 	else
 	{
-		auto& ObjectNotifyListRet = ObjectNotifyMap_[ this ] = ObjectNotifyList( 1 );
+		auto& ObjectNotifyListRet = ObjectNotifyMap_[ this ] = ObjectNotifyList();
 		ObjectNotifyListRet.push_back( ObjectNotify );
 	}
 }
@@ -167,7 +195,7 @@ void ReObject::addNotifier( ReIObjectNotify* ObjectNotify ) const
 // removeNotifier
 void ReObject::removeNotifier( ReIObjectNotify* ObjectNotify ) const
 {
-	BcAssertMsg( Flags_ & (BcU32)ReObject::Flags::NotifyOnDeletion, "Can't remove notifier from object that is flagged to not notify!" );
+	BcAssertMsg( ObjectFlags_ & (BcU32)ReObject::Flags::NotifyOnDeletion, "Can't remove notifier from object that is flagged to not notify!" );
 
 	std::lock_guard< std::mutex > Lock( ObjectNotifyMutex_ );
 	auto ObjectNotifyListIt = ObjectNotifyMap_.find( this );
@@ -259,7 +287,7 @@ void ReObject::StaticCollectGarbage()
 	// if required.
 	for( auto Object : ObjectList )
 	{
-		if( ( Object->Flags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) != 0 )
+		if( ( Object->ObjectFlags_ & (BcU32)ReObject::Flags::MarkedForDeletion ) != 0 )
 		{
 			delete Object;
 		}

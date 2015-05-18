@@ -91,6 +91,11 @@ public:
 	 */
 	BcBool				anyJobsWaiting();
 
+	/**
+	 * Log debug information.
+	 */
+	void				debugLog();
+
 private:
 #if USE_BOOST_LOCKFREE_QUEUE
 	typedef boost::lockfree::queue< class SysJob* > TJobQueue;

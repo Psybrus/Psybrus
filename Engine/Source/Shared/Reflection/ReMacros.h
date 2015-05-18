@@ -52,7 +52,7 @@
 	template < class _Ty >														\
 	inline BcBool isTypeOf() const												\
 	{																			\
-		return this ? isTypeOf( _Ty::StaticGetClass() ) : false;				\
+		return isTypeOf( _Ty::StaticGetClass() );								\
 	}																			\
 
 /**
@@ -60,7 +60,7 @@
  */
 #define __REFLECTION_DEFINE_BASE( _Type )										\
 	__REFLECTION_DEFINE_BASIC( _Type )											\
-	BcName _Type::getTypeName() const								\
+	BcName _Type::getTypeName() const											\
 	{																			\
 		return _Type::StaticGetTypeName();										\
 	}																			\

@@ -17,8 +17,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Assertions.
-#if 0
-// is_trivially_copyable needs libc++, which means rebuilding Boost. Do later.
 static_assert( std::is_trivially_copyable< RsRenderTargetBlendState >::value, "Unable to trivially copy RsRenderTargetBlendState" );
 static_assert( std::is_trivially_copyable< RsBlendState >::value, "Unable to trivially copy RsBlendState" );
 static_assert( std::is_trivially_copyable< RsStencilFaceState >::value, "Unable to trivially copy RsStencilFaceState" );
@@ -26,7 +24,6 @@ static_assert( std::is_trivially_copyable< RsStencilFaceState >::value, "Unable 
 static_assert( std::is_trivially_copyable< RsDepthStencilState >::value, "Unable to trivially copy RsDepthStencilState" );
 static_assert( std::is_trivially_copyable< RsRasteriserState >::value, "Unable to trivially copy RsRasteriserState" );
 static_assert( std::is_trivially_copyable< RsRenderStateDesc >::value, "Unable to trivially copy RsRenderStateDesc" );
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetBlendState
@@ -85,12 +82,14 @@ void RsBlendState::StaticRegisterClass()
 	ReRegisterClass< RsBlendState >( Fields );
 }
 
-RsBlendState::RsBlendState( ReNoInit )
+RsBlendState::RsBlendState( ReNoInit ):
+	RenderTarget_()
 {
 
 }
 
-RsBlendState::RsBlendState()
+RsBlendState::RsBlendState():
+	RenderTarget_()
 {
 
 }
@@ -152,8 +151,8 @@ void RsDepthStencilState::StaticRegisterClass()
 }
 
 RsDepthStencilState::RsDepthStencilState( ReNoInit ):
-	DepthTestEnable_( BcTrue ),
-	DepthWriteEnable_( BcTrue ),
+	DepthTestEnable_( BcFalse ),
+	DepthWriteEnable_( BcFalse ),
 	DepthFunc_( RsCompareMode::LESS ),
 	StencilEnable_( BcFalse ),
 	StencilRead_( 0x0 ),
@@ -166,8 +165,8 @@ RsDepthStencilState::RsDepthStencilState( ReNoInit ):
 }
 
 RsDepthStencilState::RsDepthStencilState():
-	DepthTestEnable_( BcTrue ),
-	DepthWriteEnable_( BcTrue ),
+	DepthTestEnable_( BcFalse ),
+	DepthWriteEnable_( BcFalse ),
 	DepthFunc_( RsCompareMode::LESS ),
 	StencilEnable_( BcFalse ),
 	StencilRead_( 0x0 ),

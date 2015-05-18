@@ -32,18 +32,20 @@ public:
 	MaQuat( const BcChar* pString );
 	
 	// Arithmetic
-	MaQuat 		operator * (const MaQuat& rhs) const;
-	MaQuat 		operator ~ () const;
+	MaQuat operator * (const MaQuat& rhs) const;
+	MaQuat operator ~ () const;
+
 
 	// Additional stuff
-	void 		makeIdentity();
-	BcF32 		magnitude();
+	void makeIdentity();
+	BcF32 magnitude();
+	void inverse();
 	
 	// Interpolation
 	void lerp( const MaQuat& a, const MaQuat& b, BcF32 t );
 	void slerp( const MaQuat& a, const MaQuat& b, BcF32 t );
 	
-	// Quick handy funk
+// Quick handy funk
 	void rotateVector( MaVec3d& ) const;
 
 	//
@@ -55,8 +57,8 @@ public:
 	void axisAngle( const MaVec3d& Axis, BcF32 Angle );
 	
 	// 
-	void fromEular( BcF32 Yaw, BcF32 Pitch, BcF32 Roll );
-	MaVec3d asEular() const;
+	void fromEuler( BcF32 Yaw, BcF32 Pitch, BcF32 Roll );
+	MaVec3d asEuler() const;
 
 	//
 	void calcFromXYZ();

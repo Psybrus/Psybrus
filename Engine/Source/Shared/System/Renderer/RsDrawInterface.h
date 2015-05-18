@@ -91,6 +91,16 @@ public:
 	virtual void setFrameBuffer( class RsFrameBuffer* FrameBuffer ) = 0;
 
 	/**
+	 * Set viewport.
+	 */
+	virtual void setViewport( class RsViewport& Viewport ) = 0;
+
+	/**
+	 * Set scissor rect.
+	 */
+	virtual void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) { BcBreakpoint; };
+
+	/**
 	 * Clear.
 	 */
 	virtual void clear( 
@@ -108,6 +118,16 @@ public:
 	 * Draw indexed primitives.
 	 */
 	virtual void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) = 0;
+
+	/**
+	 * Copy framebuffer render target to texture.
+	 */
+	virtual void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) { BcBreakpoint; };
+
+	/**
+	 * Copy texture to framebuffer render target.
+	 */
+	virtual void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) { BcBreakpoint; };
 };
 
 #endif

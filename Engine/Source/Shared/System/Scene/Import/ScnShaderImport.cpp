@@ -320,6 +320,8 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		BcMemZero( FileData.data(), FileData.size() );
 		SourceFile.read( FileData.data(), FileData.size() );
 		SourceFileData_ = FileData.data();
+
+		addDependency( Source_.c_str() );
 	}
 
 	// Add code type defines.
@@ -687,7 +689,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					std::string OutputShaderCode = Hlsl2Glsl_GetShader( CompilerHandle );
 					std::string OriginalOutputShaderCode = OutputShaderCode;
 
-					// TODO: Run through glsl-optimzser.
+					// Run through glsl-optimzser.
 					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
 					glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
 

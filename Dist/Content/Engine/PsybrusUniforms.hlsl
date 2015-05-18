@@ -100,6 +100,50 @@ ScnShaderAlphaTestUniformBlockData ScnShaderAlphaTestUniformBlockDataVS;
 
 #endif
 
+////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessConfigData
+BEGIN_CBUFFER( ScnShaderPostProcessConfigData )
+	ENTRY( float4, InputDimensions_[16] ) 
+	ENTRY( float4, OutputDimensions_[4] ) 
+END_CBUFFER
+
+#if !PSY_USE_CBUFFER
+ScnShaderPostProcessConfigData ScnShaderPostProcessConfigDataVS;
+
+#  define InputDimensions_ ScnShaderPostProcessConfigDataVS.XInputDimensions_
+#  define OutputDimensions_ ScnShaderPostProcessConfigDataVS.XOutputDimensions_
+
+#endif
+
+////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessCopyBlockData
+BEGIN_CBUFFER( ScnShaderPostProcessCopyBlockData )
+	/// Colour transform to copy using.
+	ENTRY( float4, ColourTransform_ ) 
+END_CBUFFER
+
+#if !PSY_USE_CBUFFER
+ScnShaderPostProcessCopyBlockData ScnShaderPostProcessCopyVS;
+
+#  define ColourTransform_ ScnShaderPostProcessCopyVS.XColourTransform_
+
+#endif
+
+////////////////////////////////////////////////////////////////////////
+// ScnShaderPostProcessBlurBlockData
+BEGIN_CBUFFER( ScnShaderPostProcessBlurBlockData )
+	ENTRY( float2, TextureDimensions_ ) 
+	ENTRY( float, Radius_ ) 
+	ENTRY( float, Unused_ ) 
+END_CBUFFER
+
+#if !PSY_USE_CBUFFER
+ScnShaderPostProcessBlurBlockData ScnShaderPostProcessBlurVS;
+
+#  define TextureDimensions_ ScnShaderPostProcessBlurVS.XTextureDimensions_
+#  define Radius_ ScnShaderPostProcessBlurVS.XRadius_
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 // ScnFontUniformBlockData

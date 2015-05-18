@@ -79,13 +79,19 @@ MaCPUVec4d::MaCPUVec4d( const BcChar* pString )
 }
 
 MaCPUVec4d::MaCPUVec4d( const MaCPUVec2d& Rhs ):
-	MaCPUVecQuad( Rhs.x(), Rhs.y(), 0.0f, 0.0f )
+	X_( Rhs.x() ), 
+	Y_( Rhs.y() ),
+	Z_( 0.0f ),
+	W_( 0.0f )
 {
 
 }
 
 MaCPUVec4d::MaCPUVec4d( const MaCPUVec3d& Rhs, BcF32 W ):
-	MaCPUVecQuad( Rhs.x(), Rhs.y(), Rhs.z(), W )
+	X_( Rhs.x() ), 
+	Y_( Rhs.y() ),
+	Z_( Rhs.z() ),
+	W_( W )
 {
 
 }

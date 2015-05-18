@@ -125,7 +125,6 @@ private:
 
 private:
 	ScnEntity* internalSpawnEntity( ScnEntitySpawnParams Params );
-
 	void onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
 
 private:
@@ -159,6 +158,9 @@ private:
 
 	BcU32 EntitySpawnID_;
 	EntitySpawnDataMap EntitySpawnMap_;
+
+	// Debug components.
+	ScnComponentList DebugComponents_;
 };
 
 template < class _Ty >

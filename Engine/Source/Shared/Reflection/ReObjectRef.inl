@@ -1,7 +1,7 @@
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::_acquireNew( ReObject* pObject )
 {
-	pObject_ = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject_ = ( pObject != nullptr && pObject->isTypeOf< _Ty >() ) ? pObject : nullptr;
 #if REFLECTION_ENABLE_GC
 	if( !_IsWeak )
 	{
@@ -16,7 +16,7 @@ inline void ReObjectRef< _Ty, _IsWeak >::_acquireNew( ReObject* pObject )
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::_acquireNewReleaseOld( ReObject* pObject )
 {
-	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject = ( pObject != nullptr && pObject->isTypeOf< _Ty >() ) ? pObject : nullptr;
 #if REFLECTION_ENABLE_GC
 	if( !_IsWeak )
 	{
@@ -34,7 +34,7 @@ inline void ReObjectRef< _Ty, _IsWeak >::_acquireNewReleaseOld( ReObject* pObjec
 template< class _Ty, bool _IsWeak >
 inline void ReObjectRef< _Ty, _IsWeak >::_acquireAssign( ReObject* pObject )
 {
-	pObject = pObject->isTypeOf< _Ty >() ? pObject : nullptr;
+	pObject = ( pObject != nullptr && pObject->isTypeOf< _Ty >() ) ? pObject : nullptr;
 #if REFLECTION_ENABLE_GC
 	if( !_IsWeak )
 	{
@@ -73,7 +73,7 @@ inline void ReObjectRef< _Ty, _IsWeak >::assertPendingDeletion( const ReObject* 
 #if defined( PSY_DEBUG ) && REFLECTION_ENABLE_GC
 	if( pObject != nullptr )
 	{
-		BcAssert( ( pObject->Flags_ & (BcU32)Object::Flags::MarkedForDeletion ) == 0 );
+		BcAssert( ( pObject->ObjectFlags_ & (BcU32)Object::Flags::MarkedForDeletion ) == 0 );
 	}
 #endif // PSY_DEBUG
 }
@@ -123,7 +123,7 @@ inline ReObjectRef< _Ty, _IsWeak >::~ReObjectRef()
 template< class _Ty, bool _IsWeak >
 inline bool ReObjectRef< _Ty, _IsWeak >::isValid() const
 {
-	return ( pObject_ != nullptr && ( ( ((BcU32)pObject_->Flags_) & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 ) );
+	return ( pObject_ != nullptr && ( ( ((BcU32)pObject_->ObjectFlags_) & (BcU32)ReObject::Flags::MarkedForDeletion ) == 0 ) );
 }
 		
 template< class _Ty, bool _IsWeak >

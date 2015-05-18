@@ -22,11 +22,11 @@
 struct RsBufferDesc
 {
 	RsBufferDesc();
-	RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, BcU32 SizeBytes );
+	RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, size_t SizeBytes );
 	
 	RsBufferType Type_;
 	RsResourceCreationFlags Flags_;
-	BcU32 SizeBytes_;
+	size_t SizeBytes_;
 };
 
 //////////////////////////////////////////////////////////////////////////

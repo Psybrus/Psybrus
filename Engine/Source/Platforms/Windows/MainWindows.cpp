@@ -165,6 +165,14 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 #endif
 
+	// Some default suppression.
+	if( BcLog::pImpl() != nullptr )
+	{
+		BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+		// Setup basic log Category.
+		BcLogScopedCategory LogCategory( "Main" );
+	}
+
 	// Initialise RNG.
 #if !PSY_DEBUG
 	BcRandom::Global = BcRandom( (BcU32)::GetTickCount() );
@@ -190,13 +198,13 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
-	SYS_REGISTER( "DsCore", DsCoreImpl );
 	SYS_REGISTER( "OsCore", OsCoreImplWindows );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
+	SYS_REGISTER( "DsCore", DsCoreImpl );
+	SYS_REGISTER( "DsCoreLogging", DsCoreLoggingImpl );
 	SYS_REGISTER( "ScnCore", ScnCore );
 
 	// Main shared.

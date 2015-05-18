@@ -40,7 +40,7 @@ void DsCoreLoggingImpl::close()
 	Logs_.clear();
 }
 
-void DsCoreLoggingImpl::addLog( BcName Category, BcU32 TimeStamp, std::string Message )
+void DsCoreLoggingImpl::addLog( const std::string& Category, BcU32 TimeStamp, std::string Message )
 {
 	std::lock_guard< std::mutex > Lock( Lock_ );
 
@@ -52,7 +52,7 @@ void DsCoreLoggingImpl::addLog( BcName Category, BcU32 TimeStamp, std::string Me
 
 }
 
-std::vector< DsCoreLogEntry > DsCoreLoggingImpl::getEntries( BcName* Categories, BcU32 CategoryCount )
+std::vector< DsCoreLogEntry > DsCoreLoggingImpl::getEntries( std::string* Categories, BcU32 CategoryCount )
 {
 	std::lock_guard< std::mutex > Lock( Lock_ );
 
@@ -63,7 +63,7 @@ std::vector< DsCoreLogEntry > DsCoreLoggingImpl::getEntries( BcName* Categories,
 		{
 			if ( ( Logs_.find( Categories[ Idx ] ) != Logs_.end() ) )
 			{
-				BcU32 size = Logs_[ Categories[ Idx ] ].size();
+				size_t size = Logs_[ Categories[ Idx ] ].size();
 				for ( BcU32 Idx2 = 0; Idx2 < size; ++Idx2 )
 				{
 					result.push_back( Logs_[ Categories[ Idx ] ][ Idx2 ] );
@@ -75,7 +75,7 @@ std::vector< DsCoreLogEntry > DsCoreLoggingImpl::getEntries( BcName* Categories,
 	{
 		for ( auto logs : Logs_ )
 		{
-			BcU32 size = logs.second.size();
+			size_t size = logs.second.size();
 			for ( BcU32 Idx2 = 0; Idx2 < size; ++Idx2 )
 			{
 				result.push_back( logs.second[ Idx2 ] );

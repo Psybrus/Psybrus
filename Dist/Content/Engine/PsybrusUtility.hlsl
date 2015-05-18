@@ -102,3 +102,11 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 #  define SV_TARGET2 COLOR2
 #  define SV_TARGET3 COLOR3
 #endif
+
+////////////////////////////////////////////////////////////////////////
+// Unrolling utility.
+#if PSY_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
+#  define PSY_UNROLL [unroll]
+#else
+#  define PSY_UNROLL
+#endif

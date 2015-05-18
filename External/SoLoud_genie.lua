@@ -1,5 +1,6 @@
 local WITH_SDL = 0
-local WITH_SDL_NONDYN = 0
+local WITH_SDL_STATIC = 0
+local WITH_SDL2_STATIC = 0
 local WITH_PORTAUDIO = 0
 local WITH_OPENAL = 0
 local WITH_XAUDIO2 = 0
@@ -14,7 +15,7 @@ if (os.is("Windows")) then
 	WITH_WINMM = 1
 	WITH_WASAPI = 1
 else 
-	WITH_OSS = 1
+	WITH_SDL2_STATIC = 1
 end
 
 -- Hack io asmjs.
@@ -23,7 +24,7 @@ if _OPTIONS[ "toolchain" ] == "asmjs" then
 	WITH_WINMM = 0
 	WITH_WASAPI = 0
 	WITH_SDL = 0
-	WITH_SDL_NONDYN = 1
+	WITH_SDL_STATIC = 1
 end
 
 
@@ -121,18 +122,28 @@ if (WITH_SDL == 1) then
 	}
 end
 
-if (WITH_SDL_NONDYN == 1) then
-	defines { "WITH_SDL_NONDYN" }
-	files
-	{
-		"./SoLoud/src/backend/sdl_nondyn/**.c*"
-	}
-	includedirs
-	{
-		"./SoLoud/include",
-		sdl_include
+if (WITH_SDL_STATIC == 1) then
+		defines { "WITH_SDL_STATIC" }
+	files {
+	  "./SoLoud/src/backend/sdl_static/**.c*"
+	  }
+	includedirs {
+	  "./SoLoud/include",
+	  sdl_include
 	}
 end
+
+if (WITH_SDL2_STATIC == 1) then
+		defines { "WITH_SDL2_STATIC" }
+	files {
+	  "./SoLoud/src/backend/sdl2_static/**.c*"
+	  }
+	includedirs {
+	  "./SoLoud/include",
+	  sdl_include
+	}
+end
+
 
 if (WITH_WASAPI == 1) then 
 	defines { "WITH_WASAPI" }

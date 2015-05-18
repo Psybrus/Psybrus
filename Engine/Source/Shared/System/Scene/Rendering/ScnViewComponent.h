@@ -59,6 +59,8 @@ public:
 
 	BcBool intersect( const MaAABB& AABB ) const;
 
+	RsFrameBuffer* getFrameBuffer() const;
+
 	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask );
@@ -82,9 +84,9 @@ protected:
 	BcF32								VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
 
 	RsColour							ClearColour_;
-	BcBool								EnableClearColour_;
-	BcBool								EnableClearDepth_;
-	BcBool								EnableClearStencil_;	
+	bool								EnableClearColour_;
+	bool								EnableClearDepth_;
+	bool								EnableClearStencil_;	
 	
 	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
 

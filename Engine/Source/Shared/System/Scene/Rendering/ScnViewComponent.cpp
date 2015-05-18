@@ -73,9 +73,9 @@ ScnViewComponent::ScnViewComponent():
 	HorizontalFOV_( 0.0f ),
 	VerticalFOV_( 0.0f ),
 	ClearColour_( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) ),
-	EnableClearColour_( BcTrue ),
-	EnableClearDepth_( BcTrue ),
-	EnableClearStencil_( BcTrue ),
+	EnableClearColour_( true ),
+	EnableClearDepth_( true ),
+	EnableClearStencil_( true ),
 	RenderMask_( 0 ),
 	RenderTarget_( nullptr ),
 	DepthStencilTarget_( nullptr )
@@ -211,6 +211,13 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 	}
 
 	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFrameBuffer
+RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
+{
+	return FrameBuffer_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////

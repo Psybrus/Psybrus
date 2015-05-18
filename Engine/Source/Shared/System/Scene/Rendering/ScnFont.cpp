@@ -181,7 +181,7 @@ namespace
 	 * @param Char Char array pointer.
 	 * @return Number of UTF-8 chars total.
 	 */
-	inline BcU32 LengthUTF8( const char* Char )
+	inline size_t LengthUTF8( const char* Char )
 	{
 		return strlen( Char );
 	}
@@ -192,7 +192,7 @@ namespace
 	 * @param RemainingChars Number of chars remaining.
 	 * @return Decoded chracter.
 	 */
-	inline BcU32 DecodeUTF8( const char*& Char, int& RemainingChars )
+	inline BcU32 DecodeUTF8( const char*& Char, size_t& RemainingChars )
 	{
 		BcU32 OutChar = 0;
 	 	if( RemainingChars > 0 )
@@ -485,6 +485,8 @@ const MaVec4d& ScnFontDrawParams::getShadowSettings() const
 	return ShadowSettings_;
 }
 
+#include "System/Debug/DsImGuiFieldEditor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnFont );
@@ -495,7 +497,7 @@ void ScnFont::StaticRegisterClass()
 	{
 		new ReField( "pHeader_", &ScnFont::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 		new ReField( "pGlyphDescs_", &ScnFont::pGlyphDescs_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_ ),
+		new ReField( "CharCodeMap_", &ScnFont::CharCodeMap_, bcRFF_CONST ),
 		new ReField( "Texture_", &ScnFont::Texture_, bcRFF_SHALLOW_COPY ),
 	};
 	
@@ -506,6 +508,17 @@ void ScnFont::StaticRegisterClass()
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnFontImport::StaticGetClass(), 0 ) );
+#endif
+
+#if 0
+	// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				ImGui::Text( "THIS IS FONT" );
+
+			} ) );
 #endif
 }
 
@@ -715,7 +728,7 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 
 	if( pFirstVert != nullptr || SizeRun == BcTrue )
 	{
-		int RemainingChars = String.length();
+		size_t RemainingChars = String.length();
 		const char* StringChar = String.c_str();
 
 		while( RemainingChars > 0 )
@@ -879,6 +892,7 @@ MaVec2d ScnFontComponent::drawText(
 	ScnFontUniformBlockData FontUniformData = FontUniformData_;
 
 	// Add custom render command to canvas to update the uniform buffer correctly.
+	UploadFence_.increment();
 	Canvas->setMaterialComponent( MaterialComponent_ );
 	Canvas->addCustomRender(
 		[ this, FontUniformData ]( RsContext* Context )
@@ -890,6 +904,7 @@ MaVec2d ScnFontComponent::drawText(
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					BcMemCopy( Lock.Buffer_, &FontUniformData, sizeof( FontUniformData ) );
+					UploadFence_.decrement();
 				} );
 		},
 		DrawParams.getLayer() );
@@ -899,7 +914,7 @@ MaVec2d ScnFontComponent::drawText(
 	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 	
-	BcU32 TextLength = Text.length();
+	size_t TextLength = Text.length();
 	BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
 
 	// Allocate enough vertices for each character.
@@ -1052,7 +1067,7 @@ MaVec2d ScnFontComponent::drawText(
 				if( WrappingEnabled )
 				{
 					// If the character spills over, terminate this line.
-					if( TargetSize.x() > 0.0f && CornerMax.x() > TargetSize.x() )
+					if( TargetSize.x() > 0.0f && CornerMax.x() > ( TargetSize.x() - ( Margin * 2.0f ) ) )
 					{
 						// Back track the vertices.
 						BcU32 NoofCharsSkipped = Idx - LastWhitespaceIdx;
@@ -1127,7 +1142,7 @@ MaVec2d ScnFontComponent::measureText(
 	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
 	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
 
-	const BcU32 TextLength = Text.length();
+	const size_t TextLength = Text.length();
 	const BcF32 SizeMultiplier = DrawParams.getSize() / pHeader->NominalSize_;
 
 	BcF32 AdvanceX = 0.0f;
@@ -1136,7 +1151,7 @@ MaVec2d ScnFontComponent::measureText(
 	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
 	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
 	
-	for( BcU32 Idx = 0; Idx < TextLength; ++Idx )
+	for( size_t Idx = 0; Idx < TextLength; ++Idx )
 	{
 		BcU32 CharCode = Text[ Idx ];
 		
@@ -1227,6 +1242,8 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	UploadFence_.wait();
+
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
 

@@ -50,6 +50,11 @@ public:
 	virtual BcHandle getDeviceHandle();
 
 	/**
+	 * Get window handle.
+	 */
+	virtual BcHandle getWindowHandle();
+
+	/**
  	 * Get width.
 	 */
 	virtual BcU32 getWidth() const;
@@ -86,6 +91,7 @@ public:
 
 private:
 	void handleKeyEvent( const SDL_Event& SDLEvent );
+	void handleTextInputEvent( const SDL_Event& SDLEvent );
 	void handleMouseEvent( const SDL_Event& SDLEvent );
 	void handleWindowEvent( const SDL_Event& SDLEvent );
 	void setWindowSize();
@@ -106,6 +112,7 @@ private:
 	SDL_Surface* SDLSurface_;
 	BcU32 Width_;
 	BcU32 Height_;
+	int IsFullScreen_;
 };
 
 #endif

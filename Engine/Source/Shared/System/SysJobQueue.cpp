@@ -133,3 +133,14 @@ BcBool SysJobQueue::anyJobsWaiting()
 	return NoofJobs_.load() > 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// debugLog
+void SysJobQueue::debugLog()
+{
+	std::lock_guard< std::mutex > Lock( JobQueueMutex_ );
+
+#if !USE_BOOST_LOCKFREE_QUEUE
+	PSY_LOG( "JobQueue size: %u", JobQueue_.size() );
+#endif
+	PSY_LOG( "NoofJobs: %u", NoofJobs_.load() );
+}

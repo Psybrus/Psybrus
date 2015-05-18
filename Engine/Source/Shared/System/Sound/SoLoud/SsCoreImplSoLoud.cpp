@@ -73,12 +73,15 @@ void SsCoreImplSoLoud::open()
 	// Open func to run on worker.
 	auto openFunc = [ this ]()
 	{
+		BcU32 Flags = 
+			SoLoud::Soloud::CLIP_ROUNDOFF |
+		SoLoud::Soloud::LEFT_HANDED_3D;
 #if defined( PLATFORM_WINDOWS )
 		SoLoud::result Result = 0;
 
 		// Attempt to init WASAPI first.
 		Result = SoLoudCore_->init(
-			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
+			Flags,								// Flags.
 			SoLoud::Soloud::WASAPI,				// Backend.
 			SoLoud::Soloud::AUTO,				// Sample rate.
 			SoLoud::Soloud::AUTO );				// Buffer size.
@@ -91,7 +94,7 @@ void SsCoreImplSoLoud::open()
 
 		// Fall back to WIMM.
 		Result = SoLoudCore_->init(
-			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
+			Flags,								// Flags.
 			SoLoud::Soloud::WINMM,				// Backend.
 			SoLoud::Soloud::AUTO,				// Sample rate.
 			SoLoud::Soloud::AUTO );				// Buffer size.
@@ -106,10 +109,13 @@ void SsCoreImplSoLoud::open()
 
 		// Attempt auto backend.
 		SoLoudCore_->init(
-			SoLoud::Soloud::CLIP_ROUNDOFF,		// Flags.
+			Flags,								// Flags.
 			SoLoud::Soloud::AUTO,				// Backend.
 			SoLoud::Soloud::AUTO,				// Sample rate.
 			SoLoud::Soloud::AUTO );				// Buffer size.
+
+		// Enable visualisation.
+		SoLoudCore_->setVisualizationEnable( true );
 
 		WaitFence_.decrement();
 		
@@ -180,6 +186,8 @@ void SsCoreImplSoLoud::close()
 // createBus
 SsBus* SsCoreImplSoLoud::createBus( const SsBusParams& Params )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	auto* Resource = new SsBus( Params );
 
 	auto createFunc = [ this, Resource ]()
@@ -197,6 +205,8 @@ SsBus* SsCoreImplSoLoud::createBus( const SsBusParams& Params )
 // createFilter
 SsFilter* SsCoreImplSoLoud::createFilter( const SsFilterParams& Params )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	auto* Resource = new SsFilter( Params );
 
 	auto createFunc = [ this, Resource ]()
@@ -217,6 +227,8 @@ class SsSource* SsCoreImplSoLoud::createSource(
 	const SsSourceParams& Params,
 	const SsSourceFileData* FileData )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	auto* Resource = new SsSource( Params );
 
 	auto createFunc = [ this, Resource, FileData ]()
@@ -266,6 +278,8 @@ class SsSource* SsCoreImplSoLoud::createSource(
 // destroyResource
 void SsCoreImplSoLoud::destroyResource( SsBus* Resource )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	auto deleteFunc = [ this, Resource ]()
 	{
 		auto SoLoudBus = Resource->getHandle< SoLoud::Bus* >();
@@ -281,6 +295,8 @@ void SsCoreImplSoLoud::destroyResource( SsBus* Resource )
 // destroyResource
 void SsCoreImplSoLoud::destroyResource( SsFilter* Resource )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	auto deleteFunc = [ this, Resource ]()
 	{
 		auto SoLoudFilter = Resource->getHandle< SoLoud::Filter* >();
@@ -295,6 +311,8 @@ void SsCoreImplSoLoud::destroyResource( SsFilter* Resource )
 // destroyResource
 void SsCoreImplSoLoud::destroyResource( SsSource* Resource )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	auto deleteFunc = [ this, Resource ]()
 	{
 		auto SoLoudAudioSource = Resource->getHandle< SoLoud::AudioSource* >();
@@ -310,9 +328,13 @@ void SsCoreImplSoLoud::destroyResource( SsSource* Resource )
 // playSource
 SsChannel* SsCoreImplSoLoud::playSource( 
 		SsSource* Source,
-		const SsChannelParams& Params,
+		const SsChannelParams& InParams,
 		SsChannelCallback DoneCallback ) 
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
+	SsChannelParams Params = InParams;
+
 	// Allocate channel.
 	if( auto* Channel = allocChannel() )
 	{
@@ -330,18 +352,38 @@ SsChannel* SsCoreImplSoLoud::playSource(
 		// Play source func.
 		auto playSourceFunc = [ this, Channel, Source, Params ]()
 		{
-
 			SoLoud::AudioSource* AudioSource = Source->getHandle< SoLoud::AudioSource* >();
+
+			// Setuo 3d parameters.
+			AudioSource->set3dMinMaxDistance(
+				Params.Min_,
+				Params.Max_ );
+			AudioSource->set3dAttenuation(
+				static_cast< int >( Params.AttenuationModel_ ),
+				Params.RolloffFactor_ );
+			AudioSource->setVolume( Params.Gain_ );
+			
+			// TODO: Wait until SoLoud supports setting pitch + doppler.
+			auto Position = Params.Position_;
+			auto Velocity = MaVec3d( 0.0f, 0.0f, 0.0f ); //Params.Velocity_;
+
+			// Play sound.
 			SoLoud::handle Handle = SoLoudCore_->play3d( 
 				*AudioSource,
-				Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
-				Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z(),
+				Position.x(), Position.y(), Position.z(),
+				Velocity.x(), Velocity.y(), Velocity.z(),
 				Params.Gain_,
 				true, 
 				0 );
 			SoLoudCore_->setRelativePlaySpeed(
 				Handle,
 				Params.Pitch_ );
+			// NOTE: Should be updated by play3d, or 3d channels shouldn't
+			//       play until after they've been updated for the first time.
+			//       Could move the unpause until after this call in internalUpdate
+			//       but it may still be a bug with SoLoud that should be fixed.
+			SoLoudCore_->update3dAudio();
+
 			SoLoudCore_->setPause(
 				Handle,
 				false );
@@ -366,6 +408,8 @@ void SsCoreImplSoLoud::stopChannel(
 		SsChannel* Channel,
 		BcBool ForceFlush )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
 	SysFence FlushFence;
 
 	// Stop source func.
@@ -385,8 +429,8 @@ void SsCoreImplSoLoud::stopChannel(
 				internalUpdate();
 			}
 			while( SoLoudCore_->isValidVoiceHandle( Handle ) );
-			FlushFence.decrement();
 		}
+		FlushFence.decrement();
 	};
 
 	// Increment and push stop channel.
@@ -406,24 +450,87 @@ void SsCoreImplSoLoud::updateChannel(
 		SsChannel* Channel,
 		const SsChannelParams& Params )
 {
+	BcAssert( SoLoudCore_ != nullptr );
+
+	setChannelParams( Channel, Params );
+
 	// Update source func.
 	auto updateChannelFunc = [ this, Channel, Params ]()
 	{
 		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
 
+		// TODO: Wait until SoLoud supports setting pitch + doppler.
+		auto Position = Params.Position_;
+		auto Velocity = MaVec3d( 0.0f, 0.0f, 0.0f ); //Params.Velocity_;
+
+		SoLoudCore_->set3dSourceMinMaxDistance(
+			Handle,
+			Params.Min_,
+			Params.Max_ );
+		SoLoudCore_->set3dSourceAttenuation(
+			Handle,
+			static_cast< int >( Params.AttenuationModel_ ),
+			Params.RolloffFactor_ );
 		SoLoudCore_->set3dSourceParameters( 
 			Handle,
-			Params.Position_.x(), Params.Position_.y(), Params.Position_.z(),
-			Params.Velocity_.x(), Params.Velocity_.y(), Params.Velocity_.z() );
-		SoLoudCore_->setVolume( 
-			Handle,
-			Params.Gain_ );
+			Position.x(), Position.y(), Position.z(),
+			Velocity.x(), Velocity.y(), Velocity.z() );
 		SoLoudCore_->setRelativePlaySpeed(
 			Handle,
 			Params.Pitch_ );
 	};
 
 	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, updateChannelFunc );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setListener
+void SsCoreImplSoLoud::setListener( const MaMat4d& Transform, const MaVec3d& Velocity )
+{
+	BcAssert( SoLoudCore_ != nullptr );
+
+	// Set listener func.
+	auto setListenerFunc = [ this, Transform, Velocity ]()
+	{
+		auto Position = Transform.translation();
+		auto At = Transform.row2();
+		auto Up = Transform.row1();
+
+		SoLoudCore_->set3dListenerPosition( 
+			Position.x(), Position.y(), Position.z() );
+		SoLoudCore_->set3dListenerAt( 
+			At.x(), At.y(), At.z() );
+		SoLoudCore_->set3dListenerUp( 
+			Up.x(), Up.y(), Up.z() );
+		// TODO: Wait until SoLoud supports setting pitch + doppler.
+#if 0
+		SoLoudCore_->set3dListenerVelocity( 
+			Velocity.x(), Velocity.y(), Velocity.z() );
+#endif
+	};
+
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, setListenerFunc );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getVisualisationData
+void SsCoreImplSoLoud::getVisualisationData( 
+	std::vector< BcF32 >& OutFFT, std::vector< BcF32 >& OutWave )
+{
+	BcAssert( SoLoudCore_ != nullptr );
+
+	const size_t NoofElements = 256;
+	OutFFT.assign( NoofElements, 0.0f );
+	OutWave.assign( NoofElements, 0.0f );
+	const auto* VisFFT = SoLoudCore_->calcFFT();
+	const auto* VisWave = SoLoudCore_->getWave();
+	BcAssert( VisFFT );
+	BcAssert( VisWave );
+	for( size_t Idx = 0; Idx < NoofElements; ++Idx )
+	{
+		OutFFT[ Idx ] = VisFFT[ Idx ];
+		OutWave[ Idx ] = VisWave[ Idx ];
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -478,24 +585,26 @@ void SsCoreImplSoLoud::internalUpdate()
 	std::vector< SsChannel* > ChannelsToFree;
 	std::for_each( UsedChannels_.begin(), UsedChannels_.end(),
 		[ this, &ChannelsToFree ]( SsChannel* Channel )
-	{
-		SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
-		if( !SoLoudCore_->isValidVoiceHandle( Handle ) )
 		{
-			ChannelsToFree.push_back( Channel );
-		}
-	} );
+			SoLoud::handle Handle = Channel->getHandle< SoLoud::handle >();
+			if( !SoLoudCore_->isValidVoiceHandle( Handle ) )
+			{
+				ChannelsToFree.push_back( Channel );
+			}
+		} );
 
 	// Free channels.
+	// TODO: Move to game thread.
 	std::for_each( ChannelsToFree.begin(), ChannelsToFree.end(),
 		[ this ]( SsChannel* Channel )
-	{
-		auto DoneCallback = ChannelDoneCallbacks_.find( Channel );
-		if( DoneCallback != ChannelDoneCallbacks_.end() )
 		{
-			DoneCallback->second( Channel );
-			ChannelDoneCallbacks_.erase( DoneCallback );
-		}
-		freeChannel( Channel );
-	} );
+			auto DoneCallback = ChannelDoneCallbacks_.find( Channel );
+			if( DoneCallback != ChannelDoneCallbacks_.end() )
+			{
+				DoneCallback->second( Channel );
+				ChannelDoneCallbacks_.erase( DoneCallback );
+			}
+			freeChannel( Channel );
+		} );
 }
+

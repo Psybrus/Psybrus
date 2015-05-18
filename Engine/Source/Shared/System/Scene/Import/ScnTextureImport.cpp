@@ -61,7 +61,7 @@ void ScnTextureImport::StaticRegisterClass()
 // Ctor
 ScnTextureImport::ScnTextureImport():
 	Source_(),
-	Format_( RsTextureFormat::INVALID ),
+	Format_( RsTextureFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
@@ -86,7 +86,7 @@ ScnTextureImport::ScnTextureImport():
 // Ctor
 ScnTextureImport::ScnTextureImport( ReNoInit ):
 	Source_(),
-	Format_( RsTextureFormat::INVALID ),
+	Format_( RsTextureFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
@@ -427,7 +427,7 @@ BcBool ScnTextureImport::import(
 			}
 
 			// Automatically determine the best format if we specify unknown.
-			if( Format_ == RsTextureFormat::INVALID )
+			if( Format_ == RsTextureFormat::UNKNOWN || Format_ == RsTextureFormat::INVALID )
 			{
 				// Default to a catch all which is 32 bit RGBA.
 				Format_ = RsTextureFormat::R8G8B8A8;
@@ -514,6 +514,12 @@ BcBool ScnTextureImport::import(
 	}
 	else
 	{
+		if( TextureType_ == RsTextureType::UNKNOWN )
+		{
+			CsResourceImporter::addMessage( CsMessageCategory::ERROR, "TextureType is UNKNOWN." );
+			return BcFalse;
+		}
+
 		// User created texture.
 		ScnTextureHeader Header = 
 		{ 

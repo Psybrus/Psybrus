@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include "System/Scene/Physics/ScnPhysicsWorldComponent.h"
+#include "System/Scene/Physics/ScnPhysicsRigidBodyComponent.h"
+#include "System/Scene/Physics/ScnPhysicsCollisionComponent.h"
 #include "System/Scene/Physics/ScnPhysics.h"
 #include "System/Scene/ScnEntity.h"
 
@@ -173,6 +175,9 @@ void ScnPhysicsWorldComponent::initialise()
 // preUpdate
 void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
 {
+	// Setup grabity and other parameters.
+	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
+	
 	// Step simulation.
 	DynamicsWorld_->stepSimulation( Tick, MaxSubSteps_, InvFrameRate_ );
 
@@ -218,11 +223,79 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	DynamicsWorld_->setDebugDrawer( &gDebugRenderer );
 	DynamicsWorld_->addAction( UpdateActions_ );
 
+	// Pre-tick.
+	DynamicsWorld_->setInternalTickCallback(
+		[]( btDynamicsWorld* DynamicsWorld, btScalar Tick )->void
+		{
+			ScnPhysicsWorldComponent* World = static_cast< ScnPhysicsWorldComponent* >( DynamicsWorld->getWorldUserInfo() );
+
+			// TODO: Physics tick should go here.
+
+		}, this, true );
+
+	// Post-tick.
+	DynamicsWorld_->setInternalTickCallback(
+		[]( btDynamicsWorld* DynamicsWorld, btScalar Tick )->void
+		{
+			ScnPhysicsWorldComponent* World = static_cast< ScnPhysicsWorldComponent* >( DynamicsWorld->getWorldUserInfo() );
+
+			// Gather collisions.
+			int NumManifolds = World->Dispatcher_->getNumManifolds();
+			ScnPhysicsEventCollision EventA;
+			ScnPhysicsEventCollision EventB;
+			World->Collisions_.reserve( NumManifolds * 2 );
+			for( int ManifoldIdx = 0; ManifoldIdx < NumManifolds; ++ManifoldIdx )
+			{
+				btPersistentManifold* ContactManifold = World->Dispatcher_->getManifoldByIndexInternal( ManifoldIdx );
+				const auto* ObA_ = static_cast< const btCollisionObject* >( ContactManifold->getBody0() );
+				const auto* ObB_ = static_cast< const btCollisionObject* >( ContactManifold->getBody1() );
+				auto RigidBodyA = static_cast< ScnPhysicsRigidBodyComponent* >( ObA_->getUserPointer() );	
+				auto RigidBodyB = static_cast< ScnPhysicsRigidBodyComponent* >( ObB_->getUserPointer() );	
+				BcAssert( RigidBodyA->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+				BcAssert( RigidBodyB->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+				
+				EventA.BodyA_ = RigidBodyA;
+				EventA.BodyB_ = RigidBodyB;
+				EventA.NoofContactPoints_ = 0;
+				EventB.BodyA_ = RigidBodyB;
+				EventB.BodyB_ = RigidBodyA;
+				EventB.NoofContactPoints_ = 0;
+				size_t NumContacts = ContactManifold->getNumContacts();
+				for( int ContactIdx = 0; ContactIdx < std::min( NumContacts, EventA.ContactPoints_.size() ); ++ContactIdx )
+				{
+					const btManifoldPoint& Point = ContactManifold->getContactPoint( ContactIdx );
+					ScnPhysicsEventCollision::ContactPoint& ContactPointA = EventA.ContactPoints_[ EventA.NoofContactPoints_++ ];
+					ScnPhysicsEventCollision::ContactPoint& ContactPointB = EventB.ContactPoints_[ EventB.NoofContactPoints_++ ];
+					ContactPointA.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+					ContactPointA.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+
+					ContactPointB.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+					ContactPointB.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+				}
+
+				if( EventA.NoofContactPoints_ > 0 )
+				{
+					World->Collisions_.push_back( EventA );
+					World->Collisions_.push_back( EventB );
+				}				
+			}
+
+			// Publish collision events.
+			for( auto& Collision : World->Collisions_ )
+			{
+				auto Entity = Collision.BodyA_->getParentEntity();
+				Entity->publish( (EvtID)ScnPhysicsEvents::COLLISION, Collision );
+			}
+
+			// Clear gathered collisions.
+			World->Collisions_.clear();
+
+		}, this, false );
+
 	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
 
-#if defined( PSY_DEBUG )
-	DebugDrawWorld_ = BcTrue;
-#endif
+
+
 
 #if !PLATFORM_HTML5
 	if( DsCore::pImpl() )
@@ -308,7 +381,7 @@ void ScnPhysicsWorldComponent::deregisterWorldUpdateHandler( ScnIPhysicsWorldUpd
 
 //////////////////////////////////////////////////////////////////////////
 // lineCast
-BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, MaVec3d& Intersection, MaVec3d& Normal )
+BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result )
 {
 	btCollisionWorld::ClosestRayResultCallback HitResult( 
 		btVector3( A.x(), A.y(), A.z() ),
@@ -320,14 +393,59 @@ BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, M
 
 	if( HitResult.hasHit() )
 	{
-		Intersection = MaVec3d( 
-			HitResult.m_hitPointWorld.x(),
-			HitResult.m_hitPointWorld.y(),
-			HitResult.m_hitPointWorld.z() );
-		Normal = MaVec3d( 
-			HitResult.m_hitNormalWorld.x(),
-			HitResult.m_hitNormalWorld.y(),
-			HitResult.m_hitNormalWorld.z() );
+		if( Result != nullptr )
+		{
+			Result->Intersection_ = MaVec3d( 
+				HitResult.m_hitPointWorld.x(),
+				HitResult.m_hitPointWorld.y(),
+				HitResult.m_hitPointWorld.z() );
+			Result->Normal_ = MaVec3d( 
+				HitResult.m_hitNormalWorld.x(),
+				HitResult.m_hitNormalWorld.y(),
+				HitResult.m_hitNormalWorld.z() );
+			auto RB = static_cast< ScnPhysicsRigidBodyComponent* >( HitResult.m_collisionObject->getUserPointer() );
+			Result->Entity_ = RB->getParentEntity();
+		}
+
+		return BcTrue;
+	}
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// sphereCast
+BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result )
+{
+	std::unique_ptr< btConvexShape > Sphere( new btSphereShape( Radius ) );
+
+	btTransform To( btQuaternion::getIdentity(), ScnPhysicsToBullet( A ) );
+	btTransform From( btQuaternion::getIdentity(), ScnPhysicsToBullet( B ) );
+
+	btCollisionWorld::ClosestConvexResultCallback HitResult( 
+		ScnPhysicsToBullet( A ),
+		ScnPhysicsToBullet( B ) );
+	DynamicsWorld_->convexSweepTest( 
+		Sphere.get(),
+		To,
+		From,
+		HitResult );
+
+	if( HitResult.hasHit() )
+	{
+		if( Result != nullptr )
+		{
+			Result->Intersection_ = MaVec3d( 
+				HitResult.m_hitPointWorld.x(),
+				HitResult.m_hitPointWorld.y(),
+				HitResult.m_hitPointWorld.z() );
+			Result->Normal_ = MaVec3d( 
+				HitResult.m_hitNormalWorld.x(),
+				HitResult.m_hitNormalWorld.y(),
+				HitResult.m_hitNormalWorld.z() );
+			auto RB = static_cast< ScnPhysicsRigidBodyComponent* >( HitResult.m_hitCollisionObject->getUserPointer() );
+			Result->Entity_ = RB->getParentEntity();
+		}
+
 		return BcTrue;
 	}
 	return BcFalse;
