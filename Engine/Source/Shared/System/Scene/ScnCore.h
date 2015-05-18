@@ -20,13 +20,14 @@
 #include "System/SysSystem.h"
 
 #include "System/Scene/ScnEntity.h"
-#include "System/ScnComponentProcessor.h"
+#include "System/Scene/ScnComponentProcessor.h"
+
+#include <unordered_map>
 
 //////////////////////////////////////////////////////////////////////////
 // ScnCore
 class ScnCore:
 	public SysSystem,
-	public ScnComponentProcessRegistry,
 	public BcGlobal< ScnCore >
 {
 public:
@@ -141,19 +142,14 @@ private:
 	std::vector< class ScnCoreCallback* > Callbacks_;
 
 	// All components in the scene.
+	using ComponentProcessorList = std::vector< ScnComponentProcessor >;
 	using ComponentClassIndexMap = std::unordered_map< const ReClass*, BcU32 >;
 	using ComponentIndexClassMap = std::unordered_map< BcU32, const ReClass* >;
-	using ComponentProcessorList = std::vector< ScnComponentProcessor >;
-	using IndexedProcessFuncEntry = std::pair< BcU32, ScnComponentProcessFuncEntryList >;
-	using IndexedProcessFuncEntryList = std::vector< ComponentProcessFuncEntryPair >;
-	IndexedProcessFuncEntryList IndexedProcessFuncEntries_;
-	ScnComponentList* pComponentLists_;
-	BcU32 NoofComponentLists_;
-
-
 	ComponentClassIndexMap ComponentClassIndexMap_;
 	ComponentIndexClassMap ComponentIndexClassMap_;
-	
+	std::vector< ScnComponentList > ComponentLists_;
+	ScnComponentProcessFuncEntryList ComponentProcessFuncs_;
+
 	using EntitySpawnDataMap = std::map< BcU32, ScnEntitySpawnParams >;
 
 	BcU32 EntitySpawnID_;
@@ -169,7 +165,7 @@ inline const ScnComponentList& ScnCore::getComponentList() const
 	auto Class = _Ty::StaticGetClass();
 	auto FoundIt = ComponentClassIndexMap_.find( Class );
 	BcAssert( FoundIt != ComponentClassIndexMap_.end() );
-	return pComponentLists_[ FoundIt.second ];
+	return ComponentLists_[ FoundIt.second ];
 }
 
 #endif

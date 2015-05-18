@@ -392,7 +392,7 @@ namespace Psybrus
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
 				RsResourceCreationFlags::STREAM, 
-				10000 * VertexDeclaration_->getDesc().getMinimumStride() ) ) );
+				65536 * VertexDeclaration_->getDesc().getMinimumStride() ) ) );
 
 		UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
 			RsBufferDesc(

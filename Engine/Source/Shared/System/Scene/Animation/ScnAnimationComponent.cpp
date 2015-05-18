@@ -17,9 +17,10 @@
 #include "System/Scene/Animation/ScnAnimationTreeBlendNode.h"
 #include "System/Scene/Animation/ScnAnimationTreeTrackNode.h"
 
-#include "System/Content/CsCore.h"
-
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
+
+#include "System/Content/CsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.

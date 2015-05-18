@@ -18,6 +18,7 @@
 
 // Most of the game code will interact with the scene core at some point, so include this only.
 #include "System/Scene/ScnCore.h"
+#include "System/Scene/ScnComponentProcessor.h"
 
 #include <string>
 

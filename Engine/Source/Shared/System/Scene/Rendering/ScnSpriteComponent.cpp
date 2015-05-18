@@ -13,6 +13,7 @@
 
 #include "System/Scene/Rendering/ScnSpriteComponent.h"
 
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"

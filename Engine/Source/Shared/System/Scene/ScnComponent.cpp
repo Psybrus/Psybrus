@@ -12,7 +12,9 @@
 **************************************************************************/
 
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
+
 #include "System/Content/CsCore.h"
 #include "System/Renderer/RsCore.h"
 
@@ -24,25 +26,6 @@
 #endif
 
 #include "System/Scene/Animation/ScnAnimationComponent.h"
-
-//////////////////////////////////////////////////////////////////////////
-// ScnComponentProcessor
-REFLECTION_DEFINE_DERIVED( ScnComponentProcessor );
-
-void ScnComponentProcessor::StaticRegisterClass()
-{
-	ReRegisterClass< ScnComponentProcessor, Super >();
-}
-
-ScnComponentProcessor::ScnComponentProcessor( BcS32 UpdatePriority ):
-	UpdatePriority_( UpdatePriority )
-{
-}
-
-int ScnComponentProcessor::getUpdatePriority() const
-{
-	return UpdatePriority_;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.

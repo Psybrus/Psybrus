@@ -31,6 +31,7 @@ ReAttributable::~ReAttributable()
 
 ReAttributable& ReAttributable::addAttribute( ReAttribute* Attribute )
 {
+	Attribute->setOwner( this );
 	Attributes_.push_front( Attribute );
 	return *this;
 }

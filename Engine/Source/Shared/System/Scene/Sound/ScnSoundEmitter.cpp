@@ -13,6 +13,7 @@
 
 #include "System/Scene/Sound/ScnSoundEmitter.h"
 
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"

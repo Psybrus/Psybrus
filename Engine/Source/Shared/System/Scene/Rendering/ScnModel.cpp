@@ -12,9 +12,10 @@
 **************************************************************************/
 
 #include "System/Scene/Rendering/ScnModel.h"
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
-#include "System/Scene/Rendering/ScnViewComponent.h"
 
+#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnLightingVisitor.h"
 
 #include "System/Content/CsCore.h"

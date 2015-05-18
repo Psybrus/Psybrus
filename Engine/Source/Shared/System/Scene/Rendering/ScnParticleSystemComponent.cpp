@@ -13,6 +13,8 @@
 
 #include "System/Scene/Rendering/ScnParticleSystemComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Content/CsCore.h"

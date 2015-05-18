@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 

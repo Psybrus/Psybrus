@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include "System/Scene/ScnSpatialComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
+
 #include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////

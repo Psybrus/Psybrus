@@ -9,7 +9,9 @@ using ScnComponentProcessFunc = std::function< void( const ScnComponentList& ) >
 
 struct ScnComponentProcessFuncEntry
 {
-	BsS32 Priority_;
+	ReClass* Class_;
+	std::string Name_;
+	BcS32 Priority_;
 	ScnComponentProcessFunc Func_;
 };
 using ScnComponentProcessFuncEntryList = std::vector< ScnComponentProcessFuncEntry >;
@@ -28,6 +30,7 @@ public:
 	 * Called to get the process funcs.
 	 * By default it will register preUpdate, update, and postUpdate
 	 * calls to emulate the original. Override to implement your own.
+	 * @param Class Component class we should be updating.
 	 */
 	virtual ScnComponentProcessFuncEntryList getProcessFuncs();
 

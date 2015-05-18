@@ -44,12 +44,11 @@ public:
 	ScnViewComponent();
 	virtual ~ScnViewComponent();
 	
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
-	virtual void onAttachComponent( class ScnComponent* Component ) = 0;
-	virtual void onDetachComponent( class ScnComponent* Component ) = 0;
-
+	void onAttachComponent( class ScnComponent* Component ) override {};
+	void onDetachComponent( class ScnComponent* Component ) override {};
 
 	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;

@@ -20,6 +20,9 @@
 
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
+
+#include "System/Scene/ScnComponentProcessor.h"
+#include "System/Scene/ScnCore.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"

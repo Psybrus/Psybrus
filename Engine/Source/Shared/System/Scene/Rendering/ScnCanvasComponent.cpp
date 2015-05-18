@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Os/OsCore.h"
 #include "System/Os/OsClient.h"

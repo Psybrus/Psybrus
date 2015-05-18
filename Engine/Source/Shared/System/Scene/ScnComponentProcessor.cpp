@@ -1,4 +1,5 @@
-#include "ScnComponentProcessor.h"
+#include "System/Scene/ScnComponentProcessor.h"
+#include "System/Scene/ScnComponent.h"
 
 #include "System/SysKernel.h"
 
@@ -13,7 +14,7 @@ void ScnComponentProcessor::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnComponentProcessor::ScnComponentProcessor( BsS32 Priority ):
+ScnComponentProcessor::ScnComponentProcessor( BcS32 Priority ):
 	Priority_( Priority )
 {
 
@@ -26,6 +27,8 @@ ScnComponentProcessFuncEntryList ScnComponentProcessor::getProcessFuncs()
 {
 	ScnComponentProcessFuncEntry EntryPreUpdate =
 	{
+		dynamic_cast< ReClass* >( getOwner() ),
+		"Pre Update",
 		Priority_ - 10000, 
 		[]( const ScnComponentList& Components )
 		{
@@ -39,6 +42,8 @@ ScnComponentProcessFuncEntryList ScnComponentProcessor::getProcessFuncs()
 
 	ScnComponentProcessFuncEntry EntryUpdate =
 	{
+		dynamic_cast< ReClass* >( getOwner() ),
+		"Update",
 		Priority_,
 		[]( const ScnComponentList& Components )
 		{
@@ -52,6 +57,8 @@ ScnComponentProcessFuncEntryList ScnComponentProcessor::getProcessFuncs()
 
 	ScnComponentProcessFuncEntry EntryPostUpdate =
 	{
+		dynamic_cast< ReClass* >( getOwner() ),
+		"Post Update",
 		Priority_ + 10000,
 		[]( const ScnComponentList& Components )
 		{
@@ -68,5 +75,5 @@ ScnComponentProcessFuncEntryList ScnComponentProcessor::getProcessFuncs()
 	OutEntryList.push_back( EntryPreUpdate );
 	OutEntryList.push_back( EntryUpdate );
 	OutEntryList.push_back( EntryPostUpdate );
-	return std::move( ScnComponentProcessFuncEntryList );
+	return std::move( OutEntryList );
 }

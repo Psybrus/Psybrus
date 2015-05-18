@@ -8,6 +8,7 @@
 #include "System/Scene/Rendering/ScnPostProcessComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
@@ -125,7 +126,7 @@ void ScnPostProcessComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnPostProcessComponent, Super >( Fields )
-		.addAttribute( new ScnComponentAttribute( 2000 ) );
+		.addAttribute( new ScnComponentProcessor( 2000 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

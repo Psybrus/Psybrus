@@ -48,8 +48,6 @@ SYS_CREATOR( ScnCore );
 ScnCore::ScnCore()
 {
 	pSpatialTree_ = NULL;
-	pComponentLists_ = NULL;
-	NoofComponentLists_ = 0;
 	EntitySpawnID_ = 0;
 }
 
@@ -73,11 +71,7 @@ void ScnCore::open()
 	pSpatialTree_->createRoot( MaAABB( -HalfBounds, HalfBounds ) );
 
 	// Look up all component classes and create update lists for them.
-	NoofComponentLists_ = 0;
-	typedef std::pair< ReClass*, BcS32 > ComponentPriorityPair;
-	typedef std::vector< ComponentPriorityPair > ComponentClasses;
-	ComponentClasses ComponentClasses;
-	ScnComponentProcessFuncEntryList ProcessFuncEntries;
+	std::vector< ReClass* > ComponentClasses;
 
 	// Extract all the classes with the right attribute.
 	auto Classes = ReManager::GetClasses();
@@ -86,33 +80,37 @@ void ScnCore::open()
 		auto* Attr = Class->getAttribute< ScnComponentProcessor >();
 		if( Attr != nullptr )
 		{
-			ComponentClasses.push_back( std::make_pair( Class, Attr->getUpdatePriority() ) );
+			// Add component class to list for later.
+			ComponentClasses.push_back( Class );
 
 			// Get process funcs.
-			Attr->getProcessFuncs( ProcessFuncEntries );
+			auto ProcessFuncs = Attr->getProcessFuncs();
 
 			// Add to list.
+			for( auto& ProcessFunc : ProcessFuncs )
+			{
+				ComponentProcessFuncs_.push_back( ProcessFunc );
+			}
 		}
 	}
 
-	// Sort by their update priority.
-	std::sort( ComponentClasses_.begin(), ComponentClasses_.end(), 
-		[] ( ComponentPriorityPair A, ComponentPriorityPair B )
+	// Sort process funcs by their priority.
+	std::sort( ComponentProcessFuncs_.begin(), ComponentProcessFuncs_.end(), 
+		[] ( ScnComponentProcessFuncEntry A, ScnComponentProcessFuncEntry B )
 		{
-			return A.second < B.second;
+			return A.Priority_ < B.Priority_;
 		}
 	);
 
+
 	// Write list index map out.
-	for( auto ComponentClass : ComponentClasses_ )
+	ComponentLists_.reserve( ComponentClasses.size() );
+	for( auto ComponentClass : ComponentClasses )
 	{
-		ComponentIndexClassMap_[ NoofComponentLists_ ] = ComponentClass.first;
-		ComponentClassIndexMap_[ ComponentClass.first ] = NoofComponentLists_++;
+		ComponentIndexClassMap_[ ComponentLists_.size() ] = ComponentClass;
+		ComponentClassIndexMap_[ ComponentClass ] = ComponentLists_.size();
+		ComponentLists_.push_back( ScnComponentList() );
 	}
-
-	BcAssert( NoofComponentLists_ > 0 );
-
-	pComponentLists_ = new ScnComponentList[ NoofComponentLists_ ];	 
 
 #if !PSY_PRODUCTION
 	DsCore::pImpl()->registerPanel( 
@@ -239,6 +237,27 @@ void ScnCore::open()
 			}
 			ImGui::End();
 		} );
+
+	DsCore::pImpl()->registerPanel(
+		"Component Process Funcs", [ this ]( BcU32 )->void
+		{
+			if ( ImGui::Begin( "Component Process Funcs" ) )
+			{
+				for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
+				{
+					auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
+					auto& ComponentList = ComponentLists_[ ComponentListIdx ];
+					ImGui::Text( "%s::%s", 
+						(*ComponentProcessFunc.Class_->getName()).c_str(),
+						ComponentProcessFunc.Name_.c_str() );
+					ImGui::Text( "- Priority : %i", 
+						ComponentProcessFunc.Priority_ );
+					ImGui::Text( "- Components : %u", 
+						ComponentList.size() );
+				}
+			}
+			ImGui::End();
+		} );
 #endif // !PSY_PRODUCTION
 
 }
@@ -250,62 +269,15 @@ void ScnCore::update()
 {
 	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnCore::update" ) );
 
-	// Tick all entities.
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
-#if 0
-	// Pre-update.
-	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
+	// Iterate over all component process funcs.
+	for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
 	{
-		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
-		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
-		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
-		BcUnusedVar( Class );
-
-		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
-		{
-			ScnComponentRef Component( *It );
-
-			BcAssert( Component.isValid() && Component->isReady() );
-			Component->preUpdate( Tick );
-		}
+		auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
+		auto& ComponentList = ComponentLists_[ ComponentListIdx ];
+		ComponentProcessFunc.Func_( ComponentList );
 	}
-
-	// Update.
-	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
-	{
-		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
-		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
-		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
-		BcUnusedVar( Class );
-
-		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
-		{
-			ScnComponentRef Component( *It );
-
-			BcAssert( Component.isValid() && Component->isReady() );
-			Component->update( Tick );
-		}
-	}
-
-	// Post-update.
-	for( BcU32 ListIdx = 0; ListIdx < NoofComponentLists_; ++ListIdx )
-	{
-		ScnComponentList& ComponentList( pComponentLists_[ ListIdx ] );
-		const ReClass* Class = ComponentIndexClassMap_[ ListIdx ];
-		PSY_LOGSCOPEDCATEGORY( *Class->getName() );
-		BcUnusedVar( Class );
-
-		for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
-		{
-			ScnComponentRef Component( *It );
-
-			BcAssert( Component.isValid() && Component->isReady() );
-			Component->postUpdate( Tick );
-		}
-	}
-#endif
-
 
 	// Render to all clients.
 	// TODO: Move client/context into the view component instead.
@@ -368,8 +340,7 @@ void ScnCore::close()
 	removeAllEntities();
 	processPendingComponents();
 
-	delete [] pComponentLists_;
-	pComponentLists_ = nullptr;
+	ComponentLists_.clear();
 
 	// Destroy spacial tree.
 	delete pSpatialTree_;
@@ -424,7 +395,7 @@ void ScnCore::removeCallback( ScnCoreCallback* Callback )
 void ScnCore::removeAllEntities()
 {
 	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
-	ScnComponentList& ComponentList( pComponentLists_[ ComponentListIdx ] );
+	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
 	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 	{
 		ScnComponentRef Component( *It );
@@ -505,7 +476,7 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 {
 	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
-	ScnComponentList& ComponentList( pComponentLists_[ ComponentListIdx ] );
+	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
 	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 	{
 		ScnComponentRef Component( *It );
@@ -524,7 +495,7 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 {
 	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
-	ScnComponentList& ComponentList( pComponentLists_[ ComponentListIdx ] );
+	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
 
 	if( Idx < ComponentList.size() )
 	{
@@ -606,7 +577,7 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	if( FoundIndexIt != ComponentClassIndexMap_.end() )
 	{
 		BcU32 Idx( FoundIndexIt->second );
-		ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
+		ScnComponentList& ComponentList( ComponentLists_[ Idx ] );
 		ComponentList.push_back( Component );
 	}
 }
@@ -643,7 +614,7 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	if( FoundIndexIt != ComponentClassIndexMap_.end() )
 	{
 		BcU32 Idx( FoundIndexIt->second );
-		ScnComponentList& ComponentList( pComponentLists_[ Idx ] );
+		ScnComponentList& ComponentList( ComponentLists_[ Idx ] );
 		ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
 		ComponentList.erase( It );
 	}
@@ -777,7 +748,7 @@ ScnEntity* ScnCore::internalSpawnEntity(
 // onSpawnEntityPackageReady
 void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 {
-	TEntitySpawnDataMapIterator It = EntitySpawnMap_.find( ID );
+	auto It = EntitySpawnMap_.find( ID );
 	BcAssertMsg( It != EntitySpawnMap_.end(), "ScnCore: Spawn ID invalid." );
 	ScnEntitySpawnParams& EntitySpawnData( (*It).second );
 
