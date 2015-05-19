@@ -104,32 +104,30 @@ BcU32 ScnAnimationTreeTrackNode::getNoofChildNodes() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// preUpdate
+// decode
 //virtual
-void ScnAnimationTreeTrackNode::preUpdate( BcF32 Tick )
+void ScnAnimationTreeTrackNode::decode()
 {
 	// Do time line updating, and kick off job to unpack the animation.
 	decodeFrames();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// pose
 //virtual
-void ScnAnimationTreeTrackNode::update( BcF32 Tick )
+void ScnAnimationTreeTrackNode::pose()
 {
 	// Interpolate poses.
 	interpolatePose();
-
-	// Advance time.
-	Time_ += Tick * Speed_;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// postUpdate
+// advance
 //virtual
-void ScnAnimationTreeTrackNode::postUpdate( BcF32 Tick )
+void ScnAnimationTreeTrackNode::advance( BcF32 Tick )
 {
-
+	// Advance time.
+	Time_ += Tick * Speed_;
 }
 
 //////////////////////////////////////////////////////////////////////////

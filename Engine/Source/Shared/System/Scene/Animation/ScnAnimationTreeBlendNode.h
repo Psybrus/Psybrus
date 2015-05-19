@@ -43,9 +43,9 @@ public:
 	virtual void setChildNode( BcU32 Idx, ScnAnimationTreeNode* pNode ) override;
 	virtual ScnAnimationTreeNode* getChildNode( BcU32 Idx ) override;
 	virtual BcU32 getNoofChildNodes() const override;
-	virtual void preUpdate( BcF32 Tick ) override;
-	virtual void update( BcF32 Tick ) override;
-	virtual void postUpdate( BcF32 Tick ) override;
+	virtual void decode() override;
+	virtual void pose() override;
+	virtual void advance( BcF32 Tick ) override;
 	virtual const ScnAnimationPose& getWorkingPose() const override;
 
 	void setBlendType( ScnAnimationTreeBlendType Type );

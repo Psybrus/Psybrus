@@ -54,19 +54,19 @@ public:
 	virtual BcU32 getNoofChildNodes() const = 0;
 
 	/**
-	 * Pre-update
+	 * Decode anything that we need to pose.
 	 */
-	virtual void preUpdate( BcF32 Tick ) = 0;
+	virtual void decode() = 0;
 	
 	/**
-	 * update
+	 * Pose. Depends on decoding step.
 	 */
-	virtual void update( BcF32 Tick ) = 0;
+	virtual void pose() = 0;
 
 	/**
-	 * Post-update
+	 * Advance animation.
 	 */
-	virtual void postUpdate( BcF32 Tick ) = 0;
+	virtual void advance( BcF32 Tick ) = 0;
 
 	/**
 	 * Get working pose.

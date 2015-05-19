@@ -20,6 +20,8 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
+#include "System/SysKernel.h"
+
 #include "System/Content/CsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,8 +39,23 @@ void ScnAnimationComponent::StaticRegisterClass()
 		new ReField( "pReferencePose_", &ScnAnimationComponent::pReferencePose_ ),
 	};
 	
+	using namespace std::placeholders;
 	ReRegisterClass< ScnAnimationComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2050 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Decode",
+					ScnComponentPriority::ANIMATION_DECODE,
+					std::bind( &ScnAnimationComponent::decode, _1 ) ),
+				ScnComponentProcessFuncEntry(
+					"Pose",
+					ScnComponentPriority::ANIMATION_POSE,
+					std::bind( &ScnAnimationComponent::pose, _1 ) ),
+				ScnComponentProcessFuncEntry(
+					"Advance",
+					ScnComponentPriority::ANIMATION_ADVANCE,
+					std::bind( &ScnAnimationComponent::advance, _1 ) )
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,41 +82,6 @@ void ScnAnimationComponent::destroy()
 	// TODO: unique_ptr.
 	delete Tree_;
 	Tree_ = nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// preUpdate
-//virtual 
-void ScnAnimationComponent::preUpdate( BcF32 Tick )
-{
-	if( Tree_ != nullptr )
-	{
-		Tree_->preUpdate( Tick );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update
-//virtual 
-void ScnAnimationComponent::update( BcF32 Tick )
-{
-	if( Tree_ != nullptr )
-	{
-		Tree_->update( Tick );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// postUpdate
-//virtual 
-void ScnAnimationComponent::postUpdate( BcF32 Tick )
-{
-	if( Tree_ != nullptr )
-	{
-		Tree_->postUpdate( Tick );
-	}
-
-	applyPose();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,4 +181,55 @@ ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTr
 	}
 
 	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// decode
+//static
+void ScnAnimationComponent::decode( const ScnComponentList& Components )
+{
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnAnimationComponent >() );
+		auto* AnimationComponent = static_cast< ScnAnimationComponent* >( Component.get() );
+		if( AnimationComponent->Tree_ != nullptr )
+		{
+			AnimationComponent->Tree_->decode();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pose
+//static 
+void ScnAnimationComponent::pose( const ScnComponentList& Components )
+{
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnAnimationComponent >() );
+		auto* AnimationComponent = static_cast< ScnAnimationComponent* >( Component.get() );
+		if( AnimationComponent->Tree_ != nullptr )
+		{
+			AnimationComponent->Tree_->pose();
+		}
+
+		AnimationComponent->applyPose();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// advance
+//static 
+void ScnAnimationComponent::advance( const ScnComponentList& Components )
+{
+	auto Tick = SysKernel::pImpl()->getFrameTime();
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnAnimationComponent >() );
+		auto* AnimationComponent = static_cast< ScnAnimationComponent* >( Component.get() );
+		if( AnimationComponent->Tree_ != nullptr )
+		{
+			AnimationComponent->Tree_->advance( Tick );
+		}
+	}
 }

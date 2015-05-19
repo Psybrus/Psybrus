@@ -87,21 +87,21 @@ BcU32 ScnAnimationTreeBlendNode::getNoofChildNodes() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// preUpdate
+// decode
 //virtual
-void ScnAnimationTreeBlendNode::preUpdate( BcF32 Tick )
+void ScnAnimationTreeBlendNode::decode()
 {
-	Children_[ 0 ]->preUpdate( Tick );
-	Children_[ 1 ]->preUpdate( Tick );
+	Children_[ 0 ]->decode();
+	Children_[ 1 ]->decode();
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// pose
 //virtual
-void ScnAnimationTreeBlendNode::update( BcF32 Tick )
+void ScnAnimationTreeBlendNode::pose()
 {
-	Children_[ 0 ]->update( Tick );
-	Children_[ 1 ]->update( Tick );
+	Children_[ 0 ]->pose();
+	Children_[ 1 ]->pose();
 
 	// Only blend if we need to do any work.
 	switch( BlendType_ )
@@ -119,12 +119,12 @@ void ScnAnimationTreeBlendNode::update( BcF32 Tick )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// postUpdate
+// advance
 //virtual
-void ScnAnimationTreeBlendNode::postUpdate( BcF32 Tick )
+void ScnAnimationTreeBlendNode::advance( BcF32 Tick )
 {
-	Children_[ 0 ]->postUpdate( Tick );
-	Children_[ 1 ]->postUpdate( Tick );
+	Children_[ 0 ]->advance( Tick );
+	Children_[ 1 ]->advance( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////

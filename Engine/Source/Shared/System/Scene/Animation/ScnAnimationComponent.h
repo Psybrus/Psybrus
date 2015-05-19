@@ -34,9 +34,6 @@ public:
 	virtual ~ScnAnimationComponent();
 
 	virtual void destroy();
-	virtual void preUpdate( BcF32 Tick );
-	virtual void update( BcF32 Tick );
-	virtual void postUpdate( BcF32 Tick );
 
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
@@ -53,8 +50,11 @@ public:
 private:
 	void buildReferencePose();
 	void applyPose();
-
 	ScnAnimationTreeNode* findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class );
+
+	static void decode( const ScnComponentList& Components );
+	static void pose( const ScnComponentList& Components );
+	static void advance( const ScnComponentList& Components );
 
 private:
 	BcName Target_;
