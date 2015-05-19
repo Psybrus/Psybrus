@@ -42,9 +42,16 @@ void ScnCanvasComponent::StaticRegisterClass()
 		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
 		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
 	};
-		
+
+	using namespace std::placeholders;		
 	ReRegisterClass< ScnCanvasComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2000 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Clear",
+					ScnComponentPriority::DEBUG_RENDER_CLEAR,
+					std::bind( &ScnCanvasComponent::clearAll, _1 ) ),
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -565,50 +572,6 @@ void ScnCanvasComponent::clear()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// preUpdate
-//virtual
-void ScnCanvasComponent::preUpdate( BcF32 Tick )
-{
-	Super::update( Tick );
-
-	if( Clear_ )
-	{
-		clear();
-
-		// Push new ortho matrix.
-		// Just use default client size.
-		auto Client = OsCore::pImpl()->getClient( 0 );
-
-		MaMat4d Projection;
-		Projection.orthoProjection(
-			Left_ * Client->getWidth() * 0.5f,
-			Right_ * Client->getWidth() * 0.5f,
-			Top_ * Client->getHeight() * 0.5f,
-			Bottom_ * Client->getHeight() * 0.5f,
-			-1.0f, 
-			1.0f );
-
-		// Push projection matrix onto stack.
-		pushMatrix( Projection );
-
-		// Push view matrix onto stack.
-		pushMatrix( ViewMatrix_ );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// postUpdate
-//virtual 
-void ScnCanvasComponent::postUpdate( BcF32 Tick )
-{
-	if( Clear_ )
-	{
-		popMatrix();
-		popMatrix();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // render
 class ScnCanvasComponentRenderNode: public RsRenderNode
 {
@@ -749,4 +712,40 @@ void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 	delete [] pWorkingVertices_;
 
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// clearAll
+//virtual
+void ScnCanvasComponent::clearAll( const ScnComponentList& Components )
+{
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnCanvasComponent >() );
+		auto* CanvasComponent = static_cast< ScnCanvasComponent* >( Component.get() );
+
+		if( CanvasComponent->Clear_ )
+		{
+			CanvasComponent->clear();
+
+			// Push new ortho matrix.
+			// Just use default client size.
+			auto Client = OsCore::pImpl()->getClient( 0 );
+
+			MaMat4d Projection;
+			Projection.orthoProjection(
+				CanvasComponent->Left_ * Client->getWidth() * 0.5f,
+				CanvasComponent->Right_ * Client->getWidth() * 0.5f,
+				CanvasComponent->Top_ * Client->getHeight() * 0.5f,
+				CanvasComponent->Bottom_ * Client->getHeight() * 0.5f,
+				-1.0f, 
+				1.0f );
+
+			// Push projection matrix onto stack.
+			CanvasComponent->pushMatrix( Projection );
+
+			// Push view matrix onto stack.
+			CanvasComponent->pushMatrix( CanvasComponent->ViewMatrix_ );
+		}
+	}
 }
