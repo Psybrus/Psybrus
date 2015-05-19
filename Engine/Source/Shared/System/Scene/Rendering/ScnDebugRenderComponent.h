@@ -148,12 +148,12 @@ public:
 	 */
 	void clear();
 
-public:
-	virtual void preUpdate( BcF32 Tick );
+private:
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
 	virtual void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 
+	static void clearAll( const ScnComponentList& Components );
 
 protected:
 	BcForceInline BcU32 convertVertexPointerToIndex( ScnDebugRenderComponentVertex* pVertex )

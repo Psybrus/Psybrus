@@ -40,8 +40,15 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 		new ReField( "VertexIndex_", &ScnDebugRenderComponent::VertexIndex_ ),
 	};
 		
+	using namespace std::placeholders;
 	ReRegisterClass< ScnDebugRenderComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2090 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Simulate",
+					ScnComponentPriority::DEBUG_RENDER_CLEAR,
+					std::bind( &ScnDebugRenderComponent::clearAll, _1 ) )
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -420,18 +427,6 @@ void ScnDebugRenderComponent::clear()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// preUpdate
-//virtual
-void ScnDebugRenderComponent::preUpdate( BcF32 Tick )
-{
-	Super::preUpdate( Tick );
-
-	clear();
-
-	//drawGrid( MaVec3d( 0.0f, 0.0f, 0.0f ), MaVec3d( 1000.0f, 0.0f, 1000.0f ), 1.0f, 10.0f, 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // render
 class ScnDebugRenderComponentRenderNode: public RsRenderNode
 {
@@ -614,4 +609,18 @@ void ScnDebugRenderComponent::onDetach( ScnEntityWeakRef Parent )
 	pImpl_ = NULL;
 
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// clearAll
+//static
+void ScnDebugRenderComponent::clearAll( const ScnComponentList& Components )
+{
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnDebugRenderComponent >() );
+		auto* DebugRenderComponent = static_cast< ScnDebugRenderComponent* >( Component.get() );
+
+		DebugRenderComponent->clear();
+	}
 }
