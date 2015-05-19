@@ -354,7 +354,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 	ImGui::ScopedID ScopedIDData( Data );
 	ImGui::ScopedID ScopedIDClass( Class );
 	ImGui::ScopedIndent ScopedIndent;
-	
+
 	// List fields.
 	while( Class != nullptr )
 	{
@@ -495,6 +495,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 								}
 							}
 						}
+						ImGui::TreePop();
 					}
 				}
 			}
