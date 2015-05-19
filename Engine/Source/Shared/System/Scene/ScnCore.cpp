@@ -243,17 +243,23 @@ void ScnCore::open()
 		{
 			if ( ImGui::Begin( "Component Process Funcs" ) )
 			{
+				static bool ShowUnused = false;
+				ImGui::Checkbox( "Show unused", &ShowUnused );
+
 				for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
 				{
 					auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
 					auto& ComponentList = ComponentLists_[ ComponentListIdx ];
-					ImGui::Text( "%s::%s", 
-						(*ComponentProcessFunc.Class_->getName()).c_str(),
-						ComponentProcessFunc.Name_.c_str() );
-					ImGui::Text( "- Priority : %i", 
-						ComponentProcessFunc.Priority_ );
-					ImGui::Text( "- Components : %u", 
-						ComponentList.size() );
+					if( ComponentList.size() > 0 || ShowUnused )
+					{
+						ImGui::Text( "%s::%s", 
+							(*ComponentProcessFunc.Class_->getName()).c_str(),
+							ComponentProcessFunc.Name_.c_str() );
+						ImGui::Text( "- Priority : %i", 
+							ComponentProcessFunc.Priority_ );
+						ImGui::Text( "- Components : %u", 
+							ComponentList.size() );
+					}
 				}
 			}
 			ImGui::End();

@@ -17,63 +17,65 @@ void ScnComponentProcessor::StaticRegisterClass()
 ScnComponentProcessor::ScnComponentProcessor( BcS32 Priority ):
 	Priority_( Priority )
 {
+	ProcessFuncs_.reserve( 3 );
+	ProcessFuncs_.emplace_back( 
+		ScnComponentProcessFuncEntry(
+			"Pre Update",
+			ScnComponentPriority::DEFAULT_PRE_UPDATE + Priority_, 
+			[]( const ScnComponentList& Components )
+			{
+				auto Tick = SysKernel::pImpl()->getFrameTime();
+				for( auto Component : Components )
+				{
+					Component->preUpdate( Tick );
+				}
+			} ) );
 
+	ProcessFuncs_.emplace_back(
+		ScnComponentProcessFuncEntry(
+			"Update",
+			ScnComponentPriority::DEFAULT_UPDATE + Priority_,
+			[]( const ScnComponentList& Components )
+			{
+				auto Tick = SysKernel::pImpl()->getFrameTime();
+				for( auto Component : Components )
+				{
+					Component->update( Tick );
+				}
+			} ) );
+
+	ProcessFuncs_.emplace_back(
+		ScnComponentProcessFuncEntry(
+			"Post Update",
+			ScnComponentPriority::DEFAULT_POST_UPDATE + Priority_,
+			[]( const ScnComponentList& Components )
+			{
+				auto Tick = SysKernel::pImpl()->getFrameTime();
+				for( auto Component : Components )
+				{
+					Component->postUpdate( Tick );
+				}
+			} ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnComponentProcessor::ScnComponentProcessor( ScnComponentProcessFuncEntryInitialiserList ProcessFuncs ):
+	ProcessFuncs_( ProcessFuncs )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getProcessFuncs
 //virtual
-ScnComponentProcessFuncEntryList ScnComponentProcessor::getProcessFuncs()
+const ScnComponentProcessFuncEntryList& ScnComponentProcessor::getProcessFuncs()
 {
-	ScnComponentProcessFuncEntry EntryPreUpdate =
+	// Set class func should process.
+	for( auto& ProcessFunc : ProcessFuncs_ )
 	{
-		dynamic_cast< ReClass* >( getOwner() ),
-		"Pre Update",
-		Priority_ - 10000, 
-		[]( const ScnComponentList& Components )
-		{
-			auto Tick = SysKernel::pImpl()->getFrameTime();
-			for( auto Component : Components )
-			{
-				Component->preUpdate( Tick );
-			}
-		}
-	};
+		ProcessFunc.Class_ = dynamic_cast< ReClass* >( getOwner() );
+		BcAssert( ProcessFunc.Class_ != nullptr );
+	}
 
-	ScnComponentProcessFuncEntry EntryUpdate =
-	{
-		dynamic_cast< ReClass* >( getOwner() ),
-		"Update",
-		Priority_,
-		[]( const ScnComponentList& Components )
-		{
-			auto Tick = SysKernel::pImpl()->getFrameTime();
-			for( auto Component : Components )
-			{
-				Component->update( Tick );
-			}
-		}
-	};
-
-	ScnComponentProcessFuncEntry EntryPostUpdate =
-	{
-		dynamic_cast< ReClass* >( getOwner() ),
-		"Post Update",
-		Priority_ + 10000,
-		[]( const ScnComponentList& Components )
-		{
-			auto Tick = SysKernel::pImpl()->getFrameTime();
-			for( auto Component : Components )
-			{
-				Component->postUpdate( Tick );
-			}
-		}
-	};
-
-	ScnComponentProcessFuncEntryList OutEntryList;
-	OutEntryList.reserve( 3 );
-	OutEntryList.push_back( EntryPreUpdate );
-	OutEntryList.push_back( EntryUpdate );
-	OutEntryList.push_back( EntryPostUpdate );
-	return std::move( OutEntryList );
+	return ProcessFuncs_;
 }
