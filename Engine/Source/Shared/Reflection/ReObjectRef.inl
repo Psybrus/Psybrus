@@ -127,6 +127,20 @@ inline bool ReObjectRef< _Ty, _IsWeak >::isValid() const
 }
 		
 template< class _Ty, bool _IsWeak >
+inline _Ty* ReObjectRef< _Ty, _IsWeak >::get()
+{
+	assertPendingDeletion( pObject_ );
+	return static_cast< _Ty* >( pObject_ );
+}
+
+template< class _Ty, bool _IsWeak >
+inline const _Ty* ReObjectRef< _Ty, _IsWeak >::get() const
+{
+	assertPendingDeletion( pObject_ );
+	return static_cast< const _Ty* >( pObject_ );
+}
+
+template< class _Ty, bool _IsWeak >
 inline ReObjectRef< _Ty, _IsWeak >::operator _Ty* ()
 {
 	assertPendingDeletion( pObject_ );

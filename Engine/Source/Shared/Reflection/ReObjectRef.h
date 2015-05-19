@@ -41,6 +41,8 @@ public:
     inline ReObjectRef& operator = ( ReObject* pObject );
     inline ~ReObjectRef();
 	inline bool isValid() const;
+	inline _Ty* get();
+	inline const _Ty* get() const;
 	inline operator _Ty* ();
 	inline operator const _Ty* () const;
 	inline _Ty* operator -> ();
