@@ -135,9 +135,6 @@ private:
 	ScnComponentList PendingAttachComponentList_;
 	ScnComponentList PendingDetachComponentList_;
 	
-	// Special components.
-	ScnComponentList ViewComponentList_;
-
 	// Callbacks.
 	std::vector< class ScnCoreCallback* > Callbacks_;
 

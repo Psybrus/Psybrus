@@ -65,46 +65,47 @@ public:
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 
-protected:
+private:
 	void recreateFrameBuffer();
 
-protected:
+	static void renderViews( const ScnComponentList& Components );	
 
+private:
 	// Viewport. Values relative to the size of the client being rendered into.
-	BcF32								X_;
-	BcF32								Y_;
-	BcF32								Width_;
-	BcF32								Height_;
+	BcF32 X_;
+	BcF32 Y_;
+	BcF32 Width_;
+	BcF32 Height_;
 
 	// Perspective projection.
-	BcF32								Near_;
-	BcF32								Far_;
-	BcF32								HorizontalFOV_;		// Used by default.
-	BcF32								VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
+	BcF32 Near_;
+	BcF32 Far_;
+	BcF32 HorizontalFOV_;		// Used by default.
+	BcF32 VerticalFOV_;		// Used if HorizontalFOV_ is 0.0.
 
-	RsColour							ClearColour_;
-	bool								EnableClearColour_;
-	bool								EnableClearDepth_;
-	bool								EnableClearStencil_;	
+	RsColour ClearColour_;
+	bool EnableClearColour_;
+	bool EnableClearDepth_;
+	bool EnableClearStencil_;	
 	
-	BcU32								RenderMask_;		// Used to determine what objects should be rendered for this view.
+	BcU32 RenderMask_;		// Used to determine what objects should be rendered for this view.
 
 
 	// TODO: Remove this dependency, not really needed.
-	RsViewport							Viewport_;
+	RsViewport Viewport_;
 
 	// Uniform block data.
-	ScnShaderViewUniformBlockData		ViewUniformBlock_;
-	RsBuffer*					ViewUniformBuffer_;
+	ScnShaderViewUniformBlockData ViewUniformBlock_;
+	RsBuffer* ViewUniformBuffer_;
 
 	// Used for culling.
 	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?
-	MaPlane								FrustumPlanes_[ 6 ];
+	MaPlane FrustumPlanes_[ 6 ];
 
 	// Frame buffer + render target.
-	ScnTextureRef						RenderTarget_;
-	ScnTextureRef						DepthStencilTarget_;
-	RsFrameBufferUPtr					FrameBuffer_;
+	ScnTextureRef RenderTarget_;
+	ScnTextureRef DepthStencilTarget_;
+	RsFrameBufferUPtr FrameBuffer_;
 };
 
 #endif

@@ -26,7 +26,6 @@
 #include "System/Debug/DsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
-#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
@@ -285,53 +284,6 @@ void ScnCore::update()
 		ComponentProcessFunc.Func_( ComponentList );
 	}
 
-	// Render to all clients.
-	// TODO: Move client/context into the view component instead.
-	// TODO: Move the whole render process into the view component.
-	//       - Perhaps we want to have frames allocated per client?
-	//         Doing this means we can have the actual queueFrame call
-	//         inside the renderer, and not be a fart on here.
-	//         Also, the view component should be aware of the frame
-	//         and provide access to it for renderable components.
-	if( ViewComponentList_.size() > 0 )
-	{
-		for( BcU32 Idx = 0; Idx < OsCore::pImpl()->getNoofClients(); ++Idx )
-		{
-			PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnCore::render" ) );
-
-			// Grab client.
-			OsClient* pClient = OsCore::pImpl()->getClient( Idx );
-
-			// Get context.
-			RsContext* pContext = RsCore::pImpl()->getContext( pClient );
-
-			// Allocate a frame to render using default context.
-			RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-			// Iterate over all view components.
-			RsRenderSort Sort( 0 );
-			BcAssert( ViewComponentList_.size() < RS_SORT_VIEWPORT_MAX );
-			for( ScnComponentListIterator It( ViewComponentList_.begin() ); It != ViewComponentList_.end(); ++It )
-			{
-				ScnViewComponentRef ViewComponent( *It );
-			
-				ViewComponent->bind( pFrame, Sort );
-
-				ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
-
-				// Increment viewport.
-				Sort.Viewport_++;
-			}
-
-			// TODO: Move completely to DsCore.
-			// Render ImGui.
-			ImGui::Psybrus::Render( pContext, pFrame );
-
-			// Queue frame for render.
-			RsCore::pImpl()->queueFrame( pFrame );
-		}
-	}
-
 	// Process pending components at the end of the tick.
 	// We do this because they can be immediately created,
 	// and need a create tick from CsCore next frame.
@@ -539,7 +491,7 @@ void ScnCore::queueComponentForDetach( ScnComponentRef Component )
 
 //////////////////////////////////////////////////////////////////////////
 // visitView
-void ScnCore::visitView( ScnVisitor* pVisitor, const ScnViewComponent* View )
+void ScnCore::visitView( ScnVisitor* pVisitor, const class ScnViewComponent* View )
 {
 	pSpatialTree_->visitView( pVisitor, View );
 }
@@ -566,13 +518,8 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 			Callback->onAttachComponent( Component );
 		} );
 	
-	// Add view components for render usage.
-	if( Component->isTypeOf< ScnViewComponent >() )
-	{
-		ViewComponentList_.push_back( static_cast< ScnViewComponent* >( Component ) );
-	}
 	// Add spatial components to the spatial tree. (TODO: Use flags or something)
-	else if( Component->isTypeOf< ScnSpatialComponent >() )
+	if( Component->isTypeOf< ScnSpatialComponent >() )
 	{
 		pSpatialTree_->addComponent( static_cast< ScnSpatialComponent* >( Component ) );
 	}
@@ -592,24 +539,16 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 // onDetachComponent
 void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Component )
 {
-	// NOTE: Useful for debugging and temporary gathering of "special" components.
-	//       Will be considering alternative approaches to this.
-	//       Currently, just gonna be nasty special cases to get stuff done.
-	// NOTE: Now that we have component type lists, we don't need to be specific with this.
-
 	std::for_each( Callbacks_.begin(), Callbacks_.end(),
 		[ Component ]( ScnCoreCallback* Callback )
 		{
 			Callback->onDetachComponent( Component );
 		} );
 
-	// Remove view components for render usage.
-	if( Component->isTypeOf< ScnViewComponent >() )
-	{
-		ViewComponentList_.erase( std::find( ViewComponentList_.begin(), ViewComponentList_.end(), static_cast< ScnViewComponent* >( Component ) ) );
-	}
-	// Add renderable components to the spatial tree. (TODO: Use flags or something)
-	else if( Component->isTypeOf< ScnSpatialComponent >() )
+	// TODO: Move this to be callback based. Perhaps have a base scene
+	//       component instead of doing too much work in ScnCore?
+	// Add spatial components to the spatial tree.
+	if( Component->isTypeOf< ScnSpatialComponent >() )
 	{
 		pSpatialTree_->removeComponent( static_cast< ScnSpatialComponent* >( Component ) );
 	}
