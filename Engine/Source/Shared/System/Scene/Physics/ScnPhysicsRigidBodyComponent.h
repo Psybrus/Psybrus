@@ -50,12 +50,13 @@ public:
 
 	MaQuat getRotation() const;
 
-	virtual void update( BcF32 Tick );
-
 	void onAttach( ScnEntityWeakRef Parent );
 	void onDetach( ScnEntityWeakRef Parent );
 
 	class btRigidBody* getRigidBody();
+
+private:
+	static void updateBodies( const ScnComponentList& Components );
 
 private:
 	class ScnPhysicsWorldComponent* World_;

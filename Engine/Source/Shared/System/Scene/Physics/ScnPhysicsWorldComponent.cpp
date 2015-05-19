@@ -22,6 +22,8 @@
 #include "System/Debug/DsCore.h"
 #include "System/Scene/Rendering/ScnDebugRenderComponent.h"
 
+#include "System/SysKernel.h"
+
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 
@@ -129,8 +131,19 @@ void ScnPhysicsWorldComponent::StaticRegisterClass()
 		new ReField( "InvFrameRate_", &ScnPhysicsWorldComponent::FrameRate_, bcRFF_TRANSIENT ),
 	};
 
+	using namespace std::placeholders;
 	ReRegisterClass< ScnPhysicsWorldComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -100 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Simulate",
+					ScnComponentPriority::PHYSICS_WORLD_SIMULATE,
+					std::bind( &ScnPhysicsWorldComponent::simulate, _1 ) ),
+				ScnComponentProcessFuncEntry(
+					"DebugDraw",
+					ScnComponentPriority::PHYSICS_WORLD_DEBUG_DRAW,
+					std::bind( &ScnPhysicsWorldComponent::debugDraw, _1 ) )
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -170,43 +183,6 @@ void ScnPhysicsWorldComponent::initialise()
 	BcAssertMsg( FrameRate_ > 0.0f, "FrameRate must be greater than 0." );
 	BcAssertMsg( MaxSubSteps_ > 0 && MaxSubSteps_ < 100, "MaxSubSteps must be 0 and 100." )
 	InvFrameRate_ = 1.0f / FrameRate_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// preUpdate
-void ScnPhysicsWorldComponent::preUpdate( BcF32 Tick )
-{
-	// Setup grabity and other parameters.
-	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
-	
-	// Step simulation.
-	DynamicsWorld_->stepSimulation( Tick, MaxSubSteps_, InvFrameRate_ );
-
-	// Resolve collisions?
-
-	Super::preUpdate( Tick );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnPhysicsWorldComponent::update( BcF32 Tick )
-{
-
-	Super::update( Tick );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// postUpdate
-//virtual
-void ScnPhysicsWorldComponent::postUpdate( BcF32 Tick )
-{
-	if( DebugDrawWorld_ )
-	{
-		DynamicsWorld_->debugDrawWorld();
-	}
-
-	Super::postUpdate( Tick );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -450,4 +426,44 @@ BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B,
 		return BcTrue;
 	}
 	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// simulate
+void ScnPhysicsWorldComponent::simulate( const ScnComponentList& Components )
+{
+	auto Tick = SysKernel::pImpl()->getFrameTime();
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnPhysicsWorldComponent >() );
+		auto* WorldComponent = static_cast< ScnPhysicsWorldComponent* >( Component.get() );
+
+		// Setup grabity and other parameters.
+		WorldComponent->DynamicsWorld_->setGravity( ScnPhysicsToBullet( WorldComponent->Gravity_ ) );
+		
+		// Step simulation.
+		WorldComponent->DynamicsWorld_->stepSimulation( 
+			Tick, 
+			WorldComponent->MaxSubSteps_, 
+			WorldComponent->InvFrameRate_ );
+
+		// Resolve collisions?
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// debugDraw
+//virtual
+void ScnPhysicsWorldComponent::debugDraw( const ScnComponentList& Components )
+{
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnPhysicsWorldComponent >() );
+		auto* WorldComponent = static_cast< ScnPhysicsWorldComponent* >( Component.get() );
+
+		if( WorldComponent->DebugDrawWorld_ )
+		{
+			WorldComponent->DynamicsWorld_->debugDrawWorld();
+		}
+	}
 }

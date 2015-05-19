@@ -54,10 +54,6 @@ public:
 
 	void initialise() override;
 
-	void preUpdate( BcF32 Tick ) override;
-	void update( BcF32 Tick ) override;
-	void postUpdate( BcF32 Tick ) override;
-
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
@@ -73,6 +69,9 @@ public:
 	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result );
 	BcBool sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result );
 
+private:
+	static void simulate( const ScnComponentList& Components );
+	static void debugDraw( const ScnComponentList& Components );
 
 private:
 	MaVec3d Gravity_;

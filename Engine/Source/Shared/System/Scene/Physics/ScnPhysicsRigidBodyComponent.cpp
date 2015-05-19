@@ -40,8 +40,15 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 		new ReField( "AngularSleepingThreshold_", &ScnPhysicsRigidBodyComponent::AngularSleepingThreshold_, bcRFF_IMPORTER ),
 	};
 
+	using namespace std::placeholders;
 	ReRegisterClass< ScnPhysicsRigidBodyComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -90 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update",
+					ScnComponentPriority::PHYSICS_RIGID_BODY_UPDATE,
+					std::bind( &ScnPhysicsRigidBodyComponent::updateBodies, _1 ) )
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -194,27 +201,6 @@ MaQuat ScnPhysicsRigidBodyComponent::getRotation() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnPhysicsRigidBodyComponent::update( BcF32 Tick )
-{
-	// TODO: Interpolate the results?
-
-	// Set transform from rigid body.
-	const btTransform& BulletTransform = RigidBody_->getCenterOfMassTransform();
-	MaMat4d Transform;
-
-	// Set transform using bullet's GL matrix stuff.
-	BulletTransform.getOpenGLMatrix( reinterpret_cast< btScalar* >( &Transform ) );
-
-	// TODO: Use inverse of parent transform.
-	getParentEntity()->setLocalMatrix( Transform );
-	
-	//
-	Super::update( Tick );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
@@ -280,4 +266,28 @@ void ScnPhysicsRigidBodyComponent::onDetach( ScnEntityWeakRef Parent )
 btRigidBody* ScnPhysicsRigidBodyComponent::getRigidBody()
 {
 	return RigidBody_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateBodies
+// static
+void ScnPhysicsRigidBodyComponent::updateBodies( const ScnComponentList& Components )
+{
+	// TODO: Interpolate?
+	
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnPhysicsRigidBodyComponent >() );
+		auto* RBComponent = static_cast< ScnPhysicsRigidBodyComponent* >( Component.get() );
+
+		// Set transform from rigid body.
+		const btTransform& BulletTransform = RBComponent->RigidBody_->getCenterOfMassTransform();
+		MaMat4d Transform;
+
+		// Set transform using bullet's GL matrix stuff.
+		BulletTransform.getOpenGLMatrix( reinterpret_cast< btScalar* >( &Transform ) );
+
+		// TODO: Use inverse of parent transform.
+		RBComponent->getParentEntity()->setLocalMatrix( Transform );
+	}
 }
