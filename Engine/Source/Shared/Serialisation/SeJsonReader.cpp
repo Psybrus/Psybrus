@@ -188,7 +188,10 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 
 					// Pass into binary data.
 					BcBinaryData* BinaryData = static_cast< BcBinaryData* >( pData );
-					*BinaryData = BcBinaryData( ClassToSerialise.pData_, ClassToSerialise.pType_->getSize() );
+					*BinaryData = BcBinaryData( ClassToSerialise.pData_, ClassToSerialise.pType_->getSize(), BcTrue );
+
+					// Free original data now that it's copied in.
+					ClassToSerialise.pType_->destroy( ClassToSerialise.pData_ );
 				}
 			}
 			else
