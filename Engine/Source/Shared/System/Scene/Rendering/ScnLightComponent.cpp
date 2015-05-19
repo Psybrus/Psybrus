@@ -60,6 +60,8 @@ ScnLightComponent::ScnLightComponent()
 	AttnC_ = 0.0f;
 	AttnL_ = 0.0f;
 	AttnQ_ = 0.0f;
+
+	createAttenuationValues( Min_, Mid_, Max_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,13 +69,6 @@ ScnLightComponent::ScnLightComponent()
 ScnLightComponent::~ScnLightComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onAttach
-void ScnLightComponent::update( BcF32 Tick )
-{
-	createAttenuationValues( Min_, Mid_, Max_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
