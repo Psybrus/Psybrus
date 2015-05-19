@@ -83,11 +83,13 @@ public:
 	void setAttenuation( SsAttenuationModel AttenuationModel, BcF32 RolloffFactor );
 
 private:
-	void postUpdate( BcF32 Tick ) override;
 	void updateVelocity( BcF32 Tick );
+	void updateEmitter( BcF32 Tick );
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 	void onChannelDone( SsChannel* Channel );
+
+	static void update( const ScnComponentList& Components );
 
 	typedef std::map< SsChannel*, ScnSoundRef >	TChannelSoundMap;
 	typedef std::vector< SsChannel* > TChannelSoundUpdateList;

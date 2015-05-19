@@ -126,7 +126,7 @@ void ScnPostProcessComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnPostProcessComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( 2000 ) );
+		.addAttribute( new ScnComponentProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////

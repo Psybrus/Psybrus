@@ -1196,14 +1196,6 @@ MaVec2d ScnFontComponent::measureText(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnFontComponent::update( BcF32 Tick )
-{
-	ScnComponent::update( Tick );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )

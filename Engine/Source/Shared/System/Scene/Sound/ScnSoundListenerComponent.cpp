@@ -19,6 +19,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
 
+#include "System/SysKernel.h"
+
 #include "Base/BcMath.h"
 
 #ifdef PSY_IMPORT_PIPELINE
@@ -44,8 +46,15 @@ void ScnSoundListenerComponent::StaticRegisterClass()
 		new ReField( "SmoothedVelocity_", &ScnSoundListenerComponent::SmoothedVelocity_, bcRFF_TRANSIENT ),
 	};
 
+	using namespace std::placeholders;
 	ReRegisterClass< ScnSoundListenerComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2020 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update",
+					ScnComponentPriority::SOUND_LISTENER_UPDATE,
+					std::bind( &ScnSoundListenerComponent::update, _1 ) ),
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,30 +80,6 @@ ScnSoundListenerComponent::~ScnSoundListenerComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnSoundListenerComponent::postUpdate( BcF32 Tick )
-{
-	if( SsCore::pImpl() != nullptr )
-	{
-		LastPosition_ = Position_;
-		Position_ = getParentEntity()->getWorldPosition();
-		Velocity_ = ( ( LastPosition_ - Position_ ) / Tick ) * VelocityMultiplier_;
-
-		// TODO: Smooth this be smoothing based on tick.
-		VelocitySmoothingAmount_ = BcClamp( VelocitySmoothingAmount_, 0.0f, 1.0f );
-		SmoothedVelocity_ = ( SmoothedVelocity_ * VelocitySmoothingAmount_ ) + ( Velocity_ * ( 1.0f - VelocitySmoothingAmount_ ) );
-		if( SmoothedVelocity_.magnitude() > MaxVelocity_ )
-		{
-			SmoothedVelocity_ = SmoothedVelocity_.normal() * MaxVelocity_;
-		}
-
-		MaMat4d Matrix = getParentEntity()->getWorldMatrix();
-		SsCore::pImpl()->setListener( Matrix, SmoothedVelocity_ );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setPitch
 //virtual
 void ScnSoundListenerComponent::onAttach( ScnEntityWeakRef Parent )
@@ -110,4 +95,44 @@ void ScnSoundListenerComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnSoundListenerComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateListener
+void ScnSoundListenerComponent::updateListener( BcF32 Tick )
+{
+	BcAssert( SsCore::pImpl() );
+
+	LastPosition_ = Position_;
+	Position_ = getParentEntity()->getWorldPosition();
+	Velocity_ = ( ( LastPosition_ - Position_ ) / Tick ) * VelocityMultiplier_;
+
+	// TODO: Smooth this be smoothing based on tick.
+	VelocitySmoothingAmount_ = BcClamp( VelocitySmoothingAmount_, 0.0f, 1.0f );
+	SmoothedVelocity_ = ( SmoothedVelocity_ * VelocitySmoothingAmount_ ) + ( Velocity_ * ( 1.0f - VelocitySmoothingAmount_ ) );
+	if( SmoothedVelocity_.magnitude() > MaxVelocity_ )
+	{
+		SmoothedVelocity_ = SmoothedVelocity_.normal() * MaxVelocity_;
+	}
+
+	// TODO: Only set 1.
+	MaMat4d Matrix = getParentEntity()->getWorldMatrix();
+	SsCore::pImpl()->setListener( Matrix, SmoothedVelocity_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//static
+void ScnSoundListenerComponent::update( const ScnComponentList& Components )
+{
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+	if( SsCore::pImpl() != nullptr )
+	{
+		for( auto Component : Components )
+		{
+			BcAssert( Component->isTypeOf< ScnSoundListenerComponent >() );
+			auto* ListenerComponent = static_cast< ScnSoundListenerComponent* >( Component.get() );
+			ListenerComponent->updateListener( Tick );
+		}
+	}
 }

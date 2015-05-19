@@ -3,6 +3,7 @@
 #include "System/Scene/ScnTypes.h"
 #include "Reflection/ReReflection.h"
 #include "System/Scene/ScnComponentPriority.h"
+#include "System/Scene/ScnComponent.h"
 
 #include <initializer_list>
 
@@ -26,9 +27,78 @@ struct ScnComponentProcessFuncEntry
 		Priority_( Priority ),
 		Func_( Func )
 	{}
+
+	/**
+	 * Backwards compatibility: preUpdate support.
+	 */
+	template< class _Ty >
+	static ScnComponentProcessFuncEntry PreUpdate(
+		std::string Name = "Pre Update",
+		ScnComponentPriority Priority = ScnComponentPriority::DEFAULT_PRE_UPDATE )
+	{
+		return ScnComponentProcessFuncEntry( Name, Priority,
+			[]( const ScnComponentList& Components )
+			{
+				auto Tick = getTick();
+				for( auto Component : Components )
+				{
+					BcAssert( Component->isTypeOf< _Ty >() );
+					auto* CastComponent = static_cast< _Ty* >( Component.get() );
+					CastComponent->preUpdate( Tick );
+				}
+			} );
+	}
+
+	/**
+	 * Backwards compatibility: update support.
+	 */
+	template< class _Ty >
+	static ScnComponentProcessFuncEntry Update(
+		std::string Name = "Update",
+		ScnComponentPriority Priority = ScnComponentPriority::DEFAULT_UPDATE )
+	{
+		return ScnComponentProcessFuncEntry( Name, Priority,
+			[]( const ScnComponentList& Components )
+			{
+				auto Tick = getTick();
+				for( auto Component : Components )
+				{
+					BcAssert( Component->isTypeOf< _Ty >() );
+					auto* CastComponent = static_cast< _Ty* >( Component.get() );
+					CastComponent->update( Tick );
+				}
+			} );
+	}
+
+	/**
+	 * Backwards compatibility: postUpdate support.
+	 */
+	template< class _Ty >
+	static ScnComponentProcessFuncEntry PostUpdate(
+		std::string Name = "Post Update",
+		ScnComponentPriority Priority = ScnComponentPriority::DEFAULT_POST_UPDATE )
+	{
+		return ScnComponentProcessFuncEntry( Name, Priority,
+			[]( const ScnComponentList& Components )
+			{
+				auto Tick = getTick();
+				for( auto Component : Components )
+				{
+					BcAssert( Component->isTypeOf< _Ty >() );
+					auto* CastComponent = static_cast< _Ty* >( Component.get() );
+					CastComponent->postUpdate( Tick );
+				}
+			} );
+	}
+
+private:
+	static BcF32 getTick();
 };
+
 using ScnComponentProcessFuncEntryList = std::vector< ScnComponentProcessFuncEntry >;
 using ScnComponentProcessFuncEntryInitialiserList = std::initializer_list< ScnComponentProcessFuncEntry >;
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentProcessor
@@ -38,8 +108,7 @@ class ScnComponentProcessor:
 public:
 	REFLECTION_DECLARE_DERIVED( ScnComponentProcessor, ReAttribute );
 
-	ScnComponentProcessor( BcS32 Priority = 0 );
-
+	ScnComponentProcessor();
 	ScnComponentProcessor( ScnComponentProcessFuncEntryInitialiserList ProcessFuncEntries );
 
 	/**
@@ -50,8 +119,6 @@ public:
 	 */
 	virtual const ScnComponentProcessFuncEntryList& getProcessFuncs();
 
-
 private:
-	BcS32 Priority_;
 	ScnComponentProcessFuncEntryList ProcessFuncs_;
 };

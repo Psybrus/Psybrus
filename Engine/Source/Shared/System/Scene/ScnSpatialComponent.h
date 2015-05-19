@@ -33,7 +33,6 @@ public:
 	ScnSpatialComponent();
 	virtual ~ScnSpatialComponent();
 	
-	virtual void postUpdate( BcF32 Tick );
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
 	void setRenderMask( BcU32 RenderMask );
@@ -57,6 +56,9 @@ public:
 	virtual MaAABB getAABB() const;
 
 	BcBool isLit() const;
+
+private:
+	static void update( const ScnComponentList& Components );
 
 private:
 	ScnSpatialTreeNode* pSpatialTreeNode_;

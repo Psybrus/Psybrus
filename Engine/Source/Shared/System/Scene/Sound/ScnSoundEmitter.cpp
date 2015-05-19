@@ -19,6 +19,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
 
+#include "System/SysKernel.h"
+
 #include "Base/BcRandom.h"
 
 #include "Base/BcMath.h"
@@ -51,8 +53,15 @@ void ScnSoundEmitterComponent::StaticRegisterClass()
 		new ReField( "Velocity_", &ScnSoundEmitterComponent::Velocity_, bcRFF_TRANSIENT ),
 	};
 
+	using namespace std::placeholders;
 	ReRegisterClass< ScnSoundEmitterComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2010 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update",
+					ScnComponentPriority::SOUND_EMITTER_UPDATE,
+					std::bind( &ScnSoundEmitterComponent::update, _1 ) ),
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -214,38 +223,6 @@ void ScnSoundEmitterComponent::setAttenuation( SsAttenuationModel AttenuationMod
 }
 
 //////////////////////////////////////////////////////////////////////////
-// postUpdate
-void ScnSoundEmitterComponent::postUpdate( BcF32 Tick )
-{
-	if( SsCore::pImpl() )
-	{
-		// Calculate velocity from change in position.
-		LastPosition_ = Position_;
-		Position_ = getParentEntity()->getWorldPosition();
-		updateVelocity( Tick );
-
-		// Setup parameters.
-		// TODO: Per sound modifiers?
-		SsChannelParams Params;
-		Params.Gain_ = Gain_;
-		Params.Pitch_ = Pitch_;
-		Params.Min_ = MinDistance_;
-		Params.Max_ = MaxDistance_;
-		Params.AttenuationModel_ = AttenuationModel_;
-		Params.RolloffFactor_ = RolloffFactor_;
-		Params.Position_ = Position_;
-		Params.Velocity_ = SmoothedVelocity_;
-		
-		// Update all channels required.
-		std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
-		for( auto Channel : ChannelUpdateList_ )
-		{
-			SsCore::pImpl()->updateChannel( Channel, Params );
-		}
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // updateVelocity
 void ScnSoundEmitterComponent::updateVelocity( BcF32 Tick )
 {
@@ -255,6 +232,37 @@ void ScnSoundEmitterComponent::updateVelocity( BcF32 Tick )
 	if( SmoothedVelocity_.magnitude() > MaxVelocity_ )
 	{
 		SmoothedVelocity_ = SmoothedVelocity_.normal() * MaxVelocity_;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// postUpdate
+void ScnSoundEmitterComponent::updateEmitter( BcF32 Tick )
+{
+	BcAssert( SsCore::pImpl() );
+
+	// Calculate velocity from change in position.
+	LastPosition_ = Position_;
+	Position_ = getParentEntity()->getWorldPosition();
+	updateVelocity( Tick );
+
+	// Setup parameters.
+	// TODO: Per sound modifiers?
+	SsChannelParams Params;
+	Params.Gain_ = Gain_;
+	Params.Pitch_ = Pitch_;
+	Params.Min_ = MinDistance_;
+	Params.Max_ = MaxDistance_;
+	Params.AttenuationModel_ = AttenuationModel_;
+	Params.RolloffFactor_ = RolloffFactor_;
+	Params.Position_ = Position_;
+	Params.Velocity_ = SmoothedVelocity_;
+	
+	// Update all channels required.
+	std::lock_guard< std::recursive_mutex > Lock( ChannelSoundMutex_ );
+	for( auto Channel : ChannelUpdateList_ )
+	{
+		SsCore::pImpl()->updateChannel( Channel, Params );
 	}
 }
 
@@ -292,4 +300,21 @@ void ScnSoundEmitterComponent::onChannelDone( SsChannel* Channel )
 	// Remove.
 	ChannelSoundMap_.erase( FoundIt );
 	std::remove( ChannelUpdateList_.begin(), ChannelUpdateList_.end(), Channel );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//static
+void ScnSoundEmitterComponent::update( const ScnComponentList& Components )
+{
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+	if( SsCore::pImpl() != nullptr )
+	{
+		for( auto Component : Components )
+		{
+			BcAssert( Component->isTypeOf< ScnSoundEmitterComponent >() );
+			auto* EmitterComponent = static_cast< ScnSoundEmitterComponent* >( Component.get() );
+			EmitterComponent->updateEmitter( Tick );
+		}
+	}
 }

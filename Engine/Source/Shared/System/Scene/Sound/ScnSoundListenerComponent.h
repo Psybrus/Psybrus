@@ -35,9 +35,11 @@ public:
 	virtual ~ScnSoundListenerComponent();
 
 private:	
-	void postUpdate( BcF32 Tick ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
+
+	void updateListener( BcF32 Tick );
+	static void update( const ScnComponentList& Components );
 
 	BcF32 VelocityMultiplier_;
 	BcF32 VelocitySmoothingAmount_;

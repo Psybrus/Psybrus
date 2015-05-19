@@ -31,8 +31,6 @@ public:
 	
 	ScnSpriteComponent();
 	virtual ~ScnSpriteComponent();
-
-	virtual void postUpdate( BcF32 Tick );
 	
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
@@ -61,6 +59,12 @@ public:
 		std::string Next_;
 		std::vector< BcS32 > Keys_;
 	};
+
+private:
+	void updateAnimation( BcF32 Tick );
+	void draw();
+
+	static void update( const ScnComponentList& Components );
 
 private:
 	ScnCanvasComponentRef Canvas_;

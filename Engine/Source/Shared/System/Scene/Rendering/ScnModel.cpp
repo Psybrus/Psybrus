@@ -500,7 +500,6 @@ void ScnModelComponent::updateModels( const ScnComponentList& Components )
 void ScnModelComponent::updateModel( BcF32 Tick )
 {
 	PSY_PROFILE_FUNCTION;
-	Super::postUpdate( Tick );
 
 	UploadFence_.wait();
 	UpdateFence_.increment();

@@ -26,9 +26,16 @@ void ScnSpatialComponent::StaticRegisterClass()
 	{
 		new ReField( "pSpatialTreeNode_", &ScnSpatialComponent::pSpatialTreeNode_, bcRFF_TRANSIENT ),
 	};
-		
+	
+	using namespace std::placeholders;	
 	ReRegisterClass< ScnSpatialComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2110 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update",
+					ScnComponentPriority::SPATIAL_UPDATE,
+					std::bind( &ScnSpatialComponent::update, _1 ) ),
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,17 +52,6 @@ ScnSpatialComponent::ScnSpatialComponent():
 ScnSpatialComponent::~ScnSpatialComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// postUpdate
-//virtual
-void ScnSpatialComponent::postUpdate( BcF32 Tick )
-{
-	Super::postUpdate( Tick );
-
-	// Reinsert node if we need to.
-	pSpatialTreeNode_->reinsertComponent( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,3 +92,17 @@ MaAABB ScnSpatialComponent::getAABB() const
 	BcAssertMsg( BcFalse, "ScnSpatialComponent: Not implemented a getAABB!" );
 	return MaAABB();
 }
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//static
+void ScnSpatialComponent::update( const ScnComponentList& Components )
+{
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnSpatialComponent >() );
+		auto* SpatialComponent = static_cast< ScnSpatialComponent* >( Component.get() );
+		SpatialComponent->pSpatialTreeNode_->reinsertComponent( SpatialComponent );
+	}
+}
+

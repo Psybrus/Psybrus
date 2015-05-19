@@ -4,6 +4,14 @@
 #include "System/SysKernel.h"
 
 //////////////////////////////////////////////////////////////////////////
+// getTick
+//static
+BcF32 ScnComponentProcessFuncEntry::getTick()
+{
+	return SysKernel::pImpl()->getFrameTime();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ScnComponentProcessor Reflection
 REFLECTION_DEFINE_DERIVED( ScnComponentProcessor );
 
@@ -14,48 +22,8 @@ void ScnComponentProcessor::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnComponentProcessor::ScnComponentProcessor( BcS32 Priority ):
-	Priority_( Priority )
+ScnComponentProcessor::ScnComponentProcessor()
 {
-	ProcessFuncs_.reserve( 3 );
-	ProcessFuncs_.emplace_back( 
-		ScnComponentProcessFuncEntry(
-			"Pre Update",
-			ScnComponentPriority::DEFAULT_PRE_UPDATE + Priority_, 
-			[]( const ScnComponentList& Components )
-			{
-				auto Tick = SysKernel::pImpl()->getFrameTime();
-				for( auto Component : Components )
-				{
-					Component->preUpdate( Tick );
-				}
-			} ) );
-
-	ProcessFuncs_.emplace_back(
-		ScnComponentProcessFuncEntry(
-			"Update",
-			ScnComponentPriority::DEFAULT_UPDATE + Priority_,
-			[]( const ScnComponentList& Components )
-			{
-				auto Tick = SysKernel::pImpl()->getFrameTime();
-				for( auto Component : Components )
-				{
-					Component->update( Tick );
-				}
-			} ) );
-
-	ProcessFuncs_.emplace_back(
-		ScnComponentProcessFuncEntry(
-			"Post Update",
-			ScnComponentPriority::DEFAULT_POST_UPDATE + Priority_,
-			[]( const ScnComponentList& Components )
-			{
-				auto Tick = SysKernel::pImpl()->getFrameTime();
-				for( auto Component : Components )
-				{
-					Component->postUpdate( Tick );
-				}
-			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

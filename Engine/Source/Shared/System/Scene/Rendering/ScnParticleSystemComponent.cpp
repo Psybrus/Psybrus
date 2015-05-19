@@ -47,8 +47,15 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 		new ReField( "AABB_", &ScnParticleSystemComponent::AABB_ ),
 	};
 	
+	using namespace std::placeholders;
 	ReRegisterClass< ScnParticleSystemComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2060 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update Particles",
+					ScnComponentPriority::PARTICLE_SYSTEM_UPDATE,
+					std::bind( &ScnParticleSystemComponent::updateParticles, _1 ) ),
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -107,32 +114,7 @@ void ScnParticleSystemComponent::initialise()
 //virtual
 MaAABB ScnParticleSystemComponent::getAABB() const
 {
-	UpdateFence_.wait();
-
 	return AABB_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnParticleSystemComponent::postUpdate( BcF32 Tick )
-{
-	Super::postUpdate( Tick );
-
-	UpdateFence_.increment();
-
-#if 0
-	SysKernel::pImpl()->pushFunctionJob( 
-		SysKernel::DEFAULT_JOB_QUEUE_ID, 
-		[ this, Tick ]()
-		{
-			UploadFence_.wait();
-			updateParticles( Tick );
-		} );
-#else
-	updateParticles( Tick );
-#endif
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,9 +137,6 @@ public:
 //virtual
 void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	// Wait for update fence.
-	UpdateFence_.wait();
-
 	// Grab vertex buffer and flip for next frame to use.
 	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
 	CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
@@ -405,7 +384,6 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	UpdateFence_.wait();
 	UploadFence_.wait();
 
 	Parent->detach( MaterialComponent_ );
@@ -437,11 +415,7 @@ ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
 // allocParticle
 BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 {
-	UpdateFence_.wait();
 	UploadFence_.wait();
-
-	// We can't be allocating whilst we're updating.
-	BcAssert( UpdateFence_.count() == 0 );
 
 	// TODO: Perhaps a free list of indices? Reordering of dead particles?
 	//       Either way I want the update to be cache friendly.
@@ -503,43 +477,50 @@ void ScnParticleSystemComponent::updateParticle( ScnParticle& Particle, BcF32 Ti
 
 //////////////////////////////////////////////////////////////////////////
 // updateParticles
-void ScnParticleSystemComponent::updateParticles( BcF32 Tick )
+//static
+void ScnParticleSystemComponent::updateParticles( const ScnComponentList& Components )
 {
-	// Wait for upload to have completed.
-	UploadFence_.wait();
-
-	// TODO: Iterate over every "affector" at a time, rather than by particle.
-	// - See "updateParticle".
-
-	MaAABB FullAABB( MaVec3d( 0.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
-
-	// Not optimal, but clear code is clear. (For now...)
-	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+	
+	for( auto Component : Components )
 	{
-		ScnParticle& Particle = pParticleBuffer_[ Idx ];
+		BcAssert( Component->isTypeOf< ScnParticleSystemComponent >() );
+		auto* ParticleSystemComponent = static_cast< ScnParticleSystemComponent* >( Component.get() );
 
-		if( Particle.Alive_ )
+		// Wait for upload to have completed.
+		ParticleSystemComponent->UploadFence_.wait();
+
+		// TODO: Iterate over every "affector" at a time, rather than by particle.
+		// - See "updateParticle".
+
+		MaAABB FullAABB( MaVec3d( 0.0f, 0.0f, 0.0f ), MaVec3d( 0.0f, 0.0f, 0.0f ) );
+
+		// Not optimal, but clear code is clear. (For now...)
+		for( BcU32 Idx = 0; Idx < ParticleSystemComponent->NoofParticles_; ++Idx )
 		{
-			// Update particle.
-			updateParticle( Particle, Tick );
+			ScnParticle& Particle = ParticleSystemComponent->pParticleBuffer_[ Idx ];
 
-			// Expand AABB by particle's max bounds.
-			const BcF32 MaxHalfSize = BcMax( Particle.Scale_.x(), Particle.Scale_.y() ) * 0.5f;
-			FullAABB.expandBy( Particle.Position_ - MaVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
-			FullAABB.expandBy( Particle.Position_ + MaVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
+			if( Particle.Alive_ )
+			{
+				// Update particle.
+				ParticleSystemComponent->updateParticle( Particle, Tick );
+
+				// Expand AABB by particle's max bounds.
+				const BcF32 MaxHalfSize = BcMax( Particle.Scale_.x(), Particle.Scale_.y() ) * 0.5f;
+				FullAABB.expandBy( Particle.Position_ - MaVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
+				FullAABB.expandBy( Particle.Position_ + MaVec3d( MaxHalfSize, MaxHalfSize, MaxHalfSize ) );
+			}
+		}
+
+		// Transform AABB.
+		if( ParticleSystemComponent->IsLocalSpace_ )
+		{
+			const MaMat4d& WorldTransform = ParticleSystemComponent->getParentEntity()->getWorldMatrix();
+			ParticleSystemComponent->AABB_ = FullAABB.transform( WorldTransform );
+		}
+		else
+		{
+			ParticleSystemComponent->AABB_ = FullAABB;
 		}
 	}
-
-	// Transform AABB.
-	if( IsLocalSpace_ )
-	{
-		const MaMat4d& WorldTransform = getParentEntity()->getWorldMatrix();
-		AABB_ = FullAABB.transform( WorldTransform );
-	}
-	else
-	{
-		AABB_ = FullAABB;
-	}
-
-	UpdateFence_.decrement();
 }

@@ -18,6 +18,9 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Sound/SsCore.h"
+
+#include "System/SysKernel.h"
+
 #include "Base/BcMath.h"
 #ifdef PSY_IMPORT_PIPELINE
 #include "Base/BcFile.h"
@@ -51,8 +54,15 @@ void ScnSpriteComponent::StaticRegisterClass()
 		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_, bcRFF_DEBUG_EDIT ),
 	};
 	
+	using namespace std::placeholders;
 	ReRegisterClass< ScnSpriteComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2100 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update",
+					ScnComponentPriority::SPRITE_UPDATE,
+					std::bind( &ScnSpriteComponent::update, _1 ) ),
+			} ) );
 }
 
 void ScnSpriteComponent::Animation::StaticRegisterClass()
@@ -90,108 +100,6 @@ ScnSpriteComponent::ScnSpriteComponent()
 ScnSpriteComponent::~ScnSpriteComponent()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update
-//virtual
-void ScnSpriteComponent::postUpdate( BcF32 Tick )
-{
-	Super::postUpdate( Tick );
-
-	if( !Canvas_.isValid() )
-	{
-		return;
-	}
-
-	ScnEntityWeakRef Entity = getParentEntity();
-	MaMat4d Matrix = Entity->getWorldMatrix();
-
-	if( !Animation_.empty() && Animations_.find( Animation_ ) != Animations_.end() )
-	{
-		const auto& Animation = Animations_[ Animation_ ];
-
-		if( CurrKey_ < Animation.Keys_.size() )
-		{
-			Index_ = Animation.Keys_[ CurrKey_ ];
-		}
-	
-		AnimationTimer_ += Tick;
-		if( AnimationTimer_ > ( 1.0f / AnimationRate_ ) )
-		{
-			AnimationTimer_ -= ( 1.0f / AnimationRate_ );
-			++CurrKey_;
-
-			if( CurrKey_ >= (BcU32)Animation.Keys_.size() )
-			{
-				setAnimation( Animation.Next_ );
-			}
-		}
-	}
-
-	if( Index_ == BcErrorCode )
-	{
-		return;
-	}
-
-	// Push matrix onto canvas.
-	if( !IsScreenSpace_ )
-	{
-		Canvas_->pushMatrix( Matrix );
-
-		if( BcAbs( Rotation_ ) > 0.01f )
-		{
-			MaMat4d Rotation;
-			Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
-			Canvas_->pushMatrix( Rotation );
-		}
-
-		// Draw sprite at the correct transform position.
-		Canvas_->setMaterialComponent( Material_ );
-		if( Center_ )
-		{
-			Canvas_->drawSpriteCentered( Position_, Size_, Index_, Colour_, Layer_ );
-		}
-		else
-		{
-			Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
-		}
-
-		if( BcAbs( Rotation_ ) > 0.01f )
-		{
-			Canvas_->popMatrix();
-		}
-
-		Canvas_->popMatrix();
-	}
-	else
-	{
-		Matrix = Canvas_->popMatrix();
-
-		MaMat4d Rotation;
-		Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
-		MaMat4d Translation;
-		Translation.translation( MaVec3d( Position_.x(), Position_.y(), 0.0f ) );
-		Canvas_->pushMatrix( Translation );
-		Canvas_->pushMatrix( Rotation );
-
-		// Draw sprite at the correct transform position.
-		Canvas_->setMaterialComponent( Material_ );
-		if( Center_ )
-		{
-			Canvas_->drawSpriteCentered( MaVec2d(), Size_, Index_, Colour_, Layer_ );
-		}
-		else
-		{
-			Canvas_->drawSprite( MaVec2d(), Size_, Index_, Colour_, Layer_ );
-		}
-
-		Canvas_->popMatrix();
-		Canvas_->popMatrix();
-
-		Canvas_->pushMatrix( Matrix );
-		Canvas_->setMatrix( Matrix );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -297,4 +205,125 @@ void ScnSpriteComponent::setMaterial( ScnMaterialComponentRef Material )
 void ScnSpriteComponent::setSpriteIndex( BcU32 Index )
 {
 	Index_ = Index;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateAnimation
+void ScnSpriteComponent::updateAnimation( BcF32 Tick )
+{
+	if( !Animation_.empty() && Animations_.find( Animation_ ) != Animations_.end() )
+	{
+		const auto& Animation = Animations_[ Animation_ ];
+
+		if( CurrKey_ < Animation.Keys_.size() )
+		{
+			Index_ = Animation.Keys_[ CurrKey_ ];
+		}
+	
+		AnimationTimer_ += Tick;
+		if( AnimationTimer_ > ( 1.0f / AnimationRate_ ) )
+		{
+			AnimationTimer_ -= ( 1.0f / AnimationRate_ );
+			++CurrKey_;
+
+			if( CurrKey_ >= (BcU32)Animation.Keys_.size() )
+			{
+				setAnimation( Animation.Next_ );
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// draw
+void ScnSpriteComponent::draw()
+{
+	if( !Canvas_.isValid() )
+	{
+		return;
+	}
+
+	if( Index_ == BcErrorCode )
+	{
+		return;
+	}
+
+	ScnEntityWeakRef Entity = getParentEntity();
+	MaMat4d Matrix = Entity->getWorldMatrix();
+
+	// Push matrix onto canvas.
+	if( !IsScreenSpace_ )
+	{
+		Canvas_->pushMatrix( Matrix );
+
+		if( BcAbs( Rotation_ ) > 0.01f )
+		{
+			MaMat4d Rotation;
+			Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
+			Canvas_->pushMatrix( Rotation );
+		}
+
+		// Draw sprite at the correct transform position.
+		Canvas_->setMaterialComponent( Material_ );
+		if( Center_ )
+		{
+			Canvas_->drawSpriteCentered( Position_, Size_, Index_, Colour_, Layer_ );
+		}
+		else
+		{
+			Canvas_->drawSprite( Position_, Size_, Index_, Colour_, Layer_ );
+		}
+
+		if( BcAbs( Rotation_ ) > 0.01f )
+		{
+			Canvas_->popMatrix();
+		}
+
+		Canvas_->popMatrix();
+	}
+	else
+	{
+		Matrix = Canvas_->popMatrix();
+
+		MaMat4d Rotation;
+		Rotation.rotation( MaVec3d( 0.0f, 0.0f, Rotation_ ) );
+		MaMat4d Translation;
+		Translation.translation( MaVec3d( Position_.x(), Position_.y(), 0.0f ) );
+		Canvas_->pushMatrix( Translation );
+		Canvas_->pushMatrix( Rotation );
+
+		// Draw sprite at the correct transform position.
+		Canvas_->setMaterialComponent( Material_ );
+		if( Center_ )
+		{
+			Canvas_->drawSpriteCentered( MaVec2d(), Size_, Index_, Colour_, Layer_ );
+		}
+		else
+		{
+			Canvas_->drawSprite( MaVec2d(), Size_, Index_, Colour_, Layer_ );
+		}
+
+		Canvas_->popMatrix();
+		Canvas_->popMatrix();
+
+		Canvas_->pushMatrix( Matrix );
+		Canvas_->setMatrix( Matrix );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// draw
+//static
+void ScnSpriteComponent::update( const ScnComponentList& Components )
+{
+	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnSpriteComponent >() );
+		auto* SpriteComponent = static_cast< ScnSpriteComponent* >( Component.get() );
+
+		SpriteComponent->updateAnimation( Tick );
+		SpriteComponent->draw();
+	}
 }

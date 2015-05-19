@@ -73,7 +73,6 @@ public:
 
 	virtual MaAABB getAABB() const;
 
-	virtual void postUpdate( BcF32 Tick );
 	virtual void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
@@ -84,7 +83,8 @@ public:
 
 private:
 	void updateParticle( ScnParticle& Particle, BcF32 Tick );
-	void updateParticles( BcF32 Tick );
+
+	static void updateParticles( const ScnComponentList& Components );
 
 private:
 	struct TVertexBuffer
@@ -120,7 +120,6 @@ private:
 
 	// Fences for uploading + updating.
 	SysFence UploadFence_;
-	SysFence UpdateFence_;
 };
 
 #endif

@@ -52,7 +52,6 @@ public:
 		const ScnComponentVisitFunc& Func ) override;
 
 public:
-	void update( BcF32 Tick );
 	void onAttach( ScnEntityWeakRef Parent );
 	void onDetach( ScnEntityWeakRef Parent );
 
@@ -177,8 +176,11 @@ protected:
 	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 	void setupComponents();
-	
-protected:
+
+private:
+	static void update( const ScnComponentList& Components );
+
+private:
 	const ScnEntityHeader* pHeader_;
 
 	MaMat4d LocalTransform_;

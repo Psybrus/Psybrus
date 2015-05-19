@@ -46,9 +46,15 @@ void ScnEntity::StaticRegisterClass()
 #endif
 	};
 	
+	using namespace std::placeholders;
 	auto& Class = ReRegisterClass< ScnEntity, Super >( Fields );
-		
-	Class.addAttribute( new ScnComponentProcessor( -2100 ) );
+	Class.addAttribute( new ScnComponentProcessor( 
+		{
+			ScnComponentProcessFuncEntry(
+				"Update",
+				ScnComponentPriority::ENTITY_UPDATE,
+				std::bind( &ScnEntity::update, _1 ) ),
+		} ) );
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
@@ -126,30 +132,6 @@ void ScnEntity::visitHierarchy(
 	{
 		Super::visitHierarchy( VisitType, Parent, Func );
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// update
-void ScnEntity::update( BcF32 Tick )
-{
-	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnEntity::update" ) );
-
-	BcAssert( getPackage() != NULL );
-	
-	// Get parent entity to calculate world transform.
-	if( getParentEntity() )
-	{
-		WorldTransform_ = LocalTransform_ * getParentEntity()->WorldTransform_;
-	}
-	else
-	{
-		WorldTransform_ = LocalTransform_;
-	}
-	
-#if SCNENTITY_USES_EVTPUBLISHER
-	// Dispatch all events.
-	pEventProxy_->dispatch();
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -536,5 +518,37 @@ void ScnEntity::setupComponents()
 					} );
 			}
 		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+//static
+void ScnEntity::update( const ScnComponentList& Components )
+{
+	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnEntity::update" ) );
+
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnEntity >() );
+		auto* Entity = static_cast< ScnEntity* >( Component.get() );
+
+		BcAssert( Entity->getPackage() != nullptr );
+		
+		// Get parent entity to calculate world transform.
+		if( Entity->getParentEntity() )
+		{
+			Entity->WorldTransform_ = Entity->LocalTransform_ * Entity->getParentEntity()->WorldTransform_;
+		}
+		else
+		{
+			Entity->WorldTransform_ = Entity->LocalTransform_;
+		}
+		
+#if SCNENTITY_USES_EVTPUBLISHER
+		// Dispatch all events.
+		// TODO: Move outside of update, perhaps run before all other component updates?
+		Entity->pEventProxy_->dispatch();
+#endif
 	}
 }
