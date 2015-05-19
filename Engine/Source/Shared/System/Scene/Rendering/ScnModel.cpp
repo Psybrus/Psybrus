@@ -294,9 +294,16 @@ void ScnModelComponent::StaticRegisterClass()
 		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
 		new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
 	};
-		
+
+	using namespace std::placeholders;
 	ReRegisterClass< ScnModelComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( -2030 ) );
+		.addAttribute( new ScnComponentProcessor( 
+			{
+				ScnComponentProcessFuncEntry(
+					"Update",
+					ScnComponentPriority::MODEL_UPDATE,
+					std::bind( &ScnModelComponent::updateModels, _1 ) )
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -473,9 +480,24 @@ void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
+// updateModels
+//static
+void ScnModelComponent::updateModels( const ScnComponentList& Components )
+{
+	// TODO: All models are independent, so we can parallelise these in some jobs.
+	auto Tick = SysKernel::pImpl()->getFrameTime();
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnModelComponent >() );
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+		ModelComponent->updateModel( Tick );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateModel
 //virtual
-void ScnModelComponent::postUpdate( BcF32 Tick )
+void ScnModelComponent::updateModel( BcF32 Tick )
 {
 	PSY_PROFILE_FUNCTION;
 	Super::postUpdate( Tick );
