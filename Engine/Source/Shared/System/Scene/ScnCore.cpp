@@ -433,9 +433,8 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 // findEntity
 ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 {
-	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
-	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
-	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
+	const auto& ComponentList = getComponentList< ScnEntity >();
+	for( auto It( ComponentList.begin() ); It != ComponentList.end(); ++It )
 	{
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );
@@ -452,9 +451,7 @@ ScnEntityRef ScnCore::findEntity( const BcName& InstanceName )
 // getEntity
 ScnEntityRef ScnCore::getEntity( BcU32 Idx )
 {
-	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
-	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
-
+	auto& ComponentList = getComponentList( ScnEntity::StaticGetClass() );
 	if( Idx < ComponentList.size() )
 	{
 		return ScnEntityRef( ComponentList[ Idx ] );
@@ -525,12 +522,10 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// All go into the appropriate list.
-	const auto* pClass = Component->getClass();
-	auto FoundIndexIt = ComponentClassIndexMap_.find( pClass );
-	if( FoundIndexIt != ComponentClassIndexMap_.end() )
+	auto FoundIt = ComponentClassIndexMap_.find( Component->getClass() );
+	if( FoundIt != ComponentClassIndexMap_.end() )
 	{
-		BcU32 Idx( FoundIndexIt->second );
-		ScnComponentList& ComponentList( ComponentLists_[ Idx ] );
+		auto& ComponentList = ComponentLists_[ FoundIt->second ];
 		ComponentList.push_back( Component );
 	}
 }
@@ -554,12 +549,10 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// Erase from component list.
-	const ReClass* pClass = Component->getClass();
-	auto FoundIndexIt = ComponentClassIndexMap_.find( pClass );
-	if( FoundIndexIt != ComponentClassIndexMap_.end() )
+	auto FoundIt = ComponentClassIndexMap_.find( Component->getClass() );
+	if( FoundIt != ComponentClassIndexMap_.end() )
 	{
-		BcU32 Idx( FoundIndexIt->second );
-		ScnComponentList& ComponentList( ComponentLists_[ Idx ] );
+		auto& ComponentList = ComponentLists_[ FoundIt->second ];
 		ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
 		ComponentList.erase( It );
 	}
@@ -705,4 +698,22 @@ void ScnCore::onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID )
 
 	// Clear out the spawn data.
 	EntitySpawnMap_.erase( It );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponentList 
+ScnComponentList& ScnCore::getComponentList( const ReClass* Class )
+{
+	auto FoundIt = ComponentClassIndexMap_.find( Class );
+	BcAssert( FoundIt != ComponentClassIndexMap_.end() );
+	return ComponentLists_[ FoundIt->second ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getComponentList 
+const ScnComponentList& ScnCore::getComponentList( const ReClass* Class ) const
+{
+	auto FoundIt = ComponentClassIndexMap_.find( Class );
+	BcAssert( FoundIt != ComponentClassIndexMap_.end() );
+	return ComponentLists_[ FoundIt->second ];
 }

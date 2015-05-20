@@ -124,9 +124,11 @@ private:
 private:
 	void processPendingComponents();
 
-private:
 	ScnEntity* internalSpawnEntity( ScnEntitySpawnParams Params );
 	void onSpawnEntityPackageReady( CsPackage* pPackage, BcU32 ID );
+
+	ScnComponentList& getComponentList( const ReClass* Class );
+	const ScnComponentList& getComponentList( const ReClass* Class ) const;
 
 private:
 	class ScnSpatialTree* pSpatialTree_;
@@ -159,10 +161,7 @@ private:
 template < class _Ty >
 inline const ScnComponentList& ScnCore::getComponentList() const
 {
-	auto Class = _Ty::StaticGetClass();
-	auto FoundIt = ComponentClassIndexMap_.find( Class );
-	BcAssert( FoundIt != ComponentClassIndexMap_.end() );
-	return ComponentLists_[ FoundIt.second ];
+	return getComponentList( _Ty::StaticGetClass() );
 }
 
 #endif
