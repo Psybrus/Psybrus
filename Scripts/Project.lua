@@ -176,6 +176,7 @@ end
 
 -- Setup a game lib project.
 function PsyProjectGameLib( _name )
+	group( _name )
 	PsyProjectCommonEngine( _name )
 	print( "Adding Game Library: " .. _name )
 
@@ -194,6 +195,7 @@ end
 
 -- Setup game exe project.
 function PsyProjectGameExe( _name )
+	group( _name )
 	PsyProjectCommonEngine( _name )
 	print( "Adding Game Executable: " .. _name )
 
@@ -250,6 +252,8 @@ end
 
 -- Setup engine lib project.
 function PsyProjectEngineLib( _name )
+	group( "Psybrus Engine" )
+
 	-- Prepend "Engine_"
 	_name = "Engine_" .. _name
 
@@ -271,6 +275,8 @@ end
 
 -- Setup external lib project.
 function PsyProjectExternalLib( _name, _lang )
+	group( "Psybrus External" )
+
 	-- Prepend "External_"
 	_name = "External_" .. _name
 
