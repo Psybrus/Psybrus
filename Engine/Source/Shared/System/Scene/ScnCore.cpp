@@ -76,19 +76,23 @@ void ScnCore::open()
 	auto Classes = ReManager::GetClasses();
 	for( auto Class : Classes )
 	{
-		auto* Attr = Class->getAttribute< ScnComponentProcessor >();
-		if( Attr != nullptr )
+		if( Class->hasBaseClass( ScnComponent::StaticGetClass() ) )
 		{
 			// Add component class to list for later.
 			ComponentClasses.push_back( Class );
 
-			// Get process funcs.
-			auto ProcessFuncs = Attr->getProcessFuncs();
-
-			// Add to list.
-			for( auto& ProcessFunc : ProcessFuncs )
+			// Find processor.
+			auto* Attr = Class->getAttribute< ScnComponentProcessor >();
+			if( Attr != nullptr )
 			{
-				ComponentProcessFuncs_.push_back( ProcessFunc );
+				// Get process funcs.
+				auto ProcessFuncs = Attr->getProcessFuncs();
+
+				// Add to list.
+				for( auto& ProcessFunc : ProcessFuncs )
+				{
+					ComponentProcessFuncs_.push_back( ProcessFunc );
+				}
 			}
 		}
 	}
@@ -522,12 +526,8 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// All go into the appropriate list.
-	auto FoundIt = ComponentClassIndexMap_.find( Component->getClass() );
-	if( FoundIt != ComponentClassIndexMap_.end() )
-	{
-		auto& ComponentList = ComponentLists_[ FoundIt->second ];
-		ComponentList.push_back( Component );
-	}
+	auto& ComponentList = getComponentList( Component->getClass() );
+	ComponentList.push_back( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -549,13 +549,9 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 	}
 
 	// Erase from component list.
-	auto FoundIt = ComponentClassIndexMap_.find( Component->getClass() );
-	if( FoundIt != ComponentClassIndexMap_.end() )
-	{
-		auto& ComponentList = ComponentLists_[ FoundIt->second ];
-		ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
-		ComponentList.erase( It );
-	}
+	auto& ComponentList = getComponentList( Component->getClass() );
+	ScnComponentListIterator It = std::find( ComponentList.begin(), ComponentList.end(), Component );
+	ComponentList.erase( It );
 }
 
 //////////////////////////////////////////////////////////////////////////
