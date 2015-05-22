@@ -215,7 +215,8 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 #endif
 			RsShader* pShader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
-				pShaderData, ShaderSize );
+				pShaderData, ShaderSize,
+				*getName() );
 			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
 		}
 	}
@@ -256,7 +257,8 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// Create program.
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
-				std::move( VertexAttributes ) );			
+				std::move( VertexAttributes ),
+				*getName() );			
 			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
 		}
 	}

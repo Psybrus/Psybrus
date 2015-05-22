@@ -64,11 +64,13 @@ public:
 	
 	RsShader* createShader( 
 		const RsShaderDesc& Desc, 
-		void* pShaderData, BcU32 ShaderDataSize ) override;
+		void* pShaderData, BcU32 ShaderDataSize,
+		const std::string& DebugName ) override;
 	
 	RsProgram* createProgram( 
 		std::vector< RsShader* > Shaders, 
-		RsProgramVertexAttributeList VertexAttributes ) override;
+		RsProgramVertexAttributeList VertexAttributes,
+		const std::string& DebugName ) override;
 	
 	void destroyResource( 
 		RsResource* pResource ) override;

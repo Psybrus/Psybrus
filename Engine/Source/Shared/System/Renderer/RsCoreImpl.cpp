@@ -356,7 +356,10 @@ RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 //////////////////////////////////////////////////////////////////////////
 // createShader
 //virtual
-RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData, BcU32 ShaderDataSize )
+RsShader* RsCoreImpl::createShader( 
+		const RsShaderDesc& Desc, 
+		void* pShaderData, BcU32 ShaderDataSize,
+		const std::string& DebugName )
 {
 	auto Context = getContext( nullptr );
 	RsShader* pResource = new RsShader( Context, Desc, pShaderData, ShaderDataSize );
@@ -364,9 +367,12 @@ RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData,
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob( 
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, pResource, DebugName ]
 		{
-			Context->createShader( pResource );
+			if( !Context->createShader( pResource ) )
+			{
+				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+			}
 		} );
 
 	return pResource;
@@ -376,8 +382,9 @@ RsShader* RsCoreImpl::createShader( const RsShaderDesc& Desc, void* pShaderData,
 // createProgram
 //virtual
 RsProgram* RsCoreImpl::createProgram( 
-	std::vector< RsShader* > Shaders, 
-	RsProgramVertexAttributeList VertexAttributes )
+		std::vector< RsShader* > Shaders, 
+		RsProgramVertexAttributeList VertexAttributes,
+		const std::string& DebugName )
 {
 	auto Context = getContext( nullptr );
 
@@ -391,9 +398,12 @@ RsProgram* RsCoreImpl::createProgram(
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, pResource, DebugName ]
 		{
-			Context->createProgram( pResource );
+			if( !Context->createProgram( pResource ) )
+			{
+				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+			}
 		} );
 
 	return pResource;

@@ -153,20 +153,24 @@ public:
 	 * @param Desc Shader descriptor.
 	 * @param pShaderData Shader data.
 	 * @param ShaderDataSize Shader data size.
+	 * @param DebugName Name used for debugging creation.
 	 */
 	virtual RsShader* createShader( 
 		const RsShaderDesc& Desc, 
-		void* pShaderData, BcU32 ShaderDataSize ) = 0;
+		void* pShaderData, BcU32 ShaderDataSize,
+		const std::string& DebugName ) = 0;
 
 	/**
 	 * Create program.
 	 * @param Shaders Array of shaders to use for program.
 	 * @param VertexAttributes Vertex attributes for program.
 	 * @param pVertexAttributes Vertex attributes.
+	 * @param DebugName Name used for debugging creation.
 	 */
 	virtual RsProgram* createProgram( 
 		std::vector< RsShader* > Shaders, 
-		RsProgramVertexAttributeList VertexAttributes ) = 0;
+		RsProgramVertexAttributeList VertexAttributes,
+		const std::string& DebugName ) = 0;
 
 	/**
 	 * Update resource. Work done on render thread.
