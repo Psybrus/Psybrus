@@ -286,6 +286,7 @@ function PsyProjectExternalLib( _name, _lang )
 
 	configuration "*"
 		kind "StaticLib"
+		flags { "Optimize" }
 
 	-- Add STATICLIB define for libraries.
 	configuration "*"
