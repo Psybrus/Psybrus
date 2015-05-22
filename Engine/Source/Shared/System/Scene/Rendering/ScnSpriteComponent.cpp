@@ -29,8 +29,19 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
+REFLECTION_DEFINE_BASIC( ScnSpriteAnimation );
 REFLECTION_DEFINE_DERIVED( ScnSpriteComponent );
-REFLECTION_DEFINE_BASIC( ScnSpriteComponent::Animation );
+
+void ScnSpriteAnimation::StaticRegisterClass()
+{
+	ReField* Fields[] =
+	{
+		new ReField( "Next_", &ScnSpriteAnimation::Next_ ),
+		new ReField( "Keys_", &ScnSpriteAnimation::Keys_ ),
+	};
+
+	ReRegisterClass< ScnSpriteAnimation >( Fields );
+}
 
 void ScnSpriteComponent::StaticRegisterClass()
 {
@@ -44,11 +55,11 @@ void ScnSpriteComponent::StaticRegisterClass()
 		new ReField( "Layer_", &ScnSpriteComponent::Layer_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
 		new ReField( "Center_", &ScnSpriteComponent::Center_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
 		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
-		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "Animation_", &ScnSpriteComponent::Animation_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "Animations_", &ScnSpriteComponent::Animations_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 
+		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, bcRFF_TRANSIENT ),
 		new ReField( "Canvas_", &ScnSpriteComponent::Canvas_, bcRFF_TRANSIENT ),
 		new ReField( "Material_", &ScnSpriteComponent::Material_, bcRFF_TRANSIENT ),
 		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_, bcRFF_DEBUG_EDIT ),
@@ -63,17 +74,6 @@ void ScnSpriteComponent::StaticRegisterClass()
 					ScnComponentPriority::SPRITE_UPDATE,
 					std::bind( &ScnSpriteComponent::update, _1 ) ),
 			} ) );
-}
-
-void ScnSpriteComponent::Animation::StaticRegisterClass()
-{
-	ReField* Fields[] =
-	{
-		new ReField( "Next_", &ScnSpriteComponent::Animation::Next_ ),
-		new ReField( "Keys_", &ScnSpriteComponent::Animation::Keys_ ),
-	};
-
-	ReRegisterClass< ScnSpriteComponent::Animation >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -22,6 +22,16 @@
 typedef ReObjectRef< class ScnSpriteComponent > ScnSpriteComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
+// ScnSpriteAnimation
+struct ScnSpriteAnimation
+{
+	REFLECTION_DECLARE_BASIC( ScnSpriteAnimation );
+	ScnSpriteAnimation(){};
+	std::string Next_;
+	std::vector< BcS32 > Keys_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnSpriteComponent
 class ScnSpriteComponent:
 	public ScnComponent
@@ -52,14 +62,6 @@ public:
 
 	void setSpriteIndex( BcU32 Index );
 
-	struct Animation
-	{
-		REFLECTION_DECLARE_BASIC( Animation );
-		Animation(){};
-		std::string Next_;
-		std::vector< BcS32 > Keys_;
-	};
-
 private:
 	void updateAnimation( BcF32 Tick );
 	void draw();
@@ -85,7 +87,7 @@ private:
 	BcF32 AnimationRate_;
 
 	std::string Animation_;
-	std::map< std::string, Animation > Animations_;
+	std::map< std::string, ScnSpriteAnimation > Animations_;
 };
 
 
