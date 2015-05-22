@@ -37,11 +37,11 @@ ScnShaderViewUniformBlockData ScnShaderViewUniformBlockDataVS;
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderLightUniformBlockData
 BEGIN_CBUFFER( ScnShaderLightUniformBlockData )
-	ENTRY( float3, LightPosition_[4] )
-	ENTRY( float3, LightDirection_[4] )
+	ENTRY( float4, LightPosition_[4] )
+	ENTRY( float4, LightDirection_[4] )
 	ENTRY( float4, LightAmbientColour_[4] )
 	ENTRY( float4, LightDiffuseColour_[4] )
-	ENTRY( float3, LightAttn_[4] )
+	ENTRY( float4, LightAttn_[4] )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER

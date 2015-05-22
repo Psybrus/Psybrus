@@ -186,11 +186,11 @@ struct ScnShaderLightUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderLightUniformBlockData );
 	ScnShaderLightUniformBlockData(){};
 
-	MaVec3d LightPosition_[ 4 ];
-	MaVec3d LightDirection_[ 4 ];
+	MaVec4d LightPosition_[ 4 ];
+	MaVec4d LightDirection_[ 4 ];
 	MaVec4d LightAmbientColour_[ 4 ];
 	MaVec4d LightDiffuseColour_[ 4 ];
-	MaVec3d LightAttn_[ 4 ];
+	MaVec4d LightAttn_[ 4 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
