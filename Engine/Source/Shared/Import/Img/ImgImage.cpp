@@ -131,6 +131,21 @@ void ImgImage::blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& Ds
 }
 
 //////////////////////////////////////////////////////////////////////////
+// get
+ImgImageUPtr ImgImage::get( const ImgRect& SrcRect )
+{
+	ImgImageUPtr OutImage( new ImgImage() );
+	OutImage->create( SrcRect.W_, SrcRect.H_ );
+
+	auto DstRect = SrcRect;
+	DstRect.X_ = 0;
+	DstRect.Y_ = 0;
+
+	OutImage->blit( this, SrcRect, DstRect );
+	return OutImage;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // resize
 ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 {
@@ -448,7 +463,7 @@ ImgImageUPtr ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sp
 			}
 		}
 		
-		static void Normalise( ImgImage* pOutputImage, Grid& SignedDistanceGrid, BcF32 Spread )
+		static void Normalise( ImgImage* pInputImage, ImgImage* pOutputImage, Grid& SignedDistanceGrid, BcF32 Spread )
 		{
 			const BcU32 Width = SignedDistanceGrid.Width_;
 			const BcU32 Height = SignedDistanceGrid.Height_;
@@ -471,7 +486,8 @@ ImgImageUPtr ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sp
 					
 					BcU32 DistanceInt = (BcU32)BcClamp( Distance, 0.0f, 255.0f );
 					
-					ImgColour Colour = { 255, 255, 255, (BcU8)DistanceInt };
+					ImgColour Colour = pInputImage->getPixel( X, Y );
+					Colour.A_ = (BcU8)DistanceInt;
 					pOutputImage->setPixel( X, Y, Colour );
 				}
 			}
@@ -498,7 +514,7 @@ ImgImageUPtr ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sp
 	DistanceField::Subtract( SignedDistanceGrid, GridA, GridB );
 	
 	// Normalise.
-	DistanceField::Normalise( pImage.get(), SignedDistanceGrid, Spread );	
+	DistanceField::Normalise( this, pImage.get(), SignedDistanceGrid, Spread );	
 	
 	// Return image.
 	return pImage;

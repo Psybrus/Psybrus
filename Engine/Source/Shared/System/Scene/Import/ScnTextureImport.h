@@ -40,8 +40,18 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import(
-		const Json::Value& );
+	BcBool import( const Json::Value& );
+
+private:
+	ImgImageList loadImages( std::vector< std::string > Sources );
+
+	ImgImageUPtr processAlphaFromIntensity( ImgImageUPtr Image );
+	ImgImageUPtr processDistanceField( ImgImageUPtr Image, BcU32 Spread );
+	ImgImageUPtr processRoundUpPot( ImgImageUPtr Image );
+	ImgImageUPtr processRoundDownPot( ImgImageUPtr Image );
+
+	ImgImageList generateMipMaps( ImgImageUPtr Image );
+
 
 private:
 	std::vector< std::string > Source_;
@@ -52,6 +62,7 @@ private:
 	BcBool AlphaFromIntensity_;
 	BcBool DistanceField_;
 	BcU32 Spread_;
+	BcU32 Border_;
 	BcBool TileAtlas_;
 	BcU32 TileWidth_;
 	BcU32 TileHeight_;

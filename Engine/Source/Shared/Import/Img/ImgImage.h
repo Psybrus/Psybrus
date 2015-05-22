@@ -74,6 +74,11 @@ public:
 	void					blit( ImgImage* pImage, const ImgRect& SrcRect, const ImgRect& DstRect );
 	
 	/**
+	 * Blit.
+	 */
+	ImgImageUPtr			get( const ImgRect& SrcRect );
+
+	/**
 	*	Resize image.
 	*/
 	ImgImageUPtr			resize( BcU32 Width, BcU32 Height );
