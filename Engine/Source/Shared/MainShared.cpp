@@ -40,6 +40,13 @@ void MainUnitTests()
 	PSY_LOG( "============================================================================\n" );
 	PSY_LOG( "MainUnitTests:\n" );
 
+	BcAssertScopedHandler AssertHandler(
+		[]( const BcChar* Message, const BcChar* File, int Line )
+		{
+			BcPrintf( "Caught assertion: \"%s\" in %s on line %u.\n", Message, File, Line );
+			return BcFalse;
+		} );
+
 	// Types unit test.
 	extern void BcTypes_UnitTest();
 	BcTypes_UnitTest();
@@ -47,6 +54,10 @@ void MainUnitTests()
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
+
+	// Relative ptr unit test.
+	extern void BcRelativePtr_UnitTest();
+	BcRelativePtr_UnitTest();
 
 	// SysKernel unit test.
 	extern void SysKernel_UnitTest();

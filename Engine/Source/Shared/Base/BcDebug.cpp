@@ -23,14 +23,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Statics.
-static std::mutex gOutputLock_;
+static std::recursive_mutex GlobalLock_;
+static BcAssertFunc AssertHandler_;
 
 //////////////////////////////////////////////////////////////////////////
 // BcPrintf
 void BcPrintf( const BcChar* Text, ... )
 {
 	static BcChar MessageBuffer[ 4096 ];
-	std::lock_guard< std::mutex > Lock( gOutputLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
 	va_list ArgList;
 	va_start( ArgList, Text );
 #if COMPILER_MSVC
@@ -52,7 +53,7 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 	static BcChar Buffer[ 4096 ];
 	static BcChar MessageBuffer[ 4096 ];
-	std::lock_guard< std::mutex > Lock( gOutputLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
 #if COMPILER_MSVC
@@ -61,6 +62,13 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	vsprintf( MessageBuffer, pMessage, ArgList );
 #endif
 	va_end( ArgList );
+
+	// Check for assert handler.
+	if( AssertHandler_ )
+	{
+		return AssertHandler_(  MessageBuffer, pFile, Line );
+	}
+
 	BcSPrintf( Buffer, "\"%s\" in %s on line %u.\n\nDo you wish to break?", MessageBuffer, pFile, Line );
 	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED!", Buffer, bcMBT_YESNO, bcMBI_ERROR );
 
@@ -75,13 +83,29 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// BcAssertSetHandler
+void BcAssertSetHandler( BcAssertFunc Func )
+{
+	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
+	AssertHandler_ = Func;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcAssertGetHandler
+BcAssertFunc BcAssertGetHandler()
+{
+	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
+	return AssertHandler_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // BcVerifyInternal
 BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... )
 {
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
 	static BcChar Buffer[ 4096 ];
 	static BcChar MessageBuffer[ 4096 ];
-	std::lock_guard< std::mutex > Lock( gOutputLock_ );
+	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
 #if COMPILER_MSVC

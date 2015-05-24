@@ -73,6 +73,51 @@ extern BcBacktraceResult BcBacktrace();
 // BcAssert
 extern BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... );
 
+/**
+ * Signature for assert handler.
+ * @param Message.
+ * @param File.
+ * @param Line.
+ * @return True if wanting to debug break.
+ */
+using BcAssertFunc = std::function< BcBool( const BcChar*, const BcChar*, int ) >;
+
+/**
+ * Set assert handler. Overwrites old.
+ * @param Func Handler to use.
+ */
+extern void BcAssertSetHandler( BcAssertFunc Func );
+
+/**
+ * Get assert handler.
+ * @return Current assert handler.
+ */
+extern BcAssertFunc BcAssertGetHandler();
+
+/**
+ * Utility class to set/restore an assert handler.
+ * Should only be used from one thread.
+ */
+class BcAssertScopedHandler
+{
+public:
+	BcAssertScopedHandler( BcAssertFunc Func ):
+		OldFunc_( BcAssertGetHandler() )
+	{
+		BcAssertSetHandler( Func );
+	}
+
+	~BcAssertScopedHandler()
+	{
+		BcAssertSetHandler( OldFunc_ );
+	}
+
+private:
+	BcAssertFunc OldFunc_;
+};
+
+
+
 #if ( defined( PSY_DEBUG ) || defined( PSY_RELEASE ) ) && 1
 #  define BcAssertMsg( Condition, Message, ... )	\
 	if( !( Condition ) ) \
