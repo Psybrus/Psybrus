@@ -214,11 +214,12 @@ void BcFile::readLine( BcChar* pBuffer, size_t Size )
 
 //////////////////////////////////////////////////////////////////////////
 // readAllBytes
-BcU8* BcFile::readAllBytes()
+std::unique_ptr< BcU8[] > BcFile::readAllBytes()
 {
-	BcU8* pBytes = (BcU8*)BcMemAlign( size() );
-	read( pBytes, size() );
-	return pBytes;
+	std::unique_ptr< BcU8[] > Bytes( new BcU8[ size() + 1 ] );
+	memset( Bytes.get(), 0, size() + 1 );
+	read( Bytes.get(), size() );
+	return Bytes;
 }
 
 //////////////////////////////////////////////////////////////////////////

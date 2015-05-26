@@ -50,7 +50,8 @@ public:
 	/**
 	 * Allocate buffer and read all bytes. Use BcMemFree to free when done.
 	 */
-	BcU8* readAllBytes();
+	std::unique_ptr< BcU8[] > readAllBytes();
+
 	void write( const void* pSrc, size_t nBytes );
 	void writeLine( const BcChar* pText );
 
