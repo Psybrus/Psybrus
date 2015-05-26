@@ -108,6 +108,11 @@ public:
 	void setViewMatrix( const MaMat4d& View );
 
 	/**
+	 * Get rect for current material component.
+	 */
+	const ScnRect& getRect( BcU32 Idx ) const;
+
+	/**
 	 * Allocate some vertices to use.<br/>
 	 * Safe to allocate 0 if you don't know how many vertices you need initially,
 	 * and to allocate the total number at the end. Provided you don't overrun the buffer!

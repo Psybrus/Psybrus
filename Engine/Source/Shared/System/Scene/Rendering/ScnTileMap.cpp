@@ -210,6 +210,12 @@ void ScnTileMapComponent::draw()
 
 	MaVec2d TileSize( TileMapData->TileWidth_, TileMapData->TileHeight_ );
 
+	// Grab first vertex availible.
+	auto* FirstVert = Canvas_->allocVertices( 0 );
+	auto* Vert = FirstVert;
+	BcU32 NoofVerts = 0;
+
+	Canvas_->pushMatrix( Transform );
 	Canvas_->setMaterialComponent( Material_ );
 	for( BcU32 LayerIdx = 0; LayerIdx < TileMapData->NoofLayers_; ++LayerIdx )
 	{
@@ -221,23 +227,90 @@ void ScnTileMapComponent::draw()
 			for( BcU32 X = 0; X < Layer.Width_; ++X )
 			{
 				auto& Tile = Layer.Tiles_[ X + ( Y * Layer.Width_ ) ];
-				MaVec2d Position = 
+				MaVec2d PositionTL = 
 					MaVec2d( 
 						static_cast< BcF32 >( X ) - LayerSize.x() * 0.5f, 
 						static_cast< BcF32 >( Y ) - LayerSize.y() * 0.5f ) * TileSize;
-				
+				MaVec2d PositionBR = PositionTL + TileSize;
+
+				PositionTL.x( floorf( PositionTL.x() ) );
+				PositionTL.y( floorf( PositionTL.y() ) );
+				PositionBR.x( floorf( PositionBR.x() ) );
+				PositionBR.y( floorf( PositionBR.y() ) );
+
 				if( Tile.GID_ != 0 )
-				{	
-					Canvas_->drawSprite( 
-						Position,
-						TileSize,
-						Tile.GID_ - 1,
-						RsColour( 1.0f, 1.0f, 1.0f, Layer.Opacity_ ),
-						LayerIdx );
+				{
+					const ScnRect& Rect = Canvas_->getRect( Tile.GID_ - 1 );
+					BcU32 ABGR = RsColour( 1.0f, 1.0f, 1.0f, Layer.Opacity_ ).asABGR();
+					
+					Vert->X_ = PositionTL.x();
+					Vert->Y_ = PositionTL.y();
+					Vert->Z_ = 0.0f;
+					Vert->W_ = 1.0f;
+					Vert->U_ = Rect.X_;
+					Vert->V_ = Rect.Y_;
+					Vert->ABGR_ = ABGR;
+					Vert++;
+					Vert->X_ = PositionBR.x();
+					Vert->Y_ = PositionTL.y();
+					Vert->Z_ = 0.0f;
+					Vert->W_ = 1.0f;
+					Vert->U_ = Rect.X_ + Rect.W_;
+					Vert->V_ = Rect.Y_;
+					Vert->ABGR_ = ABGR;
+					Vert++;
+					Vert->X_ = PositionTL.x();
+					Vert->Y_ = PositionBR.y();
+					Vert->Z_ = 0.0f;
+					Vert->W_ = 1.0f;
+					Vert->U_ = Rect.X_;
+					Vert->V_ = Rect.Y_ + Rect.H_;
+					Vert->ABGR_ = ABGR;
+					Vert++;
+					Vert->X_ = PositionTL.x();
+					Vert->Y_ = PositionBR.y();
+					Vert->Z_ = 0.0f;
+					Vert->W_ = 1.0f;
+					Vert->U_ = Rect.X_;
+					Vert->V_ = Rect.Y_ + Rect.H_;
+					Vert->ABGR_ = ABGR;
+					Vert++;
+					Vert->X_ = PositionBR.x();
+					Vert->Y_ = PositionTL.y();
+					Vert->Z_ = 0.0f;
+					Vert->W_ = 1.0f;
+					Vert->U_ = Rect.X_ + Rect.W_;
+					Vert->V_ = Rect.Y_;
+					Vert->ABGR_ = ABGR;
+					Vert++;
+					Vert->X_ = PositionBR.x();
+					Vert->Y_ = PositionBR.y();
+					Vert->Z_ = 0.0f;
+					Vert->W_ = 1.0f;
+					Vert->U_ = Rect.X_ + Rect.W_;
+					Vert->V_ = Rect.Y_ + Rect.H_;
+					Vert->ABGR_ = ABGR;
+					Vert++;
+
+					NoofVerts += 6;
 				}
 			}
 		}
+
+		if( NoofVerts > 0 )
+		{
+			Canvas_->addPrimitive( RsTopologyType::TRIANGLE_LIST, Vert - NoofVerts, NoofVerts, LayerIdx, BcTrue );
+
+			// Allocate vertices we've used.
+			Canvas_->allocVertices( NoofVerts );
+
+			// Reset.
+			NoofVerts = 0;
+		}
 	}
+
+	Canvas_->popMatrix();
+
 }
 
 //////////////////////////////////////////////////////////////////////////

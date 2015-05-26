@@ -56,8 +56,8 @@ public:
 	BcU32 getWidth() const;
 	BcU32 getHeight() const;
 	
-	virtual const ScnRect& getRect( BcU32 Idx );
-	virtual BcU32 noofRects();
+	virtual const ScnRect& getRect( BcU32 Idx ) const;
+	virtual BcU32 noofRects() const;
 
 	
 protected:

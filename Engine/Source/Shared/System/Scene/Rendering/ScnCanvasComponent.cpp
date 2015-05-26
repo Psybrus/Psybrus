@@ -167,6 +167,14 @@ void ScnCanvasComponent::setViewMatrix( const MaMat4d& View )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getRect
+const ScnRect& ScnCanvasComponent::getRect( BcU32 Idx ) const
+{
+	static ScnRect EMPTY;
+	return DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( Idx ) : EMPTY;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // allocVertices
 ScnCanvasComponentVertex* ScnCanvasComponent::allocVertices( BcSize NoofVertices )
 {
@@ -435,8 +443,8 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 	const MaVec2d CornerA = Position;
 	const MaVec2d CornerB = Position + Size;
 
-	const ScnRect Rect = DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( TextureIdx ) : ScnRect();
-	
+	const ScnRect& Rect = getRect( TextureIdx );
+
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
 	{

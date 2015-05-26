@@ -229,7 +229,7 @@ BcU32 ScnTexture::getHeight() const
 //////////////////////////////////////////////////////////////////////////
 // getRect
 //virtual
-const ScnRect& ScnTexture::getRect( BcU32 Idx )
+const ScnRect& ScnTexture::getRect( BcU32 Idx ) const
 {
 	static ScnRect Rect = 
 	{
@@ -243,7 +243,7 @@ const ScnRect& ScnTexture::getRect( BcU32 Idx )
 //////////////////////////////////////////////////////////////////////////
 // noofRects
 //virtual
-BcU32 ScnTexture::noofRects()
+BcU32 ScnTexture::noofRects() const
 {
 	return 1;
 }
