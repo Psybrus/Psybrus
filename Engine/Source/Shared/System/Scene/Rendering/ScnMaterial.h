@@ -89,15 +89,18 @@ public:
 	
 	ScnMaterialComponent();
 	ScnMaterialComponent( ScnMaterialRef Parent, ScnShaderPermutationFlags PermutationFlags );
+	ScnMaterialComponent( ScnMaterialComponent* Parent );
 	virtual ~ScnMaterialComponent();
 
 	void initialise() override;
 	void destroy() override;
 	
 	BcU32 findTextureSlot( const BcName& TextureName );	
+	void setTexture( const BcName& TextureName, ScnTextureRef Texture );
 	void setTexture( BcU32 Slot, ScnTextureRef Texture );
 
 	BcU32 findUniformBlock( const BcName& UniformBlockName );	
+	void setUniformBlock( const BcName& UniformBlockName, RsBuffer* UniformBuffer );
 	void setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer );
 
 	// Common uniform blocks.
@@ -106,6 +109,7 @@ public:
 	void setObjectUniformBlock( RsBuffer* UniformBuffer );
 	
 	ScnTextureRef getTexture( BcU32 Idx );
+	ScnTextureRef getTexture( const BcName& TextureName );
 	ScnMaterialRef getMaterial();
 	
 	void bind( class RsFrame* pFrame, class RsRenderSort& Sort );

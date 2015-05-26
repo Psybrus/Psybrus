@@ -207,8 +207,26 @@ ScnMaterialComponent::ScnMaterialComponent():
 ScnMaterialComponent::ScnMaterialComponent( ScnMaterialRef Material, ScnShaderPermutationFlags PermutationFlags ):
 	Material_( Material ),
 	PermutationFlags_( PermutationFlags ),
-	pProgram_( nullptr )
+	pProgram_( nullptr ),
+	TextureBindingList_(),
+	UniformBlockBindingList_(),
+	ViewUniformBlockIndex_(),
+	BoneUniformBlockIndex_(),
+	ObjectUniformBlockIndex_()
+{
+}
 
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnMaterialComponent::ScnMaterialComponent( ScnMaterialComponent* Parent ):
+	Material_( Parent->Material_ ),
+	PermutationFlags_( Parent->PermutationFlags_ ),
+	pProgram_( Parent->pProgram_ ),
+	TextureBindingList_( Parent->TextureBindingList_),
+	UniformBlockBindingList_( Parent->UniformBlockBindingList_ ),
+	ViewUniformBlockIndex_( Parent->ViewUniformBlockIndex_ ),
+	BoneUniformBlockIndex_( Parent->BoneUniformBlockIndex_ ),
+	ObjectUniformBlockIndex_( Parent->ObjectUniformBlockIndex_ )
 {
 }
 
@@ -225,7 +243,7 @@ ScnMaterialComponent::~ScnMaterialComponent()
 void ScnMaterialComponent::initialise()
 {
 	PermutationFlags_ = PermutationFlags_ | ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::PASS_MAIN;
-	if( Material_ )
+	if( Material_ && pProgram_ == nullptr )
 	{
 		pProgram_ = Material_->Shader_->getProgram( PermutationFlags_ );
 		BcAssert( pProgram_ != nullptr );
@@ -307,6 +325,13 @@ void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setTexture
+void ScnMaterialComponent::setTexture( const BcName& TextureName, ScnTextureRef Texture )
+{
+	setTexture( findTextureSlot( TextureName ), Texture );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // findUniformBlock
 BcU32 ScnMaterialComponent::findUniformBlock( const BcName& UniformBlockName )
 {
@@ -350,6 +375,13 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setUniformBlock
+void ScnMaterialComponent::setUniformBlock( const BcName& UniformBlockName, RsBuffer* UniformBuffer )
+{
+	setUniformBlock( findUniformBlock( UniformBlockName ), UniformBuffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setViewUniformBlock
 void ScnMaterialComponent::setViewUniformBlock( RsBuffer* UniformBuffer )
 {
@@ -380,6 +412,13 @@ ScnTextureRef ScnMaterialComponent::getTexture( BcU32 Idx )
 	}
 
 	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getTexture
+ScnTextureRef ScnMaterialComponent::getTexture( const BcName& TextureName )
+{
+	return getTexture( findTextureSlot( TextureName ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
