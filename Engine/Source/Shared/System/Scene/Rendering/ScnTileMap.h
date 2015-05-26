@@ -85,5 +85,8 @@ private:
 
 	class ScnCanvasComponent* Canvas_;
 	class ScnMaterialComponent* Material_;
+
+	using MaterialRectPair = std::pair< ScnMaterialComponent*, ScnRect >;
+	std::vector< MaterialRectPair > Materials_;
 };
 

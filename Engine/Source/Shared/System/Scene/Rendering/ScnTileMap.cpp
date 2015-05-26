@@ -1,6 +1,7 @@
 #include "System/Scene/Rendering/ScnTileMap.h"
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
+#include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 
 #include "System/Content/CsCore.h"
@@ -188,6 +189,32 @@ void ScnTileMapComponent::onAttach( ScnEntityWeakRef Parent )
 	// Find a canvas to use for rendering (someone in ours, or our parent's hierarchy).
 	Material_ = Parent->getComponentAnyParentByType< ScnMaterialComponent >( MaterialName_ );
 	BcAssertMsg( Material_ != nullptr, "Sprite component needs to be attached to an entity with a material component in any parent!" );
+
+	// Setup materials.
+	Materials_.push_back( std::make_pair( nullptr, ScnRect() ) );
+
+	ScnTileMapData* TileMapData = TileMap_->TileMapData_;
+	for( BcU32 MaterialIdx = 0; MaterialIdx < TileMapData->NoofTileSets_; ++MaterialIdx )
+	{
+		const auto& TileSet = TileMapData->TileSets_[ MaterialIdx ];
+		BcAssert( TileSet.FirstGID_ == Materials_.size() );
+
+		// Attach a new material for this tileset.
+		auto Material = getParentEntity()->attach< ScnMaterialComponent >( 
+			TileMap_->getString( TileSet.Name_ ), 
+			Material_ );
+
+		// TODO: Set texture on material and setup rects using tileset data.
+
+		// First texture.
+		auto Texture = Material->getTexture( 0 );
+
+		// Add rects.
+		for( BcU32 RectIdx = 0; RectIdx < Texture->noofRects(); ++RectIdx )
+		{
+			Materials_.push_back( std::make_pair( Material, Texture->getRect( RectIdx ) ) );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -216,7 +243,6 @@ void ScnTileMapComponent::draw()
 	BcU32 NoofVerts = 0;
 
 	Canvas_->pushMatrix( Transform );
-	Canvas_->setMaterialComponent( Material_ );
 	for( BcU32 LayerIdx = 0; LayerIdx < TileMapData->NoofLayers_; ++LayerIdx )
 	{
 		auto& Layer = TileMapData->Layers_[ LayerIdx ];
@@ -240,7 +266,9 @@ void ScnTileMapComponent::draw()
 
 				if( Tile.GID_ != 0 )
 				{
-					const ScnRect& Rect = Canvas_->getRect( Tile.GID_ - 1 );
+					const auto& Material = Materials_[ Tile.GID_ ];
+					Canvas_->setMaterialComponent( Material.first );
+					const ScnRect& Rect = Material.second;
 					BcU32 ABGR = RsColour( 1.0f, 1.0f, 1.0f, Layer.Opacity_ ).asABGR();
 					
 					Vert->X_ = PositionTL.x();
