@@ -26,9 +26,15 @@ private:
 public:
 	BcRelativePtr();
 	BcRelativePtr( std::nullptr_t );
-	BcRelativePtr( _Ty* Ptr );
-	BcRelativePtr& operator = ( _Ty* Ptr );
+	BcRelativePtr( BcRelativePtr&& Other );
+	BcRelativePtr( const BcRelativePtr& Other ) = delete;
 	BcRelativePtr& operator = ( BcRelativePtr&& Other );
+	BcRelativePtr& operator = ( const BcRelativePtr& Other ) = delete;
+
+	/**
+	 * Reset.
+	 */
+	void reset( _Ty* Ptr );
 
 	/**
 	 * Offset.
@@ -38,42 +44,33 @@ public:
 	/**
 	 * Get raw pointer.
 	 */
-	_Ty* get();
-
-	/**
-	 * Get raw pointer.
-	 */
-	const _Ty* get() const;
-
-	/**
-	 * Implicit cast to pointer.
-	 */
-	_Ty* operator * ();
-
-	/**
-	 * Implicit cast to pointer.
-	 */
-	const _Ty* operator * () const;
+	_Ty* get() const;
 
 	/**
 	 * Dereference pointer.
 	 */
-	_Ty* operator -> ();
+	_Ty& operator * () const;
 
 	/**
 	 * Dereference pointer.
 	 */
-	const _Ty* operator -> () const;
+	_Ty* operator -> () const;
+
+	/**
+	 * Indexed getter.
+	 * Will not do bounds checking.
+	 */
+	_Ty& operator [] ( size_t Idx ) const;
 
 	/**
 	 * @return True if equal to @a Other relative pointer.
 	 */
-	bool operator == ( const BcRelativePtr& Other );
+	bool operator == ( const BcRelativePtr& Other ) const;
 
 	/**
 	 * @return True if not equal to @a Other relative pointer.
 	 */
-	bool operator != ( const BcRelativePtr& Other );
+	bool operator != ( const BcRelativePtr& Other ) const;
 
 private:
 	_OffsetType Offset_;

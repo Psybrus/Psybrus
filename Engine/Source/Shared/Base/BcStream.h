@@ -15,6 +15,7 @@
 #define __BCSTREAM_H__
 
 #include "Base/BcTypes.h"
+#include "Base/BcDebug.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcStream
@@ -24,54 +25,153 @@ private:
 	BcStream( const BcStream& ){};
 
 public:
+	template< typename _Ty >
+	class Object
+	{
+	public:
+		Object( BcStream& Stream, size_t Offset, size_t Elements ):
+			Stream_( Stream ),
+			Offset_( Offset ),
+			Elements_( Elements )
+		{
+
+		}
+
+		Object( const Object& Other ):
+			Stream_( Other.Stream_ ),
+			Offset_( Other.Offset_ ),
+			Elements_( Other.Elements_ )
+		{
+
+		}
+
+		_Ty* get()
+		{
+			BcAssert( Offset_ <= ( Stream_.dataSize() + sizeof( _Ty ) ) );
+			return reinterpret_cast< _Ty* >( Stream_.pData() + Offset_ );
+		}
+
+		const _Ty* get() const
+		{
+			BcAssert( Offset_ <= ( Stream_.dataSize() + sizeof( _Ty ) ) );
+			return reinterpret_cast< const _Ty* >( Stream_.pData() + Offset_ );
+		}
+
+		_Ty& operator * ()
+		{
+			return *get();
+		}
+
+		_Ty* operator -> ()
+		{
+			return get();
+		}
+
+		const _Ty* operator -> () const
+		{
+			return get();
+		}
+
+		_Ty& operator [] ( size_t Idx )
+		{
+			BcAssert( Idx < Elements_ );
+			return get()[ Idx ];
+		}
+
+		const _Ty& operator [] ( size_t Idx ) const
+		{
+			BcAssert( Idx < Elements_ );
+			return get()[ Idx ];
+		}
+
+	private:
+		BcStream& Stream_;
+		size_t Offset_;
+		size_t Elements_;
+	};
+
+public:
 	BcStream( BcBool bSwapEndian = BcFalse, BcSize AllocSize = 512, BcSize InitialSize = 0 );
 	BcStream( BcStream&& Other );
 	~BcStream();
 
 	/**
-	*	Create initial buffer.
-	*/
+	 * Create initial buffer.
+	 */
 	void create( BcBool bSwapEndian = BcFalse, BcSize AllocSize = 512, BcSize InitialSize = 0 );
 
 	/**
-	*	Free buffer.
-	*/
+	 * Free buffer.
+	 */
 	void free();
 
 	/**
-	*	Release buffer.
-	*/
+	 * Release buffer.
+	 */
 	BcU8* release( BcSize& Size );
 
 	/**
-	*	Reallocate.
-	*/
+	 * Reallocate.
+	 */
 	void realloc( BcSize NewSize );
 
 	/**
-	*	Buffer's full size.
-	*/
+	 * Buffer's full size.
+	 */
 	BcSize bufferSize();
 
 	/**
-	*	Buffer's data size.
-	*/
+	 * Buffer's data size.
+	 */
 	BcSize dataSize();
 
 	/**
-	*	Raw data access.
-	*/
+	 * Raw data access.
+	 */
 	BcU8* pData();
 
 	/**
-	*	Clear.
-	*/
+	 * Clear.
+	 */
 	void clear();
 
 	/**
-	*	Push data into buffer.
-	*/
+	 * Push data into buffer.
+	 */
 	BcSize push( const void* pData, BcSize nBytes );
+
+	/**
+	 * Alloc memory.
+	 */
+	BcU8* alloc( size_t Size );
+
+	/**
+	 * Allocate object.
+	 * Construction will be performed, however destruction will NOT be performed on any objects.
+	 */
+	template< typename _Ty >
+	Object< _Ty > alloc( size_t Elements = 1 )
+	{
+		size_t CurrentPosition = CurrentPosition_;
+		_Ty* Data = reinterpret_cast< _Ty* >( alloc( sizeof( _Ty ) * Elements ) );
+		for( size_t Idx = 0; Idx < Elements; ++Idx )
+		{
+			new ( Data + Idx ) _Ty();
+		}
+		return Object< _Ty >( *this, CurrentPosition, Elements );
+	}
+
+	/**
+	 * Get object.
+	 * Will return an object of where a pointer is located. 
+	 */
+	template< typename _Ty >
+	Object< _Ty > get( _Ty* Ptr )
+	{
+		BcAssert( (BcU8*)Ptr >= pData() && (BcU8*)Ptr <= ( pData() + dataSize() - sizeof( _Ty ) ) );
+		return Object< _Ty >( *this, (BcU8*)Ptr - pData(), 1 );
+	}
+
 
 	template< class _Ty >
 	BcStream& operator << ( const _Ty& Data );

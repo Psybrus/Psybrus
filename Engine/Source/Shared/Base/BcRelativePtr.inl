@@ -3,10 +3,17 @@ _OffsetType BcRelativePtr< _OffsetType, _Ty >::CalculateOffset( ptrdiff_t Ref, p
 {
 	const ptrdiff_t Diff = Ptr - Ref;
 	auto RetVal = static_cast< _OffsetType >( Diff );
-	BcAssertMsg( Diff >= OFFSET_TYPE_MIN && Diff <= OFFSET_TYPE_MAX, 
-		"Ptr is too far out of range (%i, min/max is %i/%i)", Diff, OFFSET_TYPE_MIN, OFFSET_TYPE_MAX );
-	BcAssertMsg( Diff != NULLPTR_VALUE,
-		"Offset resolves to NULLPTR_VALUE." );
+	if( std::is_signed< _Ty >::value )
+	{
+		BcAssertMsg( Diff >= OFFSET_TYPE_MIN && Diff <= OFFSET_TYPE_MAX, 
+			"Ptr is too far out of range (%i, min/max is %i/%i)", Diff, OFFSET_TYPE_MIN, OFFSET_TYPE_MAX );
+	}
+	else
+	{
+		BcAssertMsg( Diff >= OFFSET_TYPE_MIN && Diff <= OFFSET_TYPE_MAX, 
+			"Ptr is too far out of range (%u, min/max is %u/%u)", Diff, OFFSET_TYPE_MIN, OFFSET_TYPE_MAX );
+	}
+	BcAssertMsg( Diff != NULLPTR_VALUE, "Offset resolves to NULLPTR_VALUE." );
 	return RetVal;
 }
 
@@ -32,19 +39,9 @@ BcRelativePtr< _OffsetType, _Ty >::BcRelativePtr( std::nullptr_t ):
 }
 
 template< typename _OffsetType, typename _Ty >
-BcRelativePtr< _OffsetType, _Ty >::BcRelativePtr( _Ty* Ptr ):
-	Offset_( CalculateOffset( this, Ptr ) )
+BcRelativePtr< _OffsetType, _Ty >::BcRelativePtr( BcRelativePtr&& Other )
 {
-
-}
-
-template< typename _OffsetType, typename _Ty >
-BcRelativePtr< _OffsetType, _Ty > & BcRelativePtr< _OffsetType, _Ty >::operator = ( _Ty* Ptr )
-{
-	Offset_ = CalculateOffset( 
-		reinterpret_cast< ptrdiff_t >( this ), 
-		reinterpret_cast< ptrdiff_t >( Ptr ) );
-	return *this;
+	std::swap( Offset_, Other.Offset_ );
 }
 
 template< typename _OffsetType, typename _Ty >
@@ -55,57 +52,52 @@ BcRelativePtr< _OffsetType, _Ty >& BcRelativePtr< _OffsetType, _Ty >::operator =
 }
 
 template< typename _OffsetType, typename _Ty >
+void BcRelativePtr< _OffsetType, _Ty >::reset( _Ty* Ptr )
+{
+	Offset_ = CalculateOffset( 
+		reinterpret_cast< ptrdiff_t >( this ), 
+		reinterpret_cast< ptrdiff_t >( Ptr ) );
+}
+
+template< typename _OffsetType, typename _Ty >
 _OffsetType BcRelativePtr< _OffsetType, _Ty >::offset() const
 {
 	return Offset_;
 }
 
 template< typename _OffsetType, typename _Ty >
-_Ty* BcRelativePtr< _OffsetType, _Ty >::get()
+_Ty* BcRelativePtr< _OffsetType, _Ty >::get() const
 {
 	auto RetVal = CalculatePtr( reinterpret_cast< ptrdiff_t >( this ), Offset_ );
 	return reinterpret_cast< _Ty* >( RetVal );
 }
 
 template< typename _OffsetType, typename _Ty >
-const _Ty* BcRelativePtr< _OffsetType, _Ty >::get() const
+_Ty& BcRelativePtr< _OffsetType, _Ty >::operator * () const
 {
-	auto RetVal = CalculatePtr( reinterpret_cast< ptrdiff_t >( this ), Offset_ );
-	return reinterpret_cast< const _Ty* >( RetVal );
+	return *get();
 }
 
 template< typename _OffsetType, typename _Ty >
-_Ty* BcRelativePtr< _OffsetType, _Ty >::operator * ()
-{
-	return get();
-}
-
-template< typename _OffsetType, typename _Ty >
-const _Ty* BcRelativePtr< _OffsetType, _Ty >::operator * () const
+_Ty* BcRelativePtr< _OffsetType, _Ty >::operator -> () const
 {
 	return get();
 }
 
 template< typename _OffsetType, typename _Ty >
-_Ty* BcRelativePtr< _OffsetType, _Ty >::operator -> ()
+_Ty&  BcRelativePtr< _OffsetType, _Ty >::operator [] ( size_t Idx ) const
 {
-	return get();
+	return get()[ Idx ];
 }
 
 template< typename _OffsetType, typename _Ty >
-const _Ty* BcRelativePtr< _OffsetType, _Ty >::operator -> () const
-{
-	return get();
-}
-
-template< typename _OffsetType, typename _Ty >
-bool BcRelativePtr< _OffsetType, _Ty >::operator == ( const BcRelativePtr& Other )
+bool BcRelativePtr< _OffsetType, _Ty >::operator == ( const BcRelativePtr& Other ) const
 {
 	return get() == Other.get();
 }
 
 template< typename _OffsetType, typename _Ty >
-bool BcRelativePtr< _OffsetType, _Ty >::operator != ( const BcRelativePtr& Other )
+bool BcRelativePtr< _OffsetType, _Ty >::operator != ( const BcRelativePtr& Other ) const
 {
 	return get() != Other.get();
 }

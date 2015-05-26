@@ -100,7 +100,6 @@ BcU8* BcStream::release( BcSize& Size )
 void BcStream::realloc( BcSize NewSize )
 {
 	BcAssert( NewSize > BufferSize_ );
-
 	// Round up size
 	NewSize = ( ( (BcSize)( NewSize ) + AllocSize_ - 1 ) & ~( AllocSize_ - 1 ) );
 
@@ -135,23 +134,30 @@ void BcStream::realloc( BcSize NewSize )
 // realloc
 BcSize BcStream::push( const void* pData, BcSize nBytes )
 {
+	BcSize CurrentPosition = CurrentPosition_; 
+	BcU8* pCurrentPos = alloc( nBytes );
+	memcpy( pCurrentPos, pData, nBytes );
+	return CurrentPosition;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// alloc
+BcU8* BcStream::alloc( size_t Size )
+{
 	//
 	BcSize CurrentPosition = CurrentPosition_; 
 
 	//
-	const BcSize DataEnd = CurrentPosition_ + nBytes;
+	const BcSize DataEnd = CurrentPosition_ + Size;
 
 	//
 	if( DataEnd > BufferSize_ )
 	{
 		realloc( DataEnd );
 	}
-
-	BcU8* pCurrentPos = &pDataBuffer_[ CurrentPosition_ ];
-	memcpy( pCurrentPos, pData, nBytes );
-	CurrentPosition_ += nBytes;
-
-	return CurrentPosition;
+	CurrentPosition_ += Size;
+	auto RetVal = &pDataBuffer_[ CurrentPosition ];
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
