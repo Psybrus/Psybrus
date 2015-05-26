@@ -16,6 +16,7 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/HLSLCrossCompiler/include/",
       "../../External/hlsl2glslfork/include/",
       "../../External/glsl-optimizer/src",
+      "../../External/rapidxml/",
       BOOST_INCLUDE_PATH,
     }
 
@@ -44,7 +45,8 @@ PsyProjectEngineLib( "System_Scene" )
       "jsoncpp",
       "glsl-optimizer",
       "hlsl2glslfork",
-      "HLSLCrossCompiler"
+      "HLSLCrossCompiler",
+      "rapidxml"
 		}
 
   configuration "linux-*"
