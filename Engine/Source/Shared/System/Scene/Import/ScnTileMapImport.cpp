@@ -292,8 +292,7 @@ void ScnTileMapImport::parseLayer(
 
 }
 
-///////////////////////////////////////////////////////////
-///////////////
+//////////////////////////////////////////////////////////////////////////
 // parseLayerTile
 void ScnTileMapImport::parseLayerTile( 
 		class BcStream& Stream, 
@@ -312,4 +311,27 @@ void ScnTileMapImport::parseLayerTile(
 		}
 		ChildAttrib = ChildAttrib->next_attribute();
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// parseProperty
+void ScnTileMapImport::parseProperty( 
+		class BcStream& Stream, 
+		rapidxml::xml_node<char>& Node, 
+		BcStream::Object< ScnTileMapProperty > Property )
+{
+	// Parse attributes.
+	auto* ChildAttrib = Node.first_attribute();
+	while( ChildAttrib != nullptr )
+	{
+		if( std::string( "name" ) == ChildAttrib->name() )
+		{
+			Property->Name_ = addString( ChildAttrib->value() );
+		}
+		else if( std::string( "value" ) == ChildAttrib->name() )
+		{
+			Property->Value_ = addString( ChildAttrib->value() );
+		}
+		ChildAttrib = ChildAttrib->next_attribute();
+	}	
 }

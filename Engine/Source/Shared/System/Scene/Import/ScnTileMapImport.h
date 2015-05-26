@@ -60,6 +60,11 @@ private:
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapTile > Tile );
 
+	void parseProperty( 
+		class BcStream& Stream, 
+		rapidxml::xml_node<char>& Node, 
+		BcStream::Object< ScnTileMapProperty > Property );
+
 private:
 	std::string Source_;
 };
