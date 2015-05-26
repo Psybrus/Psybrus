@@ -938,19 +938,16 @@ char* DsCoreImpl::handleFile(std::string Uri, int& FileSize, std::string PostCon
 
 //////////////////////////////////////////////////////////////////////////
 // Gets a plain text file
-std::string DsCoreImpl::loadTemplateFile( std::string filename )
+std::string DsCoreImpl::loadTemplateFile( std::string Filename )
 {
-	BcFile file;
-	std::string f = filename;
-	file.open( f.c_str() );
-	if ( !file.isOpen() )
+	BcFile File;
+	std::string F = Filename;
+	File.open( F.c_str() );
+	if ( !File.isOpen() )
 		return 0;
-	char* data;// = new BcU8[file.size()];
-	data = ( char* ) file.readAllBytes();
-	std::string output = data;
-	delete data;
-	// TODO: Actually load files
-	return output;
+	auto Data = File.readAllBytes();
+	std::string Output = (const char*)Data.get();
+	return Output;
 }
 
 
@@ -1032,20 +1029,19 @@ void DsCoreImpl::writeFooter(BcHtmlNode& Output)
 
 //////////////////////////////////////////////////////////////////////////
 // Gets a file for the output stream
-char* DsCoreImpl::writeFile( std::string filename, int& OutLength, std::string& type )
+char* DsCoreImpl::writeFile( std::string Filename, int& OutLength, std::string& Type )
 {
-	BcFile file;
-	std::string f = "Content/Debug/";
-	f += filename;
-	file.open( f.c_str() );
-	if ( !file.isOpen() )
+	BcFile File;
+	std::string F = "Content/Debug/";
+	F += Filename;
+	File.open( F.c_str() );
+	if ( !File.isOpen() )
 		return 0;
-	char* data;// = new BcU8[file.size()];
-	data = ( char* ) file.readAllBytes();
-	OutLength = (int)file.size();
-	type = "css";
+	auto Data = File.readAllBytes();
+	OutLength = (int)File.size();
+	Type = "css";
 	// TODO: Actually load files
-	return data;
+	return (char*)Data.release();
 }
 
 //////////////////////////////////////////////////////////////////////////

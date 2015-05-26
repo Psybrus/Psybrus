@@ -295,7 +295,8 @@ CsFileHash CsResourceImporter::addFile(
 	{
 		auto Bytes = InFile.readAllBytes();
 		boost::uuids::detail::sha1 Hasher;
-		Hasher.process_block( Bytes, Bytes + InFile.size() );
+		Hasher.process_block( Bytes.get(), Bytes.
+			get() + InFile.size() );
 		Hasher.get_digest( FileHash.Hash_ );
 
 		auto OutFileName = 
@@ -306,11 +307,10 @@ CsFileHash CsResourceImporter::addFile(
 		BcFile OutFile;
 		if( OutFile.open( OutFileName.c_str(),  bcFM_WRITE ) )
 		{
-			OutFile.write( Bytes, InFile.size() );
+			OutFile.write( Bytes.get(), InFile.size() );
 			OutFile.close();
 		}
 
-		BcMemFree( Bytes );
 		InFile.close();
 	}
 	else

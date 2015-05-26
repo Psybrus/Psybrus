@@ -209,7 +209,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				auto Filename = (const char*)( pFileLoadTag + 1 );
 				InputFile.open( Filename );
 				ShaderSize = static_cast< BcU32 >( InputFile.size() );
-				pShaderData = InputFile.readAllBytes();
+				pShaderData = InputFile.readAllBytes().release();
 				FreeShaderData = BcTrue;
 			}
 #endif

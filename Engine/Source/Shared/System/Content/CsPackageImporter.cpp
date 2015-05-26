@@ -350,10 +350,10 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 	BcFile File;
 	if( File.open( pFileName ) )
 	{
-		const BcU8* pData = File.readAllBytes();		
+		auto Data = File.readAllBytes();		
 		Json::Reader Reader;
 		
-		if( Reader.parse( (const char*)pData, (const char*)pData + File.size(), Root ) )
+		if( Reader.parse( (const char*)Data.get(), (const char*)Data.get() + File.size(), Root ) )
 		{
 			Success = BcTrue;
 		}
@@ -362,9 +362,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
  			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
-		
-		BcMemFree( (void*)pData );
-	}
+			}
 	else
 	{
 		BcAssertMsg( BcFalse, "Failed to load \"%s\"", pFileName );
@@ -579,7 +577,8 @@ BcU32 CsPackageImporter::addString( const BcChar* pString )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	BcAssert( BuildingBeginCount_ > 0 );
-
+	BcAssert( pString != nullptr );
+	
 	BcU32 CurrentOffset = 0;
 
 	for( BcU32 Idx = 0; Idx < StringList_.size(); ++Idx )

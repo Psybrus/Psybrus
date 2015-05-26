@@ -49,6 +49,8 @@ public:
 	void premultiplyAlpha();
 
 public:
+	static RsColour FromHTMLColourCode( const BcChar* String );
+
 	static const RsColour WHITE;
 	static const RsColour BLACK;
 	static const RsColour GRAY;

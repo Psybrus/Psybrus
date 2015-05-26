@@ -70,6 +70,24 @@ void RsColour::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // RsColour Statics
+RsColour RsColour::FromHTMLColourCode( const BcChar* String )
+{
+	BcAssert( String[ 0 ] == '#' );
+	BcAssert( String[ 7 ] == '\0' );
+	BcAssert( isxdigit( String[ 1 ] ) );
+	BcAssert( isxdigit( String[ 2 ] ) );
+	BcAssert( isxdigit( String[ 3 ] ) );
+	BcAssert( isxdigit( String[ 4 ] ) );
+	BcAssert( isxdigit( String[ 5 ] ) );
+	BcAssert( isxdigit( String[ 6 ] ) );
+	auto Number = strtol( &String[ 1 ], nullptr, 16 );
+	return RsColour( 
+		( ( Number >> 16 ) & 0xff ) / 255.0f,
+		( ( Number >> 8 ) & 0xff ) / 255.0f,
+		( ( Number >> 0 ) & 0xff ) / 255.0f,
+		1.0f );
+}
+
 const RsColour RsColour::WHITE =		RsColour( 1.0f, 1.0f, 1.0f, 1.0f );
 const RsColour RsColour::BLACK =		RsColour( 0.0f, 0.0f, 0.0f, 1.0f );
 const RsColour RsColour::GRAY =			RsColour( 0.5f, 0.5f, 0.5f, 1.0f );

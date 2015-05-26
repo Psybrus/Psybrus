@@ -60,7 +60,7 @@ namespace
 				if( IncludeFile.open( IncludeFileName.c_str(), bcFM_READ ) )
 				{
 					Importer_.addDependency( IncludeFileName.c_str() );
-					*ppData = IncludeFile.readAllBytes();
+					*ppData = IncludeFile.readAllBytes().release();
 					*pBytes = static_cast< UINT >( IncludeFile.size() );
 					return S_OK;
 				}
@@ -171,8 +171,7 @@ BcBool ScnShaderImport::compileShader(
 		if( ByteCodeFile.open( ( BytecodeFilename ).c_str(), bcFM_READ ) )
 		{
 			auto ByteCode = ByteCodeFile.readAllBytes();
-			ShaderByteCode = std::move( BcBinaryData( ByteCode, ByteCodeFile.size(), BcTrue ) );
-			BcMemFree( ByteCode );
+			ShaderByteCode = std::move( BcBinaryData( ByteCode.get(), ByteCodeFile.size(), BcTrue ) );
 			RetVal = BcTrue;
 		}
 	}
