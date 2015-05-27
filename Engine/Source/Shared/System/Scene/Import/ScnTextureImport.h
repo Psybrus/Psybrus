@@ -35,6 +35,13 @@ public:
 		const std::string Type,
 		const std::string Source,
 		RsTextureFormat Format );
+	ScnTextureImport( 
+		const std::string Name,
+		const std::string Type,
+		const std::string Source,
+		RsTextureFormat Format,
+		BcU32 TileWidth,
+		BcU32 TileHeight );
 	virtual ~ScnTextureImport();
 
 	/**

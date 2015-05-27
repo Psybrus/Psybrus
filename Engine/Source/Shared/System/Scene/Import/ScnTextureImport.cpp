@@ -111,7 +111,39 @@ ScnTextureImport::ScnTextureImport( ReNoInit ):
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Dtor
+// Ctor
+ScnTextureImport::ScnTextureImport( 
+		const std::string Name,
+		const std::string Type,
+		const std::string Source,
+		RsTextureFormat Format,
+		BcU32 TileWidth,
+		BcU32 TileHeight ):
+	CsResourceImporter( Name, Type ),
+	Format_( Format ),
+	RenderTarget_( BcFalse ),
+	DepthStencilTarget_( BcFalse ),
+	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
+	AlphaFromIntensity_( BcFalse ),
+	DistanceField_( BcFalse ),
+	Spread_( 0 ),
+	Border_( 0 ),
+	TileAtlas_( BcTrue ),
+	TileWidth_( TileWidth ),
+	TileHeight_( TileHeight ),
+	RoundUpPowerOfTwo_( BcFalse ),
+	RoundDownPowerOfTwo_( BcFalse ),
+	TextureType_( RsTextureType::UNKNOWN ),
+	Width_( 0 ),
+	Height_( 0 ),
+	Depth_( 0 ),
+	Levels_( 1 )
+{
+	Source_.push_back( Source );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 ScnTextureImport::ScnTextureImport( 
 		const std::string Name,
 		const std::string Type,
