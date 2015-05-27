@@ -84,9 +84,8 @@ private:
 	class ScnTileMap* TileMap_;
 
 	class ScnCanvasComponent* Canvas_;
-	class ScnMaterialComponent* Material_;
 
-	using MaterialRectPair = std::pair< ScnMaterialComponent*, ScnRect >;
+	using MaterialRectPair = std::pair< class ScnMaterialComponent*, ScnRect >;
 	std::vector< MaterialRectPair > Materials_;
 };
 

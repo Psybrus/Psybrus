@@ -50,6 +50,13 @@ private:
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapTileSet > TileSet );
 	
+	void parseImage( 
+		class BcStream& Stream, 
+		rapidxml::xml_node<char>& Node,
+		const char* TileSetName,
+		BcStream::Object< ScnTileMapTileSet > TileSet, 
+		BcStream::Object< ScnTileMapTileSetImage > Image );
+
 	void parseLayer( 
 		class BcStream& Stream, 
 		rapidxml::xml_node<char>& Node, 
@@ -66,7 +73,13 @@ private:
 		BcStream::Object< ScnTileMapProperty > Property );
 
 private:
+	CsCrossRefId findTexture( const std::string& Path );
+	CsCrossRefId findMaterialMatch( const std::string& Path );
+
+private:
 	std::string Source_;
+	std::map< std::string, CsCrossRefId > Textures_;
+	std::map< std::string, CsCrossRefId > Materials_;
 };
 
 #endif

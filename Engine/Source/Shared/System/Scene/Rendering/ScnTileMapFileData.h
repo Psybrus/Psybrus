@@ -54,6 +54,8 @@ struct ScnTileMapTileSet
 // ScnTileMapTileSetImage
 struct ScnTileMapTileSetImage
 {
+	BcU32 TextureRef_ = BcErrorCode;
+	BcU32 MaterialRef_ = BcErrorCode;
 	BcU32 Width_ = 0;
 	BcU32 Height_ = 0;
 };

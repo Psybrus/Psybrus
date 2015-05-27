@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnTileMapImport.h"
+#include "System/Scene/Import/ScnTextureImport.h"
 
 #if PSY_IMPORT_PIPELINE
 
@@ -20,7 +21,11 @@
 #include "Base/BcFile.h"
 #include "Base/BcMath.h"
 
+#include <boost/filesystem/path.hpp>
+#include <regex>
+
 #include <rapidxml.hpp>
+
 
 #endif // PSY_IMPORT_PIPELINE
 
@@ -33,15 +38,19 @@ void ScnTileMapImport::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Source_", &ScnTileMapImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "Textures_", &ScnTileMapImport::Textures_, bcRFF_IMPORTER ),
+		new ReField( "Materials_", &ScnTileMapImport::Materials_, bcRFF_IMPORTER ),
 	};
-		
+	
 	ReRegisterClass< ScnTileMapImport, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnTileMapImport::ScnTileMapImport():
-	Source_()
+	Source_(),
+	Textures_(),
+	Materials_()
 {
 
 }
@@ -49,7 +58,9 @@ ScnTileMapImport::ScnTileMapImport():
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnTileMapImport::ScnTileMapImport( ReNoInit ):
-	Source_()
+	Source_(),
+	Textures_(),
+	Materials_()
 {
 
 }
@@ -67,22 +78,37 @@ ScnTileMapImport::~ScnTileMapImport()
 BcBool ScnTileMapImport::import( const Json::Value& )
 {
 #if PSY_IMPORT_PIPELINE
-
+	BcBool CanImport = BcTrue;
 	BcStream Stream;
 
 	CsResourceImporter:addDependency( Source_.c_str() );
 
-	auto Header = Stream.alloc< ScnTileMapData >();
-	BcFile SourceFile;
-	if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
+	if( Source_.empty() )
 	{
-		auto SourceText = SourceFile.readAllBytes();
-		rapidxml::xml_document<> SourceDoc;
-		SourceDoc.parse< 0 >( reinterpret_cast< char* >( SourceText.get() ) );
-		parseMap( Stream, *SourceDoc.first_node(), Header );
+		CsResourceImporter::addMessage( CsMessageCategory::CRITICAL, "Missing 'source' field." );
+		CanImport = BcFalse;
+	}
 
-		CsResourceImporter::addChunk( BcHash( "data" ), Stream.pData(), Stream.dataSize() );
-		return BcTrue;
+	if( Materials_.empty() )
+	{
+		CsResourceImporter::addMessage( CsMessageCategory::CRITICAL, "Missing 'materials' list." );
+		CanImport = BcFalse;
+	}
+
+	if( CanImport)
+	{
+		auto Header = Stream.alloc< ScnTileMapData >();
+		BcFile SourceFile;
+		if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
+		{
+			auto SourceText = SourceFile.readAllBytes();
+			rapidxml::xml_document<> SourceDoc;
+			SourceDoc.parse< 0 >( reinterpret_cast< char* >( SourceText.get() ) );
+			parseMap( Stream, *SourceDoc.first_node(), Header );
+
+			CsResourceImporter::addChunk( BcHash( "data" ), Stream.pData(), Stream.dataSize() );
+			return BcTrue;
+		}
 	}
 
 #endif // PSY_IMPORT_PIPELINE
@@ -191,6 +217,7 @@ void ScnTileMapImport::parseTileSet(
 	BcAssertMsg( std::string( "tileset" ) == Node.name(), "Node is not a tileset node." );
 
 	// Parse attributes.
+	const char* TileSetName = nullptr;
 	auto* ChildAttrib = Node.first_attribute();
 	while( ChildAttrib != nullptr )
 	{
@@ -200,6 +227,7 @@ void ScnTileMapImport::parseTileSet(
 		}
 		else if( std::string( "name" ) == ChildAttrib->name() )
 		{
+			TileSetName = ChildAttrib->value();
 			TileSet->Name_ = addString( ChildAttrib->value() );
 		}
 		else if( std::string( "tilewidth" ) == ChildAttrib->name() )
@@ -212,6 +240,7 @@ void ScnTileMapImport::parseTileSet(
 		}
 		ChildAttrib = ChildAttrib->next_attribute();
 	}
+	BcAssert( TileSetName != nullptr );
 
 	// Count nodes.
 	auto* ChildNode = Node.first_node();
@@ -224,6 +253,9 @@ void ScnTileMapImport::parseTileSet(
 		ChildNode = ChildNode->next_sibling();
 	}
 
+	auto ImagesPtr = Stream.alloc< ScnTileMapTileSetImage >( TileSet->NoofImages_ );
+	TileSet->Images_.reset( ImagesPtr.get() );
+
 	// Parse nodes.
 	ChildNode = Node.first_node();
 	BcU32 ImageIdx = 0;
@@ -231,11 +263,74 @@ void ScnTileMapImport::parseTileSet(
 	{
 		if( std::string( "image" ) == ChildNode->name() )
 		{
-			// TODO.
+			parseImage( Stream, 
+				*ChildNode, 
+				TileSetName, 
+				TileSet, 
+				Stream.get( &TileSet->Images_[ ImageIdx++ ] ) );
 		}
 		ChildNode = ChildNode->next_sibling();
 	}
+}
 
+//////////////////////////////////////////////////////////////////////////
+// parseImage
+void ScnTileMapImport::parseImage( 
+		class BcStream& Stream, 
+		rapidxml::xml_node<char>& Node, 
+		const char* TileSetName,
+		BcStream::Object< ScnTileMapTileSet > TileSet, 
+		BcStream::Object< ScnTileMapTileSetImage > Image )
+{
+	BcAssertMsg( std::string( "image" ) == Node.name(), "Node is not an image node." );
+
+	// Parse attributes.
+	auto* ChildAttrib = Node.first_attribute();
+	while( ChildAttrib != nullptr )
+	{
+		if( std::string( "source" ) == ChildAttrib->name() )
+		{
+			// Try by texture file name then tileset name.
+			Image->TextureRef_ = findTexture( ChildAttrib->value() );
+			if( Image->TextureRef_ == CSCROSSREFID_INVALID )
+			{ 
+				Image->TextureRef_ = findTexture( TileSetName );
+			}
+
+			if( Image->TextureRef_ == CSCROSSREFID_INVALID )
+			{
+				using namespace boost::filesystem;
+				path TMXSourcePath = Source_;
+				path TexSourcePath = TMXSourcePath.parent_path() / path( ChildAttrib->value() );
+
+				// Create texture importer.
+				auto TextureImporter = CsResourceImporterUPtr(
+					new ScnTextureImport( 
+						TexSourcePath.c_str(), "ScnTextureAtlas",
+						TexSourcePath.c_str(), RsTextureFormat::R8G8B8A8,
+						TileSet->TileWidth_,
+						TileSet->TileHeight_ ) );
+
+				Image->TextureRef_ = CsResourceImporter::addImport( std::move( TextureImporter ) );
+			}
+
+			// Try texture file name then tileset name.
+			Image->MaterialRef_ = findMaterialMatch( ChildAttrib->value() );
+			if( Image->MaterialRef_ == CSCROSSREFID_INVALID )
+			{ 
+				Image->MaterialRef_ = findMaterialMatch( TileSetName );
+			}
+		}
+		else if( std::string( "width" ) == ChildAttrib->name() )
+		{
+			Image->Width_ = addString( ChildAttrib->value() );
+		}
+		else if( std::string( "height" ) == ChildAttrib->name() )
+		{
+			Image->Height_ = std::stol( ChildAttrib->value() );
+		}
+		ChildAttrib = ChildAttrib->next_attribute();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -334,4 +429,45 @@ void ScnTileMapImport::parseProperty(
 		}
 		ChildAttrib = ChildAttrib->next_attribute();
 	}	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findTexture
+CsCrossRefId ScnTileMapImport::findTexture( const std::string& TextureName )
+{
+	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
+
+	for( const auto& TextureEntry : Textures_ )
+	{
+		if( std::regex_match( TextureName, std::regex( TextureEntry.first ) ) )
+		{
+			RetVal = TextureEntry.second;
+		}
+	}
+	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// findMaterialMatch
+CsCrossRefId ScnTileMapImport::findMaterialMatch( const std::string& Path )
+{
+	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
+
+	for( const auto& MaterialEntry : Materials_ )
+	{
+		if( std::regex_match( Path, std::regex( MaterialEntry.first ) ) )
+		{
+			RetVal = MaterialEntry.second;
+		}
+	}
+
+	// Can't find match? Throw exception.
+	if( RetVal == CSCROSSREFID_INVALID )
+	{
+		auto ErrorString = std::string( "Unable to find match for \"" ) + Path + std::string( "\"" );
+		
+		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
+	}
+
+	return RetVal;
 }

@@ -116,8 +116,7 @@ void ScnTileMapComponent::StaticRegisterClass()
 		new ReField( "MaterialName_", &ScnTileMapComponent::MaterialName_, bcRFF_IMPORTER ),
 		new ReField( "TileMap_", &ScnTileMapComponent::TileMap_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
-		new ReField( "Canvas_", &ScnTileMapComponent::Canvas_, bcRFF_TRANSIENT ),
-		new ReField( "Material_", &ScnTileMapComponent::Material_, bcRFF_TRANSIENT ),
+		new ReField( "Canvas_", &ScnTileMapComponent::Canvas_, bcRFF_TRANSIENT )
 	};
 
 	using namespace std::placeholders;
@@ -136,8 +135,7 @@ void ScnTileMapComponent::StaticRegisterClass()
 ScnTileMapComponent::ScnTileMapComponent():
 	MaterialName_(),
 	TileMap_( nullptr ),
-	Canvas_( nullptr ),
-	Material_( nullptr )
+	Canvas_( nullptr )
 {
 
 }
@@ -186,33 +184,34 @@ void ScnTileMapComponent::onAttach( ScnEntityWeakRef Parent )
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
 	BcAssertMsg( Canvas_ != nullptr, "Sprite component needs to be attached to an entity with a canvas component in any parent!" );
 
-	// Find a canvas to use for rendering (someone in ours, or our parent's hierarchy).
-	Material_ = Parent->getComponentAnyParentByType< ScnMaterialComponent >( MaterialName_ );
-	BcAssertMsg( Material_ != nullptr, "Sprite component needs to be attached to an entity with a material component in any parent!" );
-
-	// Setup materials.
-	Materials_.push_back( std::make_pair( nullptr, ScnRect() ) );
+	// Add first null material.
+	Materials_.emplace_back( nullptr, ScnRect() );
 
 	ScnTileMapData* TileMapData = TileMap_->TileMapData_;
 	for( BcU32 MaterialIdx = 0; MaterialIdx < TileMapData->NoofTileSets_; ++MaterialIdx )
 	{
 		const auto& TileSet = TileMapData->TileSets_[ MaterialIdx ];
 		BcAssert( TileSet.FirstGID_ == Materials_.size() );
+		BcAssert( TileSet.NoofImages_ == 1 );
+
+		// Grab resources for tileset.
+		ScnTextureRef Texture = TileMap_->getPackage()->getCrossRefResource( TileSet.Images_[ 0 ].TextureRef_ );
+		ScnMaterialRef Material = TileMap_->getPackage()->getCrossRefResource( TileSet.Images_[ 0 ].MaterialRef_ );
+		BcAssert( Texture.isValid() );
+		BcAssert( Material.isValid() );
 
 		// Attach a new material for this tileset.
-		auto Material = getParentEntity()->attach< ScnMaterialComponent >( 
-			TileMap_->getString( TileSet.Name_ ), 
-			Material_ );
+		auto MaterialComponent = getParentEntity()->attach< ScnMaterialComponent >( 
+			TileMap_->getString( TileSet.Name_ ), Material, 
+			ScnShaderPermutationFlags::MESH_STATIC_2D );
 
-		// TODO: Set texture on material and setup rects using tileset data.
-
-		// First texture.
-		auto Texture = Material->getTexture( 0 );
+		// Set texture on material and setup rects using tileset data.
+		MaterialComponent->setTexture( 0, Texture );
 
 		// Add rects.
 		for( BcU32 RectIdx = 0; RectIdx < Texture->noofRects(); ++RectIdx )
 		{
-			Materials_.push_back( std::make_pair( Material, Texture->getRect( RectIdx ) ) );
+			Materials_.emplace_back( MaterialComponent, Texture->getRect( RectIdx ) );
 		}
 	}
 }
@@ -224,7 +223,6 @@ void ScnTileMapComponent::onDetach( ScnEntityWeakRef Parent )
 	Super::onDetach( Parent );
 
 	Canvas_ = nullptr;
-	Material_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
