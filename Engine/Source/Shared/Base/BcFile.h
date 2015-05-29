@@ -16,6 +16,12 @@
 #include "Base/BcTypes.h"
 #include <stdio.h>
 
+#if COMPILER_MSVC
+
+#include <memory>
+
+#endif
+
 const BcU32 MAX_LINE_LENGTH = 1024;
 
 enum eBcFileMode
