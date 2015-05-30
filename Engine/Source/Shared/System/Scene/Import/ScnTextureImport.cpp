@@ -204,9 +204,9 @@ BcBool ScnTextureImport::import(
 			for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
 			{
 				auto& Image = ImageList[ Idx ];
-				for( BcU32 Y = 0; Y < Image->height(); Y += TileHeight_ )
+				for( BcU32 Y = 0; Y <= ( Image->height() - TileHeight_ ); Y += TileHeight_ )
 				{
-					for( BcU32 X = 0; X < Image->width(); X += TileWidth_ )
+					for( BcU32 X = 0; X <= ( Image->width() - TileWidth_ ); X += TileWidth_ )
 					{
 						ImgRect OutRect = 
 						{

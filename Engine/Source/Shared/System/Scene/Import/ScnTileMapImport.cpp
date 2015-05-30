@@ -18,6 +18,7 @@
 
 #include "System/Renderer/RsTypes.h"
 
+#include "Base/BcCompression.h"
 #include "Base/BcFile.h"
 #include "Base/BcMath.h"
 
@@ -26,6 +27,10 @@
 
 #include <rapidxml.hpp>
 
+extern "C"
+{
+	#include "b64/cdecode.h"
+}
 
 #endif // PSY_IMPORT_PIPELINE
 
@@ -97,14 +102,14 @@ BcBool ScnTileMapImport::import( const Json::Value& )
 
 	if( CanImport)
 	{
-		auto Header = Stream.alloc< ScnTileMapData >();
+		TileMapData_ = Stream.alloc< ScnTileMapData >();
 		BcFile SourceFile;
 		if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
 		{
 			auto SourceText = SourceFile.readAllBytes();
 			rapidxml::xml_document<> SourceDoc;
 			SourceDoc.parse< 0 >( reinterpret_cast< char* >( SourceText.get() ) );
-			parseMap( Stream, *SourceDoc.first_node(), Header );
+			parseMap( Stream, *SourceDoc.first_node(), TileMapData_ );
 
 			CsResourceImporter::addChunk( BcHash( "data" ), Stream.pData(), Stream.dataSize() );
 			return BcTrue;
@@ -138,6 +143,14 @@ void ScnTileMapImport::parseMap(
 			{
 				Header->Orientation_ = ScnTileMapOrientation::ORTHOGONAL;
 			}
+			else if( std::string( "isometric" ) == ChildAttrib->value() )
+			{
+				Header->Orientation_ = ScnTileMapOrientation::ISOMETRIC;
+			}
+			else if( std::string( "hexagonal" ) == ChildAttrib->value() )
+			{
+				Header->Orientation_ = ScnTileMapOrientation::HEXAGONAL;
+			}
 			else
 			{
 				// Unsupported.
@@ -159,6 +172,10 @@ void ScnTileMapImport::parseMap(
 		else if( std::string( "tileheight" ) == ChildAttrib->name() )
 		{
 			Header->TileHeight_ = std::stol( ChildAttrib->value(), 0 );
+		}
+		else if( std::string( "hexsidelength" ) == ChildAttrib->name() )
+		{
+			Header->HexSideLength_ = std::stol( ChildAttrib->value() );
 		}
 		else if( std::string( "backgroundcolor" ) == ChildAttrib->name() )
 		{
@@ -373,18 +390,65 @@ void ScnTileMapImport::parseLayer(
 	auto* DataNode = Node.first_node( "data" );
 	BcAssertMsg( DataNode != nullptr, "Missing data node in layer." );
 
-	// Parse nodes.
-	auto* ChildNode = DataNode->first_node();
-	BcU32 TileIdx = 0;
-	while( ChildNode != nullptr )
+	auto EncodingAttrib = DataNode->first_attribute( "encoding" );
+	if( EncodingAttrib == nullptr )
 	{
-		if( std::string( "tile" ) == ChildNode->name() )
+		// Parse nodes.
+		auto* ChildNode = DataNode->first_node();
+		BcU32 TileIdx = 0;
+		while( ChildNode != nullptr )
 		{
-			parseLayerTile( Stream, *ChildNode, Stream.get( &Layer->Tiles_[ TileIdx++ ] ) );
+			if( std::string( "tile" ) == ChildNode->name() )
+			{
+				parseLayerTile( Stream, *ChildNode, Stream.get( &Layer->Tiles_[ TileIdx++ ] ) );
+			}
+			ChildNode = ChildNode->next_sibling();
 		}
-		ChildNode = ChildNode->next_sibling();
 	}
+	else if( std::string( "base64" ) == EncodingAttrib->value() )
+	{
+		BcU32 NoofTiles = Layer->Width_ * Layer->Height_;
 
+		// Decode data.
+		size_t DataLength = strlen( DataNode->value() );
+		size_t BytesRequired = ( DataLength * 3 / 4 );
+		BcAssert( BytesRequired < std::numeric_limits< size_t >::max() );
+		std::unique_ptr< BcU8[] > DecodedData( new BcU8[ BytesRequired ] );
+		base64_decodestate DecodeState;
+		base64_init_decodestate( &DecodeState );
+		base64_decode_block( 
+			(char*)DataNode->value(), 
+			(const int)DataLength, 
+			(char*)DecodedData.get(), 
+			&DecodeState );
+
+		// Check compression type.
+		auto CompressionAttrib = DataNode->first_attribute( "compression" );
+		if( CompressionAttrib != nullptr )
+		{
+			if( std::string( "zlib" ) == CompressionAttrib->value() )
+			{
+				auto Success = BcDecompressData( 
+					DecodedData.get(), 
+					DataLength, 
+					reinterpret_cast< BcU8* >( &Layer->Tiles_[ 0 ] ),
+					sizeof( ScnTileMapTile ) * NoofTiles );
+				BcAssertMsg( Success, "Failed to decompress layer data." );
+			}
+			else
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Invalid compression for layer." );
+			}
+		}
+		else
+		{
+			memcpy( &Layer->Tiles_[ 0 ], DecodedData.get(), sizeof( ScnTileMapTile ) * NoofTiles );
+		}
+	}
+	else
+	{
+		CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Invalid encoding for layer." );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

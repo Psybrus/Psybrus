@@ -80,12 +80,12 @@ private:
 
 	static void update( const ScnComponentList& Components );
 
-	std::string MaterialName_;
 	class ScnTileMap* TileMap_;
 
 	class ScnCanvasComponent* Canvas_;
 
 	using MaterialRectPair = std::pair< class ScnMaterialComponent*, ScnRect >;
-	std::vector< MaterialRectPair > Materials_;
+	std::vector< MaterialRectPair > TileMaterials_;
+	std::vector< BcU32 > TileTileSets_;
 };
 

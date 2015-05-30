@@ -113,7 +113,6 @@ void ScnTileMapComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "MaterialName_", &ScnTileMapComponent::MaterialName_, bcRFF_IMPORTER ),
 		new ReField( "TileMap_", &ScnTileMapComponent::TileMap_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
 		new ReField( "Canvas_", &ScnTileMapComponent::Canvas_, bcRFF_TRANSIENT )
@@ -133,9 +132,10 @@ void ScnTileMapComponent::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnTileMapComponent::ScnTileMapComponent():
-	MaterialName_(),
 	TileMap_( nullptr ),
-	Canvas_( nullptr )
+	Canvas_( nullptr ),
+	TileMaterials_(),
+	TileTileSets_()
 {
 
 }
@@ -184,14 +184,15 @@ void ScnTileMapComponent::onAttach( ScnEntityWeakRef Parent )
 	Canvas_ = Parent->getComponentAnyParentByType< ScnCanvasComponent >( 0 );
 	BcAssertMsg( Canvas_ != nullptr, "Sprite component needs to be attached to an entity with a canvas component in any parent!" );
 
-	// Add first null material.
-	Materials_.emplace_back( nullptr, ScnRect() );
+	// Add first null material + tileset.
+	TileMaterials_.emplace_back( nullptr, ScnRect() );
+	TileTileSets_.emplace_back( 0 );
 
 	ScnTileMapData* TileMapData = TileMap_->TileMapData_;
 	for( BcU32 MaterialIdx = 0; MaterialIdx < TileMapData->NoofTileSets_; ++MaterialIdx )
 	{
 		const auto& TileSet = TileMapData->TileSets_[ MaterialIdx ];
-		BcAssert( TileSet.FirstGID_ == Materials_.size() );
+		BcAssert( TileSet.FirstGID_ == TileMaterials_.size() );
 		BcAssert( TileSet.NoofImages_ == 1 );
 
 		// Grab resources for tileset.
@@ -211,7 +212,8 @@ void ScnTileMapComponent::onAttach( ScnEntityWeakRef Parent )
 		// Add rects.
 		for( BcU32 RectIdx = 0; RectIdx < Texture->noofRects(); ++RectIdx )
 		{
-			Materials_.emplace_back( MaterialComponent, Texture->getRect( RectIdx ) );
+			TileMaterials_.emplace_back( MaterialComponent, Texture->getRect( RectIdx ) );
+			TileTileSets_.emplace_back( MaterialIdx );
 		}
 	}
 }
@@ -251,20 +253,60 @@ void ScnTileMapComponent::draw()
 			for( BcU32 X = 0; X < Layer.Width_; ++X )
 			{
 				auto& Tile = Layer.Tiles_[ X + ( Y * Layer.Width_ ) ];
-				MaVec2d PositionTL = 
-					MaVec2d( 
-						static_cast< BcF32 >( X ) - LayerSize.x() * 0.5f, 
-						static_cast< BcF32 >( Y ) - LayerSize.y() * 0.5f ) * TileSize;
-				MaVec2d PositionBR = PositionTL + TileSize;
-
-				PositionTL.x( floorf( PositionTL.x() ) );
-				PositionTL.y( floorf( PositionTL.y() ) );
-				PositionBR.x( floorf( PositionBR.x() ) );
-				PositionBR.y( floorf( PositionBR.y() ) );
-
 				if( Tile.GID_ != 0 )
 				{
-					const auto& Material = Materials_[ Tile.GID_ ];
+					const auto& Material = TileMaterials_[ Tile.GID_ ];
+					const auto& TileSet = TileMapData->TileSets_[ TileTileSets_[ Tile.GID_ ] ];
+
+					MaVec2d TileSetTileSize( TileSet.TileWidth_, TileSet.TileHeight_ );
+					MaVec2d PositionTL( 0.0f, 0.0f );
+					MaVec2d PositionBR( 0.0f, 0.0f );
+
+					switch( TileMapData->Orientation_ )
+					{
+					case ScnTileMapOrientation::ORTHOGONAL:
+						{
+							PositionTL = 
+								MaVec2d( 
+									static_cast< BcF32 >( X ) - LayerSize.x() * 0.5f, 
+									static_cast< BcF32 >( Y ) - LayerSize.y() * 0.5f ) * TileSize;
+							PositionBR = PositionTL + TileSetTileSize;
+						}
+						break;
+
+					case ScnTileMapOrientation::HEXAGONAL:
+						{
+							BcF32 SideLengthX = 0.0f;//TileMapData->HexSideLength_;
+							BcF32 SideLengthY = TileMapData->HexSideLength_;
+							BcF32 SideOffsetX = ( TileSize.x() - SideLengthX ) / 2.0f;
+							BcF32 SideOffsetY = ( TileSize.y() - SideLengthY ) / 2.0f;
+
+							MaVec2d HexTileSize(
+								TileSize.x() + SideLengthX,
+								SideOffsetY + SideLengthY );
+
+							if( ( Y & 1 ) == 1 )
+							{
+								PositionTL += MaVec2d( SideOffsetX + SideLengthX, 0.0f );
+							}
+
+							PositionTL += 
+								MaVec2d( 
+									static_cast< BcF32 >( X ) - LayerSize.x() * 0.5f, 
+									static_cast< BcF32 >( Y ) - LayerSize.y() * 0.5f ) * HexTileSize;
+							PositionBR = PositionTL + TileSetTileSize;
+						}
+						break;
+
+					default:
+						break;
+					}
+
+					PositionTL.x( floorf( PositionTL.x() ) );
+					PositionTL.y( floorf( PositionTL.y() ) );
+					PositionBR.x( floorf( PositionBR.x() ) );
+					PositionBR.y( floorf( PositionBR.y() ) );
+
 					Canvas_->setMaterialComponent( Material.first );
 					const ScnRect& Rect = Material.second;
 					BcU32 ABGR = RsColour( 1.0f, 1.0f, 1.0f, Layer.Opacity_ ).asABGR();

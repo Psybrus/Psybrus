@@ -29,8 +29,16 @@ public:
 	class Object
 	{
 	public:
+		Object():
+			Stream_( nullptr ),
+			Offset_( 0 ),
+			Elements_( 0 )
+		{
+
+		}
+
 		Object( BcStream& Stream, size_t Offset, size_t Elements ):
-			Stream_( Stream ),
+			Stream_( &Stream ),
 			Offset_( Offset ),
 			Elements_( Elements )
 		{
@@ -47,14 +55,14 @@ public:
 
 		_Ty* get()
 		{
-			BcAssert( Offset_ <= ( Stream_.dataSize() + sizeof( _Ty ) ) );
-			return reinterpret_cast< _Ty* >( Stream_.pData() + Offset_ );
+			BcAssert( Offset_ <= ( Stream_->dataSize() + sizeof( _Ty ) ) );
+			return reinterpret_cast< _Ty* >( Stream_->pData() + Offset_ );
 		}
 
 		const _Ty* get() const
 		{
-			BcAssert( Offset_ <= ( Stream_.dataSize() + sizeof( _Ty ) ) );
-			return reinterpret_cast< const _Ty* >( Stream_.pData() + Offset_ );
+			BcAssert( Offset_ <= ( Stream_->dataSize() + sizeof( _Ty ) ) );
+			return reinterpret_cast< const _Ty* >( Stream_->pData() + Offset_ );
 		}
 
 		_Ty& operator * ()
@@ -85,7 +93,7 @@ public:
 		}
 
 	private:
-		BcStream& Stream_;
+		BcStream* Stream_;
 		size_t Offset_;
 		size_t Elements_;
 	};

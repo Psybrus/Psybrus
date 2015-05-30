@@ -9,8 +9,7 @@ enum class ScnTileMapOrientation : BcU32
 {
 	ORTHOGONAL,
 	ISOMETRIC,
-	ISOMETRIC_STAGGERED,
-	HEXAGONAL_STAGGERED
+	HEXAGONAL
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -22,6 +21,7 @@ struct ScnTileMapData
 	BcU32 Height_ = 0;
 	BcU32 TileWidth_ = 0;
 	BcU32 TileHeight_ = 0;
+	BcU32 HexSideLength_ = 0;
 	RsColour BackgroundColour_ = RsColour::BLACK;
 
 	BcU32 NoofTileSets_ = 0;

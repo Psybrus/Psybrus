@@ -80,6 +80,8 @@ private:
 	std::string Source_;
 	std::map< std::string, CsCrossRefId > Textures_;
 	std::map< std::string, CsCrossRefId > Materials_;
+
+	BcStream::Object< ScnTileMapData > TileMapData_;
 };
 
 #endif
