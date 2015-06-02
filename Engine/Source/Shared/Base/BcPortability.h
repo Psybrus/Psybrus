@@ -17,6 +17,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Platform Identification
+#define PLATFORM_HTML5			0
+#define PLATFORM_ANDROID		0
 #define PLATFORM_LINUX			0
 #define PLATFORM_WINDOWS		0
 #define PLATFORM_IOS			0
@@ -26,6 +28,11 @@
 #if defined( EMSCRIPTEN ) || defined( __EMSCRIPTEN__ )
 #  undef PLATFORM_HTML5
 #  define PLATFORM_HTML5		1
+
+// Android
+#elif defined( __ANDROID__ )
+#  undef PLATFORM_ANDROID
+#  define PLATFORM_ANDROID		1
 
 // Linux
 #elif defined( linux ) || defined( __linux )
@@ -82,10 +89,10 @@
 #  define PSY_ENDIAN_LITTLE		0
 
 // ARM
-#elif defined( __arm__ ) || defined( TARGET_OS_IPHONE )
+#elif defined( __arm__ ) || defined( __ARM_ARCH_7A__ ) || defined( __ARM_ARCH_7S__ ) || defined( TARGET_OS_IPHONE )
 #  define ARCH_ARM				1
 #  define PSY_ENDIAN_LITTLE		1
-#  define PSY_ENDIAN_LITTLE		0
+#  define PSY_ENDIAN_BIG		0
 
 // THUMB
 #elif defined( __thumb__ )

@@ -52,3 +52,14 @@ PsyProjectEngineLib( "Base" )
     includedirs {
       "./Platforms/Linux/",
     }
+
+  -- Linux
+  configuration( "android-*" )
+    files {
+      "./Platforms/Android/Base/**.h",
+      "./Platforms/Android/Base/**.inl",
+      "./Platforms/Android/Base/**.cpp",
+    }
+    includedirs {
+      "./Platforms/Android/",
+    }

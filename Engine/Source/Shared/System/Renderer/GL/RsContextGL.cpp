@@ -134,7 +134,7 @@ static GLenum gTextureFiltering[] =
 	GL_NEAREST,
 	GL_LINEAR,
 	
-#if PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 	// TODO: Figure out why mipmapping was a problem.
 	// Mipmapping nearest
 	GL_LINEAR, // GL_NEAREST_MIPMAP_NEAREST,
@@ -159,13 +159,21 @@ static GLenum gTextureSampling[] =
 	GL_REPEAT,
 	GL_MIRRORED_REPEAT,
 	GL_CLAMP_TO_EDGE,
+#if !defined( RENDER_USE_GLES )
 	GL_DECAL
+#else
+	GL_CLAMP_TO_EDGE
+#endif
 };
 
 static GLenum gTextureTypes[] = 
 {
 	0,
+#if !defined( RENDER_USE_GLES )
 	GL_TEXTURE_1D,
+#else
+	0,
+#endif
 	GL_TEXTURE_2D,
 	GL_TEXTURE_3D,
 	GL_TEXTURE_CUBE_MAP
@@ -233,14 +241,22 @@ static GLenum gTopologyType[] =
 	GL_POINTS,						// RsTopologyType::POINTLIST = 0,
 	GL_LINES,						// RsTopologyType::LINE_LIST,
 	GL_LINE_STRIP,					// RsTopologyType::LINE_STRIP,
+#if !defined( RENDER_USE_GLES )
 	GL_LINES_ADJACENCY,				// RsTopologyType::LINE_LIST_ADJACENCY,
 	GL_LINE_STRIP_ADJACENCY,		// RsTopologyType::LINE_STRIP_ADJACENCY,
+#else
+	0, 0,
+#endif
 	GL_TRIANGLES,					// RsTopologyType::TRIANGLE_LIST,
 	GL_TRIANGLE_STRIP,				// RsTopologyType::TRIANGLE_STRIP,
+#if !defined( RENDER_USE_GLES )
 	GL_TRIANGLES_ADJACENCY,			// RsTopologyType::TRIANGLE_LIST_ADJACENCY,
 	GL_TRIANGLE_STRIP_ADJACENCY,	// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
 	GL_TRIANGLE_FAN,				// RsTopologyType::TRIANGLE_FAN,
 	GL_PATCHES						// RsTopologyType::PATCHES,
+#else
+	0, 0, 0, 0
+#endif
 };
 
 static GLenum gBufferType[] =
@@ -249,15 +265,23 @@ static GLenum gBufferType[] =
 	GL_ARRAY_BUFFER,				// RsBufferType::VERTEX
 	GL_ELEMENT_ARRAY_BUFFER,		// RsBufferType::INDEX
 	GL_UNIFORM_BUFFER,				// RsBufferType::UNIFORM
+#if !defined( RENDER_USE_GLES )
 	GL_IMAGE_BUFFER,				// RsBufferType::UNORDERED_ACCESS
 	GL_DRAW_INDIRECT_BUFFER,		// RsBufferType::DRAW_INDIRECT
 	GL_TRANSFORM_FEEDBACK_BUFFER,	// RsBufferType::STREAM_OUT
+#else
+	0, 0, 0
+#endif
 };
 
 static GLenum gTextureType[] =
 {
 	0,								// RsTextureType::UNKNOWN
+#if !defined( RENDER_USE_GLES )
 	GL_TEXTURE_1D,					// RsTextureType::TEX1D
+#else
+	0,
+#endif
 	GL_TEXTURE_2D,					// RsTextureType::TEX2D
 	GL_TEXTURE_3D,					// RsTextureType::TEX3D
 	GL_TEXTURE_CUBE_MAP,			// RsTextureType::TEXCUBE
@@ -295,7 +319,11 @@ static RsTextureFormatGL gTextureFormats[] =
 	// Depth stencil.
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D24,
+#if !defined( RENDER_USE_GLES )
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
+#else
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
+#endif
 	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32F,
 };
@@ -304,11 +332,13 @@ static GLenum gShaderType[] =
 {
 	GL_VERTEX_SHADER,											// RsShaderType::VERTEX
 	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
+#if !defined( RENDER_USE_GLES )
 	GL_TESS_CONTROL_SHADER,										// RsShaderType::HULL
 	GL_TESS_EVALUATION_SHADER,									// RsShaderType::DOMAIN
 	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
-#if !PLATFORM_HTML5
 	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
+#else
+	0, 0, 0, 0
 #endif
 };
 
@@ -452,7 +482,7 @@ void RsContextGL::presentBackBuffer()
 		// Finish all rendering.
 		glFinish();
 
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 		BcU32 W = getWidth();
 		BcU32 H = getHeight();
 
@@ -487,7 +517,7 @@ void RsContextGL::presentBackBuffer()
 
 		// Free image data.
 		delete [] pImageData;
-#endif // !PLATFORM_HTML5
+#endif // !defined( RENDER_USE_GLES )
 
 		// No more screenshot requested.
 		ScreenshotRequested_ = BcFalse;
@@ -685,7 +715,7 @@ void RsContextGL::create()
 	glGetError();
 #endif
 
-#if PLATFORM_HTML5
+#if defined( RENDER_USE_GLES )
 	Version_ = RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 );
 	Version_.setupFeatureSupport();
 	PSY_LOG( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
@@ -693,10 +723,12 @@ void RsContextGL::create()
 		Version_.Major_, 
 		Version_.Minor_ );
 
+#  if PLATFORM_HTML5
 	// Init GLEW.
 	glewExperimental = 1;
 	glewInit();
 	glGetError();
+#  endif
 #endif
 
 	// Debug output extension.	
@@ -931,7 +963,7 @@ bool RsContextGL::createSamplerState(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 	if( Version_.SupportSamplerStates_ )
 	{
 		GLuint SamplerObject = (GLuint)-1;
@@ -968,7 +1000,7 @@ bool RsContextGL::destroySamplerState(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 	// GL3.3 minimum
 	if( Version_.SupportSamplerStates_ )
 	{
@@ -1257,7 +1289,7 @@ bool RsContextGL::updateBuffer(
 			//       synchronisation. 
 			//       NOTE: This is just a bug with the nouveau drivers.
 			//		 TODO: Test this on other drivers.
-#if 0 && !PLATFORM_HTML5
+#if 0 && !defined( RENDER_USE_GLES )
 			// Get access flags for GL.
 			GLbitfield AccessFlagsGL =
 				GL_MAP_WRITE_BIT |
@@ -1399,7 +1431,7 @@ bool RsContextGL::createTexture(
 		glBindTexture( TypeGL, TextureImpl->Handle_ );
 		RsGLCatchError();
 
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 		// Set max levels.
 		glTexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 );
 		RsGLCatchError();
@@ -1706,9 +1738,11 @@ bool RsContextGL::createProgram(
 			RsShaderParameterType InternalType = RsShaderParameterType::INVALID;
 			switch( Type )
 			{
+#if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_1D:
 				InternalType = RsShaderParameterType::SAMPLER_1D;
 				break;
+#endif
 			case GL_SAMPLER_2D:
 				InternalType = RsShaderParameterType::SAMPLER_2D;
 				break;
@@ -1718,9 +1752,11 @@ bool RsContextGL::createProgram(
 			case GL_SAMPLER_CUBE:
 				InternalType = RsShaderParameterType::SAMPLER_CUBE;
 				break;
+#if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_1D_SHADOW:
 				InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
 				break;
+#endif
 			case GL_SAMPLER_2D_SHADOW:
 				InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
 				break;
@@ -1777,7 +1813,7 @@ bool RsContextGL::createProgram(
 		GLint ActiveUniformBlocks = 0;
 		glGetProgramiv( ProgramImpl->Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks );
 	
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 		BcU32 ActiveUniformSlotIndex = 0;
 		for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
 		{
@@ -1808,7 +1844,7 @@ bool RsContextGL::createProgram(
 				RsGLCatchError();
 			}
 		}
-#endif // !PLATFORM_HTML5
+#endif // !defined( RENDER_USE_GLES )
 	}
 	else
 	{
@@ -2254,7 +2290,7 @@ void RsContextGL::flushState()
 
 			if( pTexture != nullptr && SamplerState != nullptr )
 			{
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 				if( Version_.SupportSamplerStates_ )
 				{
 					GLuint SamplerObject = SamplerState->getHandle< GLuint >();
@@ -2273,7 +2309,7 @@ void RsContextGL::flushState()
 					glTexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] );
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] );
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] );	
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 					glTexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] );	
 					glTexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE );
 					glTexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
@@ -2307,7 +2343,7 @@ void RsContextGL::flushState()
 		RsGLCatchError();
 
 		// Bind up uniform buffers, or uniforms.
-#if !PLATFORM_HTML5	
+#if !defined( RENDER_USE_GLES )	
 		if( Version_.SupportUniformBuffers_ )
 		{
 			BcU32 BindingPoint = 0;
@@ -2562,7 +2598,7 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 	{
 		glDrawElements( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) );
 	}
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 	else if( Version_.SupportDrawElementsBaseVertex_ )
 	{
 		glDrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset );
@@ -2918,7 +2954,7 @@ void RsContextGL::loadTexture(
 		switch( TextureDesc.Type_ )
 		{
 		case RsTextureType::TEX1D:
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 			glTexImage1D( 
 				TypeGL, 
 				Slice.Level_, 
@@ -2950,7 +2986,7 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEX3D:
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 			glTexImage3D( 
 				TypeGL, 
 				Slice.Level_, 
@@ -2987,7 +3023,7 @@ void RsContextGL::loadTexture(
 
 		switch( TextureDesc.Type_ )
 		{
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 		case RsTextureType::TEX1D:
 			glCompressedTexImage1D( 
 				TypeGL, 
@@ -2999,7 +3035,7 @@ void RsContextGL::loadTexture(
 				Data );
 			RsGLCatchError();
 			break;
-#endif // !PLATFORM_HTML5
+#endif // !defined( RENDER_USE_GLES )
 
 		case RsTextureType::TEX2D:
 			glCompressedTexImage2D( 
@@ -3014,7 +3050,7 @@ void RsContextGL::loadTexture(
 			RsGLCatchError();
 			break;
 
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 		case RsTextureType::TEX3D:
 			glCompressedTexImage3D( 
 				TypeGL, 
@@ -3047,7 +3083,7 @@ void RsContextGL::loadTexture(
 // setRenderStateDesc
 void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
 {
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 	if( Version_.SupportSeparateBlendState_ )
 	{
 		for( BcU32 Idx = 0; Idx < 8; ++Idx )
@@ -3127,7 +3163,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 
 		if( Version_.SupportMRT_ )
 		{
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 			for( BcU32 Idx = 0; Idx < 8; ++Idx )
 			{
 				const auto& RenderTarget = Desc.BlendState_.RenderTarget_[ Idx ];
@@ -3144,7 +3180,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 						RenderTarget.WriteMask_ & 8 ? GL_TRUE : GL_FALSE );
 				}
 			}
-#endif // !PLATFORM_HTML5
+#endif // !defined( RENDER_USE_GLES )
 		}
 		else
 		{
@@ -3236,7 +3272,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	const auto& RasteriserState = Desc.RasteriserState_;
 	const auto& BoundRasteriserState = BoundRenderStateDesc_.RasteriserState_;
 
-#if !PLATFORM_HTML5
+#if !defined( RENDER_USE_GLES )
 	if( Version_.SupportPolygonMode_ )
 	{
 		if( Force ||
@@ -3285,6 +3321,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 		}
 	}
 
+#if !defined( RENDER_USE_GLES )
 	if( Version_.SupportAntialiasedLines_ )
 	{
 		if( Force ||
@@ -3293,7 +3330,8 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 			RasteriserState.AntialiasedLineEnable_ ? glEnable( GL_LINE_SMOOTH ) : glDisable( GL_LINE_SMOOTH );
 		}
 	}
-
+#endif
+	
 	RsGLCatchError();
 
 	// Copy over. Could do less work. Look into this later.

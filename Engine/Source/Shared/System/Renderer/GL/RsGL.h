@@ -25,6 +25,19 @@
 #if PLATFORM_HTML5
 #  include "GL/glew.h"
 
+#  define RENDER_USE_GLES
+
+////////////////////////////////////////////////////////////////////////////////
+// Android
+#elif PLATFORM_ANDROID
+#  include <GLES2/gl2.h>
+#  include <GLES2/gl2ext.h>
+#  include <GLES3/gl3.h>
+#  include <GLES3/gl3ext.h>
+#  include <EGL/egl.h>
+
+#  define RENDER_USE_GLES
+
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
 #elif PLATFORM_LINUX

@@ -15,7 +15,7 @@
 #include "System/Content/CsRedirector.h"
 #include "System/File/FsCore.h"
 
-#if !PLATFORM_HTML5
+#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
 #include <boost/filesystem.hpp>
 #endif // !PLATFORM_HTML5
 
@@ -308,9 +308,9 @@ BcPath CsCore::getPackageIntermediatePath( const BcName& Package )
 		Path = "IntermediateContent";
 	}
 
-#if !PLATFORM_HTML5
+#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
 	boost::filesystem::create_directories( *Path );
-#endif // !PLATFORM_HTML5
+#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
 
 	return Path;
 }
@@ -338,9 +338,9 @@ BcPath CsCore::getIntermediatePath( const std::string& SubFolder )
 	BcPath Path;
 	Path.join( "IntermediateContent", SubFolder + ".pak" );
 
-#if !PLATFORM_HTML5
+#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
 	boost::filesystem::create_directories( *Path );
-#endif // !PLATFORM_HTML5
+#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
 	return Path;
 }
 

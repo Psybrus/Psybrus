@@ -115,11 +115,17 @@ function PsyProjectCommonEngine( _name )
 	PsyProjectCommon( _name, "C++11" )
 
 	-- Enable C++11.
-	configuration "gmake"
+	configuration { "gmake", "linux-*" }
 		buildoptions { "-std=c++11" }
 		buildoptions { "-stdlib=libc++" }
 		links {
 			"c++"
+		}
+
+	configuration { "gmake", "android-*" }
+		buildoptions { "-std=c++11" }
+		links {
+			--"c++_shared"
 		}
 
 	-- Extra warnings + fatal warnings.
@@ -150,10 +156,9 @@ function PsyProjectCommonEngine( _name )
 	-- Add default include paths.
 	configuration( "*" )
 		includedirs {
-			"../../External/imgui",
+			"../../External/imgui"
 		}
 
-	-- Include paths.
 	configuration( "windows-*" )
 		includedirs {
 			"./Platforms/Windows/",
@@ -162,6 +167,11 @@ function PsyProjectCommonEngine( _name )
 	configuration( "linux-*" )
 		includedirs {
 			"./Platforms/Linux/",
+		}
+
+	configuration( "android-*" )
+		includedirs {
+			"./Platforms/Android/",
 		}
 
 	configuration( "asmjs" )
@@ -202,6 +212,9 @@ function PsyProjectGameExe( _name )
 	configuration "*"
 		kind "WindowedApp"
 		language "C++"
+
+	-- Setup android project (if it is one).
+	SetupAndroidProject()
 
 	-- Add STATICLIB define for libraries.
 	configuration "*"

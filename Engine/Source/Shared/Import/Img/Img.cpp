@@ -74,13 +74,16 @@ ImgImageUPtr Img::loadPNG( const BcChar* Filename )
 		png_infop pPngEndInfo = png_create_info_struct( pPngRead );
 		BcAssertMsg( pPngRead != NULL, "ImgLoader: Can't create read struct" ); // TODO: Handle and call png_destroy_read_struct
 		
+		// TODO: See why it won't build on android.
+#if defined( PNG_SETJMP_SUPPORTED ) && !PLATFORM_ANDROID
 		// Set error handling
 		if ( setjmp( png_jmpbuf( pPngRead ) ) )
 		{
 			png_destroy_read_struct( &pPngRead, &pPngInfo, &pPngEndInfo );
 			return NULL;
 		}
-		
+#endif
+
 		BcChar Header[ 8 ];
 		fread( &Header[0], 1, 8, pFile );
 		
@@ -262,13 +265,16 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 		png_destroy_write_struct( &pPngWrite, ( png_infopp ) NULL );
 		return BcFalse;
 	}
-	
+
+	// TODO: See why it won't build on android.
+#if defined( PNG_SETJMP_SUPPORTED ) && !PLATFORM_ANDROID
 	if ( setjmp( png_jmpbuf( pPngWrite ) ) )
 	{
 		png_destroy_write_struct( &pPngWrite, &pPngInfo );
 		return BcFalse;
 	}
-	
+#endif
+
 	png_rw_ptr pWrite = ( png_rw_ptr ) &PngWrite;
 	png_flush_ptr pFlush = ( png_flush_ptr ) &PngWriteFlush;
 	png_set_write_fn( pPngWrite, pFile, pWrite, pFlush );

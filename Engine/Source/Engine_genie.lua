@@ -35,6 +35,17 @@ PsyProjectEngineLib( "Engine" )
             "./Platforms/Linux/",
         }
 
+    configuration "android-*"
+        files {
+            "./Platforms/Android/*.h", 
+            "./Platforms/Android/*.inl", 
+            "./Platforms/Android/*.cpp"
+        }
+        includedirs {
+            "./Platforms/Android/",
+        }
+
+
     configuration "asmjs"
         files {
             "./Platforms/HTML5/*.h", 

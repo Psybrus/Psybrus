@@ -10,6 +10,7 @@ local WITH_OSS = 0
 local WITH_LIBMODPLUG = 0
 local WITH_PORTMIDI = 0
 local WITH_TOOLS = 0
+local WITH_NULL = 1
 
 if (os.is("Windows")) then
 	WITH_WINMM = 1
@@ -25,6 +26,18 @@ if _OPTIONS[ "toolchain" ] == "asmjs" then
 	WITH_WASAPI = 0
 	WITH_SDL = 0
 	WITH_SDL_STATIC = 1
+	WITH_SDL2_STATIC = 0
+end
+
+-- Hack android.
+if _OPTIONS[ "toolchain" ] == "android-clang-arm" or
+   _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
+	WITH_OSS = 0
+	WITH_WINMM = 0
+	WITH_WASAPI = 0
+	WITH_SDL = 0
+	WITH_SDL_STATIC = 0
+	WITH_SDL2_STATIC = 0
 end
 
 
@@ -181,4 +194,17 @@ if (WITH_WINMM == 1) then
 		"./SoLoud/include"
 	}        
 end
+
+if (WITH_NULL == 1) then
+	defines { "WITH_NULL" }
+	files
+	{
+		"./SoLoud/src/backend/null/**.c*"
+	}
+	includedirs 
+	{
+		"./SoLoud/include"
+	}        
+end
+
 end 

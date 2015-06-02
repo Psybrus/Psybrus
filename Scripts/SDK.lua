@@ -83,7 +83,6 @@ end
 function PsyAddSystemLibs()
 	configuration "windows-*"
 		links {
-			-- Windows libs.
 			"user32",
 			"gdi32",
 			"opengl32",
@@ -94,7 +93,6 @@ function PsyAddSystemLibs()
 
 	 configuration "linux-*"
 		links {
-			-- Linux libs.
 			"X11",
 			"GL",
 			"pthread",
