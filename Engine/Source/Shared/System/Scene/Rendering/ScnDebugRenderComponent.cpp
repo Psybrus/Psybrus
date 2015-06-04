@@ -431,16 +431,16 @@ void ScnDebugRenderComponent::clear()
 class ScnDebugRenderComponentRenderNode: public RsRenderNode
 {
 public:
-	void render()
+	void render( RsContext* Context )
 	{
 		// TODO: Cache material instance so we don't rebind?
 		for( BcU32 Idx = 0; Idx < NoofSections_; ++Idx )
 		{
 			ScnDebugRenderComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
 			
-			pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
-			pContext_->setVertexDeclaration( VertexDeclaration_ );
-			pContext_->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
+			Context->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
+			Context->setVertexDeclaration( VertexDeclaration_ );
+			Context->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
 		}
 	}
 	

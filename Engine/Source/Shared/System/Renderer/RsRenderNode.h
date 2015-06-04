@@ -115,12 +115,11 @@ public:
 	virtual ~RsRenderNode();
 
 	/**
-	*	Perform default render.
-	*/
-	virtual void			render() = 0;
+	 * Perform default render.
+	 */
+	virtual void			render( RsContext* Context ) = 0;
 
 public:
-	RsContext*				pContext_;
 	RsRenderSort			Sort_;
 };
 

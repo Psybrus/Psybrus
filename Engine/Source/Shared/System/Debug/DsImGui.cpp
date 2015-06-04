@@ -139,10 +139,10 @@ namespace
 		class ImGuiRenderNode: public RsRenderNode
 		{
 		public:
-			void render() override
+			void render( RsContext* Context ) override
 			{
 				// Update constant buffr.
-				pContext_->updateBuffer( 
+				Context->updateBuffer( 
 					UniformBuffer_.get(), 0, sizeof( UniformBlock_ ), 
 					RsResourceUpdateFlags::NONE,
 					[]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -151,7 +151,7 @@ namespace
 					} );
 
 				// Update vertex buffer.
-				pContext_->updateBuffer( 
+				Context->updateBuffer( 
 					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
 					RsResourceUpdateFlags::NONE,
 					[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -168,15 +168,15 @@ namespace
 						}
 					} );
 
-				pContext_->setFrameBuffer( nullptr );
-				pContext_->setViewport( Viewport_ );
-				pContext_->setSamplerState( 0, FontSampler_.get() );
-				pContext_->setVertexDeclaration( VertexDeclaration_.get() );
-				pContext_->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
-				pContext_->setUniformBuffer( 0, UniformBuffer_.get() );
-				pContext_->setProgram( TexturedProgram_ );
-				pContext_->setRenderState( RenderState_.get() );
-				pContext_->setSamplerState( 0, FontSampler_.get() );
+				Context->setFrameBuffer( nullptr );
+				Context->setViewport( Viewport_ );
+				Context->setSamplerState( 0, FontSampler_.get() );
+				Context->setVertexDeclaration( VertexDeclaration_.get() );
+				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
+				Context->setUniformBuffer( 0, UniformBuffer_.get() );
+				Context->setProgram( TexturedProgram_ );
+				Context->setRenderState( RenderState_.get() );
+				Context->setSamplerState( 0, FontSampler_.get() );
 
 
  				BcU32 VertexOffset = 0;
@@ -193,21 +193,21 @@ namespace
 						}
 						else
 						{
-							pContext_->setScissorRect(
+							Context->setScissorRect(
 								(BcS32)Cmd->clip_rect.x, 
 								(BcS32)Cmd->clip_rect.y, 
 								(BcS32)Cmd->clip_rect.z, 
 								(BcS32)Cmd->clip_rect.w );
 							if( Cmd->texture_id != nullptr )
 							{
-								pContext_->setProgram( TexturedProgram_ );
-								pContext_->setTexture( 0, (RsTexture*)Cmd->texture_id );
+								Context->setTexture( 0, (RsTexture*)Cmd->texture_id );
+								Context->setProgram( TexturedProgram_ );
 							}
 							else
 							{
-								pContext_->setProgram( DefaultProgram_ );
+								Context->setProgram( DefaultProgram_ );
 							}
-							pContext_->drawPrimitives( 
+							Context->drawPrimitives( 
 								RsTopologyType::TRIANGLE_LIST, 
 								VertexOffset, 
 								Cmd->vtx_count );
@@ -215,7 +215,7 @@ namespace
 						VertexOffset += Cmd->vtx_count;
 					}
 				}
-				pContext_->setViewport( Viewport_ );
+				Context->setViewport( Viewport_ );
 				RenderThreadFence_.decrement();
 			}	
 

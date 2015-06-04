@@ -438,15 +438,15 @@ public:
 		
 	}
 
-	virtual void render()
+	virtual void render( RsContext* Context )
 	{
 		// Iterate over textures and bind.
 		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
 		{
 			RsTexture* pTexture = ppTextures_[ Idx ];
 			RsSamplerState* pSamplerState = ppSamplerStates_[ Idx ];
-			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
-			pContext_->setSamplerState( TextureHandles_[ Idx ], pSamplerState );
+			Context->setTexture( TextureHandles_[ Idx ], pTexture );
+			Context->setSamplerState( TextureHandles_[ Idx ], pSamplerState );
 		}
 		
 		// Set uniform blocks.
@@ -454,14 +454,14 @@ public:
 		{
 			BcU32 Index = pUniformBlockIndices_[ Idx ];
 			RsBuffer* pUniformBuffer = ppUniformBuffers_[ Idx ];
-			pContext_->setUniformBuffer( Index, pUniformBuffer );
+			Context->setUniformBuffer( Index, pUniformBuffer );
 		}
 
 		// Setup state.
-		pContext_->setRenderState( RenderState_ );
+		Context->setRenderState( RenderState_ );
 
 		// Set program.
-		pContext_->setProgram( pProgram_ );
+		Context->setProgram( pProgram_ );
 	}
 	
 	// Texture binding block.

@@ -122,11 +122,11 @@ MaAABB ScnParticleSystemComponent::getAABB() const
 class ScnParticleSystemComponentRenderNode: public RsRenderNode
 {
 public:
-	void render()
+	void render( RsContext* Context )
 	{
-		pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnParticleVertex ) );
-		pContext_->setVertexDeclaration( VertexDeclaration_ );
-		pContext_->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofIndices_ );
+		Context->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnParticleVertex ) );
+		Context->setVertexDeclaration( VertexDeclaration_ );
+		Context->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofIndices_ );
 	}
 	
 	RsBuffer* VertexBuffer_;

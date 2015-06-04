@@ -780,13 +780,13 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 class ScnModelComponentRenderNode: public RsRenderNode
 {
 public:
-	void render()
+	void render( RsContext* Context )
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
-		pContext_->setIndexBuffer( IndexBuffer_ );
-		pContext_->setVertexBuffer( 0, VertexBuffer_, VertexStride_ );
-		pContext_->setVertexDeclaration( VertexDeclaration_ );
-		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
+		Context->setIndexBuffer( IndexBuffer_ );
+		Context->setVertexBuffer( 0, VertexBuffer_, VertexStride_ );
+		Context->setVertexDeclaration( VertexDeclaration_ );
+		Context->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
 	}
 
 	RsTopologyType Type_;

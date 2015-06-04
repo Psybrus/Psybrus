@@ -93,7 +93,7 @@ void RsFrame::render()
 		for( BcU32 i = 0; i < CurrNode_; ++i )
 		{
 			RsRenderNode* pRenderNode = ppNodeArray_[ i ];
-			pRenderNode->render();
+			pRenderNode->render( pContext_ );
 			pRenderNode->~RsRenderNode();
 		}
 
@@ -111,9 +111,6 @@ void RsFrame::addRenderNode( RsRenderNode* pNode )
 {
 	ppNodeArray_[ CurrNode_++ ] = pNode;
 	
-	// Set the context for the node.
-	pNode->pContext_ = pContext_;
-
 	// Set the sort value for the node.
 	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( 0, 0 );
 }
