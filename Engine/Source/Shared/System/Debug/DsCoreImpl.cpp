@@ -133,7 +133,7 @@ void DsCoreImpl::open()
 		[ this ]( EvtID, const EvtBaseEvent& BaseEvent )
 	{
 		const auto& Event = BaseEvent.get< OsEventInputKeyboard >();
-		if ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F12 )
+		if ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F11 )
 		{
 			DrawPanels_ = !DrawPanels_;
 		}
