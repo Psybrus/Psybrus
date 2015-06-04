@@ -53,18 +53,18 @@ public:
 public:
 	enum
 	{
-		ENTRY_RESERVE_COUNT = 1024								// How many entries to reserve ahead of time to save reallocation.
+		ENTRY_RESERVE_COUNT = 4096					// How many entries to reserve ahead of time to save reallocation.
 	};
 
 public:
-	BcName();													// Constructs invalid name.
+	BcName();										// Constructs invalid name.
 	BcName( BcU32 ID );								// Stores as a packed ID. Should be marked up.
-	BcName( const std::string& String );				// Constructs name, autoassigns ID.
-	BcName( const std::string& String, BcU32 ID );		// Constructs name, manual ID assignment. BcErrorCode means no ID.
-	BcName( const BcChar* pString );					// Constructs name, autoassigns ID.
-	BcName( const BcChar* pString, BcU32 ID );			// Constructs name, manual ID assignment. BcErrorCode means no ID.
-	BcName( const BcName& Other );								// Copy name.
-	BcName& operator = ( const BcName& Other );					// Assign name.
+	BcName( const std::string& String );			// Constructs name, autoassigns ID.
+	BcName( const std::string& String, BcU32 ID );	// Constructs name, manual ID assignment. BcErrorCode means no ID.
+	BcName( const BcChar* pString );				// Constructs name, autoassigns ID.
+	BcName( const BcChar* pString, BcU32 ID );		// Constructs name, manual ID assignment. BcErrorCode means no ID.
+	BcName( const BcName& Other );					// Copy name.
+	BcName& operator = ( const BcName& Other );		// Assign name.
 
 	/**
 	 * Convert into string.

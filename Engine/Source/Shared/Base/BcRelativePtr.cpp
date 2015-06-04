@@ -16,19 +16,34 @@ void BcRelativePtr_UnitTest()
 
 		BcU8 FailU8;
 		BcRelativePtrU8< BcU8 > FailPtrU8;
+#if PLATFORM_WINDOWS
+		BcU8 FailU8Max[ 255 + 1 ];
+#else
 		BcU8 FailU8Max[ std::numeric_limits< BcU8 >::max() + 1 ];
+#endif
 
 		BcU8 FailU16;
 		BcRelativePtrU16< BcU8 > FailPtrU16;
+#if PLATFORM_WINDOWS
+		BcU8 FailU16Max[ 65535 + 1 ];
+#else
 		BcU8 FailU16Max[ std::numeric_limits< BcU16 >::max() + 1 ];
-
+#endif
 		BcU8 FailU32;
 		BcRelativePtrU32< BcU8 > FailPtrU32;
 
+#if PLATFORM_WINDOWS
+		BcU8 FailS8[ 128 + 1 ];
+#else
 		BcU8 FailS8[ -std::numeric_limits< BcS8 >::min() + 1 ];
+#endif
 		BcRelativePtrS8< BcU8 > FailPtrS8;
 
+#if PLATFORM_WINDOWS
+		BcU8 FailS16[ 32768 + 1 ];
+#else
 		BcU8 FailS16[ -std::numeric_limits< BcS16 >::min() + 1 ];
+#endif
 		BcRelativePtrS16< BcU8 > FailPtrS16;
 
 	} Ptrs;

@@ -284,7 +284,8 @@ function PsyProjectExternalLib( _name, _lang )
 	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
-	configuration "*"
+	-- Only optimise linux builds, this changes runtime on windows.
+	configuration "linux-*"
 		kind "StaticLib"
 		flags { "Optimize" }
 

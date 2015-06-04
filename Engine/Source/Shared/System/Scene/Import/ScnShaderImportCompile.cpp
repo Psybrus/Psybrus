@@ -71,7 +71,7 @@ namespace
 
 		HRESULT __stdcall Close(LPCVOID pData)
 		{
-			BcMemFree( (void*)pData );
+			delete [] (BcU8*)pData;
 			return S_OK;
 		}
 
