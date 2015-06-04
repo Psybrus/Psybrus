@@ -9,6 +9,7 @@ PsyProjectEngineLib( "System_Debug" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
+      "../../External/RakNet/Source",
       "../../External/rapidxml/",
       BOOST_INCLUDE_PATH,
     }
@@ -21,6 +22,7 @@ PsyProjectEngineLib( "System_Debug" )
     PsyAddExternalLinks {
       "jsoncpp",
       "libb64",
+	  "raknet", 
  		}
 
   configuration { "windows or linux-gcc or linux-clang" }
