@@ -157,7 +157,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 	
 	if( pParent_ != NULL )
 	{
-		ShouldPublish = pParent_->publishInternal( ID, EventBase );
+		ShouldPublish = pParent_->publishInternal( ID, EventBase, AllowProxy );
 	}
 
 	// Only publish if the previous call to our parent allows us to.

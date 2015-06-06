@@ -17,6 +17,7 @@
 #include "Base/BcHash.h"
 
 #include <functional>
+#include <type_traits>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Typedefs
@@ -102,6 +103,8 @@ public:
 	template< typename _Ty >
 	inline const _Ty& get() const
 	{
+		static_assert( std::is_trivially_copyable< _Ty >::value, "Event type not trivially copyable." );
+		static_assert( std::is_trivially_destructible< _Ty >::value, "Event type not trivially destructible." );
 		BcAssertMsg( _Ty::StaticEventTypeHash() == EventTypeHash_, "Event type mismatch." );
 		BcAssertMsg( sizeof( _Ty ) == EventSize_, "Event size mismatch." );
 		return *reinterpret_cast< const _Ty* >( this );
