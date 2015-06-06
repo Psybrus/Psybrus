@@ -20,6 +20,7 @@
 
 #include <list>
 #include <map>
+#include <deque>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,12 +46,12 @@ public:
 	/**
 	 * Subscribe to an event.
 	 */
-	void subscribe( EvtID ID, EvtBinding::BaseSignature Function );	
+	void subscribe( EvtID ID, EvtBinding::BaseSignature Function, bool Front = false );	
 
 	/**
 	 * Subscribe to an event.
 	 */
-	void subscribe( EvtID ID, void* Owner, EvtBinding::BaseFunction Function );	
+	void subscribe( EvtID ID, void* Owner, EvtBinding::BaseFunction Function, bool Front = false );	
 
 	/**
 	 * Unsubscribe from an event using owner pointer.
@@ -117,7 +118,7 @@ private:
 	typedef std::map< EvtID, TBindingList >		TBindingListMap;
 	typedef TBindingListMap::iterator			TBindingListMapIterator;	
 	typedef std::pair< EvtID, EvtBinding >		TBindingPair;
-	typedef std::vector< TBindingPair >			TBindingPairList;
+	typedef std::deque< TBindingPair >			TBindingPairList;
 	typedef TBindingPairList::iterator			TBindingPairListIterator;
 	typedef std::pair< EvtID, void* >			TOwnerPair;
 	typedef std::vector< TOwnerPair >			TOwnerPairList;

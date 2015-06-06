@@ -40,16 +40,30 @@ BcBool EvtPublisher::publish( EvtID ID, const EvtBaseEvent& EventBase, BcBool Al
 
 ////////////////////////////////////////////////////////////////////////////////
 // subscribe
-void EvtPublisher::subscribe( EvtID ID, EvtBinding::BaseSignature Function )
+void EvtPublisher::subscribe( EvtID ID, EvtBinding::BaseSignature Function, bool Front )
 {
-	SubscribeList_.push_back( TBindingPair( ID, EvtBinding( (void*)Function, Function ) ) );
+	if( Front )
+	{
+		SubscribeList_.push_front( TBindingPair( ID, EvtBinding( (void*)Function, Function ) ) );
+	}
+	else
+	{
+		SubscribeList_.push_back( TBindingPair( ID, EvtBinding( (void*)Function, Function ) ) );
+	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // subscribe
-void EvtPublisher::subscribe( EvtID ID, void* Owner, EvtBinding::BaseFunction Function )
+void EvtPublisher::subscribe( EvtID ID, void* Owner, EvtBinding::BaseFunction Function, bool Front )
 {
-	SubscribeList_.push_back( TBindingPair( ID, EvtBinding( Owner, Function ) ) );
+	if( Front )
+	{
+		SubscribeList_.push_front( TBindingPair( ID, EvtBinding( Owner, Function ) ) );
+	}
+	else
+	{
+		SubscribeList_.push_back( TBindingPair( ID, EvtBinding( Owner, Function ) ) );
+	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
