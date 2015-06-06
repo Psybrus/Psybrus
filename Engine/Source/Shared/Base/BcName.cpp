@@ -70,24 +70,6 @@ BcName::BcName( const BcChar* pString, BcU32 ID )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Copy Ctor
-BcName::BcName( const BcName& Other )
-{
-	EntryIndex_ = Other.EntryIndex_;
-	ID_ = Other.ID_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// operator =
-BcName& BcName::operator = ( const BcName& Other )
-{
-	EntryIndex_ = Other.EntryIndex_;
-	ID_ = Other.ID_;
-
-	return (*this);
-}
-
-//////////////////////////////////////////////////////////////////////////
 // Convert into string
 std::string BcName::operator * () const
 {

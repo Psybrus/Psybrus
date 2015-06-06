@@ -63,8 +63,8 @@ public:
 	BcName( const std::string& String, BcU32 ID );	// Constructs name, manual ID assignment. BcErrorCode means no ID.
 	BcName( const BcChar* pString );				// Constructs name, autoassigns ID.
 	BcName( const BcChar* pString, BcU32 ID );		// Constructs name, manual ID assignment. BcErrorCode means no ID.
-	BcName( const BcName& Other );					// Copy name.
-	BcName& operator = ( const BcName& Other );		// Assign name.
+	BcName( const BcName& Other ) = default;
+	BcName& operator = ( const BcName& Other ) = default;
 
 	/**
 	 * Convert into string.
