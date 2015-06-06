@@ -245,6 +245,8 @@ void ScnMaterialComponent::initialise()
 	PermutationFlags_ = PermutationFlags_ | ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::PASS_MAIN;
 	if( Material_ && pProgram_ == nullptr )
 	{
+		BcAssert( Material_->isReady() );
+		BcAssert( Material_->Shader_->isReady() );
 		pProgram_ = Material_->Shader_->getProgram( PermutationFlags_ );
 		BcAssert( pProgram_ != nullptr );
 		

@@ -438,7 +438,9 @@ ImgImageList ScnTextureImport::loadImages( std::vector< std::string > Sources )
 		CsResourceImporter::addDependency( FileName.c_str() );
 
 		// Load image.
-		Images.push_back( Img::load( FileName.c_str() ) );
+		auto Image = Img::load( FileName.c_str() );
+		BcAssert( Image.get() );
+		Images.emplace_back( std::move( Image ) );
 	}
 
 	return Images;

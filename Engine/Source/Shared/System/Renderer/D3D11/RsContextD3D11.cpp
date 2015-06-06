@@ -503,7 +503,7 @@ void RsContextD3D11::create()
 	FeatureLevel_ = D3D_FEATURE_LEVEL_11_0;
 	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
 		Adapter_,
-		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
 		D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
 		nullptr,
