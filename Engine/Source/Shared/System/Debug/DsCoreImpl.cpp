@@ -84,6 +84,11 @@ void DsCoreImpl::open()
 	}
 #endif
 	std::vector<std::string> bindAddresses = GetIPAddresses();
+	if( std::find( bindAddresses.begin(), bindAddresses.end(), "127.0.0.1" ) == bindAddresses.end() )
+	{
+		bindAddresses.push_back( "127.0.0.1" );
+	}
+
 	for ( int i = 0; i < bindAddresses.size(); ++i )
 	{
 		memset( &config, 0, sizeof config );
@@ -107,6 +112,7 @@ void DsCoreImpl::open()
 		{
 			PSY_LOG( "Failed to initialise Webby server" );
 			fprintf( stderr, "failed to init server\n" );
+			continue;
 		}
 		Servers_.push_back( TempServer_ );
 		ServerMemory_.push_back( TempMemory );
