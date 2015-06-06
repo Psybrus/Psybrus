@@ -141,6 +141,9 @@ void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 #if SCNENTITY_USES_EVTPUBLISHER
 	// Setup buffered event proxy.
 	pEventProxy_ = new EvtProxyBuffered( this );	
+
+	// Setup publisher parent.
+	EvtPublisher::setParent( Parent );
 #endif
 
 	Super::onAttach( Parent );
@@ -151,6 +154,9 @@ void ScnEntity::onAttach( ScnEntityWeakRef Parent )
 void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 {
 #if SCNENTITY_USES_EVTPUBLISHER
+	// Clear parent.
+	EvtPublisher::clearParent();
+
 	// Free event proxy.
 	delete pEventProxy_;
 	pEventProxy_ = nullptr;
