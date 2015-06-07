@@ -640,7 +640,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
 	//       to the scene. Will not sort by transparency or anything either.
-	//std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasComponentPrimitiveSectionCompare() );
+	std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasComponentPrimitiveSectionCompare() );
 	
 	// Cache last material instance.
 	ScnMaterialComponent* pLastMaterialComponent = NULL;

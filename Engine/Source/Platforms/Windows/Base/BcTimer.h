@@ -22,6 +22,8 @@
 class BcTimer
 {
 public:
+	BcTimer();
+
 	/**
 	*	Mark point of reference.
 	*/
