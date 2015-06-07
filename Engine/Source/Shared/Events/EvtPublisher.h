@@ -113,7 +113,7 @@ private:
 	friend class EvtProxy;
 	friend class EvtBridge;
 
-	typedef std::vector< EvtBinding >			TBindingList;
+	typedef std::deque< EvtBinding >			TBindingList;
 	typedef TBindingList::iterator				TBindingListIterator;
 	typedef std::map< EvtID, TBindingList >		TBindingListMap;
 	typedef TBindingListMap::iterator			TBindingListMapIterator;	

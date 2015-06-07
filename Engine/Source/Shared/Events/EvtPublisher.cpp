@@ -234,7 +234,7 @@ void EvtPublisher::subscribeInternal( EvtID ID, const EvtBinding& Binding )
 	
 	// Append binding to list.
 	TBindingList& BindingList = BindingListMapIterator->second;
-	BindingList.push_back( Binding );
+	BindingList.push_front( Binding );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
