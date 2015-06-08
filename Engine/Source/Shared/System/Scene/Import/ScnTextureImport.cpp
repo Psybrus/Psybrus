@@ -16,7 +16,6 @@
 #if PSY_IMPORT_PIPELINE
 
 #include "System/Scene/Rendering/ScnTextureFileData.h"
-#include "System/Scene/Rendering/ScnTextureAtlasFileData.h"
 
 #include "System/Renderer/RsTypes.h"
 
@@ -192,6 +191,10 @@ BcBool ScnTextureImport::import(
 	ClearColour.B_ = BcU8( BcClamp( BcU32( ClearColour_.b() * 255.0f ), 0, 255 ) );
 	ClearColour.A_ = BcU8( BcClamp( BcU32( ClearColour_.a() * 255.0f ), 0, 255 ) );
 	BcU32 SpreadDouble = Spread_ * 2;
+
+	BcStream AtlasHeaderStream;
+	BcStream AtlasRectsStream;
+
 	if( Source_.size() > 0 )
 	{
 		// Load all source images.
@@ -246,9 +249,6 @@ BcBool ScnTextureImport::import(
 		// If we have images, generate an atlas and export.
 		if( ImageList.size() > 1 )
 		{					
-			BcStream AtlasHeaderStream;
-			BcStream AtlasRectsStream;
-
 			// Create an atlas of all source textures..
 			ImgRectList RectList;
 			ImgImageUPtr AtlasImage = ImgImage::generateAtlas( ImageList, RectList, 64, 64, ClearColour );
@@ -279,9 +279,25 @@ BcBool ScnTextureImport::import(
 			
 			ImageList.clear();
 			ImageList.push_back( std::move( AtlasImage ) );
+		}
+		else
+		{
+			// Setup header.
+			ScnTextureAtlasHeader Header = 
+			{
+				1
+			};
 
-			CsResourceImporter::addChunk( BcHash( "atlasheader" ), AtlasHeaderStream.pData(), AtlasHeaderStream.dataSize() );
-			CsResourceImporter::addChunk( BcHash( "atlasrects" ), AtlasRectsStream.pData(), AtlasRectsStream.dataSize() );
+			AtlasHeaderStream << Header;
+
+			ScnTextureAtlasRect OutRect = 
+			{
+				{
+					0.0f, 0.0f, 1.0f, 1.0f
+				}
+			};
+			
+			AtlasRectsStream << OutRect;
 		}
 
 		// Should only have 1 image at this point.
@@ -388,6 +404,8 @@ BcBool ScnTextureImport::import(
 		BcAssert( BodyStream.dataSize() > 0 );
 
 		// Add chunks.
+		CsResourceImporter::addChunk( BcHash( "atlasheader" ), AtlasHeaderStream.pData(), AtlasHeaderStream.dataSize(), 16, csPCF_IN_PLACE );
+		CsResourceImporter::addChunk( BcHash( "atlasrects" ), AtlasRectsStream.pData(), AtlasRectsStream.dataSize() );
 		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize(), 16, csPCF_IN_PLACE );
 		CsResourceImporter::addChunk( BcHash( "body" ), BodyStream.pData(), BodyStream.dataSize() );
 

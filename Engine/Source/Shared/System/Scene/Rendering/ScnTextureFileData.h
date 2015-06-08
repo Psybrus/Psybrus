@@ -14,7 +14,7 @@
 #ifndef __SCNTEXTUREFILEDATA__
 #define __SCNTEXTUREFILEDATA__
 
-#include "System/Renderer/RsTypes.h"
+#include "System/Scene/ScnTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTextureHeader
@@ -29,6 +29,20 @@ struct ScnTextureHeader
 	BcBool Editable_;
 	BcBool RenderTarget_;
 	BcBool DepthStencilTarget_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnTextureAtlasHeader
+struct ScnTextureAtlasHeader
+{
+	BcU32 NoofTextures_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnTextureAtlasRect
+struct ScnTextureAtlasRect
+{
+	ScnRect	Rect_;
 };
 
 #endif

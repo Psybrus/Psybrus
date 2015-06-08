@@ -231,13 +231,7 @@ BcU32 ScnTexture::getHeight() const
 //virtual
 const ScnRect& ScnTexture::getRect( BcU32 Idx ) const
 {
-	static ScnRect Rect = 
-	{
-		0.0f, 0.0f,
-		1.0f, 1.0f
-	};
-	
-	return Rect;
+	return AtlasRects_[ Idx ].Rect_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -245,7 +239,7 @@ const ScnRect& ScnTexture::getRect( BcU32 Idx ) const
 //virtual
 BcU32 ScnTexture::noofRects() const
 {
-	return 1;
+	return AtlasHeader_.NoofTextures_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -377,7 +371,7 @@ void ScnTexture::recreate()
 void ScnTexture::fileReady()
 {
 	// File is ready, get the header chunk.
-	requestChunk( 0, &Header_ );
+	requestChunk( 0, &AtlasHeader_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -391,16 +385,18 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		return;
 	}
 
+	if( ChunkID == BcHash( "atlasheader" ) )
+	{
+		requestChunk( ++ChunkIdx );
+	}
+	else if( ChunkID == BcHash( "atlasrects" ) )
+	{
+		AtlasRects_ = (ScnTextureAtlasRect*)pData;
+		
+		requestChunk( ++ChunkIdx, &Header_ );
+	}
 	if( ChunkID == BcHash( "header" ) )
-	{		
-		/*
-		// Request all texture levels.
-		for( BcU32 iLevel = 0; iLevel < Header_.Levels_; ++iLevel )
-		{
-			requestChunk( ++ChunkIdx );
-		}
-		*/
-
+	{
 		if( Header_.Editable_ == BcFalse &&
 			Header_.RenderTarget_ == BcFalse &&
 			Header_.DepthStencilTarget_ == BcFalse )

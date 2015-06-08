@@ -66,11 +66,12 @@ protected:
 	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
 
 protected:
-	RsTexture* pTexture_;
-	
 	ScnTextureHeader Header_;
+	ScnTextureAtlasHeader AtlasHeader_;	
+	ScnTextureAtlasRect* AtlasRects_;
 	void* pTextureData_;
 
+	RsTexture* pTexture_;
 	BcU32 Width_;
 	BcU32 Height_;
 	BcU32 Depth_;

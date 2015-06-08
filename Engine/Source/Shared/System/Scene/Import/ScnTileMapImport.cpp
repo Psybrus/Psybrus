@@ -323,7 +323,7 @@ void ScnTileMapImport::parseImage(
 				// Create texture importer.
 				auto TextureImporter = CsResourceImporterUPtr(
 					new ScnTextureImport( 
-						TexSourcePath.string(), "ScnTextureAtlas",
+						TexSourcePath.string(), "ScnTexture",
 						TexSourcePath.string(), RsTextureFormat::R8G8B8A8,
 						TileSet->TileWidth_,
 						TileSet->TileHeight_ ) );
