@@ -892,8 +892,8 @@ MaVec2d ScnFontComponent::drawText(
 	ScnFontUniformBlockData FontUniformData = FontUniformData_;
 
 	// Add custom render command to canvas to update the uniform buffer correctly.
-	UploadFence_.increment();
 	Canvas->setMaterialComponent( MaterialComponent_ );
+	UploadFence_.increment();
 	Canvas->addCustomRender(
 		[ this, FontUniformData ]( RsContext* Context )
 		{
@@ -1234,7 +1234,20 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	UploadFence_.wait();
+	BcTimer FenceTimer_;
+	FenceTimer_.mark();
+	while( UploadFence_.count() > 0 )
+	{
+		if( FenceTimer_.time() > 1.0f )
+		{
+			// fuck it. hack. This is down to canvas not calling custom draw.
+			while( UploadFence_.count() > 0 )
+			{
+				UploadFence_.decrement();
+			}
+			break;
+		}
+	}
 
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
