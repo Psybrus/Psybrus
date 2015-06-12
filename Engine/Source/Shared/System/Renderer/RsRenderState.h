@@ -34,7 +34,7 @@ struct RsRenderTargetBlendState
 	RsBlendType SrcBlendAlpha_;
 	RsBlendType DestBlendAlpha_;
 	RsBlendOp BlendOpAlpha_;
-	BcU8 WriteMask_;
+	BcU32 WriteMask_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ struct RsStencilFaceState
 	RsStencilOp DepthFail_;
 	RsStencilOp Pass_;
 	RsCompareMode Func_;
-	BcU8 Mask_;
+	BcU32 Mask_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,15 +71,16 @@ struct RsDepthStencilState
 	RsDepthStencilState( ReNoInit );
 	RsDepthStencilState();
 
+	RsStencilFaceState StencilFront_;
+	RsStencilFaceState StencilBack_;
 	BcBool DepthTestEnable_;
 	BcBool DepthWriteEnable_;
 	RsCompareMode DepthFunc_;
 	BcBool StencilEnable_;
+	BcU32 StencilRef_;
 	BcU8 StencilRead_;
 	BcU8 StencilWrite_;
-	BcU32 StencilRef_;
-	RsStencilFaceState StencilFront_;
-	RsStencilFaceState StencilBack_;
+	BcU16 Padding_;
 };
 
 //////////////////////////////////////////////////////////////////////////
