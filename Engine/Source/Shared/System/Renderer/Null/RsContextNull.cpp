@@ -102,7 +102,7 @@ void RsContextNull::takeScreenshot()
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-void RsContextNull::setViewport( class RsViewport& )
+void RsContextNull::setViewport( const class RsViewport& )
 {
 }
 

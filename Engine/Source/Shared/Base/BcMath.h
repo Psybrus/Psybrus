@@ -17,7 +17,11 @@
 #include "Base/BcDebug.h"
 #include "Base/BcTypes.h"
 
-#include <math.h>
+#include <cmath>
+
+// cmath will define this. We say no.
+#undef DOMAIN
+#define DOMAIN DOMAIN
 
 //////////////////////////////////////////////////////////////////////////
 // Some undefining from math.h

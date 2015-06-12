@@ -25,7 +25,6 @@ class RsViewport
 public:
 	RsViewport();
 	RsViewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear = 1.0f, BcF32 ZFar = 1024.0f );
-	~RsViewport();
 
 	//
 	void viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear = 1.0f, BcF32 ZFar = 1024.0f );

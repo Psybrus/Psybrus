@@ -135,12 +135,21 @@ namespace
 		UniformBlock_.ViewTransform_.inverse();
 		UniformBlock_.ClipTransform_ = UniformBlock_.ViewTransform_ * UniformBlock_.ProjectionTransform_;
 
-		// Queue up draw on frame.
-		class ImGuiRenderNode: public RsRenderNode
-		{
-		public:
-			void render( RsContext* Context ) override
+		RsRenderSort Sort;
+		Sort.Value_ = 0;
+		Sort.Pass_ = RS_SORT_PASS_OVERLAY;		
+		Sort.Viewport_ = RS_SORT_VIEWPORT_MAX;
+		Sort.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
+		Sort.NodeType_ = RS_SORT_NODETYPE_MAX;
+
+		RenderThreadFence_.increment();
+
+		auto Width = IO.DisplaySize.x;
+		auto Height = IO.DisplaySize.y;
+		auto DrawLambda = [ CmdLists, CmdListsCount, Width, Height ]( RsContext* Context )
 			{
+				RsViewport Viewport( 0, 0, Width, Height );
+
 				// Update constant buffr.
 				Context->updateBuffer( 
 					UniformBuffer_.get(), 0, sizeof( UniformBlock_ ), 
@@ -154,13 +163,13 @@ namespace
 				Context->updateBuffer( 
 					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
 					RsResourceUpdateFlags::NONE,
-					[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					[ CmdLists, CmdListsCount ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
 						ImDrawVert* Vertices = reinterpret_cast< ImDrawVert* >( Lock.Buffer_ );
 						BcU32 NoofVertices = 0;
-						for ( int CmdListIdx = 0; CmdListIdx < CmdListsCount_; ++CmdListIdx )
+						for ( int CmdListIdx = 0; CmdListIdx < CmdListsCount; ++CmdListIdx )
 						{
-							const ImDrawList* CmdList = CmdLists_[ CmdListIdx ];
+							const ImDrawList* CmdList = CmdLists[ CmdListIdx ];
 							memcpy( Vertices, &CmdList->vtx_buffer[0], CmdList->vtx_buffer.size() * sizeof( ImDrawVert ) );
 							Vertices += CmdList->vtx_buffer.size();
 							NoofVertices += CmdList->vtx_buffer.size();
@@ -169,7 +178,7 @@ namespace
 					} );
 
 				Context->setFrameBuffer( nullptr );
-				Context->setViewport( Viewport_ );
+				Context->setViewport( Viewport );
 				Context->setSamplerState( 0, FontSampler_.get() );
 				Context->setVertexDeclaration( VertexDeclaration_.get() );
 				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
@@ -180,9 +189,9 @@ namespace
 
 
  				BcU32 VertexOffset = 0;
-				for( int CmdListIdx = 0; CmdListIdx < CmdListsCount_; ++CmdListIdx )
+				for( int CmdListIdx = 0; CmdListIdx < CmdListsCount; ++CmdListIdx )
 				{
-					const ImDrawList* CmdList = CmdLists_[ CmdListIdx ];
+					const ImDrawList* CmdList = CmdLists[ CmdListIdx ];
 
 					for( size_t CmdIdx = 0; CmdIdx < CmdList->commands.size(); ++CmdIdx )
 					{
@@ -215,32 +224,12 @@ namespace
 						VertexOffset += Cmd->vtx_count;
 					}
 				}
-				Context->setViewport( Viewport_ );
+				Context->setViewport( Viewport );
 				RenderThreadFence_.decrement();
-			}	
+			};
 
-			RsViewport Viewport_;
-			ImDrawList** CmdLists_;
-			int CmdListsCount_;
-		};
+		DrawFrame_->queueRenderNode( Sort, DrawLambda );
 
-		// TODO: Copy draw lists into command to allow us to not block.
-		auto RenderNode = DrawFrame_->newObject< ImGuiRenderNode >();
-		RenderNode->Sort_.Value_ = 0;
-		RenderNode->Sort_.Pass_ = RS_SORT_PASS_OVERLAY;		
-		RenderNode->Sort_.Viewport_ = RS_SORT_VIEWPORT_MAX;
-		RenderNode->Sort_.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
-		RenderNode->Sort_.NodeType_ = RS_SORT_NODETYPE_MAX;
-		RenderNode->CmdLists_ = CmdLists;
-		RenderNode->CmdListsCount_ = CmdListsCount;
-		RenderNode->Viewport_ = 
-			RsViewport( 0, 0, IO.DisplaySize.x, IO.DisplaySize.y );
-
-		BcAssert( RenderNode->Viewport_.width() > 0 );
-		BcAssert( RenderNode->Viewport_.height() > 0 );
-		
-		RenderThreadFence_.increment();
-		DrawFrame_->addRenderNode( RenderNode );
 	}
 	
 	/**

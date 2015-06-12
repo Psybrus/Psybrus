@@ -952,7 +952,7 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-void RsContextD3D11::setViewport( class RsViewport& Viewport )
+void RsContextD3D11::setViewport( const class RsViewport& Viewport )
 {
 	D3D11_VIEWPORT D3DViewport;
 	D3DViewport.Width = (FLOAT)Viewport.width();

@@ -356,15 +356,20 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 
 	// Setup render node to set the frame buffer, viewport, and clear colour.
 	// TODO: Pass this in with the draw commands down the line.
-	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
-	pRenderNode->Sort_ = Sort;
-	pRenderNode->FrameBuffer_ = FrameBuffer_.get();
-	pRenderNode->Viewport_ = Viewport_;
-	pRenderNode->ClearColour_ = ClearColour_;
-	pRenderNode->EnableClearColour_ = EnableClearColour_;
-	pRenderNode->EnableClearDepth_ = EnableClearDepth_;
-	pRenderNode->EnableClearStencil_ = EnableClearStencil_;
-	pFrame->addRenderNode( pRenderNode );
+	auto FrameBuffer = FrameBuffer_.get();
+	auto Viewport = Viewport_;
+	auto ClearColour = ClearColour_;
+	auto EnableClearColour = EnableClearColour_;
+	auto EnableClearDepth = EnableClearDepth_;
+	auto EnableClearStencil = EnableClearStencil_;
+	auto Lambda = [ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
+		{
+			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
+			Context->setFrameBuffer( FrameBuffer );
+			Context->setViewport( Viewport );
+			Context->clear( ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
+		};
+	pFrame->queueRenderNode( Sort, Lambda );
 }
 
 //////////////////////////////////////////////////////////////////////////

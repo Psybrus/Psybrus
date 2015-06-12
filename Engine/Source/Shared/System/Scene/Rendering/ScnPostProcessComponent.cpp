@@ -187,21 +187,22 @@ MaAABB ScnPostProcessComponent::getAABB() const
 void ScnPostProcessComponent::render(
 	class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
-	class ScnPostProcessComponentRenderNode: public RsRenderNode
-	{
-	public:
-		void render( RsContext* Context ) override
+	auto* InputFrameBuffer = pViewComponent->getFrameBuffer();
+	Sort.Pass_ = RS_SORT_PASS_POSTPROCESS;
+	RenderFence_.increment();
+	pFrame->queueRenderNode( Sort,
+		[ this, InputFrameBuffer ]( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );
 
 
-			auto InputTexture = Component_->Input_->getTexture();
-			auto OutputTexture = Component_->Output_->getTexture();
+			auto InputTexture = Input_->getTexture();
+			auto OutputTexture = Output_->getTexture();
 			if( OutputTexture != nullptr )
 			{
 				// Copy FB into usable texture.
 				// TODO: Determine if this step is required base on nodes.
-				Context->copyFrameBufferRenderTargetToTexture( InputFrameBuffer_, 0, InputTexture );
+				Context->copyFrameBufferRenderTargetToTexture( InputFrameBuffer, 0, InputTexture );
 
 				ScnShaderPermutationFlags Permutation = 
 					ScnShaderPermutationFlags::RENDER_POST_PROCESS |
@@ -210,11 +211,11 @@ void ScnPostProcessComponent::render(
 					ScnShaderPermutationFlags::LIGHTING_NONE;
 
 				// Iterate over nodes to process.
-				for( size_t NodeIdx = 0; NodeIdx < Component_->Nodes_.size(); ++NodeIdx )
+				for( size_t NodeIdx = 0; NodeIdx < Nodes_.size(); ++NodeIdx )
 				{
- 					auto& Node = Component_->Nodes_[ NodeIdx ];
- 					auto& FrameBuffer = Component_->FrameBuffers_[ NodeIdx ];
- 					auto& RenderState = Component_->RenderStates_[ NodeIdx ];
+ 					auto& Node = Nodes_[ NodeIdx ];
+ 					auto& FrameBuffer = FrameBuffers_[ NodeIdx ];
+ 					auto& RenderState = RenderStates_[ NodeIdx ];
 
  					// Bind program.
 					auto Program = Node.Shader_->getProgram( Permutation );
@@ -253,7 +254,7 @@ void ScnPostProcessComponent::render(
 						}
 					}
 
-					for( auto& InputSampler : Component_->SamplerStates_ )
+					for( auto& InputSampler : SamplerStates_ )
 					{
 						BcU32 Slot = Program->findSamplerSlot( InputSampler.first.c_str() );
 						if( Slot != BcErrorCode )
@@ -294,7 +295,7 @@ void ScnPostProcessComponent::render(
 					// Bind uniform buffers.
 					// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
 					for( auto& Uniforms : Node.Uniforms_ )
-					{
+				{
 						BcU32 Slot = Program->findUniformBufferSlot( Uniforms.Name_.c_str() );
 						if( Slot != BcErrorCode )
 						{
@@ -313,32 +314,18 @@ void ScnPostProcessComponent::render(
 					// Draw.
 					Context->setFrameBuffer( FrameBuffer.get() );
 					Context->setRenderState( RenderState.get() );
-					Context->setVertexDeclaration( Component_->VertexDeclaration_.get() );
-					Context->setVertexBuffer( 0, Component_->VertexBuffer_.get(), sizeof( ScnPostProcessVertex ) );
+					Context->setVertexDeclaration( VertexDeclaration_.get() );
+					Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnPostProcessVertex ) );
 					Context->drawPrimitives( RsTopologyType::TRIANGLE_STRIP, 0, 4 );
 				}
 
 				// Copy back to FB.
 				// TODO: Determine if this step is required based on nodes.
-				Context->copyTextureToFrameBufferRenderTarget( OutputTexture, InputFrameBuffer_, 0 );
+				Context->copyTextureToFrameBufferRenderTarget( OutputTexture, InputFrameBuffer, 0 );
 
-				Component_->RenderFence_.decrement();
+				RenderFence_.decrement();
 			}
-		}
-
-		RsFrameBuffer* InputFrameBuffer_;
-		ScnPostProcessComponent* Component_;
-	};
-
-	Sort.Pass_ = RS_SORT_PASS_POSTPROCESS;
-
-	auto RenderNode = pFrame->newObject< ScnPostProcessComponentRenderNode >();
-	RenderNode->Sort_ = Sort;
-	RenderNode->InputFrameBuffer_ = pViewComponent->getFrameBuffer();
-	RenderNode->Component_ = this;
-
-	RenderFence_.increment();
-	pFrame->addRenderNode( RenderNode );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////

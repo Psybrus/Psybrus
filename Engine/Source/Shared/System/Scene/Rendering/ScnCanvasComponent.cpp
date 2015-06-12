@@ -647,31 +647,38 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
-		auto* PrimitiveSection = &PrimitiveSectionList_[ Idx ];
-		ScnCanvasComponentRenderNode* pRenderNode = pFrame->newObject< ScnCanvasComponentRenderNode >();
-		
-		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
-		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
-		pRenderNode->VertexBuffer_ = RenderResource_.pVertexBuffer_;
-		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
-		
 		// Copy primitive sections in.
-		BcMemZero( pRenderNode->pPrimitiveSections_, sizeof( ScnCanvasComponentPrimitiveSection ) );
-		*pRenderNode->pPrimitiveSections_ = *PrimitiveSection;
+		auto* PrimitiveSection = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
+		BcMemZero( PrimitiveSection, sizeof( ScnCanvasComponentPrimitiveSection ) );
+		*PrimitiveSection = PrimitiveSectionList_[ Idx ];
 		
 		// Bind material.
 		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
 		//       if need be. If using multiple canvases we could potentially lose a material bind.
 		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
-			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
+			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
 			pLastMaterialComponent->bind( pFrame, Sort );
 		}
 		
 		// Add to frame.
-		//Sort.Layer_ = PrimitiveSection->Layer_;
-		pRenderNode->Sort_ = Sort;
-		pFrame->addRenderNode( pRenderNode );
+		auto Lambda = [ this, PrimitiveSection ]( RsContext* Context )
+			{
+				if( PrimitiveSection->RenderFunc_ != nullptr )
+				{
+					PrimitiveSection->RenderFunc_( Context );
+				}
+
+				if( PrimitiveSection->Type_ != RsTopologyType::INVALID )
+				{
+					Context->setVertexBuffer( 0, RenderResource_.pVertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
+					Context->setVertexDeclaration( VertexDeclaration_ );
+					Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
+				}
+
+				PrimitiveSection->~ScnCanvasComponentPrimitiveSection();
+			};
+		pFrame->queueRenderNode( Sort, Lambda );
 	}
 	
 	// Reset vertices.

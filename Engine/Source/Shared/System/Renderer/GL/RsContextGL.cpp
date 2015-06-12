@@ -2725,7 +2725,7 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-void RsContextGL::setViewport( class RsViewport& Viewport )
+void RsContextGL::setViewport( const class RsViewport& Viewport )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 

@@ -484,26 +484,18 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
-		ScnDebugRenderComponentRenderNode* pRenderNode = pFrame->newObject< ScnDebugRenderComponentRenderNode >();
-		
-		pRenderNode->NoofSections_ = 1;//PrimitiveSectionList_.size();
-		pRenderNode->pPrimitiveSections_ = pFrame->alloc< ScnDebugRenderComponentPrimitiveSection >( 1 );
-		pRenderNode->VertexBuffer_ = pRenderResource_->pVertexBuffer_;
-		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
-		
-		// Copy primitive sections in.
-		BcMemCopy( pRenderNode->pPrimitiveSections_, &PrimitiveSectionList_[ Idx ], sizeof( ScnDebugRenderComponentPrimitiveSection ) * 1 );
-		
+		auto* PrimitiveSection = &PrimitiveSectionList_[ Idx ];
+
 		// Bind material.
 		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
 		//       if need be. If using multiple canvases we could potentially lose a material bind.
 		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
-			pLastMaterialComponent = pRenderNode->pPrimitiveSections_->MaterialComponent_;
+			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
 
 			// Set model parameters on material.
 			pRenderResource_->ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
-			auto RenderResource = pRenderResource_;
+			auto* RenderResource = pRenderResource_;
 			RsCore::pImpl()->updateBuffer( 
 				pRenderResource_->UniformBuffer_,
 				0, sizeof( pRenderResource_->ObjectUniforms_ ),
@@ -520,8 +512,14 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 		}
 		
 		// Add to frame.
-		pRenderNode->Sort_ = Sort;
-		pFrame->addRenderNode( pRenderNode );
+		auto& RenderResource = *pRenderResource_;
+		auto Lambda = [ this, RenderResource, PrimitiveSection ]( RsContext* Context )
+			{
+				Context->setVertexBuffer( 0, RenderResource.pVertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
+				Context->setVertexDeclaration( VertexDeclaration_ );
+				Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
+			};
+		pFrame->queueRenderNode( Sort, Lambda );
 	}
 	
 	// Flip the render resource.
