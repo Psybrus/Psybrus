@@ -662,7 +662,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		}
 		
 		// Add to frame.
-		auto Lambda = [ this, PrimitiveSection ]( RsContext* Context )
+		pFrame->queueRenderNode( Sort,
+			[ this, PrimitiveSection ]( RsContext* Context )
 			{
 				if( PrimitiveSection->RenderFunc_ != nullptr )
 				{
@@ -677,8 +678,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 				}
 
 				PrimitiveSection->~ScnCanvasComponentPrimitiveSection();
-			};
-		pFrame->queueRenderNode( Sort, Lambda );
+			} );
 	}
 	
 	// Reset vertices.

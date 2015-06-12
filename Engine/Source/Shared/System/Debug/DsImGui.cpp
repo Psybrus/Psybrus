@@ -146,7 +146,8 @@ namespace
 
 		auto Width = IO.DisplaySize.x;
 		auto Height = IO.DisplaySize.y;
-		auto DrawLambda = [ CmdLists, CmdListsCount, Width, Height ]( RsContext* Context )
+		DrawFrame_->queueRenderNode( Sort,
+			[ CmdLists, CmdListsCount, Width, Height ]( RsContext* Context )
 			{
 				RsViewport Viewport( 0, 0, Width, Height );
 
@@ -226,10 +227,7 @@ namespace
 				}
 				Context->setViewport( Viewport );
 				RenderThreadFence_.decrement();
-			};
-
-		DrawFrame_->queueRenderNode( Sort, DrawLambda );
-
+			} );
 	}
 	
 	/**

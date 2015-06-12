@@ -362,14 +362,14 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	auto EnableClearColour = EnableClearColour_;
 	auto EnableClearDepth = EnableClearDepth_;
 	auto EnableClearStencil = EnableClearStencil_;
-	auto Lambda = [ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
+	pFrame->queueRenderNode( Sort,
+		[ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
 			Context->setFrameBuffer( FrameBuffer );
 			Context->setViewport( Viewport );
 			Context->clear( ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
-		};
-	pFrame->queueRenderNode( Sort, Lambda );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////

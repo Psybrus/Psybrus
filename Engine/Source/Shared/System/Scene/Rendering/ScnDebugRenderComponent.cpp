@@ -513,13 +513,13 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 		
 		// Add to frame.
 		auto& RenderResource = *pRenderResource_;
-		auto Lambda = [ this, RenderResource, PrimitiveSection ]( RsContext* Context )
+		pFrame->queueRenderNode( Sort,
+			[ this, RenderResource, PrimitiveSection ]( RsContext* Context )
 			{
 				Context->setVertexBuffer( 0, RenderResource.pVertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
 				Context->setVertexDeclaration( VertexDeclaration_ );
 				Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
-			};
-		pFrame->queueRenderNode( Sort, Lambda );
+			} );
 	}
 	
 	// Flip the render resource.

@@ -61,7 +61,7 @@ public:
 	 * @pre Callable is trivially destructible..
 	 */
 	template < typename _CallableType >
-	void queueRenderNode( RsRenderSort Sort, _CallableType Callable );
+	void queueRenderNode( RsRenderSort Sort, _CallableType&& Callable );
 
 	/**
 	 *	Allocate from instance memory.
@@ -100,7 +100,7 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // Inlines
 template < typename _CallableType >
-inline void RsFrame::queueRenderNode( RsRenderSort Sort, _CallableType Callable )
+inline void RsFrame::queueRenderNode( RsRenderSort Sort, _CallableType&& Callable )
 {
 	static_assert( std::is_trivially_copyable< _CallableType >::value, "Must be trivially copyable" );
 	static_assert( std::is_trivially_destructible< _CallableType >::value, "Must be trivially destructible" );
