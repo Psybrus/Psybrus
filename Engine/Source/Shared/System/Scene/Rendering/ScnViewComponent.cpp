@@ -11,6 +11,9 @@
 * 
 **************************************************************************/
 
+#include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewProcessor.h"
+
 #include "System/Renderer/RsCore.h"
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
@@ -18,7 +21,6 @@
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
 
-#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 
 #include "System/Scene/ScnComponentProcessor.h"
@@ -26,8 +28,6 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
-#include "System/Debug/DsImGui.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -64,12 +64,7 @@ void ScnViewComponent::StaticRegisterClass()
 	
 	using namespace std::placeholders;
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor(		{
-			ScnComponentProcessFuncEntry(
-				"Render Views",
-				ScnComponentPriority::VIEW_RENDER,
-				std::bind( &ScnViewComponent::renderViews, _1 ) ),
-		} ) );
+		.addAttribute( new ScnViewProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -402,44 +397,4 @@ void ScnViewComponent::recreateFrameBuffer()
 
 		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// renderViews
-//static
-void ScnViewComponent::renderViews( const ScnComponentList& Components )
-{
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnViewComponent::renderViews" ) );
-
-	// TODO: Have things register with RsCore to be rendered maybe?
-
-	// Get context.
-	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
-
-	// Allocate a frame to render using default context.
-	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-	RsRenderSort Sort( 0 );
-
-	// Iterate over all view components.
-	for( auto Component : Components )
-	{
-		BcAssert( Component->isTypeOf< ScnViewComponent >() );
-		auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
-
-		ViewComponent->bind( pFrame, Sort );
-
-		ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
-
-		// Increment viewport.
-		Sort.Viewport_++;
-	}
-
-	// TODO: Move completely to DsCore.
-	//       Probably depends on registration with RsCore.
-	// Render ImGui.
-	ImGui::Psybrus::Render( pContext, pFrame );
-
-	// Queue frame for render.
-	RsCore::pImpl()->queueFrame( pFrame );
 }

@@ -18,6 +18,7 @@
 
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
+
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
 #include "Psybrus.h"

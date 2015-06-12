@@ -68,8 +68,6 @@ public:
 private:
 	void recreateFrameBuffer();
 
-	static void renderViews( const ScnComponentList& Components );	
-
 private:
 	// Viewport. Values relative to the size of the client being rendered into.
 	BcF32 X_;
