@@ -4,6 +4,13 @@
 #include "System/Scene/ScnCoreCallback.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnViewRenderData
+struct ScnViewRenderData
+{
+	
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnViewProcessor
 class ScnViewProcessor:
 	public ScnComponentProcessor,
@@ -15,6 +22,9 @@ public:
 	ScnViewProcessor();
 	virtual ~ScnViewProcessor();
 
+	void initialise() override;
+	void shutdown() override;
+
 private:
 	void renderViews( const ScnComponentList& InComponents );
 
@@ -22,4 +32,8 @@ private:
 	void onAttachComponent( class ScnComponent* Component ) override;
 	void onDetachComponent( class ScnComponent* Component ) override;
 
+private:
+	std::set< class ScnRenderableComponent* > RenderableComponents_;
+
+	std::vector< class ScnRenderableComponent* > GatheredRenderableComponents_;
 };

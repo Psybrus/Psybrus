@@ -1,5 +1,7 @@
 #include "System/Scene/Rendering/ScnViewProcessor.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnRenderableComponent.h"
+#include "System/Scene/ScnCore.h"
 
 #include "Base/BcProfiler.h"
 
@@ -13,13 +15,13 @@ REFLECTION_DEFINE_DERIVED( ScnViewProcessor );
 
 void ScnViewProcessor::StaticRegisterClass()
 {
-#if 0
 	ReField* Fields[] = 
 	{
+		new ReField( "RenderableComponents_", &ScnViewProcessor::RenderableComponents_, bcRFF_TRANSIENT ),
+		new ReField( "GatheredRenderableComponents_", &ScnViewProcessor::GatheredRenderableComponents_, bcRFF_TRANSIENT )
 	};
-#endif
 
-	ReRegisterClass< ScnViewProcessor, Super >();
+	ReRegisterClass< ScnViewProcessor, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,6 +47,20 @@ ScnViewProcessor::~ScnViewProcessor()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnViewProcessor::initialise()
+{
+	ScnCore::pImpl()->addCallback( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shutdown
+void ScnViewProcessor::shutdown()
+{
+	ScnCore::pImpl()->removeCallback( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // renderViews
 void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 {
@@ -62,10 +78,12 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 	}
 
 	// Allocate a frame to render using default context.
-	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+	RsFrame* Frame = RsCore::pImpl()->allocateFrame( pContext );
 
 	RsRenderSort Sort( 0 );
 
+	// Old path with frustum culling.
+#if 0
 	// Iterate over all view components.
 	for( auto InComponent : InComponents )
 	{
@@ -79,14 +97,51 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 		// Increment viewport.
 		Sort.Viewport_++;
 	}
+#else
+	// New path, naive no culling (yet).
+
+	// Iterate over all view components.
+	for( auto InComponent : InComponents )
+	{
+		BcAssert( InComponent->isTypeOf< ScnViewComponent >() );
+		auto* ViewComponent = static_cast< ScnViewComponent* >( InComponent.get() );
+
+		// Bind view.
+		ViewComponent->bind( Frame, Sort );
+
+		// Gather renderable components.
+		GatheredRenderableComponents_.clear();
+		for( auto RenderableComponent : RenderableComponents_ )
+		{
+			if( ViewComponent->getRenderMask() & RenderableComponent->getRenderMask() )
+			{
+				if( RenderableComponent->isReady() )
+				{
+					GatheredRenderableComponents_.push_back( RenderableComponent );
+				}
+			}
+		}
+		
+		// Render.
+		for( auto RenderableComponent : GatheredRenderableComponents_ )
+		{
+			RenderableComponent->render( ViewComponent, Frame, Sort );
+		}
+
+		// Increment viewport.
+		Sort.Viewport_++;
+	}
+
+
+#endif
 
 	// TODO: Move completely to DsCore.
 	//       Probably depends on registration with RsCore.
 	// Render ImGui.
-	ImGui::Psybrus::Render( pContext, pFrame );
+	ImGui::Psybrus::Render( pContext, Frame );
 
 	// Queue frame for render.
-	RsCore::pImpl()->queueFrame( pFrame );
+	RsCore::pImpl()->queueFrame( Frame );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,7 +149,11 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 //virtual
 void ScnViewProcessor::onAttachComponent( class ScnComponent* Component )
 {
-
+	BcAssert( Component->isReady() );
+	if( Component->isTypeOf< ScnRenderableComponent >() )
+	{
+		RenderableComponents_.insert( static_cast< ScnRenderableComponent* >( Component ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,5 +161,12 @@ void ScnViewProcessor::onAttachComponent( class ScnComponent* Component )
 //virtual
 void ScnViewProcessor::onDetachComponent( class ScnComponent* Component )
 {
-
+	BcAssert( Component->isReady() );
+	if( Component->isTypeOf< ScnRenderableComponent >() )
+	{
+		auto OldCount = RenderableComponents_.size();
+		RenderableComponents_.erase( 
+			std::find( RenderableComponents_.begin(), RenderableComponents_.end(), Component ) );
+		BcAssert( OldCount != RenderableComponents_.size() );
+	}
 }

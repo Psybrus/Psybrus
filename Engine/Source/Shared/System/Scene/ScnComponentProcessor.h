@@ -112,6 +112,16 @@ public:
 	ScnComponentProcessor( ScnComponentProcessFuncEntryInitialiserList ProcessFuncEntries );
 
 	/**
+	 * Called when the scene system is initialised.
+	 */
+	virtual void initialise();
+		
+	/**
+	 * Called when the scene system is shutdown.
+	 */
+	virtual void shutdown();
+
+	/**
 	 * Called to get the process funcs.
 	 * By default it will register preUpdate, update, and postUpdate
 	 * calls to emulate the original. Override to implement your own.

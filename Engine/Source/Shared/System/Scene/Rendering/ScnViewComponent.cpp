@@ -228,26 +228,6 @@ RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 
 //////////////////////////////////////////////////////////////////////////
 // bind
-class ScnViewComponentViewport: public RsRenderNode
-{
-public:
-	void render( RsContext* Context )
-	{
-		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
-		Context->setFrameBuffer( FrameBuffer_ );
-		Context->setViewport( Viewport_ );
-		Context->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
-	}
-
-	RsFrameBuffer* FrameBuffer_;
-	RsViewport Viewport_;
-	RsColour ClearColour_;
-	BcBool EnableClearColour_;
-	BcBool EnableClearDepth_;
-	BcBool EnableClearStencil_;	
-
-};
-
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 {
 	RsContext* pContext = pFrame->getContext();

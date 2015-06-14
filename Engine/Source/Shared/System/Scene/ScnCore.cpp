@@ -85,6 +85,8 @@ void ScnCore::open()
 			auto* Attr = Class->getAttribute< ScnComponentProcessor >();
 			if( Attr != nullptr )
 			{
+				Attr->initialise();
+
 				// Get process funcs.
 				auto ProcessFuncs = Attr->getProcessFuncs();
 
@@ -303,6 +305,21 @@ void ScnCore::close()
 	processPendingComponents();
 
 	ComponentLists_.clear();
+
+	// Shutdown all component processors (todo, cache internally)
+	auto Classes = ReManager::GetClasses();
+	for( auto Class : Classes )
+	{
+		if( Class->hasBaseClass( ScnComponent::StaticGetClass() ) )
+		{
+			// Find processor.
+			auto* Attr = Class->getAttribute< ScnComponentProcessor >();
+			if( Attr != nullptr )
+			{
+				Attr->shutdown();
+			}
+		}
+	}
 
 	// Destroy spacial tree.
 	delete pSpatialTree_;
