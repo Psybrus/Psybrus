@@ -55,6 +55,12 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 	// Get context.
 	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
 
+	// Early out if size is 0 on any axis.
+	if( pContext->getWidth() == 0 || pContext->getHeight() == 0 )
+	{
+		return;
+	}
+
 	// Allocate a frame to render using default context.
 	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 

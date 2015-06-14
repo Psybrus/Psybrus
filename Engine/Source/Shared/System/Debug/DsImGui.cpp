@@ -142,10 +142,16 @@ namespace
 		Sort.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
 		Sort.NodeType_ = RS_SORT_NODETYPE_MAX;
 
-		RenderThreadFence_.increment();
-
 		auto Width = IO.DisplaySize.x;
 		auto Height = IO.DisplaySize.y;
+
+		if( Width == 0 || Height == 0 )
+		{
+			return;
+		}
+
+		RenderThreadFence_.increment();
+
 		DrawFrame_->queueRenderNode( Sort,
 			[ CmdLists, CmdListsCount, Width, Height ]( RsContext* Context )
 			{
