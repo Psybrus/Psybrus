@@ -22,6 +22,8 @@
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
+#include "Math/MaFrustum.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
 typedef ReObjectRef< class ScnViewComponent > ScnViewComponentRef;
@@ -55,10 +57,10 @@ public:
 	MaVec2d getScreenPosition( const MaVec3d& WorldPosition ) const;
 	BcU32 getDepth( const MaVec3d& WorldPos ) const;
 	const RsViewport& getViewport() const;
-
-	BcBool intersect( const MaAABB& AABB ) const;
+	const MaFrustum& getFrustum() const;
 
 	RsFrameBuffer* getFrameBuffer() const;
+
 
 	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
@@ -97,8 +99,7 @@ private:
 	RsBuffer* ViewUniformBuffer_;
 
 	// Used for culling.
-	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?
-	MaPlane FrustumPlanes_[ 6 ];
+	MaFrustum Frustum_;
 
 	// Frame buffer + render target.
 	ScnTextureRef RenderTarget_;

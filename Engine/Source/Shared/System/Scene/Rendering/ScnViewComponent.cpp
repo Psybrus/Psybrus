@@ -59,7 +59,7 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "Viewport_", &ScnViewComponent::Viewport_ ),
 		new ReField( "ViewUniformBlock_", &ScnViewComponent::ViewUniformBlock_ ),
 		new ReField( "ViewUniformBuffer_", &ScnViewComponent::ViewUniformBuffer_, bcRFF_TRANSIENT ),
-		new ReField( "FrustumPlanes_", &ScnViewComponent::FrustumPlanes_ ),
+		new ReField( "Frustum_", &ScnViewComponent::Frustum_ ),
 	};
 	
 	using namespace std::placeholders;
@@ -198,25 +198,11 @@ const RsViewport& ScnViewComponent::getViewport() const
 	return Viewport_;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
-// intersect
-BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
+// getFrustum
+const MaFrustum& ScnViewComponent::getFrustum() const
 {
-	MaVec3d Centre = AABB.centre();
-	BcF32 Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
-
-	BcF32 Distance;
-	for( BcU32 i = 0; i < 6; ++i )
-	{
-		Distance = FrustumPlanes_[ i ].distance( Centre );
-		if( Distance > Radius )
-		{
-			return BcFalse;
-		}
-	}
-
-	return BcTrue;
+	return Frustum_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,6 +211,7 @@ RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 {
 	return FrameBuffer_.get();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // bind
@@ -286,48 +273,9 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 			BcMemCopy( Lock.Buffer_, &ViewUniformBlock_, sizeof( ViewUniformBlock_ ) );
 		} );
 
-	// Build frustum planes.
-	// TODO: revisit this later as we don't need to do it I don't think.
-	FrustumPlanes_[ 0 ] = MaPlane( ( ViewUniformBlock_.ClipTransform_[0][3] + ViewUniformBlock_.ClipTransform_[0][0] ),
-	                               ( ViewUniformBlock_.ClipTransform_[1][3] + ViewUniformBlock_.ClipTransform_[1][0] ),
-	                               ( ViewUniformBlock_.ClipTransform_[2][3] + ViewUniformBlock_.ClipTransform_[2][0] ),
-	                               ( ViewUniformBlock_.ClipTransform_[3][3] + ViewUniformBlock_.ClipTransform_[3][0]) );
 
-	FrustumPlanes_[ 1 ] = MaPlane( ( ViewUniformBlock_.ClipTransform_[0][3] - ViewUniformBlock_.ClipTransform_[0][0] ),
-	                               ( ViewUniformBlock_.ClipTransform_[1][3] - ViewUniformBlock_.ClipTransform_[1][0] ),
-	                               ( ViewUniformBlock_.ClipTransform_[2][3] - ViewUniformBlock_.ClipTransform_[2][0] ),
-	                               ( ViewUniformBlock_.ClipTransform_[3][3] - ViewUniformBlock_.ClipTransform_[3][0] ) );
+	Frustum_ = MaFrustum( ViewUniformBlock_.ClipTransform_ );
 
-	FrustumPlanes_[ 2 ] = MaPlane( ( ViewUniformBlock_.ClipTransform_[0][3] + ViewUniformBlock_.ClipTransform_[0][1] ),
-	                               ( ViewUniformBlock_.ClipTransform_[1][3] + ViewUniformBlock_.ClipTransform_[1][1] ),
-	                               ( ViewUniformBlock_.ClipTransform_[2][3] + ViewUniformBlock_.ClipTransform_[2][1] ),
-	                               ( ViewUniformBlock_.ClipTransform_[3][3] + ViewUniformBlock_.ClipTransform_[3][1] ) );
-
-	FrustumPlanes_[ 3 ] = MaPlane( ( ViewUniformBlock_.ClipTransform_[0][3] - ViewUniformBlock_.ClipTransform_[0][1] ),
-	                               ( ViewUniformBlock_.ClipTransform_[1][3] - ViewUniformBlock_.ClipTransform_[1][1] ),
-	                               ( ViewUniformBlock_.ClipTransform_[2][3] - ViewUniformBlock_.ClipTransform_[2][1] ),
-	                               ( ViewUniformBlock_.ClipTransform_[3][3] - ViewUniformBlock_.ClipTransform_[3][1] ) );
-
-	FrustumPlanes_[ 4 ] = MaPlane( ( ViewUniformBlock_.ClipTransform_[0][3] - ViewUniformBlock_.ClipTransform_[0][2] ),
-	                               ( ViewUniformBlock_.ClipTransform_[1][3] - ViewUniformBlock_.ClipTransform_[1][2] ),
-	                               ( ViewUniformBlock_.ClipTransform_[2][3] - ViewUniformBlock_.ClipTransform_[2][2] ),
-	                               ( ViewUniformBlock_.ClipTransform_[3][3] - ViewUniformBlock_.ClipTransform_[3][2] ) );
-	
-	FrustumPlanes_[ 5 ] = MaPlane( ( ViewUniformBlock_.ClipTransform_[0][3] ),
-	                               ( ViewUniformBlock_.ClipTransform_[1][3] ),
-	                               ( ViewUniformBlock_.ClipTransform_[2][3] ),
-	                               ( ViewUniformBlock_.ClipTransform_[3][3] ) );
-
-	// Normalise frustum planes.
-	for ( BcU32 i = 0; i < 6; ++i )
-	{
-		MaVec3d Normal = FrustumPlanes_[ i ].normal();
-		BcF32 Scale = 1.0f / -Normal.magnitude();
-		FrustumPlanes_[ i ] = MaPlane( FrustumPlanes_[ i ].normal().x() * Scale,
-		                               FrustumPlanes_[ i ].normal().y() * Scale,
-		                               FrustumPlanes_[ i ].normal().z() * Scale,
-		                               FrustumPlanes_[ i ].d() * Scale );
-	}
 
 	// Setup render node to set the frame buffer, viewport, and clear colour.
 	// TODO: Pass this in with the draw commands down the line.

@@ -83,16 +83,16 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 	RsRenderSort Sort( 0 );
 
 	// Old path with frustum culling.
-#if 0
+#if 1
 	// Iterate over all view components.
 	for( auto InComponent : InComponents )
 	{
 		BcAssert( InComponent->isTypeOf< ScnViewComponent >() );
 		auto* Component = static_cast< ScnViewComponent* >( InComponent.get() );
 
-		Component->bind( pFrame, Sort );
+		Component->bind( Frame, Sort );
 
-		ScnRenderingVisitor Visitor( Component, pFrame, Sort );
+		ScnRenderingVisitor Visitor( Component, Frame, Sort );
 
 		// Increment viewport.
 		Sort.Viewport_++;

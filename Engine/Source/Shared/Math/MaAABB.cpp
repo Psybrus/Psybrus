@@ -118,8 +118,8 @@ MaVec3d MaAABB::faceCentre( BcU32 i ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// rayIntersect
-BcBool MaAABB::lineIntersect( const MaVec3d& Start, const MaVec3d& End, MaVec3d* pIntersectionPoint, MaVec3d* pIntersectionNormal ) const
+// intersect
+BcBool MaAABB::intersect( const MaVec3d& Start, const MaVec3d& End, MaVec3d* pIntersectionPoint, MaVec3d* pIntersectionNormal ) const
 {
 	// Planes. Screw it.
 	// Totally inoptimal.
@@ -186,7 +186,7 @@ BcBool MaAABB::lineIntersect( const MaVec3d& Start, const MaVec3d& End, MaVec3d*
 
 //////////////////////////////////////////////////////////////////////////
 //
-BcBool MaAABB::boxIntersect( const MaAABB& AABB, MaAABB* pIntersectionBox ) const
+BcBool MaAABB::intersect( const MaAABB& AABB, MaAABB* pIntersectionBox ) const
 {
 	// Check for no overlap.
 	if( ( Min_.x() > AABB.Max_.x() ) ||

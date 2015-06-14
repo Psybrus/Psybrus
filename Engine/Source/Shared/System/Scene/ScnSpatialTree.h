@@ -14,9 +14,10 @@
 #ifndef __SCNSPACIALTREE_H__
 #define __SCNSPACIALTREE_H__
 
+#include "Math/MaFrustum.h"
 #include "Math/MaOctTree.h"
 
-#include <list>
+#include <vector>
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs

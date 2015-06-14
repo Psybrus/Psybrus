@@ -152,11 +152,16 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewCom
 	// Visit this Components objects if they are inside the frustum.
 	ScnSpatialComponentList::iterator Iter = Components_.begin();
 
+	const auto& Frustum = View->getFrustum();
+
 	while( Iter != Components_.end() )
 	{
 		ScnSpatialComponent* Component = *Iter;
 
-		if( Component->getAABB().isEmpty() || View->intersect( Component->getAABB() ) == BcTrue )
+		const auto& AABB = Component->getAABB();
+		const auto Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
+
+		if( Component->getAABB().isEmpty() || Frustum.intersect( AABB.centre(), Radius ) == BcTrue )
 		{
 			Component->visit_accept( pVisitor );
 		}
@@ -170,7 +175,11 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewCom
 		for( BcU32 i = 0; i < 8; ++i )
 		{
 			ScnSpatialTreeNode* pChildComponent = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
-			if( View->intersect( pChildComponent->getAABB() ) )
+
+			const auto& AABB = pChildComponent->getAABB();
+			const auto Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
+
+			if( Frustum.intersect( AABB.centre(), Radius ) )
 			{
 				pChildComponent->visitView( pVisitor, View );
 			}
@@ -190,7 +199,7 @@ void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const MaAABB& Bounds
 	{
 		ScnSpatialComponent* Component = *Iter;
 
-		if( Component->getAABB().isEmpty() || Bounds.boxIntersect( Component->getAABB(), NULL ) == BcTrue )
+		if( Component->getAABB().isEmpty() || Bounds.intersect( Component->getAABB(), NULL ) == BcTrue )
 		{
 			Component->visit_accept( pVisitor );
 		}
@@ -204,7 +213,7 @@ void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const MaAABB& Bounds
 		for( BcU32 i = 0; i < 8; ++i )
 		{
 			ScnSpatialTreeNode* pChildComponent = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
-			if( Bounds.boxIntersect( pChildComponent->getAABB(), NULL ) )
+			if( Bounds.intersect( pChildComponent->getAABB(), NULL ) )
 			{
 				pChildComponent->visitBounds( pVisitor, Bounds );
 			}

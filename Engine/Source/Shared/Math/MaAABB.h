@@ -88,9 +88,21 @@ public:
 	void				expandBy( const MaVec3d& Point );
 	void				expandBy( const MaAABB& AABB );
 
-	// Intersection
-	BcBool				lineIntersect( const MaVec3d& Start, const MaVec3d& End, MaVec3d* pIntersectionPoint, MaVec3d* pIntersectionNormal ) const;
-	BcBool				boxIntersect( const MaAABB& AABB, MaAABB* pIntersectionBox ) const;
+	/**
+	 * Line intersection test.
+	 * @param Start Start of line.
+	 * @param End End of line.
+	 * @param pIntersectionPoint If not nullptr, will be set to intersection point.
+	 * @param pIntersectionNormal If not nullptr, will be set to intersection normal.
+	 */
+	BcBool				intersect( const MaVec3d& Start, const MaVec3d& End, MaVec3d* pIntersectionPoint, MaVec3d* pIntersectionNormal ) const;
+	
+	/**
+	 * AABB intersection test.
+	 * @param AABB Axis aligned bounding box to test against.
+	 * @param pIntersectionBox If not nullptr, will be set to the intersecting box.
+	 */
+	BcBool				intersect( const MaAABB& AABB, MaAABB* pIntersectionBox ) const;
 
 	// Classification
 	eClassify			classify( const MaVec3d& Point ) const;
