@@ -20,7 +20,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Typedefs
-typedef std::list< class ScnSpatialComponent* > ScnSpatialComponentList;
+typedef std::vector< class ScnSpatialComponent* > ScnSpatialComponentList;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class ScnSpatialTreeNode
@@ -36,32 +36,32 @@ public:
 	virtual ~ScnSpatialTreeNode();
 	
 	/**
-	*	Add entity.
-	*/
-	void					addComponent( ScnSpatialComponent* Component );
+	 *	Add entity.
+	 */
+	void addComponent( ScnSpatialComponent* Component );
 	
 	/**
-	*	Remove entity.
-	*/
-	void					removeComponent( ScnSpatialComponent* Component );
+	 *	Remove entity.
+	 */
+	void removeComponent( ScnSpatialComponent* Component );
 	
 	/**
-	*	Reinsert entity.
-	*/
-	void					reinsertComponent( ScnSpatialComponent* Component );
+	 *	Reinsert entity.
+	 */
+	void reinsertComponent( ScnSpatialComponent* Component );
 	
 	/**
-	*	Visit view.
-	*/
-	void					visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
+	 *	Visit view.
+	 */
+	[[deprecated]] void visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
 
 	/**
-	*	Visit bounds.
-	*/
-	void					visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
+	 *	Visit bounds.
+	 */
+	[[deprecated]] void visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
 
 private:
-	ScnSpatialComponentList	ComponentList_;
+	ScnSpatialComponentList	Components_;
 
 };
 
@@ -79,29 +79,33 @@ public:
 	virtual ~ScnSpatialTree();
 	
 	/**
-	*	Add Component.
-	*/
-	void					addComponent( class ScnSpatialComponent* Component );
+	 *	Add Component.
+	 */
+	void addComponent( class ScnSpatialComponent* Component );
 
 	/**
-	*	Remove Component.
-	*/
-	void					removeComponent( class ScnSpatialComponent* Component );
+	 *	Remove Component.
+	 */
+	void removeComponent( class ScnSpatialComponent* Component );
+
+
 
 	/**
-	*	Visit view.
-	*/
-	void					visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
+	 *	Visit view.
+	 */
+	[[deprecated]] void visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
 	
 	/**
-	*	Visit bounds.
-	*/
-	void					visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
+	 *	Visit bounds.
+	 */
+	[[deprecated]] void visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
+
+
 
 private:
 	/**
-	*	Create our own Component type.
-	*/
+	 *	Create our own Component type.
+	 */
 	virtual MaOctTreeNode*	createNode( const MaAABB& AABB );
 };
 

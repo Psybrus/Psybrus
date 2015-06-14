@@ -41,9 +41,9 @@ ScnSpatialTreeNode::ScnSpatialTreeNode()
 ScnSpatialTreeNode::~ScnSpatialTreeNode()
 {
 	// Remove ScnRenderableComponents from the list and clear their parent.
-	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
+	ScnSpatialComponentList::iterator Iter = Components_.begin();
 
-	while( Iter != ComponentList_.end() )
+	while( Iter != Components_.end() )
 	{
 		ScnSpatialComponent* Component = *Iter;
 
@@ -54,7 +54,7 @@ ScnSpatialTreeNode::~ScnSpatialTreeNode()
 		++Iter;
 	}
 
-	ComponentList_.clear();
+	Components_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,7 @@ void ScnSpatialTreeNode::addComponent( ScnSpatialComponent* Component )
 	PSY_PROFILE_FUNCTION;
 	// Add to self.
 	// TODO: Subdivide and such.
-	ComponentList_.push_back( Component );
+	Components_.push_back( Component );
 	Component->setSpatialTreeNode( this );
 
 	// Reinsert Component to put it into the correct child Component.
@@ -83,7 +83,7 @@ void ScnSpatialTreeNode::removeComponent( ScnSpatialComponent* Component )
 		pNode->removeComponent( Component );
 	}
 
-	ComponentList_.remove( Component );
+	Components_.erase( std::find( Components_.begin(), Components_.end(), Component ) );
 	Component->setSpatialTreeNode( NULL );
 }
 
@@ -95,7 +95,7 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 	// If we've got no children, check if we need to subdivide.
 	if( pChild( 0 ) == NULL )
 	{
-		if( ComponentList_.size() > SCN_ENTITYLIST_DIVIDESIZE )
+		if( Components_.size() > SCN_ENTITYLIST_DIVIDESIZE )
 		{
 			subDivide();
 		}
@@ -109,8 +109,8 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 		if( pParent() != NULL )
 		{
 			ScnSpatialTreeNode* pParentNode = static_cast< ScnSpatialTreeNode* >( pParent() );
-			ComponentList_.remove( Component );
-			pParentNode->ComponentList_.push_back( Component );
+			Components_.erase( std::find( Components_.begin(), Components_.end(), Component ) );
+			pParentNode->Components_.push_back( Component );
 			Component->setSpatialTreeNode( pParentNode );
 		}
 	}
@@ -133,8 +133,8 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 				// If its inside the child, hand it over no questions asked.
 				else if( Classification == MaAABB::bcBC_INSIDE )
 				{
-					ComponentList_.remove( Component );
-					pChildNode->ComponentList_.push_back( Component );
+					Components_.erase( std::find( Components_.begin(), Components_.end(), Component ) );
+					pChildNode->Components_.push_back( Component );
 					Component->setSpatialTreeNode( pChildNode );
 					break;
 				}
@@ -150,9 +150,9 @@ void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewCom
 {
 	PSY_PROFILE_FUNCTION;
 	// Visit this Components objects if they are inside the frustum.
-	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
+	ScnSpatialComponentList::iterator Iter = Components_.begin();
 
-	while( Iter != ComponentList_.end() )
+	while( Iter != Components_.end() )
 	{
 		ScnSpatialComponent* Component = *Iter;
 
@@ -184,9 +184,9 @@ void ScnSpatialTreeNode::visitBounds( ScnVisitor* pVisitor, const MaAABB& Bounds
 {
 	PSY_PROFILE_FUNCTION;
 	// Visit this Components objects if they are inside the frustum.
-	ScnSpatialComponentList::iterator Iter = ComponentList_.begin();
+	ScnSpatialComponentList::iterator Iter = Components_.begin();
 
-	while( Iter != ComponentList_.end() )
+	while( Iter != Components_.end() )
 	{
 		ScnSpatialComponent* Component = *Iter;
 
