@@ -302,6 +302,14 @@ BcBool ScnTextureImport::import(
 		// Downsample texture for mip maps if POT.
 		auto MipImages = generateMipMaps( std::move( Image ) );
 
+		// Save out to an intermediate path for inspection.
+		BcU32 Idx = 0;
+		for( auto& MipImage : MipImages )
+		{
+			std::string MipLevelFilename = getIntermediatePath() + std::string( "/" ) + Name_ + "_" + std::to_string( Idx++ ) + ".png" ;
+			Img::save( MipLevelFilename.c_str(), MipImage.get() );
+		}
+
 		// Encode the image as a format.
 		BcU8* pEncodedImageData = NULL;
 		BcU32 EncodedImageDataSize = 0;

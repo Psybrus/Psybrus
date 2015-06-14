@@ -355,6 +355,7 @@ void ScnTexture::recreate()
 				RsResourceUpdateFlags::ASYNC,
 				[ TextureData, SliceSize ]( RsTexture* Texture, const RsTextureLock& Lock )
 				{
+					BcAssert( SliceSize == Lock.SlicePitch_ );
 					if( Lock.Buffer_ != nullptr )
 					{
 						BcMemCopy( Lock.Buffer_, TextureData, SliceSize );
