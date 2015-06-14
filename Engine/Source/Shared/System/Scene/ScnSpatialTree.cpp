@@ -145,6 +145,82 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// gather
+void ScnSpatialTreeNode::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents )
+{
+	PSY_PROFILE_FUNCTION;
+
+	// Visit this Components objects if they are inside the frustum.
+	ScnSpatialComponentList::iterator Iter = Components_.begin();
+
+	while( Iter != Components_.end() )
+	{
+		ScnSpatialComponent* Component = *Iter;
+
+		const auto& AABB = Component->getAABB();
+		const auto Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
+
+		if( Component->getAABB().isEmpty() || Frustum.intersect( AABB.centre(), Radius ) == BcTrue )
+		{
+			OutComponents.push_back( Component );
+		}
+
+		++Iter;
+	}
+
+	// Visit children if they are inside of the frustum.
+	if( pChild( 0 ) != NULL )
+	{
+		for( BcU32 i = 0; i < 8; ++i )
+		{
+			ScnSpatialTreeNode* ChildNode = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
+
+			const auto& AABB = ChildNode->getAABB();
+			const auto Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
+
+			if( Frustum.intersect( AABB.centre(), Radius ) )
+			{
+				ChildNode->gather( Frustum, OutComponents );
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gather
+void ScnSpatialTreeNode::gather( const MaAABB& AABB, ScnComponentList& OutComponents )
+{
+	PSY_PROFILE_FUNCTION;
+	// Visit this Components objects if they are inside the frustum.
+	ScnSpatialComponentList::iterator Iter = Components_.begin();
+
+	while( Iter != Components_.end() )
+	{
+		ScnSpatialComponent* Component = *Iter;
+
+		if( Component->getAABB().isEmpty() || AABB.intersect( Component->getAABB(), NULL ) == BcTrue )
+		{
+			OutComponents.push_back( Component );
+		}
+
+		++Iter;
+	}
+
+	// Visit children if they are inside of the frustum.
+	if( pChild( 0 ) != NULL )
+	{
+		for( BcU32 i = 0; i < 8; ++i )
+		{
+			ScnSpatialTreeNode* ChildNode = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
+			if( AABB.intersect( ChildNode->getAABB(), NULL ) )
+			{
+				ChildNode->gather( AABB, OutComponents );
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // visitView
 void ScnSpatialTreeNode::visitView( ScnVisitor* pVisitor, const class ScnViewComponent* View )
 {
@@ -266,6 +342,24 @@ void ScnSpatialTree::removeComponent( ScnSpatialComponent* Component )
 	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
 
 	pRoot->removeComponent( Component );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gather
+void ScnSpatialTree::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents )
+{
+	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
+
+	pRoot->gather( Frustum, OutComponents );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gather
+void ScnSpatialTree::gather( const MaAABB& AABB, ScnComponentList& OutComponents )
+{
+	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
+
+	pRoot->gather( AABB, OutComponents );
 }
 
 //////////////////////////////////////////////////////////////////////////

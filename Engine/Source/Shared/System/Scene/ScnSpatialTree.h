@@ -17,6 +17,8 @@
 #include "Math/MaFrustum.h"
 #include "Math/MaOctTree.h"
 
+#include "System/Scene/ScnComponent.h"
+
 #include <vector>
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,27 +39,41 @@ public:
 	virtual ~ScnSpatialTreeNode();
 	
 	/**
-	 *	Add entity.
+	 * Add component.
 	 */
 	void addComponent( ScnSpatialComponent* Component );
 	
 	/**
-	 *	Remove entity.
+	 * Remove component.
 	 */
 	void removeComponent( ScnSpatialComponent* Component );
 	
 	/**
-	 *	Reinsert entity.
+	 * Reinsert component.
 	 */
 	void reinsertComponent( ScnSpatialComponent* Component );
+
+	/**
+	 * Gather with frustum.
+	 * @param Frustum Frustum which all returned components will be intersecting with.
+	 * @param OutComponents List to contain output components.
+	 */
+	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents );
 	
 	/**
-	 *	Visit view.
+	 * Gather with AABB.
+	 * @param AABB Axis aligned bounding box which all returned components will be intersecting with.
+	 * @param OutComponents List to contain output components.
+	 */
+	void gather( const MaAABB& AABB, ScnComponentList& OutComponents );
+
+	/**
+	 * Visit view.
 	 */
 	[[deprecated]] void visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
 
 	/**
-	 *	Visit bounds.
+	 * Visit bounds.
 	 */
 	[[deprecated]] void visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
 
@@ -89,7 +105,19 @@ public:
 	 */
 	void removeComponent( class ScnSpatialComponent* Component );
 
-
+	/**
+	 * Gather with frustum.
+	 * @param Frustum Frustum which all returned components will be intersecting with.
+	 * @param OutComponents List to contain output components.
+	 */
+	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents );
+	
+	/**
+	 * Gather with AABB.
+	 * @param AABB Axis aligned bounding box which all returned components will be intersecting with.
+	 * @param OutComponents List to contain output components.
+	 */
+	void gather( const MaAABB& AABB, ScnComponentList& OutComponents );
 
 	/**
 	 *	Visit view.

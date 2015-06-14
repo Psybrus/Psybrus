@@ -83,7 +83,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 	RsRenderSort Sort( 0 );
 
 	// Old path with frustum culling.
-#if 1
+#if 0
 	// Iterate over all view components.
 	for( auto InComponent : InComponents )
 	{
