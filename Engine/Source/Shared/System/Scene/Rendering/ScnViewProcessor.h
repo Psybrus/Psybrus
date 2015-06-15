@@ -35,5 +35,5 @@ private:
 private:
 	std::set< class ScnRenderableComponent* > RenderableComponents_;
 
-	std::vector< class ScnRenderableComponent* > GatheredRenderableComponents_;
+	ScnComponentList GatheredComponents_;
 };

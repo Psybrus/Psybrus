@@ -160,7 +160,7 @@ void ScnSpatialTreeNode::gather( const MaFrustum& Frustum, ScnComponentList& Out
 		const auto& AABB = Component->getAABB();
 		const auto Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
 
-		if( Component->getAABB().isEmpty() || Frustum.intersect( AABB.centre(), Radius ) == BcTrue )
+		if( AABB.isEmpty() || Frustum.intersect( AABB.centre(), Radius ) == BcTrue )
 		{
 			OutComponents.push_back( Component );
 		}

@@ -18,7 +18,7 @@ void ScnViewProcessor::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "RenderableComponents_", &ScnViewProcessor::RenderableComponents_, bcRFF_TRANSIENT ),
-		new ReField( "GatheredRenderableComponents_", &ScnViewProcessor::GatheredRenderableComponents_, bcRFF_TRANSIENT )
+		new ReField( "GatheredComponents_", &ScnViewProcessor::GatheredComponents_, bcRFF_TRANSIENT )
 	};
 
 	ReRegisterClass< ScnViewProcessor, Super >( Fields );
@@ -98,7 +98,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 		Sort.Viewport_++;
 	}
 #else
-	// New path, naive no culling (yet).
+	// New path.
 
 	// Iterate over all view components.
 	for( auto InComponent : InComponents )
@@ -110,22 +110,20 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 		ViewComponent->bind( Frame, Sort );
 
 		// Gather renderable components.
-		GatheredRenderableComponents_.clear();
-		for( auto RenderableComponent : RenderableComponents_ )
-		{
-			if( ViewComponent->getRenderMask() & RenderableComponent->getRenderMask() )
-			{
-				if( RenderableComponent->isReady() )
-				{
-					GatheredRenderableComponents_.push_back( RenderableComponent );
-				}
-			}
-		}
+		GatheredComponents_.clear();
+		ScnCore::pImpl()->gather( ViewComponent->getFrustum(), GatheredComponents_ );
 		
 		// Render.
-		for( auto RenderableComponent : GatheredRenderableComponents_ )
+		for( auto Component : GatheredComponents_ )
 		{
-			RenderableComponent->render( ViewComponent, Frame, Sort );
+			ScnRenderableComponentRef RenderableComponent( Component );
+			if( RenderableComponent )
+			{
+				if( RenderableComponent->getRenderMask() & ViewComponent->getRenderMask() )
+				{
+					RenderableComponent->render( ViewComponent, Frame, Sort );
+				}
+			}
 		}
 
 		// Increment viewport.
