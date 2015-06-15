@@ -508,6 +508,20 @@ void ScnCore::queueComponentForDetach( ScnComponentRef Component )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// gather
+void ScnCore::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents ) const
+{
+	pSpatialTree_->gather( Frustum, OutComponents );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gather
+void ScnCore::gather( const MaAABB& AABB, ScnComponentList& OutComponents ) const
+{
+	pSpatialTree_->gather( AABB, OutComponents );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // visitView
 void ScnCore::visitView( ScnVisitor* pVisitor, const class ScnViewComponent* View )
 {

@@ -8,7 +8,7 @@
 class MaFrustum
 {
 public:
-	REFLECTION_DECLARE_BASIC( MaAABB );
+	REFLECTION_DECLARE_BASIC( MaFrustum );
 
 	MaFrustum();
 	MaFrustum( const MaMat4d& ClipTransform );

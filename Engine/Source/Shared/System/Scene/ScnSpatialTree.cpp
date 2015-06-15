@@ -146,12 +146,12 @@ void ScnSpatialTreeNode::reinsertComponent( ScnSpatialComponent* Component )
 
 //////////////////////////////////////////////////////////////////////////
 // gather
-void ScnSpatialTreeNode::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents )
+void ScnSpatialTreeNode::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents ) const
 {
 	PSY_PROFILE_FUNCTION;
 
 	// Visit this Components objects if they are inside the frustum.
-	ScnSpatialComponentList::iterator Iter = Components_.begin();
+	auto Iter = Components_.begin();
 
 	while( Iter != Components_.end() )
 	{
@@ -173,7 +173,7 @@ void ScnSpatialTreeNode::gather( const MaFrustum& Frustum, ScnComponentList& Out
 	{
 		for( BcU32 i = 0; i < 8; ++i )
 		{
-			ScnSpatialTreeNode* ChildNode = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
+			const ScnSpatialTreeNode* ChildNode = static_cast< const ScnSpatialTreeNode* >( pChild( i ) );
 
 			const auto& AABB = ChildNode->getAABB();
 			const auto Radius = ( AABB.max() - AABB.min() ).magnitude() * 0.5f;
@@ -188,11 +188,12 @@ void ScnSpatialTreeNode::gather( const MaFrustum& Frustum, ScnComponentList& Out
 
 //////////////////////////////////////////////////////////////////////////
 // gather
-void ScnSpatialTreeNode::gather( const MaAABB& AABB, ScnComponentList& OutComponents )
+void ScnSpatialTreeNode::gather( const MaAABB& AABB, ScnComponentList& OutComponents ) const
 {
 	PSY_PROFILE_FUNCTION;
+
 	// Visit this Components objects if they are inside the frustum.
-	ScnSpatialComponentList::iterator Iter = Components_.begin();
+	auto Iter = Components_.begin();
 
 	while( Iter != Components_.end() )
 	{
@@ -211,7 +212,7 @@ void ScnSpatialTreeNode::gather( const MaAABB& AABB, ScnComponentList& OutCompon
 	{
 		for( BcU32 i = 0; i < 8; ++i )
 		{
-			ScnSpatialTreeNode* ChildNode = static_cast< ScnSpatialTreeNode* >( pChild( i ) );
+			const ScnSpatialTreeNode* ChildNode = static_cast< const ScnSpatialTreeNode* >( pChild( i ) );
 			if( AABB.intersect( ChildNode->getAABB(), NULL ) )
 			{
 				ChildNode->gather( AABB, OutComponents );
@@ -346,18 +347,18 @@ void ScnSpatialTree::removeComponent( ScnSpatialComponent* Component )
 
 //////////////////////////////////////////////////////////////////////////
 // gather
-void ScnSpatialTree::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents )
+void ScnSpatialTree::gather( const MaFrustum& Frustum, ScnComponentList& OutComponents ) const
 {
-	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
+	const ScnSpatialTreeNode* pRoot = static_cast< const ScnSpatialTreeNode* >( pRootNode() );
 
 	pRoot->gather( Frustum, OutComponents );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // gather
-void ScnSpatialTree::gather( const MaAABB& AABB, ScnComponentList& OutComponents )
+void ScnSpatialTree::gather( const MaAABB& AABB, ScnComponentList& OutComponents ) const
 {
-	ScnSpatialTreeNode* pRoot = static_cast< ScnSpatialTreeNode* >( pRootNode() );
+	const ScnSpatialTreeNode* pRoot = static_cast< const ScnSpatialTreeNode* >( pRootNode() );
 
 	pRoot->gather( AABB, OutComponents );
 }

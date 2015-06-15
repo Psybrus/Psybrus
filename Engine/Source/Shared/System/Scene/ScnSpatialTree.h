@@ -58,14 +58,14 @@ public:
 	 * @param Frustum Frustum which all returned components will be intersecting with.
 	 * @param OutComponents List to contain output components.
 	 */
-	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents );
+	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents ) const;
 	
 	/**
 	 * Gather with AABB.
 	 * @param AABB Axis aligned bounding box which all returned components will be intersecting with.
 	 * @param OutComponents List to contain output components.
 	 */
-	void gather( const MaAABB& AABB, ScnComponentList& OutComponents );
+	void gather( const MaAABB& AABB, ScnComponentList& OutComponents ) const;
 
 	/**
 	 * Visit view.
@@ -89,7 +89,7 @@ private:
 *	
 */
 class ScnSpatialTree:
-	public BcOctTree
+	public MaOctTree
 {
 public:
 	ScnSpatialTree();
@@ -110,14 +110,14 @@ public:
 	 * @param Frustum Frustum which all returned components will be intersecting with.
 	 * @param OutComponents List to contain output components.
 	 */
-	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents );
+	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents ) const;
 	
 	/**
 	 * Gather with AABB.
 	 * @param AABB Axis aligned bounding box which all returned components will be intersecting with.
 	 * @param OutComponents List to contain output components.
 	 */
-	void gather( const MaAABB& AABB, ScnComponentList& OutComponents );
+	void gather( const MaAABB& AABB, ScnComponentList& OutComponents ) const;
 
 	/**
 	 *	Visit view.

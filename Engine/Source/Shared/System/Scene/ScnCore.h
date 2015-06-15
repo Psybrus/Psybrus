@@ -95,14 +95,28 @@ public:
 	void queueComponentForDetach( ScnComponentRef Component );
 
 	/**
+	 * Gather with frustum.
+	 * @param Frustum Frustum which all returned components will be intersecting with.
+	 * @param OutComponents List to contain output components.
+	 */
+	void gather( const MaFrustum& Frustum, ScnComponentList& OutComponents ) const;
+	
+	/**
+	 * Gather with AABB.
+	 * @param AABB Axis aligned bounding box which all returned components will be intersecting with.
+	 * @param OutComponents List to contain output components.
+	 */
+	void gather( const MaAABB& AABB, ScnComponentList& OutComponents ) const;
+
+	/**
 	 * Visit view.
 	 */
-	void visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
+	[[deprecated]] void visitView( class ScnVisitor* pVisitor, const class ScnViewComponent* View );
 
 	/**
 	 * Visit bounds.
 	 */
-	void visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
+	[[deprecated]] void visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
 
 	/**
 	 * Get component list.

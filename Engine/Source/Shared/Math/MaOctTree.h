@@ -1,18 +1,18 @@
 /**************************************************************************
 *
-* File:		BcOctTree.h
+* File:		MaOctTree.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
 *		Octtree structure.
 *		You can derive from MaOctTreeNode to have your own functionality
-*		for each node, though you must derive from BcOctTree and overload
+*		for each node, though you must derive from MaOctTree and overload
 *		its creation function.
 * 
 **************************************************************************/
 
-#ifndef __BCOCTTREE_H__
-#define __BCOCTTREE_H__
+#ifndef __MaOctTree_H__
+#define __MaOctTree_H__
 
 #include "Math/MaAABB.h"
 #include "Base/BcMemory.h"
@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
 class MaOctTreeNode;
-class BcOctTree;
+class MaOctTree;
 
 //////////////////////////////////////////////////////////////////////////
 // MaOctTreeNode
@@ -35,18 +35,19 @@ public:
 
 	MaOctTreeNode* pParent();
 	MaOctTreeNode* pChild( BcU32 iChild );
+	const MaOctTreeNode* pChild( BcU32 iChild ) const;
 
-	BcOctTree* pTree();
+	MaOctTree* pTree();
 
 	void subDivide();
 
 protected:
 
 private:
-	friend class BcOctTree;
+	friend class MaOctTree;
 
 	// Tree structure
-	BcOctTree*						pTree_;
+	MaOctTree*						pTree_;
 	MaOctTreeNode*					pParent_;
 	MaOctTreeNode*					aChildNodes_[ 8 ];
 
@@ -95,24 +96,30 @@ inline MaOctTreeNode* MaOctTreeNode::pChild( BcU32 iChild )
 	return aChildNodes_[ iChild ];
 }
 
-inline BcOctTree* MaOctTreeNode::pTree()
+inline const MaOctTreeNode* MaOctTreeNode::pChild( BcU32 iChild ) const
+{
+	return aChildNodes_[ iChild ];
+}
+
+inline MaOctTree* MaOctTreeNode::pTree()
 {
 	return pTree_;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// BcOctTree
-class BcOctTree
+// MaOctTree
+class MaOctTree
 {
 public:
-	BcOctTree();
-	virtual ~BcOctTree();
+	MaOctTree();
+	virtual ~MaOctTree();
 
 	// Base
 	void createRoot( const MaAABB& AABB );
 
 	// Utility
 	MaOctTreeNode* pRootNode();
+	const MaOctTreeNode* pRootNode() const;
 	void subDivide( MaOctTreeNode* pNode );
 
 	//
@@ -132,7 +139,12 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
-inline MaOctTreeNode* BcOctTree::pRootNode()
+inline MaOctTreeNode* MaOctTree::pRootNode()
+{
+	return pRootNode_;
+}
+
+inline const MaOctTreeNode* MaOctTree::pRootNode() const
 {
 	return pRootNode_;
 }

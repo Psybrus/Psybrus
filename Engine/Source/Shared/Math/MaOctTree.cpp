@@ -1,12 +1,12 @@
 /**************************************************************************
 *
-* File:		BcOctTree.cpp
+* File:		MaOctTree.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
 *		Octtree structure.
 *		You can derive from MaOctTreeNode to have your own functionality
-*		for each node, though you must derive from BcOctTree and overload
+*		for each node, though you must derive from MaOctTree and overload
 *		its creation function.
 * 
 **************************************************************************/
@@ -22,7 +22,7 @@ void MaOctTreeNode::subDivide()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-BcOctTree::BcOctTree():
+MaOctTree::MaOctTree():
 	pRootNode_( NULL )
 {
 
@@ -30,7 +30,7 @@ BcOctTree::BcOctTree():
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
-BcOctTree::~BcOctTree()
+MaOctTree::~MaOctTree()
 {
 	if( pRootNode_ != NULL )
 	{
@@ -40,7 +40,7 @@ BcOctTree::~BcOctTree()
 
 //////////////////////////////////////////////////////////////////////////
 // createRoot
-void BcOctTree::createRoot( const MaAABB& AABB )
+void MaOctTree::createRoot( const MaAABB& AABB )
 {
 	if( pRootNode_ != NULL )
 	{
@@ -55,7 +55,7 @@ void BcOctTree::createRoot( const MaAABB& AABB )
 
 //////////////////////////////////////////////////////////////////////////
 // subDivide
-void BcOctTree::subDivide( MaOctTreeNode* pNode )
+void MaOctTree::subDivide( MaOctTreeNode* pNode )
 {
 	//
 	MaVec3d Center = pNode->AABB_.centre();
@@ -78,14 +78,14 @@ void BcOctTree::subDivide( MaOctTreeNode* pNode )
 
 //////////////////////////////////////////////////////////////////////////
 // findNode
-MaOctTreeNode* BcOctTree::findNode( const MaVec3d& Point )
+MaOctTreeNode* MaOctTree::findNode( const MaVec3d& Point )
 {
 	return findNode( pRootNode_, Point );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // findNode
-MaOctTreeNode* BcOctTree::findNode( MaOctTreeNode* pNode, const MaVec3d& Point )
+MaOctTreeNode* MaOctTree::findNode( MaOctTreeNode* pNode, const MaVec3d& Point )
 {
 	//
 	MaOctTreeNode* pRetNode = NULL;
@@ -122,14 +122,14 @@ MaOctTreeNode* BcOctTree::findNode( MaOctTreeNode* pNode, const MaVec3d& Point )
 
 //////////////////////////////////////////////////////////////////////////
 // findNode
-MaOctTreeNode* BcOctTree::findNode( const MaAABB& AABB )
+MaOctTreeNode* MaOctTree::findNode( const MaAABB& AABB )
 {
 	return findNode( pRootNode_, AABB );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // findNode
-MaOctTreeNode* BcOctTree::findNode( MaOctTreeNode* pNode, const MaAABB& AABB )
+MaOctTreeNode* MaOctTree::findNode( MaOctTreeNode* pNode, const MaAABB& AABB )
 {
 	//
 	MaOctTreeNode* pRetNode = NULL;
@@ -171,7 +171,7 @@ MaOctTreeNode* BcOctTree::findNode( MaOctTreeNode* pNode, const MaAABB& AABB )
 //////////////////////////////////////////////////////////////////////////
 // Overloads
 //virtual 
-MaOctTreeNode* BcOctTree::createNode( const MaAABB& AABB )
+MaOctTreeNode* MaOctTree::createNode( const MaAABB& AABB )
 {
 	// Create node.
 	MaOctTreeNode* pNode = new MaOctTreeNode();
