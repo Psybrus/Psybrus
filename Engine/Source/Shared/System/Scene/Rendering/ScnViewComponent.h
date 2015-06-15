@@ -62,7 +62,7 @@ public:
 	RsFrameBuffer* getFrameBuffer() const;
 
 
-	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
+	virtual void preDraw( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
@@ -71,6 +71,8 @@ private:
 	void recreateFrameBuffer();
 
 private:
+	friend class ScnViewProcessor;
+
 	// Viewport. Values relative to the size of the client being rendered into.
 	BcF32 X_;
 	BcF32 Y_;

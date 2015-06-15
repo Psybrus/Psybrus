@@ -214,8 +214,8 @@ RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 
 
 //////////////////////////////////////////////////////////////////////////
-// bind
-void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
+// preDraw
+void ScnViewComponent::preDraw( RsFrame* pFrame, RsRenderSort Sort )
 {
 	RsContext* pContext = pFrame->getContext();
 

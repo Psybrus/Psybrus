@@ -36,6 +36,7 @@ public:
 		class ScnViewComponent* pViewComponent, 
 		class RsFrame* pFrame, 
 		RsRenderSort Sort );
+
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 

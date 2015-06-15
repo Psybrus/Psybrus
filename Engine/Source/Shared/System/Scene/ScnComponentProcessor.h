@@ -98,8 +98,6 @@ private:
 using ScnComponentProcessFuncEntryList = std::vector< ScnComponentProcessFuncEntry >;
 using ScnComponentProcessFuncEntryInitialiserList = std::initializer_list< ScnComponentProcessFuncEntry >;
 
-
-
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentProcessor
 class ScnComponentProcessor:

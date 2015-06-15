@@ -107,7 +107,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& InComponents )
 		auto* ViewComponent = static_cast< ScnViewComponent* >( InComponent.get() );
 
 		// Bind view.
-		ViewComponent->bind( Frame, Sort );
+		ViewComponent->preDraw( Frame, Sort );
 
 		// Gather renderable components.
 		GatheredComponents_.clear();
@@ -152,6 +152,12 @@ void ScnViewProcessor::onAttachComponent( class ScnComponent* Component )
 	{
 		RenderableComponents_.insert( static_cast< ScnRenderableComponent* >( Component ) );
 	}
+	else if( Component->isTypeOf< ScnViewComponent >() )
+	{
+		ScnViewRenderDataUPtr ViewRenderData( new ScnViewRenderData() );
+		ViewRenderData->ViewComponent_ = static_cast< ScnViewComponent* >( Component );
+		ViewRenderData_.push_back( std::move( ViewRenderData ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,5 +172,9 @@ void ScnViewProcessor::onDetachComponent( class ScnComponent* Component )
 		RenderableComponents_.erase( 
 			std::find( RenderableComponents_.begin(), RenderableComponents_.end(), Component ) );
 		BcAssert( OldCount != RenderableComponents_.size() );
+	}
+	else if( Component->isTypeOf< ScnViewComponent >() )
+	{
+		auto FoundIt = std::find_if( ViewRenderData_.begin(), ViewRenderData_.end() )
 	}
 }

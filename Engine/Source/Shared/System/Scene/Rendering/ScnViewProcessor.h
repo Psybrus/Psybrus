@@ -4,13 +4,6 @@
 #include "System/Scene/ScnCoreCallback.h"
 
 //////////////////////////////////////////////////////////////////////////
-// ScnViewRenderData
-struct ScnViewRenderData
-{
-	
-};
-
-//////////////////////////////////////////////////////////////////////////
 // ScnViewProcessor
 class ScnViewProcessor:
 	public ScnComponentProcessor,
@@ -34,6 +27,5 @@ private:
 
 private:
 	std::set< class ScnRenderableComponent* > RenderableComponents_;
-
 	ScnComponentList GatheredComponents_;
 };
