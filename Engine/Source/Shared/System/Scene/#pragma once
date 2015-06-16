@@ -1,0 +1,6 @@
+#pragma once
+
+#include "System/Scene/ScnTypes.h"
+#include "Reflection/ReReflection.h"
+#include "System/Scene/ScnComponentPriority.h"
+#include "System/Scene/ScnComponent.h"

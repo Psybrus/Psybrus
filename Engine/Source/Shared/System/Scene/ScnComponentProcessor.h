@@ -13,7 +13,7 @@ using ScnComponentProcessFunc = std::function< void( const ScnComponentList& ) >
 
 struct ScnComponentProcessFuncEntry
 {
-	ReClass* Class_;
+	const ReClass* Class_;
 	std::string Name_;
 	ScnComponentPriority Priority_;
 	ScnComponentProcessFunc Func_;
