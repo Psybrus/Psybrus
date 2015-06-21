@@ -430,40 +430,8 @@ ScnMaterialRef ScnMaterialComponent::getMaterial()
 
 //////////////////////////////////////////////////////////////////////////
 // bind
-class ScnMaterialComponentRenderNode: public RsRenderNode
+struct ScnMaterialComponentRenderData
 {
-public:
-	ScnMaterialComponentRenderNode()
-	{
-		
-	}
-
-	virtual void render()
-	{
-		// Iterate over textures and bind.
-		for( BcU32 Idx = 0; Idx < NoofTextures_; ++Idx )
-		{
-			RsTexture* pTexture = ppTextures_[ Idx ];
-			RsSamplerState* pSamplerState = ppSamplerStates_[ Idx ];
-			pContext_->setTexture( TextureHandles_[ Idx ], pTexture );
-			pContext_->setSamplerState( TextureHandles_[ Idx ], pSamplerState );
-		}
-		
-		// Set uniform blocks.
-		for( BcU32 Idx = 0; Idx < NoofUniformBlocks_; ++Idx )
-		{
-			BcU32 Index = pUniformBlockIndices_[ Idx ];
-			RsBuffer* pUniformBuffer = ppUniformBuffers_[ Idx ];
-			pContext_->setUniformBuffer( Index, pUniformBuffer );
-		}
-
-		// Setup state.
-		pContext_->setRenderState( RenderState_ );
-
-		// Set program.
-		pContext_->setProgram( pProgram_ );
-	}
-	
 	// Texture binding block.
 	BcU32 NoofTextures_;
 	BcU32* TextureHandles_;
@@ -494,26 +462,23 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
 	Sort.Blend_ = 0; //StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
 	
-	// Allocate a render node.
-	ScnMaterialComponentRenderNode* pRenderNode = pFrame->newObject< ScnMaterialComponentRenderNode >();
-	
-	// Debugging.
-	pRenderNode->pMaterial_ = this;
+	ScnMaterialComponentRenderData Data;
+	Data.pMaterial_ = this;
 		
 	// Setup texture binding block.
-	pRenderNode->NoofTextures_ = (BcU32)TextureBindingList_.size();
-	pRenderNode->TextureHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * pRenderNode->NoofTextures_ );
-	pRenderNode->ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * pRenderNode->NoofTextures_ );
-	pRenderNode->ppSamplerStates_ = (RsSamplerState**)pFrame->allocMem( sizeof( RsSamplerState* ) * pRenderNode->NoofTextures_ );
+	Data.NoofTextures_ = (BcU32)TextureBindingList_.size();
+	Data.TextureHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * Data.NoofTextures_ );
+	Data.ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * Data.NoofTextures_ );
+	Data.ppSamplerStates_ = (RsSamplerState**)pFrame->allocMem( sizeof( RsSamplerState* ) * Data.NoofTextures_ );
 	
-	for( BcU32 Idx = 0; Idx < pRenderNode->NoofTextures_; ++Idx )
+	for( BcU32 Idx = 0; Idx < Data.NoofTextures_; ++Idx )
 	{
 		auto& Binding = TextureBindingList_[ Idx ];
-		RsTexture*& Texture = pRenderNode->ppTextures_[ Idx ];
-		RsSamplerState*& SamplerState = pRenderNode->ppSamplerStates_[ Idx ];
+		RsTexture*& Texture = Data.ppTextures_[ Idx ];
+		RsSamplerState*& SamplerState = Data.ppSamplerStates_[ Idx ];
 		
 		// Sampler handles.
-		pRenderNode->TextureHandles_[ Idx ] = Binding.Handle_;
+		Data.TextureHandles_[ Idx ] = Binding.Handle_;
 
 		// Set texture to bind.
 		Texture = Binding.Texture_->getTexture();
@@ -523,25 +488,49 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	}
 
 	// Setup uniform blocks.
-	pRenderNode->NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
-	pRenderNode->pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * pRenderNode->NoofUniformBlocks_ );
-	pRenderNode->ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer* ) * pRenderNode->NoofUniformBlocks_ );
+	Data.NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
+	Data.pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * Data.NoofUniformBlocks_ );
+	Data.ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer* ) * Data.NoofUniformBlocks_ );
 
 	for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
 	{
-		pRenderNode->pUniformBlockIndices_[ Idx ] = UniformBlockBindingList_[ Idx ].Index_;
-		pRenderNode->ppUniformBuffers_[ Idx ] = UniformBlockBindingList_[ Idx ].UniformBuffer_;
+		Data.pUniformBlockIndices_[ Idx ] = UniformBlockBindingList_[ Idx ].Index_;
+		Data.ppUniformBuffers_[ Idx ] = UniformBlockBindingList_[ Idx ].UniformBuffer_;
 	}
 	
 	// Setup state buffer.
-	pRenderNode->RenderState_ = Material_->RenderState_.get();
+	Data.RenderState_ = Material_->RenderState_.get();
 	
 	// Setup program.
-	pRenderNode->pProgram_ = pProgram_;
+	Data.pProgram_ = pProgram_;
 
 	// Add node to frame.
-	pRenderNode->Sort_ = Sort;
-	pFrame->addRenderNode( pRenderNode );
+	pFrame->queueRenderNode( Sort,
+		[ this, Data ]( RsContext* Context )
+		{
+			// Iterate over textures and bind.
+			for( BcU32 Idx = 0; Idx < Data.NoofTextures_; ++Idx )
+			{
+				RsTexture* pTexture = Data.ppTextures_[ Idx ];
+				RsSamplerState* pSamplerState = Data.ppSamplerStates_[ Idx ];
+				Context->setTexture( Data.TextureHandles_[ Idx ], pTexture );
+				Context->setSamplerState( Data.TextureHandles_[ Idx ], pSamplerState );
+			}
+			
+			// Set uniform blocks.
+			for( BcU32 Idx = 0; Idx < Data.NoofUniformBlocks_; ++Idx )
+			{
+				BcU32 Index = Data.pUniformBlockIndices_[ Idx ];
+				RsBuffer* pUniformBuffer = Data.ppUniformBuffers_[ Idx ];
+				Context->setUniformBuffer( Index, pUniformBuffer );
+			}
+
+			// Setup state.
+			Context->setRenderState( Data.RenderState_ );
+
+			// Set program.
+			Context->setProgram( Data.pProgram_ );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////

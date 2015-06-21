@@ -16,6 +16,7 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsRenderNode.h"
 
+#include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +94,7 @@ void RsFrame::render()
 		for( BcU32 i = 0; i < CurrNode_; ++i )
 		{
 			RsRenderNode* pRenderNode = ppNodeArray_[ i ];
-			pRenderNode->render();
+			pRenderNode->render( pContext_ );
 			pRenderNode->~RsRenderNode();
 		}
 
@@ -106,22 +107,10 @@ void RsFrame::render()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// addRenderNode
-void RsFrame::addRenderNode( RsRenderNode* pNode )
-{
-	ppNodeArray_[ CurrNode_++ ] = pNode;
-	
-	// Set the context for the node.
-	pNode->pContext_ = pContext_;
-
-	// Set the sort value for the node.
-	pNode->Sort_.Value_ |= RS_SORT_MACRO_VIEWPORT_RENDERTARGET( 0, 0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // allocMem
 void* RsFrame::allocMem( BcSize Bytes )
 {
+	Bytes = BcCalcAlignment( static_cast< BcU64 >( Bytes ), static_cast< BcU64 >( 64 ) );
 	BcU8* pMem = pCurrFrameMem_;
 	pCurrFrameMem_ += Bytes;
 	BcAssertMsg( BcU32( pCurrFrameMem_ - pMem ) < FrameBytes_, "RsFrame: Out of memory." );

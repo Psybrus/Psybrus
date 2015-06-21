@@ -777,27 +777,6 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // renderPrimitives
-class ScnModelComponentRenderNode: public RsRenderNode
-{
-public:
-	void render()
-	{
-		PSY_PROFILER_SECTION( RenderRoot, "ScnModelComponentRenderNode::render" );
-		pContext_->setIndexBuffer( IndexBuffer_ );
-		pContext_->setVertexBuffer( 0, VertexBuffer_, VertexStride_ );
-		pContext_->setVertexDeclaration( VertexDeclaration_ );
-		pContext_->drawIndexedPrimitives( Type_, Offset_, NoofIndices_, 0 );
-	}
-
-	RsTopologyType Type_;
-	BcU32 Offset_;
-	BcU32 NoofIndices_;
-	RsBuffer* IndexBuffer_;
-	RsBuffer* VertexBuffer_;
-	BcU32 VertexStride_;
-	RsVertexDeclaration* VertexDeclaration_;
-};
-
 void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	PSY_PROFILE_FUNCTION;
@@ -849,17 +828,14 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		PerComponentMeshData.MaterialComponentRef_->bind( pFrame, Sort );
 			
 		// Render primitive.
-		ScnModelComponentRenderNode* pRenderNode = pFrame->newObject< ScnModelComponentRenderNode >();
-			
-		pRenderNode->Type_ = pMeshData->Type_;
-		pRenderNode->Offset_ = Offset;
-		pRenderNode->NoofIndices_ = pMeshData->NoofIndices_;
-		pRenderNode->IndexBuffer_ = pMeshRuntime->pIndexBuffer_;
-		pRenderNode->VertexBuffer_ = pMeshRuntime->pVertexBuffer_;
-		pRenderNode->VertexStride_ = pMeshData->VertexStride_;
-		pRenderNode->VertexDeclaration_ = pMeshRuntime->pVertexDeclaration_;
-		pRenderNode->Sort_ = Sort;
-			
-		pFrame->addRenderNode( pRenderNode );
+		pFrame->queueRenderNode( Sort,
+			[ pMeshData, pMeshRuntime, Offset ]( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+				Context->setIndexBuffer( pMeshRuntime->pIndexBuffer_ );
+				Context->setVertexBuffer( 0, pMeshRuntime->pVertexBuffer_, pMeshData->VertexStride_ );
+				Context->setVertexDeclaration( pMeshRuntime->pVertexDeclaration_ );
+				Context->drawIndexedPrimitives( pMeshData->Type_, Offset, pMeshData->NoofIndices_, 0 );
+			} );
 	}
 }

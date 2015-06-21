@@ -119,21 +119,6 @@ MaAABB ScnParticleSystemComponent::getAABB() const
 
 //////////////////////////////////////////////////////////////////////////
 // render
-class ScnParticleSystemComponentRenderNode: public RsRenderNode
-{
-public:
-	void render()
-	{
-		pContext_->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnParticleVertex ) );
-		pContext_->setVertexDeclaration( VertexDeclaration_ );
-		pContext_->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofIndices_ );
-	}
-	
-	RsBuffer* VertexBuffer_;
-	RsVertexDeclaration* VertexDeclaration_;
-	BcU32 NoofIndices_;
-};
-
 //virtual
 void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
@@ -320,15 +305,14 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 		// Bind material component.
 		MaterialComponent_->bind( pFrame, Sort );
 
-		// Setup render node.
-		ScnParticleSystemComponentRenderNode* pRenderNode = pFrame->newObject< ScnParticleSystemComponentRenderNode >();
-		pRenderNode->VertexBuffer_ = VertexBuffer.pVertexBuffer_;
-		pRenderNode->VertexDeclaration_ = VertexDeclaration_;
-		pRenderNode->NoofIndices_ = NoofParticlesToRender * 6;
-
 		// Add to frame.
-		pRenderNode->Sort_ = Sort;
-		pFrame->addRenderNode( pRenderNode );
+		pFrame->queueRenderNode( Sort,
+			[ this, VertexBuffer, NoofParticlesToRender ]( RsContext* Context )
+			{
+				Context->setVertexBuffer( 0, VertexBuffer.pVertexBuffer_, sizeof( ScnParticleVertex ) );
+				Context->setVertexDeclaration( VertexDeclaration_ );
+				Context->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
+			} );
 	}
 }
 

@@ -157,11 +157,12 @@ RsDepthStencilState::RsDepthStencilState( ReNoInit ):
 	DepthWriteEnable_( BcFalse ),
 	DepthFunc_( RsCompareMode::LESS ),
 	StencilEnable_( BcFalse ),
+	StencilFront_(),
+	StencilBack_(),
+	StencilRef_( 0x0 ),
 	StencilRead_( 0x0 ),
 	StencilWrite_( 0x0 ),
-	StencilRef_( 0x0 ),
-	StencilFront_(),
-	StencilBack_()
+	Padding_( 0 )
 {
 
 }
@@ -171,11 +172,12 @@ RsDepthStencilState::RsDepthStencilState():
 	DepthWriteEnable_( BcFalse ),
 	DepthFunc_( RsCompareMode::LESS ),
 	StencilEnable_( BcFalse ),
+	StencilFront_(),
+	StencilBack_(),
+	StencilRef_( 0 ),
 	StencilRead_( 0x0 ),
 	StencilWrite_( 0x0 ),
-	StencilRef_( 0 ),
-	StencilFront_(),
-	StencilBack_()
+	Padding_( 0 )
 {
 
 }

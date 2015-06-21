@@ -14,6 +14,7 @@
 #ifndef __RSRENDERNODE_H__
 #define __RSRENDERNODE_H__
 
+#include "Base/BcMath.h"
 #include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,32 +97,37 @@ public:
 /**	\class RsRenderNode
 *	\brief Renderable node.
 *	
-*	Deriving from this object will allow it to render how it likes.
-*	Renderable resource instances will all have their own render() call,
-*	removing the need for a nasty resource type switch.
-*	Generally renderable instances will be platform/API specific, allowing
-*	for both high-level and low-level optimisations to be implemented.
-*	This object is allocated by the frame object itself when a request to render
-*	a resource is specified. This means that you can not change an instance
-*	once it has been submitted to the frame object for rendering.
-*	The upside is you can derive your own if you use the rendering API
-*	that is exposed by RsCoreImpl and other objects. This does not require
-*	deallocation, and gives more flexibility.	
+*	Sortable render node. Used to queue up high level render commands in 
+*	to be called later on.
 */
 class RsRenderNode
 {
 public:
-	RsRenderNode();
-	virtual ~RsRenderNode();
-
-	/**
-	*	Perform default render.
-	*/
-	virtual void			render() = 0;
+	struct Capture {};
+	typedef void( Capture::*Callback )( RsContext* );
 
 public:
-	RsContext*				pContext_;
-	RsRenderSort			Sort_;
+	RsRenderNode( RsRenderSort InSort, Callback InCallback );
+
+	/**
+	 * Perform render of node.
+	 */
+	void render( RsContext* Context );
+
+public:
+	RsRenderSort Sort_;
+	Callback Callback_;
 };
+
+//////////////////////////////////////////////////////////////////////////
+// Inline
+inline void RsRenderNode::render( RsContext* Context )
+{
+	const auto RenderNodeSize = sizeof( RsRenderNode );
+	auto* CapturePtr = 
+		reinterpret_cast< Capture* >( 
+			reinterpret_cast< BcU8* >( this ) + RenderNodeSize );
+	(CapturePtr->*Callback_)( Context );
+}
 
 #endif

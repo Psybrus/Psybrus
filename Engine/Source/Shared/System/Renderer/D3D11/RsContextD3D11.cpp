@@ -539,7 +539,6 @@ void RsContextD3D11::create()
 
 	// Create back buffer RT.
 	BackBufferRT_ = new RsTexture(
-		RsTexture( 
 			this,
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
@@ -548,12 +547,11 @@ void RsContextD3D11::create()
 				RsTextureFormat::R8G8B8A8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
-				1 ) ) );
+				1 ) );
 	BackBufferRT_->setHandle< size_t >( BackBufferRTResourceIdx_ );
 
 	// Create back buffer DS.
 	BackBufferDS_ = new RsTexture(
-		RsTexture( 
 			this,
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
@@ -562,7 +560,7 @@ void RsContextD3D11::create()
 				RsTextureFormat::D24S8, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
-				1 ) ) );
+				1 ) );
 	const auto& TextureDesc = BackBufferDS_->getDesc();
 	D3D11_TEXTURE2D_DESC Desc;
 	Desc.Width = TextureDesc.Width_;
@@ -954,7 +952,7 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-void RsContextD3D11::setViewport( class RsViewport& Viewport )
+void RsContextD3D11::setViewport( const class RsViewport& Viewport )
 {
 	D3D11_VIEWPORT D3DViewport;
 	D3DViewport.Width = (FLOAT)Viewport.width();

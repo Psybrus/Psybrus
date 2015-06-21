@@ -37,7 +37,7 @@ public:
 
 	void presentBackBuffer();
 	void takeScreenshot();
-	void setViewport( class RsViewport& Viewport );
+	void setViewport( const class RsViewport& Viewport );
 
 	void setDefaultState();
 	void invalidateRenderState();

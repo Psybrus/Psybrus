@@ -93,7 +93,7 @@ public:
 	/**
 	 * Set viewport.
 	 */
-	virtual void setViewport( class RsViewport& Viewport ) = 0;
+	virtual void setViewport( const class RsViewport& Viewport ) = 0;
 
 	/**
 	 * Set scissor rect.

@@ -45,8 +45,7 @@ PsyProjectEngineLib( "System_Scene" )
       "jsoncpp",
       "glsl-optimizer",
       "hlsl2glslfork",
-      "HLSLCrossCompiler",
-      "rapidxml"
+      "HLSLCrossCompiler"
 		}
 
   configuration "linux-*"

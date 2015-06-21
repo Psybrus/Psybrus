@@ -126,7 +126,7 @@ public:
 		Sort_ = Sort;	
 	}
 	
-	void render()
+	void render( RsContext* Context )
 	{
 		
 	}

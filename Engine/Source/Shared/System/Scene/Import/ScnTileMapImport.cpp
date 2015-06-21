@@ -86,7 +86,7 @@ BcBool ScnTileMapImport::import( const Json::Value& )
 	BcBool CanImport = BcTrue;
 	BcStream Stream;
 
-	CsResourceImporter:addDependency( Source_.c_str() );
+	CsResourceImporter::addDependency( Source_.c_str() );
 
 	if( Source_.empty() )
 	{
@@ -328,8 +328,8 @@ void ScnTileMapImport::parseImage(
 				// Create texture importer.
 				auto TextureImporter = CsResourceImporterUPtr(
 					new ScnTextureImport( 
-						TexSourcePath.c_str(), "ScnTextureAtlas",
-						TexSourcePath.c_str(), RsTextureFormat::R8G8B8A8,
+						TexSourcePath.string(), "ScnTextureAtlas",
+						TexSourcePath.string(), RsTextureFormat::R8G8B8A8,
 						TileSet->TileWidth_,
 						TileSet->TileHeight_ ) );
 

@@ -15,22 +15,7 @@
 #define __RSFRAME_H__
 
 #include "Base/BcTypes.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-// Forward Declarations
-class RsCore;
-class RsMaterial;
-class RsEffect;
-class RoModel;
-
-//////////////////////////////////////////////////////////////////////////
-// Enums
-enum eRsFramePrimitiveMode
-{
-	rsFPM_2D = 0,
-	rsFPM_3D
-};
+#include "System/Renderer/RsRenderNode.h"
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsFrame
@@ -61,13 +46,7 @@ public:
 	 * Render frame.
 	 */
 	void render();
-		
-	/**
-	 *	Add render node.\n
-	 *	NON-JOB FUNCTION: Placeholder.
-	 */
-	void addRenderNode( class RsRenderNode* pInstance );
-	
+			
 	/**
 	 *	Allocate from instance memory.
 	 */
@@ -75,8 +54,17 @@ public:
 
 public:
 	/**
-	 *	Allocate from instance memory.\n
-	 *	NON-JOB FUNCTION: Called by specific frame implementation.
+	 * Queue render node.
+	 * @param Sort Sorting value for render node.
+	 * @param Callable Callable/lambda object to use in command.
+	 * @pre Callable is trivially copyable.
+	 * @pre Callable is trivially destructible..
+	 */
+	template < typename _CallableType >
+	void queueRenderNode( RsRenderSort Sort, _CallableType&& Callable );
+
+	/**
+	 *	Allocate from instance memory.
 	 */
 	template< typename _Ty >
 	_Ty* alloc( BcU32 NoofObjects  = 1 );
@@ -111,6 +99,31 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Inlines
+template < typename _CallableType >
+inline void RsFrame::queueRenderNode( RsRenderSort Sort, _CallableType&& Callable )
+{
+	static_assert( std::is_trivially_copyable< _CallableType >::value, "Must be trivially copyable" );
+	static_assert( std::is_trivially_destructible< _CallableType >::value, "Must be trivially destructible" );
+
+	// Grab call function.
+	auto CallFunc = &_CallableType::operator();
+
+	// Grab aligned render node size.
+	const auto RenderNodeSize = sizeof( RsRenderNode );
+
+	// Allocate node data.
+	BcU8* NodeBytes = reinterpret_cast< BcU8* >( allocMem( RenderNodeSize + sizeof( _CallableType ) ) );
+
+	// Construct render node.
+	auto RenderNode = new ( NodeBytes ) RsRenderNode( 
+		Sort, reinterpret_cast< RsRenderNode::Callback >( CallFunc ) );
+
+	// Copy callable data in.
+	memcpy( NodeBytes + RenderNodeSize, &Callable, sizeof( _CallableType ) );
+
+	// Add to node array.
+	ppNodeArray_[ CurrNode_++ ] = RenderNode;
+}
 
 template< typename _Ty >
 inline _Ty* RsFrame::alloc( BcU32 NoofObjects )

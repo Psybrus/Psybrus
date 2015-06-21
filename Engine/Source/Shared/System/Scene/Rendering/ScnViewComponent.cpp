@@ -236,12 +236,12 @@ RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 class ScnViewComponentViewport: public RsRenderNode
 {
 public:
-	void render()
+	void render( RsContext* Context )
 	{
 		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
-		pContext_->setFrameBuffer( FrameBuffer_ );
-		pContext_->setViewport( Viewport_ );
-		pContext_->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
+		Context->setFrameBuffer( FrameBuffer_ );
+		Context->setViewport( Viewport_ );
+		Context->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
 	}
 
 	RsFrameBuffer* FrameBuffer_;
@@ -356,15 +356,20 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 
 	// Setup render node to set the frame buffer, viewport, and clear colour.
 	// TODO: Pass this in with the draw commands down the line.
-	ScnViewComponentViewport* pRenderNode = pFrame->newObject< ScnViewComponentViewport >();
-	pRenderNode->Sort_ = Sort;
-	pRenderNode->FrameBuffer_ = FrameBuffer_.get();
-	pRenderNode->Viewport_ = Viewport_;
-	pRenderNode->ClearColour_ = ClearColour_;
-	pRenderNode->EnableClearColour_ = EnableClearColour_;
-	pRenderNode->EnableClearDepth_ = EnableClearDepth_;
-	pRenderNode->EnableClearStencil_ = EnableClearStencil_;
-	pFrame->addRenderNode( pRenderNode );
+	auto FrameBuffer = FrameBuffer_.get();
+	auto Viewport = Viewport_;
+	auto ClearColour = ClearColour_;
+	auto EnableClearColour = EnableClearColour_;
+	auto EnableClearDepth = EnableClearDepth_;
+	auto EnableClearStencil = EnableClearStencil_;
+	pFrame->queueRenderNode( Sort,
+		[ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
+		{
+			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
+			Context->setFrameBuffer( FrameBuffer );
+			Context->setViewport( Viewport );
+			Context->clear( ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
