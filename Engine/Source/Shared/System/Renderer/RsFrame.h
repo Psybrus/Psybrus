@@ -102,7 +102,6 @@ private:
 template < typename _CallableType >
 inline void RsFrame::queueRenderNode( RsRenderSort Sort, _CallableType&& Callable )
 {
-	static_assert( std::is_trivially_copyable< _CallableType >::value, "Must be trivially copyable" );
 	static_assert( std::is_trivially_destructible< _CallableType >::value, "Must be trivially destructible" );
 
 	// Grab call function.
@@ -118,8 +117,9 @@ inline void RsFrame::queueRenderNode( RsRenderSort Sort, _CallableType&& Callabl
 	auto RenderNode = new ( NodeBytes ) RsRenderNode( 
 		Sort, reinterpret_cast< RsRenderNode::Callback >( CallFunc ) );
 
-	// Copy callable data in.
-	memcpy( NodeBytes + RenderNodeSize, &Callable, sizeof( _CallableType ) );
+	// Placement construct a new callable moving into it.
+	_CallableType* TargetCallable = reinterpret_cast< _CallableType* >( NodeBytes + RenderNodeSize );
+	new ( TargetCallable ) _CallableType( std::move( Callable ) );
 
 	// Add to node array.
 	ppNodeArray_[ CurrNode_++ ] = RenderNode;
