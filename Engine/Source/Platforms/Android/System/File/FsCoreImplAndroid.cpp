@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		FsCoreImplLinux.cpp
+* File:		FsCoreImplAndroid.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "System/File/FsCoreImplLinux.h"
+#include "System/File/FsCoreImplAndroid.h"
 #include "System/File/FsFileImplLinux.h"
 
 #include "System/SysKernel.h"
@@ -22,17 +22,13 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#if PSY_USE_PROFILER
-#include <boost/format.hpp>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // System Creator
-SYS_CREATOR( FsCoreImplLinux );
+SYS_CREATOR( FsCoreImplAndroid );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-FsCoreImplLinux::FsCoreImplLinux()
+FsCoreImplAndroid::FsCoreImplAndroid()
 {
 	// Create our job queue.
 	// 1 thread if we have 1 or more hardware thread.
@@ -42,7 +38,7 @@ FsCoreImplLinux::FsCoreImplLinux()
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-FsCoreImplLinux::~FsCoreImplLinux()
+FsCoreImplAndroid::~FsCoreImplAndroid()
 {
 
 }
@@ -50,7 +46,7 @@ FsCoreImplLinux::~FsCoreImplLinux()
 //////////////////////////////////////////////////////////////////////////
 // init
 //virtual
-void FsCoreImplLinux::open()
+void FsCoreImplAndroid::open()
 {
 	int RetVal = 0;
 	
@@ -65,7 +61,7 @@ void FsCoreImplLinux::open()
 //////////////////////////////////////////////////////////////////////////
 // update
 //virtual
-void FsCoreImplLinux::update()
+void FsCoreImplAndroid::update()
 {
 	// Update file monitoring.
 	updateFileMonitoring();
@@ -74,7 +70,7 @@ void FsCoreImplLinux::update()
 //////////////////////////////////////////////////////////////////////////
 // shutdown
 //virtual
-void FsCoreImplLinux::close()
+void FsCoreImplAndroid::close()
 {
 	
 }
@@ -82,7 +78,7 @@ void FsCoreImplLinux::close()
 //////////////////////////////////////////////////////////////////////////
 // newFileImpl
 //virtual
-FsFileImpl* FsCoreImplLinux::openFile( const BcChar* pFilename, eFsFileMode FileMode )
+FsFileImpl* FsCoreImplAndroid::openFile( const BcChar* pFilename, eFsFileMode FileMode )
 {
 	FsFileImpl* pFileImpl = NULL;
 
@@ -102,7 +98,7 @@ FsFileImpl* FsCoreImplLinux::openFile( const BcChar* pFilename, eFsFileMode File
 //////////////////////////////////////////////////////////////////////////
 // close
 //virtual
-void FsCoreImplLinux::closeFile( FsFileImpl* pFileImpl )
+void FsCoreImplAndroid::closeFile( FsFileImpl* pFileImpl )
 {
 	delete pFileImpl;
 }
@@ -110,7 +106,7 @@ void FsCoreImplLinux::closeFile( FsFileImpl* pFileImpl )
 //////////////////////////////////////////////////////////////////////////
 // fileExists
 //virtual
-BcBool FsCoreImplLinux::fileExists( const BcChar* pFilename )
+BcBool FsCoreImplAndroid::fileExists( const BcChar* pFilename )
 {
 	FILE* pHandle = NULL;
 	pHandle = fopen( pFilename, "rb" );
@@ -124,7 +120,7 @@ BcBool FsCoreImplLinux::fileExists( const BcChar* pFilename )
 //////////////////////////////////////////////////////////////////////////
 // fileExists
 //virtual
-BcBool FsCoreImplLinux::fileStats( const BcChar* pFilename, FsStats& Stats )
+BcBool FsCoreImplAndroid::fileStats( const BcChar* pFilename, FsStats& Stats )
 {
 	struct stat Attrib;
 
@@ -166,7 +162,7 @@ BcBool FsCoreImplLinux::fileStats( const BcChar* pFilename, FsStats& Stats )
 
 //////////////////////////////////////////////////////////////////////////
 // findFiles
-void FsCoreImplLinux::findFiles( BcPath Path, BcBool Recursive, BcBool AddFolders, std::list< BcPath >& OutputPaths )
+void FsCoreImplAndroid::findFiles( BcPath Path, BcBool Recursive, BcBool AddFolders, std::list< BcPath >& OutputPaths )
 {
 	BcBreakpoint;
 }
@@ -184,14 +180,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( "FsCoreImplLinux::addReadOp" );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplAndroid::addReadOp" );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplLinux::addReadOp" );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplAndroid::addReadOp" );	
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
@@ -203,7 +199,7 @@ private:
 	FsFileOpCallback DoneCallback_;
 };
 
-void FsCoreImplLinux::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
+void FsCoreImplAndroid::addReadOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	BcAssert( Bytes > 0 );
 	SysKernel::pImpl()->pushJob( FsCore::JOB_QUEUE_ID, new Job_ReadOp( pImpl, Position, pData, Bytes, DoneCallback ) );
@@ -222,14 +218,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplLinux::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplAndroid::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplLinux::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplAndroid::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
@@ -242,14 +238,14 @@ private:
 };
 
 
-void FsCoreImplLinux::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
+void FsCoreImplAndroid::addWriteOp( FsFileImpl* pImpl, BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	SysKernel::pImpl()->pushJob( FsCore::JOB_QUEUE_ID, new Job_WriteOp( pImpl, Position, pData, Bytes, DoneCallback ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // addFileMonitor
-void FsCoreImplLinux::addFileMonitor( const BcChar* pFilename )
+void FsCoreImplAndroid::addFileMonitor( const BcChar* pFilename )
 {
 	std::lock_guard< std::mutex > Lock( FileMonitorLock_ );
 	
@@ -274,7 +270,7 @@ void FsCoreImplLinux::addFileMonitor( const BcChar* pFilename )
 
 //////////////////////////////////////////////////////////////////////////
 // removeFileMonitor
-void FsCoreImplLinux::removeFileMonitor( const BcChar* pFilename )
+void FsCoreImplAndroid::removeFileMonitor( const BcChar* pFilename )
 {
 	std::lock_guard< std::mutex > Lock( FileMonitorLock_ );
 
@@ -293,7 +289,7 @@ void FsCoreImplLinux::removeFileMonitor( const BcChar* pFilename )
 
 //////////////////////////////////////////////////////////////////////////
 // updateFileMonitoring
-void FsCoreImplLinux::updateFileMonitoring()
+void FsCoreImplAndroid::updateFileMonitoring()
 {
 	std::lock_guard< std::mutex > Lock( FileMonitorLock_ );
 
@@ -316,12 +312,12 @@ void FsCoreImplLinux::updateFileMonitoring()
 				// Publish message that file has changed/been created.
 				if( OldFileStats.ModifiedTime_.isNull() == BcTrue )
 				{
-					PSY_LOG( "FsCoreImplLinux: File created: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplAndroid: File created: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_CREATED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 				else
 				{
-					PSY_LOG( "FsCoreImplLinux: File modified: %s\n", FileName.c_str() );
+					PSY_LOG( "FsCoreImplAndroid: File modified: %s\n", FileName.c_str() );
 					EvtPublisher::publish( fsEVT_MONITOR_MODIFIED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 				}
 			}
@@ -331,7 +327,7 @@ void FsCoreImplLinux::updateFileMonitoring()
 			// Publish message that file has been deleted.
 			if( OldFileStats.ModifiedTime_.isNull() == BcFalse )
 			{
-				PSY_LOG( "FsCoreImplLinux: File deleted: %s\n", FileName.c_str() );
+				PSY_LOG( "FsCoreImplAndroid: File deleted: %s\n", FileName.c_str() );
 				EvtPublisher::publish( fsEVT_MONITOR_DELETED, FsEventMonitor( FileName.c_str(), OldFileStats, NewFileStats ) );
 			}
 		}

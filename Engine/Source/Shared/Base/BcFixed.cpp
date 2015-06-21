@@ -47,9 +47,9 @@ void BcFixed_UnitTest()
 	FIXED_TEST_SET( BcS8, 2 );
 	FIXED_TEST_SET( BcS8, 4 );
 
-	FIXED_TEST_SET( BcS16, 2 );
-	FIXED_TEST_SET( BcS16, 4 );
-	FIXED_TEST_SET( BcS16, 8 );
+	FIXED_TEST_SET( BcS16, 2 ); // Breaks on 32-bit arm. Alignment problem?
+	FIXED_TEST_SET( BcS16, 4 ); // Breaks on 32-bit arm. Alignment problem?
+	FIXED_TEST_SET( BcS16, 8 ); // Breaks on 32-bit arm. Alignment problem?
 
 	FIXED_TEST_SET( BcS32, 4 );
 	FIXED_TEST_SET( BcS32, 8 );

@@ -25,6 +25,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#if PLATFORM_ANDROID
+#include <android_native_app_glue.h>
+#include <android/log.h>
+
+#define  LOG_TAG    "Psybrus"
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Colours.
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -84,23 +91,42 @@ private:
 			BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) || BcStrStr( pText, "error C" ) )
 		{
 			printf( ANSI_COLOR_RED "%s", pText );
+#if PLATFORM_ANDROID
+			__android_log_print( ANDROID_LOG_ERROR, LOG_TAG, pText );
+#endif
 		}
 		else if( BcStrStr( pText, "SUCCESS:" ) || BcStrStr( pText, "SUCCEEDED:" ) )
 		{
 			printf( ANSI_COLOR_GREEN "%s", pText );
+
+#if PLATFORM_ANDROID
+			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+#endif
 		}
 		else if( BcStrStr( pText, "WARNING:" ) || BcStrStr( pText, "warning:" ) || BcStrStr( pText, "Warning," ) )
 		{
 			printf( ANSI_COLOR_YELLOW "%s", pText );
+
+#if PLATFORM_ANDROID
+			__android_log_print( ANDROID_LOG_WARN, LOG_TAG, pText );
+#endif
 		}
 		else if( BcStrStr( pText, "INFO:" ) || BcStrStr( pText, "info:" ) ||
 			BcStrStr( pText, "NOTE:" ) || BcStrStr( pText, "note:" ) )
 		{
 			printf( ANSI_COLOR_CYAN "%s", pText );
+
+#if PLATFORM_ANDROID
+			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+#endif
 		}
 		else
 		{
 			printf( ANSI_COLOR_RESET "%s", pText );
+
+#if PLATFORM_ANDROID
+			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+#endif
 		}
 
 		// Generic case.

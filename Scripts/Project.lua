@@ -33,14 +33,14 @@ function PsyProjectCommon( _name, _lang )
 		-- linkoptions { "-fsanitize=thread", "-fPIE", "-pie", "-ltsan" }
 
 	-- Setup dynamic linking for backtrace support.
-	configuration { "Debug", "gmake" }
-		linkoptions { "-rdynamic" }
+	--configuration { "Debug", "gmake" }
+	--	linkoptions { "-rdynamic" }
 
-	configuration { "Release", "gmake" }
-		linkoptions { "-rdynamic" }
+	--configuration { "Release", "gmake" }
+	--	linkoptions { "-rdynamic" }
 
-	configuration { "Profile", "gmake" }
-		linkoptions { "-rdynamic" }
+	--configuration { "Profile", "gmake" }
+	--	linkoptions { "-rdynamic" }
 
 	-- Common defines for build targets across all types of project.
 	configuration "Debug"

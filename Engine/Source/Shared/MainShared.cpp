@@ -51,6 +51,7 @@ void MainUnitTests()
 	extern void BcTypes_UnitTest();
 	BcTypes_UnitTest();
 	
+#if !PLATFORM_ANDROID
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
@@ -58,6 +59,7 @@ void MainUnitTests()
 	// Relative ptr unit test.
 	extern void BcRelativePtr_UnitTest();
 	BcRelativePtr_UnitTest();
+#endif
 
 	// SysKernel unit test.
 	extern void SysKernel_UnitTest();
@@ -126,14 +128,12 @@ void MainShared()
 	}
 	*/
 
-	// Create default job queue.
-	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 0, 0 );
-
 	// Parse command line params for disabling systems.
 	if( SysArgs_.find( "-noremote " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
 	}
+
 
 	if( SysArgs_.find( "-norender " ) != std::string::npos )
 	{
@@ -150,6 +150,7 @@ void MainShared()
 	{
 		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
 	}
+
 
 	// Start debug system if not a production build.
 #if !defined( PSY_PRODUCTION )

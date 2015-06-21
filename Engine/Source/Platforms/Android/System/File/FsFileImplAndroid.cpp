@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		FsFileImplLinux.cpp
+* File:		FsFileImplAndroid.cpp
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,14 +11,14 @@
 * 
 **************************************************************************/
 
-#include "System/File/FsFileImplLinux.h"
+#include "System/File/FsFileImplAndroid.h"
 
 #include "System/File/FsCore.h"
 #include "System/File/FsCoreImplLinux.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-FsFileImplLinux::FsFileImplLinux():
+FsFileImplAndroid::FsFileImplAndroid():
 	pFileHandle_( NULL ),
 	FileSize_( 0 )
 {
@@ -28,7 +28,7 @@ FsFileImplLinux::FsFileImplLinux():
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-FsFileImplLinux::~FsFileImplLinux()
+FsFileImplAndroid::~FsFileImplAndroid()
 {
 	BcAssert( pFileHandle_ == NULL );
 }
@@ -36,7 +36,7 @@ FsFileImplLinux::~FsFileImplLinux()
 //////////////////////////////////////////////////////////////////////////
 // open
 //virtual
-BcBool FsFileImplLinux::open( const BcChar* FileName, eFsFileMode FileMode )
+BcBool FsFileImplAndroid::open( const BcChar* FileName, eFsFileMode FileMode )
 {
 	BcBool RetVal = BcFalse;
 
@@ -73,7 +73,7 @@ BcBool FsFileImplLinux::open( const BcChar* FileName, eFsFileMode FileMode )
 //////////////////////////////////////////////////////////////////////////
 // close
 //virtual
-BcBool FsFileImplLinux::close()
+BcBool FsFileImplAndroid::close()
 {
 	BcBool RetVal = BcFalse;
 
@@ -92,7 +92,7 @@ BcBool FsFileImplLinux::close()
 //////////////////////////////////////////////////////////////////////////
 // fileName
 //virtual
-const BcChar* FsFileImplLinux::fileName() const
+const BcChar* FsFileImplAndroid::fileName() const
 {
 	return FileName_.c_str();
 }
@@ -100,7 +100,7 @@ const BcChar* FsFileImplLinux::fileName() const
 //////////////////////////////////////////////////////////////////////////
 // size
 //virtual
-BcSize FsFileImplLinux::size() const
+BcSize FsFileImplAndroid::size() const
 {
 	return (BcSize)FileSize_;
 }
@@ -108,7 +108,7 @@ BcSize FsFileImplLinux::size() const
 //////////////////////////////////////////////////////////////////////////
 // tell
 //virtual
-BcSize FsFileImplLinux::tell() const
+BcSize FsFileImplAndroid::tell() const
 {
 	return (BcSize)ftell( pFileHandle_ );
 }
@@ -116,7 +116,7 @@ BcSize FsFileImplLinux::tell() const
 //////////////////////////////////////////////////////////////////////////
 // seek
 //virtual
-void FsFileImplLinux::seek( BcSize Position )
+void FsFileImplAndroid::seek( BcSize Position )
 {
 	fseek( pFileHandle_, (long)Position, SEEK_SET );
 }
@@ -124,21 +124,21 @@ void FsFileImplLinux::seek( BcSize Position )
 //////////////////////////////////////////////////////////////////////////
 // eof
 //virtual
-BcBool FsFileImplLinux::eof() const
+BcBool FsFileImplAndroid::eof() const
 {
 	return feof( pFileHandle_ ) != 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // read
-void FsFileImplLinux::read( void* pDest, BcSize Bytes )
+void FsFileImplAndroid::read( void* pDest, BcSize Bytes )
 {
 	fread( pDest, (long)Bytes, 1, pFileHandle_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // write
-void FsFileImplLinux::write( void* pSrc, BcSize Bytes )
+void FsFileImplAndroid::write( void* pSrc, BcSize Bytes )
 {
 	fwrite( pSrc, (long)Bytes, 1, pFileHandle_ );
 }
@@ -146,7 +146,7 @@ void FsFileImplLinux::write( void* pSrc, BcSize Bytes )
 //////////////////////////////////////////////////////////////////////////
 // readAsync
 //virtual
-void FsFileImplLinux::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
+void FsFileImplAndroid::readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addReadOp( this, Position, pData, Bytes, DoneCallback );
 }
@@ -154,7 +154,7 @@ void FsFileImplLinux::readAsync( BcSize Position, void* pData, BcSize Bytes, FsF
 //////////////////////////////////////////////////////////////////////////
 // writeAsync
 //virtual
-void FsFileImplLinux::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
+void FsFileImplAndroid::writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback )
 {
 	FsCore::pImpl()->addWriteOp( this, Position, pData, Bytes, DoneCallback );
 }

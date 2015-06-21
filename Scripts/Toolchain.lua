@@ -87,7 +87,7 @@ function PsySetupToolchain()
 				"-target armv7-none-linux-androideabi",
 				"-Wl,--fix-cortex-a8",
 				"-Wl,--no-warn-mismatch",
-				"-nostdlib"
+				"-nostdlib",
 			}
 
 			configuration( "*" )

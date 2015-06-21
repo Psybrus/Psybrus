@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		FsCoreImplLinux.h
+* File:		FsCoreImplAndroid.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#ifndef __FsCoreImplLinux_H__
-#define __FsCoreImplLinux_H__
+#ifndef __FsCoreImplAndroid_H__
+#define __FsCoreImplAndroid_H__
 
 #include "System/File/FsCore.h"
 
@@ -27,12 +27,12 @@ class FsFileImpl;
 
 //////////////////////////////////////////////////////////////////////////
 // FsCoreImpl
-class FsCoreImplLinux:
+class FsCoreImplAndroid:
 	public FsCore
 {
 public:
-	FsCoreImplLinux();
-	virtual ~FsCoreImplLinux();
+	FsCoreImplAndroid();
+	virtual ~FsCoreImplAndroid();
 	
 	virtual void open();
 	virtual void update();

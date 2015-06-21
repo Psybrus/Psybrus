@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		FsFileImplLinux.h
+* File:		FsFileImplAndroid.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,21 +11,21 @@
 * 
 **************************************************************************/
 
-#ifndef __FsFileImplLinux_H__
-#define __FsFileImplLinux_H__
+#ifndef __FsFileImplAndroid_H__
+#define __FsFileImplAndroid_H__
 
 #include "System/File/FsCore.h"
 #include "System/File/FsFile.h"
 #include <atomic>
 
 //////////////////////////////////////////////////////////////////////////
-// FsFileImplLinux
-class FsFileImplLinux:
+// FsFileImplAndroid
+class FsFileImplAndroid:
 	public FsFileImpl
 {
 public:
-	FsFileImplLinux();
-	virtual ~FsFileImplLinux();
+	FsFileImplAndroid();
+	virtual ~FsFileImplAndroid();
 	
 	virtual BcBool		open( const BcChar* FileName, eFsFileMode FileMode );
 	virtual BcBool		close();

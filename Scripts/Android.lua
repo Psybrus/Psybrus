@@ -72,9 +72,9 @@ function SetupAndroidProject()
 				"$(SILENT) cp " .. postBuildPath .. "/bin/lib" .. libName .. "-gmake-" .. suffix .. "-Debug.so " .. postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so",
 				"$(SILENT) echo Updating project...",
 				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
-
-				--"$(SILENT) ant clean",
-				--"$(SILENT) ant debug"
+				--"$(SILENT) cd " .. postBuildProjectPath,
+				--"$(SILENT) ant debug",
+				--"$(SILENT) adb install -r bin/" .. solution().name .. "-debug.apk"
 			}
 	end
 end

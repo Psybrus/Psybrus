@@ -49,6 +49,8 @@ void SysKernel::StaticRegisterClass()
 // SysKernel_UnitTest
 void SysKernel_UnitTest()
 {
+	PSY_LOG( "SysKernel_UnitTest:\n" );
+
 	SysKernel Kernel;
 
 	// Setup job queues.

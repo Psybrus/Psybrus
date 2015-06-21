@@ -21,6 +21,10 @@
 #include <Windows.h>
 #endif // PLATFORM_WINDOWS
 
+#if PLATFORM_ANDROID
+#include <android/log.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Statics.
 static std::recursive_mutex GlobalLock_;
@@ -43,6 +47,10 @@ void BcPrintf( const BcChar* Text, ... )
 #if PLATFORM_WINDOWS
 	::OutputDebugStringA( MessageBuffer );
 #endif
+
+#if PLATFORM_ANDROID
+	__android_log_print( ANDROID_LOG_INFO, "Psybrus", MessageBuffer );	
+#endif 
 	printf( MessageBuffer );
 }
 
