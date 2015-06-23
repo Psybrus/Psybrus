@@ -12,7 +12,7 @@
 **************************************************************************/
 
 #include "System/File/FsCoreImplAndroid.h"
-#include "System/File/FsFileImplLinux.h"
+#include "System/File/FsFileImplAndroid.h"
 
 #include "System/SysKernel.h"
 
@@ -83,7 +83,7 @@ FsFileImpl* FsCoreImplAndroid::openFile( const BcChar* pFilename, eFsFileMode Fi
 	FsFileImpl* pFileImpl = NULL;
 
 	// PhysFS
-	pFileImpl = new FsFileImplLinux();
+	pFileImpl = new FsFileImplAndroid();
 
 	// Check for error or success.
 	if( pFileImpl->open( pFilename, FileMode ) == BcFalse )
@@ -123,7 +123,7 @@ BcBool FsCoreImplAndroid::fileExists( const BcChar* pFilename )
 BcBool FsCoreImplAndroid::fileStats( const BcChar* pFilename, FsStats& Stats )
 {
 	struct stat Attrib;
-
+#if 0
 	int Descriptor = ::open(pFilename, O_RDONLY);
 	if( Descriptor != -1 )
 	{
@@ -157,6 +157,7 @@ BcBool FsCoreImplAndroid::fileStats( const BcChar* pFilename, FsStats& Stats )
 		::close( Descriptor );
 		return BcTrue;
 	}
+#endif
 	return BcFalse;
 }
 

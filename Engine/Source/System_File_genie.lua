@@ -17,6 +17,16 @@ PsyProjectEngineLib( "System_File" )
       "System",
     }
 
+  configuration "android-*"
+      files {
+          "./Platforms/Android/System/File/*.h", 
+          "./Platforms/Android/System/File/*.inl", 
+          "./Platforms/Android/System/File/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/Android/",
+      }
+
   configuration "linux-*"
       files {
           "./Platforms/Linux/System/File/*.h", 

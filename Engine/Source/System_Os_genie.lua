@@ -32,6 +32,16 @@ PsyProjectEngineLib( "System_Os" )
       "../../External/ThinkGear/",
     }
 
+  configuration "android-*"
+    files {
+      "./Platforms/Android/System/Os/*.h", 
+      "./Platforms/Android/System/Os/*.inl", 
+      "./Platforms/Android/System/Os/*.cpp", 
+    }
+    includedirs {
+      "./Platforms/Android/",
+    }
+
   configuration "asmjs"
     files {
       "./Platforms/HTML5/System/Os/*.h", 

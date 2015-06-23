@@ -18,8 +18,10 @@
 
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
+#if USE_WEBBY
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
+#endif
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,7 +85,7 @@ void DsCoreImpl::open()
 		}
 	}
 #endif
-	std::vector<std::string> bindAddresses = GetIPAddresses();
+	std::vector<std::string> bindAddresses = getIPAddresses();
 	for ( int i = 0; i < bindAddresses.size(); ++i )
 	{
 		memset( &config, 0, sizeof config );
@@ -294,6 +296,28 @@ int DsCoreImpl::externalWebbyFrame( WebbyConnection *connection, const WebbyWsFr
 	return static_cast<DsCoreImpl*>( DsCore::pImpl() )->webbyFrame( connection, frame );
 }
 
+std::vector< std::string > DsCoreImpl::getIPAddresses()
+{
+	std::vector< std::string > result;
+	RakNet::RakPeerInterface* peer = NULL;
+	peer = RakNet::RakPeerInterface::GetInstance();
+
+	int port = 1337;
+
+	RakNet::SocketDescriptor sd( port, 0 );
+
+	peer->Startup( 1, &sd, 1 );
+
+	unsigned int addressCount = peer->GetNumberOfAddresses();
+	for ( unsigned int Idx = 0; Idx < addressCount; ++Idx )
+	{
+		result.push_back( peer->GetLocalIP( Idx ) );
+	}
+	peer->Shutdown( 500, 0, LOW_PRIORITY );
+	RakNet::RakPeerInterface::DestroyInstance( peer );
+
+	return result;
+}
 #endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
@@ -1538,27 +1562,4 @@ void DsCoreImpl::cmdJson( DsParameters params, BcHtmlNode& Output, std::string P
 	std::string output = writer.serialiseToString<CsResource>( Resource, Resource->getClass() );
 
 	Output.setContents( output );
-}
-
-std::vector< std::string > DsCoreImpl::GetIPAddresses()
-{
-	std::vector< std::string > result;
-	RakNet::RakPeerInterface* peer = NULL;
-	peer = RakNet::RakPeerInterface::GetInstance();
-
-	int port = 1337;
-
-	RakNet::SocketDescriptor sd( port, 0 );
-
-	peer->Startup( 1, &sd, 1 );
-
-	unsigned int addressCount = peer->GetNumberOfAddresses();
-	for ( unsigned int Idx = 0; Idx < addressCount; ++Idx )
-	{
-		result.push_back( peer->GetLocalIP( Idx ) );
-	}
-	peer->Shutdown( 500, 0, LOW_PRIORITY );
-	RakNet::RakPeerInterface::DestroyInstance( peer );
-
-	return result;
 }

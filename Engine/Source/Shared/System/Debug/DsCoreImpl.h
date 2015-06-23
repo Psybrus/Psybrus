@@ -156,6 +156,7 @@ private:
 	void						webbyConnected( WebbyConnection *connection );
 	void						webbyClosed( WebbyConnection *connection );
 	int							webbyFrame( WebbyConnection *connection, const WebbyWsFrame *frame );
+	std::vector<std::string>	getIPAddresses();
 #endif // USE_WEBBY
 
 protected:
@@ -164,8 +165,6 @@ protected:
 	std::vector< DsPageDefinition > PageFunctions_;
 	std::vector< DsFunctionDefinition > ButtonFunctions_;
 	BcU32 NextHandle_;
-
-	std::vector<std::string> GetIPAddresses();
 
 };
 

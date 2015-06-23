@@ -11,12 +11,15 @@
 * 
 **************************************************************************/
 
-#include "System/Os/SDL/OsCoreImplAndroid.h"
-#include "System/Os/SDL/OsClientSDL.h"
+#include "System/Os/OsCoreImplAndroid.h"
+#include "System/Os/OsClientAndroid.h"
 
 #include "System/SysKernel.h"
 
-#include <android.h>
+#include <android_native_app_glue.h>
+
+#include <android/input.h>
+#include <android/keycodes.h>
 
 extern struct android_app* GState_;
 
@@ -26,7 +29,8 @@ SYS_CREATOR( OsCoreImplAndroid );
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-OsCoreImplAndroid::OsCoreImplAndroid()
+OsCoreImplAndroid::OsCoreImplAndroid():
+	MainThreadLooper_( nullptr )
 {
 	
 }
@@ -44,7 +48,8 @@ OsCoreImplAndroid::~OsCoreImplAndroid()
 //virtual
 void OsCoreImplAndroid::open()
 {
-
+	MainThreadLooper_ = ALooper_forThread();
+	ALooper_acquire( MainThreadLooper_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,5 +86,6 @@ void OsCoreImplAndroid::update()
 //virtual
 void OsCoreImplAndroid::close()
 {
-
+	ALooper_release( MainThreadLooper_ );
+	MainThreadLooper_ = nullptr;
 }
