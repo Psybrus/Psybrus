@@ -29,7 +29,9 @@ function SetupAndroidProject()
 		manifestFile:write( "          package=\"com.psybrus." .. libName .. "\"\n" )
 		manifestFile:write( "          android:versionCode=\"1\"\n" )
 		manifestFile:write( "          android:versionName=\"1.0\">\n" )
-		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"9\" />\n" )
+		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"22\" />\n" )
+		manifestFile:write( "  <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />\n" )
+		manifestFile:write( "  <uses-feature android:glEsVersion=\"0x00020000\" />\n" )
 		manifestFile:write( "  <application android:label=\"@string/app_name\"\n" )
 		manifestFile:write( "               android:hasCode=\"false\" android:debuggable=\"true\">\n" )
 		manifestFile:write( "    <activity android:name=\"android.app.NativeActivity\"\n" )
@@ -55,11 +57,14 @@ function SetupAndroidProject()
 
 		-- Setup post build setp.
 		configuration { "android-*" }
+			PsyAddExternalLinks( "llvmcxxabi" )
+
 			links {
 				"GLESv1_CM",
 				"GLESv2",
 				"GLESv3",
-				"EGL"
+				"EGL",
+				"llvmcxxabi"
 			}
 
 			androidTarget = "android-22" 
@@ -76,5 +81,28 @@ function SetupAndroidProject()
 				--"$(SILENT) ant debug",
 				--"$(SILENT) adb install -r bin/" .. solution().name .. "-debug.apk"
 			}
+	end
+
+end
+
+function LLVMcxxabiProject()
+	androidNdkPath = os.getenv("ANDROID_NDK")
+
+	print ( "Android NDK path: " .. androidNdkPath )
+
+	if _OPTIONS["toolchain"] == "android-clang-arm" or 
+	   _OPTIONS["toolchain"] == "android-gcc-arm" then
+		project( "llvmcxxabi" )
+			language( "C++" )
+			configuration "*"
+				kind ( EXTERNAL_PROJECT_KIND )
+				buildoptions( "-std=c++11" )
+				files { 
+					androidNdkPath .. "/sources/cxx-stl/llvm-libc++abi/libcxxabi/src/*",
+					androidNdkPath .. "/sources/cxx-stl/llvm-libc++abi/libcxxabi/include/*"
+				}
+				includedirs {
+					androidNdkPath .. "/sources/cxx-stl/llvm-libc++abi/libcxxabi/include"
+				}
 	end
 end

@@ -305,7 +305,6 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 		[ Context, pResource ]
 		{
 			auto RetVal = Context->createTexture( pResource );
-			BcAssert( RetVal );
 		} );
 
 	// Return resource.
@@ -731,4 +730,3 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 
 	ResourceDeletionList_.clear();
 }
-

@@ -31,3 +31,38 @@ void BcTypes_UnitTest()
 	BcUnitTest( sizeof( BcF32 ) == 4 );
 	BcUnitTest( sizeof( BcF64 ) == 8 );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// TODO: Move this to a better place...
+// Mega super awesome hack.
+// Temporary until better demangling is setup.
+#if ( COMPILER_GCC || COMPILER_CLANG )
+#include <cxxabi.h>
+
+namespace CompilerUtility
+{
+	std::string Demangle( const char* Name ) 
+	{
+		int Status = 1;
+
+		std::unique_ptr< char, void(*)(void*) > Res
+		{
+			abi::__cxa_demangle( Name, nullptr, nullptr, &Status ),
+			std::free
+		};
+
+		return ( Status == 0 ) ? Res.get() : Name;
+	}
+}
+
+#else
+
+namespace CompilerUtility
+{
+	std::string Demangle( const char* Name )
+	{
+	    return Name;
+	}
+}
+
+#endif // ( COMPILER_GCC || COMPILER_CLANG ) && !PLATFORM_ANDROID

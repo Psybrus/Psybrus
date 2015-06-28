@@ -94,7 +94,7 @@ namespace
 		{
 			DrawContext_ = nullptr;
 			DrawFrame_ = nullptr;
-		}
+	}
 	};
 
 	/// Mouse wheel.

@@ -109,11 +109,15 @@ void FsCoreImplAndroid::closeFile( FsFileImpl* pFileImpl )
 BcBool FsCoreImplAndroid::fileExists( const BcChar* pFilename )
 {
 	FILE* pHandle = NULL;
-	pHandle = fopen( pFilename, "rb" );
+	// TODO: Proper remapping.
+	std::string Filename = std::string( "/sdcard/" ) + pFilename;
+	pHandle = fopen( Filename.c_str(), "rb" );
 	if( pHandle != NULL )
 	{
 		fclose( pHandle );
 	}
+	
+	PSY_LOG( "FsCoreImplAndroid::fileExists %s - %u", Filename.c_str(), pHandle != NULL );
 	return pHandle != NULL;
 }
 

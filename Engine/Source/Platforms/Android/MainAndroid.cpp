@@ -6,6 +6,7 @@
 #include "System/SysKernel.h"
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
+#include "System/Os/OsClientAndroid.h"
 
 #include "System/SysProfilerChromeTracing.h"
 
@@ -23,6 +24,8 @@
 
 struct android_app* GState_ = nullptr;
 
+static OsClientAndroid* GMainWindow = nullptr;
+
 void PsyAndroidMain(struct android_app* State)
 {
     // Make sure glue isn't stripped.
@@ -36,8 +39,9 @@ void PsyAndroidMain(struct android_app* State)
 	{
 		new BcLogImpl();
 	}
+	
 	// Some default suppression.
-	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+	BcLog::pImpl()->setCategorySuppression( "Reflection", BcFalse );
 
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );
@@ -77,6 +81,39 @@ void PsyAndroidMain(struct android_app* State)
 
 	// Main shared.
 	MainShared();
+
+	// Create client event.
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
+		[]( EvtID, const EvtBaseEvent& )
+		{
+			GMainWindow = new OsClientAndroid( GState_ );
+			std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + SysArgs_ + std::string( ")" ) );
+			
+			if( GMainWindow->create( Title.c_str() ) == BcFalse )
+			{
+				BcAssertMsg( BcFalse, "Failed to create client!" );
+				return evtRET_REMOVE;
+			} 
+
+			// Get rendering context.
+			if( RsCore::pImpl() != NULL )
+			{
+				RsContext* pContext = RsCore::pImpl()->getContext( GMainWindow );
+				BcAssertMsg( pContext != NULL, "Failed to create render context!" );
+			}
+
+			return evtRET_REMOVE;
+		} );
+
+	// Create launch game event.
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
+		[]( EvtID, const EvtBaseEvent& )
+		{
+			extern void PsyLaunchGame();
+			PsyLaunchGame();
+			return evtRET_REMOVE;
+		} );
+
 
 	// Init game.
 	PsyGameInit();

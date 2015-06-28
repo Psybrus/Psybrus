@@ -367,6 +367,10 @@ public:
 // CopyClass
 void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
+	BcAssert( DstObject != nullptr );
+	BcAssert( SrcObject != nullptr );
+	BcAssert( InClass != nullptr );
+
 	PSY_LOGSCOPEDCATEGORY( "Reflection" );
 	PSY_LOG( "ReCopyClass: \"%s\"", (*InClass->getName()).c_str() );
 	PSY_LOGSCOPEDINDENT;
@@ -391,6 +395,8 @@ ReObject* ReConstructObject(
 	ReObject* InBasis,
 	std::function< void( ReObject* ) > postCreateFunc )
 {
+	BcAssert( InClass != nullptr );
+
 	PSY_LOGSCOPEDCATEGORY( "Reflection" );
 	PSY_LOG( "ReConstructObject: \"%s\", name \"%s\", basis \"%s\"", 
 		(*InClass->getName()).c_str(),

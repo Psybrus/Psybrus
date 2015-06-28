@@ -250,9 +250,9 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
 #if PSY_GL_CATCH_ERRORS
-GLuint RsGLCatchError()
+GLuint RsReportGLErrors( const char* File, int Line )
 {
-	PSY_PROFILER_SECTION( CatchRoot, "RsGLCatchError" );
+	PSY_PROFILER_SECTION( CatchRoot, "RsReportGLErrors" );
 
 	BcU32 TotalErrors = 0;
 	GLuint Error;
@@ -272,26 +272,28 @@ GLuint RsGLCatchError()
 		case GL_INVALID_OPERATION:
 			ErrorString = "GL_INVALID_OPERATION";
 			break;
-		case GL_STACK_OVERFLOW:
-			ErrorString = "GL_STACK_OVERFLOW";
-			break;
-		case GL_STACK_UNDERFLOW:
-			ErrorString = "GL_STACK_UNDERFLOW";
-			break;
 		case GL_OUT_OF_MEMORY:
 			ErrorString = "GL_OUT_OF_MEMORY";
 			break;
 		case GL_INVALID_FRAMEBUFFER_OPERATION:
 			ErrorString = "GL_INVALID_FRAMEBUFFER_OPERATION";
 			break;
+#if !PLATFORM_ANDROID
 		case GL_TABLE_TOO_LARGE:
 			ErrorString = "GL_TABLE_TOO_LARGE";
 			break;
+		case GL_STACK_OVERFLOW:
+			ErrorString = "GL_STACK_OVERFLOW";
+			break;
+		case GL_STACK_UNDERFLOW:
+			ErrorString = "GL_STACK_UNDERFLOW";
+			break;
+#endif
 		}
 
 		if( Error != 0 )
 		{
-			PSY_LOG( "RsGL: Error: %s\n", ErrorString.c_str() );
+			PSY_LOG( "RsGL: %s:%u: Error: %s\n", File, Line, ErrorString.c_str() );
 			++TotalErrors;
 		}
 #endif

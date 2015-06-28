@@ -230,6 +230,18 @@ private:
 	SDL_GLContext SDLGLContext_;
 #endif
 
+#if PLATFORM_ANDROID
+	EGLDisplay EGLDisplay_;
+	EGLConfig EGLConfig_; 
+	EGLint EGLNumConfigs_;
+	EGLint EGLFormat_;
+	EGLSurface EGLSurface_;
+	EGLContext EGLContext_;
+	EGLint EGLWidth_;
+	EGLint EGLHeight_;
+	GLfloat EGLRatio_;
+#endif
+
 	RsContextGL* pParent_;
 	OsClient* pClient_;
 

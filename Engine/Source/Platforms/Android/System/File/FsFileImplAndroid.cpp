@@ -42,12 +42,13 @@ BcBool FsFileImplAndroid::open( const BcChar* FileName, eFsFileMode FileMode )
 
 	if( pFileHandle_ == NULL )
 	{
-		FileName_ = FileName;
-
 		// Read access.
 		if( FileMode == fsFM_READ )
 		{
-			pFileHandle_ = fopen( FileName, "rb" );
+			// TODO: Proper remapping.
+			FileName_ = std::string( "/sdcard/" ) + FileName;
+
+			pFileHandle_ = fopen( FileName_.c_str(), "rb" );
 			if( pFileHandle_ != NULL )
 			{
 				fseek( pFileHandle_, 0, SEEK_END );
@@ -57,7 +58,10 @@ BcBool FsFileImplAndroid::open( const BcChar* FileName, eFsFileMode FileMode )
 		}
 		else if( FileMode == fsFM_WRITE )
 		{
-			pFileHandle_ = fopen( FileName, "wb+" );
+			// TODO: Proper remapping.
+			FileName_ = std::string( "/sdcard/" ) + FileName;
+
+			pFileHandle_ = fopen( FileName_.c_str(), "wb+" );
 		}
 
 		// Return value.

@@ -217,11 +217,12 @@ function PsySetupToolchain()
 					}
 
 					includedirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libcxx/include"
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libcxxabi/include",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libcxx/include",
 					}
 
 					libdirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/gabi++/libs/armeabi-v7a-hard",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libs/armeabi-v7a-hard",
 						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a-hard",
 					}
 				end

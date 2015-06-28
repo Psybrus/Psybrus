@@ -205,7 +205,10 @@ end
 
 -- Setup game exe project.
 function PsyProjectGameExe( _name )
+	LLVMcxxabiProject()
+
 	group( _name )
+
 	PsyProjectCommonEngine( _name )
 	print( "Adding Game Executable: " .. _name )
 

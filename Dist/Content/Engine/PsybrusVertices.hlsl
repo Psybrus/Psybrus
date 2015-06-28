@@ -67,13 +67,7 @@ struct VertexDefault
 	for( wsvIdx = 0; wsvIdx < 24; ++wsvIdx )															\
 	{																									\
 		if( wsvIdx == int(_p.BlendIndices_.x) )															\
-			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.x;						\
-		if( wsvIdx == int(_p.BlendIndices_.y) )															\
-			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.y;						\
-		if( wsvIdx == int(_p.BlendIndices_.z) )															\
-			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.z;						\
-		if( wsvIdx == int(_p.BlendIndices_.w) )															\
-			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v ) * _p.BlendWeights_.w;						\
+			_o = PsyMatMul( BoneTransform_[ wsvIdx ], _v );						\
 	}																									\
 			
 // TODO: FIX BIG HACK: DOING THIS BECAUSE GLSL-OPTIMIZER ADDS CAST TO INT, WEBGL DO NOT LIKE.
@@ -82,13 +76,7 @@ struct VertexDefault
 	for( wsnIdx = 0; wsnIdx < 24; ++wsnIdx )															\
 	{																									\
 		if( wsnIdx == int(_p.BlendIndices_.x) )															\
-			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.x;						\
-		if( wsnIdx == int(_p.BlendIndices_.y) )															\
-			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.y;						\
-		if( wsnIdx == int(_p.BlendIndices_.z) )															\
-			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.z;						\
-		if( wsnIdx == int(_p.BlendIndices_.w) )															\
-			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v ) * _p.BlendWeights_.w;						\
+			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v );						\
 	}																									\
 
 #else

@@ -282,36 +282,9 @@ typedef std::size_t					BcSize;
 #include <memory>
 #include <string>
 
-#if ( COMPILER_GCC || COMPILER_CLANG ) && !PLATFORM_ANDROID
-#include <cxxabi.h>
-
 namespace CompilerUtility
 {
-	inline std::string Demangle( const char* Name ) 
-	{
-		int Status = 1;
-
-		std::unique_ptr< char, void(*)(void*) > Res
-		{
-			abi::__cxa_demangle( Name, nullptr, nullptr, &Status ),
-			std::free
-		};
-
-		return ( Status == 0 ) ? Res.get() : Name;
-	}
+	std::string Demangle( const char* Name );
 }
-
-#else
-
-namespace CompilerUtility
-{
-	inline std::string Demangle( const char* Name )
-	{
-	    return Name;
-	}
-}
-
-#endif // ( COMPILER_GCC || COMPILER_CLANG ) && !PLATFORM_ANDROID
-
 
 #endif // include_guard

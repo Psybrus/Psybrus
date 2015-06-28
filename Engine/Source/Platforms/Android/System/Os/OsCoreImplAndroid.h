@@ -34,8 +34,6 @@ private:
 	OsEventCore EventCore_;
 	OsEventInputKeyboard EventInputKeyboard_;
 	OsEventInputMouse EventInputMouse_;
-
-	struct ALooper* MainThreadLooper_;
 };
 
 #endif

@@ -14,16 +14,21 @@
 #include "System/Os/OsClientAndroid.h"
 
 #include "System/Os/OsCore.h"
+#include "System/SysKernel.h"
 
 #include "Base/BcString.h"
 #include "Base/BcMath.h"
 
+#include <android_native_app_glue.h>
 #include <android/input.h>
+#include <android/keycodes.h>
+#include <android/window.h>
 
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-OsClientAndroid::OsClientAndroid()
+OsClientAndroid::OsClientAndroid( android_app* App ):
+	App_( App )
 {
 	// Setup keycode map.
 	KeyCodeMap_[ AKEYCODE_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
@@ -75,6 +80,9 @@ OsClientAndroid::OsClientAndroid()
 	MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
 	MouseDelta_ = MaVec2d( 0.0f, 0.0f );
 	MousePos_ = MaVec2d( 0.0f, 0.0f );
+
+	Width_ = 0;
+	Height_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,8 +94,14 @@ OsClientAndroid::~OsClientAndroid()
 
 //////////////////////////////////////////////////////////////////////////
 // create
-BcBool OsClientAndroid::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible )
+BcBool OsClientAndroid::create( const BcChar* pTitle )
 {
+	// Wait until window init event is picked up.
+	while( App_->window == nullptr )
+	{
+		pollLooper();
+
+	}
 	return BcTrue;
 }
 
@@ -95,7 +109,7 @@ BcBool OsClientAndroid::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 // update
 void OsClientAndroid::update()
 {
-
+	pollLooper();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,7 +132,7 @@ BcHandle OsClientAndroid::getDeviceHandle()
 //virtual
 BcHandle OsClientAndroid::getWindowHandle()
 {
-	return static_cast< BcHandle >( 0 );
+	return static_cast< BcHandle >( App_->window );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,3 +164,38 @@ BcU32 OsClientAndroid::getWindowId() const
 {
 	return 0;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// setSize
+void OsClientAndroid::setSize( BcU32 Width, BcU32 Height )
+{
+	Width_ = Width;
+	Height_ = Height;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pollLooper
+void OsClientAndroid::pollLooper()
+{
+	int EventId = 0;
+	int NoofEvents = 0;
+	struct android_poll_source* PollSource = nullptr;
+	
+	while ( ( EventId = ALooper_pollAll( 0, nullptr, &NoofEvents, (void**)&PollSource) ) >= 0 )
+	{
+		// Process this event.
+		if( PollSource != nullptr )
+		{
+			PollSource->process( App_, PollSource );
+		}
+
+		// Check if we are exiting.
+		if( App_->destroyRequested != 0 )
+		{
+			PSY_LOG( "Engine thread destroy requested!" );
+			SysKernel::pImpl()->stop();
+			return;
+		}
+	}
+}
+

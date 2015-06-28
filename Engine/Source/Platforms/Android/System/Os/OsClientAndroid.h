@@ -24,13 +24,13 @@ class OsClientAndroid:
 	public OsClient
 {
 public:
-	OsClientAndroid();
+	OsClientAndroid( struct android_app* App );
 	~OsClientAndroid();
 
 	/**
 	*	Create window.
 	*/
-	BcBool create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
+	BcBool create( const BcChar* pTitle );
 
 	/**
 	 *	Update.
@@ -83,7 +83,15 @@ public:
 	 */
 	BcU32 getWindowId() const;
 
+public:
+	void setSize( BcU32 Width, BcU32 Height );
+
 private:
+	void pollLooper();
+
+private:
+	struct android_app* App_;
+
 	typedef std::map< BcU64, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap KeyCodeMap_;

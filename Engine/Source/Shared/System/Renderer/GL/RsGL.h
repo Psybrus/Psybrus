@@ -84,12 +84,17 @@ extern AGLContext GAGLContext;
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#define PSY_GL_CATCH_ERRORS ( 0 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
+#define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
+
+GLuint RsReportGLErrors( const char* File, int Line );
 
 #if PSY_GL_CATCH_ERRORS
-GLuint RsGLCatchError();
+#  define GL( _call ) \
+	gl##_call; RsReportGLErrors( __FILE__, __LINE__ )
+
 #else
-inline GLuint RsGLCatchError(){ return 0; };
+#  define GL( _call ) \
+	gl##_call
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
