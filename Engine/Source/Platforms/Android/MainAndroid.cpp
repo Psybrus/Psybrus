@@ -47,7 +47,7 @@ void PsyAndroidMain(struct android_app* State)
 	}
 
 	// Some default suppression.
-	BcLog::pImpl()->setCategorySuppression( "Reflection", BcFalse );
+	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
 
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );
