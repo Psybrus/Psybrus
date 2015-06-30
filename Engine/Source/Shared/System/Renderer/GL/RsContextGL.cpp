@@ -3159,7 +3159,6 @@ void RsContextGL::loadTexture(
 #endif // !defined( RENDER_USE_GLES )
 
 		case RsTextureType::TEX2D:
-			PSY_LOG( "Texture: %u Level, %u, %u\n", Slice.Level_, Width, Height );
 			GL( CompressedTexImage2D( 
 				TypeGL, 
 				Slice.Level_, 
@@ -3178,7 +3177,7 @@ void RsContextGL::loadTexture(
 				Slice.Level_, 
 				FormatGL.InternalFormat_,
 				Width,
-				Heght,
+				Height,
 				Depth,
 				0,
 				DataSize,

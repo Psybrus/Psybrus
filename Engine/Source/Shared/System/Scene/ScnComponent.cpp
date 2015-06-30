@@ -253,6 +253,8 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 			Reader.serialiseClassMembers( this, this->getClass(), Root, 0 );
 
+			PSY_LOG( "ScnComponent: %s", pJsonObject_ );
+
 			// Now reinitialise.
 			initialise();
 		}

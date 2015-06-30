@@ -204,6 +204,7 @@ public:
 			PSY_LOG( "copyClassData: %p->%p, %s (trivial POD)", 
 				SrcObject, DstObject,
 				(*InClass->getName()).c_str() );
+
 			BcAssert( InClass->getSize() == 0 || InClass->getSize() == InField->getSize() );
 			BcMemCopy( DstObject, SrcObject, InField->getSize() );
 			return;
@@ -220,7 +221,6 @@ public:
 			{
 				auto Field = CopyingClass->getField( Idx );
 				ReFieldAccessor SrcFieldAccessor( SrcObject, Field );
-					
 				PSY_LOG( "copyClassData: Field %s::%s",
 					(*Field->getType()->getName()).c_str(),
 					(*Field->getName()).c_str() );

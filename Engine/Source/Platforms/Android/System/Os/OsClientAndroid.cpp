@@ -193,6 +193,7 @@ void OsClientAndroid::pollLooper()
 		if( App_->destroyRequested != 0 )
 		{
 			PSY_LOG( "Engine thread destroy requested!" );
+			PSY_LOG( "TODO: Recreate without destroying engine." );
 			SysKernel::pImpl()->stop();
 			return;
 		}

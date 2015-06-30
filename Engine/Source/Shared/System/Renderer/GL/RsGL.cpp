@@ -135,6 +135,11 @@ void RsOpenGLVersion::setupFeatureSupport()
 	case RsOpenGLType::ES:
 		SupportDXTTextures_ |= HaveExtension( "WEBGL_compressed_texture_s3tc" );
 		SupportDXTTextures_ |= HaveExtension( "EXT_texture_compression_s3tc" );
+		SupportDXTTextures_ |= HaveExtension( "EXT_texture_compression_dxt" );
+		SupportDXTTextures_ |= 
+			HaveExtension( "EXT_texture_compression_dxt1" ) &&
+			HaveExtension( "ANGLE_texture_compression_dxt3" ) &&
+			HaveExtension( "ANGLE_texture_compression_dxt5" );
 
 		SupportDepthTextures_ |= HaveExtension( "OES_depth_texture" );
 		SupportDepthTextures_ |= HaveExtension( "WEBGL_depth_texture" );

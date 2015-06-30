@@ -28,10 +28,16 @@ static OsClientAndroid* GMainWindow = nullptr;
 
 void PsyAndroidMain(struct android_app* State)
 {
+	static bool IsInitialised = false;
+	BcAssertMsg( IsInitialised == false, "Need to implement second tick through android_main." );
+
     // Make sure glue isn't stripped.
     app_dummy();
 
     GState_ = State;
+
+	// Set game thread to be this one. 
+	BcSetGameThread();
 
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
@@ -39,7 +45,7 @@ void PsyAndroidMain(struct android_app* State)
 	{
 		new BcLogImpl();
 	}
-	
+
 	// Some default suppression.
 	BcLog::pImpl()->setCategorySuppression( "Reflection", BcFalse );
 
@@ -62,7 +68,7 @@ void PsyAndroidMain(struct android_app* State)
 	// new profiler.
 	new SysProfilerChromeTracing();
 #endif
-	
+
 	//extern void MainUnitTests();
 	//MainUnitTests();
 
@@ -117,7 +123,7 @@ void PsyAndroidMain(struct android_app* State)
 
 	// Init game.
 	PsyGameInit();
-
+	
 	// Run kernel.
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
 	{

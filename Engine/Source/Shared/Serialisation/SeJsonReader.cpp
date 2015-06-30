@@ -2,6 +2,10 @@
 
 #include "Base/BcMemory.h"
 
+#if PLATFORM_ANDROID
+#include <cstdio>
+#endif
+
 #include <fstream>
 #include <algorithm>
 
@@ -137,7 +141,14 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		// Attempt conversion to float via string.
 		else if( InputValue.type() == Json::realValue )
 		{
+			// std::to_string(float/double) have issues on Android. Don't use.
+#if PLATFORM_ANDROID
+			BcChar StringBuffer[ 128 ] = { 0 };
+			sprintf( StringBuffer, "%f", BcF32( InputValue.asDouble() ) );
+			Success = Serialiser->serialiseFromString( pData, StringBuffer );
+#else			
 			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asDouble() ) );
+#endif
 		}
 		// Attempt conversion to uint via string.
 		else if( InputValue.type() == Json::uintValue )
