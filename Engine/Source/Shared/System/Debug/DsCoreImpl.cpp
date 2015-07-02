@@ -130,6 +130,10 @@ void DsCoreImpl::open()
 		return evtRET_REMOVE;
 	} );
 
+#if PLATFORM_ANDROID
+	DrawPanels_ = BcTrue;
+#endif
+
 	// Setup toggle of debug panels.
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
 		[ this ]( EvtID, const EvtBaseEvent& BaseEvent )

@@ -89,6 +89,8 @@ public:
 private:
 	void pollLooper();
 
+	void handleInput( struct AInputEvent* Event );
+
 private:
 	struct android_app* App_;
 

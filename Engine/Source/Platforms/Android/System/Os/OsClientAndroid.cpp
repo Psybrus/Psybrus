@@ -96,6 +96,16 @@ OsClientAndroid::~OsClientAndroid()
 // create
 BcBool OsClientAndroid::create( const BcChar* pTitle )
 {
+	// Setup input.
+	App_->userData = this;
+	App_->onInputEvent = []( struct android_app* App, AInputEvent* Event )->int32_t
+		{
+			OsClientAndroid* Client = static_cast< OsClientAndroid* >( App->userData ); 
+			Client->handleInput( Event );
+		};
+
+
+
 	// Wait until window init event is picked up.
 	while( App_->window == nullptr )
 	{
@@ -200,3 +210,74 @@ void OsClientAndroid::pollLooper()
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// handleInput
+void OsClientAndroid::handleInput( struct AInputEvent* Event )
+{
+	auto Source = AInputEvent_getSource( Event );
+	auto Type = AInputEvent_getType( Event );
+
+	switch( Type )
+	{
+	case AINPUT_EVENT_TYPE_MOTION:
+		{
+			auto Action = AMotionEvent_getAction( Event );
+			auto ActionType = Action & AMOTION_EVENT_ACTION_MASK;
+			auto TouchID = ( Action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+
+			// Regular touch event.
+			OsEventInputTouch TouchEvent;
+			TouchEvent.TouchID_ = TouchID;
+			TouchEvent.TouchX_ = AMotionEvent_getX( Event, 0 );
+			TouchEvent.TouchY_ = AMotionEvent_getY( Event, 0 );
+
+			if( ActionType == AMOTION_EVENT_ACTION_DOWN )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_TOUCHDOWN, TouchEvent ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_TOUCHDOWN, TouchEvent );
+			}
+			else if( ActionType == AMOTION_EVENT_ACTION_UP )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_TOUCHUP, TouchEvent ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_TOUCHUP, TouchEvent );
+			}
+			else
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_TOUCHMOVE, TouchEvent ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_TOUCHMOVE, TouchEvent );
+			}
+
+			// Emulated mouse event.
+			if( TouchID == 0 )
+			{
+				OsEventInputMouse MouseEvent;
+				MouseEvent.MouseX_ = AMotionEvent_getX( Event, 0 );
+				MouseEvent.MouseY_ = AMotionEvent_getY( Event, 0 );
+				MouseEvent.MouseDX_ = (BcF32)(MouseEvent.MouseX_ - PrevMouseX_);
+				MouseEvent.MouseDY_ = (BcF32)(MouseEvent.MouseY_ - PrevMouseY_);
+				MouseEvent.NormalisedX_ = ( BcF32( MouseEvent.MouseX_ ) - BcF32( getWidth() ) * 0.5f ) / BcF32( getWidth() * 0.5f );
+				MouseEvent.NormalisedY_ = ( BcF32( MouseEvent.MouseY_ ) - BcF32( getHeight() ) * 0.5f ) / BcF32( getHeight() * 0.5f );
+				MouseEvent.ButtonCode_ = 0;
+				PrevMouseX_ = MouseEvent.MouseX_;
+				PrevMouseY_ = MouseEvent.MouseY_;
+
+				if( ActionType == AMOTION_EVENT_ACTION_DOWN )
+				{
+					OsCore::pImpl()->publish( osEVT_INPUT_MOUSEDOWN, MouseEvent ); // TODO: REMOVE OLD!
+					EvtPublisher::publish( osEVT_INPUT_MOUSEDOWN, MouseEvent );
+				}
+				else if( ActionType == AMOTION_EVENT_ACTION_UP )
+				{
+					OsCore::pImpl()->publish( osEVT_INPUT_MOUSEUP, MouseEvent ); // TODO: REMOVE OLD!
+					EvtPublisher::publish( osEVT_INPUT_MOUSEUP, MouseEvent );
+				}
+				else
+				{
+					OsCore::pImpl()->publish( osEVT_INPUT_MOUSEMOVE, MouseEvent ); // TODO: REMOVE OLD!
+					EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, MouseEvent );
+				}
+			}
+		}
+		break;
+	}
+}
