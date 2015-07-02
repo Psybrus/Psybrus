@@ -140,7 +140,7 @@ static GLenum gTextureFiltering[] =
 	GL_NEAREST,
 	GL_LINEAR,
 	
-#if !defined( RENDER_USE_GLES )
+#if defined( RENDER_USE_GLES )
 	// TODO: Figure out why mipmapping was a problem.
 	// Mipmapping nearest
 	GL_LINEAR, // GL_NEAREST_MIPMAP_NEAREST,

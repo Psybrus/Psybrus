@@ -338,11 +338,6 @@ BcBool ScnTextureImport::import(
 			}
 		}
 
-		// HACK.
-
-		// Default to a catch all which is 32 bit RGBA.
-		Format_ = RsTextureFormat::R8G8B8A8;
-
 		// Streams.
 		BcStream HeaderStream;
 		BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
