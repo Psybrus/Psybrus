@@ -60,13 +60,13 @@ function PsyProjectCommon( _name, _lang )
 		flags { "Symbols" }
 
 	-- Optimised builds.
-	configuration { "windows-* or linux-*", "Release" }
+	configuration { "windows-* or linux-* or android-*", "Release" }
 		flags { "Optimize" }
 
-	configuration { "windows-* or linux-*", "Profile" }
+	configuration { "windows-* or linux-* or android-*", "Profile" }
 		flags { "Optimize" }
 
-	configuration { "windows-* or linux-*", "Production" }
+	configuration { "windows-* or linux-* or android-*", "Production" }
 		flags { "Optimize" }
 
 	-- Setup language specific support.
