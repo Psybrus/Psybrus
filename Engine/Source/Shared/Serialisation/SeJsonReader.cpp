@@ -10,6 +10,16 @@
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
+// More verbose logging.
+#if 0 && PSY_DEBUG
+#define SE_LOG PSY_LOG
+#define SE_LOGSCOPEDINDENT PSY_LOGSCOPEDINDENT
+#else
+#define SE_LOG(...)
+#define SE_LOGSCOPEDINDENT
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 SeJsonReader::SeJsonReader( 
 		SeISerialiserObjectCodec* ObjectCodec ) :
@@ -136,11 +146,14 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		if( InputValue.type() == Json::stringValue &&
 			Serialiser->serialiseFromString( pData, InputValue.asString() ) )
 		{
+			SE_LOG( " - %s", InputValue.asCString() );
 			Success = true;
 		}
 		// Attempt conversion to float via string.
 		else if( InputValue.type() == Json::realValue )
 		{
+			SE_LOG( " - %f", (float)InputValue.asDouble() );
+
 			// std::to_string(float/double) have issues on Android. Don't use.
 #if PLATFORM_ANDROID
 			BcChar StringBuffer[ 128 ] = { 0 };
@@ -153,16 +166,22 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		// Attempt conversion to uint via string.
 		else if( InputValue.type() == Json::uintValue )
 		{
+			SE_LOG( " - %u", InputValue.asUInt() );
+
 			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asUInt() ) );
 		}
 		// Attempt conversion to int via string.
 		else if( InputValue.type() == Json::intValue )
 		{
+			SE_LOG( " - %d", InputValue.asInt() );
+
 			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asInt() ) );
 		}
 		// Attempt conversion to bool via string.
 		else if( InputValue.type() == Json::booleanValue )
 		{
+			SE_LOG( " - %u", InputValue.asBool() ? 1 : 0 );
+
 			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asBool() ) );
 		}
 		// Attempt conversion to object.
@@ -172,16 +191,24 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 			if( ValueValue.type() == Json::stringValue &&
 				Serialiser->serialiseFromString( pData, ValueValue.asString() ) )
 			{
+				SE_LOG( " - %s", InputValue.asCString() );
 				Success = true;
+			}
+			else
+			{
+				SE_LOG( " - object" );
 			}
 		}
 		else
 		{
-			PSY_LOG( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
+			SE_LOG( "ERROR: Unable to serialise type \"%s\"\n", (*pClass->getName()).c_str() );
 			return;
 		}
 	}
-
+	else
+	{
+		SE_LOG( " - No serialiser for type \"%s\"", (*pClass->getName()).c_str() );		
+	}
 	if( Success == false )
 	{
 		// Attempt to read in as class members.
@@ -221,11 +248,12 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 	// Iterate over members to add, all supers too.
 	const ReClass* pProcessingClass = pClass;
 	while( pProcessingClass != nullptr )
-
 	{
 		// If this class has fields, then iterate over them.
 		if( pProcessingClass->getNoofFields() > 0 )
 		{
+			SE_LOG( "Class: %s", (*pClass->getName()).c_str() );
+			SE_LOGSCOPEDINDENT;
 			for( BcU32 Idx = 0; Idx < pProcessingClass->getNoofFields(); ++Idx )
 			{
 				const ReField* pField = pProcessingClass->getField( Idx );
@@ -236,6 +264,8 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 						return ObjectCodec_->isMatchingField( pField, Member );
 					} );
 
+				SE_LOG( "Field: %s", (*pField->getName()).c_str() );
+				SE_LOGSCOPEDINDENT;
 				if( ObjectCodec_->shouldSerialiseField( 
 					pData, ParentFlags, pField ) )
 				{
@@ -243,6 +273,14 @@ void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, co
 					{
 						serialiseField( pData, pField, MemberValues[ *FoundMember ], ParentFlags );
 					}
+					else
+					{
+						SE_LOG( "- No data" );
+					}
+				}
+				else
+				{
+					SE_LOG( "- Should not serialise." );
 				}
 			}
 		}

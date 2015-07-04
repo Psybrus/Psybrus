@@ -723,8 +723,8 @@ void RsContextGL::create()
 
 	// Init GLEW.
 	glewExperimental = 1;
-	GL( ewInit() );
-	GL( GetError() );
+	glewInit();
+	glGetError();
 #endif
 
 #if PLATFORM_ANDROID
@@ -848,8 +848,8 @@ void RsContextGL::create()
 #  if PLATFORM_HTML5
 	// Init GLEW.
 	glewExperimental = 1;
-	GL( ewInit() );
-	GL( GetError() );
+	glewInit();
+	glGetError();
 #  endif
 #endif
 

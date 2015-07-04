@@ -193,6 +193,18 @@ struct ReTypeTraits< BcF64 >
 };
 
 template<>
+struct ReTypeTraits< size_t >
+{
+	typedef BcSize Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "size_t";
+	}
+};
+
+template<>
 struct ReTypeTraits< std::string >
 {
 	typedef std::string Type;

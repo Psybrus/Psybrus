@@ -63,6 +63,7 @@ PsyProjectEngineLib( "Base" )
     }
     includedirs {
       "./Platforms/Android/",
+    }
 
   -- asmjs
   configuration( "asmjs" )

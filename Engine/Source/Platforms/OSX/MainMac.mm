@@ -11,6 +11,7 @@
 #include "System/SysProfilerChromeTracing.h"
 
 #include <boost/filesystem.hpp>
+#include <iostream>
 
 namespace
 {

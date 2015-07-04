@@ -115,7 +115,7 @@ function PsyProjectCommonEngine( _name )
 	PsyProjectCommon( _name, "C++11" )
 
 	-- Enable C++11.
-	configuration { "gmake", "linux-*" }
+	configuration { "gmake", "linux-* or osx-*" }
 		buildoptions { "-std=c++11" }
 		buildoptions { "-stdlib=libc++" }
 		links {

@@ -52,7 +52,6 @@ PsyProjectEngineLib( "System_Renderer" )
       }
 
   configuration "osx-*"
-
       files {
           "./Shared/System/Renderer/GL/*.h", 
           "./Shared/System/Renderer/GL/*.inl", 
