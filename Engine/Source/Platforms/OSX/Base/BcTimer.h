@@ -14,7 +14,7 @@
 #ifndef __BCTIMER_H__
 #define __BCTIMER_H__
 
-#include "BcTypes.h"
+#include "Base/BcTypes.h"
 
 #include <sys/time.h>
 
@@ -31,7 +31,7 @@ public:
 	/**
 	*	Read time relative to point of reference.
 	*/
-	BcReal						time();
+	BcF64						time();
 
 private:
 	timeval						MarkedTime_;

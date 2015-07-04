@@ -1,6 +1,6 @@
 if PsyProjectExternalLib( "glew", "C" ) then
 	kind ( EXTERNAL_PROJECT_KIND ) 
-	configuration "windows-* or linux-*"
+	configuration "windows-* or linux-* or osx-*"
 		files { "./glew/include/**.h", "./glew/src/glew.c" }
 		includedirs { "./glew/include" }
 		defines { "GLEW_BUILD=1" }

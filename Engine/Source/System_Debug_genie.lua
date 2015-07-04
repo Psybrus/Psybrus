@@ -25,7 +25,7 @@ PsyProjectEngineLib( "System_Debug" )
   	  "raknet", 
  		}
 
-  configuration { "windows or linux-gcc or linux-clang" }
+  configuration { "windows-* or linux-* or osx-*" }
     defines { "USE_WEBBY=1" }
     PsyAddExternalLinks { "webby" }    
     includedirs { "../../External/webby/" }
@@ -38,6 +38,17 @@ PsyProjectEngineLib( "System_Debug" )
       }
       includedirs {
           "./Platforms/Linux/",
+      }
+
+  configuration "osx-*"
+      files {
+          "./Platforms/OSX/System/Debug/*.h", 
+          "./Platforms/OSX/System/Debug/*.inl", 
+          "./Platforms/OSX/System/Debug/*.cpp", 
+          "./Platforms/OSX/System/Debug/*.mm", 
+      }
+      includedirs {
+          "./Platforms/OSX/",
       }
 
   configuration "windows-*"

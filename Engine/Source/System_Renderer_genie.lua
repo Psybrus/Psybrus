@@ -24,7 +24,7 @@ PsyProjectEngineLib( "System_Renderer" )
  		}
 
   -- Windows and linux get glew.
-  configuration { "windows-* or linux-*" }
+  configuration { "windows-* or linux-* or osx-*" }
     defines { "GLEW_STATIC" }
     includedirs {
       "../../External/glew/include",
@@ -51,15 +51,26 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Platforms/Linux/",
       }
 
-  configuration "android-*"
+  configuration "osx-*"
+
       files {
           "./Shared/System/Renderer/GL/*.h", 
           "./Shared/System/Renderer/GL/*.inl", 
           "./Shared/System/Renderer/GL/*.cpp", 
       }
       includedirs {
-          "./Platforms/Android/",
+          "./Platforms/OSX/",
       }
+
+  configuration "android-*"
+    files {
+      "./Platforms/Android/System/Os/*.h", 
+      "./Platforms/Android/System/Os/*.inl", 
+      "./Platforms/Android/System/Os/*.cpp", 
+    }
+    includedirs {
+      "./Platforms/Android/",
+    }
 
   configuration "asmjs"
       files {

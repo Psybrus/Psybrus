@@ -1,5 +1,4 @@
-project ( EXTERNAL_PROJECT_PREFIX .. "rapidxml" )
-	kind ( EXTERNAL_PROJECT_KIND )
-	language "C"
-	files { "./rapidxml/**.hpp" }
-	includedirs { "./rapidxml/" }
+--if PsyProjectExternalLib( "rapidxml", "C" ) then
+--	kind ( EXTERNAL_PROJECT_KIND )
+--	files { "./rapidxml/**.hpp" }
+--	includedirs { "./rapidxml/" }

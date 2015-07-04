@@ -163,83 +163,75 @@ void RsOpenGLVersion::setupFeatureSupport()
 // isShaderCodeTypeSupported
 BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
+	BcU32 CombinedVersion = Major_ << 16 | Minor_;
+
 	switch( CodeType )
 	{
 	case RsShaderCodeType::GLSL_140:
-		if( Major_ >= 3 &&
-			Minor_ >= 1 &&
+		if( CombinedVersion >= 0x00030001 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_150:
-		if( Major_ >= 3 &&
-			Minor_ >= 2 &&
+		if( CombinedVersion >= 0x00030002 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_330:
-		if( Major_ >= 3 &&
-			Minor_ >= 3 &&
+		if( CombinedVersion >= 0x00030003 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_400:
-		if( Major_ >= 4 &&
-			Minor_ >= 0 &&
+		if( CombinedVersion >= 0x00040000 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_410:
-		if( Major_ >= 4 &&
-			Minor_ >= 1 &&
+		if( CombinedVersion >= 0x00040001 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_420:
-		if( Major_ >= 4 &&
-			Minor_ >= 2 &&
+		if( CombinedVersion >= 0x00040002 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_430:
-		if( Major_ >= 4 &&
-			Minor_ >= 3 &&
+		if( CombinedVersion >= 0x00040003 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_440:
-		if( Major_ >= 4 &&
-			Minor_ >= 4 &&
+		if( CombinedVersion >= 0x00040004 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_450:
-		if( Major_ >= 4 &&
-			Minor_ >= 5 &&
+		if( CombinedVersion >= 0x00040005 &&
 			Type_ == RsOpenGLType::CORE )
 		{
 			return BcTrue;
 		}
 		break;
 	case RsShaderCodeType::GLSL_ES_100:
-		if( Major_ >= 2 &&
-			Minor_ >= 0 &&
+		if( CombinedVersion >= 0x00020000 &&
 			Type_ == RsOpenGLType::ES )
 		{
 			return BcTrue;

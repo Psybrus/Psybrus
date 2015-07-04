@@ -15,6 +15,9 @@ function PsySetupToolchain()
 				{ "linux-gcc",			"Linux (GCC compiler)"			},
 				{ "linux-clang",		"Linux (Clang 3.5 compiler)"	},
 
+				-- OSX targets
+				{ "osx-clang",			"OSX (Clang compiler)"		},
+
 				-- Windows targets: Experimental cross compilation.
 				{ "windows-mingw-gcc",	"Windows (mingw GCC compiler)"	},
 				
@@ -26,7 +29,8 @@ function PsySetupToolchain()
 				{ "android-gcc-arm", "Android ARM (GCC 4.9 compiler)" },
 			},
 		}
-	
+
+			
 		-- Linux gcc.
 		if _OPTIONS[ "toolchain" ] == "linux-gcc" then
 			premake.gcc.cc = "ccache gcc"
@@ -42,6 +46,15 @@ function PsySetupToolchain()
 			premake.gcc.cxx = "clang++-3.5 -Qunused-arguments -fcolor-diagnostics"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-clang" )
+		end
+
+		-- OSX clang.
+		if _OPTIONS[ "toolchain" ] == "osx-clang" then
+			premake.gcc.cc = "clang -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.cxx = "clang -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.ar = "ar"
+						
+			location ( "Projects/" .. _ACTION .. "-osx-clang" )
 		end
 
 		-- Windows mingw gcc.
@@ -337,6 +350,13 @@ function PsySetupToolchain()
 			objdir ( "Build/" .. _ACTION .. "-linux64-clang/obj" )
 			buildoptions { "-m64" }
 
+
+		configuration { "osx-clang", "x64" }
+			targetdir ( "Build/" .. _ACTION .. "-osx64-clang/bin" )
+			objdir ( "Build/" .. _ACTION .. "-osx64-clang/obj" )
+			buildoptions { "-m64" }
+
+
 		configuration { "windows-mingw-gcc", "x32" }
 			targetdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/bin" )
 			objdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/obj" )
@@ -346,6 +366,7 @@ function PsySetupToolchain()
 			targetdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/bin" )
 			objdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/obj" )
 			buildoptions { "-m64" }
+
 
 		configuration { "asmjs" }
 			targetdir ( "Build/" .. _ACTION .. "-asmjs/bin" )

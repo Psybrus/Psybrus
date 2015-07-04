@@ -165,7 +165,7 @@ namespace
 		IncludePaths.clear();
 		IncludePaths.push_back( ".\\" );
 		IncludePaths.push_back( "..\\Psybrus\\Dist\\Content\\Engine\\" );
-#elif PLATFORM_LINUX
+#elif PLATFORM_LINUX || PLATFORM_OSX
 		// Setup include paths.
 		IncludePaths.clear();
 		IncludePaths.push_back( "./" );
@@ -296,7 +296,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
 	IncludePaths_.push_back( "..\\Psybrus\\Dist\\Content\\Engine\\" );
-#elif PLATFORM_LINUX
+#elif PLATFORM_LINUX || PLATFORM_OSX
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( "./" );

@@ -60,13 +60,13 @@ function PsyProjectCommon( _name, _lang )
 		flags { "Symbols" }
 
 	-- Optimised builds.
-	configuration { "windows-* or linux-* or android-*", "Release" }
+	configuration { "windows-* or linux-* or android-* or osx-*", "Release" }
 		flags { "Optimize" }
 
-	configuration { "windows-* or linux-* or android-*", "Profile" }
+	configuration { "windows-* or linux-* or android-* or osx-*", "Profile" }
 		flags { "Optimize" }
 
-	configuration { "windows-* or linux-* or android-*", "Production" }
+	configuration { "windows-* or linux-* or android-* or osx-*", "Production" }
 		flags { "Optimize" }
 
 	-- Setup language specific support.
@@ -150,7 +150,7 @@ function PsyProjectCommonEngine( _name )
 		defines { "PSY_PRODUCTION" }
 
 	-- Import pipeline.
-	configuration "windows-* or linux-*"
+	configuration "windows-* or linux-* or osx-*"
 		defines { "PSY_IMPORT_PIPELINE" }
 
 	-- Add default include paths.
@@ -167,6 +167,11 @@ function PsyProjectCommonEngine( _name )
 	configuration( "linux-*" )
 		includedirs {
 			"./Platforms/Linux/",
+		}
+
+	configuration( "osx-*" )
+		includedirs {
+			"./Platforms/OSX/",
 		}
 
 	configuration( "android-*" )
@@ -228,7 +233,7 @@ function PsyProjectGameExe( _name )
 		targetname( targetNamePrefix .. "-" )
 	
 	--
-	configuration "windows-* or linux-*"
+	configuration "windows-* or linux-* or osx-*"
 		targetdir ( "../Dist" )
 
 	PsyAddSystemLibs()
@@ -300,8 +305,8 @@ function PsyProjectExternalLib( _name, _lang )
 	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
-	-- Only optimise linux builds, this changes runtime on windows.
-	configuration "linux-*"
+	-- Only optimise linux + OSX builds, this changes runtime on windows.
+	configuration "linux-* or osx-*"
 		kind "StaticLib"
 		flags { "Optimize" }
 

@@ -28,6 +28,17 @@ PsyProjectEngineLib( "System_Content" )
           "./Platforms/Linux/",
       }
 
+  configuration "osx-*"
+      files {
+          "./Platforms/OSX/System/Content/*.h", 
+          "./Platforms/OSX/System/Content/*.inl", 
+          "./Platforms/OSX/System/Content/*.cpp", 
+          "./Platforms/OSX/System/Content/*.mm", 
+      }
+      includedirs {
+          "./Platforms/OSX/",
+      }
+
   configuration "windows-*"
         files {
             "./Platforms/Windows/System/Content/*.h", 

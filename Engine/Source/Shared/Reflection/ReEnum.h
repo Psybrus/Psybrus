@@ -27,13 +27,13 @@ public:
 		* @brief Get enum constant
 		* @param Value Value of enum.
 		*/
-    const ReEnumConstant* getEnumConstant( BcU32 Value );
+    const ReEnumConstant* getEnumConstant( BcU32 Value ) const;
 
 	/**
 		* @brief Get enum constant
 		* @param Name Name of enum.
 		*/
-    const ReEnumConstant* getEnumConstant( const std::string& Name );
+    const ReEnumConstant* getEnumConstant( const std::string& Name ) const;
 		
 protected:
     std::vector< const ReEnumConstant* > EnumConstants_;

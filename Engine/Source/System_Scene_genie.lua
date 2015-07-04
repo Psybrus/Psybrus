@@ -56,6 +56,14 @@ PsyProjectEngineLib( "System_Scene" )
           "./Platforms/Linux/",
       }
 
+  configuration "osx-*"
+      files {
+      }
+
+      includedirs {
+          "./Platforms/OSX/",
+      }
+
   configuration "windows-*"
       files {
       }
