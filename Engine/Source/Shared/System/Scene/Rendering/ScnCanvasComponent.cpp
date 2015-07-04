@@ -683,6 +683,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 //virtual
 void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	BcAssert( NoofVertices_ > 0 );
+
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 3 )

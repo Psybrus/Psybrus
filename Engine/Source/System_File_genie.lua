@@ -27,6 +27,17 @@ PsyProjectEngineLib( "System_File" )
           "./Platforms/Linux/",
       }
 
+  configuration "osx-*"
+      files {
+          "./Platforms/OSX/System/File/*.h", 
+          "./Platforms/OSX/System/File/*.inl", 
+          "./Platforms/OSX/System/File/*.cpp", 
+          "./Platforms/OSX/System/File/*.mm", 
+      }
+      includedirs {
+          "./Platforms/OSX/",
+      }
+
   configuration "asmjs"
       files {
           "./Platforms/HTML5/System/File/*.h", 

@@ -76,6 +76,17 @@ function PsyAddBoostLibs( _links )
 		for i, link in ipairs( _links ) do
 			links { "boost_" .. link }
 		end
+
+	configuration "osx-*"
+		-- If we aren't using system, setup include + linkage.
+		if not BOOST_USE_SYSTEM then
+			includedirs { BOOST_INCLUDE_PATH }
+			libdirs { BOOST_LIB_PATH }
+		end
+
+		for i, link in ipairs( _links ) do
+			links { "boost_" .. link }
+		end
 end
 
 
@@ -83,7 +94,6 @@ end
 function PsyAddSystemLibs()
 	configuration "windows-*"
 		links {
-			-- Windows libs.
 			"user32",
 			"gdi32",
 			"opengl32",
@@ -94,12 +104,21 @@ function PsyAddSystemLibs()
 
 	 configuration "linux-*"
 		links {
-			-- Linux libs.
 			"X11",
 			"GL",
 			"pthread",
 			"bluetooth",
 			"SDL2",
+			"dl"
+		}
+
+	 configuration "osx-*"
+		links {
+			"AppKit.framework",
+			"CoreFoundation.framework",
+			"OpenGL.framework",
+			"SDL2",
+			"pthread",
 			"dl"
 		}
 

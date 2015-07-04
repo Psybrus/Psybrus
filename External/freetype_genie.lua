@@ -1,6 +1,18 @@
 if PsyProjectExternalLib( "freetype", "C" ) then
+	configuration "osx-*"
+		kind ( EXTERNAL_PROJECT_KIND )
+		includedirs { 
+			"./freetype/devel", 
+			"./freetype/include", 
+			"./freetype/src/base" 
+		}
+		files {
+			"./freetype/src/base/ftmac.c",
+		}
+
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
+		defines { "FT2_BUILD_LIBRARY" }
 		files {
 			"./freetype/src/autofit/autofit.c",
 			"./freetype/src/base/basepic.c",

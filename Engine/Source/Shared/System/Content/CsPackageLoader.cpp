@@ -366,19 +366,19 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	pCurrPackageData += BcCalcAlignment( Header_.StringTableBytes_, Header_.MinAlignment_ );
 
 	pPackageCrossRefs_ = reinterpret_cast< CsPackageCrossRefData* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalPackageCrossRefs_ * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalPackageCrossRefs_ * (BcU32)sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
 
 	pPackageDependencies_ = reinterpret_cast< CsPackageDependencyData* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalPackageDependencies_ * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalPackageDependencies_ * (BcU32)sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
 
 	pResourceHeaders_ = reinterpret_cast< CsPackageResourceHeader* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalResources_ * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalResources_ * (BcU32)sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
 
 	pChunkHeaders_ = reinterpret_cast< CsPackageChunkHeader* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalChunks_ * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalChunks_ * (BcU32)sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
 
 	pChunkData_ = reinterpret_cast< CsPackageChunkData* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalChunks_ * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalChunks_ * (BcU32)sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 
 	// Clear string table.
 	BcMemZero( pStringTable_, Header_.StringTableBytes_ );

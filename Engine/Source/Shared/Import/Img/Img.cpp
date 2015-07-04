@@ -16,7 +16,9 @@
 
 #include "png.h"
 
+#if PLATFORM_WINDOWS || PLATFORM_LINUX
 #include "malloc.h"
+#endif
 
 #if PLATFORM_WINDOWS
 #pragma  warning( disable : 4611 )

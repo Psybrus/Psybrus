@@ -32,6 +32,20 @@ PsyProjectEngineLib( "System_Os" )
       "../../External/ThinkGear/",
     }
 
+  configuration "osx-*"
+    files {
+      "./Shared/System/Os/SDL/*.h", 
+      "./Shared/System/Os/SDL/*.inl", 
+      "./Shared/System/Os/SDL/*.cpp", 
+      "./Platforms/OSX/System/Os/*.h", 
+      "./Platforms/OSX/System/Os/*.inl", 
+      "./Platforms/OSX/System/Os/*.cpp", 
+      "./Platforms/OSX/System/Os/*.mm", 
+    }
+    includedirs {
+      "./Platforms/OSX/",
+    }
+
   configuration "asmjs"
     files {
       "./Platforms/HTML5/System/Os/*.h", 

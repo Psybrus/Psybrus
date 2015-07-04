@@ -137,7 +137,7 @@ BcBool ScnShaderImport::compileShader(
 	}
 #endif // PLATFORM_WINDOWS
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	// LINUX TODO: Use env path or config file.
 	auto PsybrusSDKRoot = "../Psybrus";
 
@@ -176,7 +176,7 @@ BcBool ScnShaderImport::compileShader(
 		}
 	}
 
-#endif // PLATFORM_LINUX
+#endif // PLATFORM_LINUX || PLATFORM_OSX
 
 	return RetVal;
 }
@@ -203,7 +203,7 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 #endif // PLATFORM_WINDOWS
 
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	struct VertexAttribute
 	{
 		char SemanticName_[ 32 ];
@@ -220,7 +220,7 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 		VertexAttributeList.push_back( VertexAttribute );
 	}
 
-#endif // PLATFORM_LINUX
+#endif // PLATFORM_LINUX || PLATFORM_OSX
 
 	return VertexAttributeList;
 }

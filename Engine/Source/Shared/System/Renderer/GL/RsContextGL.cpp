@@ -502,7 +502,7 @@ void RsContextGL::presentBackBuffer()
 	}
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	{
 		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapWindow" );
 		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
@@ -633,7 +633,7 @@ void RsContextGL::create()
 	}
 #endif
 
-#if PLATFORM_LINUX	
+#if PLATFORM_LINUX	|| PLATFORM_OSX
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
@@ -768,7 +768,7 @@ void RsContextGL::destroy()
 	wglDeleteContext( WindowRC_ );
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	SDL_GL_DeleteContext( SDLGLContext_ );
 #endif
 
@@ -848,7 +848,7 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 
 //////////////////////////////////////////////////////////////////////////
 // createProfile
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
 {
 	switch( Version.Type_ )

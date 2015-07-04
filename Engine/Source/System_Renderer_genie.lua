@@ -24,7 +24,7 @@ PsyProjectEngineLib( "System_Renderer" )
  		}
 
   -- Windows and linux get glew.
-  configuration { "windows-* or linux-*" }
+  configuration { "windows-* or linux-* or osx-*" }
     defines { "GLEW_STATIC" }
     includedirs {
       "../../External/glew/include",
@@ -42,6 +42,16 @@ PsyProjectEngineLib( "System_Renderer" )
       }
 
   configuration "linux-*"
+      files {
+          "./Shared/System/Renderer/GL/*.h", 
+          "./Shared/System/Renderer/GL/*.inl", 
+          "./Shared/System/Renderer/GL/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/Linux/",
+      }
+
+  configuration "osx-*"
       files {
           "./Shared/System/Renderer/GL/*.h", 
           "./Shared/System/Renderer/GL/*.inl", 

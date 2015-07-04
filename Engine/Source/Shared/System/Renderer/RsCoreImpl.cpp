@@ -71,11 +71,6 @@ void RsCoreImpl::open()
 		RsCore::JOB_QUEUE_ID,
 		[ this ]
 		{
-#if PLATFORM_OSX
-			// Do the context switch.
-			OsViewOSX_Interface::MakeContextCurrent();
-#endif
-
 			// Make default context current and setup defaults.
 			RsContext* pContext = ContextMap_[ NULL ];
 			if( pContext != NULL )

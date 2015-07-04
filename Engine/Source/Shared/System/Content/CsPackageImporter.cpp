@@ -254,11 +254,11 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 		// Calculate package alloc size.
 		Header_.TotalAllocSize_ += (BcU32)StringTableStream.dataSize();
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( PackageCrossRefList_.size() * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( PackageDependencyList_.size() * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ResourceHeaders_.size() * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)PackageCrossRefList_.size() * (BcU32)sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)PackageDependencyList_.size() * (BcU32)sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)ResourceHeaders_.size() * (BcU32)sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)ChunkHeaders_.size() * (BcU32)sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)ChunkHeaders_.size() * (BcU32)sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 		
 		// Align total size to 1 page for the start of resource data.
 		Header_.TotalAllocSize_ = (BcU32)BcCalcAlignment( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
@@ -736,7 +736,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcAssert( Size > 0 );
-	BcAssert( BcPot( RequiredAlignment ) );
+	BcAssert( BcPot( (BcU32)RequiredAlignment ) );
 	BcAssert( RequiredAlignment <= 4096 );
 
 	const BcU8* pPackedData = reinterpret_cast< const BcU8* >( pData );

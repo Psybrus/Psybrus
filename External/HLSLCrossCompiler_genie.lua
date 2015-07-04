@@ -1,6 +1,6 @@
 if PsyProjectExternalLib( "HLSLCrossCompiler", "C" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	configuration "windows or linux-gcc or linux-clang"
+	configuration "windows-* or linux-* or osx-*"
 		files { 
 			"./HLSLCrossCompiler/include/**.h", 
 			"./HLSLCrossCompiler/src/**.h", 

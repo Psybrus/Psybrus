@@ -1,6 +1,6 @@
 if PsyProjectExternalLib( "RakNet", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	configuration "windows-* or linux-*"
+	configuration "windows-* or linux-* or osx-*"
 		files { "./RakNet/Source/**.h", "./RakNet/Source/**.cpp" }
 		includedirs { "./RakNet/Source/" }
 		links {

@@ -47,7 +47,7 @@ void ReEnum::setConstants( ReEnumConstant** EnumConstants, BcU32 Elements )
 	}
 }
 
-const ReEnumConstant* ReEnum::getEnumConstant( BcU32 Value )
+const ReEnumConstant* ReEnum::getEnumConstant( BcU32 Value ) const
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{
@@ -60,7 +60,7 @@ const ReEnumConstant* ReEnum::getEnumConstant( BcU32 Value )
 	return nullptr;
 }
 
-const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name )
+const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name ) const
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{

@@ -180,6 +180,20 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 		}
 
+#if PSY_DEBUG
+		if( TargetCodeType_ == RsShaderCodeType::INVALID )
+		{
+			PSY_LOG( "Supported shader types in %s:", (*getName()).c_str() );
+			const ReEnum* Enum = ReManager::GetEnum( "RsShaderCodeType" );
+			for( BcU32 Idx = 0; Idx < pHeader_->NoofShaderCodeTypes_; ++Idx )
+			{
+				auto EnumConstant = Enum->getEnumConstant( static_cast< BcU32 >( pCodeTypes[ Idx ] ) );
+				PSY_LOG( "- %s", (*EnumConstant->getName()).c_str() );
+			}
+
+		}
+
+#endif
 		BcAssertMsg( TargetCodeType_ != RsShaderCodeType::INVALID, "No valid code type built in shader. Please add to your package." );
 
 		// Grab the rest of the chunks.

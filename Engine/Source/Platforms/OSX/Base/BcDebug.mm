@@ -1,16 +1,9 @@
-//
-//  BcDebug.mm
-//  TestBed
-//
-//  Created by Neil Richardson on 25/09/11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
 
-#include "BcDebug.h"
+#include "Base/BcDebug.h"
+#include "Base/BcLog.h"
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
@@ -70,7 +63,11 @@
 
 BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
+	PSY_LOG( "%s: %s\n", pTitle, pMessage );
+
 	BcMessageBoxReturn RetVal = bcMBR_OK;
+
+#if 0 // Only works on main thread.
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 	NSString* title = [[NSString alloc] initWithCString: pTitle encoding: NSUTF8StringEncoding];
 	NSString* message = [[NSString alloc] initWithCString: pMessage encoding: NSUTF8StringEncoding];
@@ -122,8 +119,7 @@ BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, B
 		default:
 			break;
 	}
-	
-	[pool drain];
-	
+	[pool drain];	
+#endif
 	return RetVal;
 }

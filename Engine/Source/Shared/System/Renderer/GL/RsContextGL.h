@@ -23,7 +23,7 @@
 
 #include "Base/BcMisc.h"
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 #include <SDL2/SDL.h>
 #endif
 
@@ -216,7 +216,7 @@ protected:
 	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext );
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	bool createProfile( RsOpenGLVersion Version, SDL_Window* Window );
 #endif
 
@@ -226,7 +226,7 @@ private:
 	HGLRC WindowRC_;
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	SDL_GLContext SDLGLContext_;
 #endif
 

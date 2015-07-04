@@ -260,6 +260,17 @@ public:
 							// Only do copy if it's not a shallow copy.
 							if( !SrcFieldAccessor.isShallowCopy() )
 							{
+#if PSY_DEBUG
+								auto Serialiser = SrcFieldAccessor.getUpperClass()->getTypeSerialiser();
+								if( Serialiser != nullptr )
+								{
+									std::string OutString;
+									if( Serialiser->serialiseToString( SrcFieldAccessor.getData(), OutString ) )
+									{
+										PSY_LOG( "- As string: %s", OutString.c_str() );
+									}
+								}
+#endif
 								// Create a copy and recurse down.
 								if( !DstFieldAccessor.copy( SrcFieldAccessor.getData() ) )
 								{
