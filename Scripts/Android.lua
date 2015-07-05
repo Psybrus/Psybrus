@@ -3,9 +3,33 @@ dofile( "NDK/common.lua" )
 dofile( "NDK/makefile.lua" )
 dofile( "NDK/manifest.lua" )
 
-ANDROID_TOOL="$(ANDROID_SDK)/tools/android"
+ANDROID_TOOL="$(ANDROID_SDK)/tools/android"	
+if os.is("windows") then
+	ANDROID_TOOL="\"$(ANDROID_SDK)/tools/android\""
+end
+
 
 ANDROID_NDK_PATH = os.getenv("ANDROID_NDK")
+
+function mkdirCommand( path )
+	mkdirCommandString = "mkdir -p " .. path
+	if os.is("windows") then
+		mkdirCommandString = "mkdir " .. path
+		mkdirCommandString = string.gsub( mkdirCommandString, "/", "\\" )
+	end
+	print( "mkdirCommand: " .. mkdirCommandString )
+	return mkdirCommandString
+end
+
+function copyCommand( src, dest )
+	copyCommandString = "cp " .. src .. " " .. dest 
+	if os.is("windows") then
+		copyCommandString = "copy " .. src .. " " .. dest 
+		copyCommandString = string.gsub( copyCommandString, "/", "\\" )
+	end
+	print( "copyComamndString: " .. copyCommandString )
+	return copyCommandString
+end
 
 function SetupAndroidProject()
 	local suffix = _OPTIONS["toolchain"]
@@ -13,6 +37,8 @@ function SetupAndroidProject()
 	if _OPTIONS["toolchain"] == "android-clang-arm" or 
 	   _OPTIONS["toolchain"] == "android-gcc-arm" then
 		kind "SharedLib"
+
+		flags { "NoImportLib" }
 
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
 		local abi = "armeabi-v7a"
@@ -75,13 +101,23 @@ function SetupAndroidProject()
 
 			androidTarget = "android-22" 
 
+		libPrefixName = "lib" .. libName .. "-gmake-" .. suffix
+		libExt = ".so"
+		if os.is("windows") then
+			libPrefixName = libName .. "-gmake-" .. suffix
+			libExt = ".dll"
+		end
+
+		os.execute( mkdirCommand( buildPath .. "/project" ) )
+		os.execute( mkdirCommand( buildPath .. "/project/libs" ) )
+		os.execute( mkdirCommand( buildPath .. "/project/libs/" .. abi ) )
+
 		configuration { "android-*", "Debug" }
 			postbuildcommands {
 				--"$(SILENT) echo Copying packed content."
 				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
 				"$(SILENT) echo Copying debug build...",
-				"$(SILENT) mkdir -p " .. postBuildProjectPath .. "/libs/" .. abi,
-				"$(SILENT) cp " .. postBuildPath .. "/bin/lib" .. libName .. "-gmake-" .. suffix .. "-Debug.so " .. postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so",
+				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Debug" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
 				"$(SILENT) echo Updating project...",
 				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
 				--"$(SILENT) cd " .. postBuildProjectPath,
@@ -94,8 +130,7 @@ function SetupAndroidProject()
 				--"$(SILENT) echo Copying packed content."
 				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
 				"$(SILENT) echo Copying release build...",
-				"$(SILENT) mkdir -p " .. postBuildProjectPath .. "/libs/" .. abi,
-				"$(SILENT) cp " .. postBuildPath .. "/bin/lib" .. libName .. "-gmake-" .. suffix .. "-Release.so " .. postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so",
+				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Release" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
 				"$(SILENT) echo Updating project...",
 				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
 				--"$(SILENT) cd " .. postBuildProjectPath,
@@ -108,8 +143,7 @@ function SetupAndroidProject()
 				--"$(SILENT) echo Copying packed content."
 				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
 				"$(SILENT) echo Copying production build...",
-				"$(SILENT) mkdir -p " .. postBuildProjectPath .. "/libs/" .. abi,
-				"$(SILENT) cp " .. postBuildPath .. "/bin/lib" .. libName .. "-gmake-" .. suffix .. "-Production.so " .. postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so",
+				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Production" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
 				"$(SILENT) echo Updating project...",
 				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
 				--"$(SILENT) cd " .. postBuildProjectPath,
