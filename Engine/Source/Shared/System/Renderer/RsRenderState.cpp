@@ -29,6 +29,8 @@ static_assert( std::is_trivially_copyable< RsRenderStateDesc >::value, "Unable t
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderTargetBlendState
+REFLECTION_DEFINE_BASIC( RsRenderTargetBlendState );
+
 void RsRenderTargetBlendState::StaticRegisterClass()
 {
 	ReField* Fields[] = 
@@ -74,6 +76,8 @@ RsRenderTargetBlendState::RsRenderTargetBlendState():
 
 //////////////////////////////////////////////////////////////////////////
 // RsBlendState
+REFLECTION_DEFINE_BASIC( RsBlendState );
+
 void RsBlendState::StaticRegisterClass()
 {
 	ReField* Fields[] = 
@@ -98,6 +102,8 @@ RsBlendState::RsBlendState():
 
 //////////////////////////////////////////////////////////////////////////
 // RsStencilFaceState
+REFLECTION_DEFINE_BASIC( RsStencilFaceState );
+
 void RsStencilFaceState::StaticRegisterClass()
 {
 	ReField* Fields[] = 
@@ -134,6 +140,8 @@ RsStencilFaceState::RsStencilFaceState():
 
 //////////////////////////////////////////////////////////////////////////
 // RsDepthStencilState
+REFLECTION_DEFINE_BASIC( RsDepthStencilState );
+
 void RsDepthStencilState::StaticRegisterClass()
 {
 	ReField* Fields[] = 
@@ -184,6 +192,8 @@ RsDepthStencilState::RsDepthStencilState():
 
 //////////////////////////////////////////////////////////////////////////
 // RsRasteriserState
+REFLECTION_DEFINE_BASIC( RsRasteriserState );
+
 void RsRasteriserState::StaticRegisterClass()
 {
 	ReField* Fields[] = 
@@ -226,6 +236,8 @@ RsRasteriserState::RsRasteriserState():
 
 //////////////////////////////////////////////////////////////////////////
 // RsRenderStateDesc
+REFLECTION_DEFINE_BASIC( RsRenderStateDesc );
+
 void RsRenderStateDesc::StaticRegisterClass()
 {
 	ReField* Fields[] = 

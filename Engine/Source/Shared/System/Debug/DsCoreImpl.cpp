@@ -88,6 +88,7 @@ void DsCoreImpl::open()
 	std::vector<std::string> bindAddresses = getIPAddresses();
 	for ( int i = 0; i < bindAddresses.size(); ++i )
 	{
+		PSY_LOG( "Binding to \%", bindAddresses[ i ].c_str() );
 		memset( &config, 0, sizeof config );
 		config.bind_address = bindAddresses[ i ].c_str();
 		config.listening_port = 1337;
@@ -303,6 +304,7 @@ int DsCoreImpl::externalWebbyFrame( WebbyConnection *connection, const WebbyWsFr
 std::vector< std::string > DsCoreImpl::getIPAddresses()
 {
 	std::vector< std::string > result;
+	result.push_back( "127.0.0.1" );
 	RakNet::RakPeerInterface* peer = NULL;
 	peer = RakNet::RakPeerInterface::GetInstance();
 
