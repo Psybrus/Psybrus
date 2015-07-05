@@ -330,52 +330,35 @@ function PsySetupToolchain()
 		targetdir ( "Build/" .. _ACTION .. "/bin" )
 		objdir ( "Build/" .. _ACTION .. "/obj" )
 
-		configuration { "linux-gcc", "x32" }
-			targetdir ( "Build/" .. _ACTION .. "-linux32-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-linux32-gcc/obj" )
-			buildoptions { "-m32" }
+		configuration { "android-clang-arm" }
+			targetdir ( "Build/" .. _ACTION .. "-android-clang-arm/bin" )
+			objdir ( "Build/" .. _ACTION .. "-android-clang-arm/obj" )
+	end
 
-		configuration { "linux-gcc", "x64" }
-			targetdir ( "Build/" .. _ACTION .. "-linux64-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-linux64-gcc/obj" )
-			buildoptions { "-m64" }
+	if _ACTION == "xcode3" or _ACTION == "xcode4" then
+		newoption {
+			trigger = "toolchain",
+			value = "toolchain",
+			description = "Choose toolchain",
+			allowed = {
+				-- OSX targets
+				{ "osx-clang",			"OSX (Clang compiler)"		},
+			}
+		}
 
-		configuration { "linux-clang", "x32" }
-			targetdir ( "Build/" .. _ACTION .. "-linux32-clang/bin" )
-			objdir ( "Build/" .. _ACTION .. "-linux32-clang/obj" )
-			buildoptions { "-m32" }
+		-- Configurations
+		targetdir ( "Build/" .. _ACTION .. "/bin" )
+		objdir ( "Build/" .. _ACTION .. "/obj" )
 
-		configuration { "linux-clang", "x64" }
-			targetdir ( "Build/" .. _ACTION .. "-linux64-clang/bin" )
-			objdir ( "Build/" .. _ACTION .. "-linux64-clang/obj" )
-			buildoptions { "-m64" }
-
+		location ( "Projects/" .. _ACTION .. "-osx64-clang" )
 
 		configuration { "osx-clang", "x64" }
 			targetdir ( "Build/" .. _ACTION .. "-osx64-clang/bin" )
 			objdir ( "Build/" .. _ACTION .. "-osx64-clang/obj" )
 			buildoptions { "-m64" }
 
-
-		configuration { "windows-mingw-gcc", "x32" }
-			targetdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/obj" )
-			buildoptions { "-m32" }
-
-		configuration { "windows-mingw-gcc", "x64" }
-			targetdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/obj" )
-			buildoptions { "-m64" }
-
-
-		configuration { "asmjs" }
-			targetdir ( "Build/" .. _ACTION .. "-asmjs/bin" )
-			objdir ( "Build/" .. _ACTION .. "-asmjs/obj" )
-
-		configuration { "android-clang-arm" }
-			targetdir ( "Build/" .. _ACTION .. "-android-clang-arm/bin" )
-			objdir ( "Build/" .. _ACTION .. "-android-clang-arm/obj" )
 	end
+
 
 	if _ACTION == "vs2012" or _ACTION == "vs2013" or _ACTION == "vs2015" then
 		newoption {

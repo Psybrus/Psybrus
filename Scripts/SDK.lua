@@ -7,21 +7,29 @@ newoption {
 
 BOOST_INCLUDE_PATH = ""
 BOOST_LIB_PATH = ""
-BOOST_USE_SYSTEM = false
+BOOST_USE_SYSTEM = true
 
 function SetupBoost()
+	boostRoot = _OPTIONS["boostpath"]
+
 	-- Setup boost if we have it
-	if _OPTIONS["boostpath"] then
+	if boostRoot then
 		--
 		BOOST_INCLUDE_PATH = _OPTIONS["boostpath"]
 		BOOST_LIB_PATH = _OPTIONS["boostpath"] .. "/stage/lib"
+		BOOST_USE_SYSTEM = false
 	else
 		if os.is("windows") then
 			boostRoot = os.getenv("BOOST_ROOT")
 			BOOST_INCLUDE_PATH = boostRoot
 			BOOST_LIB_PATH = boostRoot .. "/stage/lib"
-		else
-			BOOST_USE_SYSTEM = true
+			BOOST_USE_SYSTEM = false
+		end
+		if os.is("macosx") then
+			boostRoot = os.getenv("BOOST_ROOT")
+			BOOST_INCLUDE_PATH = boostRoot
+			BOOST_LIB_PATH = boostRoot .. "/stage/lib"
+			BOOST_USE_SYSTEM = false
 		end
 	end
 
@@ -44,7 +52,8 @@ function SetupBoost()
 		[ "1_54" ] = true,
 		[ "1_55" ] = true,
 		[ "1_56" ] = true,
-		[ "1_57" ] = true
+		[ "1_57" ] = true,
+		[ "1_58" ] = true
 	}
 
 	if not validVersions[ boostVersion ] then
