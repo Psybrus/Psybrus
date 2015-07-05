@@ -615,11 +615,11 @@ void RsContextGL::create()
 	}
 
 	// Create a rendering context to start with.
-	WindowRC_ = wGL( CreateContext( WindowDC_ ) );
+	WindowRC_ = wglCreateContext( WindowDC_ );
 	BcAssertMsg( WindowRC_ != NULL, "RsCoreImplGL: Render context is NULL!" );
 
 	// Make current.
-	wGL( MakeCurrent( WindowDC_, WindowRC_ ) );
+	wglMakeCurrent( WindowDC_, WindowRC_ );
 
 	// Init GLEW.
 	glewExperimental = 1;
@@ -663,15 +663,15 @@ void RsContextGL::create()
 	if( pParent_ != NULL )
 	{
 		// Make parent current.
-		wGL( MakeCurrent( pParent_->WindowDC_, WindowRC_ ) );
+		wglMakeCurrent( pParent_->WindowDC_, WindowRC_ );
 
 		// Share parent's lists with this context.
-		BOOL Result = wGL( ShareLists( pParent_->WindowRC_, WindowRC_ ) );
+		BOOL Result = wglShareLists( pParent_->WindowRC_, WindowRC_ );
 		BcAssertMsg( Result != BcFalse, "Unable to share lists." );
 		BcUnusedVar( Result );
 
 		// Make current.
-		wGL( MakeCurrent( WindowDC_, WindowRC_ ) );
+		wglMakeCurrent( WindowDC_, WindowRC_ );
 	}
 #endif
 
@@ -679,6 +679,7 @@ void RsContextGL::create()
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
+	SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
 	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
@@ -924,8 +925,8 @@ void RsContextGL::destroy()
 
 #if PLATFORM_WINDOWS
 	// Destroy rendering context.
-	wGL( MakeCurrent( WindowDC_, NULL ) );
-	wGL( DeleteContext( WindowRC_ ) );
+	wglMakeCurrent( WindowDC_, NULL );
+	wglDeleteContext( WindowRC_ );
 #endif
 
 #if PLATFORM_LINUX || PLATFORM_OSX
@@ -987,15 +988,15 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 	auto func = wglCreateContextAttribsARB;
 	BcUnusedVar( func );
 
-	HGLRC CoreProfile = wGL( CreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs ) );
+	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
 	if( CoreProfile != NULL )
 	{
 		// release old context.
-		wGL( MakeCurrent( WindowDC_, NULL ) );
-		wGL( DeleteContext( WindowRC_ ) );
+		wglMakeCurrent( WindowDC_, NULL );
+		wglDeleteContext( WindowRC_ );
 
 		// make new current.
-		wGL( MakeCurrent( WindowDC_, CoreProfile ) );
+		wglMakeCurrent( WindowDC_, CoreProfile );
 
 		// Assign new.
 		WindowRC_ = CoreProfile;
@@ -1657,7 +1658,6 @@ bool RsContextGL::updateTexture(
 			Depth,
 			1 );
 		std::vector< BcU8 > Data( DataSize );
-
 		BcU32 SlicePitch = DataSize / Depth;
 		BcU32 Pitch = SlicePitch / Height;
 		RsTextureLock Lock = 
