@@ -673,6 +673,9 @@ void RsContextGL::create()
 		// Make current.
 		wglMakeCurrent( WindowDC_, WindowRC_ );
 	}
+
+	// Clear current errors.
+	glGetError();
 #endif
 
 #if PLATFORM_LINUX	|| PLATFORM_OSX

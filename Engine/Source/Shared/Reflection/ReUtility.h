@@ -192,6 +192,8 @@ struct ReTypeTraits< BcF64 >
 	}
 };
 
+#if PLATFORM_OSX
+
 template<>
 struct ReTypeTraits< size_t >
 {
@@ -203,6 +205,8 @@ struct ReTypeTraits< size_t >
 		return "size_t";
 	}
 };
+
+#endif
 
 template<>
 struct ReTypeTraits< std::string >
