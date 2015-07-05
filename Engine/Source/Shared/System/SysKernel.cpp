@@ -263,7 +263,10 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 	JobQueue->flushJobs( BcFalse );
 
 	// Reassign worker allocation index.
-	CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
+	if( NoofWorkers > 0 && JobWorkers_.size() > 0 )
+	{
+		CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
+	}
 
 	return JobQueueId;
 #else
