@@ -109,6 +109,9 @@ int main(int argc, char** argv)
 
 	GInstance_ = (BcHandle)0;
 
+	// Set exe path.
+	SysExePath_ = argv[ 0 ];
+
 	// Set command line params.
 	SysArgs_ = CommandLine;
 

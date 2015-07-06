@@ -151,6 +151,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	GInstance_ = (BcHandle)hInstance;
 
+	// Set exe path.
+	SysExePath_ = "";
+
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
 
