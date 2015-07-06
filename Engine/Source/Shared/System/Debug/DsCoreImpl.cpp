@@ -88,7 +88,7 @@ void DsCoreImpl::open()
 	std::vector<std::string> bindAddresses = getIPAddresses();
 	for ( int i = 0; i < bindAddresses.size(); ++i )
 	{
-		PSY_LOG( "Binding to \%", bindAddresses[ i ].c_str() );
+		PSY_LOG( "Binding to %s", bindAddresses[ i ].c_str() );
 		memset( &config, 0, sizeof config );
 		config.bind_address = bindAddresses[ i ].c_str();
 		config.listening_port = 1337;
@@ -111,7 +111,10 @@ void DsCoreImpl::open()
 			PSY_LOG( "Failed to initialise Webby server" );
 			fprintf( stderr, "failed to init server\n" );
 		}
-		Servers_.push_back( TempServer_ );
+		if( TempServer_ != nullptr )
+		{
+			Servers_.push_back( TempServer_ );
+		}
 		ServerMemory_.push_back( TempMemory );
 	}
 #endif
@@ -158,7 +161,9 @@ void DsCoreImpl::update()
 {
 #if USE_WEBBY
 	for ( unsigned int Idx = 0; Idx < Servers_.size(); ++Idx )
+	{
 		WebbyServerUpdate( Servers_[ Idx ] );
+	}
 #endif // USE_WEBBY
 	if ( ImGui::Psybrus::NewFrame() )
 	{
