@@ -228,9 +228,23 @@ function PsyProjectGameExe( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
+	local targetNamePrefix = _name .. "-" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ]
 	configuration "*"
-		local targetNamePrefix = _name .. "-" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ]
 		targetname( targetNamePrefix .. "-" )
+
+	-- OSX specifics.
+	configuration { "osx-*", "Debug" }
+		targetname( targetNamePrefix .. "-Debug" )
+		targetsuffix ""
+	configuration { "osx-*", "Release" }
+		targetname( targetNamePrefix .. "-Release" )
+		targetsuffix ""
+	configuration { "osx-*", "Profile" }
+		targetname( targetNamePrefix .. "-Profile" )
+		targetsuffix ""
+	configuration { "osx-*", "Production" }
+		targetname( targetNamePrefix .. "-Production" )
+		targetsuffix ""
 	
 	--
 	configuration "windows-* or linux-* or osx-*"
