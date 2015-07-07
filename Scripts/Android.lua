@@ -4,7 +4,7 @@ dofile( "NDK/makefile.lua" )
 dofile( "NDK/manifest.lua" )
 
 ANDROID_TOOL="$(ANDROID_SDK)/tools/android"	
-if os.is("windows") then
+if IsHostOS("windows") then
 	ANDROID_TOOL="\"$(ANDROID_SDK)/tools/android\""
 end
 
@@ -13,7 +13,7 @@ ANDROID_NDK_PATH = os.getenv("ANDROID_NDK")
 
 function mkdirCommand( path )
 	mkdirCommandString = "mkdir -p " .. path
-	if os.is("windows") then
+	if IsHostOS("windows") then
 		mkdirCommandString = "mkdir " .. path
 		mkdirCommandString = string.gsub( mkdirCommandString, "/", "\\" )
 	end
@@ -23,7 +23,7 @@ end
 
 function copyCommand( src, dest )
 	copyCommandString = "cp " .. src .. " " .. dest 
-	if os.is("windows") then
+	if IsHostOS("windows") then
 		copyCommandString = "copy " .. src .. " " .. dest 
 		copyCommandString = string.gsub( copyCommandString, "/", "\\" )
 	end
@@ -37,7 +37,6 @@ function SetupAndroidProject()
 	if _OPTIONS["toolchain"] == "android-clang-arm" or 
 	   _OPTIONS["toolchain"] == "android-gcc-arm" then
 		kind "SharedLib"
-
 		flags { "NoImportLib" }
 
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
@@ -103,10 +102,6 @@ function SetupAndroidProject()
 
 		libPrefixName = "lib" .. libName .. "-gmake-" .. suffix
 		libExt = ".so"
-		if os.is("windows") then
-			libPrefixName = libName .. "-gmake-" .. suffix
-			libExt = ".dll"
-		end
 
 		os.execute( mkdirCommand( buildPath .. "/project" ) )
 		os.execute( mkdirCommand( buildPath .. "/project/libs" ) )

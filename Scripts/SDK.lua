@@ -19,13 +19,13 @@ function SetupBoost()
 		BOOST_LIB_PATH = _OPTIONS["boostpath"] .. "/stage/lib"
 		BOOST_USE_SYSTEM = false
 	else
-		if os.is("windows") then
+		if IsHostOS("windows") then
 			boostRoot = os.getenv("BOOST_ROOT")
 			BOOST_INCLUDE_PATH = boostRoot
 			BOOST_LIB_PATH = boostRoot .. "/stage/lib"
 			BOOST_USE_SYSTEM = false
 		end
-		if os.is("macosx") then
+		if IsHostOS("macosx") then
 			boostRoot = os.getenv("BOOST_ROOT")
 			BOOST_INCLUDE_PATH = boostRoot
 			BOOST_LIB_PATH = boostRoot .. "/stage/lib"

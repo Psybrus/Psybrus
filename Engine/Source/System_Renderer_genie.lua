@@ -63,12 +63,12 @@ PsyProjectEngineLib( "System_Renderer" )
 
   configuration "android-*"
     files {
-      "./Platforms/Android/System/Os/*.h", 
-      "./Platforms/Android/System/Os/*.inl", 
-      "./Platforms/Android/System/Os/*.cpp", 
+          "./Shared/System/Renderer/GL/*.h", 
+          "./Shared/System/Renderer/GL/*.inl", 
+          "./Shared/System/Renderer/GL/*.cpp", 
     }
     includedirs {
-      "./Platforms/Android/",
+        "./Platforms/Android/",
     }
 
   configuration "asmjs"

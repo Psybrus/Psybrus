@@ -1,3 +1,11 @@
+function IsHostOS( _os )
+	return _OS == _os
+end
+
+function IsTargetOS( _os )
+	return os.is( _os ) 
+end
+
 -- Toolchain setup.
 function PsySetupToolchain()
 	--
@@ -175,16 +183,24 @@ function PsySetupToolchain()
 		if _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
 			local sdkVersion = "android-21"
 
-			if os.is("windows") then
+			if IsHostOS("windows") then
 				premake.gcc.llvm = true
 				premake.gcc.cc = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-gcc.exe --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
 				premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-g++.exe --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
 				premake.gcc.ar = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-ar.exe"
-			else
+			elseif IsHostOS("linux") then
 				premake.gcc.llvm = true
 				premake.gcc.cc = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gcc --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
 				premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-g++ --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
 				premake.gcc.ar = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-ar"
+			elseif IsHostOS("macosx") then
+				premake.gcc.llvm = true
+				premake.gcc.cc = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
+				premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-g++ --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
+				premake.gcc.ar = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ar"
+			else
+				print "Toolchain does not exist for host OS"
+				os.exit(1)
 			end
 			location ( "Projects/" .. _ACTION .. "-android-gcc-arm" )
 
@@ -223,7 +239,7 @@ function PsySetupToolchain()
 						"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include"
 					}
 
-					if os.is("windows") then
+					if IsHostOS("windows") then
 						libdirs {
 							"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a",
 							"$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/lib/gcc/arm-linux-androideabi/4.9"
