@@ -168,6 +168,15 @@ private:
 		ScnShaderPermutation Permutation );
 
 	BcBool buildPermutation( ScnShaderPermutationJobParams Params );
+
+	BcBool convertHLSL2GLSL(
+		ScnShaderPermutationJobParams Params,
+		ScnShaderLevelEntry LevelEntry,
+		const std::string& Entrypoint,
+		const std::string& InHLSL, 
+		std::string& OutGLSL,
+		std::vector< RsProgramVertexAttribute >& OutVertexAttributes );
+
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
 	std::string removeComments( std::string Input );

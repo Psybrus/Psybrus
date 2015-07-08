@@ -170,6 +170,8 @@ namespace
 		IncludePaths.clear();
 		IncludePaths.push_back( "./" );
 		IncludePaths.push_back( "../Psybrus/Dist/Content/Engine/" );
+#else
+		BcBreakpoint;
 #endif
 		BcFile IncludeFile;
 		for( auto& IncludePath : IncludePaths)
@@ -613,254 +615,77 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		// HLSL2GLSL path.
 		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
 		{
-			// Vertex shader attributes.
-			EShLanguage Language;
-
-			if( Entry.Type_ == RsShaderType::VERTEX )
+			std::string OutputShaderCode;
+			if( convertHLSL2GLSL( 
+					Params, 
+					Entry, 
+					Entrypoint,
+					SourceFileData_, 
+					OutputShaderCode,
+					VertexAttributes ) )
 			{
-				Language = EShLangVertex;
-			}
-			else if( Entry.Type_ == RsShaderType::PIXEL )
-			{
-				Language = EShLangFragment;
-			}
-			else
-			{
-				BcBreakpoint;
-				return BcFalse;
-			}
+				ScnShaderBuiltData BuiltShader;
+				BuiltShader.ShaderType_ = Entry.Type_;
+				BuiltShader.CodeType_ = Params.OutputCodeType_;
+				BuiltShader.Code_ = std::move( BcBinaryData( (void*)OutputShaderCode.c_str(), OutputShaderCode.size() + 1, BcTrue ) );
+				BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 
-			// Lock as HLSL2GLSL isn't thread safe.
-			static std::mutex Mutex;
-			std::lock_guard< std::mutex > Lock( Mutex );
-
-			auto CompilerHandle = Hlsl2Glsl_ConstructCompiler( Language );
-
-			Hlsl2Glsl_ParseCallbacks ParseCallbacks = 
-			{
-				hlsl2glsl_includeFunc,
-				this
-			};
-
-			// Patch in defines.
-			std::string FinalSource;
-
-			// Override cbuffer usage.
-			Params.Permutation_.Defines_[ "PSY_USE_CBUFFER" ] = "0";
-			for( const auto& Define : Params.Permutation_.Defines_ )
-			{
-				FinalSource += 
-					std::string( "#define " ) +
-					Define.first + std::string( " " ) +
-					Define.second + std::string( "\n" );
-			}
-			
-			FinalSource += SourceFileData_;
-
-			//PSY_LOG( "%s\n", FinalSource.c_str() );
-
-
-			// Parse HLSL.		resultString
-			auto ParseRetVal = Hlsl2Glsl_Parse( CompilerHandle, FinalSource.c_str(), ETargetGLSL_ES_100, &ParseCallbacks, 0 );
-			BcUnusedVar( ParseRetVal );
-
-			if( ParseRetVal == 0 )
-			{
-				auto InfoLog = Hlsl2Glsl_GetInfoLog( CompilerHandle );
-				ErrorMessages_.push_back( InfoLog );
-				RetVal = BcFalse;
-			}
-
-			if( RetVal )
-			{
-				// Translate to GLSL.
-				auto TranslateRetVal = Hlsl2Glsl_Translate( CompilerHandle, Entrypoint.c_str(), ETargetGLSL_ES_100, 0 );
-				BcUnusedVar( TranslateRetVal );
-
-				if( TranslateRetVal == 0 )
+				ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
+				ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
+#if 0
+				// Write out intermediate shader for reference.
+				std::string ShaderType;
+				switch( Entry.Type_ )
 				{
-					auto InfoLog = Hlsl2Glsl_GetInfoLog( CompilerHandle );
-					ErrorMessages_.push_back( InfoLog );
-					RetVal = BcFalse;
+				case RsShaderType::VERTEX:
+					ShaderType = "vs";
+					break;
+				case RsShaderType::HULL:
+					ShaderType = "hs";
+					break;
+				case RsShaderType::DOMAIN:
+					ShaderType = "ds";
+					break;
+				case RsShaderType::GEOMETRY:
+					ShaderType = "gs";
+					break;
+				case RsShaderType::PIXEL:
+					ShaderType = "ps";
+					break;
+				case RsShaderType::COMPUTE:
+					ShaderType = "cs";
+					break;	
+				default:
+					BcBreakpoint;
 				}
 
-				if( RetVal )
+				std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Name_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
+				std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
+
+				printf( "ScnShaderImporter: Writing out to %s\n", Path.c_str() );
+
 				{
-					std::string OutputShaderCode = Hlsl2Glsl_GetShader( CompilerHandle );
-					std::string OriginalOutputShaderCode = OutputShaderCode;
+					std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+					boost::filesystem::create_directories( Path );
 
-					// Run through glsl-optimzser.
-					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
-					glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
-
-					// Vertex shader attributes.
-					glslopt_shader_type GlslOptLanguage;
-
-					if( Entry.Type_ == RsShaderType::VERTEX )
-					{
-						GlslOptLanguage = kGlslOptShaderVertex;
-					}
-					else if( Entry.Type_ == RsShaderType::PIXEL )
-					{
-						GlslOptLanguage = kGlslOptShaderFragment;
-					}
-					else
-					{
-						BcBreakpoint;
-						return BcFalse;
-					}
-
-					auto GlslOptShader = glslopt_optimize( 
-						GlslOptContext, 
-						GlslOptLanguage,
-						OutputShaderCode.c_str(),
-						0 );
-
-					if( glslopt_get_status( GlslOptShader ) )
-					{
-						// Extract shader code.
-						OutputShaderCode = glslopt_get_output( GlslOptShader );
-					}
-					else
-					{
-						PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
-							glslopt_get_log( GlslOptShader ) );
-						BcBreakpoint; // TODO: Failed. Why?
-					}
-
-					glslopt_cleanup( GlslOptContext );
-
-					// Extract & translate vertex information.
-					// Convert from "xlat_attrib__SEMANTIC" into "dcl_Input<x>"
-					if( Entry.Type_ == RsShaderType::VERTEX )
-					{
-						const std::string UsageSemantics[] =
-						{
-							"xlat_attrib_POSITION",
-							"xlat_attrib_BLENDWEIGHTS",
-							"xlat_attrib_BLENDINDICES",
-							"xlat_attrib_NORMAL",
-							"xlat_attrib_PSIZE",
-							"xlat_attrib_TEXCOORD",
-							"xlat_attrib_TANGENT",
-							"xlat_attrib_BINORMAL",
-							"xlat_attrib_TESSFACTOR",
-							"xlat_attrib_POSITIONT",
-							"xlat_attrib_COLOR",
-							"xlat_attrib_FOG",
-							"xlat_attrib_DEPTH",
-							"xlat_attrib_SAMPLE"
-						};
-
-						const int MaxUsage = 16;
-
-						VertexAttributes.clear();
-						RsProgramVertexAttribute Attribute = 
-						{
-							0, RsVertexUsage::POSITION, 0
-						};
-
-						for( int Usage = 0; Usage < (int)RsVertexUsage::MAX; ++Usage )
-						{
-							for( int Idx = MaxUsage - 1; Idx >= -1; --Idx )
-							{
-								// Build string to look up.
-								std::string Semantic = UsageSemantics[ Usage ];
-								if( Idx != -1 )
-								{
-									Semantic = Semantic + std::to_string( Idx );
-								}
-
-								// Does the code have this semantic?
-								if( OutputShaderCode.find( Semantic ) != std::string::npos )
-								{
-									std::string NewSemantic = std::string( "dcl_Input" ) + std::to_string( Attribute.Channel_ );
-									boost::replace_all( OutputShaderCode, Semantic, NewSemantic );	
-
-									Attribute.Usage_ = (RsVertexUsage)Usage;
-									Attribute.UsageIdx_ = Idx == 0 -1 ? 0 : (BcU32)Idx;
-									VertexAttributes.push_back( Attribute );
-
-									// Advance channel.
-									Attribute.Channel_++;
-								}
-							}
-						}
-
-						ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
-					}
-
-					// Destruct compiler
-					Hlsl2Glsl_DestructCompiler( CompilerHandle );
-
-					// Run glsl-optimizer to keep the code as simple as possible for the ES/WebGL compiler.
+					BcFile FileOut;
+					FileOut.open( Filename.c_str(), bcFM_WRITE );
+					FileOut.write( OriginalOutputShaderCode.c_str(), OriginalOutputShaderCode.size() );
+					FileOut.close();
+				}
 
 
-					// Finalise shader.
-					OutputShaderCode = removeComments( OutputShaderCode );
-
-					ScnShaderBuiltData BuiltShader;
-					BuiltShader.ShaderType_ = Entry.Type_;
-					BuiltShader.CodeType_ = Params.OutputCodeType_;
-					BuiltShader.Code_ = std::move( BcBinaryData( (void*)OutputShaderCode.c_str(), OutputShaderCode.size() + 1, BcTrue ) );
-					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
-
-					ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-#if 0
-					// Write out intermediate shader for reference.
-					std::string ShaderType;
-					switch( Entry.Type_ )
-					{
-					case RsShaderType::VERTEX:
-						ShaderType = "vs";
-						break;
-					case RsShaderType::HULL:
-						ShaderType = "hs";
-						break;
-					case RsShaderType::DOMAIN:
-						ShaderType = "ds";
-						break;
-					case RsShaderType::GEOMETRY:
-						ShaderType = "gs";
-						break;
-					case RsShaderType::PIXEL:
-						ShaderType = "ps";
-						break;
-					case RsShaderType::COMPUTE:
-						ShaderType = "cs";
-						break;	
-					default:
-						BcBreakpoint;
-					}
-
-					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Name_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
-					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
-
-					printf( "ScnShaderImporter: Writing out to %s\n", Path.c_str() );
-
-					{
-						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-						boost::filesystem::create_directories( Path );
-
-						BcFile FileOut;
-						FileOut.open( Filename.c_str(), bcFM_WRITE );
-						FileOut.write( OriginalOutputShaderCode.c_str(), OriginalOutputShaderCode.size() );
-						FileOut.close();
-					}
-
-	
-					//PSY_LOG( "%s\n", OutputShaderCode.c_str() );
+				//PSY_LOG( "%s\n", OutputShaderCode.c_str() );
 #endif
 
-					std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-					auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
-					if( FoundShader != BuiltShaderData_.end() )
-					{
-						BcAssertMsg( FoundShader->second == BuiltShader, "Hash key collision" );
-					}
-
-					BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
+				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+				auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
+				if( FoundShader != BuiltShaderData_.end() )
+				{
+					BcAssertMsg( FoundShader->second == BuiltShader, "Hash key collision" );
 				}
+
+				BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
 			}
 		}
 		// HLSLCrossCompiler path.
@@ -1109,6 +934,202 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 #else
 	return BcFalse;
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// convertHLSL2GLSL
+BcBool ScnShaderImport::convertHLSL2GLSL(
+		ScnShaderPermutationJobParams Params,
+		ScnShaderLevelEntry LevelEntry,
+		const std::string& Entrypoint,
+		const std::string& InHLSL, 
+		std::string& OutGLSL,
+		std::vector< RsProgramVertexAttribute >& OutVertexAttributes )
+{
+	BcBool RetVal = BcFalse;
+#if PSY_IMPORT_PIPELINE
+	// Vertex shader attributes.
+	EShLanguage Language;
+
+	if( LevelEntry.Type_ == RsShaderType::VERTEX )
+	{
+		Language = EShLangVertex;
+	}
+	else if( LevelEntry.Type_ == RsShaderType::PIXEL )
+	{
+		Language = EShLangFragment;
+	}
+	else
+	{
+		BcBreakpoint;
+		return BcFalse;
+	}
+
+	// Lock as HLSL2GLSL isn't thread safe.
+	static std::mutex Mutex;
+	std::lock_guard< std::mutex > Lock( Mutex );
+
+	auto CompilerHandle = Hlsl2Glsl_ConstructCompiler( Language );
+
+	Hlsl2Glsl_ParseCallbacks ParseCallbacks = 
+	{
+		hlsl2glsl_includeFunc,
+		this
+	};
+
+	// Patch in defines.
+	std::string FinalSource;
+
+	// Override cbuffer usage.
+	Params.Permutation_.Defines_[ "PSY_USE_CBUFFER" ] = "0";
+	for( const auto& Define : Params.Permutation_.Defines_ )
+	{
+		FinalSource += 
+			std::string( "#define " ) +
+			Define.first + std::string( " " ) +
+			Define.second + std::string( "\n" );
+	}
+
+	FinalSource += InHLSL;
+
+	// Parse HLSL.		resultString
+	auto ParseRetVal = Hlsl2Glsl_Parse( CompilerHandle, FinalSource.c_str(), ETargetGLSL_ES_100, &ParseCallbacks, 0 );
+	BcUnusedVar( ParseRetVal );
+
+	if( ParseRetVal == 0 )
+	{
+		auto InfoLog = Hlsl2Glsl_GetInfoLog( CompilerHandle );
+		ErrorMessages_.push_back( InfoLog );
+		RetVal = BcFalse;
+	}
+
+	if( RetVal )
+	{
+		// Translate to GLSL.
+		auto TranslateRetVal = Hlsl2Glsl_Translate( CompilerHandle, Entrypoint.c_str(), ETargetGLSL_ES_100, 0 );
+		BcUnusedVar( TranslateRetVal );
+
+		if( TranslateRetVal == 0 )
+		{
+			auto InfoLog = Hlsl2Glsl_GetInfoLog( CompilerHandle );
+			ErrorMessages_.push_back( InfoLog );
+			RetVal = BcFalse;
+		}
+
+		if( RetVal )
+		{
+			std::string OutputShaderCode = Hlsl2Glsl_GetShader( CompilerHandle );
+			std::string OriginalOutputShaderCode = OutputShaderCode;
+
+			// Run through glsl-optimzser.
+			auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
+			glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
+
+			// Vertex shader attributes.
+			glslopt_shader_type GlslOptLanguage;
+
+			if( LevelEntry.Type_ == RsShaderType::VERTEX )
+			{
+				GlslOptLanguage = kGlslOptShaderVertex;
+			}
+			else if( LevelEntry.Type_ == RsShaderType::PIXEL )
+			{
+				GlslOptLanguage = kGlslOptShaderFragment;
+			}
+			else
+			{
+				BcBreakpoint;
+				return BcFalse;
+			}
+
+			auto GlslOptShader = glslopt_optimize( 
+				GlslOptContext, 
+				GlslOptLanguage,
+				OutputShaderCode.c_str(),
+				0 );
+
+			if( glslopt_get_status( GlslOptShader ) )
+			{
+				// Extract shader code.
+				OutputShaderCode = glslopt_get_output( GlslOptShader );
+			}
+			else
+			{
+				PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
+					glslopt_get_log( GlslOptShader ) );
+				BcBreakpoint; // TODO: Failed. Why?
+			}
+
+			glslopt_cleanup( GlslOptContext );
+
+			// Extract & translate vertex information.
+			// Convert from "xlat_attrib__SEMANTIC" into "dcl_Input<x>"
+			if( LevelEntry.Type_ == RsShaderType::VERTEX )
+			{
+				const std::string UsageSemantics[] =
+				{
+					"xlat_attrib_POSITION",
+					"xlat_attrib_BLENDWEIGHTS",
+					"xlat_attrib_BLENDINDICES",
+					"xlat_attrib_NORMAL",
+					"xlat_attrib_PSIZE",
+					"xlat_attrib_TEXCOORD",
+					"xlat_attrib_TANGENT",
+					"xlat_attrib_BINORMAL",
+					"xlat_attrib_TESSFACTOR",
+					"xlat_attrib_POSITIONT",
+					"xlat_attrib_COLOR",
+					"xlat_attrib_FOG",
+					"xlat_attrib_DEPTH",
+					"xlat_attrib_SAMPLE"
+				};
+
+				const int MaxUsage = 16;
+
+				OutVertexAttributes.clear();
+				RsProgramVertexAttribute Attribute = 
+				{
+					0, RsVertexUsage::POSITION, 0
+				};
+
+				for( int Usage = 0; Usage < (int)RsVertexUsage::MAX; ++Usage )
+				{
+					for( int Idx = MaxUsage - 1; Idx >= -1; --Idx )
+					{
+						// Build string to look up.
+						std::string Semantic = UsageSemantics[ Usage ];
+						if( Idx != -1 )
+						{
+							Semantic = Semantic + std::to_string( Idx );
+						}
+
+						// Does the code have this semantic?
+						if( OutputShaderCode.find( Semantic ) != std::string::npos )
+						{
+							std::string NewSemantic = std::string( "dcl_Input" ) + std::to_string( Attribute.Channel_ );
+							boost::replace_all( OutputShaderCode, Semantic, NewSemantic );	
+
+							Attribute.Usage_ = (RsVertexUsage)Usage;
+							Attribute.UsageIdx_ = Idx == 0 -1 ? 0 : (BcU32)Idx;
+							OutVertexAttributes.push_back( Attribute );
+
+							// Advance channel.
+							Attribute.Channel_++;
+						}
+					}
+				}
+			}
+
+			// Destruct compiler
+			Hlsl2Glsl_DestructCompiler( CompilerHandle );
+
+			// Finalise shader.
+			OutGLSL = removeComments( OutputShaderCode );
+			RetVal = BcTrue;
+		}
+	}
+#endif
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
