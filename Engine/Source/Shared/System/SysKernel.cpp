@@ -566,7 +566,6 @@ void SysKernel::runOnce()
 		BcYield();
 	}
 #endif
-	
 
 #if PSY_USE_PROFILER
 	++FrameCount;

@@ -307,9 +307,16 @@ void ScnTexture::recreate()
 
 	// Create new one immediately.
 	auto CreationFlags = Header_.Editable_ ? RsResourceCreationFlags::DYNAMIC : RsResourceCreationFlags::STATIC;
-	auto BindFlags = RsResourceBindFlags::SHADER_RESOURCE |
-				( Header_.RenderTarget_ ? RsResourceBindFlags::RENDER_TARGET : RsResourceBindFlags::NONE ) |
-				( Header_.DepthStencilTarget_ ? RsResourceBindFlags::DEPTH_STENCIL : RsResourceBindFlags::NONE );
+	RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
+
+	if( Header_.RenderTarget_ )
+	{
+		BindFlags = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET;
+	}
+	if( Header_.DepthStencilTarget_ )
+	{
+		BindFlags = RsResourceBindFlags::DEPTH_STENCIL;
+	}
 
 	// Free old.
 	if( pTexture_ != nullptr )

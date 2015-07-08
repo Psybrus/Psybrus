@@ -251,7 +251,6 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 			SeJsonReader Reader( &ObjectCodec );
 
-			PSY_LOG( "ScnComponent: %s", pJsonObject_ );
 			PSY_LOGSCOPEDINDENT;
 			Reader.serialiseClassMembers( this, this->getClass(), Root, 0 );
 
