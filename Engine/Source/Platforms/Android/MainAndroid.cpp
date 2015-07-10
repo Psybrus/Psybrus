@@ -26,6 +26,18 @@ struct android_app* GState_ = nullptr;
 
 static OsClientAndroid* GMainWindow = nullptr;
 
+static struct sigaction OldSignalHandler[ NSIG ];
+
+void android_sigaction( int Signal, siginfo_t* Info, void* Reserved )
+{
+	BcPrintf( "PSYBRUS ERROR: Caught signal %u\n", Signal );
+	fflush(stdout);
+	fflush(stderr);
+	OldSignalHandler[ Signal ].sa_handler( Signal );
+	exit(1);
+}
+
+
 void PsyAndroidMain(struct android_app* State)
 {
 	static bool IsInitialised = false;
@@ -33,6 +45,23 @@ void PsyAndroidMain(struct android_app* State)
 
     // Make sure glue isn't stripped.
     app_dummy();
+
+    // Catch signals.
+	struct sigaction Handler;
+	memset( &Handler, 0, sizeof( Handler ) );
+	Handler.sa_sigaction = android_sigaction;
+	Handler.sa_flags = SA_RESETHAND;
+#define CATCHSIG( X ) sigaction( X, &Handler, &OldSignalHandler[ X ] )
+	CATCHSIG( SIGILL );
+	CATCHSIG( SIGABRT );
+	CATCHSIG( SIGBUS );
+	CATCHSIG( SIGFPE );
+	CATCHSIG( SIGSEGV );
+	CATCHSIG( SIGSTKFLT );
+	CATCHSIG( SIGPIPE );
+#undef CATCHSIG
+
+	BcBreakpoint;
 
     GState_ = State;
 

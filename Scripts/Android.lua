@@ -39,7 +39,9 @@ function SetupAndroidProject()
 		kind "SharedLib"
 		flags { "NoImportLib" }
 
+		-- TODO: Other abis.
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
+
 		local abi = "armeabi-v7a"
 		local sdkVersion = "22"
 		local orientation = "landscape"
@@ -52,11 +54,13 @@ function SetupAndroidProject()
 		postBuildPath = "../" .. buildPath
 		postBuildProjectPath = "../" .. projectPath
 
+		packagePrefix = "com.psybrus."
+
 		-- Create AndroidManifest.xml
 		manifestFile = assert( io.open( projectPath .. "/AndroidManifest.xml", "w+" ) )
 		manifestFile:write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
 		manifestFile:write( "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" )
-		manifestFile:write( "          package=\"com.psybrus." .. libName .. "\"\n" )
+		manifestFile:write( "          package=\"" .. packagePrefix .. libName .. "\"\n" )
 		manifestFile:write( "          android:versionCode=\"1\"\n" )
 		manifestFile:write( "          android:versionName=\"1.0\">\n" )
 		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. sdkVersion .. "\" />\n" )
@@ -86,6 +90,12 @@ function SetupAndroidProject()
 		stringsFile:write( "</resources>\n" )
 		stringsFile:close()
 
+		-- Create gdb config.
+		gdbFile = assert( io.open( projectPath .. "/libs/" .. abi .. "/gdb.setup", "w+" ) )
+		gdbFile:write( "set solib-search-path ../obj\n" )
+		gdbFile:write( "source " .. ANDROID_NDK_PATH .. "/prebuilt/common/gdb/common.setup\n" )
+		gdbFile:write( "directory ../../../Source ../../../Psybrus/Engine/Source\n" )
+
 		-- Setup post build setp.
 		configuration { "android-*" }
 			PsyAddExternalLinks( "llvmcxxabi" )
@@ -113,8 +123,13 @@ function SetupAndroidProject()
 				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
 				"$(SILENT) echo Copying debug build...",
 				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Debug" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
+
+				"$(SILENT) echo Copying gdbserver...",
+				"$(SILENT) " .. copyCommand( gdbserver, postBuildProjectPath .. "/libs/" .. abi .. "/gdbserver" ),
+
 				"$(SILENT) echo Updating project...",
 				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
+
 				--"$(SILENT) cd " .. postBuildProjectPath,
 				--"$(SILENT) ant debug",
 				--"$(SILENT) adb install -r bin/" .. solution().name .. "-debug.apk"

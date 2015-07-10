@@ -217,6 +217,8 @@ void OsClientAndroid::handleInput( struct AInputEvent* Event )
 	auto Source = AInputEvent_getSource( Event );
 	auto Type = AInputEvent_getType( Event );
 
+	BcAssert( Event );
+
 	switch( Type )
 	{
 	case AINPUT_EVENT_TYPE_MOTION:

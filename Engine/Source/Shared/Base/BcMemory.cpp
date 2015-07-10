@@ -74,7 +74,9 @@ void* BcSysMemAlign( BcSize Bytes, BcSize Alignment )
 	BcVerifyMsg( posix_memalign( &Mem, Alignment, Bytes ) >= 0, "Failed to allocate with posix_memalign" );
 	return Mem;
 #else
-	return memalign( Alignment, Bytes );
+	auto Mem = memalign( Alignment, Bytes );
+	BcAssert( Mem );
+	return Mem;
 #endif
 }
 
