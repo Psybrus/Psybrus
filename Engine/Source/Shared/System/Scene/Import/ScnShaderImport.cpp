@@ -360,7 +360,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	}
 
 	// Kick off all permutation building jobs.
-	BcBool RetVal = BcTrue;
+	BcBool RetVal = BcFalse;
 	for( auto& Permutation : Permutations_ )
 	{
 		for( const auto& InputCodeType : CodeTypes_ )
