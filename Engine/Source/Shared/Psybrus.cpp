@@ -12,5 +12,3 @@
 **************************************************************************/
 
 #include "Psybrus.h"
-
-PsySetupParams GPsySetupParams;

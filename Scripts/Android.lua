@@ -16,6 +16,7 @@ function mkdirCommand( path )
 	if IsHostOS("windows") then
 		mkdirCommandString = "mkdir " .. path
 		mkdirCommandString = string.gsub( mkdirCommandString, "/", "\\" )
+		print( mkdirCommandString )
 	end
 	print( "mkdirCommand: " .. mkdirCommandString )
 	return mkdirCommandString

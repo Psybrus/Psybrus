@@ -4,6 +4,50 @@
 -- Locals
 local EXTERNAL_PREFIX = "External_"
 
+function PsyPlatformIncludes()
+	configuration "*"
+
+    includedirs { 
+       "./", 
+       "../Psybrus/Engine/Source/Shared/", 
+    }
+
+	-- External includes.
+	includedirs { 
+       "../Psybrus/External/jsoncpp/include", 
+       "../Psybrus/External/imgui", 
+    }
+
+    -- Platform includes.
+    configuration "asmjs"
+       includedirs {
+          "../Psybrus/Engine/Source/Platforms/HTML5/",
+       }
+
+    configuration "linux-*"
+       includedirs {
+          "../Psybrus/Engine/Source/Platforms/Linux/",
+       }
+
+    configuration "osx-*"
+       includedirs {
+          "../Psybrus/Engine/Source/Platforms/OSX/",
+       }
+
+    configuration "android-*"
+       includedirs {
+          "../Psybrus/Engine/Source/Platforms/Android/",
+       }
+
+    configuration "windows-*"
+       includedirs {
+          "../Psybrus/Engine/Source/Platforms/Windows/",
+          BOOST_INCLUDE_PATH
+       }
+
+    configuration "*"
+end
+
 -- Common project setup.
 function PsyProjectCommon( _name, _lang )
 	project( _name )
@@ -215,11 +259,16 @@ function PsyProjectGameExe( _name )
 	group( _name )
 
 	PsyProjectCommonEngine( _name )
+	PsyPlatformIncludes()
 	print( "Adding Game Executable: " .. _name )
 
 	configuration "*"
 		kind "WindowedApp"
 		language "C++"
+
+    files { 
+		"../Psybrus/Engine/Targets/Game.cpp" 
+	}
 
 	-- Setup android project (if it is one).
 	SetupAndroidProject()
@@ -250,7 +299,65 @@ function PsyProjectGameExe( _name )
 	configuration "windows-* or linux-* or osx-*"
 		targetdir ( "../Dist" )
 
+    debugdir "../Dist"
+
 	PsyAddSystemLibs()
+
+	configuration "*"
+		links {
+			_name .. "Lib"
+		}
+
+	    PsyAddEngineLinks {
+	       "Engine",
+	       "System_Sound",
+	       "System_Scene",
+	       "System_Renderer",
+	       "System_Os",
+	       "System_Network",
+	       "System_Debug",
+	       "System_Content",
+	       "System_File",
+	       "System",
+	       "Serialisation",
+	       "Reflection",
+	       "Math",
+	       "Import",
+	       "Events",
+	       "Base",
+	    }
+	   
+	    PsyAddExternalLinks {
+	       "BulletPhysics",
+	       "freetype",
+	       "imgui",
+	       "jsoncpp",
+	       "libb64",
+	       "png",
+	       "squish",
+	       "SoLoud",
+	       "zlib",
+	    }
+
+	    PsyAddBoostLibs {
+	       "regex",
+	       "filesystem",
+	       "system",
+	       "wave",
+	    }
+
+    configuration { "windows-* or linux-* or osx-*" }
+       PsyAddExternalLinks {
+          "assimp",
+          "assimp_contrib",
+          "glsl-optimizer",
+          "hlsl2glslfork",
+          "HLSLCrossCompiler",
+          "glew",
+          "RakNet",
+          "webby",
+          "ThinkGear",
+       }
 
 	-- asmjs post build.
 	configuration { "asmjs", "Debug" }
@@ -279,6 +386,62 @@ function PsyProjectGameExe( _name )
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
 			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 --llvm-lto 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
+
+   configuration "asmjs"
+      prebuildcommands {
+         "python ../../Psybrus/reflection_parse.py " .. solution().name
+      }
+
+   configuration "linux-*"
+      prebuildcommands {
+         "python ../../Psybrus/reflection_parse.py " .. solution().name
+      }
+
+   configuration "osx-*"
+      prebuildcommands {
+         "python ../../Psybrus/reflection_parse.py " .. solution().name
+      }
+
+   configuration "android-*"
+      prebuildcommands {
+         "python ../../Psybrus/reflection_parse.py " .. solution().name
+      }
+
+   configuration "windows-*"
+      includedirs {
+         "../Psybrus/Engine/Source/Platforms/Windows/",
+         BOOST_INCLUDE_PATH
+      }
+
+      prebuildcommands {
+            "C:\\Python27\\python.exe ../../Psybrus/reflection_parse.py " .. solution().name
+      }
+
+      libdirs {
+           BOOST_LIB_PATH
+      }
+
+
+	-- Terminate project.
+	configuration "*"
+end
+
+-- Setup game exe project.
+function PsyProjectGameLib( _name )
+	group( _name )
+	libName = _name .. "Lib"
+
+	PsyProjectCommonEngine( libName )
+	PsyPlatformIncludes()
+	print( "Adding Game Library: " .. libName )
+
+	configuration "*"
+		kind "StaticLib"
+		language "C++"
+
+	-- Add STATICLIB define for libraries.
+	configuration "*"
+		defines{ "STATICLIB" }
 
 	-- Terminate project.
 	configuration "*"
