@@ -30,9 +30,7 @@ static struct sigaction OldSignalHandler[ NSIG ];
 
 void android_sigaction( int Signal, siginfo_t* Info, void* Reserved )
 {
-	BcPrintf( "PSYBRUS ERROR: Caught signal %u\n", Signal );
-	fflush(stdout);
-	fflush(stderr);
+	__android_log_print( ANDROID_LOG_INFO, "Psybrus", "Caught signal. Exiting." );	
 	OldSignalHandler[ Signal ].sa_handler( Signal );
 	exit(1);
 }
@@ -60,8 +58,6 @@ void PsyAndroidMain(struct android_app* State)
 	CATCHSIG( SIGSTKFLT );
 	CATCHSIG( SIGPIPE );
 #undef CATCHSIG
-
-	BcBreakpoint;
 
     GState_ = State;
 

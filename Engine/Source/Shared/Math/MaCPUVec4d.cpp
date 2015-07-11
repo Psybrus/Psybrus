@@ -34,8 +34,8 @@ void MaCPUVec4d::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const MaCPUVec4d& Vec = *reinterpret_cast< const MaCPUVec4d* >( pInstance );
-			BcChar OutChars[ 128 ];
-			BcSPrintf( OutChars, "%f, %f, %f, %f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
+			BcChar OutChars[ 1024 ] = { 0 };
+			snprintf( OutChars, 1023, "%.16f, %.16f, %.16f, %.16f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
 			OutString = OutChars;
 			return true;
 		}

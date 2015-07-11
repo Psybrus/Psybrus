@@ -30,8 +30,8 @@ void MaCPUVec2d::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const MaCPUVec2d& Vec = *reinterpret_cast< const MaCPUVec2d* >( pInstance );
-			BcChar OutChars[ 128 ];
-			BcSPrintf( OutChars, "%f, %f", Vec.x(), Vec.y() );
+			BcChar OutChars[ 1024 ] = { 0 };
+			snprintf( OutChars, 1023, "%.16f, %.16f", Vec.x(), Vec.y() );
 			OutString = OutChars;
 			return true;
 		}
