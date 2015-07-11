@@ -9,9 +9,18 @@ No demo games are in this repo anymore, please see https://github.com/Psybrus/De
 
 This is intended to be added as a submodule of a game repo, look at https://github.com/Psybrus/DevelopmentGame.
 
-Linux Users:
-------------
-Run either make_gmake_linux_build.sh, this will generate makefiles in the Projects folder.
+All:
+----
+To generate makefiles/projects for target platform, run with ProjectGen.bat (Win), or ProjectGen.py (*nix).
+
+Dependencies:
+1) Python 2.7
+
+Python must be in your PATH env var.
+
+
+Linux:
+------
 You will need to build a version of boost with Clang, otherwise it will not link correctly.
 
 Dependencies:
@@ -26,9 +35,8 @@ Then set BOOST_ROOT environment var to its path (i.e. ~/path/to/boost_1_57_0).
 Linux users can also build for HTML5, but they will also need to build Emscripten themselves. Details of this to be written later.
 
 
-Windows Users:
--------------
-Run make_vs2013_build.bat to generate the projects + solution in the Projects folder.
+Windows:
+--------
 I've setup a natvis file for use with Psybrus, as it helps a lot with debugging (particularly decoding names and resource structures for an at a glance view). Drop this in the "My Documents\Visual Studio 2012\Visualizers" folder and it should start to work. I will soon provide a setup tool to setup this, and possibly more.
 
 Dependencies:
@@ -36,6 +44,24 @@ Dependencies:
 2) Windows SDK 8.1
 3) Boost 1.57
 Requires static linking libs, so the following:
-    b2 link=static runtime-link=static stage
+    b2 --toolset=msvc-12.0 address-model=64 link=static runtime-link=static stage
 
 Then set BOOST_ROOT environment var to its path (i.e. C:\Path\to\boost_1_57_0).
+
+When building in Visual Studio, be sure to select the "x64" platform.
+
+Android:
+--------
+
+Dependencies:
+1) android-ndk-r10e
+2) android-sdk (latest)
+3) ant
+
+ANDROID_NDK env var must be set to the location of your Android NDK.
+ANDROID_SDK env var must be set to the location of your Android SDK.
+
+From Windows, once you've generated the projects, you can simply use build_gmake_android-gcc-arm_build.bat to build source code.
+
+To deploy, you need to have packed data. This is built by running the game on either Windows, Linux, or OSX (Import tool coming soon).
+Running deploy_gmake_android-gcc-arm_build.bat will deploy to an attached device. Will deploy assets to /sdcard/PackedContent (Packing into apk coming soon).
