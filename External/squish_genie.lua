@@ -3,5 +3,6 @@ if PsyProjectExternalLib( "squish", "C++" ) then
 		kind ( EXTERNAL_PROJECT_KIND )
 		files { "./squish/*.h", "./squish/*.cpp" }
 		includedirs { "./squish" }
-		-- defines{ "SQUISH_USE_SSE=1" } -- need to check for later version for 64-bit.
+		configuration "windows-* or osx-* or linux-*"
+			defines{ "SQUISH_USE_SSE=2" }
 end
