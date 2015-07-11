@@ -62,7 +62,7 @@ def doBuild( _build ):
 	elif platform.system() == "Darwin":
 		os.system( "./Psybrus/Tools/genie/genie-osx " + commandLine )
 	elif platform.system() == "Windows":
-		commandLine.replace( "$BOOST_ROOT", "%%BOOST_ROOT%%" );
+		commandLine = commandLine.replace( "$BOOST_ROOT", "%BOOST_ROOT%" );
 		os.system( "Psybrus\\Tools\\genie\\genie.exe " + commandLine )
 
 def selectBuild():
