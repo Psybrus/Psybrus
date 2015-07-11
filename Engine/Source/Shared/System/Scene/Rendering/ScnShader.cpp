@@ -260,6 +260,17 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// Shrink to fit.
 			Shaders.shrink_to_fit();
 
+#if PSY_DEBUG
+			if( Shaders.size() == 0)
+			{
+				PSY_LOG( "Unable to find shaders:" );
+				for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+				{
+					PSY_LOG( " - Shader %u: %x", Idx, pProgramHeader->ShaderHashes_[ Idx ] != 0 );
+				}
+			}
+#endif
+
 			RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 			RsProgramVertexAttributeList VertexAttributes;
 			VertexAttributes.reserve( pProgramHeader->NoofVertexAttributes_ );

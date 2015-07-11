@@ -409,7 +409,10 @@ BcBool ScnShaderImport::import( const Json::Value& )
 							0, 
 							[ this, JobParams ]()
 							{
-								buildPermutation( JobParams );
+								if( buildPermutation( JobParams ) == BcFalse )
+								{
+									;
+								}
 							} );
 					}
 				}
@@ -687,6 +690,11 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 
 				BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
 			}
+			else
+			{
+				PSY_LOG( "Unable to translate." );
+				RetVal = BcFalse;
+			}
 		}
 		// HLSLCrossCompiler path.
 		else if( compileShader( Source_, Entrypoint, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
@@ -901,6 +909,12 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	if( RetVal != BcFalse )
 	{
 		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+		if( ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+			ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+		{
+			PSY_LOG( "No vertex and pixel shaders in program." );
+			RetVal = BcFalse;
+		}
 
 		BuiltProgramData_.push_back( std::move( ProgramHeader ) );
 		if( VertexAttributes.size() > 0 )
@@ -946,7 +960,7 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 		std::string& OutGLSL,
 		std::vector< RsProgramVertexAttribute >& OutVertexAttributes )
 {
-	BcBool RetVal = BcFalse;
+	BcBool RetVal = BcTrue;
 #if PSY_IMPORT_PIPELINE
 	// Vertex shader attributes.
 	EShLanguage Language;
