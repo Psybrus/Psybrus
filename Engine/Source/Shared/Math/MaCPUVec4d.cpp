@@ -35,7 +35,7 @@ void MaCPUVec4d::StaticRegisterClass()
 		{
 			const MaCPUVec4d& Vec = *reinterpret_cast< const MaCPUVec4d* >( pInstance );
 			BcChar OutChars[ 1024 ] = { 0 };
-			snprintf( OutChars, 1023, "%.16f, %.16f, %.16f, %.16f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
+			BcSPrintf( OutChars, sizeof( OutChars ) - 1, "%.16f, %.16f, %.16f, %.16f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
 			OutString = OutChars;
 			return true;
 		}

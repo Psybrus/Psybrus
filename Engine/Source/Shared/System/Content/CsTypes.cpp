@@ -117,8 +117,8 @@ bool CsDependency::operator < ( const CsDependency& Dep ) const
 // getName
 std::string CsFileHash::getName() const
 {
-	BcChar OutChars[ 128 ];
-	BcSPrintf( OutChars, "%08X%08X%08X%08X%08X",
+	BcChar OutChars[ 128 ] = { 0 };
+	BcSPrintf( OutChars, sizeof( OutChars ) - 1, "%08X%08X%08X%08X%08X",
 		Hash_[ 0 ],
 		Hash_[ 1 ],
 		Hash_[ 2 ],

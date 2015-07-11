@@ -104,9 +104,9 @@ std::string BcName::operator * () const
 		if( ID_ != BcErrorCode )
 		{
 			// Generate "value_id" string.
-			static BcChar Buffer[ BcNameEntry::MAX_STRING_LENGTH + 12 ];
+			static BcChar Buffer[ BcNameEntry::MAX_STRING_LENGTH + 12 ] = { 0 };
 
-			BcSPrintf( Buffer, "%s_%u", &Entry.Value_[ 0 ], ID_ );
+			BcSPrintf( Buffer, sizeof( Buffer ) - 1, "%s_%u", &Entry.Value_[ 0 ], ID_ );
 			return Buffer;
 		}
 		else

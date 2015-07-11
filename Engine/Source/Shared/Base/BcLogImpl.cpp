@@ -65,9 +65,9 @@ private:
 		// Replace newlines with spaces.
 		std::replace( NewText.begin(), NewText.end(), '\n', ' ' );
 
-		static BcChar OutputBuffer[ 1024 * 64 ];
+		static BcChar OutputBuffer[ 1024 * 64 ] = { 0 };
 		// Format for output.
-		BcSPrintf( OutputBuffer, "[%5.5f][%x][%s] %s %s\n", 
+		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%5.5f][%x][%s] %s %s\n", 
 			Entry.Time_,
 			Entry.ThreadId_,
 			Entry.Category_.c_str(),

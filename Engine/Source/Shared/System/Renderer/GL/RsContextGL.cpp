@@ -1808,10 +1808,10 @@ bool RsContextGL::createProgram(
 	// Bind all slots up.
 	// NOTE: We shouldn't need this in later GL versions with explicit
 	//       binding slots.
-	BcChar ChannelNameChars[ 128 ];
+	BcChar ChannelNameChars[ 128 ] = { 0 };
 	for( BcU32 Channel = 0; Channel < 16; ++Channel )
 	{
-		BcSPrintf( ChannelNameChars, "dcl_Input%u", Channel );
+		BcSPrintf( ChannelNameChars, sizeof( ChannelNameChars ) - 1, "dcl_Input%u", Channel );
 		GL( BindAttribLocation( ProgramImpl->Handle_, Channel, ChannelNameChars ) );
 		
 	}
