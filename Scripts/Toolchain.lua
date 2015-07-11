@@ -95,9 +95,9 @@ function PsySetupToolchain()
 			buildoptions { 
 				"-target armv7-none-linux-androideabi",
 				"-march=armv7-a",
-				"-mfpu=vfpv3-d16",
+				"-mfpu=vfp",
 				"-mhard-float",
-				"-mfloat-abi=hard",
+				--"-mfloat-abi=hard",
 				--"-nostdinc",
 
 				-- Disable as it causes noise that we can't fix just yet.
@@ -118,7 +118,7 @@ function PsySetupToolchain()
 
 				links {
 					"c",
-					"m_hard",
+					"m",
 					"dl"
 				}
 
@@ -155,8 +155,8 @@ function PsySetupToolchain()
 					}
 
 					libdirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/gabi++/libs/armeabi-v7a-hard",
-						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a-hard",
+						"$(ANDROID_NDK)/sources/cxx-stl/gabi++/libs/armeabi-v7a",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a",
 					}
 				end
 
@@ -205,16 +205,20 @@ function PsySetupToolchain()
 			location ( "Projects/" .. _ACTION .. "-android-gcc-arm" )
 
 			buildoptions { 
+				"-march=armv7-a",
+				"-mfpu=vfp",
+				"-mfloat-abi=softfp"
 			}
 
 			linkoptions { 
 				"-Wl,--fix-cortex-a8",
-				"-Wl,--no-warn-mismatch",
+				--"-Wl,--no-warn-mismatch",
 			}
 
 			-- Add default include paths.
 			configuration( "*" )
 				defines {
+					"_NDK_MATH_NO_SOFTFP=1"
 				}
 
 				links {
@@ -265,8 +269,8 @@ function PsySetupToolchain()
 					}
 
 					libdirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libs/armeabi-v7a-hard",
-						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a-hard",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libs/armeabi-v7a",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a",
 					}
 				end
 

@@ -155,9 +155,9 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 			SE_LOG( " - %f", (float)InputValue.asDouble() );
 
 			// std::to_string(float/double) have issues on Android. Don't use.
-#if PLATFORM_ANDROID
+#if 0 && PLATFORM_ANDROID
 			BcChar StringBuffer[ 128 ] = { 0 };
-			sprintf( StringBuffer, "%f", BcF32( InputValue.asDouble() ) );
+			snprintf( StringBuffer, 127, "%.16f", BcF32( InputValue.asDouble() ) );
 			Success = Serialiser->serialiseFromString( pData, StringBuffer );
 #else			
 			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asDouble() ) );
