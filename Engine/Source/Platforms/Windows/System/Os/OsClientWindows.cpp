@@ -191,7 +191,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	while( EnumSuccess );
 
 	// Generate class name.
-	BcSPrintf( ClassName_, "PsybrusWindow_0x%x", gClassID_++ );
+	BcSPrintf( ClassName_, sizeof( ClassName_ ) - 1, "PsybrusWindow_0x%x", gClassID_++ );
 	
 	wc.cbSize			= sizeof( WNDCLASSEX );
 	wc.style			= CS_HREDRAW | CS_VREDRAW;

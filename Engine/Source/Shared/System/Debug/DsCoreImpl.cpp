@@ -136,6 +136,11 @@ void DsCoreImpl::open()
 
 #if PLATFORM_ANDROID
 	DrawPanels_ = BcTrue;
+
+	auto& Style = ImGui::GetStyle();
+	Style.FramePadding.x *= 2.0f;
+	Style.FramePadding.y *= 2.0f;
+	Style.GrabMinSize *= 2.0f;
 #endif
 
 	// Setup toggle of debug panels.
@@ -1148,8 +1153,8 @@ void DsCoreImpl::cmdScene( DsParameters params, BcHtmlNode& Output, std::string 
 void DsCoreImpl::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth )
 {
 	BcHtmlNode ul = Output.createChildNode( "ul" );
-	BcChar Id[ 32 ];
-	BcSPrintf( Id, "%d", Entity->getUniqueId() );
+	BcChar Id[ 32 ] = { 0 };
+	BcSPrintf( Id, sizeof( Id ) - 1, "%d", Entity->getUniqueId() );
 
 	// Entity name.
 	BcHtmlNode li = ul.createChildNode( "li" );
@@ -1178,8 +1183,8 @@ void DsCoreImpl::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32
 // cmdScene_Component
 void DsCoreImpl::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, BcU32 Depth )
 {
-	BcChar Id[ 32 ];
-	BcSPrintf( Id, "%d", Component->getUniqueId() );
+	BcChar Id[ 32 ] = { 0 };
+	BcSPrintf( Id, sizeof( Id ) - 1, "%d", Component->getUniqueId() );
 	BcHtmlNode tmp = DsTemplate::loadTemplate( Output, "Content/Debug/scene_component_template.html" );
 
 	tmp.findNodeById( "component-link" ).setAttribute( "href", "/Resource/" + std::string( Id ) );

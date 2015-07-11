@@ -59,8 +59,8 @@ void BcPrintf( const BcChar* Text, ... )
 BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... )
 {
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
-	static BcChar Buffer[ 4096 ];
-	static BcChar MessageBuffer[ 4096 ];
+	static BcChar Buffer[ 4096 ] = { 0 };
+	static BcChar MessageBuffer[ 4096 ] = { 0 };
 	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
@@ -77,7 +77,7 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 		return AssertHandler_(  MessageBuffer, pFile, Line );
 	}
 
-	BcSPrintf( Buffer, "\"%s\" in %s on line %u.\n\nDo you wish to break?", MessageBuffer, pFile, Line );
+	BcSPrintf( Buffer, sizeof( Buffer ) - 1, "\"%s\" in %s on line %u.\n\nDo you wish to break?", MessageBuffer, pFile, Line );
 	BcMessageBoxReturn MessageReturn = BcMessageBox( "ASSERTION FAILED!", Buffer, bcMBT_YESNO, bcMBI_ERROR );
 
 	return MessageReturn == bcMBR_YES;
@@ -111,8 +111,8 @@ BcAssertFunc BcAssertGetHandler()
 BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... )
 {
 #if defined( PSY_DEBUG ) || defined( PSY_RELEASE )
-	static BcChar Buffer[ 4096 ];
-	static BcChar MessageBuffer[ 4096 ];
+	static BcChar Buffer[ 4096 ] = { 0 };
+	static BcChar MessageBuffer[ 4096 ] = { 0 };
 	std::lock_guard< std::recursive_mutex > Lock( GlobalLock_ );
 	va_list ArgList;
 	va_start( ArgList, Line );
@@ -122,7 +122,7 @@ BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	vsprintf( MessageBuffer, pMessage, ArgList );
 #endif
 	va_end( ArgList );
-	BcSPrintf( Buffer, "\"%s\"in %s on line %u.\n\nIgnore next?", MessageBuffer, pFile, Line );
+	BcSPrintf( Buffer, sizeof( Buffer ) - 1, "\"%s\"in %s on line %u.\n\nIgnore next?", MessageBuffer, pFile, Line );
 	BcMessageBoxReturn MessageReturn = BcMessageBox( "VERIFICATION FAILED!", Buffer, bcMBT_YESNOCANCEL, bcMBI_WARNING );
 
 	if( MessageReturn == bcMBR_CANCEL )
