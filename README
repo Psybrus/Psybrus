@@ -60,6 +60,7 @@ Dependencies:
 
 ANDROID_NDK env var must be set to the location of your Android NDK.
 ANDROID_SDK env var must be set to the location of your Android SDK.
+adb, and ant must be in your PATH.
 
 From Windows, once you've generated the projects, you can simply use build_gmake_android-gcc-arm_build.bat to build source code.
 
