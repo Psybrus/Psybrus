@@ -136,6 +136,11 @@ void DsCoreImpl::open()
 
 #if PLATFORM_ANDROID
 	DrawPanels_ = BcTrue;
+
+	auto& Style = ImGui::GetStyle();
+	Style.FramePadding.x *= 2.0f;
+	Style.FramePadding.y *= 2.0f;
+	Style.GrabMinSize *= 2.0f;
 #endif
 
 	// Setup toggle of debug panels.

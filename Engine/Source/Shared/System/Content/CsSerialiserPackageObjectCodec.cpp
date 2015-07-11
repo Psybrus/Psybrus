@@ -93,8 +93,9 @@ std::string CsSerialiserPackageObjectCodec::serialiseAsStringRef(
 	if( RetVal.empty() )
 	{
 		// Default formatting.
-		BcChar OutChars[ 128 ];
-		BcSPrintf( OutChars, "$(%s:%s.%llu)",   
+		BcChar OutChars[ 128 ] = { 0 };
+		BcSPrintf( OutChars, sizeof( OutChars ) - 1, 
+			"$(%s:%s.%llu)",
 			(*InType->getName()).c_str(),
 			( "this" ),
 			( (unsigned long long)InData ) );
