@@ -1,5 +1,5 @@
-ANDROID_NDK_VERSION = "18"
-ANDROID_SDK_VERSION = "18"
+ANDROID_NDK_VERSION = "21"
+ANDROID_SDK_VERSION = "22"
 
 function IsHostOS( _os )
 	return _OS == _os
