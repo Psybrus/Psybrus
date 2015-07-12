@@ -44,7 +44,6 @@ function SetupAndroidProject()
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
 
 		local abi = "armeabi-v7a"
-		local sdkVersion = "22"
 		local orientation = "landscape"
 
 		local libName = solution().name
@@ -64,7 +63,7 @@ function SetupAndroidProject()
 		manifestFile:write( "          package=\"" .. packagePrefix .. libName .. "\"\n" )
 		manifestFile:write( "          android:versionCode=\"1\"\n" )
 		manifestFile:write( "          android:versionName=\"1.0\">\n" )
-		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. sdkVersion .. "\" />\n" )
+		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. ANDROID_SDK_VERSION .. "\" />\n" )
 		manifestFile:write( "  <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />\n" )
 		manifestFile:write( "  <uses-feature android:glEsVersion=\"0x00020000\" />\n" )
 		manifestFile:write( "  <application android:label=\"@string/app_name\"\n" )
@@ -104,12 +103,11 @@ function SetupAndroidProject()
 			links {
 				"GLESv1_CM",
 				"GLESv2",
-				"GLESv3",
 				"EGL",
 				"llvmcxxabi"
 			}
 
-			androidTarget = "android-22" 
+			androidTarget = "android-" .. ANDROID_SDK_VERSION
 
 		libPrefixName = "lib" .. libName .. "-gmake-" .. suffix
 		libExt = ".so"

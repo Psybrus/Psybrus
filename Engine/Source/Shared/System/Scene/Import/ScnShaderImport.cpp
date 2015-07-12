@@ -24,10 +24,6 @@
 #include <hlsl2glsl.h>
 #include <glsl/glsl_optimizer.h>
 
-// Write out shader files to intermediate, and signal game to load the raw files.
-// Useful for debugging generated shader files.
-#define DEBUG_FILE_WRITE_OUT_FILES		0
-
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
 #endif
@@ -360,7 +356,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	}
 
 	// Kick off all permutation building jobs.
-	BcBool RetVal = BcTrue;
+	BcBool RetVal = BcFalse;
 	for( auto& Permutation : Permutations_ )
 	{
 		for( const auto& InputCodeType : CodeTypes_ )
@@ -409,7 +405,10 @@ BcBool ScnShaderImport::import( const Json::Value& )
 							0, 
 							[ this, JobParams ]()
 							{
-								buildPermutation( JobParams );
+								if( buildPermutation( JobParams ) == BcFalse )
+								{
+									;
+								}
 							} );
 					}
 				}
@@ -606,14 +605,42 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 
     for( auto& Entry : Params.Entries_ )
     {
+		ScnShaderBuiltData BuiltShader;
 		BcBinaryData ByteCode;
 		std::vector< std::string > ErrorMessages;
 		std::string Entrypoint = Entrypoints_[ Entry.Type_ ];
 		BcAssert( !Entrypoint.empty() );
 
-		// TODO: Setup shaders to use some kind of pipeline system.
-		// HLSL2GLSL path.
-		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
+		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::D3D11 )
+		{
+			if( compileShader( 
+					Source_, 
+					Entrypoint, 
+					Params.Permutation_.Defines_, 
+					IncludePaths_, 
+					Entry.Level_, 
+					ByteCode, 
+					ErrorMessages ) )
+			{
+				BuiltShader.ShaderType_ = Entry.Type_;
+				BuiltShader.CodeType_ = Params.InputCodeType_;
+				BuiltShader.Code_ = std::move( ByteCode );
+				BuiltShader.Hash_ = generateShaderHash( BuiltShader );
+
+				// Vertex shader attributes.
+				if( Entry.Type_ == RsShaderType::VERTEX )
+				{
+					// Generate vertex attributes.
+					VertexAttributes = extractShaderVertexAttributes( BuiltShader.Code_ );
+				}
+			}
+			else
+			{
+				PSY_LOG( "Unable to compile." );
+				RetVal = BcFalse;
+			}
+		}
+		else if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
 		{
 			std::string OutputShaderCode;
 			if( convertHLSL2GLSL( 
@@ -622,270 +649,47 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					Entrypoint,
 					SourceFileData_, 
 					OutputShaderCode,
-					VertexAttributes ) )
+					VertexAttributes,
+					ErrorMessages ) )
 			{
-				ScnShaderBuiltData BuiltShader;
 				BuiltShader.ShaderType_ = Entry.Type_;
 				BuiltShader.CodeType_ = Params.OutputCodeType_;
 				BuiltShader.Code_ = std::move( BcBinaryData( (void*)OutputShaderCode.c_str(), OutputShaderCode.size() + 1, BcTrue ) );
 				BuiltShader.Hash_ = generateShaderHash( BuiltShader );
-
-				ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
-				ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-#if 0
-				// Write out intermediate shader for reference.
-				std::string ShaderType;
-				switch( Entry.Type_ )
-				{
-				case RsShaderType::VERTEX:
-					ShaderType = "vs";
-					break;
-				case RsShaderType::HULL:
-					ShaderType = "hs";
-					break;
-				case RsShaderType::DOMAIN:
-					ShaderType = "ds";
-					break;
-				case RsShaderType::GEOMETRY:
-					ShaderType = "gs";
-					break;
-				case RsShaderType::PIXEL:
-					ShaderType = "ps";
-					break;
-				case RsShaderType::COMPUTE:
-					ShaderType = "cs";
-					break;	
-				default:
-					BcBreakpoint;
-				}
-
-				std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Name_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
-				std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
-
-				printf( "ScnShaderImporter: Writing out to %s\n", Path.c_str() );
-
-				{
-					std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-					boost::filesystem::create_directories( Path );
-
-					BcFile FileOut;
-					FileOut.open( Filename.c_str(), bcFM_WRITE );
-					FileOut.write( OriginalOutputShaderCode.c_str(), OriginalOutputShaderCode.size() );
-					FileOut.close();
-				}
-
-
-				//PSY_LOG( "%s\n", OutputShaderCode.c_str() );
-#endif
-
-				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-				auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
-				if( FoundShader != BuiltShaderData_.end() )
-				{
-					BcAssertMsg( FoundShader->second == BuiltShader, "Hash key collision" );
-				}
-
-				BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
+			}
+			else
+			{
+				PSY_LOG( "Unable to translate." );
+				RetVal = BcFalse;
 			}
 		}
-		// HLSLCrossCompiler path.
-		else if( compileShader( Source_, Entrypoint, Params.Permutation_.Defines_, IncludePaths_, Entry.Level_, ByteCode, ErrorMessages ) )
+		else if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL )
 		{
-			// Shader.
-			ScnShaderBuiltData BuiltShader;
-			BuiltShader.ShaderType_ = Entry.Type_;
-			BuiltShader.CodeType_ = Params.InputCodeType_;
-			BuiltShader.Code_ = std::move( ByteCode );
-			BuiltShader.Hash_ = generateShaderHash( BuiltShader );
-	
-			// Headers
-			ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-
-			// Vertex shader attributes.
-			if( Entry.Type_ == RsShaderType::VERTEX )
-			{
-				// Generate vertex attributes.
-				VertexAttributes = extractShaderVertexAttributes( BuiltShader.Code_ );
-				ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
-			}
-
-
-			if( Params.InputCodeType_ != Params.OutputCodeType_ )
-			{
-				bool HasGeometry = false;
-				bool HasTesselation = false;
-				// Patch in geometry shader flag if we have one in the entries list.
-				if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
-					{
-						return Entry.Type_ == RsShaderType::GEOMETRY;
-					} ) != Params.Entries_.end() )
-				{
-					HasGeometry = true;
-				}
-
-				// Patch in tesselation shader flag if we have one in the entries list.
-				if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
-					{
-						return Entry.Type_ == RsShaderType::HULL || Entry.Type_ == RsShaderType::DOMAIN;
-					} ) != Params.Entries_.end() )
-				{
-					HasTesselation = true;
-				}
-			
-				int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
-				            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
-
-				// GLSL ES needs to not bother with uniform objects.
-				if( Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_100 ||
-				    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
-				    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 )
-				{
-					Flags = 0;
-				}
-
-				// Geometry shader in entries?
-				if( HasGeometry )
-				{
-					Flags |= HLSLCC_FLAG_GS_ENABLED;
-				}
-
-				// Tesselation shadrs in entries?
-				if( HasTesselation )
-				{
-					Flags |= HLSLCC_FLAG_TESS_ENABLED;
-				}
-
-				// Attempt to convert shaders.
-				GLSLShader GLSLResult;
-				int GLSLSuccess = TranslateHLSLFromMem( BuiltShader.Code_.getData< const char >(),
-					Flags,
-					ConvertShaderCodeTypeToGLLang( Params.OutputCodeType_ ),
-					nullptr,
+			std::string OutputShaderCode;
+			if( convertHLSLCC( 
+					Params, 
+					Entry, 
+					Entrypoint,
+					SourceFileData_,
 					&GLSLDependencies,
-					&GLSLResult
-					);
-
-				// Check success.
-				if( GLSLSuccess )
-				{
-					// Strip comments out of code for more compact GLSL.
-#if DEBUG_FILE_WRITE_OUT_FILES
-					std::string GLSLSource = GLSLResult.sourceCode;
-#else
-					std::string GLSLSource = removeComments( GLSLResult.sourceCode );
-#endif
-
-					// Shader.
-					BuiltShader.ShaderType_ = Entry.Type_;
-					BuiltShader.CodeType_ = Params.OutputCodeType_;
-					BuiltShader.Code_ = std::move( BcBinaryData( (void*)GLSLSource.c_str(), GLSLSource.size() + 1, BcTrue ) );
-					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
-
-					// Headers
-					ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-				
-					// Vertex shader attributes.
-					if( Entry.Type_ == RsShaderType::VERTEX )
-					{
-						// Generate vertex attributes.
-						VertexAttributes.clear();
-						BcAssert( VertexAttributes.size() == 0 );
-						VertexAttributes.reserve( GLSLResult.reflection.ui32NumInputSignatures );
-						for( BcU32 Idx = 0; Idx < GLSLResult.reflection.ui32NumInputSignatures; ++Idx )
-						{
-							auto InputSignature = GLSLResult.reflection.psInputSignatures[ Idx ];
-							auto VertexAttribute = semanticToVertexAttribute( Idx, InputSignature.SemanticName, InputSignature.ui32SemanticIndex );
-							VertexAttributes.push_back( VertexAttribute );
-						}
-
-						ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
-					}
-
-#if DEBUG_FILE_WRITE_OUT_FILES
-					// Write out intermediate shader for reference.
-					std::string ShaderType;
-					switch( Entry.Type_ )
-					{
-					case RsShaderType::VERTEX:
-						ShaderType = "vs";
-						break;
-					case RsShaderType::HULL:
-						ShaderType = "hs";
-						break;
-					case RsShaderType::DOMAIN:
-						ShaderType = "ds";
-						break;
-					case RsShaderType::GEOMETRY:
-						ShaderType = "gs";
-						break;
-					case RsShaderType::PIXEL:
-						ShaderType = "ps";
-						break;
-					case RsShaderType::COMPUTE:
-						ShaderType = "cs";
-						break;	
-					default:
-						BcBreakpoint;
-					}
-
-
-					std::string Path = boost::str( boost::format( "IntermediateContent/%s/%s/%x" ) % RsShaderCodeTypeToString( Params.OutputCodeType_ ) % Name_ % std::bitset< 32 >( (BcU32)ProgramHeader.ProgramPermutationFlags_ ) );
-					std::string Filename = boost::str( boost::format( "%s/%s.glsl" ) % Path % ShaderType );
-
-					printf( "ScnShaderImporter: Writing out to %s\n", Path.c_str() );
-
-					{
-						std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-						boost::filesystem::create_directories( Path );
-
-						BcFile FileOut;
-						FileOut.open( Filename.c_str(), bcFM_WRITE );
-						FileOut.write( BuiltShader.Code_.getData< char >(), BuiltShader.Code_.getDataSize() );
-						FileOut.close();
-
-						// Overwrite data with indicator to read in from file.
-						BcStream FileStream;
-
-						FileStream << ScnShader::LOAD_FROM_FILE_TAG;
-						FileStream.push( Filename.c_str(), Filename.size() + 1 );
-						BuiltShader.Code_ = std::move( BcBinaryData( (void*)FileStream.pData(), FileStream.dataSize(), BcTrue ) );
-						BuiltShader.Hash_ = generateShaderHash( BuiltShader );
-
-						// Headers
-						ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
-					}
-#endif
-					// Free GLSL shader.
-					FreeGLSLShader( &GLSLResult );
-				}
-				else
-				{
-					RetVal = BcFalse;
-					throw CsImportException( "Failed to convert to GLSL.", Source_ );
-				}
-			}
-			
-			// Push shader into map.
-			if( RetVal == BcTrue )
+					OutputShaderCode,
+					VertexAttributes,
+					ErrorMessages ) )
 			{
-				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-				auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
-				if( FoundShader != BuiltShaderData_.end() )
-				{
-					BcAssertMsg( FoundShader->second == BuiltShader, "Hash key collision" );
-				}
-
-				BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
+				BuiltShader.ShaderType_ = Entry.Type_;
+				BuiltShader.CodeType_ = Params.OutputCodeType_;
+				BuiltShader.Code_ = std::move( BcBinaryData( (void*)OutputShaderCode.c_str(), OutputShaderCode.size() + 1, BcTrue ) );
+				BuiltShader.Hash_ = generateShaderHash( BuiltShader );
 			}
-			
-			if( ErrorMessages.size() > 0 )
+			else
 			{
-				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-				ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
+				PSY_LOG( "Unable to translate." );
+				RetVal = BcFalse;
 			}
 		}
 		else
 		{
+			PSY_LOG( "Invalid code type: %u, %u", RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ), Params.OutputCodeType_ );
 			RetVal = BcFalse;
 			
 			if( ErrorMessages.size() > 0 )
@@ -895,12 +699,34 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			}
 			break;
 		}
+
+		// Setup program + shaders.
+		if( RetVal )
+		{
+			ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
+			ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
+
+			std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+			auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
+			if( FoundShader != BuiltShaderData_.end() )
+			{
+				BcAssertMsg( FoundShader->second == BuiltShader, "Hash key collision" );
+			}
+
+			BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
+		}
 	}
 
 	// Write out all shaders and programs.
 	if( RetVal != BcFalse )
 	{
 		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+		if( ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+			ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+		{
+			PSY_LOG( "No vertex and pixel shaders in program." );
+			RetVal = BcFalse;
+		}
 
 		BuiltProgramData_.push_back( std::move( ProgramHeader ) );
 		if( VertexAttributes.size() > 0 )
@@ -912,6 +738,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	if( RetVal == BcFalse )
 	{
 		GotErrorBuilding_++;
+		PSY_LOG( "Error building..." );
 	}
 
 	// Write out warning/error messages.
@@ -944,9 +771,10 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 		const std::string& Entrypoint,
 		const std::string& InHLSL, 
 		std::string& OutGLSL,
-		std::vector< RsProgramVertexAttribute >& OutVertexAttributes )
+		std::vector< RsProgramVertexAttribute >& OutVertexAttributes,
+		std::vector< std::string >& OutErrorMessages )
 {
-	BcBool RetVal = BcFalse;
+	BcBool RetVal = BcTrue;
 #if PSY_IMPORT_PIPELINE
 	// Vertex shader attributes.
 	EShLanguage Language;
@@ -1129,6 +957,133 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 		}
 	}
 #endif
+	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// convertHLSLCC
+BcBool ScnShaderImport::convertHLSLCC(
+		ScnShaderPermutationJobParams Params,
+		ScnShaderLevelEntry LevelEntry,
+		const std::string& Entrypoint,
+		const std::string& InHLSL, 
+		void* InOutCrossDependencyData,
+		std::string& OutGLSL,
+		std::vector< RsProgramVertexAttribute >& OutVertexAttributes,
+		std::vector< std::string >& OutErrorMessages )
+{
+	BcBool RetVal = BcFalse;
+#if PSY_IMPORT_PIPELINE
+	BcBinaryData ByteCode;
+
+	// HLSLCrossCompiler path.
+	if( compileShader( Source_, Entrypoint, Params.Permutation_.Defines_, IncludePaths_, LevelEntry.Level_, ByteCode, OutErrorMessages ) )
+	{
+		// Shader.
+		ScnShaderBuiltData BuiltShader;
+		BuiltShader.ShaderType_ = LevelEntry.Type_;
+		BuiltShader.CodeType_ = Params.InputCodeType_;
+		BuiltShader.Code_ = std::move( ByteCode );
+		BuiltShader.Hash_ = generateShaderHash( BuiltShader );
+
+		// Vertex shader attributes.
+		if( LevelEntry.Type_ == RsShaderType::VERTEX )
+		{
+			// Generate vertex attributes.
+			OutVertexAttributes = extractShaderVertexAttributes( BuiltShader.Code_ );
+		}
+
+		// 
+		if( Params.InputCodeType_ != Params.OutputCodeType_ )
+		{
+			bool HasGeometry = false;
+			bool HasTesselation = false;
+			// Patch in geometry shader flag if we have one in the entries list.
+			if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
+				{
+					return Entry.Type_ == RsShaderType::GEOMETRY;
+				} ) != Params.Entries_.end() )
+			{
+				HasGeometry = true;
+			}
+
+			// Patch in tesselation shader flag if we have one in the entries list.
+			if( std::find_if( Params.Entries_.begin(), Params.Entries_.end(), []( ScnShaderLevelEntry Entry )
+				{
+					return Entry.Type_ == RsShaderType::HULL || Entry.Type_ == RsShaderType::DOMAIN;
+				} ) != Params.Entries_.end() )
+			{
+				HasTesselation = true;
+			}
+		
+			int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
+			            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
+
+			// GLSL ES needs to not bother with uniform objects.
+			if( Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_100 ||
+			    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
+			    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 )
+			{
+				Flags = 0;
+			}
+
+			// Geometry shader in entries?
+			if( HasGeometry )
+			{
+				Flags |= HLSLCC_FLAG_GS_ENABLED;
+			}
+
+			// Tesselation shadrs in entries?
+			if( HasTesselation )
+			{
+				Flags |= HLSLCC_FLAG_TESS_ENABLED;
+			}
+
+			// Attempt to convert shaders.
+			GLSLShader GLSLResult;
+			int GLSLSuccess = TranslateHLSLFromMem( 
+				BuiltShader.Code_.getData< const char >(),
+				Flags,
+				ConvertShaderCodeTypeToGLLang( Params.OutputCodeType_ ),
+				nullptr,
+				reinterpret_cast< GLSLCrossDependencyData* >( InOutCrossDependencyData ),
+				&GLSLResult );
+
+			// Check success.
+			if( GLSLSuccess )
+			{
+				// Strip comments out of code for more compact GLSL.
+				OutGLSL = removeComments( GLSLResult.sourceCode );
+			
+				// Vertex shader attributes.
+				if( LevelEntry.Type_ == RsShaderType::VERTEX )
+				{
+					// Generate vertex attributes.
+					OutVertexAttributes.clear();
+					BcAssert( OutVertexAttributes.size() == 0 );
+					OutVertexAttributes.reserve( GLSLResult.reflection.ui32NumInputSignatures );
+					for( BcU32 Idx = 0; Idx < GLSLResult.reflection.ui32NumInputSignatures; ++Idx )
+					{
+						auto InputSignature = GLSLResult.reflection.psInputSignatures[ Idx ];
+						auto VertexAttribute = semanticToVertexAttribute( Idx, InputSignature.SemanticName, InputSignature.ui32SemanticIndex );
+						OutVertexAttributes.push_back( VertexAttribute );
+					}
+				}
+
+				// Free GLSL shader.
+				FreeGLSLShader( &GLSLResult );
+
+				// Done.
+				RetVal = BcTrue;
+			}
+			else
+			{
+				RetVal = BcFalse;
+				OutErrorMessages.push_back( "Failed to convert to GLSL: " + Source_ );
+			}
+		}
+	}
+#endif // PSY_IMPORT_PIPELINE
 	return RetVal;
 }
 

@@ -61,6 +61,8 @@ struct VertexDefault
  */
 #if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
+/* WEBGL HACKY
+
 // TODO: FIX BIG HACK: DOING THIS BECAUSE GLSL-OPTIMIZER ADDS CAST TO INT, WEBGL DO NOT LIKE.
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
 	int wsvIdx; 																						\
@@ -78,6 +80,29 @@ struct VertexDefault
 		if( wsnIdx == int(_p.BlendIndices_.x) )															\
 			_o = PsyMatMul( BoneTransform_[ wsnIdx ], _v );						\
 	}																									\
+
+*/
+
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v, _p ) 													\
+		_o = PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.x ], _v ) * _p.BlendWeights_.x;						\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.y ], _v ) * _p.BlendWeights_.y;						\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.z ], _v ) * _p.BlendWeights_.z;						\
+		_o += PsyMatMul(																				\
+			BoneTransform_[ (int)_p.BlendIndices_.w ], _v ) * _p.BlendWeights_.w;						\
+			
+
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v, _p ) 													\
+		_o = PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.x ], _v ) * _p.BlendWeights_.x;						\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.y ], _v ) * _p.BlendWeights_.y;						\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.z ], _v ) * _p.BlendWeights_.z;						\
+		_o += PsyMatMul( 																				\
+			BoneTransform_[ (int)_p.BlendIndices_.w ], _v ) * _p.BlendWeights_.w;						\
 
 #else
 

@@ -322,6 +322,7 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 }, // RsTextureFormat::DXT1,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
+
 	// Depth stencil.
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D24,
@@ -834,7 +835,7 @@ void RsContextGL::create()
 	}
 	else
 	{
-		PSY_LOG( "eglQuerySurface() success" );
+		PSY_LOG( "eglQuerySurface() success. %u x %u", EGLWidth_, EGLHeight_ );
 		OsClientAndroid* Client = static_cast< OsClientAndroid* >( pClient_ );
 		Client->setSize( EGLWidth_, EGLHeight_ );
 	}
@@ -866,13 +867,12 @@ void RsContextGL::create()
 	}
 #endif // ENABLE_DEBUG_OUTPUT
 
-	
-
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	
+
+#if !PLATFORM_ANDROID
 	// Create + bind global VAO.
 	if( Version_.SupportVAOs_ )
 	{
@@ -887,7 +887,7 @@ void RsContextGL::create()
 	// Create transfer FBO.
 	PSY_LOG( "Create transfer FBOs" );
 	GL( GenFramebuffers( 2, TransferFBOs_ ) );
-	
+#endif
 
 	// Force set render state to the default.
 	// Initialises redundant state caching.
@@ -897,7 +897,7 @@ void RsContextGL::create()
 
 	// Set default state.
 	// BINDING, not state..
-		setDefaultState();
+	setDefaultState();
 
 	// Clear screen and flip.
 	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
@@ -923,8 +923,10 @@ void RsContextGL::destroy()
 	GL( DeleteFramebuffers( 2, TransferFBOs_ ) );
 
 	// Destroy global VAO.
+#if !PLATFORM_ANDROID
 	GL( BindVertexArray( 0 ) );
 	GL( DeleteVertexArrays( 1, &GlobalVAO_ ) );
+#endif
 
 #if PLATFORM_WINDOWS
 	// Destroy rendering context.
@@ -1152,6 +1154,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+#if !PLATFORM_ANDROID // TODO
 	const auto& Desc = FrameBuffer->getDesc();
 	BcAssertMsg( Desc.RenderTargets_.size() < GL_MAX_COLOR_ATTACHMENTS, "Too many targets" );
 
@@ -1227,6 +1230,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Unbind.
 	GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
 
+#endif // #if !PLATFORM_ANDROID
 	return true;
 }
 
@@ -1259,6 +1263,7 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	const auto& BufferDesc = Buffer->getDesc();
 
 	BcAssert( BufferDesc.SizeBytes_ > 0 );
+	PSY_LOG( "Creating buffer: %u kb", BufferDesc.SizeBytes_ / 1024 );
 
 	// Get buffer type for GL.
 	auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
@@ -1441,6 +1446,7 @@ bool RsContextGL::updateBuffer(
 
 			
 #else
+
 			// Get usage flags for GL.
 			GLuint UsageFlagsGL = 0;
 
@@ -1458,11 +1464,14 @@ bool RsContextGL::updateBuffer(
 				UsageFlagsGL |= GL_STREAM_DRAW;
 			}
 
+			// Seem to get an OOM on a Mali GPU, but may not even need this now.
+#if !defined( RENDER_USE_GLES )
 			// Perform orphaning.
 			if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
 			{
 				GL( BufferData( TypeGL, 0, nullptr, UsageFlagsGL ) );
 			}
+#endif
 
 			// Use glBufferSubData to upload.
 			// TODO: Allocate of a temporary per-frame buffer.
@@ -1518,6 +1527,13 @@ bool RsContextGL::createTexture(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	const auto& TextureDesc = Texture->getDesc();
+	BcU32 DataSize = RsTextureFormatSize( 
+		TextureDesc.Format_,
+		TextureDesc.Width_,
+		TextureDesc.Height_,
+		TextureDesc.Depth_,
+		TextureDesc.Levels_ );
+	PSY_LOG( "Creating texture: %u kb", DataSize / 1024 );
 
 	// Get buffer type for GL.
 	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
@@ -1877,9 +1893,11 @@ bool RsContextGL::createProgram(
 			case GL_SAMPLER_2D:
 				InternalType = RsShaderParameterType::SAMPLER_2D;
 				break;
+#if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_3D:
 				InternalType = RsShaderParameterType::SAMPLER_3D;
 				break;
+#endif
 			case GL_SAMPLER_CUBE:
 				InternalType = RsShaderParameterType::SAMPLER_CUBE;
 				break;
@@ -1941,10 +1959,10 @@ bool RsContextGL::createProgram(
 	// Attempt to find uniform block names.
 	if( Version_.SupportUniformBuffers_ )
 	{
+#if !defined( RENDER_USE_GLES )
 		GLint ActiveUniformBlocks = 0;
 		GL( GetProgramiv( ProgramImpl->Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks ) );
 	
-#if !defined( RENDER_USE_GLES )
 		BcU32 ActiveUniformSlotIndex = 0;
 		for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
 		{
@@ -2399,7 +2417,7 @@ void RsContextGL::flushState()
 		BcU32 TextureStateID = TextureStateBinds_[ TextureStateIdx ];
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ TextureStateID ];
 
-		if( TextureStateValue.Dirty_ )
+		if( TextureStateValue.Dirty_ && TextureStateID < Version_.MaxTextureSlots_ )
 		{
 			RsTexture* pTexture = TextureStateValue.pTexture_;			
 			const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
@@ -2747,6 +2765,7 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 // copyFrameBufferRenderTargetToTexture
 void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture )
 {
+#if !defined( RENDER_USE_GLES )
 	// Grab current width + height.
 	auto FBWidth = getWidth();
 	auto FBHeight = getHeight();
@@ -2794,7 +2813,7 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	{
 		// Bind texture.
 		GL( BindTexture( TypeGL, DestTextureImpl->Handle_ ) );
-		glCopyTexImage2D( 
+		GL( CopyTexImage2D( 
 			TypeGL, 
 			0, 
 			FormatGL.InternalFormat_,
@@ -2802,7 +2821,7 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 			0,
 			TextureDesc.Width_,
 			TextureDesc.Height_,
-			0 );
+			0 ) );
 		
 		GL( BindTexture( TypeGL, 0 ) );
 	}
@@ -2810,12 +2829,14 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	{
 		BcBreakpoint;
 	}
+#endif // !defined( RENDER_USE_GLES )
 }
 
 //////////////////////////////////////////////////////////////////////////
 // copyTextureToFrameBufferRenderTarget
 void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx )
 {
+#if !defined( RENDER_USE_GLES )
 	// Grab current width + height.
 	auto FBWidth = getWidth();
 	auto FBHeight = getHeight();
@@ -2848,12 +2869,12 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 	RsTextureImplGL* SrcTextureImpl = Texture->getHandle< RsTextureImplGL* >();
 
 	GL( BindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] ) );
-	glFramebufferTexture2D( 
+	GL( FramebufferTexture2D( 
 		GL_READ_FRAMEBUFFER,
 		GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D,
 		SrcTextureImpl->Handle_,
-		0 );
+		0 ) );
 	auto ReadStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
 	BcAssertMsg( ReadStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
 
@@ -2862,12 +2883,12 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 		RsTextureImplGL* DestTextureImpl = 
 			FrameBuffer->getDesc().RenderTargets_[ Idx ]->getHandle< RsTextureImplGL* >();
 		GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, TransferFBOs_[ 1 ] ) );
-		glFramebufferTexture2D( 
+		GL( FramebufferTexture2D( 
 			GL_DRAW_FRAMEBUFFER,
 			GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D,
 			DestTextureImpl->Handle_,
-			0 );
+			0 ) );
 		auto DrawStatus = GL( CheckFramebufferStatus( GL_DRAW_FRAMEBUFFER ) );
 		BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
 	}
@@ -2887,7 +2908,7 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 
 	GL( BindFramebuffer( GL_READ_FRAMEBUFFER, 0 ) );
 	GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
-	
+#endif // !defined( RENDER_USE_GLES )	
 }
 
 //////////////////////////////////////////////////////////////////////////

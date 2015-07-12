@@ -1,3 +1,6 @@
+ANDROID_NDK_VERSION = "21"
+ANDROID_SDK_VERSION = "22"
+
 function IsHostOS( _os )
 	return _OS == _os
 end
@@ -84,7 +87,7 @@ function PsySetupToolchain()
 
 		-- android-clang-arm
 		if _OPTIONS[ "toolchain" ] == "android-clang-arm" then
-			local sdkVersion = "android-21"
+			local sdkVersion = "android-" .. ANDROID_NDK_VERSION
 
 			premake.gcc.llvm = true
 			premake.gcc.cc = "$(ANDROID_NDK)/toolchains/llvm-3.5/prebuilt/linux-x86_64/bin/clang --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
@@ -120,6 +123,11 @@ function PsySetupToolchain()
 					"c",
 					"m",
 					"dl"
+				}
+
+				defines {
+					"ANDROID_SDK_VERSION=" .. ANDROID_SDK_VERSION,
+					"ANDROID_NDK_VERSION=" .. ANDROID_NDK_VERSION
 				}
 
 				local useStdCpp = true
@@ -181,7 +189,7 @@ function PsySetupToolchain()
 
 		-- android-clang-arm
 		if _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
-			local sdkVersion = "android-21"
+			local sdkVersion = "android-" .. ANDROID_NDK_VERSION
 
 			if IsHostOS("windows") then
 				premake.gcc.llvm = true
@@ -227,6 +235,11 @@ function PsySetupToolchain()
 					"dl",
 					"android",
 					"log"
+				}
+
+				defines {
+					"ANDROID_SDK_VERSION=" .. ANDROID_SDK_VERSION,
+					"ANDROID_NDK_VERSION=" .. ANDROID_NDK_VERSION
 				}
 
 				local useStdCpp = false
@@ -336,7 +349,7 @@ function PsySetupToolchain()
 
 	-- Experimental.
 	if _ACTION == "ndk-makefile" then
-		local sdkVersion = "android-21"
+		local sdkVersion = "android-" .. ANDROID_NDK_VERSION
 
 		newoption {
 			trigger = "toolchain",
