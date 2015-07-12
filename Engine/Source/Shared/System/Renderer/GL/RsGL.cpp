@@ -157,6 +157,10 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 		break;
 	}
+
+	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &MaxTextureSlots_ );
+	PSY_LOG( "GL_MAX_TEXTURE_IMAGE_UNITS: %u", MaxTextureSlots_ );
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

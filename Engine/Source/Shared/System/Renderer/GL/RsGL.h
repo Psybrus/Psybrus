@@ -30,13 +30,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Android
 #elif PLATFORM_ANDROID
-#  include <GLES2/gl2.h>
-#  include <GLES2/gl2ext.h>
-#  include <GLES3/gl3.h>
-#  include <GLES3/gl3ext.h>
+#  include "GLES2/gl2.h"
+#  include "GLES2/gl2ext.h"
+#  include "GLES3/gl3.h"
+#  include "GLES3/gl3ext.h"
+
 #  include <EGL/egl.h>
 
 #  define RENDER_USE_GLES
+
+#if ANDROID_NDK_VERSION >= 20
+#  define RENDER_USE_GLES3
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
@@ -149,6 +154,9 @@ struct RsOpenGLVersion
 	BcBool SupportComputeShaders_;
 	BcBool SupportAntialiasedLines_;
 	BcBool SupportDrawElementsBaseVertex_;
+
+	GLint MaxTextureSlots_;
+
 };
 
 #endif
