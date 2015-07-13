@@ -301,7 +301,10 @@ function PsyProjectGameExe( _name )
 
     debugdir "../Dist"
 
-	PsyAddSystemLibs()
+	configuration "*"
+		links {
+			_name .. "Lib"
+		}
 
     configuration "*"
 	    PsyAddEngineLinks {
@@ -342,10 +345,7 @@ function PsyProjectGameExe( _name )
 	       "wave",
 	    }
 
-	configuration "*"
-		links {
-			_name .. "Lib"
-		}
+	PsyAddSystemLibs()
 
     configuration { "windows-* or linux-* or osx-*" }
        PsyAddExternalLinks {

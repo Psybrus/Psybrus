@@ -68,6 +68,7 @@ void MainUnitTests()
 
 //////////////////////////////////////////////////////////////////////////
 // onCsCoreOpened
+#if !PLATFORM_ANDROID
 eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
 	// Register reflection.
@@ -76,7 +77,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 	return evtRET_REMOVE;
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // OnQuit
@@ -194,9 +195,11 @@ void MainShared()
 	PSY_LOG( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
 	PSY_LOG( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
+#if !PLATFORM_ANDROID
 	// Setup callback for post CsCore open for resource registration.
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, onCsCoreOpened );
-
+#endif
+	
 	// Subscribe to quit.
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, onQuit );
 

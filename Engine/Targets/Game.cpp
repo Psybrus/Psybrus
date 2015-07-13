@@ -44,6 +44,8 @@ void android_sigaction( int Signal, siginfo_t* Info, void* Reserved )
 	exit(1);
 }
 
+extern void AutoGenRegisterReflection();
+
 void PsyAndroidMain( struct android_app* State )
 {
 	// Make sure game isn't stripped.
@@ -160,6 +162,15 @@ void PsyAndroidMain( struct android_app* State )
 			return evtRET_REMOVE;
 		} );
 
+
+	// Setup callback for post CsCore open for resource registration.
+	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
+		[]( EvtID, const EvtBaseEvent& )
+		{
+			// Register reflection.
+			AutoGenRegisterReflection();
+			return evtRET_REMOVE;
+		} );
 
 	// Init game.
 	PsyGameInit();
