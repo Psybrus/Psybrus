@@ -22,6 +22,10 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#include <android_native_app_glue.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+
 //////////////////////////////////////////////////////////////////////////
 // System Creator
 SYS_CREATOR( FsCoreImplAndroid );
@@ -49,11 +53,26 @@ FsCoreImplAndroid::~FsCoreImplAndroid()
 void FsCoreImplAndroid::open()
 {
 	int RetVal = 0;
+
+	extern android_app* GAndroidApp;
 	
-	// Set the resource path.
-	// NOTE: May need this again sometime, going to keep code here for ref.
-	//[[NSFileManager defaultManager] changeCurrentDirectoryPath:@"/Users/neilo/Documents/Dev/Psybrus/Examples/TestBed"];
-	
+	AAssetManager* AssetManager = GAndroidApp->activity->assetManager;
+
+	PSY_LOG( "Enumerating files in PackedContent:" );
+	if( auto AssetDir = AAssetManager_openDir( AssetManager, "PackedContent" ) )
+	{
+		while( auto FileName = AAssetDir_getNextFileName( AssetDir ) )
+		{
+			PSY_LOG( " - %s", FileName );
+		}
+
+		AAssetDir_close( AssetDir );
+	}
+	else
+	{
+		PSY_LOG( " - No PackedContent directory." );
+	}
+
 	// Setup file monitor iterator.
 	FileMonitorMapIterator_ = FileMonitorMap_.begin();
 }
@@ -108,17 +127,20 @@ void FsCoreImplAndroid::closeFile( FsFileImpl* pFileImpl )
 //virtual
 BcBool FsCoreImplAndroid::fileExists( const BcChar* pFilename )
 {
-	FILE* pHandle = NULL;
 	// TODO: Proper remapping.
-	std::string Filename = std::string( "/sdcard/" ) + pFilename;
-	pHandle = fopen( Filename.c_str(), "rb" );
-	if( pHandle != NULL )
+	std::string Filename = std::string( pFilename ) + ".mp3";
+
+	// Attempt to open asset.
+	extern android_app* GAndroidApp;
+	AAssetManager* AssetManager = GAndroidApp->activity->assetManager;
+	AAsset* Asset = AAssetManager_open( AssetManager, Filename.c_str(), AASSET_MODE_UNKNOWN );
+	if( Asset )
 	{
-		fclose( pHandle );
+		AAsset_close( Asset );
 	}
-	
-	PSY_LOG( "FsCoreImplAndroid::fileExists %s - %u", Filename.c_str(), pHandle != NULL );
-	return pHandle != NULL;
+
+	PSY_LOG( "FsCoreImplAndroid::fileExists %s - %u", Filename.c_str(), Asset != nullptr );
+	return Asset != nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

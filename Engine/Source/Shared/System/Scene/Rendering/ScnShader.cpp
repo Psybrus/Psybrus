@@ -227,6 +227,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				FreeShaderData = BcTrue;
 			}
 #endif
+			PSY_LOG( "Creating shader: %x", pShaderHeader->PermutationFlags_ );
 			RsShader* pShader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize,
@@ -280,6 +281,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 		
 			// Create program.
+			PSY_LOG( "Creating program: %x", pProgramHeader->ProgramPermutationFlags_ );
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
 				std::move( VertexAttributes ),

@@ -31,7 +31,7 @@ void dummyEntry()
 #include <stdlib.h>
 #include <math.h>
 
-struct android_app* GState_ = nullptr;
+struct android_app* GAndroidApp = nullptr;
 
 static OsClientAndroid* GMainWindow = nullptr;
 
@@ -76,7 +76,7 @@ void PsyAndroidMain( struct android_app* State )
 	CATCHSIG( SIGPIPE );
 #undef CATCHSIG
 
-    GState_ = State;
+    GAndroidApp = State;
 
 	// Set game thread to be this one. 
 	BcSetGameThread();
@@ -135,7 +135,7 @@ void PsyAndroidMain( struct android_app* State )
 	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
 		[]( EvtID, const EvtBaseEvent& )
 		{
-			GMainWindow = new OsClientAndroid( GState_ );
+			GMainWindow = new OsClientAndroid( GAndroidApp );
 			std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + SysArgs_ + std::string( ")" ) );
 			
 			if( GMainWindow->create( Title.c_str() ) == BcFalse )

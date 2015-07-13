@@ -16,10 +16,13 @@
 #include "System/File/FsCore.h"
 #include "System/File/FsCoreImplAndroid.h"
 
+#include <android_native_app_glue.h>
+#include <android/asset_manager.h>
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 FsFileImplAndroid::FsFileImplAndroid():
-	pFileHandle_( NULL ),
+	Asset_( nullptr ),
 	FileSize_( 0 )
 {
 
@@ -30,7 +33,7 @@ FsFileImplAndroid::FsFileImplAndroid():
 //virtual
 FsFileImplAndroid::~FsFileImplAndroid()
 {
-	BcAssert( pFileHandle_ == NULL );
+	BcAssert( Asset_ == nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,34 +43,32 @@ BcBool FsFileImplAndroid::open( const BcChar* FileName, eFsFileMode FileMode )
 {
 	BcBool RetVal = BcFalse;
 
-	if( pFileHandle_ == NULL )
+	if( Asset_ == nullptr )
 	{
 		// Read access.
 		if( FileMode == fsFM_READ )
 		{
 			// TODO: Proper remapping.
-			FileName_ = std::string( "/sdcard/" ) + FileName;
+			FileName_ = std::string( FileName ) + ".mp3";
 
-			pFileHandle_ = fopen( FileName_.c_str(), "rb" );
-			if( pFileHandle_ != NULL )
+			// Attempt to open asset.
+			extern android_app* GAndroidApp;
+			AAssetManager* AssetManager = GAndroidApp->activity->assetManager;
+			Asset_ = AAssetManager_open( AssetManager, FileName_.c_str(), AASSET_MODE_RANDOM );
+
+			if( Asset_ != nullptr )
 			{
-				fseek( pFileHandle_, 0, SEEK_END );
-				FileSize_ = ftell( pFileHandle_ );
-				fseek( pFileHandle_, 0, SEEK_SET );
+				FileSize_ = AAsset_getLength( Asset_ );
+				RetVal = BcTrue;
+			}
+			else
+			{
+				PSY_LOG( "Unable to load asset %s", FileName );
 			}
 		}
 		else if( FileMode == fsFM_WRITE )
 		{
-			// TODO: Proper remapping.
-			FileName_ = std::string( "/sdcard/" ) + FileName;
-
-			pFileHandle_ = fopen( FileName_.c_str(), "wb+" );
-		}
-
-		// Return value.
-		if( pFileHandle_ != NULL )
-		{
-			RetVal = BcTrue;
+			BcBreakpoint;
 		}
 	}
 
@@ -81,12 +82,10 @@ BcBool FsFileImplAndroid::close()
 {
 	BcBool RetVal = BcFalse;
 
-	if( pFileHandle_ != NULL )
+	if( Asset_ )
 	{
-		fclose( pFileHandle_ );
-		pFileHandle_ = NULL;
-		FileSize_ = 0;
-		FileName_.clear();
+		AAsset_close( Asset_ );
+		Asset_ = nullptr;
 		RetVal = BcTrue;
 	}
 
@@ -114,7 +113,8 @@ BcSize FsFileImplAndroid::size() const
 //virtual
 BcSize FsFileImplAndroid::tell() const
 {
-	return (BcSize)ftell( pFileHandle_ );
+	BcBreakpoint;
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ BcSize FsFileImplAndroid::tell() const
 //virtual
 void FsFileImplAndroid::seek( BcSize Position )
 {
-	fseek( pFileHandle_, (long)Position, SEEK_SET );
+	AAsset_seek( Asset_, Position, SEEK_SET );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,21 +130,22 @@ void FsFileImplAndroid::seek( BcSize Position )
 //virtual
 BcBool FsFileImplAndroid::eof() const
 {
-	return feof( pFileHandle_ ) != 0;
+	BcBreakpoint;
+	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // read
 void FsFileImplAndroid::read( void* pDest, BcSize Bytes )
 {
-	fread( pDest, (long)Bytes, 1, pFileHandle_ );
+	AAsset_read( Asset_, pDest, Bytes );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // write
 void FsFileImplAndroid::write( void* pSrc, BcSize Bytes )
 {
-	fwrite( pSrc, (long)Bytes, 1, pFileHandle_ );
+	BcBreakpoint;
 }
 
 //////////////////////////////////////////////////////////////////////////

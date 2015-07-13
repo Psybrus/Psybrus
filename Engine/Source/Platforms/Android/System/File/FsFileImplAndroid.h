@@ -41,9 +41,9 @@ public:
 	virtual void		readAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	virtual void		writeAsync( BcSize Position, void* pData, BcSize Bytes, FsFileOpCallback DoneCallback );
 	
-private:	
+private:
 	std::string			FileName_;
-	FILE*				pFileHandle_;
+	struct AAsset*		Asset_;
 	BcU64				FileSize_;
 };
 

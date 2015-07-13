@@ -1850,6 +1850,20 @@ bool RsContextGL::createProgram(
 		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
 		delete [] pszInfoLog;
 
+		for( auto& Shader : Shaders )
+		{
+			PSY_LOG( "=======================================================\n" );
+			auto ShaderData = reinterpret_cast< const GLchar* >( Shader->getData() );
+			std::stringstream ShaderStream( ShaderData );
+			std::string ShaderLine;
+			int Line = 1;
+			while( std::getline( ShaderStream, ShaderLine, '\n' ) )
+			{
+				PSY_LOG( "%u: %s", Line++, ShaderLine.c_str() );
+			}
+			PSY_LOG( "=======================================================\n" );
+		}
+
 		GL( DeleteProgram( ProgramImpl->Handle_ ) );
 		return false;
 	}
@@ -2132,7 +2146,7 @@ bool RsContextGL::createProgram(
 	GL( ValidateProgram( ProgramImpl->Handle_ ) );
 	GLint ProgramValidated = 0;
 	GL( GetProgramiv( ProgramImpl->Handle_, GL_VALIDATE_STATUS, &ProgramValidated ) );
-	if ( !ProgramLinked )
+	if ( !ProgramValidated )
 	{					 
 		// There was an error here, first get the length of the log message.
 		int i32InfoLogLength, i32CharsWritten; 

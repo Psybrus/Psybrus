@@ -66,7 +66,13 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 // setupFeatureSupport
 void RsOpenGLVersion::setupFeatureSupport()
 {
+	auto* Vendor = (const char*)glGetString( GL_VENDOR );
+	auto* Renderer = (const char*)glGetString( GL_RENDERER );
+	auto* Version = (const char*)glGetString( GL_VERSION );
 	auto Extensions = (const char*)glGetString( GL_EXTENSIONS );
+	PSY_LOG( "Vendor: %s", Vendor );
+	PSY_LOG( "Renderer: %s", Renderer );
+	PSY_LOG( "Version: %s", Version );
 	PSY_LOG( "Extensions: %s", Extensions );
 
 	switch( Type_ )
@@ -160,7 +166,6 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &MaxTextureSlots_ );
 	PSY_LOG( "GL_MAX_TEXTURE_IMAGE_UNITS: %u", MaxTextureSlots_ );
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////

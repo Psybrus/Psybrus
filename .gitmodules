@@ -25,3 +25,6 @@
 [submodule "External/jsoncpp"]
 	path = External/jsoncpp
 	url = https://github.com/Psybrus/jsoncpp
+[submodule "External/rg-etc1"]
+	path = External/rg-etc1
+	url = https://github.com/Psybrus/rg-etc1
