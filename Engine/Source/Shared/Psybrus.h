@@ -73,5 +73,10 @@ extern PsySetupParams GPsySetupParams;
  */
 extern void PsyGameInit();
 
+/**
+ * Called to launch game once scene has initialised.
+ */
+extern void PsyLaunchGame();
+
 
 #endif

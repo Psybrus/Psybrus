@@ -359,7 +359,6 @@ function PsySetupToolchain()
 				-- Android targets: Experimental.
 				{ "android-clang-arm", "Android ARM (Clang 3.5 compiler)" },
 			},
-
 		}
 
 		-- android-clang-arm

@@ -303,11 +303,7 @@ function PsyProjectGameExe( _name )
 
 	PsyAddSystemLibs()
 
-	configuration "*"
-		links {
-			_name .. "Lib"
-		}
-
+    configuration "*"
 	    PsyAddEngineLinks {
 	       "Engine",
 	       "System_Sound",
@@ -345,6 +341,11 @@ function PsyProjectGameExe( _name )
 	       "system",
 	       "wave",
 	    }
+
+	configuration "*"
+		links {
+			_name .. "Lib"
+		}
 
     configuration { "windows-* or linux-* or osx-*" }
        PsyAddExternalLinks {
