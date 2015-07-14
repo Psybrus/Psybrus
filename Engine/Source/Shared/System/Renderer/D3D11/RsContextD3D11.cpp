@@ -71,6 +71,8 @@ static const DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
 	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
 	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
+
 	// Depth.
 	DXGI_FORMAT_R16_TYPELESS,			// RsTextureFormat::D16,
 	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,

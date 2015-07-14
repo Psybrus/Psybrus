@@ -27,6 +27,7 @@ if _OPTIONS[ "toolchain" ] ~= "asmjs" then
 	dofile ("HLSLCrossCompiler_genie.lua")
 	dofile ("RakNet_genie.lua")
 	dofile ("rapidxml_genie.lua")
+	dofile ("rg-etc1_genie.lua")
 	dofile ("squish_genie.lua")
 	dofile ("ThinkGear_genie.lua")
 	dofile ("webby_genie.lua")

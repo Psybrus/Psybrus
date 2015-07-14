@@ -278,6 +278,7 @@ enum class RsTextureFormat : BcU32
 	DXT1,
 	DXT3,
 	DXT5,
+	ETC1,
 
 	// Depth stencil.
 	D16,

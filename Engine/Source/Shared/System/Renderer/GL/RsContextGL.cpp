@@ -322,6 +322,7 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 }, // RsTextureFormat::DXT1,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
 	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
+	{ BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 }, 				 // RsTextureFormat::ETC1,
 
 	// Depth stencil.
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
@@ -3176,7 +3177,7 @@ void RsContextGL::loadTexture(
 		}
 
 	}
-	else if( Version_.SupportDXTTextures_ )
+	else
 	{
 		// TODO: More intrusive checking of format.
 		if( DataSize == 0 || Data == nullptr )
@@ -3232,10 +3233,6 @@ void RsContextGL::loadTexture(
 		default:
 			BcBreakpoint;
 		}
-	}
-	else
-	{
-		BcBreakpoint;
 	}
 }
 

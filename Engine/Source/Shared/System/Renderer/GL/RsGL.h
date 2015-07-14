@@ -83,6 +83,11 @@
 #  include "GL/wglew.h"
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+// GLES defines.
+#if !defined( RENDER_USE_GLES )
+#define GL_ETC1_RGB8_OES           0x8D64
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
@@ -140,6 +145,9 @@ struct RsOpenGLVersion
 	BcBool SupportMRT_;
 	BcBool SupportSeparateBlendState_;
 	BcBool SupportDXTTextures_;
+	BcBool SupportETC1Textures_;
+	BcBool SupportETC2Textures_;
+	BcBool SupportATCTextures_;
 	BcBool SupportNpotTextures_;
 	BcBool SupportDepthTextures_;
 	BcBool SupportFloatTextures_;

@@ -333,6 +333,7 @@ function PsyProjectGameExe( _name )
 	       "jsoncpp",
 	       "libb64",
 	       "png",
+	       "rg-etc1",
 	       "squish",
 	       "SoLoud",
 	       "zlib",

@@ -249,6 +249,16 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 			
 	default:
 		break;
+
+	case RsTextureFormat::ETC1:
+		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
+		{
+			Size += ( Width * Height ) / 2;
+			Width >>= 1;
+			Height >>= 1;
+		}
+		Size *= Depth;
+		break;
 	}
 	
 	return Size;
