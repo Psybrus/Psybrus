@@ -12,8 +12,11 @@
 **************************************************************************/
 
 #include "System/Scene/Import/ScnEntityImport.h"
-
 #include "System/Scene/ScnEntity.h"
+
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
+
+#include "Serialisation/SeJsonWriter.h"
 
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
@@ -27,7 +30,7 @@ void ScnEntityImport::StaticRegisterClass()
 	/*
 	ReField* Fields[] = 
 	{
-		new ReField( "Source_", &ScnEntityImport::Source_ ),
+		new ReField( "Components_", &ScnEntityImport::Components_, bcRFF_IMPORTER ),
 	};
 	*/
 	
@@ -53,7 +56,6 @@ ScnEntityImport::ScnEntityImport( ReNoInit )
 //virtual
 ScnEntityImport::~ScnEntityImport()
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,25 +73,28 @@ BcBool ScnEntityImport::import(
 	Stream << Header;
 	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
 	{
-		Json::Value& Component( Components[ Idx ] );
+		Json::Value& ComponentObj( Components[ Idx ] );
 
 		// ref hack.
-		auto Reference = Component.get( "$Reference", Json::nullValue );
+		auto Reference = ComponentObj.get( "$Reference", Json::nullValue );
 		if( Reference.type() == Json::nullValue )
 		{
-			auto Class = Component[ "$Class" ];
+			auto Class = ComponentObj[ "$Class" ];
 			if( Class == Json::nullValue )
 			{
-				Class = Component[ "type" ];
+				PSY_LOG( "$Class not defined in component for entity %s.%s. Falling back to type. Deprecated behaviour.",
+					getPackageName().c_str(),
+					getResourceName().c_str() );
+				Class = ComponentObj[ "type" ];
 			}
 			
 			// Create a vaguely unique name.
-			if( Component.get( "name", Json::nullValue ).type() == Json::nullValue )
+			if( ComponentObj.get( "name", Json::nullValue ).type() == Json::nullValue )
 			{
-				Component[ "name" ] = (*BcName( Class.asCString() ).getUnique());
+				ComponentObj[ "name" ] = (*BcName( Class.asCString() ).getUnique());
 			}
 
-			BcU32 CrossRef = CsResourceImporter::addImport_DEPRECATED( Component, BcTrue );
+			BcU32 CrossRef = CsResourceImporter::addImport_DEPRECATED( ComponentObj, BcTrue );
 			Stream << CrossRef;
 		}
 		else
@@ -97,7 +102,7 @@ BcBool ScnEntityImport::import(
 			BcU32 CrossRef = Reference.asUInt();
 			Stream << CrossRef;
 		}
-	}	
+	}
 
 	CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 
