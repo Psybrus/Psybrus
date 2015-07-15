@@ -48,7 +48,67 @@
 std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
 std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
 std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
-std::regex GRegex_Filter( "^\\((.*?)\\)" );									// Matches "(String)".
+std::regex GRegex_Filter( "^@\\((.*?)\\)" );								// Matches "(String)".
+
+
+//////////////////////////////////////////////////////////////////////////
+// Anonymous namespace
+namespace 
+{
+	/**
+	 * Process filters in Json. Will merge down, and remove filter blocks as appropriate.
+	 */
+	void ProcessFiltersOnJson( const CsPackageImportParams& Params, Json::Value & Value )
+	{
+		if( Value.type() == Json::objectValue )
+		{
+			std::vector< std::string > FilterGroups;
+			std::cmatch Match;
+
+			// Gather filter groups.
+			auto MemberNames = Value.getMemberNames();
+			for( const auto& MemberName : MemberNames )
+			{
+				std::regex_match( MemberName.c_str(), Match, GRegex_Filter );
+
+				if( Match.size() > 1 )
+				{
+					FilterGroups.push_back( MemberName );
+				}
+			}
+
+			// Sort filter groups alphabetically.
+			std::sort( FilterGroups.begin(), FilterGroups.end() );
+
+			// Move contents of each filter group that we should.
+			for( const auto& FilterGroup : FilterGroups )
+			{
+				if( Params.checkFilterString( FilterGroup ) )
+				{
+					PSY_LOG( "Matched filter group %s, merging down.", FilterGroup.c_str() );
+					const auto& Group = Value[ FilterGroup ];
+					auto GroupMemberNames = Group.getMemberNames();
+					for( const auto& GroupMemberName : GroupMemberNames )
+					{
+						PSY_LOG( " - %s = %s", GroupMemberName.c_str(), Group[ GroupMemberName ].asCString() );
+						Value[ GroupMemberName ] = Group[ GroupMemberName ];
+					}
+				}
+
+				PSY_LOG( "Processed filter group %s", FilterGroup.c_str() );
+
+				// Remove filter group.
+				Value.removeMember( FilterGroup );
+			}
+		}
+
+		// Recurse down.
+		for( auto & ChildValue : Value )
+		{
+			ProcessFiltersOnJson( Params, ChildValue );
+		}
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
@@ -134,7 +194,7 @@ CsPackageImporter::~CsPackageImporter()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool CsPackageImporter::import( const BcName& Name, const CsPackageImportParams& Params )
+BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcName& Name )
 {
 	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
@@ -164,6 +224,9 @@ BcBool CsPackageImporter::import( const BcName& Name, const CsPackageImportParam
 	Json::Value Root;
 	if( loadJsonFile( (*Path).c_str(), Root ) )
 	{
+		// Process filters.
+		ProcessFiltersOnJson( Params, Root );
+
 		// Add as dependency.
 		beginImport();
 		addDependency( (*Path).c_str() );

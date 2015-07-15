@@ -82,8 +82,8 @@ public:
 	 * Import package by name.
 	 */
 	BcBool import( 
-		const BcName& Name,
-		const CsPackageImportParams& Params );
+		const CsPackageImportParams& Params,
+		const BcName& Name );
 	
 	/**
 	 * Save package out to a path.
