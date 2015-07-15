@@ -28,6 +28,33 @@
 #define THREADED_IMPORTING ( 0 )
 
 //////////////////////////////////////////////////////////////////////////
+// CsPackageImportParams
+struct CsPackageImportParams
+{
+	REFLECTION_DECLARE_BASIC( CsPackageImportParams );
+
+	CsPackageImportParams(){};
+
+	/**
+	 * Check filter string vs import filters.
+	 * If @a Filters_ contains "a", "b", and "c", the result for the
+	 * following @a InFilters will be:
+	 * - "(a)" - true
+	 * - "(d)" - false
+	 * - "(a,b)" - true
+	 * - "(a,b,c)" - true
+	 * - "(a,b,d)" - false
+	 * - "(a,b,c,d)" - false
+	 * @return true if all filters in string are in @a Filters_.
+	 */
+	BcBool checkFilterString( const std::string& InFilter ) const;
+
+	/// Used to filter out object properties in the "(filter1,filter2)" blocks.
+	std::vector< std::string > Filters_;
+
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 struct CsPackageDependencies
 {
@@ -55,7 +82,8 @@ public:
 	 * Import package by name.
 	 */
 	BcBool import( 
-		const BcName& Name );
+		const BcName& Name,
+		const CsPackageImportParams& Params );
 	
 	/**
 	 * Save package out to a path.
@@ -200,6 +228,8 @@ private:
 
 		bool operator < ( const TResourceImport& Other ) const
 		{
+			BcAssert( Importer_ );
+			BcAssert( Importer_->getImporterAttribute() );
 			return Importer_->getImporterAttribute()->getPriority() <
 				Other.Importer_->getImporterAttribute()->getPriority();
 		}

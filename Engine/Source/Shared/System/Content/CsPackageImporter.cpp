@@ -32,6 +32,8 @@
 #include "System/SysKernel.h"
 
 #include <regex>
+#include <iostream>
+#include <sstream>
 
 #if PSY_IMPORT_PIPELINE
 #include <boost/filesystem.hpp>
@@ -46,6 +48,45 @@
 std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
 std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
 std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
+std::regex GRegex_Filter( "^\\((.*?)\\)" );									// Matches "(String)".
+
+//////////////////////////////////////////////////////////////////////////
+// CsPackageDependencies
+REFLECTION_DEFINE_BASIC( CsPackageImportParams );
+
+void CsPackageImportParams::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Filters_", &CsPackageImportParams::Filters_ ),
+	};
+
+	ReRegisterClass< CsPackageImportParams >( Fields );
+};
+
+//////////////////////////////////////////////////////////////////////////
+// checkFilterString
+BcBool CsPackageImportParams::checkFilterString( const std::string& InFilter ) const
+{
+	std::cmatch Match;
+	std::regex_match( InFilter.c_str(), Match, GRegex_Filter );
+	if( Match.size() != 2 )
+	{
+		return BcFalse;
+	}
+	std::stringstream StrStream( Match[ 1 ] );
+	std::string Token;
+	while( std::getline( StrStream, Token, ',' ) )
+	{
+		auto It = std::find( Filters_.begin(), Filters_.end(), Token );
+		if( It == Filters_.end() )
+		{
+			return BcFalse;
+		}
+	}
+
+	return BcTrue;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
@@ -55,7 +96,7 @@ void CsPackageDependencies::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Dependencies_",	&CsPackageDependencies::Dependencies_ ),
+		new ReField( "Dependencies_", &CsPackageDependencies::Dependencies_ ),
 	};
 
 	ReRegisterClass< CsPackageDependencies >( Fields );
@@ -93,7 +134,7 @@ CsPackageImporter::~CsPackageImporter()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool CsPackageImporter::import( const BcName& Name )
+BcBool CsPackageImporter::import( const BcName& Name, const CsPackageImportParams& Params )
 {
 	Name_ = Name;
 	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
@@ -362,7 +403,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
  			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
-			}
+	}
 	else
 	{
 		BcAssertMsg( BcFalse, "Failed to load \"%s\"", pFileName );
@@ -473,6 +514,7 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	if( Type == Json::nullValue )
 	{
 		Type = Resource.get( "type", Json::nullValue );
+		BcAssert( Type != Json::nullValue );
 	}
 	BcAssertMsg( Name.type() == Json::stringValue, "Name not specified for resource.\n" );
 	BcAssertMsg( Type.type() == Json::stringValue, "Type not specified for resource.\n" )

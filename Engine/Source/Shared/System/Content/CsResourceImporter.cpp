@@ -114,7 +114,6 @@ CsResourceImporter::CsResourceImporter(
 	MessageCount_( { 0, 0, 0, 0 } ),
 	Importer_( nullptr )
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,6 +145,13 @@ BcBool CsResourceImporter::import(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPackageName
+std::string CsResourceImporter::getPackageName() const
+{
+	return *Importer_->getName();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getResourceName
 std::string CsResourceImporter::getResourceName() const
 {
@@ -172,7 +178,7 @@ const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() co
 {
 	auto Attr = static_cast< CsResourceImporterAttribute* >( 
 		ReManager::GetClass( getResourceType() )->getAttribute( CsResourceImporterAttribute::StaticGetClass() ) );
-	BcAssert( Attr );
+	BcAssertMsg( Attr, "Class \"%s\" has no importer attribute.", getResourceType().c_str() );
 	return Attr;
 }
 
