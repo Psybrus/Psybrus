@@ -166,6 +166,7 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "DXT1", (BcU32)RsTextureFormat::DXT1 ),
 		new ReEnumConstant( "DXT3", (BcU32)RsTextureFormat::DXT3 ),
 		new ReEnumConstant( "DXT5", (BcU32)RsTextureFormat::DXT5 ),
+		new ReEnumConstant( "ETC1", (BcU32)RsTextureFormat::ETC1 ),
 		new ReEnumConstant( "D16", (BcU32)RsTextureFormat::D16 ),
 		new ReEnumConstant( "D24", (BcU32)RsTextureFormat::D24 ),
 		new ReEnumConstant( "D32", (BcU32)RsTextureFormat::D32 ),
