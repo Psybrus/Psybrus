@@ -88,8 +88,10 @@ CsPackage::CsPackage( const BcName& Name ):
 			if( ImportPackageExists )
 			{
 				CsPackageImportParams Params;
+				Params.Filters_.push_back( "pc" );
+				Params.Filters_.push_back( "high" );
 				CsPackageImporter Importer;
-				BcBool ImportSucceeded = Importer.import( Name, Params );
+				BcBool ImportSucceeded = Importer.import( Params, Name );
 				BcAssertMsg( ImportSucceeded, "CsPackage: Failed to import \"%s\"", (*ImportPackage).c_str() );
 			}
 		}
