@@ -60,6 +60,13 @@ namespace
 	 */
 	void ProcessFiltersOnJson( const CsPackageImportParams& Params, Json::Value & Value )
 	{
+		// Recurse down.
+		for( auto & ChildValue : Value )
+		{
+			ProcessFiltersOnJson( Params, ChildValue );
+		}
+
+		// Process.
 		if( Value.type() == Json::objectValue )
 		{
 			std::vector< std::string > FilterGroups;
@@ -85,27 +92,17 @@ namespace
 			{
 				if( Params.checkFilterString( FilterGroup ) )
 				{
-					PSY_LOG( "Matched filter group %s, merging down.", FilterGroup.c_str() );
 					const auto& Group = Value[ FilterGroup ];
 					auto GroupMemberNames = Group.getMemberNames();
 					for( const auto& GroupMemberName : GroupMemberNames )
 					{
-						PSY_LOG( " - %s = %s", GroupMemberName.c_str(), Group[ GroupMemberName ].asCString() );
 						Value[ GroupMemberName ] = Group[ GroupMemberName ];
 					}
 				}
 
-				PSY_LOG( "Processed filter group %s", FilterGroup.c_str() );
-
 				// Remove filter group.
 				Value.removeMember( FilterGroup );
 			}
-		}
-
-		// Recurse down.
-		for( auto & ChildValue : Value )
-		{
-			ProcessFiltersOnJson( Params, ChildValue );
 		}
 	}
 }
