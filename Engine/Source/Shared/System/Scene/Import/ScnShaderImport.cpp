@@ -752,7 +752,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		}
 
 		PSY_LOG( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
-		//throw CsImportException( Errors, Filename_ );
+		//throw CsImportException( Source_.c_str(), Errors.c_str() );
 	}
 
 	--PendingPermutations_;

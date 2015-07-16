@@ -139,11 +139,13 @@ CsImportException::CsImportException(
 		const char* Error,
 		... ) noexcept
 {
+	BcAssert( File );
+	BcAssert( Error );
+
 	BcMemSet( File_, 0, sizeof( File_ ) );
-	BcStrCopy( File_, sizeof( File_ ) - 1, Error );
+	BcStrCopy( File_, sizeof( File_ ) - 1, File );
 
 	BcMemSet( Error_, 0, sizeof( Error_ ) );
-	BcStrCopy( Error_, sizeof( Error_ ) - 1, Error );
 
 	va_list Args;
 	va_start( Args, Error );

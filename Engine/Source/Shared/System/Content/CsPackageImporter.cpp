@@ -305,7 +305,6 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 		else
 		{
 			PSY_LOG( "FAILED: Time: %.2f seconds.\n", TotalTimer.time() );
-			BcBreakpoint;
 		}
 
 		return SaveSuccess;
@@ -460,13 +459,12 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 		}
 		else
 		{
-			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormattedErrorMessages().c_str() );
- 			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
+ 			throw CsImportException( pFileName, "%s", Reader.getFormattedErrorMessages().c_str() );
 		}
 	}
 	else
 	{
-		BcAssertMsg( BcFalse, "Failed to load \"%s\"", pFileName );
+		throw CsImportException( pFileName, "Failed to load Json." );
 	}
 	
 	return Success;

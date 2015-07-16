@@ -81,18 +81,25 @@ void ImportPackage( const BcPath& ImportPackage )
 	// Reimport.
 	if( ShouldImport )
 	{
-		CsPackageImportParams Params;
-		Params.Filters_.push_back( "pc" );
-		Params.Filters_.push_back( "high" );
-		CsPackageImporter Importer;
-		BcBool ImportSucceeded = Importer.import( 
-			Params, 
-			PackageName );
-
-		if( !ImportSucceeded )
+		try
 		{
-			PSY_LOG( "Failure importing" );
-			exit( 1 );
+			CsPackageImportParams Params;
+			Params.Filters_.push_back( "pc" );
+			Params.Filters_.push_back( "high" );
+			CsPackageImporter Importer;
+			BcBool ImportSucceeded = Importer.import( 
+				Params, 
+				PackageName );
+
+			if( !ImportSucceeded )
+			{
+				PSY_LOG( "Failure importing" );
+				exit( 1 );
+			}
+		}
+		catch( CsImportException Exception )
+		{
+			PSY_LOG( "ERROR: %s:\n %s", Exception.file(), Exception.error() );
 		}
 	}
 }
