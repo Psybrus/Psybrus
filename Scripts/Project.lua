@@ -251,24 +251,14 @@ function PsyProjectGameLib( _name )
 	configuration "*"
 end
 
-
--- Setup game exe project.
-function PsyProjectGameExe( _name )
+-- Setup psybrus exe project.
+function PsyProjectPsybrusExe( _name, _suffix )
 	LLVMcxxabiProject()
 
 	group( _name )
 
-	PsyProjectCommonEngine( _name )
+	PsyProjectCommonEngine( _name .. _suffix )
 	PsyPlatformIncludes()
-	print( "Adding Game Executable: " .. _name )
-
-	configuration "*"
-		kind "WindowedApp"
-		language "C++"
-
-    files { 
-		"../Psybrus/Engine/Targets/Game.cpp" 
-	}
 
 	-- Setup android project (if it is one).
 	SetupAndroidProject()
@@ -277,7 +267,7 @@ function PsyProjectGameExe( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
-	local targetNamePrefix = _name .. "-" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ]
+	local targetNamePrefix = _name .. _suffix .. "-" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ]
 	configuration "*"
 		targetname( targetNamePrefix .. "-" )
 
@@ -426,6 +416,39 @@ function PsyProjectGameExe( _name )
 
 	-- Terminate project.
 	configuration "*"
+end
+
+-- Setup game exe project.
+function PsyProjectGameExe( _name )
+	PsyProjectPsybrusExe( _name, "" )
+	print( "Adding Game Executable: " .. _name )
+
+	configuration "*"
+		kind "WindowedApp"
+		language "C++"
+
+    files { 
+		"../Psybrus/Engine/Targets/Game.cpp" 
+	}
+end
+
+-- Setup game exe project.
+function PsyProjectImporterExe( _name )
+	-- TODO: Set a boolean in the toolchain.
+	if string.match( _OPTIONS[ "toolchain" ], "windows-.*" ) or
+	   string.match( _OPTIONS[ "toolchain" ], "linux-.*" ) or
+	   string.match( _OPTIONS[ "toolchain" ], "osx-.*" ) then
+		PsyProjectPsybrusExe( _name, "Importer" )
+		print( "Adding Game Executable: " .. _name )
+
+		configuration "*"
+			kind "ConsoleApp"
+			language "C++"
+
+    	files { 
+			"../Psybrus/Engine/Targets/Importer.cpp" 
+		}
+	end
 end
 
 -- Setup game exe project.

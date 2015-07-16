@@ -153,12 +153,6 @@ void MainShared()
 	}
 
 
-	// Start debug system if not a production build.
-#if !defined( PSY_PRODUCTION )
-	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
-	SysKernel::pImpl()->startSystem( "DsCore" );
-#endif
-
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
 
@@ -179,6 +173,12 @@ void MainShared()
 
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
+
+	// Start debug system if not a production build.
+#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
+	SysKernel::pImpl()->startSystem( "DsCore" );
+#endif
 
 	// Start scene system.
 	SysKernel::pImpl()->startSystem( "ScnCore" );

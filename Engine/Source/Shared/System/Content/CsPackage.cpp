@@ -54,7 +54,6 @@ CsPackage::CsPackage( const BcName& Name ):
 
 	// Cache paths related to this package.
 	const BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
-	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( Name ) );
 
 	// Keep attempting load.
 	BcBool LoaderValid = BcFalse;
@@ -78,24 +77,25 @@ CsPackage::CsPackage( const BcName& Name ):
 			}
 		}
 
-#if PSY_IMPORT_PIPELINE
-		// Attempt to import.
+		// If loader has failed, prompt.
 		if( LoaderValid == BcFalse )
 		{
-			BcBool ImportPackageExists = FsCore::pImpl()->fileExists( (*ImportPackage).c_str() );
-			BcAssertMsg( ImportPackageExists, "CsPackage: Missing import package \"%s\"", (*ImportPackage).c_str() );
-
-			if( ImportPackageExists )
+#if !PSY_PRODUCTION
+			BcChar Buffer[ 4096 ] = { 0 };
+			BcSPrintf( Buffer, sizeof( Buffer ) - 1, "Package \"%s\" is missing. Run importer and try again.", (*Name).c_str() );
+			if( BcMessageBox( "Package error", Buffer, bcMBT_OKCANCEL, bcMBI_ERROR ) == bcMBR_OK )
 			{
-				CsPackageImportParams Params;
-				Params.Filters_.push_back( "pc" );
-				Params.Filters_.push_back( "high" );
-				CsPackageImporter Importer;
-				BcBool ImportSucceeded = Importer.import( Params, Name );
-				BcAssertMsg( ImportSucceeded, "CsPackage: Failed to import \"%s\"", (*ImportPackage).c_str() );
+				BcSleep( 5.0f );
 			}
-		}
+			else
+			{
+				exit( 1 );
+			}
+#else
+			// Exit.
+			exit( 1 );
 #endif
+		}
 	}
 	while( LoaderValid == BcFalse );
 }

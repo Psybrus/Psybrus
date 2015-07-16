@@ -120,28 +120,31 @@ void DsCoreImpl::open()
 #endif
 
 	// Setup init/deinit hooks.
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
+	if( OsCore::pImpl()->getClient( 0 ) )
 	{
-		ImGui::Psybrus::Init();
-		return evtRET_REMOVE;
-	} );
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
+			[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			ImGui::Psybrus::Init();
+			return evtRET_REMOVE;
+		} );
 
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
-	{
-		ImGui::Psybrus::Shutdown();
-		return evtRET_REMOVE;
-	} );
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
+			[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			ImGui::Psybrus::Shutdown();
+			return evtRET_REMOVE;
+		} );
 
 #if PLATFORM_ANDROID
-	DrawPanels_ = BcTrue;
+		DrawPanels_ = BcTrue;
 
-	auto& Style = ImGui::GetStyle();
-	Style.FramePadding.x *= 2.0f;
-	Style.FramePadding.y *= 2.0f;
-	Style.GrabMinSize *= 2.0f;
+		auto& Style = ImGui::GetStyle();
+		Style.FramePadding.x *= 2.0f;
+		Style.FramePadding.y *= 2.0f;
+		Style.GrabMinSize *= 2.0f;
 #endif
+	}
 
 	// Setup toggle of debug panels.
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
@@ -170,13 +173,16 @@ void DsCoreImpl::update()
 		WebbyServerUpdate( Servers_[ Idx ] );
 	}
 #endif // USE_WEBBY
-	if ( ImGui::Psybrus::NewFrame() )
+	if( OsCore::pImpl() && OsCore::pImpl()->getClient( 0 ) )
 	{
-		if ( DrawPanels_ )
+		if ( ImGui::Psybrus::NewFrame() )
 		{
-			for ( auto& Panel : PanelFunctions_ )
+			if ( DrawPanels_ )
 			{
-				Panel.Function_( Panel.Handle_ );
+				for ( auto& Panel : PanelFunctions_ )
+				{
+					Panel.Function_( Panel.Handle_ );
+				}
 			}
 		}
 	}

@@ -70,31 +70,6 @@ eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 	return evtRET_REMOVE;
 }
 
-// HACK HACK HACK: Offline package importing is a major hack for now.
-eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const EvtBaseEvent& )
-{
-	using namespace boost::filesystem;
-	path Path( "Content/" );
-
-	auto It = directory_iterator( Path );
-	while( It != directory_iterator() )
-	{
-		directory_entry Entry = *It;
-		std::cout << Entry.path().extension().string()  << std::endl;
-		if( Entry.path().extension().string()  == ".pkg" )
-		{
-			BcPath PackagePath( Entry.path().string() );
-			CsPackage* pPackage = new CsPackage( PackagePath.getFileNameNoExtension() );
-			BcUnusedVar( pPackage );
-		}
-		++It;
-	}
-
-	// HACK: We just wanna bail here. No clean shutdown yet.
-	exit(0);
-	//return evtRET_REMOVE;
-}
-
 
 int main(int argc, char** argv)
 {
@@ -171,8 +146,8 @@ int main(int argc, char** argv)
 	// Main shared.
 	MainShared();
 
-	// HACK HACK HACK: Offline package importing is a major hack for now.
-	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
+	// Game or tool init.
+	if( GPsySetupParams.Flags_ & psySF_GAME )
 	{
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
@@ -182,10 +157,19 @@ int main(int argc, char** argv)
 		// Init game.
 		PsyGameInit();
 	}
-	else
+	else if( GPsySetupParams.Flags_ & psySF_TOOL )
 	{
-		// HACK HACK HACK: Offline package importing is a major hack for now.
-		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostCsOpen_ImportPackages );
+		extern void PsyToolInit();
+		PsyToolInit();
+
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
+		[]( EvtID, const EvtBaseEvent& )
+			{
+				extern void PsyToolMain();
+				PsyToolMain();
+				SysKernel::pImpl()->stop();
+				return evtRET_REMOVE;
+			} );
 	}
 
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )
