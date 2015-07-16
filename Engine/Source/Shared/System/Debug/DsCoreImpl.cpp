@@ -784,7 +784,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		std::string* Value = ( std::string* )Object;
 		char Buffer[ 1024 ] = { 0 };
-		BcStrCopyN( Buffer, Value->c_str(), BcArraySize( Buffer ) );
+		BcStrCopy( Buffer, BcArraySize( Buffer ) - 1, Value->c_str() );
 		if ( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = Buffer;
@@ -797,7 +797,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcName* Value = ( BcName* ) Object;
 		char Buffer[ 1024 ] = { 0 };
-		BcStrCopyN( Buffer, ( **Value ).c_str(), BcArraySize( Buffer ) );
+		BcStrCopy( Buffer, BcArraySize( Buffer ), ( **Value ).c_str() );
 		if ( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = Buffer;

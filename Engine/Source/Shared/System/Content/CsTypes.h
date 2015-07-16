@@ -114,20 +114,16 @@ class CsImportException:
 {
 public:
 	CsImportException( 
-			const std::string& Error,
-			const std::string& File ):
-		//std::exception( Error.c_str() ), // TODO LINUX
-		File_( File )
-	{}
-	virtual ~CsImportException(){}
-
-	const std::string& file() const
-	{
-		return File_;
-	}
+		const char* File,
+		const char* Error,
+		... ) noexcept;
+	const char* what() const noexcept;
+	const char* file() const noexcept;
+	const char* error() const noexcept;
 
 private:
-	std::string File_;
+	BcChar File_[ 1024 ];
+	BcChar Error_[ 4096 ];
 };
 
 #endif

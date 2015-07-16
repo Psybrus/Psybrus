@@ -198,9 +198,9 @@ ReObjectRef< CsResource > CsCore::getResource( const BcChar* pFullName )
 	ReObjectRef< CsResource > Handle;
 	if( pFullName != NULL )
 	{
-		BcChar FullNameBuffer[ 1024 ];
+		BcChar FullNameBuffer[ 1024 ] = { 0 };
 		BcAssertMsg( BcStrLength( pFullName ) < sizeof( FullNameBuffer ), "CsPackageImporter: Full name too long." );
-		BcStrCopy( FullNameBuffer, pFullName );
+		BcStrCopy( FullNameBuffer, sizeof( FullNameBuffer ), pFullName );
 		BcChar* pPackageNameBuffer = NULL;
 		BcChar* pResourceNameBuffer = NULL;
 		BcChar* pTypeNameBuffer = NULL;

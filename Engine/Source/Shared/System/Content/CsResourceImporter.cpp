@@ -321,7 +321,7 @@ CsFileHash CsResourceImporter::addFile(
 	}
 	else
 	{
-		throw new CsImportException( "Unable to open file", FileName );
+		throw new CsImportException( "Unable to open file", FileName.c_str() );
 	}
 
 	return FileHash;

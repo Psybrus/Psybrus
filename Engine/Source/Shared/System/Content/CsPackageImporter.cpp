@@ -281,7 +281,7 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 			catch( CsImportException ImportException )
 			{
 				PSY_LOG( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
-				PSY_LOG( "ERROR: in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
+				PSY_LOG( "ERROR: in file %s:\n%s\n", ImportException.file(), ImportException.what() );	
 				endImport();
 				return BcFalse;
 			}
@@ -460,7 +460,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 		}
 		else
 		{
-			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
+			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormattedErrorMessages().c_str() );
  			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
 		}
 	}

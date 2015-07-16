@@ -51,7 +51,8 @@ struct FsEventMonitor: EvtEvent< FsEventMonitor >
 	FsEventMonitor();
 	FsEventMonitor( const BcChar* FileName, const FsStats& OldFileStats, const FsStats& NewFileStats )
 	{
-		BcStrCopyN( FileName_, FileName, sizeof( FileName_ ) );
+		BcMemSet( FileName_, 0, sizeof( FileName_ ) );
+		BcStrCopy( FileName_, sizeof( FileName_ ) - 1, FileName );
 		OldFileStats_ = OldFileStats;
 		NewFileStats_ = NewFileStats;
 	}

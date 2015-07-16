@@ -51,7 +51,7 @@ void BcPrintf( const BcChar* Text, ... )
 #if PLATFORM_ANDROID
 	__android_log_print( ANDROID_LOG_INFO, "Psybrus", MessageBuffer );	
 #endif 
-	printf( MessageBuffer );
+	printf( "%s", MessageBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////

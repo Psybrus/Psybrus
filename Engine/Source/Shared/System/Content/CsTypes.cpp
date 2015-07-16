@@ -14,6 +14,11 @@
 #include "System/Content/CsTypes.h"
 #include "System/File/FsCore.h"
 
+#include "Base/BcString.h"
+
+#include <cstdarg>
+#include <cstdio>
+
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 REFLECTION_DEFINE_BASIC( CsDependency );
@@ -125,4 +130,44 @@ std::string CsFileHash::getName() const
 		Hash_[ 3 ],
 		Hash_[ 4 ] );
 	return OutChars;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsImportException::CsImportException( 
+		const char* File,
+		const char* Error,
+		... ) noexcept
+{
+	BcMemSet( File_, 0, sizeof( File_ ) );
+	BcStrCopy( File_, sizeof( File_ ) - 1, Error );
+
+	BcMemSet( Error_, 0, sizeof( Error_ ) );
+	BcStrCopy( Error_, sizeof( Error_ ) - 1, Error );
+
+	va_list Args;
+	va_start( Args, Error );
+	vsnprintf( Error_, sizeof( Error_ ), Error, Args );
+	va_end( Args );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// what
+const char* CsImportException::what() const noexcept
+{
+	return Error_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// file
+const char* CsImportException::file() const noexcept
+{
+	return File_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// error
+const char* CsImportException::error() const noexcept
+{
+	return Error_;
 }
