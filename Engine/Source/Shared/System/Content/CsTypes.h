@@ -30,6 +30,14 @@
 #undef ERROR
 
 //////////////////////////////////////////////////////////////////////////
+// Paths
+class CsPaths
+{
+public:
+	static const BcPath PACKED_CONTENT;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsCrossRefId
 typedef BcU32 CsCrossRefId;
 static const CsCrossRefId CSCROSSREFID_INVALID = static_cast< CsCrossRefId >( -1 );

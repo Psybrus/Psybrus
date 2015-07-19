@@ -306,7 +306,7 @@ CsFileHash CsResourceImporter::addFile(
 		Hasher.get_digest( FileHash.Hash_ );
 
 		auto OutFileName = 
-			*CsCore::pImpl()->getPackagePackedPath( BcName::INVALID ) + 
+			*CsPaths::PACKED_CONTENT + 
 			std::string( "/" ) + 
 			FileHash.getName() + std::string( ".dat" );
 
@@ -346,7 +346,7 @@ void CsResourceImporter::addDependency(
 std::string CsResourceImporter::getIntermediatePath()
 {
 #if PSY_IMPORT_PIPELINE
-	return *CsCore::pImpl()->getIntermediatePath( *Importer_->getName() );
+	return *Importer_->getParams().getPackageIntermediatePath( *Importer_->getName() );
 #else
 	return "";
 #endif // PSY_IMPORT_PIPELINE

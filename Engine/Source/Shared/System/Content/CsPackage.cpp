@@ -46,24 +46,21 @@ CsPackage::CsPackage()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPackage::CsPackage( const BcName& Name ):
+CsPackage::CsPackage( const BcName& Name, const BcPath& Filename ):
 	RefCount_( 0 ),
 	pLoader_( nullptr )
 {
 	setName( Name );
 
-	// Cache paths related to this package.
-	const BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
-
 	// Keep attempting load.
 	BcBool LoaderValid = BcFalse;
 	do
 	{
-		BcBool PackedPackageExists = FsCore::pImpl()->fileExists( (*PackedPackage).c_str() );
+		BcBool PackedPackageExists = FsCore::pImpl()->fileExists( Filename.c_str() );
 
 		if( PackedPackageExists )
 		{
-			pLoader_ = new CsPackageLoader( this, PackedPackage );
+			pLoader_ = new CsPackageLoader( this, Filename );
 	
 			// If the loader has no error it's valid to continue.
 			if( !pLoader_->hasError() )

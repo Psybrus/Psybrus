@@ -236,19 +236,18 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 	}
 
 	// Check for a packed package.
-	BcPath PackedPackage( getPackagePackedPath( Package ) );
-	BcPath ImportPackage( getPackageImportPath( Package ) );
-	BcBool PackageExists = FsCore::pImpl()->fileExists( (*PackedPackage).c_str() ) || FsCore::pImpl()->fileExists( (*ImportPackage).c_str() );
+	BcPath PackedPackage( *CsPaths::PACKED_CONTENT + "/" + *Package + ".pak" );
+	BcBool PackageExists = FsCore::pImpl()->fileExists( PackedPackage.c_str() );
 
 	// If it exists, create it. Internally it will trigger it's own load.
 	if( PackageExists )
 	{
-		pPackage = new CsPackage( Package );
+		pPackage = new CsPackage( Package, PackedPackage );
 		PackageList_.push_back( pPackage );
 	}	
 	else
 	{
-		BcAssertMsg( BcFalse, "CsCore: Can't import package, missing \"%s\" or \"%s\"", (*PackedPackage).c_str(), (*ImportPackage).c_str() );
+		BcAssertMsg( BcFalse, "CsCore: Can't import package, missing \"%s\"", PackedPackage.c_str() );
 	}
 
 	//
@@ -283,65 +282,6 @@ CsPackage* CsCore::findPackage( const BcName& Package )
 	}
 
 	return NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPackageImportPath
-BcPath CsCore::getPackageImportPath( const BcName& Package )
-{
-	BcPath Path;
-	Path.join( "Content", *Package + ".pkg" );
-	return Path;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPackageIntermediatePath
-BcPath CsCore::getPackageIntermediatePath( const BcName& Package )
-{
-	BcPath Path;
-	if( Package != BcName::INVALID )
-	{
-		Path.join( "IntermediateContent", *Package + ".pak" );
-	}
-	else
-	{
-		Path = "IntermediateContent";
-	}
-
-#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
-	boost::filesystem::create_directories( *Path );
-#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
-
-	return Path;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPackagePackedPath
-BcPath CsCore::getPackagePackedPath( const BcName& Package )
-{
-	BcPath Path;
-	if( Package != BcName::INVALID )
-	{
-		Path.join( "PackedContent", *Package + ".pak" );
-	}
-	else
-	{
-		Path = "PackedContent";
-	}
-	return Path;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getIntermediatePath
-BcPath CsCore::getIntermediatePath( const std::string& SubFolder )
-{
-	BcPath Path;
-	Path.join( "IntermediateContent", SubFolder + ".pak" );
-
-#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
-	boost::filesystem::create_directories( *Path );
-#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
-	return Path;
 }
 
 //////////////////////////////////////////////////////////////////////////

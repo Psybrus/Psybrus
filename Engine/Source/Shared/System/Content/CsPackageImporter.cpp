@@ -146,6 +146,43 @@ BcBool CsPackageImportParams::checkFilterString( const std::string& InFilter ) c
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPackageIntermediatePath
+BcPath CsPackageImportParams::getPackageIntermediatePath( const BcName& Package ) const
+{
+	BcPath Path;
+	if( Package != BcName::INVALID )
+	{
+		Path.join( IntermediatePath_, *Package + ".pak" );
+	}
+	else
+	{
+		Path = IntermediatePath_;
+	}
+
+#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
+	boost::filesystem::create_directories( *Path );
+#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
+
+	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPackagePackedPath
+BcPath CsPackageImportParams::getPackagePackedPath( const BcName& Package ) const
+{
+	BcPath Path;
+	if( Package != BcName::INVALID )
+	{
+		Path.join( PackedContentPath_, *Package + ".pak" );
+	}
+	else
+	{
+		Path = PackedContentPath_;
+	}
+	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 REFLECTION_DEFINE_BASIC( CsPackageDependencies );
 
@@ -163,8 +200,18 @@ void CsPackageDependencies::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPackageImporter::CsPackageImporter():
-	BuildingBeginCount_( 0 )
+CsPackageImporter::CsPackageImporter(
+		const CsPackageImportParams& Params,
+		const BcName& Name,
+		const BcPath& Filename ):
+	Params_( Params ),
+	Name_( Name ),
+	Filename_( Filename ),
+	Resources_(),
+	BuildingBeginCount_( 0 ),
+	ImportErrorCount_( 0 ),
+	ResourceIds_( 0 ),
+	DataPosition_( 0 )
 {
 
 }
@@ -191,12 +238,10 @@ CsPackageImporter::~CsPackageImporter()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcName& Name )
+BcBool CsPackageImporter::import()
 {
-	Name_ = Name;
-	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
 	PSY_LOGSCOPEDCATEGORY( "Import" );
-	PSY_LOG( "Importing %s...\n", (*Path).c_str() );
+	PSY_LOG( "Importing %s...\n", Filename_.c_str() );
 
 	PSY_LOGSCOPEDINDENT;
 
@@ -205,7 +250,7 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 
 	// Store source file info.
 	FsStats Stats;
-	if( FsCore::pImpl()->fileStats( (*Path).c_str(), Stats ) )
+	if( FsCore::pImpl()->fileStats( Filename_.c_str(), Stats ) )
 	{
 		Header_.SourceFileStatsHash_ = BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) );
 	}
@@ -215,18 +260,18 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 	}
 
 	beginImport();
-	Header_.SourceFile_ = addString( (*Path).c_str() );
+	Header_.SourceFile_ = addString( Filename_.c_str() );
 	endImport();
 
 	Json::Value Root;
-	if( loadJsonFile( (*Path).c_str(), Root ) )
+	if( loadJsonFile( Filename_.c_str(), Root ) )
 	{
 		// Process filters.
-		ProcessFiltersOnJson( Params, Root );
+		ProcessFiltersOnJson( Params_, Root );
 
 		// Add as dependency.
 		beginImport();
-		addDependency( (*Path).c_str() );
+		addDependency( Filename_.c_str() );
 
 		// Get resource list.
 		Json::Value Resources( Root.get( "resources", Json::Value( Json::arrayValue ) ) );
@@ -288,7 +333,7 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 		}
 
 		// Save and return.
-		BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
+		BcPath PackedPackage( Params_.getPackagePackedPath( Name_ ) );
 		BcBool SaveSuccess = save( PackedPackage );
 
 		if( SaveSuccess )
@@ -296,7 +341,7 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 			PSY_LOG( "SUCCEEDED: Time: %.2f seconds.\n", TotalTimer.time() );
 
 			// Write out dependencies.
-			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
+			std::string OutputDependencies = *Params_.getPackageIntermediatePath( Name_ ) + "/deps.json";
 			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
@@ -318,11 +363,11 @@ BcBool CsPackageImporter::import( const CsPackageImportParams& Params, const BcN
 BcBool CsPackageImporter::save( const BcPath& Path )
 {
 	// Create target folder.
-	std::string PackedPath = *CsCore::pImpl()->getPackagePackedPath( "" );
+	const auto& PackedPath = Params_.PackedContentPath_;
 
-	if( !boost::filesystem::exists( PackedPath ) )
+	if( !boost::filesystem::exists( PackedPath.c_str() ) )
 	{
-		boost::filesystem::create_directories( PackedPath );
+		boost::filesystem::create_directories( PackedPath.c_str() );
 	}
 
 	// Open package output.
@@ -946,6 +991,13 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 			addAllPackageCrossRefs( Root[ MemberValues[ Idx ] ] );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getParams
+const CsPackageImportParams& CsPackageImporter::getParams() const
+{
+	return Params_;
 }
 
 //////////////////////////////////////////////////////////////////////////

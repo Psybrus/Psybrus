@@ -234,8 +234,8 @@ class SsSource* SsCoreImplSoLoud::createSource(
 	auto createFunc = [ this, Resource, FileData ]()
 	{
 		auto InFileName = 
-			*CsCore::pImpl()->getPackagePackedPath( BcName::INVALID ) + 
-			std::string( "/" ) + 
+			*CsPaths::PACKED_CONTENT +
+			std::string( "/" ) +
 			FileData->FileHash_.getName() + std::string( ".dat" );
 		SoLoud::AudioSource* AudioSource = nullptr;
 		switch( FileData->Type_ )

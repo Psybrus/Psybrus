@@ -15,15 +15,22 @@
 PsySetupParams GPsySetupParams( "Importer", psySF_IMPORTER );	
 
 //////////////////////////////////////////////////////////////////////////
+// FindPackages
+std::vector< BcPath > FindPackages( const CsPackageImportParams& Params )
+{
+	return {};
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ImportPackage
-void ImportPackage( const BcPath& ImportPackage )
+void ImportPackage( const CsPackageImportParams& Params, const BcPath& ImportPackage )
 {
 	auto PackageName = ImportPackage.getFileNameNoExtension();
 
 	// Read in dependencies.
 	FsStats Stats;
-	std::string PackedPackage = *CsCore::pImpl()->getPackagePackedPath( PackageName );
-	std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( PackageName ) + "/deps.json";
+	std::string PackedPackage = *Params.getPackagePackedPath( PackageName );
+	std::string OutputDependencies = *Params.getPackageIntermediatePath( PackageName ) + "/deps.json";
 	BcBool ShouldImport = BcFalse;
 
 	// Import package if it doesn't exist.
@@ -81,16 +88,10 @@ void ImportPackage( const BcPath& ImportPackage )
 	// Reimport.
 	if( ShouldImport )
 	{
+		CsPackageImporter Importer( Params, PackageName, ImportPackage );
 		try
 		{
-			CsPackageImportParams Params;
-			Params.Filters_.push_back( "pc" );
-			Params.Filters_.push_back( "high" );
-			CsPackageImporter Importer;
-			BcBool ImportSucceeded = Importer.import( 
-				Params, 
-				PackageName );
-
+			BcBool ImportSucceeded = Importer.import();
 			if( !ImportSucceeded )
 			{
 				PSY_LOG( "Failure importing" );
@@ -119,6 +120,13 @@ void PsyToolMain()
 	using namespace boost::filesystem;
 	path Path( "Content/" );
 
+	CsPackageImportParams Params;
+	Params.Filters_.push_back( "pc" );
+	Params.Filters_.push_back( "high" );
+
+	Params.IntermediatePath_ = "Intermediate";
+	Params.PackedContentPath_ = "PackedContent";
+
 	auto It = directory_iterator( Path );
 	while( It != directory_iterator() )
 	{
@@ -127,7 +135,7 @@ void PsyToolMain()
 		if( Entry.path().extension().string()  == ".pkg" )
 		{
 			BcPath PackagePath( Entry.path().string() );
-			ImportPackage( PackagePath );
+			ImportPackage( Params, PackagePath );
 		}
 		++It;
 	}
