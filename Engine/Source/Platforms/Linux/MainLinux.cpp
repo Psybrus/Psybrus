@@ -78,8 +78,19 @@ int main(int argc, char** argv)
 
 	for( int Idx = 0; Idx < argc; ++Idx )
 	{
-		CommandLine += argv[ Idx ];
-		CommandLine += " ";
+		if( strstr( argv[ Idx ], " " ) )
+		{
+			CommandLine += std::string( "\"" ) + argv[ Idx ] + std::string( "\"" );	
+		}
+		else
+		{
+			CommandLine += argv[ Idx ];
+		}
+
+		if( Idx != argc - 1 )
+		{
+			CommandLine += " ";
+		}
 	}
 
 	GInstance_ = (BcHandle)0;

@@ -4,11 +4,16 @@
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "System/File/FsCore.h"
+#include "System/SysKernel.h"
 
 #include "Serialisation/SeJsonReader.h"
 
+#include "Base/BcCommandLine.h"
+
+#include <vector>
 #include <iostream>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
@@ -16,95 +21,134 @@ PsySetupParams GPsySetupParams( "Importer", psySF_IMPORTER );
 
 //////////////////////////////////////////////////////////////////////////
 // FindPackages
-std::vector< BcPath > FindPackages( const CsPackageImportParams& Params )
+std::vector< BcPath > FindPackages( const CsPlatformParams& Params )
 {
-	return {};
+	std::vector< BcPath > FoundPackages;
+
+	using namespace boost::filesystem;
+	path Path( "Content/" );
+
+	auto It = directory_iterator( Path );
+	while( It != directory_iterator() )
+	{
+		directory_entry Entry = *It;
+		if( Entry.path().extension().string()  == ".pkg" )
+		{
+			BcPath PackagePath( Entry.path().string() );
+			FoundPackages.emplace_back( PackagePath );
+		}
+		++It;
+	}
+
+	PSY_LOG( "Found %u packages.", FoundPackages.size() );
+
+	return FoundPackages;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// ImportPackage
-void ImportPackage( const CsPackageImportParams& Params, const BcPath& ImportPackage )
+// CheckPackages
+std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::vector< BcPath >& PackagePaths )
 {
-	auto PackageName = ImportPackage.getFileNameNoExtension();
+	std::vector< BcPath > CheckedPackages;
 
-	// Read in dependencies.
-	FsStats Stats;
-	std::string PackedPackage = *Params.getPackagePackedPath( PackageName );
-	std::string OutputDependencies = *Params.getPackageIntermediatePath( PackageName ) + "/deps.json";
-	BcBool ShouldImport = BcFalse;
-
-	// Import package if it doesn't exist.
-	if( !boost::filesystem::exists( PackedPackage ) )
+	for( const auto& PackagePath : PackagePaths )
 	{
-		ShouldImport = BcTrue;
-	}
+		BcBool ShouldImport = BcFalse;
 
-	// Import package & output dependencies changed?
-	if( boost::filesystem::exists( *ImportPackage ) )
-	{
-		if(	boost::filesystem::exists( OutputDependencies ) )
+		auto PackageName = PackagePath.getFileNameNoExtension();
+
+		// Read in dependencies.
+		FsStats Stats;
+		std::string PackedPackage = *Params.getPackagePackedPath( PackageName );
+		std::string OutputDependencies = *Params.getPackageIntermediatePath( PackageName ) + "/deps.json";
+
+		// Import package if it doesn't exist.
+		if( !boost::filesystem::exists( PackedPackage ) )
 		{
-			PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
-			PSY_LOGSCOPEDINDENT;
+			ShouldImport = BcTrue;
+		}
 
-			CsPackageDependencies Dependencies;
-
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
-			SeJsonReader Reader( &ObjectCodec );
-			Reader.load( OutputDependencies.c_str() );
-			Reader << Dependencies;
-
-			// Check other dependencies.
-			if( !ShouldImport )
+		// Import package & output dependencies changed?
+		if( boost::filesystem::exists( *PackagePath ) )
+		{
+			if(	boost::filesystem::exists( OutputDependencies ) )
 			{
-				for( const auto& Dependency : Dependencies.Dependencies_ )
+				PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
+				PSY_LOGSCOPEDINDENT;
+
+				CsPackageDependencies Dependencies;
+				CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
+				SeJsonReader Reader( &ObjectCodec );
+				Reader.load( OutputDependencies.c_str() );
+				Reader << Dependencies;
+
+				// Check other dependencies.
+				if( !ShouldImport )
 				{
-					if( Dependency.hasChanged() )
+					for( const auto& Dependency : Dependencies.Dependencies_ )
 					{
-						PSY_LOG( "WARNING: \"%s\" has changed.\n", Dependency.getFileName().c_str() );
-						ShouldImport = BcTrue;
-						break;
-					}
-					else
-					{
-						PSY_LOG( "\"%s\" has not changed.\n", Dependency.getFileName().c_str() );						
+						if( Dependency.hasChanged() )
+						{
+							PSY_LOG( "WARNING: \"%s\" has changed.\n", Dependency.getFileName().c_str() );
+							ShouldImport = BcTrue;
+							break;
+						}
+						else
+						{
+							PSY_LOG( "\"%s\" has not changed.\n", Dependency.getFileName().c_str() );						
+						}
 					}
 				}
+			}
+			else
+			{
+				PSY_LOG( "WARNING: Can't find package dependency info \"%s\", perform full build.\n", OutputDependencies.c_str() );
+
+				// No deps file, assume worst.
+				ShouldImport = BcTrue;
 			}
 		}
 		else
 		{
-			PSY_LOG( "WARNING: Can't find package dependency info \"%s\", perform full build.\n", OutputDependencies.c_str() );
+			PSY_LOG( "ERROR: Can't find package \"%s\", skipping dependency checking.\n", (*PackagePath).c_str() );
+		}
 
-			// No deps file, assume worst.
-			ShouldImport = BcTrue;
+		if( ShouldImport )
+		{
+			CheckedPackages.emplace_back( PackagePath );
 		}
 	}
-	else
-	{
-		PSY_LOG( "ERROR: Can't find package \"%s\", skipping dependency checking.\n", (*ImportPackage).c_str() );
-	}
 
-	// Reimport.
-	if( ShouldImport )
+	return CheckedPackages;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ImportPackages
+void ImportPackages( const CsPlatformParams& Params, const std::vector< BcPath >& PackagePaths )
+{
+	for( const auto& PackagePath : PackagePaths )
 	{
-		CsPackageImporter Importer( Params, PackageName, ImportPackage );
+		auto PackageName = PackagePath.getFileNameNoExtension();
+
+		CsPackageImporter Importer( Params, PackageName, PackagePath );
 		try
 		{
 			BcBool ImportSucceeded = Importer.import();
 			if( !ImportSucceeded )
 			{
-				PSY_LOG( "Failure importing" );
+				PSY_LOG( "ERROR: Failure importing %s (%s)", 
+					PackageName.c_str(), PackagePath.c_str() );
 				exit( 1 );
 			}
 		}
 		catch( CsImportException Exception )
 		{
-			PSY_LOG( "ERROR: %s:\n %s", Exception.file(), Exception.error() );
+			PSY_LOG( "ERROR: Failure importing %s (%s):\t%s:\n %s", 
+				PackageName.c_str(), PackagePath.c_str(), 
+				Exception.file(), Exception.error() );
 		}
 	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // PsyToolInit
@@ -117,26 +161,56 @@ void PsyToolInit()
 // PsyToolMain
 void PsyToolMain()
 {
-	using namespace boost::filesystem;
-	path Path( "Content/" );
+	CsPlatformParams Params;
 
-	CsPackageImportParams Params;
-	Params.Filters_.push_back( "pc" );
-	Params.Filters_.push_back( "high" );
+	BcCommandLine CmdLine( SysArgs_.c_str() );
 
-	Params.IntermediatePath_ = "Intermediate";
-	Params.PackedContentPath_ = "PackedContent";
-
-	auto It = directory_iterator( Path );
-	while( It != directory_iterator() )
+	std::string ConfigFile;
+	if( !CmdLine.getArg( 'c', "config-file", ConfigFile ) )
 	{
-		directory_entry Entry = *It;
-		std::cout << Entry.path().extension().string()  << std::endl;
-		if( Entry.path().extension().string()  == ".pkg" )
-		{
-			BcPath PackagePath( Entry.path().string() );
-			ImportPackage( Params, PackagePath );
-		}
-		++It;
+		PSY_LOG( "Missing -c|--config-file [file].");
+		exit( 1 );
 	}
+
+	// Try loading params file.
+	if( boost::filesystem::exists( ConfigFile ) )
+	{
+		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
+		SeJsonReader Reader( &ObjectCodec );
+		Reader.load( ConfigFile.c_str() );
+		Reader << Params;
+
+		if( Params.Name_.size() == 0 )
+		{
+			PSY_LOG( "Params are missing name." );
+			exit( 1 );
+		}
+		if( Params.Filters_.size() == 0 )
+		{
+			PSY_LOG( "Params are missing filters." );
+			exit( 1 );
+		}
+		if( Params.IntermediatePath_.size() == 0 )
+		{
+			PSY_LOG( "Params are missing intermediatepath." );
+			exit( 1 );
+		}
+		if( Params.PackedContentPath_.size() == 0 )
+		{
+			PSY_LOG( "Params are missing packedcontentpath." );
+			exit( 1 );
+		}
+
+		PSY_LOG( "Loaded %s. Packing for platform %s.", ConfigFile.c_str(), Params.Name_.c_str() );
+	}
+	else
+	{
+		PSY_LOG( "Unable to load config %s", ConfigFile.c_str() );
+		exit( 1 );
+	}
+
+
+	auto FoundPackages = FindPackages( Params );
+	auto CheckedPackages = CheckPackages( Params, FoundPackages );
+	ImportPackages( Params, CheckedPackages );
 }

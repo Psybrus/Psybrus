@@ -305,8 +305,9 @@ CsFileHash CsResourceImporter::addFile(
 			get() + InFile.size() );
 		Hasher.get_digest( FileHash.Hash_ );
 
+		auto PackedPath = Importer_->getParams().getPackagePackedPath( BcName::INVALID );
 		auto OutFileName = 
-			*CsPaths::PACKED_CONTENT + 
+			*PackedPath + 
 			std::string( "/" ) + 
 			FileHash.getName() + std::string( ".dat" );
 

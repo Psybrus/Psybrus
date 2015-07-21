@@ -38,14 +38,19 @@ SeJsonReader::~SeJsonReader()
 
 //////////////////////////////////////////////////////////////////////////
 // load
-void SeJsonReader::load( std::string FileName )
+BcBool SeJsonReader::load( std::string FileName )
 {
 	// Read in the json file.
 	Json::Reader Reader;
 	std::ifstream InStream;
 	InStream.open( FileName );
-	Reader.parse( InStream, RootValue_ );
-	InStream.close();
+	if( InStream.good() )
+	{
+		Reader.parse( InStream, RootValue_ );
+		InStream.close();
+		return BcTrue;
+	}
+	return BcFalse;
 }
 
 //////////////////////////////////////////////////////////////////////////

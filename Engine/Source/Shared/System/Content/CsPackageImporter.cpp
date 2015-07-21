@@ -45,11 +45,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
-std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
-std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
-std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
-std::regex GRegex_Filter( "^@\\((.*?)\\)" );								// Matches "(String)".
-
+static std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
+static std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+static std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
+static std::regex GRegex_Filter( "^@\\((.*?)\\)" );								// Matches "(String)".
 
 //////////////////////////////////////////////////////////////////////////
 // Anonymous namespace
@@ -58,7 +57,7 @@ namespace
 	/**
 	 * Process filters in Json. Will merge down, and remove filter blocks as appropriate.
 	 */
-	void ProcessFiltersOnJson( const CsPackageImportParams& Params, Json::Value & Value )
+	void ProcessFiltersOnJson( const CsPlatformParams& Params, Json::Value & Value )
 	{
 		// Recurse down.
 		for( auto & ChildValue : Value )
@@ -109,81 +108,6 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
-REFLECTION_DEFINE_BASIC( CsPackageImportParams );
-
-void CsPackageImportParams::StaticRegisterClass()
-{
-	ReField* Fields[] = 
-	{
-		new ReField( "Filters_", &CsPackageImportParams::Filters_ ),
-	};
-
-	ReRegisterClass< CsPackageImportParams >( Fields );
-};
-
-//////////////////////////////////////////////////////////////////////////
-// checkFilterString
-BcBool CsPackageImportParams::checkFilterString( const std::string& InFilter ) const
-{
-	std::cmatch Match;
-	std::regex_match( InFilter.c_str(), Match, GRegex_Filter );
-	if( Match.size() != 2 )
-	{
-		return BcFalse;
-	}
-	std::stringstream StrStream( Match[ 1 ] );
-	std::string Token;
-	while( std::getline( StrStream, Token, ',' ) )
-	{
-		auto It = std::find( Filters_.begin(), Filters_.end(), Token );
-		if( It == Filters_.end() )
-		{
-			return BcFalse;
-		}
-	}
-
-	return BcTrue;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPackageIntermediatePath
-BcPath CsPackageImportParams::getPackageIntermediatePath( const BcName& Package ) const
-{
-	BcPath Path;
-	if( Package != BcName::INVALID )
-	{
-		Path.join( IntermediatePath_, *Package + ".pak" );
-	}
-	else
-	{
-		Path = IntermediatePath_;
-	}
-
-#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
-	boost::filesystem::create_directories( *Path );
-#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
-
-	return Path;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPackagePackedPath
-BcPath CsPackageImportParams::getPackagePackedPath( const BcName& Package ) const
-{
-	BcPath Path;
-	if( Package != BcName::INVALID )
-	{
-		Path.join( PackedContentPath_, *Package + ".pak" );
-	}
-	else
-	{
-		Path = PackedContentPath_;
-	}
-	return Path;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// CsPackageDependencies
 REFLECTION_DEFINE_BASIC( CsPackageDependencies );
 
 void CsPackageDependencies::StaticRegisterClass()
@@ -201,7 +125,7 @@ void CsPackageDependencies::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 CsPackageImporter::CsPackageImporter(
-		const CsPackageImportParams& Params,
+		const CsPlatformParams& Params,
 		const BcName& Name,
 		const BcPath& Filename ):
 	Params_( Params ),
@@ -995,7 +919,7 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 
 //////////////////////////////////////////////////////////////////////////
 // getParams
-const CsPackageImportParams& CsPackageImporter::getParams() const
+const CsPlatformParams& CsPackageImporter::getParams() const
 {
 	return Params_;
 }

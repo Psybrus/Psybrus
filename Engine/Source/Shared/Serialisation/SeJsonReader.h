@@ -13,7 +13,7 @@ class SeJsonReader:
 public:
 	SeJsonReader( 
 		SeISerialiserObjectCodec* ObjectCodec );
-	void load( std::string FileName );
+	BcBool load( std::string FileName );
 	virtual ~SeJsonReader();
 
 	virtual BcU32 getVersion() const;
