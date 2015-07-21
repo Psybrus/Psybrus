@@ -69,7 +69,17 @@ if PsyProjectExternalLib( "SoLoud", "C++" ) then
 if (WITH_LIBMODPLUG == 1) then
 	defines { "WITH_MODPLUG" }
 end		
+
+	flags {	"EnableSSE2" }
+	-- Enable SSE4.1 when using gmake + gcc.
+	-- TODO: SoLoud could do with some better platform determination. genie
+	--       doesn't do this well on it's own and is recommended to setup this
+	--       manually. See https://github.com/bkaradzic/bx/blob/master/scripts/toolchain.lua
+	configuration { "gmake" }
+		buildoptions { "-msse4.1" }
 	
+	configuration {}
+
 	files 
 	{ 
 		"./SoLoud/src/audiosource/**.c*",
