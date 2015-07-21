@@ -14,8 +14,8 @@ function PsyPlatformIncludes()
 
 	-- External includes.
 	includedirs { 
-       "../Psybrus/External/jsoncpp/include", 
        "../Psybrus/External/imgui", 
+       "../Psybrus/External/jsoncpp/include", 
     }
 
     -- Platform includes.
@@ -233,23 +233,6 @@ function PsyProjectCommonEngine( _name )
 	configuration "*"
 end
 
--- Setup a game lib project.
-function PsyProjectGameLib( _name )
-	group( _name )
-	PsyProjectCommonEngine( _name )
-	print( "Adding Game Library: " .. _name )
-
-	configuration "*"
-		kind "StaticLib"
-		language "C++"
-
-	-- Add STATICLIB define for libraries.
-	configuration "*"
-		defines{ "STATICLIB" }
-
-	-- Terminate project.
-	configuration "*"
-end
 
 -- Setup psybrus exe project.
 function PsyProjectPsybrusExe( _name, _suffix )
@@ -259,6 +242,11 @@ function PsyProjectPsybrusExe( _name, _suffix )
 
 	PsyProjectCommonEngine( _name .. _suffix )
 	PsyPlatformIncludes()
+
+	configuration "asmjs or linux-* or osx-* or android-*"
+		prebuildcommands {
+			"python ../../Psybrus/reflection_parse.py " .. solution().name
+		}
 
 	-- Setup android project (if it is one).
 	SetupAndroidProject()
@@ -379,40 +367,47 @@ function PsyProjectPsybrusExe( _name, _suffix )
 			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 --llvm-lto 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
-   configuration "asmjs"
-      prebuildcommands {
-         "python ../../Psybrus/reflection_parse.py " .. solution().name
-      }
-
-   configuration "linux-*"
-      prebuildcommands {
-         "python ../../Psybrus/reflection_parse.py " .. solution().name
-      }
-
-   configuration "osx-*"
-      prebuildcommands {
-         "python ../../Psybrus/reflection_parse.py " .. solution().name
-      }
-
-   configuration "android-*"
-      prebuildcommands {
-         "python ../../Psybrus/reflection_parse.py " .. solution().name
-      }
-
    configuration "windows-*"
       includedirs {
          "../Psybrus/Engine/Source/Platforms/Windows/",
          BOOST_INCLUDE_PATH
       }
 
-      prebuildcommands {
-            "C:\\Python27\\python.exe ../../Psybrus/reflection_parse.py " .. solution().name
-      }
-
       libdirs {
            BOOST_LIB_PATH
       }
 
+
+	-- Terminate project.
+	configuration "*"
+end
+
+-- Setup game exe project.
+function PsyProjectGameLib( _name )
+	group( _name )
+	libName = _name .. "Lib"
+
+	PsyProjectCommonEngine( libName )
+	PsyPlatformIncludes()
+	print( "Adding Game Library: " .. libName )
+
+	configuration "*"
+		kind "StaticLib"
+		language "C++"
+
+	-- Add STATICLIB define for libraries.
+	configuration "*"
+		defines{ "STATICLIB" }
+
+	configuration "asmjs or linux-* or osx-* or android-*"
+		prebuildcommands {
+			"python ../../Psybrus/reflection_parse.py " .. solution().name
+		}
+
+	configuration "windows-*"
+		prebuildcommands {
+			"C:\\Python27\\python.exe ../../Psybrus/reflection_parse.py " .. solution().name
+		}
 
 	-- Terminate project.
 	configuration "*"
@@ -450,28 +445,6 @@ function PsyProjectImporterExe( _name )
 		}
 	end
 end
-
--- Setup game exe project.
-function PsyProjectGameLib( _name )
-	group( _name )
-	libName = _name .. "Lib"
-
-	PsyProjectCommonEngine( libName )
-	PsyPlatformIncludes()
-	print( "Adding Game Library: " .. libName )
-
-	configuration "*"
-		kind "StaticLib"
-		language "C++"
-
-	-- Add STATICLIB define for libraries.
-	configuration "*"
-		defines{ "STATICLIB" }
-
-	-- Terminate project.
-	configuration "*"
-end
-
 
 -- Setup engine lib project.
 function PsyProjectEngineLib( _name )
