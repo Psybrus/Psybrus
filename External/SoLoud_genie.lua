@@ -19,7 +19,7 @@ else
 	WITH_SDL2_STATIC = 1
 end
 
--- Hack io asmjs.
+-- asmjs.
 if _OPTIONS[ "toolchain" ] == "asmjs" then
 	WITH_OSS = 0
 	WITH_WINMM = 0
@@ -29,7 +29,7 @@ if _OPTIONS[ "toolchain" ] == "asmjs" then
 	WITH_SDL2_STATIC = 0
 end
 
--- Hack android.
+-- Android.
 if _OPTIONS[ "toolchain" ] == "android-clang-arm" or
    _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
 	WITH_OSS = 0
@@ -70,12 +70,20 @@ if (WITH_LIBMODPLUG == 1) then
 	defines { "WITH_MODPLUG" }
 end		
 
-	flags {	"EnableSSE2" }
+	configuration { "osx-*" }
+		flags {	"EnableSSE2" }
+	configuration { "linux-*" }
+		flags {	"EnableSSE2" }
+	configuration { "windows-*" }
+		flags {	"EnableSSE2" }
 	-- Enable SSE4.1 when using gmake + gcc.
 	-- TODO: SoLoud could do with some better platform determination. genie
 	--       doesn't do this well on it's own and is recommended to setup this
 	--       manually. See https://github.com/bkaradzic/bx/blob/master/scripts/toolchain.lua
-	configuration { "gmake" }
+
+	configuration { "osx-*" }
+		buildoptions { "-msse4.1" }
+	configuration { "linux-*" }
 		buildoptions { "-msse4.1" }
 	
 	configuration {}
