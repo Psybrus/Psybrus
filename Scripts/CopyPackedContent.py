@@ -11,8 +11,8 @@ try:
 except:
 	pass
 
-expr = re.compile(".*/PackedContent/(.*)")
+expr = re.compile(".*/PackedContent/android/(.*)")
 
-files = glob.glob("../../../Dist/PackedContent/*")
+files = glob.glob("../../../Dist/PackedContent/android/*")
 for file in files:
 	shutil.copy(file, "assets/PackedContent/" + expr.match(file).group(1) + ".mp3")
