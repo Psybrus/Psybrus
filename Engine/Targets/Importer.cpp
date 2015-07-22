@@ -151,6 +151,18 @@ void ImportPackages( const CsPlatformParams& Params, const std::vector< BcPath >
 }
 
 //////////////////////////////////////////////////////////////////////////
+// PrintUsage
+void PrintUsage()
+{
+	PSY_LOG( "Args:" );
+
+	PSY_LOG( "\t-c/--config-file [file] - Load config file to use for platform parameters." );
+	PSY_LOG( "\t-p/--package-file [file] - Individual package to import." );
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // PsyToolInit
 void PsyToolInit()
 {
@@ -168,7 +180,7 @@ void PsyToolMain()
 	std::string ConfigFile;
 	if( !CmdLine.getArg( 'c', "config-file", ConfigFile ) )
 	{
-		PSY_LOG( "Missing -c|--config-file [file].");
+		PrintUsage();
 		exit( 1 );
 	}
 
@@ -209,8 +221,23 @@ void PsyToolMain()
 		exit( 1 );
 	}
 
+	std::vector< BcPath > Packages;
 
-	auto FoundPackages = FindPackages( Params );
-	auto CheckedPackages = CheckPackages( Params, FoundPackages );
-	ImportPackages( Params, CheckedPackages );
+	// If no package is specified, then search.
+	std::string PackageName;
+	if( CmdLine.getArg( 'p', "package-file", PackageName ) )
+	{
+		Packages.emplace_back( PackageName );
+
+	}
+	else
+	{
+		Packages = FindPackages( Params );
+	}
+
+	// Check packages, filter out what we don't want, or what doesn't need updating.
+	Packages = CheckPackages( Params, Packages );
+
+	// Import all packages to pass check phase.
+	ImportPackages( Params, Packages );
 }
