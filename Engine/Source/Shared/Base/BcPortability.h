@@ -144,4 +144,18 @@
 #  define COMPILER_MSVC			0
 #endif
 
+//////////////////////////////////////////////////////////////////////////
+// Verify we have macros with build params.
+#if !defined( BUILD_ACTION )
+#  error "BUILD_ACTION not defined." )
+#endif
+
+#if !defined( BUILD_TOOLCHAIN )
+#  error "BUILD_TOOLCHAIN not defined." )
+#endif
+
+#if !defined( BUILD_CONFIG )
+#  error "BUILD_CONFIG not defined." )
+#endif
+
 #endif

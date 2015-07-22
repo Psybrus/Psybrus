@@ -148,7 +148,11 @@ BcBool CsResourceImporter::import(
 // getPackageName
 std::string CsResourceImporter::getPackageName() const
 {
+#if PSY_IMPORT_PIPELINE
 	return *Importer_->getName();
+#else
+	return "";
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -49,6 +49,7 @@ private:
 	CsPackageImporter( const CsPackageImporter& ) = delete;
 
 public:
+#if PSY_IMPORT_PIPELINE
 	CsPackageImporter(
 		const CsPlatformParams& Params,
 		const BcName& Name,
@@ -157,6 +158,7 @@ public:
 private:
 	BcBool havePackageDependency( const BcName& PackageName );
 
+#endif // PSY_IMPORT_PIPELINE
 
 private:
 	typedef std::vector< std::string > TStringList;

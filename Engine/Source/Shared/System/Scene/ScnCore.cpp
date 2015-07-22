@@ -141,14 +141,13 @@ void ScnCore::open()
 			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
 			static bool ShowOpened = true;
 			ImGui::SetNextWindowPos( WindowPos );
-			if ( ImGui::Begin( "Scene Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+			if ( ImGui::Begin( "Engine", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
-				if( ImGui::Button( "Screenshot" ) )
-				{
-					RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
-				}
-
+				ImGui::Text( "Build: %s-%s-%s", 
+					BUILD_ACTION,
+					BUILD_TOOLCHAIN,
+					BUILD_CONFIG );
 				ImGui::Text( "Worker count: %u", 
 					SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
@@ -156,6 +155,10 @@ void ScnCore::open()
 				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
 					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
 
+				if( ImGui::Button( "Screenshot" ) )
+				{
+					RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
+				}
 			}
 			ImGui::End();
 		} );

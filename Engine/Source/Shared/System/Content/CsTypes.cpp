@@ -21,7 +21,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Paths
+#if PLATFORM_LINUX | PLATFORM_WINDOWS | PLATFORM_OSX
+const BcPath CsPaths::PACKED_CONTENT( "PackedContent/pc" );
+#else
 const BcPath CsPaths::PACKED_CONTENT( "PackedContent" );
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies

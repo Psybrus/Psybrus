@@ -229,6 +229,32 @@ function PsyProjectCommonEngine( _name )
 			"$(EMSCRIPTEN)/system/lib/libcxxabi/include",
 		}
 
+	configuration "*"
+		defines {
+			"BUILD_ACTION=\\\"" .. _ACTION .. "\\\"",
+			"BUILD_TOOLCHAIN=\\\"" .. _OPTIONS[ "toolchain" ] .. "\\\"",
+		}
+
+	configuration "Debug"
+		defines {
+			"BUILD_CONFIG=\\\"Debug\\\"",
+		}
+
+	configuration "Release"
+		defines {
+			"BUILD_CONFIG=\\\"Release\\\"",
+		}
+
+	configuration "Profile"
+		defines {
+			"BUILD_CONFIG=\\\"Profile\\\"",
+		}
+
+	configuration "Production"
+		defines {
+			"BUILD_CONFIG=\\\"Production\\\"",
+		}
+
 	-- Terminate project.
 	configuration "*"
 end
@@ -343,7 +369,8 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	configuration { "asmjs", "Debug" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) cp -r ../../Dist/PackedContent ./",
+			"$(SILENT) mkdir ./PackedContent",
+			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
 			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
@@ -352,7 +379,8 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	configuration { "asmjs", "Release" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) cp -r ../../Dist/PackedContent ./",
+			"$(SILENT) mkdir ./PackedContent",
+			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
 			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
@@ -361,7 +389,8 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	configuration { "asmjs", "Production" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) cp -r ../../Dist/PackedContent ./",
+			"$(SILENT) mkdir ./PackedContent",
+			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Production\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
 			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 --llvm-lto 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
@@ -418,13 +447,14 @@ function PsyProjectGameExe( _name )
 	PsyProjectPsybrusExe( _name, "" )
 	print( "Adding Game Executable: " .. _name )
 
-	configuration "*"
+	configuration "linux-* or osx-* or windows-*"
 		kind "WindowedApp"
 		language "C++"
 
-    files { 
-		"../Psybrus/Engine/Targets/Game.cpp" 
-	}
+	configuration "*"
+	    files { 
+			"../Psybrus/Engine/Targets/Game.cpp" 
+		}
 end
 
 -- Setup game exe project.
