@@ -954,6 +954,9 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 			// Finalise shader.
 			OutGLSL = removeComments( OutputShaderCode );
 			RetVal = BcTrue;
+
+			// Add version + precision.
+			OutGLSL = "#version 100\nprecision mediump float;\n" + OutGLSL;
 		}
 	}
 #endif
