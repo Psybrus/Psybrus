@@ -104,6 +104,7 @@ function SetupAndroidProject()
 				"GLESv1_CM",
 				"GLESv2",
 				"EGL",
+				"OpenSLES",
 				"llvmcxxabi"
 			}
 
