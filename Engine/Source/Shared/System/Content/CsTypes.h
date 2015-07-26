@@ -124,10 +124,10 @@ public:
 	CsImportException( 
 		const char* File,
 		const char* Error,
-		... ) noexcept;
-	const char* what() const noexcept;
-	const char* file() const noexcept;
-	const char* error() const noexcept;
+		... ) NOEXCEPT;
+	const char* what() const NOEXCEPT;
+	const char* file() const NOEXCEPT;
+	const char* error() const NOEXCEPT;
 
 private:
 	BcChar File_[ 1024 ];

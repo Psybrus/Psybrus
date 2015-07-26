@@ -181,7 +181,9 @@ void PsyToolMain()
 	if( !CmdLine.getArg( 'c', "config-file", ConfigFile ) )
 	{
 		PrintUsage();
-		exit( 1 );
+
+		ConfigFile = "../Psybrus/Dist/Platforms/pc.json";
+		PSY_LOG( "Falling back to default - %s", ConfigFile.c_str() );
 	}
 
 	// Try loading params file.

@@ -145,7 +145,7 @@ std::string CsFileHash::getName() const
 CsImportException::CsImportException( 
 		const char* File,
 		const char* Error,
-		... ) noexcept
+		... ) NOEXCEPT
 {
 	BcAssert( File );
 	BcAssert( Error );
@@ -163,21 +163,21 @@ CsImportException::CsImportException(
 
 //////////////////////////////////////////////////////////////////////////
 // what
-const char* CsImportException::what() const noexcept
+const char* CsImportException::what() const NOEXCEPT
 {
 	return Error_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // file
-const char* CsImportException::file() const noexcept
+const char* CsImportException::file() const NOEXCEPT
 {
 	return File_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // error
-const char* CsImportException::error() const noexcept
+const char* CsImportException::error() const NOEXCEPT
 {
 	return Error_;
 }
