@@ -34,6 +34,7 @@
 
 #include "Serialisation/SeJsonWriter.h"
 
+#include "Base/BcBuildInfo.h"
 #include "Base/BcProfiler.h"
 
 #include <algorithm>
@@ -149,8 +150,8 @@ void ScnCore::open()
 					BUILD_TOOLCHAIN,
 					BUILD_CONFIG );
 				ImGui::Text( "Date/Time: %s %s", 
-					__DATE__,
-					__TIME__ );
+					BUILD_DATE,
+					BUILD_TIME );
 				ImGui::Text( "Worker count: %u", 
 					SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
