@@ -75,9 +75,7 @@ namespace
 			auto MemberNames = Value.getMemberNames();
 			for( const auto& MemberName : MemberNames )
 			{
-				std::regex_match( MemberName.c_str(), Match, GRegex_Filter );
-
-				if( Match.size() > 1 )
+				if( std::regex_match( MemberName.c_str(), Match, GRegex_Filter ) )
 				{
 					FilterGroups.push_back( MemberName );
 				}

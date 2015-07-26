@@ -229,30 +229,58 @@ function PsyProjectCommonEngine( _name )
 			"$(EMSCRIPTEN)/system/lib/libcxxabi/include",
 		}
 
-	configuration "*"
+	-- Build defines for gmake
+	configuration "gmake"
 		defines {
 			"BUILD_ACTION=\\\"" .. _ACTION .. "\\\"",
 			"BUILD_TOOLCHAIN=\\\"" .. _OPTIONS[ "toolchain" ] .. "\\\"",
 		}
 
-	configuration "Debug"
+	configuration { "gmake", "Debug" }
 		defines {
 			"BUILD_CONFIG=\\\"Debug\\\"",
 		}
 
-	configuration "Release"
+	configuration { "gmake", "Release" }
 		defines {
 			"BUILD_CONFIG=\\\"Release\\\"",
 		}
 
-	configuration "Profile"
+	configuration { "gmake", "Profile" }
 		defines {
 			"BUILD_CONFIG=\\\"Profile\\\"",
 		}
 
-	configuration "Production"
+	configuration { "gmake", "Production" }
 		defines {
 			"BUILD_CONFIG=\\\"Production\\\"",
+		}
+
+	-- Build defines for vs
+	configuration "vs*"
+		defines {
+			"BUILD_ACTION=\"" .. _ACTION .. "\"",
+			"BUILD_TOOLCHAIN=\"" .. _OPTIONS[ "toolchain" ] .. "\"",
+		}
+
+	configuration { "vs*", "Debug" }
+		defines {
+			"BUILD_CONFIG=\"Debug\"",
+		}
+
+	configuration { "vs*", "Release" }
+		defines {
+			"BUILD_CONFIG=\"Release\"",
+		}
+
+	configuration { "vs*", "Profile" }
+		defines {
+			"BUILD_CONFIG=\"Profile\"",
+		}
+
+	configuration { "vs*", "Production" }
+		defines {
+			"BUILD_CONFIG=\"Production\"",
 		}
 
 	-- Terminate project.
