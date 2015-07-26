@@ -1729,7 +1729,7 @@ bool RsContextGL::createShader(
 	
 			
 	// Test if compilation succeeded.
-	GLint ShaderCompiled;
+	GLint ShaderCompiled = 0;
 	GL( GetShaderiv( Handle, GL_COMPILE_STATUS, &ShaderCompiled ) );
 	if ( !ShaderCompiled )
 	{					 
@@ -1948,8 +1948,8 @@ bool RsContextGL::createProgram(
 				{
 					// Could be a member of a struct where we don't have uniform buffers.
 					// Check the name and work out if it is. If so, add to a map so we can add all afterwards.
-					auto VSTypePtr = BcStrStr( UniformName, "VS." ); 
-					auto PSTypePtr = BcStrStr( UniformName, "PS." );
+					auto VSTypePtr = BcStrStr( UniformName, "VS_" ); 
+					auto PSTypePtr = BcStrStr( UniformName, "PS_" );
 					if( VSTypePtr != nullptr ||
 						PSTypePtr != nullptr )
 					{
@@ -2042,7 +2042,7 @@ bool RsContextGL::createProgram(
 				{
 					auto FieldName = *Field->getName();
 					auto ValueType = Field->getType();
-					auto UniformNameVS = ClassNameVS + ".X" + FieldName;
+					auto UniformNameVS = ClassNameVS + "_X" + FieldName;
 
 					UniformEntry.BindingPoint_ = UniformHandle;
 					UniformEntry.Count_ = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );

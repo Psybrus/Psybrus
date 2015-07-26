@@ -957,6 +957,9 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 
 			// Add version + precision.
 			OutGLSL = "#version 100\nprecision mediump float;\n" + OutGLSL;
+
+			// Workaround for adreno.
+			boost::replace_all( OutGLSL, "gl_FragData[0]", "gl_FragColor" );
 		}
 	}
 #endif
