@@ -148,6 +148,9 @@ void ScnCore::open()
 					BUILD_ACTION,
 					BUILD_TOOLCHAIN,
 					BUILD_CONFIG );
+				ImGui::Text( "Date/Time: %s %s", 
+					__DATE__,
+					__TIME__ );
 				ImGui::Text( "Worker count: %u", 
 					SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
