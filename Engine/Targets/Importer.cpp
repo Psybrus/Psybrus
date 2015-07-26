@@ -183,7 +183,8 @@ void PsyToolMain()
 		PrintUsage();
 
 		ConfigFile = "../Psybrus/Dist/Platforms/pc.json";
-		PSY_LOG( "Falling back to default - %s", ConfigFile.c_str() );
+		PSY_LOG( "WARNING: No config file specified." );
+		PSY_LOG( "INFO: Using default for PC: %s", ConfigFile.c_str() );
 	}
 
 	// Try loading params file.
@@ -196,30 +197,30 @@ void PsyToolMain()
 
 		if( Params.Name_.size() == 0 )
 		{
-			PSY_LOG( "Params are missing name." );
+			PSY_LOG( "ERROR: Config file params are missing name." );
 			exit( 1 );
 		}
 		if( Params.Filters_.size() == 0 )
 		{
-			PSY_LOG( "Params are missing filters." );
+			PSY_LOG( "ERROR: Config file params are missing filters." );
 			exit( 1 );
 		}
 		if( Params.IntermediatePath_.size() == 0 )
 		{
-			PSY_LOG( "Params are missing intermediatepath." );
+			PSY_LOG( "ERROR: Config file params are missing intermediatepath." );
 			exit( 1 );
 		}
 		if( Params.PackedContentPath_.size() == 0 )
 		{
-			PSY_LOG( "Params are missing packedcontentpath." );
+			PSY_LOG( "ERROR: Config file params are missing packedcontentpath." );
 			exit( 1 );
 		}
 
-		PSY_LOG( "Loaded %s. Packing for platform %s.", ConfigFile.c_str(), Params.Name_.c_str() );
+		PSY_LOG( "INFO: Loaded %s. Packing for platform %s.", ConfigFile.c_str(), Params.Name_.c_str() );
 	}
 	else
 	{
-		PSY_LOG( "Unable to load config %s", ConfigFile.c_str() );
+		PSY_LOG( "ERROR: Unable to load config %s", ConfigFile.c_str() );
 		exit( 1 );
 	}
 

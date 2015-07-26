@@ -120,7 +120,6 @@
 #if defined( __GNU__ ) || defined( __GNUG__ )
 #  define COMPILER_GCC			1
 #  define NOEXCEPT				noexcept
-
 #else
 #  define COMPILER_GCC			0
 #endif
@@ -129,7 +128,6 @@
 #if defined( __llvm__ )
 #  define COMPILER_CLANG		1
 #  define NOEXCEPT				noexcept
-
 #else
 #  define COMPILER_CLANG		0
 #endif
@@ -137,8 +135,7 @@
 // Codewarrior
 #if defined( __MWERKS__ )
 #  define COMPILER_CW			1
-#  define NOEXCEPT				
-
+#  define NOEXCEPT
 #else
 #  define COMPILER_CW			0
 #endif
@@ -146,8 +143,7 @@
 // MSVC
 #if defined( _MSC_VER	)
 #  define COMPILER_MSVC			1
-#  define NOEXCEPT				
-
+#  define NOEXCEPT
 #else
 #  define COMPILER_MSVC			0
 #endif

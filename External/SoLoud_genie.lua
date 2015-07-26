@@ -3,6 +3,7 @@ local WITH_SDL_STATIC = 0
 local WITH_SDL2_STATIC = 0
 local WITH_PORTAUDIO = 0
 local WITH_OPENAL = 0
+local WITH_OPENSLES = 0
 local WITH_XAUDIO2 = 0
 local WITH_WINMM = 0
 local WITH_WASAPI = 0
@@ -38,6 +39,7 @@ if _OPTIONS[ "toolchain" ] == "android-clang-arm" or
 	WITH_SDL = 0
 	WITH_SDL_STATIC = 0
 	WITH_SDL2_STATIC = 0
+	WITH_OPENSLES = 1
 end
 
 
@@ -48,6 +50,7 @@ local portmidi_root  = "./portmidi"
 local dxsdk_root     = os.getenv("DXSDK_DIR") and os.getenv("DXSDK_DIR") or "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)"
 local portaudio_root = "./portaudio"
 local openal_root    = "./openal"
+local opensles_root    = "/Users/Neilo/android-ndk-r10e/platforms/arch-arm/usr"
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --
 
@@ -59,6 +62,7 @@ local portmidi_release  = portmidi_root .. "/release"
 local dxsdk_include     = dxsdk_root .. "/include"
 local portaudio_include = portaudio_root .. "/include"
 local openal_include    = openal_root .. "/include"
+local opensles_include    = opensles_root .. "/include"
 
 local buildroot = ""
 
@@ -114,6 +118,19 @@ if (WITH_OPENAL == 1) then
 		openal_include
 	}
 end    
+
+if (WITH_OPENSLES == 1) then
+	defines {"WITH_OPENSLES"}
+	files
+	{
+		"./SoLoud/src/backend/opensles/**.c*"
+	}
+	includedirs
+	{
+		"./SoLoud/include",
+		opensles_include
+	}
+end  
 
 if (WITH_OSS == 1) then 
 	defines {"WITH_OSS"}

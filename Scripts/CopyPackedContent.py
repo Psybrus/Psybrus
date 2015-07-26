@@ -8,6 +8,10 @@ import re
 
 try:
 	os.mkdir("assets")
+except:
+	pass
+
+try:
 	os.mkdir("assets/PackedContent")
 except:
 	pass
@@ -21,5 +25,5 @@ files = glob.glob("../../../Dist/PackedContent/android/*")
 for file in files:
 	if expr.match(file):
 		dest = "assets/PackedContent/" + expr.match(file).group(1) + ".mp3"
-		print "Copying .. " + file + " to " + dest
+		print "Copying " + file + " to " + dest
 		shutil.copy(file, dest)
