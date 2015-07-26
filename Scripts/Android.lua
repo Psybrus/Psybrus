@@ -173,11 +173,11 @@ function LLVMcxxabiProject()
 				kind ( EXTERNAL_PROJECT_KIND )
 				buildoptions( "-std=c++11" )
 				files { 
-					ANDROID_NDK_PATH .. "/sources/cxx-stl/llvm-libc++abi/libcxxabi/src/*",
-					ANDROID_NDK_PATH .. "/sources/cxx-stl/llvm-libc++abi/libcxxabi/include/*"
+					"../Psybrus/External/libcxxabi/src/*",
+					"../Psybrus/External/libcxxabi/include/*"
 				}
 				includedirs {
-					ANDROID_NDK_PATH .. "/sources/cxx-stl/llvm-libc++abi/libcxxabi/include"
+					"../Psybrus/External/libcxxabi/include"
 				}
 	end
 end
