@@ -200,6 +200,7 @@ void ScnShaderImport::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
+		new ReField( "Sources_", &ScnShaderImport::Sources_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
 		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "IncludePermutations_", &ScnShaderImport::IncludePermutations_, bcRFF_IMPORTER ),
@@ -301,42 +302,115 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	IncludePaths_.push_back( "../Psybrus/Dist/Content/Engine/" );
 #endif
 	
-	// Setup permutations.
-	ScnShaderPermutation Permutation;
-
-	// Default to alway use cbuffers.
-	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
-
 	// Cache intermediate path.
 	IntermediatePath_ = getIntermediatePath();
 
-	// Read in file.
-	BcFile SourceFile;
-	if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
+	// Do appropriate pipeline.
+	BcBool RetVal = BcFalse;
+	if( !Source_.empty() )
 	{
-		std::vector< char > FileData( SourceFile.size() + 1 );
-		BcMemZero( FileData.data(), FileData.size() );
-		SourceFile.read( FileData.data(), FileData.size() );
-		SourceFileData_ = FileData.data();
-
-		addDependency( Source_.c_str() );
+		RetVal = oldPipeline();
+	}
+	else
+	{
+		RetVal = newPipeline();
 	}
 
-	// Add code type defines.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderCodeType::MAX; ++Idx )
+
+	// Export.
+	if( RetVal == BcTrue )
 	{
-		auto CodeTypeString = RsShaderCodeTypeToString( (RsShaderCodeType)Idx );
-		auto Define = boost::str( boost::format( "PSY_CODE_TYPE_%1%" ) % CodeTypeString );
-		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+		BcStream Stream;
+		ScnShaderHeader Header;
+		ScnShaderUnitHeader ShaderUnit;
+		BcMemZero( &Header, sizeof( Header ) );
+		BcMemZero( &ShaderUnit, sizeof( ShaderUnit ) );
+
+		// Export header.
+		Header.NoofShaderPermutations_ = static_cast< BcU32 >( BuiltShaderData_.size() );
+		Header.NoofProgramPermutations_ = static_cast< BcU32 >( BuiltProgramData_.size() );
+		Header.NoofShaderCodeTypes_ = static_cast< BcU32 >( OutputCodeTypes_.size() );
+		
+		Stream << Header;
+		for( auto OutputCodeType : OutputCodeTypes_ )
+		{
+			Stream << OutputCodeType;
+		}
+
+		CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
+
+		// Export shaders.
+		for( auto& ShaderData : BuiltShaderData_ )
+		{
+			ShaderUnit.ShaderType_ = ShaderData.second.ShaderType_;
+			ShaderUnit.ShaderDataType_ = RsShaderDataType::SOURCE;
+			ShaderUnit.ShaderCodeType_ = ShaderData.second.CodeType_;
+			ShaderUnit.ShaderHash_ = ShaderData.second.Hash_;
+			ShaderUnit.PermutationFlags_ = ScnShaderPermutationFlags::NONE;
+
+			Stream.clear();
+			Stream.push( &ShaderUnit, sizeof( ShaderUnit ) );
+			Stream.push( ShaderData.second.Code_.getData< BcU8* >(), ShaderData.second.Code_.getDataSize() );
+
+			CsResourceImporter::addChunk( BcHash( "shader" ), Stream.pData(), Stream.dataSize() );
+		}
+
+		// Export programs.
+		BcU32 VertexAttributeIdx = 0;
+		for( BcU32 Idx = 0; Idx < BuiltProgramData_.size(); ++Idx )
+		{
+			auto& ProgramData = BuiltProgramData_[ Idx ];
+
+			Stream.clear();
+			Stream.push( &ProgramData, sizeof( ProgramData ) );
+
+			// Only export vertex attributes if it's a shader backend type that requires it.
+			if( ProgramData.NoofVertexAttributes_ > 0 )
+			{
+				auto& VertexAttributes = BuiltVertexAttributes_[ VertexAttributeIdx++ ];
+				BcAssert( VertexAttributes.size() > 0 );
+				Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
+			}
+
+			CsResourceImporter::addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
+		}
 	}
 
-	// Add backend type defines.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderBackendType::MAX; ++Idx )
+	// Shutdown Hlsl2Glsl.
+	Hlsl2Glsl_Shutdown();
+
+	return RetVal;
+#else
+	return BcFalse;
+#endif // PSY_IMPORT_PIPELINE
+}
+
+//////////////////////////////////////////////////////////////////////////
+// oldPipeline
+BcBool ScnShaderImport::oldPipeline()
+{
+	BcBool RetVal = BcFalse;
+
+	// Read in source.
+	if( !Source_.empty() )
 	{
-		auto BackendTypeString = RsShaderBackendTypeToString( (RsShaderBackendType)Idx );
-		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE_%1%" ) % BackendTypeString );
-		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+		BcFile SourceFile;
+		if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
+		{
+			std::vector< char > FileData( SourceFile.size() + 1 );
+			BcMemZero( FileData.data(), FileData.size() );
+			SourceFile.read( FileData.data(), FileData.size() );
+			SourceFileData_ = FileData.data();
+
+			addDependency( Source_.c_str() );
+		}
 	}
+	else
+	{
+		return BcFalse;
+	}
+
+	auto Permutation = getDefaultPermutation();
 
 	// Generate permutations.
 	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
@@ -356,7 +430,6 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	}
 
 	// Kick off all permutation building jobs.
-	BcBool RetVal = BcFalse;
 	for( auto& Permutation : Permutations_ )
 	{
 		for( const auto& InputCodeType : CodeTypes_ )
@@ -427,83 +500,75 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	{
 		RetVal = BcTrue;
 	}
+	return RetVal;	
+}
 
-	// Export.
-	if( RetVal == BcTrue )
+//////////////////////////////////////////////////////////////////////////
+// newPipeline
+BcBool ScnShaderImport::newPipeline()
+{
+	// Read in sources.
+	for( auto& SourcePair : Sources_ )
 	{
-		BcStream Stream;
-		ScnShaderHeader Header;
-		ScnShaderUnitHeader ShaderUnit;
-		BcMemZero( &Header, sizeof( Header ) );
-		BcMemZero( &ShaderUnit, sizeof( ShaderUnit ) );
+		PSY_LOG( "- Source: %u - %s", SourcePair.first, SourcePair.second.c_str() );
 
-		// Export header.
-		Header.NoofShaderPermutations_ = static_cast< BcU32 >( BuiltShaderData_.size() );
-		Header.NoofProgramPermutations_ = static_cast< BcU32 >( BuiltProgramData_.size() );
-		Header.NoofShaderCodeTypes_ = static_cast< BcU32 >( OutputCodeTypes_.size() );
-		
-		Stream << Header;
-		for( auto OutputCodeType : OutputCodeTypes_ )
+		BcFile SourceFile;
+		if( SourceFile.open( SourcePair.second.c_str(), bcFM_READ ) )
 		{
-			Stream << OutputCodeType;
-		}
+			std::vector< char > FileData( SourceFile.size() + 1 );
+			BcMemZero( FileData.data(), FileData.size() );
+			SourceFile.read( FileData.data(), FileData.size() );
+			SourcesFileData_[ SourcePair.first ] = FileData.data();
 
-		CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
-
-		// Export shaders.
-		for( auto& ShaderData : BuiltShaderData_ )
-		{
-			ShaderUnit.ShaderType_ = ShaderData.second.ShaderType_;
-			ShaderUnit.ShaderDataType_ = RsShaderDataType::SOURCE;
-			ShaderUnit.ShaderCodeType_ = ShaderData.second.CodeType_;
-			ShaderUnit.ShaderHash_ = ShaderData.second.Hash_;
-			ShaderUnit.PermutationFlags_ = ScnShaderPermutationFlags::NONE;
-
-			Stream.clear();
-			Stream.push( &ShaderUnit, sizeof( ShaderUnit ) );
-			Stream.push( ShaderData.second.Code_.getData< BcU8* >(), ShaderData.second.Code_.getDataSize() );
-
-			CsResourceImporter::addChunk( BcHash( "shader" ), Stream.pData(), Stream.dataSize() );
-		}
-
-		// Export programs.
-		BcU32 VertexAttributeIdx = 0;
-		for( BcU32 Idx = 0; Idx < BuiltProgramData_.size(); ++Idx )
-		{
-			auto& ProgramData = BuiltProgramData_[ Idx ];
-
-			Stream.clear();
-			Stream.push( &ProgramData, sizeof( ProgramData ) );
-
-			// Only export vertex attributes if it's a shader backend type that requires it.
-			if( ProgramData.NoofVertexAttributes_ > 0 )
-			{
-				auto& VertexAttributes = BuiltVertexAttributes_[ VertexAttributeIdx++ ];
-				BcAssert( VertexAttributes.size() > 0 );
-				Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
-			}
-
-			CsResourceImporter::addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
+			addDependency( SourcePair.second.c_str() );
 		}
 	}
+}
 
-	// Shutdown Hlsl2Glsl.
-	Hlsl2Glsl_Shutdown();
+//////////////////////////////////////////////////////////////////////////
+// getDefaultPermutation
+ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
+{
+	// Setup permutations.
+	ScnShaderPermutation Permutation;
 
+	// Default to alway use cbuffers.
+	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
 
-	return RetVal;
-#else
-	return BcFalse;
-#endif // PSY_IMPORT_PIPELINE
+	// Add code type defines.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderCodeType::MAX; ++Idx )
+	{
+		auto CodeTypeString = RsShaderCodeTypeToString( (RsShaderCodeType)Idx );
+		auto Define = boost::str( boost::format( "PSY_CODE_TYPE_%1%" ) % CodeTypeString );
+		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+	}
+
+	// Add backend type defines.
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderBackendType::MAX; ++Idx )
+	{
+		auto BackendTypeString = RsShaderBackendTypeToString( (RsShaderBackendType)Idx );
+		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE_%1%" ) % BackendTypeString );
+		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+	}
+
+	return Permutation;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildInputHLSL
+BcBool ScnShaderImport::buildInputHLSL(
+		const std::string& InHLSL )
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
 // generatePermutations
 void ScnShaderImport::generatePermutations( 
-	BcU32 GroupIdx, 
-	BcU32 NoofGroups,
-	ScnShaderPermutationGroup* PermutationGroups, 
-	ScnShaderPermutation Permutation )
+		BcU32 GroupIdx, 
+		BcU32 NoofGroups,
+		ScnShaderPermutationGroup* PermutationGroups, 
+		ScnShaderPermutation Permutation )
 {
 #if PSY_IMPORT_PIPELINE
 	const auto& PermutationGroup = PermutationGroups[ GroupIdx ];
