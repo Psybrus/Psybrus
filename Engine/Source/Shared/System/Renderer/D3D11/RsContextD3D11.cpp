@@ -102,7 +102,8 @@ static const DXGI_FORMAT gDSVFormats[] =
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT1,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT3,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::DXT5,
-	// Depth.
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
+										// Depth.
 	DXGI_FORMAT_D16_UNORM,				// RsTextureFormat::D16,
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
@@ -131,6 +132,7 @@ static const DXGI_FORMAT gSRVFormats[] =
 	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
 	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
 	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
 	// Depth.
 	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
 	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
