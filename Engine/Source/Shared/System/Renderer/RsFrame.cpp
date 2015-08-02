@@ -95,14 +95,13 @@ void RsFrame::render()
 		{
 			RsRenderNode* pRenderNode = ppNodeArray_[ i ];
 			pRenderNode->render( pContext_ );
-			pRenderNode->~RsRenderNode();
 		}
-
-		// Reset everything.
-		reset();
 
 		// Present.
 		pContext_->presentBackBuffer();
+
+		// Reset everything.
+		reset();
 	}
 }
 
