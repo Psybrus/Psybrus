@@ -428,8 +428,12 @@ namespace Psybrus
 		RsCore::pImpl()->updateTexture( FontTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
 			[ Pixels, Width, Height ]( class RsTexture*, const RsTextureLock& Lock )
 			{
-				BcAssert( Lock.Pitch_ == ( Width * 4 ) );
-				memcpy( Lock.Buffer_, Pixels, Width * Height * 4 );
+				const BcU32 SourcePitch = Width * 4;
+				for( BcU32 Row = 0; Row < Height; ++Row )
+				{
+					BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
+					memcpy( DestData, Pixels + ( SourcePitch * Row ), SourcePitch );
+				}
 			} );
 
 		IO.Fonts->TexID = FontTexture_.get();

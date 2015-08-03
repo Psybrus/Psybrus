@@ -1678,8 +1678,14 @@ bool RsContextGL::updateTexture(
 			Depth,
 			1 );
 		std::vector< BcU8 > Data( DataSize );
-		BcU32 SlicePitch = DataSize / Depth;
-		BcU32 Pitch = SlicePitch / Height;
+		BcU32 SlicePitch = RsTextureSlicePitch( 
+			TextureDesc.Format_,
+			Width,
+			Height );
+		BcU32 Pitch = RsTexturePitch( 
+			TextureDesc.Format_,
+			Width,
+			Height );;
 		RsTextureLock Lock = 
 		{
 			&Data[ 0 ],

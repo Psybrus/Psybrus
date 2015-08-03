@@ -57,7 +57,7 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	WaitOnCommandListEvent_( 0 ),
 	FrameCounter_( 0 ),
 	FlushCounter_( 1 ),
-	NumSwapBuffers_( 4 ),
+	NumSwapBuffers_( 3 ),
 	LastSwapBuffer_( 0 ),
 	DefaultRootSignature_(),
 	DefaultPSO_(),
@@ -313,7 +313,7 @@ void RsContextD3D12::create()
 
 	ComPtr< ID3D12InfoQueue > InfoQueue;
 	RetVal = Device_.CopyTo( InfoQueue.GetAddressOf() );
-	if (SUCCEEDED( RetVal ) )
+	if ( SUCCEEDED( RetVal ) )
 	{
 		InfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, true );
 		InfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, true );
@@ -363,7 +363,8 @@ void RsContextD3D12::create()
 	createDefaultPSO();
 
 	// Create command list data.
-	createCommandListData( NumSwapBuffers_ );
+	// TODO: Use more than 1. For now this is so we don't need to fence/flush to handle resource deletion.
+	createCommandListData( 1 );
 
 	// Create backbuffers.
 	createBackBuffers();
@@ -1020,103 +1021,31 @@ bool RsContextD3D12::updateTexture(
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	const auto& Desc = Texture->getDesc();
-	BcU32 Width = BcMax( 1, Desc.Width_ >> Slice.Level_ );
-	BcU32 Height = BcMax( 1, Desc.Height_ >> Slice.Level_ );
-	BcU32 Depth = BcMax( 1, Desc.Depth_ >> Slice.Level_ );
-	BcU32 TextureDataSize = RsTextureFormatSize( Desc.Format_, Width, Height, Depth, 1 );
 	auto CommandList = getCurrentCommandList();
 	auto UploadAllocator = getCurrentUploadAllocator();
 
-	// Bits per block.
-	BcU32 BitsPerBlock = 8;
-	BcU32 BlockW = 1;
-	BcU32 BlockH = 1;
-	switch( Desc.Format_ )
-	{
-	case RsTextureFormat::R8:
-		BitsPerBlock = 8;
-		break;
-	case RsTextureFormat::R8G8:
-		BitsPerBlock = 16;
-		break;
-	case RsTextureFormat::R8G8B8:
-		BitsPerBlock = 24;
-		break;
-	case RsTextureFormat::R8G8B8A8:
-		BitsPerBlock = 32;
-		break;
-	case RsTextureFormat::R16F:
-		BitsPerBlock = 16;
-		break;
-	case RsTextureFormat::R16FG16F:
-		BitsPerBlock = 32;
-		break;
-	case RsTextureFormat::R16FG16FB16F:
-		BitsPerBlock = 48;
-		break;
-	case RsTextureFormat::R16FG16FB16FA16F:
-		BitsPerBlock = 64;
-		break;
-	case RsTextureFormat::R32F:
-		BitsPerBlock = 32;
-		break;
-	case RsTextureFormat::R32FG32F:
-		BitsPerBlock = 64;
-		break;
-	case RsTextureFormat::R32FG32FB32F:
-		BitsPerBlock = 96;
-		break;
-	case RsTextureFormat::R32FG32FB32FA32F:
-		BitsPerBlock = 128;
-		break;
-	case RsTextureFormat::DXT1:
-		BitsPerBlock = 64;
-		BlockW = 4;
-		BlockH = 4;
-		break;
-	case RsTextureFormat::DXT3:
-	case RsTextureFormat::DXT5:			
-		BitsPerBlock = 128;
-		BlockW = 4;
-		BlockH = 4;
-		break;
-			
-	default:
-		break;
-	}
-
-	// Recalculate texture size.
-	auto WidthByBlock = ( Width / BlockW );
-	auto HeightByBlock = ( Height / BlockH );
-	BcU32 Pitch = BcPotRoundUp( ( WidthByBlock * BitsPerBlock ) / 8, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT );
-	//BcU32 SlicePitch = ( WidthByBlock * HeightByBlock * BitsPerBlock ) / 8;
-	BcU32 SlicePitch = Pitch * Height;
-	BcU32 TextureSize = SlicePitch * Depth;
-
-	// Update texture.
-	auto Allocation = UploadAllocator->allocate( TextureSize, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
-	RsTextureLock Lock;
-	Lock.Buffer_ = Allocation.Address_;
-	Lock.Pitch_ = Pitch;
-	Lock.SlicePitch_ = SlicePitch;
-	UpdateFunc( Texture, Lock );
-
-
 	RsResourceD3D12* Resource = Texture->getHandle< RsResourceD3D12* >();
 	ID3D12Resource* D3DResource = Resource->getInternalResource().Get();
-
-	// Transition to copy dest.
-	auto OldUsage = Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_COPY_DEST );
+	auto D3DResourceDesc = D3DResource->GetDesc();
 
 	// Setup pitched subresource to match source data.
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT Layout;
+	UINT NumRows = 0;
+	UINT64 TotalBytes = 0;
+	Device_->GetCopyableFootprints( &D3DResourceDesc, Slice.Level_, 1, 0, &Layout, &NumRows, nullptr, &TotalBytes );
+
+	// Update texture.
+	auto Allocation = UploadAllocator->allocate( TotalBytes, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
+	RsTextureLock Lock;
 	Layout.Offset = Allocation.OffsetInBaseResource_;
-	Layout.Footprint.Format = RsUtilsD3D12::GetTextureFormat( Desc.Format_ ).RTVFormat_;
-	Layout.Footprint.Width = Width;
-	Layout.Footprint.Height = Height;
-	Layout.Footprint.Depth = Depth;
-	Layout.Footprint.RowPitch = Lock.Pitch_;
+	Lock.Buffer_ = Allocation.Address_;
+	Lock.Pitch_ = static_cast< BcU32 >( Layout.Footprint.RowPitch );
+	Lock.SlicePitch_ = static_cast< BcU32 >( TotalBytes );
+
+	UpdateFunc( Texture, Lock );
+
+	// Transition to copy dest.
+	auto OldUsage = Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_COPY_DEST );
 
 	// Copy in.
 	CD3DX12_TEXTURE_COPY_LOCATION Dst( D3DResource, Slice.Level_ );
@@ -1584,15 +1513,13 @@ void RsContextD3D12::createBackBuffers()
 			D3D12_RESOURCE_STATE_PRESENT );
 		BackBufferRT_[ Idx ]->setHandle( BackBufferRTResource );
 
-		{
-			RsFrameBufferDesc Desc = RsFrameBufferDesc( 1 ).setRenderTarget( 0, BackBufferRT_[ Idx ] );
+		RsFrameBufferDesc FBDesc = RsFrameBufferDesc( 1 ).setRenderTarget( 0, BackBufferRT_[ Idx ] );
 
-			Desc.setDepthStencilTarget( BackBufferDS_ );
+		FBDesc.setDepthStencilTarget( BackBufferDS_ );
 
-			BackBufferFB_[ Idx ] = new RsFrameBuffer( this, Desc );
-			auto RetVal = createFrameBuffer( BackBufferFB_[ Idx ] );
-			BcAssert( RetVal );
-		}
+		BackBufferFB_[ Idx ] = new RsFrameBuffer( this, FBDesc );
+		RetVal = createFrameBuffer( BackBufferFB_[ Idx ] );
+		BcAssert( RetVal );
 	}
 }
 
