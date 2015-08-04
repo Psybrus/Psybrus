@@ -34,7 +34,7 @@ function PsyPlatformIncludes()
           "../Psybrus/Engine/Source/Platforms/OSX/",
        }
 
-    configuration "android-*"
+    configuration "android-*"`
        includedirs {
           "../Psybrus/Engine/Source/Platforms/Android/",
        }
@@ -375,6 +375,7 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	       "regex",
 	       "filesystem",
 	       "system",
+	       "thread",
 	       "wave",
 	    }
 
@@ -384,6 +385,7 @@ function PsyProjectPsybrusExe( _name, _suffix )
        PsyAddExternalLinks {
           "assimp",
           "assimp_contrib",
+          "glslang",
           "glsl-optimizer",
           "hlsl2glslfork",
           "HLSLCrossCompiler",

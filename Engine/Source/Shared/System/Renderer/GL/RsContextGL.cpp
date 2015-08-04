@@ -1180,12 +1180,12 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) !=
 				RsResourceBindFlags::NONE );
 			RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
-			glFramebufferTexture2D( 
+			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
 				GL_TEXTURE_2D,
 				TextureImpl->Handle_,
-				0 );
+				0 ) );
 		}
 	}
 
@@ -1216,12 +1216,12 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			RsResourceBindFlags::NONE );
 
 		RsTextureImplGL* TextureImpl = Desc.DepthStencilTarget_->getHandle< RsTextureImplGL* >();
-		glFramebufferTexture2D( 
+		GL( FramebufferTexture2D( 
 			GL_FRAMEBUFFER,
 			Attachment,
 			GL_TEXTURE_2D,
 			TextureImpl->Handle_,
-			0 );
+			0 ) );
 	}
 
 	// Check status.
@@ -1796,7 +1796,7 @@ bool RsContextGL::destroyShader(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createProgram
+// `
 bool RsContextGL::createProgram(
 	RsProgram* Program )
 {
@@ -2646,12 +2646,12 @@ void RsContextGL::flushState()
 				// Bind.
 				BcU64 CalcOffset = FoundElement->Offset_;
 
-				glVertexAttribPointer( Attribute.Channel_, 
+				GL( VertexAttribPointer( Attribute.Channel_, 
 					FoundElement->Components_,
 					gVertexDataTypes[ (BcU32)FoundElement->DataType_ ],
 					gVertexDataNormalised[ (BcU32)FoundElement->DataType_ ],
 					VertexStride,
-					(GLvoid*)CalcOffset );
+					(GLvoid*)CalcOffset ) );
 
 				++BoundElements;
 			}
@@ -2728,10 +2728,10 @@ void RsContextGL::clear(
 		GL( DepthMask( GL_TRUE ) );
 		BoundDepthStencilState.DepthWriteEnable_ = BcTrue;
 	}
-	glClear( 
+	GL( Clear( 
 		( EnableClearColour ? GL_COLOR_BUFFER_BIT : 0 ) | 
 		( EnableClearDepth ? GL_DEPTH_BUFFER_BIT : 0 ) | 
-		( EnableClearStencil ? GL_STENCIL_BUFFER_BIT : 0 ) );	
+		( EnableClearStencil ? GL_STENCIL_BUFFER_BIT : 0 ) ) );
 	
 }
 
