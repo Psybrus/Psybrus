@@ -149,6 +149,14 @@ public:
 	void addDependency( const BcChar* Dependency );
 
 private:
+	BcBool oldPipeline();
+	BcBool newPipeline();
+	ScnShaderPermutation getDefaultPermutation();
+
+	BcBool buildInputHLSL(
+		const std::string& InHLSL );
+
+
 	BcBool compileShader( 
 		const std::string& FileName,
 		const std::string& EntryPoint,
@@ -160,7 +168,7 @@ private:
 
 	RsProgramVertexAttributeList extractShaderVertexAttributes(
 		BcBinaryData& ShaderByteCode );
-		 
+
 	void generatePermutations( 
 		BcU32 GroupIdx, 
 		BcU32 NoofGroups,
@@ -195,8 +203,14 @@ private:
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
 private:
+	// Old HLSL only.
 	std::string Source_;
 	std::string SourceFileData_;
+
+	// New any lang.
+	std::map< RsShaderCodeType, std::string > Sources_;
+	std::map< RsShaderCodeType, std::string > SourcesFileData_;
+
 	std::map< RsShaderType, std::string > Entrypoints_;
 	std::vector< ScnShaderPermutationFlags > ExcludePermutations_;
 	std::vector< ScnShaderPermutationFlags > IncludePermutations_;
