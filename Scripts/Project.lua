@@ -34,7 +34,7 @@ function PsyPlatformIncludes()
           "../Psybrus/Engine/Source/Platforms/OSX/",
        }
 
-    configuration "android-*"`
+    configuration "android-*"
        includedirs {
           "../Psybrus/Engine/Source/Platforms/Android/",
        }
