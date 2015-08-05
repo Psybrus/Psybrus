@@ -416,7 +416,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 BcBool ScnShaderImport::oldPipeline()
 {
 	BcBool RetVal = BcFalse;
-
+#if PSY_IMPORT_PIPELINE
 	// Read in source.
 	if( !Source_.empty() )
 	{
@@ -517,7 +517,7 @@ BcBool ScnShaderImport::oldPipeline()
 			}
 		}
 	}
-
+#endif
 	return BcTrue;
 }
 
@@ -525,6 +525,8 @@ BcBool ScnShaderImport::oldPipeline()
 // newPipeline
 BcBool ScnShaderImport::newPipeline()
 {
+	BcBool RetVal = BcFalse;
+#if PSY_IMPORT_PIPELINE
 	// Read in sources.
 	for( auto& SourcePair : Sources_ )
 	{
@@ -638,12 +640,14 @@ BcBool ScnShaderImport::newPipeline()
 								;
 							}
 						} );
+
+					RetVal = BcTrue;
 				}
 			}
 		}
 	}
-
-	return BcTrue;
+#endif
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -652,6 +656,7 @@ ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
 {
 	// Setup permutations.
 	ScnShaderPermutation Permutation;
+#if PSY_IMPORT_PIPELINE
 
 	// Default to alway use cbuffers.
 	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
@@ -671,7 +676,7 @@ ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
 		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE_%1%" ) % BackendTypeString );
 		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
 	}
-
+#endif
 	return Permutation;
 }
 
