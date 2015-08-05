@@ -292,8 +292,27 @@ enum class RsTextureFormat : BcU32
 };
 
 //////////////////////////////////////////////////////////////////////////
+// RsTextureBlockInfo
+struct RsBlockInfo
+{
+	BcU32 Width_;
+	BcU32 Height_;
+	BcU32 Bits_;
+};
+
+extern RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat );
+
+//////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
 extern BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
+
+//////////////////////////////////////////////////////////////////////////
+// RsTexturePitch
+extern BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height );
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureSlicePitch
+extern BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height );
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureFace

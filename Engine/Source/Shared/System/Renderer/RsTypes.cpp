@@ -166,6 +166,77 @@ void RsColour::premultiplyAlpha()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// RsTextureBlockInfo
+RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
+{
+	// Bits per block.
+	RsBlockInfo BlockInfo;
+	BlockInfo.Bits_ = 8;
+	BlockInfo.Width_ = 1;
+	BlockInfo.Height_ = 1;
+	switch( TextureFormat )
+	{
+	case RsTextureFormat::R8:
+		BlockInfo.Bits_ = 8;
+		break;
+	case RsTextureFormat::R8G8:
+		BlockInfo.Bits_ = 16;
+		break;
+	case RsTextureFormat::R8G8B8:
+		BlockInfo.Bits_ = 24;
+		break;
+	case RsTextureFormat::R8G8B8A8:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::R16F:
+		BlockInfo.Bits_ = 16;
+		break;
+	case RsTextureFormat::R16FG16F:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::R16FG16FB16F:
+		BlockInfo.Bits_ = 48;
+		break;
+	case RsTextureFormat::R16FG16FB16FA16F:
+		BlockInfo.Bits_ = 64;
+		break;
+	case RsTextureFormat::R32F:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::R32FG32F:
+		BlockInfo.Bits_ = 64;
+		break;
+	case RsTextureFormat::R32FG32FB32F:
+		BlockInfo.Bits_ = 96;
+		break;
+	case RsTextureFormat::R32FG32FB32FA32F:
+		BlockInfo.Bits_ = 128;
+		break;
+	case RsTextureFormat::DXT1:
+		BlockInfo.Bits_ = 64;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsTextureFormat::DXT3:
+	case RsTextureFormat::DXT5:			
+		BlockInfo.Bits_ = 128;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsTextureFormat::ETC1:
+		BlockInfo.Bits_ = 64;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	default:
+		BcBreakpoint; // Format not defined.
+		break;
+	}
+
+	return BlockInfo;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
 BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
 {
@@ -262,6 +333,29 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 	}
 	
 	return Size;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RsTexturePitch
+BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
+{
+	BcU32 Pitch = 0;
+	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
+	auto WidthByBlock = ( Width / BlockInfo.Width_ );
+	Pitch = ( WidthByBlock * BlockInfo.Bits_ ) / 8;
+	return Pitch;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureSlicePitch
+BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
+{
+	BcU32 SlicePitch = 0;
+	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
+	auto WidthByBlock = ( Width / BlockInfo.Width_ );
+	auto HeightByBlock = ( Height / BlockInfo.Height_ );
+	SlicePitch = ( WidthByBlock * HeightByBlock * BlockInfo.Bits_ ) / 8;
+	return SlicePitch;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

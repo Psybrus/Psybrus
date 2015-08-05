@@ -136,9 +136,8 @@ void DsCoreImpl::open()
 			return evtRET_REMOVE;
 		} );
 
-#if PLATFORM_ANDROID
 		DrawPanels_ = BcTrue;
-
+#if PLATFORM_ANDROID
 		auto& Style = ImGui::GetStyle();
 		Style.FramePadding.x *= 2.0f;
 		Style.FramePadding.y *= 2.0f;

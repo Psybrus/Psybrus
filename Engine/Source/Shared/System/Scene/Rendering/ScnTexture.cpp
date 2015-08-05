@@ -325,6 +325,8 @@ void ScnTexture::recreate()
 		pTexture_ = nullptr;
 	}
 
+	BcU32 SkipMips = 0;
+
 	// Create new.
 	pTexture_ = RsCore::pImpl()->createTexture( 
 		RsTextureDesc( 
@@ -332,9 +334,9 @@ void ScnTexture::recreate()
 			CreationFlags,
 			BindFlags,
 			Header_.Format_,
-			Header_.Levels_,
-			Width_,
-			Height_,
+			Header_.Levels_ - SkipMips,
+			Width_ >> SkipMips,
+			Height_ >> SkipMips,
 			Depth_ ) );
 
 	// Upload texture data.
@@ -346,9 +348,13 @@ void ScnTexture::recreate()
 		BcU32 Depth = Depth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 		{
-			auto Slice = pTexture_->getSlice( LevelIdx );
+			const auto SourcePitch = 
+				RsTexturePitch( Header_.Format_, Width, Height );
 
-			BcU32 SliceSize = 
+			const auto BlockInfo =
+				RsTextureBlockInfo( Header_.Format_ );
+
+			const auto SliceSize = 
 				RsTextureFormatSize( 
 					Header_.Format_, 
 					Width, 
@@ -356,17 +362,27 @@ void ScnTexture::recreate()
 					Depth, 
 					1 );
 
-			RsCore::pImpl()->updateTexture( 
-				pTexture_,
-				Slice,
-				RsResourceUpdateFlags::ASYNC,
-				[ TextureData, SliceSize ]( RsTexture* Texture, const RsTextureLock& Lock )
-				{
-					if( Lock.Buffer_ != nullptr )
+			if( LevelIdx >= SkipMips )
+			{
+				auto Slice = pTexture_->getSlice( LevelIdx - SkipMips );
+
+				RsCore::pImpl()->updateTexture( 
+					pTexture_,
+					Slice,
+					RsResourceUpdateFlags::ASYNC,
+					[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo ]( RsTexture* Texture, const RsTextureLock& Lock )
 					{
-						BcMemCopy( Lock.Buffer_, TextureData, SliceSize );
-					}
-				} );
+						BcAssert( Lock.Buffer_ );
+						BcAssert( Lock.Pitch_ >= SourcePitch );
+						BcAssert( Lock.SlicePitch_ >= SliceSize );
+						const auto Rows = Height / BlockInfo.Height_;
+						for( BcU32 Row = 0; Row < Rows; ++Row )
+						{
+							BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
+							memcpy( DestData, TextureData + ( SourcePitch * Row ), SourcePitch );
+						}
+					} );
+			}
 
 			// Down a level.
 			Width = BcMax( 1, Width >> 1 );
