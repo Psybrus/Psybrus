@@ -67,6 +67,7 @@ struct BcBacktraceResult
 	std::vector< BcBacktraceEntry > Backtrace_;
 };
 
+extern void BcPrintBacktrace( const BcBacktraceResult& Result );
 extern BcBacktraceResult BcBacktrace();
 
 //////////////////////////////////////////////////////////////////////////
