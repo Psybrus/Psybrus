@@ -47,7 +47,7 @@
 
 #include <algorithm>
 
-#define ENABLE_DEBUG_OUTPUT ( 0 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 )
+#define ENABLE_DEBUG_OUTPUT ( 1 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 && !PLATFORM_ANDROID )
 
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
@@ -865,6 +865,11 @@ void RsContextGL::create()
 	{
 		GL( DebugMessageCallbackARB( debugOutput, nullptr ) );
 		GL( GetError() );
+		PSY_LOG( "INFO: Using ARB_debug_output" );
+	}
+	else
+	{
+		PSY_LOG( "WARNING: No ARB_debug_output" );
 	}
 #endif // ENABLE_DEBUG_OUTPUT
 
