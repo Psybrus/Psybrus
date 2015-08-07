@@ -93,11 +93,11 @@
 // RsGLCatchError
 #define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
 
-GLuint RsReportGLErrors( const char* File, int Line );
+GLuint RsReportGLErrors( const char* File, int Line, const char* CallString );
 
 #if PSY_GL_CATCH_ERRORS
 #  define GL( _call ) \
-	gl##_call; RsReportGLErrors( __FILE__, __LINE__ )
+	gl##_call; RsReportGLErrors( __FILE__, __LINE__, #_call  )
 
 #else
 #  define GL( _call ) \

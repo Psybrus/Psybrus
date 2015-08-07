@@ -2176,6 +2176,9 @@ bool RsContextGL::createProgram(
 		return false;
 	}
 
+	// When creating programs, we want to make sure the program is rebound for next draw.
+	ProgramDirty_ = BcTrue;
+
 	++NoofPrograms_;
 
 	return true;

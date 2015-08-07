@@ -264,9 +264,16 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
 #if PSY_GL_CATCH_ERRORS
-GLuint RsReportGLErrors( const char* File, int Line )
+GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 {
 	PSY_PROFILER_SECTION( CatchRoot, "RsReportGLErrors" );
+	BcAssert( File );
+	BcAssert( Line > 0 );
+	BcAssert( CallString );
+
+#if 0
+	PSY_LOG( "GL: %s", CallString );
+#endif
 
 	BcU32 TotalErrors = 0;
 	GLuint Error;
