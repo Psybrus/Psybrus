@@ -314,7 +314,9 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 
 		if( Error != 0 )
 		{
-			PSY_LOG( "RsGL: %s:%u: Error: %s\n", File, Line, ErrorString.c_str() );
+			PSY_LOG( "RsGL: %s:%u", File, Line );
+			PSY_LOG( " - Call: %s\n", CallString );
+			PSY_LOG( " - Error: %s", ErrorString.c_str() );
 			auto Result = BcBacktrace();
 			BcPrintBacktrace( Result );
 			++TotalErrors;
