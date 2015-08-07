@@ -44,7 +44,8 @@ void RsCoreImpl::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsCoreImpl::RsCoreImpl()
+RsCoreImpl::RsCoreImpl():
+	FrameTime_( 0.0f )
 {
 	// Create our job queue.
 	// - 1 thread if we have 2 or more hardware threads.
@@ -709,13 +710,20 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 	BcAssert( BcIsGameThread() );
 	SysKernel::pImpl()->pushFunctionJob( 
 		RsCore::JOB_QUEUE_ID, 
-		[ pFrame ]()
+		[ this, pFrame ]()
 		{
+			BcTimer Timer;
+
+			Timer.mark();
+
 			// Render frame.
 			pFrame->render();
 
 			// Now free.
 			delete pFrame;
+
+			// Grab frame time.
+			FrameTime_ = Timer.time();
 		} );
 
 	for( auto ResourceDeletionFunc : ResourceDeletionList_ )
@@ -724,4 +732,11 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 	}
 
 	ResourceDeletionList_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// queueFrame
+BcF32 RsCoreImpl::getFrameTime() const
+{
+	return FrameTime_;
 }

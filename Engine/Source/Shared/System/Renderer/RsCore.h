@@ -234,6 +234,12 @@ public:
 	*	GAME FUNCTION: Called from game thread to queue frame to be rendered.
 	*/
 	virtual void				queueFrame( RsFrame* pFrame ) = 0;
+
+	/**
+	*	Get frame time.
+	*	Time spent on last frame.
+	*/
+	virtual BcF32				getFrameTime() const = 0;
 };
 
 #endif
