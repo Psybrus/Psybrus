@@ -403,8 +403,7 @@ ReObject* ReConstructObject(
 	const ReClass* InClass, 
 	const std::string& InName, 
 	ReObject* InOwner, 
-	ReObject* InBasis,
-	std::function< void( ReObject* ) > postCreateFunc )
+	ReObject* InBasis )
 {
 	BcAssert( InClass != nullptr );
 
@@ -421,12 +420,6 @@ ReObject* ReConstructObject(
 	// If we've succeeded...
 	if( NewObject != nullptr )
 	{
-		// Call post create.
-		if( postCreateFunc != nullptr )
-		{
-			postCreateFunc( NewObject );
-		}
-
 		// If we have a basis, we need to perform a deep copy.
 		if( InBasis != nullptr )
 		{

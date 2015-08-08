@@ -152,8 +152,7 @@ private:
 		const ReClass* InClass, 
 		const std::string& InName, 
 		ReObject* InOwner, 
-		ReObject* InBasis, 
-		std::function< void( ReObject* ) > );
+		ReObject* InBasis );
 
 	template< class _Ty, bool _IsWeak > friend class ReObjectRef;
 
