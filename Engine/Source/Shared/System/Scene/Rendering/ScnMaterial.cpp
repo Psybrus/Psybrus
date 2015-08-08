@@ -529,7 +529,10 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 			{
 				BcU32 Index = Data.pUniformBlockIndices_[ Idx ];
 				RsBuffer* pUniformBuffer = Data.ppUniformBuffers_[ Idx ];
-				Context->setUniformBuffer( Index, pUniformBuffer );
+				if( pUniformBuffer )
+				{
+					Context->setUniformBuffer( Index, pUniformBuffer );
+				}
 			}
 
 			// Setup state.

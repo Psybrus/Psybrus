@@ -120,7 +120,7 @@ END_CBUFFER
 // ScnShaderPostProcessCopyBlockData
 BEGIN_CBUFFER( ScnShaderPostProcessCopyBlockData )
 	/// Colour transform to copy using.
-	ENTRY( ScnShaderPostProcessCopyBlockData, float4, ColourTransform_ ) 
+	ENTRY( ScnShaderPostProcessCopyBlockData, float4x4, ColourTransform_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER

@@ -1457,9 +1457,8 @@ bool RsContextGL::updateBuffer(
 				UpdateFunc( Buffer, Lock );
 				GL( UnmapBuffer( TypeGL ) );
 			}
-
-			
 #else
+			glFlush();
 
 			// Get usage flags for GL.
 			GLuint UsageFlagsGL = 0;
@@ -1479,7 +1478,7 @@ bool RsContextGL::updateBuffer(
 			}
 
 			// Seem to get an OOM on a Mali GPU, but may not even need this now.
-#if !defined( RENDER_USE_GLES )
+#if 0 && !defined( RENDER_USE_GLES )
 			// Perform orphaning.
 			if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
 			{
@@ -2002,7 +2001,7 @@ bool RsContextGL::createProgram(
 	// Attempt to find uniform block names.
 	if( Version_.SupportUniformBuffers_ )
 	{
-#if !defined( RENDER_USE_GLES )
+#if !defined( RENDER_USE_GLES )s
 		GLint ActiveUniformBlocks = 0;
 		GL( GetProgramiv( ProgramImpl->Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks ) );
 	
@@ -2354,8 +2353,9 @@ void RsContextGL::setProgram( class RsProgram* Program )
 void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( IndexBuffer, "Can't bind a null index buffer." );
 	BcAssertMsg( IndexBuffer->getDesc().Type_ == RsBufferType::INDEX, "Buffer must be index buffer." );
-
+	
 	if( IndexBuffer_ != IndexBuffer )
 	{
 		IndexBuffer_ = IndexBuffer;
@@ -2371,6 +2371,7 @@ void RsContextGL::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( VertexBuffer, "Can't bind a null vertex buffer." );
 	BcAssertMsg( VertexBuffer->getDesc().Type_ == RsBufferType::VERTEX, "Buffer must be vertex buffer." );
 
 	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||
@@ -2390,6 +2391,7 @@ void RsContextGL::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( UniformBuffer, "Can't bind a null uniform buffer." );
 	BcAssertMsg( UniformBuffer->getDesc().Type_ == RsBufferType::UNIFORM, "Buffer must be uniform buffer." );
 
 	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
@@ -2550,9 +2552,8 @@ void RsContextGL::flushState()
 					auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
 					BcAssert( BufferImpl );
 					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
-					
-					++BindingPoint;
 				}
+				++BindingPoint;
 			}
 		}
 		else
