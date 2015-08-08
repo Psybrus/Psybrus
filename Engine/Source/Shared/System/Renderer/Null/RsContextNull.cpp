@@ -73,6 +73,14 @@ OsClient* RsContextNull::getClient() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFeatures
+//virtual
+const RsFeatures& RsContextNull::getFeatures() const
+{
+	return Features_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextNull::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const

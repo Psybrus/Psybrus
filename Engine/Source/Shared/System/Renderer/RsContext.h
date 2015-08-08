@@ -15,6 +15,7 @@
 #define __RSCONTEXT_H__
 
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsFeatures.h"
 #include "System/Renderer/RsResource.h"
 #include "System/Renderer/RsResourceInterface.h"
 #include "System/Renderer/RsDrawInterface.h"
@@ -48,26 +49,39 @@ public:
 
 	/**
  	 * Get width.
+	 * Thread safe.
 	 */
 	virtual BcU32 getWidth() const = 0;
 
 	/**
  	 * Get height.
+	 * Thread safe.
 	 */
 	virtual BcU32 getHeight() const = 0;
 
 	/**
 	 * Get client.
+	 * Thread safe.
 	 */
 	virtual OsClient* getClient() const = 0;
 
+	/**
+	 * Get features.
+	 * Thread safe.
+	 */
+	virtual const RsFeatures& getFeatures() const = 0;
+
 	/** 
 	 * Is shader code type supported?
+	 * Thread safe.
+	 * TODO: Deprecate, use getFeatures.
 	 */
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const = 0;
 
 	/** 
 	 * Get max shader type supported.
+	 * Thread safe.
+	 * TODO: Deprecate, use getFeatures.
 	 */
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const = 0;
 

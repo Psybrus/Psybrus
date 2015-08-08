@@ -16,7 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
-#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsFeatures.h"
 
 #include <tuple>
 
@@ -142,17 +142,9 @@ struct RsOpenGLVersion
 	RsShaderCodeType MaxCodeType_;
 
 	// Features.
-	BcBool SupportMRT_;
-	BcBool SupportSeparateBlendState_;
-	BcBool SupportDXTTextures_;
-	BcBool SupportETC1Textures_;
-	BcBool SupportETC2Textures_;
-	BcBool SupportATCTextures_;
-	BcBool SupportNpotTextures_;
-	BcBool SupportDepthTextures_;
-	BcBool SupportFloatTextures_;
-	BcBool SupportHalfFloatTextures_;
-	BcBool SupportAnisotropicFiltering_;
+	RsFeatures Features_;
+
+	// GL specific features.
 	BcBool SupportPolygonMode_;
 	BcBool SupportVAOs_;
 	BcBool SupportSamplerStates_;
@@ -160,7 +152,6 @@ struct RsOpenGLVersion
 	BcBool SupportGeometryShaders_;
 	BcBool SupportTesselationShaders_;
 	BcBool SupportComputeShaders_;
-	BcBool SupportAntialiasedLines_;
 	BcBool SupportDrawElementsBaseVertex_;
 
 	GLint MaxTextureSlots_;

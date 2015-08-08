@@ -450,6 +450,14 @@ OsClient* RsContextGL::getClient() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFeatures
+//virtual
+const RsFeatures& RsContextGL::getFeatures() const
+{
+	return Version_.Features_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
@@ -1561,14 +1569,11 @@ bool RsContextGL::createTexture(
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
 
-	// Check if format is a depth one.
-	if( IsDepthFormat( TextureDesc.Format_ ) )
+	// Check if format is supported one.
+	if( !Version_.Features_.TextureFormat_[ (int)TextureDesc.Format_ ] )
 	{
-		if( !Version_.SupportDepthTextures_ )
-		{
-			PSY_LOG( "ERROR: No depth texture support." );
-			return false;
-		}
+		PSY_LOG( "ERROR: No support for %u format.", TextureDesc.Format_ );
+		return false;
 	}
 
 	// Create GL texture.
@@ -1577,8 +1582,6 @@ bool RsContextGL::createTexture(
 
 	GL( GenTextures( 1, &TextureImpl->Handle_ ) );
 	
-	
-
 	if( TextureImpl->Handle_ != 0 )
 	{
 		// Bind texture.
@@ -3269,7 +3272,7 @@ void RsContextGL::loadTexture(
 void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
 {
 #if !defined( RENDER_USE_GLES )
-	if( Version_.SupportSeparateBlendState_ )
+	if( Version_.Features_.SeparateBlendState_ )
 	{
 		for( BcU32 Idx = 0; Idx < 8; ++Idx )
 		{
@@ -3360,7 +3363,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 				gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] ) );
 		}
 
-		if( Version_.SupportMRT_ )
+		if( Version_.Features_.MRT_ )
 		{
 #if !defined( RENDER_USE_GLES )
 			for( BcU32 Idx = 0; Idx < 8; ++Idx )
@@ -3535,7 +3538,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	}
 
 #if !defined( RENDER_USE_GLES )
-	if( Version_.SupportAntialiasedLines_ )
+	if( Version_.Features_.AntialiasedLines_ )
 	{
 		if( Force ||
 			RasteriserState.AntialiasedLineEnable_ != BoundRasteriserState.AntialiasedLineEnable_ )
