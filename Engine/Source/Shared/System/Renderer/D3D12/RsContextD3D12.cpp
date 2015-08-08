@@ -344,7 +344,7 @@ void RsContextD3D12::create()
 	Features_.Texture1D_ = true;
 	Features_.Texture2D_ = true;
 	Features_.Texture3D_ = true;
-	Features_.TextureCube_ = false;
+	Features_.TextureCube_ = true;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
@@ -1014,6 +1014,13 @@ bool RsContextD3D12::createTexture(
 			TextureDesc.Width_, TextureDesc.Height_, (BcU16)TextureDesc.Depth_, (BcU16)TextureDesc.Levels_, 
 			MiscFlag );
 		break;
+
+	case RsTextureType::TEXCUBE:
+		ResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D( 
+			Format.RTVFormat_,
+			TextureDesc.Width_, TextureDesc.Height_, 6, (BcU16)TextureDesc.Levels_, 1, 0,
+			MiscFlag );
+		break;
 	}
 
 	// Clear value.
@@ -1101,15 +1108,25 @@ bool RsContextD3D12::updateTexture(
 	auto CommandList = getCurrentCommandList();
 	auto UploadAllocator = getCurrentUploadAllocator();
 
+	const auto TextureDesc = Texture->getDesc();
 	RsResourceD3D12* Resource = Texture->getHandle< RsResourceD3D12* >();
 	ID3D12Resource* D3DResource = Resource->getInternalResource().Get();
 	auto D3DResourceDesc = D3DResource->GetDesc();
+
+	BcU32 SubResource = Slice.Level_;
+	
+	// Calculate cubemap subresource.
+	if( TextureDesc.Type_ == RsTextureType::TEXCUBE )
+	{
+		BcAssert( Slice.Face_ != RsTextureFace::NONE );
+		SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ - 1 );
+	}
 
 	// Setup pitched subresource to match source data.
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT Layout;
 	UINT NumRows = 0;
 	UINT64 TotalBytes = 0;
-	Device_->GetCopyableFootprints( &D3DResourceDesc, Slice.Level_, 1, 0, &Layout, &NumRows, nullptr, &TotalBytes );
+	Device_->GetCopyableFootprints( &D3DResourceDesc, SubResource, 1, 0, &Layout, &NumRows, nullptr, &TotalBytes );
 
 	// Update texture.
 	auto Allocation = UploadAllocator->allocate( TotalBytes, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
@@ -1125,7 +1142,7 @@ bool RsContextD3D12::updateTexture(
 	auto OldUsage = Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_COPY_DEST );
 
 	// Copy in.
-	CD3DX12_TEXTURE_COPY_LOCATION Dst( D3DResource, Slice.Level_ );
+	CD3DX12_TEXTURE_COPY_LOCATION Dst( D3DResource, SubResource );
 	CD3DX12_TEXTURE_COPY_LOCATION Src( Allocation.BaseResource_.Get(), Layout );
 	CommandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
 

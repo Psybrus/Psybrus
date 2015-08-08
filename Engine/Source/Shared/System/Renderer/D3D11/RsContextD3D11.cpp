@@ -577,7 +577,7 @@ void RsContextD3D11::create()
 	Features_.Texture1D_ = true;
 	Features_.Texture2D_ = true;
 	Features_.Texture3D_ = true;
-	Features_.TextureCube_ = false;
+	Features_.TextureCube_ = true;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
@@ -1632,6 +1632,15 @@ bool RsContextD3D11::updateTexture(
 	// Update.
 	UpdateFunc( Texture, Lock );
 
+	BcU32 SubResource = Slice.Level_;
+	
+	// Calculate cubemap subresource.
+	if( Desc.Type_ == RsTextureType::TEXCUBE )
+	{
+		BcAssert( Slice.Face_ != RsTextureFace::NONE );
+		SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ - 1 );
+	}
+
 	// Buffer sub resource.
 	switch( Desc.Type_ )
 	{
@@ -1639,7 +1648,7 @@ bool RsContextD3D11::updateTexture(
 		{
 			Context_->UpdateSubresource(
 				D3DResource,
-				Slice.Level_,
+				SubResource,
 				nullptr,
 				&TextureData[ 0 ],
 				Lock.Pitch_,
@@ -1651,7 +1660,7 @@ bool RsContextD3D11::updateTexture(
 		{
 			Context_->UpdateSubresource(
 				D3DResource,
-				Slice.Level_,
+				SubResource,
 				nullptr,
 				&TextureData[ 0 ],
 				Lock.Pitch_,
@@ -1675,7 +1684,7 @@ bool RsContextD3D11::updateTexture(
 		{
 			Context_->UpdateSubresource(
 				D3DResource,
-				Slice.Level_ + ( (BcU32)Slice.Face_ * 6 ),
+				SubResource,
 				nullptr,
 				&TextureData[ 0 ],
 				Lock.Pitch_,
@@ -2445,9 +2454,18 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
 				Desc.Format = Entry.SRVFormat_;
-				Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
-				Desc.Texture2D.MipLevels = TexDesc.MipLevels;
-				Desc.Texture2D.MostDetailedMip = 0;
+				if( ( TexDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE ) == 0 )
+				{
+					Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
+					Desc.Texture2D.MipLevels = TexDesc.MipLevels;
+					Desc.Texture2D.MostDetailedMip = 0;
+				}
+				else
+				{
+					Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBE;
+					Desc.TextureCube.MipLevels = TexDesc.MipLevels;
+					Desc.TextureCube.MostDetailedMip = 0;
+				}
 			}
 			break;
 
