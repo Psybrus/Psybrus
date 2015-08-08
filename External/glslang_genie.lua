@@ -21,8 +21,8 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 
 	configuration "windows-*"
 		files { 
-			"./glslang/glslang/OSDependent/Windows/**.h",
-			"./glslang/glslang/OSDependent/Windows/**.cpp",
+			"./glslang/glslang/OSDependent/Windows/osinclude.h",
+			"./glslang/glslang/OSDependent/Windows/ossource.cpp",
 		}
 
 		includedirs { 

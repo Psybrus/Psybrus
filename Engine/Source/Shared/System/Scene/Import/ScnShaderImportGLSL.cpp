@@ -553,7 +553,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	{
 		if( Program->link( EShMsgDefault ) )
 		{
-			Program->buildReflection();
+			//Program->5();
 			//Program->dumpReflection();
 		}
 		else

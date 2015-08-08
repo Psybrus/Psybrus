@@ -36,6 +36,7 @@ public:
 	virtual BcU32 getWidth() const override;
 	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
+	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
@@ -179,6 +180,8 @@ private:
 	ComPtr< IDXGISwapChain3 > SwapChain_;
 	ComPtr< ID3D12Device > Device_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
+
+	RsFeatures Features_;
 
 	/// Command queue.
 	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc_;

@@ -114,6 +114,14 @@ OsClient* RsContextD3D12::getClient() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFeatures
+//virtual
+const RsFeatures& RsContextD3D12::getFeatures() const
+{
+	return Features_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextD3D12::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const

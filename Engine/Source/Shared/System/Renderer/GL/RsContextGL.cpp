@@ -2463,7 +2463,7 @@ void RsContextGL::flushState()
 		BcU32 TextureStateID = TextureStateBinds_[ TextureStateIdx ];
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ TextureStateID ];
 
-		if( TextureStateValue.Dirty_ && TextureStateID < Version_.MaxTextureSlots_ )
+		if( TextureStateValue.Dirty_ && (GLint)TextureStateID < Version_.MaxTextureSlots_ )
 		{
 			RsTexture* pTexture = TextureStateValue.pTexture_;			
 			const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
@@ -2908,8 +2908,6 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 	}
 
 	const auto& TextureDesc = Texture->getDesc();
-	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
-	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 
 	DirtyFrameBuffer_ = BcTrue;
 	RsTextureImplGL* SrcTextureImpl = Texture->getHandle< RsTextureImplGL* >();
@@ -3013,10 +3011,10 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 		FBHeight = RT->getDesc().Height_;
 	}
 
-	auto SX = X;
-	auto SY = FBHeight - Height;
-	auto SW = Width - X;
-	auto SH = Height - Y;
+	BcS32 SX = X;
+	BcS32 SY = FBHeight - Height;
+	BcS32 SW = Width - X;
+	BcS32 SH = Height - Y;
 
 	if( ScissorX_ != SX ||
 		ScissorY_ != SY ||

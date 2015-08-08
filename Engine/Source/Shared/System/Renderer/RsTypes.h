@@ -502,8 +502,8 @@ enum class RsShaderCodeType : BcU32
 	D3D9_3_0,
 	
 	// D3D11
-	D3D11_4_0_LEVEL_9_0,
 	D3D11_4_0_LEVEL_9_1,
+	D3D11_4_0_LEVEL_9_2,
 	D3D11_4_0_LEVEL_9_3,
 	D3D11_4_0,
 	D3D11_4_1,

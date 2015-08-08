@@ -94,8 +94,8 @@ namespace
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
 		{ "ps_3_0", RsShaderType::PIXEL, RsShaderCodeType::D3D9_3_0 },
-		{ "ps_4_0_level_9_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_0 },
 		{ "ps_4_0_level_9_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
+		{ "ps_4_0_level_9_2", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
 		{ "ps_4_0_level_9_3", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "ps_4_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0 },
 		{ "ps_4_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_1 },
@@ -110,8 +110,8 @@ namespace
 		{ "gs_5_0", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 		
 		{ "vs_3_0", RsShaderType::VERTEX, RsShaderCodeType::D3D9_3_0 },
-		{ "vs_4_0_level_9_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_0 },
 		{ "vs_4_0_level_9_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
+		{ "vs_4_0_level_9_2", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
 		{ "vs_4_0_level_9_3", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "vs_4_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
 		{ "vs_4_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
@@ -917,13 +917,13 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 		{
 			PSY_LOG( "Invalid code type: %u, %u", RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ), Params.OutputCodeType_ );
 			RetVal = BcFalse;
-			
-			if( ErrorMessages.size() > 0 )
-			{
-				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-				ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
-			}
 			break;
+		}
+
+		if( ErrorMessages.size() > 0 )
+		{
+			std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+			ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
 		}
 
 		// Setup program + shaders.

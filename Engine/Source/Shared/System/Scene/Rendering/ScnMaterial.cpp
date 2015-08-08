@@ -481,7 +481,14 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		Data.TextureHandles_[ Idx ] = Binding.Handle_;
 
 		// Set texture to bind.
-		Texture = Binding.Texture_->getTexture();
+		if( Binding.Texture_ != nullptr )
+		{
+			Texture = Binding.Texture_->getTexture();
+		}
+		else
+		{
+			Texture = nullptr;
+		}
 
 		// Set sampler state.
 		SamplerState = Material_->SamplerStates_[ Idx ].get();

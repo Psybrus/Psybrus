@@ -19,7 +19,7 @@
 // Utility.
 namespace
 {
-	BcBool HaveExtension( const char* ExtensionName )
+	bool HaveExtension( const char* ExtensionName )
 	{
 		auto Extensions = (const char*)glGetString( GL_EXTENSIONS );
 		auto RetVal = BcStrStr( Extensions, ExtensionName ) != nullptr;

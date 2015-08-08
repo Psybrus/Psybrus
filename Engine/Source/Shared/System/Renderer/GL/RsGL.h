@@ -145,14 +145,14 @@ struct RsOpenGLVersion
 	RsFeatures Features_;
 
 	// GL specific features.
-	BcBool SupportPolygonMode_;
-	BcBool SupportVAOs_;
-	BcBool SupportSamplerStates_;
-	BcBool SupportUniformBuffers_;
-	BcBool SupportGeometryShaders_;
-	BcBool SupportTesselationShaders_;
-	BcBool SupportComputeShaders_;
-	BcBool SupportDrawElementsBaseVertex_;
+	bool SupportPolygonMode_;
+	bool SupportVAOs_;
+	bool SupportSamplerStates_;
+	bool SupportUniformBuffers_;
+	bool SupportGeometryShaders_;
+	bool SupportTesselationShaders_;
+	bool SupportComputeShaders_;
+	bool SupportDrawElementsBaseVertex_;
 
 	GLint MaxTextureSlots_;
 
