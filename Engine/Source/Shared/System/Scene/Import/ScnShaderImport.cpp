@@ -211,6 +211,7 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Sources_", &ScnShaderImport::Sources_, bcRFF_IMPORTER ),
+		new ReField( "Defines_", &ScnShaderImport::Defines_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
 		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "IncludePermutations_", &ScnShaderImport::IncludePermutations_, bcRFF_IMPORTER ),
@@ -746,6 +747,12 @@ void ScnShaderImport::generatePermutations(
 			}
 			else
 			{
+				// Add all base defines at the end.
+				for( auto Define : Defines_ )
+				{
+					NewPermutation.Defines_.insert( Define );
+				}
+
 				Permutations_.push_back( NewPermutation );
 			}
 		}

@@ -217,6 +217,7 @@ private:
 	// New any lang.
 	std::map< RsShaderCodeType, std::string > Sources_;
 	std::map< RsShaderCodeType, std::string > SourcesFileData_;
+	std::map< std::string, std::string > Defines_;
 
 	//
 	std::vector< RsShaderCodeType > OutputCodeTypes_;

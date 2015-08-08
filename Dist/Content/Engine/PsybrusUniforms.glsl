@@ -139,8 +139,8 @@ END_CBUFFER
 
 #if !PSY_USE_CBUFFER
 
-#  define TextureDimensions_ ScnShaderPostProcessBlurVS_XTextureDimensions_
-#  define Radius_ ScnShaderPostProcessBlurVS_XRadius_
+#  define TextureDimensions_ ScnShaderPostProcessBlurBlockDataVS_XTextureDimensions_
+#  define Radius_ ScnShaderPostProcessBlurBlockDataVS_XRadius_
 
 #endif
 

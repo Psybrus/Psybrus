@@ -124,6 +124,8 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
 	Header_.Type_ = RsTextureType::TEX1D;
 	Header_.Format_ = Format;
 	Header_.Editable_ = BcTrue;
+	Header_.RenderTarget_ = BcFalse;
+	Header_.DepthStencilTarget_ = BcFalse;
 
 	markCreate();
 }
@@ -143,6 +145,8 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureF
 	Header_.Type_ = RsTextureType::TEX2D;
 	Header_.Format_ = Format;
 	Header_.Editable_ = BcTrue;
+	Header_.RenderTarget_ = BcFalse;
+	Header_.DepthStencilTarget_ = BcFalse;
 
 	markCreate();
 }
@@ -162,6 +166,8 @@ void ScnTexture::initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Level
 	Header_.Type_ = RsTextureType::TEX3D;
 	Header_.Format_ = Format;
 	Header_.Editable_ = BcTrue;
+	Header_.RenderTarget_ = BcFalse;
+	Header_.DepthStencilTarget_ = BcFalse;
 
 	markCreate();
 }
