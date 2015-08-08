@@ -144,15 +144,21 @@ vec4 mul( mat4 M, vec4 V )
 #  define PSY_SAMPLER_3D( _n )									\
 		uniform sampler3D a##_n									\
 
+#  define PSY_SAMPLER_CUBE( _n )								\
+		uniform samplerCube a##_n								\
+
 #if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
 #  define PSY_SAMPLE_1D( _n, _c ) texture( a##_n, _c )
 #  define PSY_SAMPLE_2D( _n, _c ) texture( a##_n, _c )
 #  define PSY_SAMPLE_3D( _n, _c ) texture( a##_n, _c )
+#  define PSY_SAMPLE_CUBE( _n, _c ) texture( a##_n, _c )
 #else
 #  define PSY_SAMPLE_1D( _n, _c ) texture1D( a##_n, _c )
 #  define PSY_SAMPLE_2D( _n, _c ) texture2D( a##_n, _c )
 #  define PSY_SAMPLE_3D( _n, _c ) texture3D( a##_n, _c )
+#  define PSY_SAMPLE_CUBE( _n, _c ) textureCUBE( a##_n, _c )
 #endif
+
 //////////////////////////////////////////////////////////////////////////
 // Uniforms.
 #include <PsybrusUniforms.glsl>

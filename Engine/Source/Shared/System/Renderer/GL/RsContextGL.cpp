@@ -185,6 +185,17 @@ static GLenum gTextureTypes[] =
 	GL_TEXTURE_CUBE_MAP
 };
 
+static GLenum gTextureFaces[] =
+{
+	0,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+};
+
 static GLenum gVertexDataTypes[] = 
 {
 	GL_FLOAT,			// RsVertexDataType::FLOAT32 = 0,
@@ -1613,20 +1624,40 @@ bool RsContextGL::createTexture(
 		BcU32 Width = TextureDesc.Width_;
 		BcU32 Height = TextureDesc.Height_;
 		BcU32 Depth = TextureDesc.Depth_;
-		for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+		if( TextureDesc.Type_ != RsTextureType::TEXCUBE )
 		{
-			auto TextureSlice = Texture->getSlice( LevelIdx );
+			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+			{
+				auto TextureSlice = Texture->getSlice( LevelIdx );
 
-			// Load slice.
-			loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
-			// TODO: Error checking on loadTexture.
+				// Load slice.
+				loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
+				// TODO: Error checking on loadTexture.
 
-			// Down a power of two.
-			Width = BcMax( 1, Width >> 1 );
-			Height = BcMax( 1, Height >> 1 );
-			Depth = BcMax( 1, Depth >> 1 );
+				// Down a power of two.
+				Width = BcMax( 1, Width >> 1 );
+				Height = BcMax( 1, Height >> 1 );
+				Depth = BcMax( 1, Depth >> 1 );
+			}
 		}
+		else
+		{
+			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+			{
+				for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
+				{
+					auto TextureSlice = Texture->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
 
+					// Load slice.
+					loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
+					// TODO: Error checking on loadTexture.
+
+					// Down a power of two.
+					Width = BcMax( 1, Width >> 1 );
+					Height = BcMax( 1, Height >> 1 );
+				}
+			}
+		}
 		++NoofTextures_;
 
 		return true;
@@ -3203,7 +3234,18 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
-			BcBreakpoint;
+			PSY_LOG( "TexImage2D! %u, %p", Slice.Face_, Data );
+			GL( TexImage2D( 
+				gTextureFaces[ (int)Slice.Face_ ],
+				Slice.Level_,
+				FormatGL.InternalFormat_,
+				Width,
+				Height,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data ) );
+			break;
 
 		default:
 			BcBreakpoint;
@@ -3260,7 +3302,15 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
-			BcBreakpoint;
+			GL( CompressedTexImage2D( 
+				gTextureFaces[ (int)Slice.Face_ ],
+				Slice.Level_,
+				FormatGL.InternalFormat_,
+				Width,
+				Height,
+				0,
+				DataSize,
+				Data ) );
 #endif
 
 		default:
