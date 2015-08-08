@@ -40,19 +40,13 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnTexture, CsResource );
 	
 	ScnTexture();
-	ScnTexture( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
-	ScnTexture( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
-	ScnTexture( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
 	virtual ~ScnTexture();
 
-	virtual void initialise( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
-	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
-	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
-	virtual void create();
-	virtual void destroy();
+	static ScnTexture* New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
+	static ScnTexture* New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
+	static ScnTexture* New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
+	static ScnTexture* NewCube( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
 
-	
-	
 	RsTexture* getTexture();
 	
 	BcU32 getWidth() const;
@@ -63,6 +57,9 @@ public:
 
 	
 protected:
+	virtual void create();
+	virtual void destroy();
+
 	void recreate();
 	virtual void fileReady();
 	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
