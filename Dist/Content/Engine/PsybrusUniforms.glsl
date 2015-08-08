@@ -15,7 +15,7 @@
 #	define END_CBUFFER };
 #else
 #	define BEGIN_CBUFFER( _n )
-#	define ENTRY( _p, _t, _n ) _t _p##VS_X##_n;
+#	define ENTRY( _p, _t, _n ) uniform _t _p##VS_X##_n;
 #	define END_CBUFFER
 #endif
 

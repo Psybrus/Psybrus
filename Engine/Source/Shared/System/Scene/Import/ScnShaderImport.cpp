@@ -541,7 +541,12 @@ BcBool ScnShaderImport::newPipeline()
 			SourcesFileData_[ SourcePair.first ] = FileData.data();
 
 			CodeTypes_.push_back( SourcePair.first );
+			PSY_LOG( "- - Added code type %u", SourcePair.first );
 			addDependency( SourcePair.second.c_str() );
+		}
+		else
+		{
+			return BcFalse;
 		}
 	}
 
@@ -565,7 +570,7 @@ BcBool ScnShaderImport::newPipeline()
 		{
 			std::vector< ScnShaderLevelEntry > Entries;
 			if( RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL ||
-				RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL )
+				RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL_ES )
 			{
 				// Setup entries for input code type.
 				std::vector< ScnShaderLevelEntry > GLSLEntries = 
@@ -637,7 +642,6 @@ BcBool ScnShaderImport::newPipeline()
 						{
 							if( buildPermutation( JobParams ) == BcFalse )
 							{
-								;
 							}
 						} );
 
@@ -1097,7 +1101,7 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 			else
 			{
 				PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
-					glslopt_get_log( GlslOptShader ) );
+					glslopt_get_( GlslOptShader ) );
 				BcBreakpoint; // TODO: Failed. Why?
 			}
 
@@ -1272,9 +1276,9 @@ BcBool ScnShaderImport::convertHLSLCC(
 			// GLSL ES needs to not bother with uniform objects.
 			if( Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_100 ||
 				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
-				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 )
+				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_310 )
 			{
-				logSource( GLSLResult.sourceCode );
+				//logSource( GLSLResult.sourceCode );
 			}
 
 			// Check success.

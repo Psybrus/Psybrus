@@ -161,9 +161,9 @@ void ScnCore::open()
 				ImGui::Text( "Worker count: %u", 
 					SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
-					RsCore::pImpl()->getFrameTime() * 1000.0f, GameTimeTotal * 1000.0f );
+					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
 				ImGui::Text( "Render time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, RenderTimeTotal * 1000.0f );
+					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f );
 				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
 					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
 

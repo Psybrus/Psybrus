@@ -1,4 +1,4 @@
-﻿/**************************************************************************
+/**************************************************************************
 *
 * File:		RsContextGL.cpp
 * Author: 	Neil Richardson 
@@ -1766,8 +1766,12 @@ bool RsContextGL::createShader(
 		std::string ShaderLine;
 		int Line = 1;
 		while( std::getline( ShaderStream, ShaderLine, '\n' ) )
-		{
-			PSY_LOG( "%u: %s", Line++, ShaderLine.c_str() );
+		{	
+			auto PrintLine = Line++;
+			if( ShaderLine.size() > 0 )
+			{
+				PSY_LOG( "%u: %s", PrintLine, ShaderLine.c_str() );
+			}
 		}
 		PSY_LOG( "=======================================================\n" );
 		delete [] pszInfoLog;
@@ -1859,7 +1863,13 @@ bool RsContextGL::createProgram(
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		GL( GetProgramInfoLog( ProgramImpl->Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog ) );
-		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		PSY_LOG( "RsShaderGL: Infolog:\n", pszInfoLog );
+		std::stringstream LogStream( pszInfoLog );
+		std::string LogLine;
+		while( std::getline( LogStream, LogLine, '\n' ) )
+		{
+			PSY_LOG( LogLine.c_str() );
+		}
 		delete [] pszInfoLog;
 
 		for( auto& Shader : Shaders )
@@ -1871,7 +1881,11 @@ bool RsContextGL::createProgram(
 			int Line = 1;
 			while( std::getline( ShaderStream, ShaderLine, '\n' ) )
 			{
-				PSY_LOG( "%u: %s", Line++, ShaderLine.c_str() );
+				auto PrintLine = Line++;
+				if( ShaderLine.size() > 0 )
+				{
+					PSY_LOG( "%u: %s", PrintLine, ShaderLine.c_str() );
+				}
 			}
 			PSY_LOG( "=======================================================\n" );
 		}

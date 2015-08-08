@@ -366,7 +366,7 @@ RsShader* RsCoreImpl::createShader(
 		{
 			if( !Context->createShader( pResource ) )
 			{
-				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+				PSY_LOG( "Failed shader creation: %s", DebugName.c_str() );
 			}
 		} );
 

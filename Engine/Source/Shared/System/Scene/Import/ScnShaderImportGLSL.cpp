@@ -186,7 +186,7 @@ namespace
 // buildPermutationGLSL
 BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParams& Params )
 {
-	BcBool RetVal = BcTrue;
+	BcBool RetVal = BcFalse;
 #if PSY_IMPORT_PIPELINE
 	BcAssertMsg( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::GLSL ||
 		RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::GLSL_ES, "Expecting GLSL or GLSL_ES code input." );
@@ -232,6 +232,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		EShLangGeometry,
 		EShLangCompute
 	};
+
+	if( Params.Entries_.size() == 0 )
+	{
+		PSY_LOG( "No entries." );
+	}
 
 	for( auto& Entry : Params.Entries_ )
 	{
@@ -349,13 +354,75 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					ProcessedSourceData += Line + "\n";
 				}
 
-				// Replace vertex attribute names with our ones.
+				// Replace vertex attribute names, and semantic names with our ones.
 				for( const auto& Attribute : VertexAttributes )
 				{
 					const auto Name = VertexAttributeNames[ Attribute.Channel_ ];
 					const auto NewName = std::string( "dcl_Input" ) + std::to_string( Attribute.Channel_ );
 					boost::replace_all( ProcessedSourceData, Name, NewName );	
+
+					std::string SemanticName;
+					switch( Attribute.Usage_ )
+					{
+					case RsVertexUsage::POSITION:
+						SemanticName = "SEMANTIC_POSITION";
+						break;
+					case RsVertexUsage::BLENDWEIGHTS:
+						SemanticName = "SEMANTIC_BLENDWEIGHTS";
+						break;
+					case RsVertexUsage::BLENDINDICES:
+						SemanticName = "SEMANTIC_BLENDINDICES";
+						break;
+					case RsVertexUsage::NORMAL:
+						SemanticName = "SEMANTIC_NORMAL";
+						break;
+					case RsVertexUsage::PSIZE:
+						SemanticName = "SEMANTIC_PSIZE";
+						break;
+					case RsVertexUsage::TEXCOORD:
+						SemanticName = "SEMANTIC_TEXCOORD";
+						break;
+					case RsVertexUsage::TANGENT:
+						SemanticName = "SEMANTIC_TANGENT";
+						break;
+					case RsVertexUsage::BINORMAL:
+						SemanticName = "SEMANTIC_BINORMAL";
+						break;
+					case RsVertexUsage::TESSFACTOR:
+						SemanticName = "SEMANTIC_TESSFACTOR";
+						break;
+					case RsVertexUsage::POSITIONT:
+						SemanticName = "SEMANTIC_POSITIONT";
+						break;
+					case RsVertexUsage::COLOUR:
+						SemanticName = "SEMANTIC_COLOUR";
+						break;
+					case RsVertexUsage::FOG:
+						SemanticName = "SEMANTIC_FOG";
+						break;
+					case RsVertexUsage::DEPTH:
+						SemanticName = "SEMANTIC_DEPTH";
+						break;
+					case RsVertexUsage::SAMPLE:
+						SemanticName = "SEMANTIC_SAMPLE";
+						break;
+					default:
+						BcBreakpoint;
+					}
+
+					// Replaced numbered first.
+					BcChar NumberedSemanticName[ 128 ] = { 0 };
+					BcSPrintf( NumberedSemanticName, sizeof( NumberedSemanticName ) - 1, 
+						"%s%u", SemanticName.c_str(), Attribute.UsageIdx_ );
+					boost::replace_all( ProcessedSourceData, NumberedSemanticName, NewName );
+					// Replace 0 case.
+					if( Attribute.UsageIdx_ == 0 )
+					{
+						boost::replace_all( ProcessedSourceData, SemanticName, NewName );	
+					}
 				}
+
+				//logSource( ProcessedSourceData );
 
 				// Attempt to compile.
 				TBuiltInResource Resources = GetDefaultResource();
@@ -406,6 +473,10 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				PSY_LOG( "%s", Exception.what() );
 			}
 		}
+		else
+		{
+			PSY_LOG( "ERROR: Incorrect backend." );
+		}
 
 		// Setup program + shaders.
 		if( RetVal )
@@ -422,6 +493,10 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 			BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
 		}
+		else
+		{
+			PSY_LOG( "ERROR: Failed to build shader." );
+		}
 	}
 
 	// Test linkage if compilation was successful.
@@ -430,7 +505,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		if( Program->link( EShMsgDefault ) )
 		{
 			Program->buildReflection();
-			Program->dumpReflection();
+			//Program->dumpReflection();
 		}
 		else
 		{
