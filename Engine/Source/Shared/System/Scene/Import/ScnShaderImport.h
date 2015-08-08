@@ -218,7 +218,6 @@ private:
 	std::map< RsShaderCodeType, std::string > Sources_;
 	std::map< RsShaderCodeType, std::string > SourcesFileData_;
 
-
 	//
 	std::vector< RsShaderCodeType > OutputCodeTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;

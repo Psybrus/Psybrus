@@ -1101,7 +1101,7 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 			else
 			{
 				PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
-					glslopt_get_( GlslOptShader ) );
+					glslopt_get_log( GlslOptShader ) );
 				BcBreakpoint; // TODO: Failed. Why?
 			}
 

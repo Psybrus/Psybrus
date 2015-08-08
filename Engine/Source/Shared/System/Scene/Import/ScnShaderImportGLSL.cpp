@@ -422,7 +422,56 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
-				//logSource( ProcessedSourceData );
+				// Run glsl-optimizer for ES (Only GLSL_ES_100)
+				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+				{
+					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
+					glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
+
+					// Vertex shader attributes.
+					glslopt_shader_type GlslOptLanguage;
+
+					if( Entry.Type_ == RsShaderType::VERTEX )
+					{
+						GlslOptLanguage = kGlslOptShaderVertex;
+					}
+					else if( Entry.Type_ == RsShaderType::PIXEL )
+					{
+						GlslOptLanguage = kGlslOptShaderFragment;
+					}
+					else
+					{
+						PSY_LOG( "Error: Unsupported shader type for glsl-optimizer" );
+						return BcFalse;
+					}
+
+					auto GlslOptShader = glslopt_optimize( 
+						GlslOptContext, 
+						GlslOptLanguage,
+						ProcessedSourceData.c_str(),
+						0 );
+
+					if( glslopt_get_status( GlslOptShader ) )
+					{
+						// Extract shader code.
+						ProcessedSourceData = glslopt_get_output( GlslOptShader );
+					}
+					else
+					{
+						PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
+							glslopt_get_log( GlslOptShader ) );
+						return BcFalse;
+					}
+
+					int ApproxMath, ApproxTex, ApproxFlow;
+					glslopt_shader_get_stats(
+						GlslOptShader,
+						&ApproxMath, &ApproxTex, &ApproxFlow );
+					PSY_LOG( "glsl-optimizer shader stats (approx): %u math, %u tex, %u flow.",
+						ApproxMath, ApproxTex, ApproxFlow );
+
+					glslopt_cleanup( GlslOptContext );
+				}
 
 				// Attempt to compile.
 				TBuiltInResource Resources = GetDefaultResource();
