@@ -698,6 +698,8 @@ void RsContextD3D11::destroy()
 	delete BackBufferDS_;
 	BackBufferDS_ = nullptr;
 
+	BackBuffer_ = nullptr;
+
 	// Verify all resources have been freed.
 #if !defined( PSY_PRODUCTION )
 	for( const auto& ResourceView : ResourceViewCache_ )
