@@ -390,9 +390,13 @@ function PsyProjectPsybrusExe( _name, _suffix )
           "hlsl2glslfork",
           "HLSLCrossCompiler",
           "glew",
+          "ThinkGear",
+       }
+
+    configuration { "windows-* or linux-* or osx-* or android-*" }
+       PsyAddExternalLinks {
           "RakNet",
           "webby",
-          "ThinkGear",
        }
 
 	-- asmjs post build.
