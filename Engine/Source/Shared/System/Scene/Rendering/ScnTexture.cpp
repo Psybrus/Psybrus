@@ -183,7 +183,7 @@ void ScnTexture::create()
 			} );
 	}
 
-recreate();
+	recreate();
 	markReady();
 }
 
@@ -196,13 +196,6 @@ void ScnTexture::destroy()
 
 	RsCore::pImpl()->destroyResource( pTexture_ );
 	pTexture_ = nullptr;
-
-	// Free if it's user created.
-	if( Header_.Editable_ )
-	{
-		BcMemFree( pTextureData_ );
-		pTextureData_ = nullptr;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -290,21 +283,6 @@ void ScnTexture::recreate()
 		Depth_ = 1;
 	}
 
-	// Allocate if editable.
-	if( Header_.Editable_ )
-	{
-		BcMemFree( pTextureData_ );
-
-		// Allocate to a 4k alignment.
-		pTextureData_ = BcMemAlign(
-			RsTextureFormatSize( 
-				Header_.Format_, 
-				Width_, 
-				Height_,
-				Depth_, 
-				Header_.Levels_ ), 4096 );
-	}
-
 	// Create new one immediately.
 	auto CreationFlags = Header_.Editable_ ? RsResourceCreationFlags::DYNAMIC : RsResourceCreationFlags::STATIC;
 	RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
@@ -340,7 +318,7 @@ void ScnTexture::recreate()
 			Depth_ ) );
 
 	// Upload texture data.
-	if( !Header_.RenderTarget_ && !Header_.DepthStencilTarget_ )
+	if( pTextureData_ != nullptr )
 	{
 		BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
 		BcU32 Width = Width_;

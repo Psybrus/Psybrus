@@ -50,6 +50,8 @@ public:
 	virtual void initialise( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );
 	virtual void create();
 	virtual void destroy();
+
+	
 	
 	RsTexture* getTexture();
 	
