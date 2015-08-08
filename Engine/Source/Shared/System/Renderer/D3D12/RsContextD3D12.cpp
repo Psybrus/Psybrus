@@ -128,6 +128,14 @@ BcBool RsContextD3D12::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) co
 {
 	switch( CodeType )
 	{
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_1:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_1 );
+		break;
+
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_2:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_2 );
+		break;
+
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_3:
 		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_3 );
 		break;
@@ -158,6 +166,14 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 {
 	switch( FeatureLevel_ )
 	{
+	case D3D_FEATURE_LEVEL_9_1:
+		return RsShaderCodeType::D3D11_4_0_LEVEL_9_1;
+		break;
+
+	case D3D_FEATURE_LEVEL_9_2:
+		return RsShaderCodeType::D3D11_4_0_LEVEL_9_2;
+		break;
+
 	case D3D_FEATURE_LEVEL_9_3:
 		return RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
 		break;
@@ -318,6 +334,59 @@ void RsContextD3D12::create()
 		FeatureLevel_, 
 		IID_PPV_ARGS( &Device_ ) );
 	BcAssert( SUCCEEDED( RetVal ) );
+
+	Features_.MRT_ = true;
+	Features_.DepthTextures_ = true;
+	Features_.NPOTTextures_ = true;
+	Features_.SeparateBlendState_ = true;
+	Features_.AnisotropicFiltering_ = true;
+	Features_.AntialiasedLines_ = true;
+	Features_.Texture1D_ = true;
+	Features_.Texture2D_ = true;
+	Features_.Texture3D_ = true;
+	Features_.TextureCube_ = false;
+
+	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
+	{
+		auto DXFormat = RsUtilsD3D12::GetTextureFormat( (RsTextureFormat)Format );
+		if( DXFormat.SRVFormat_ != DXGI_FORMAT_UNKNOWN )
+		{
+			D3D12_FEATURE_DATA_FORMAT_SUPPORT FormatSupport = { DXFormat.SRVFormat_ };
+			if( SUCCEEDED( Device_->CheckFeatureSupport( D3D12_FEATURE_FORMAT_SUPPORT,  &FormatSupport, sizeof( FormatSupport ) ) ) )
+			{
+				if( FormatSupport.Support1 & D3D12_FORMAT_SUPPORT1_TEXTURE2D )
+				{
+					Features_.TextureFormat_[ Format ] = true;
+				}
+				if( FormatSupport.Support1 & D3D12_FORMAT_SUPPORT1_RENDER_TARGET )
+				{
+					Features_.RenderTargetFormat_[ Format ] = true;
+				}
+			}
+		}
+		if( DXFormat.RTVFormat_ != DXGI_FORMAT_UNKNOWN )
+		{
+			D3D12_FEATURE_DATA_FORMAT_SUPPORT FormatSupport = { DXFormat.RTVFormat_ };
+			if( SUCCEEDED( Device_->CheckFeatureSupport( D3D12_FEATURE_FORMAT_SUPPORT, &FormatSupport, sizeof( FormatSupport ) ) ) )
+			{
+				if( FormatSupport.Support1 & D3D12_FORMAT_SUPPORT1_RENDER_TARGET )
+				{
+					Features_.RenderTargetFormat_[ Format ] = true;
+				}
+			}
+		}
+		if( DXFormat.DSVFormat_ != DXGI_FORMAT_UNKNOWN )
+		{
+			D3D12_FEATURE_DATA_FORMAT_SUPPORT FormatSupport = { DXFormat.DSVFormat_ };
+			if( SUCCEEDED( Device_->CheckFeatureSupport( D3D12_FEATURE_FORMAT_SUPPORT, &FormatSupport, sizeof( FormatSupport ) ) ) )
+			{
+				if( FormatSupport.Support1 & D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL )
+				{
+					Features_.DepthStencilTargetFormat_[ Format ] = true;
+				}
+			}
+		}
+	}
 
 	ComPtr< ID3D12InfoQueue > InfoQueue;
 	RetVal = Device_.CopyTo( InfoQueue.GetAddressOf() );
@@ -1048,8 +1117,8 @@ bool RsContextD3D12::updateTexture(
 	Layout.Offset = Allocation.OffsetInBaseResource_;
 	Lock.Buffer_ = Allocation.Address_;
 	Lock.Pitch_ = static_cast< BcU32 >( Layout.Footprint.RowPitch );
-	Lock.SlicePitch_ = static_cast< BcU32 >( TotalBytes );
-
+	Lock.SlicePitch_ = Lock.Pitch_ * NumRows;
+	
 	UpdateFunc( Texture, Lock );
 
 	// Transition to copy dest.
