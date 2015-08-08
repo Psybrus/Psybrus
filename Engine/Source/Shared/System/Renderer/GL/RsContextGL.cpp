@@ -913,11 +913,14 @@ void RsContextGL::create()
 	// BINDING, not state..
 	setDefaultState();
 
-	// Clear screen and flip.
-	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
+	for( BcU32 Idx = 0; Idx < 3; ++Idx )
+	{
+		// Clear screen and flip.
+		clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
 
-	// Present back buffer.
-	presentBackBuffer();
+		// Present back buffer.
+		presentBackBuffer();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2001,7 +2004,7 @@ bool RsContextGL::createProgram(
 	// Attempt to find uniform block names.
 	if( Version_.SupportUniformBuffers_ )
 	{
-#if !defined( RENDER_USE_GLES )s
+#if !defined( RENDER_USE_GLES )
 		GLint ActiveUniformBlocks = 0;
 		GL( GetProgramiv( ProgramImpl->Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks ) );
 	
