@@ -88,6 +88,14 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R16F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R32F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
@@ -232,6 +240,11 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			if( SupportHalfFloatTextures )
 			{
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+
 				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16F ] = true;
 				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
 				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
@@ -240,6 +253,11 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			if( SupportFloatTextures )
 			{
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+
 				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
 				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
 				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
