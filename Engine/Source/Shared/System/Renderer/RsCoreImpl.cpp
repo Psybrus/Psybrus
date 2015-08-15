@@ -26,7 +26,11 @@
 
 #if PLATFORM_WINDOWS
 #include "System/Renderer/D3D11/RsContextD3D11.h"
+
+#if WITH_DX12
 #include "System/Renderer/D3D12/RsContextD3D12.h"
+#endif
+
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,10 +158,12 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			{
 				pResource = new RsContextD3D11( pClient, nullptr );
 			}
+#if WITH_DX12
 			else if( SysArgs_.find( "-d3d12" ) != std::string::npos)
 			{
 				pResource = new RsContextD3D12( pClient, nullptr );
 			}
+#endif
 			else
 #endif
 			if( SysArgs_.find( "-null" ) != std::string::npos)

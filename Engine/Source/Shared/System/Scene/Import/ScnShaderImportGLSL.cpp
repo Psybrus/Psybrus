@@ -296,16 +296,16 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				}
 
 				std::regex VertexAttributePattern( 
-					".?(in|attribute).*;" );
+					"\\s*(in|attribute).*;" );
 
 				std::regex VertexAttributeFullPattern( 
-					".?(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4).*;" );
+					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4).*;" );
 
 				std::regex VertexAttributeExtendedPattern( 
-					".?(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
 				std::regex LineDirectivePattern(
-					".?#line.*" );
+					"\\s*#line.*" );
 
 				// If we're parsing a vertex shader, try grab vertex attributes.
 				std::istringstream Stream( ProcessedSourceData );
@@ -422,6 +422,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
+#if 1
 				// Run glsl-optimizer for ES (Only GLSL_ES_100)
 				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 				{
@@ -472,7 +473,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 					glslopt_cleanup( GlslOptContext );
 				}
-
+#endif
 				// Attempt to compile.
 				TBuiltInResource Resources = GetDefaultResource();
 
@@ -511,11 +512,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 			}
 			catch ( const boost::wave::preprocess_exception& Exception )
 			{
-				PSY_LOG( "%s: %s", Exception.what(), Exception.description() );
+				PSY_LOG( "%s:%u: %s: %s", Exception.file_name(), Exception.line_no(), Exception.what(), Exception.description() );
 			}
 			catch ( const boost::wave::cpplexer::lexing_exception& Exception )
 			{
-				PSY_LOG( "%s: %s", Exception.what(), Exception.description() );
+				PSY_LOG( "%s:%u: %s: %s", Exception.file_name(), Exception.line_no(), Exception.what(), Exception.description() );
 			}
 			catch( const CsImportException& Exception )
 			{

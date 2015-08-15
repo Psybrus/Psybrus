@@ -419,6 +419,11 @@ function PsySetupToolchain()
 			},
 		}
 
+		newoption {
+			trigger = "with-dx12",
+			description = "Build with DirectX 12"
+		}
+
 		-- win-vs-v110
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v110" then
 			premake.vstudio.toolset = "v110"

@@ -238,7 +238,6 @@ BcBool CsPackageImporter::import()
 				else
 				{
 					PSY_LOG( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
- 					BcBreakpoint;
 					endImport();
 					return BcFalse;
 				}
