@@ -16,7 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
-#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsFeatures.h"
 
 #include <tuple>
 
@@ -93,11 +93,11 @@
 // RsGLCatchError
 #define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
 
-GLuint RsReportGLErrors( const char* File, int Line );
+GLuint RsReportGLErrors( const char* File, int Line, const char* CallString );
 
 #if PSY_GL_CATCH_ERRORS
 #  define GL( _call ) \
-	gl##_call; RsReportGLErrors( __FILE__, __LINE__ )
+	gl##_call; RsReportGLErrors( __FILE__, __LINE__, #_call  )
 
 #else
 #  define GL( _call ) \
@@ -142,26 +142,17 @@ struct RsOpenGLVersion
 	RsShaderCodeType MaxCodeType_;
 
 	// Features.
-	BcBool SupportMRT_;
-	BcBool SupportSeparateBlendState_;
-	BcBool SupportDXTTextures_;
-	BcBool SupportETC1Textures_;
-	BcBool SupportETC2Textures_;
-	BcBool SupportATCTextures_;
-	BcBool SupportNpotTextures_;
-	BcBool SupportDepthTextures_;
-	BcBool SupportFloatTextures_;
-	BcBool SupportHalfFloatTextures_;
-	BcBool SupportAnisotropicFiltering_;
-	BcBool SupportPolygonMode_;
-	BcBool SupportVAOs_;
-	BcBool SupportSamplerStates_;
-	BcBool SupportUniformBuffers_;
-	BcBool SupportGeometryShaders_;
-	BcBool SupportTesselationShaders_;
-	BcBool SupportComputeShaders_;
-	BcBool SupportAntialiasedLines_;
-	BcBool SupportDrawElementsBaseVertex_;
+	RsFeatures Features_;
+
+	// GL specific features.
+	bool SupportPolygonMode_;
+	bool SupportVAOs_;
+	bool SupportSamplerStates_;
+	bool SupportUniformBuffers_;
+	bool SupportGeometryShaders_;
+	bool SupportTesselationShaders_;
+	bool SupportComputeShaders_;
+	bool SupportDrawElementsBaseVertex_;
 
 	GLint MaxTextureSlots_;
 

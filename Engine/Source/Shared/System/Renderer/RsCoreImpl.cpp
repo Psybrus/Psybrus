@@ -26,7 +26,11 @@
 
 #if PLATFORM_WINDOWS
 #include "System/Renderer/D3D11/RsContextD3D11.h"
-//#include "System/Renderer/D3D12/RsContextD3D12.h"
+
+#if WITH_DX12
+#include "System/Renderer/D3D12/RsContextD3D12.h"
+#endif
+
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,7 +48,8 @@ void RsCoreImpl::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsCoreImpl::RsCoreImpl()
+RsCoreImpl::RsCoreImpl():
+	FrameTime_( 0.0f )
 {
 	// Create our job queue.
 	// - 1 thread if we have 2 or more hardware threads.
@@ -153,10 +158,12 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			{
 				pResource = new RsContextD3D11( pClient, nullptr );
 			}
+#if WITH_DX12
 			else if( SysArgs_.find( "-d3d12" ) != std::string::npos)
 			{
-				pResource = nullptr; //new RsContextD3D12( pClient, nullptr );
+				pResource = new RsContextD3D12( pClient, nullptr );
 			}
+#endif
 			else
 #endif
 			if( SysArgs_.find( "-null" ) != std::string::npos)
@@ -365,7 +372,7 @@ RsShader* RsCoreImpl::createShader(
 		{
 			if( !Context->createShader( pResource ) )
 			{
-				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+				PSY_LOG( "Failed shader creation: %s", DebugName.c_str() );
 			}
 		} );
 
@@ -709,13 +716,20 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 	BcAssert( BcIsGameThread() );
 	SysKernel::pImpl()->pushFunctionJob( 
 		RsCore::JOB_QUEUE_ID, 
-		[ pFrame ]()
+		[ this, pFrame ]()
 		{
+			BcTimer Timer;
+
+			Timer.mark();
+
 			// Render frame.
 			pFrame->render();
 
 			// Now free.
 			delete pFrame;
+
+			// Grab frame time.
+			FrameTime_ = Timer.time();
 		} );
 
 	for( auto ResourceDeletionFunc : ResourceDeletionList_ )
@@ -724,4 +738,11 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 	}
 
 	ResourceDeletionList_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// queueFrame
+BcF32 RsCoreImpl::getFrameTime() const
+{
+	return FrameTime_;
 }

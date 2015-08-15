@@ -22,6 +22,7 @@ dofile ("SoLoud_genie.lua")
 if _OPTIONS[ "toolchain" ] ~= "asmjs" then
 	dofile ("assimp_genie.lua")
 	dofile ("glew_genie.lua")
+	dofile ("glslang_genie.lua")
 	dofile ("glsl-optimizer_genie.lua")
 	dofile ("hlsl2glslfork_genie.lua")
 	dofile ("HLSLCrossCompiler_genie.lua")

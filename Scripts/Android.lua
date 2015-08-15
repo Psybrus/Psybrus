@@ -39,6 +39,7 @@ function SetupAndroidProject()
 	   _OPTIONS["toolchain"] == "android-gcc-arm" then
 		kind "SharedLib"
 		flags { "NoImportLib" }
+		--kind "ConsoleApp"
 
 		-- TODO: Other abis.
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
@@ -64,7 +65,10 @@ function SetupAndroidProject()
 		manifestFile:write( "          android:versionCode=\"1\"\n" )
 		manifestFile:write( "          android:versionName=\"1.0\">\n" )
 		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. ANDROID_SDK_VERSION .. "\" />\n" )
+		-- Read external storage. TODO: Make an option.
 		manifestFile:write( "  <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />\n" )
+		-- Internet. TODO: Make an option.
+		manifestFile:write( "  <uses-permission android:name=\"android.permission.INTERNET\" />\n" )
 		manifestFile:write( "  <uses-feature android:glEsVersion=\"0x00020000\" />\n" )
 		manifestFile:write( "  <application android:label=\"@string/app_name\"\n" )
 		manifestFile:write( "               android:hasCode=\"false\" android:debuggable=\"true\">\n" )

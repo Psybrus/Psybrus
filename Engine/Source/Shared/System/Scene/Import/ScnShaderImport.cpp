@@ -21,8 +21,14 @@
 
 #define EXCLUDE_PSTDINT
 #include <hlslcc.h>
-#include <hlsl2glsl.h>
 #include <glsl/glsl_optimizer.h>
+
+#define USE_HLSL2GLSL	( 0 )
+
+#if USE_HLSL2GLSL
+#include <hlsl2glsl.h>
+#endif // USE_HLSL2GLSL
+
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
@@ -36,6 +42,8 @@
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
 #include <boost/filesystem.hpp>
 #include <bitset>
+#include <regex>
+#include <sstream>
 
 #undef DOMAIN // This is defined somewhere in a core header.
 
@@ -86,8 +94,8 @@ namespace
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
 		{ "ps_3_0", RsShaderType::PIXEL, RsShaderCodeType::D3D9_3_0 },
-		{ "ps_4_0_level_9_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_0 },
 		{ "ps_4_0_level_9_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
+		{ "ps_4_0_level_9_2", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
 		{ "ps_4_0_level_9_3", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "ps_4_0", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0 },
 		{ "ps_4_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_1 },
@@ -102,8 +110,8 @@ namespace
 		{ "gs_5_0", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 		
 		{ "vs_3_0", RsShaderType::VERTEX, RsShaderCodeType::D3D9_3_0 },
-		{ "vs_4_0_level_9_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_0 },
 		{ "vs_4_0_level_9_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
+		{ "vs_4_0_level_9_2", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
 		{ "vs_4_0_level_9_3", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
 		{ "vs_4_0", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0 },
 		{ "vs_4_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_1 },
@@ -120,7 +128,7 @@ namespace
 	{
 		auto BackendType = RsShaderCodeTypeToBackendType( CodeType );
 		BcAssert( BackendType == RsShaderBackendType::GLSL ||
-		          BackendType == RsShaderBackendType::GLSL_ES );
+				  BackendType == RsShaderBackendType::GLSL_ES );
 		BcUnusedVar( BackendType );
 		switch( CodeType )
 		{
@@ -152,6 +160,7 @@ namespace
 		return LANG_DEFAULT;
 	}
 
+#if USE_HLSL2GLSL
 	bool hlsl2glsl_includeFunc( bool isSystem, const char* fname, std::string& output, void* data )
 	{
 		std::list< std::string > IncludePaths;
@@ -186,6 +195,7 @@ namespace
 		}
 		return false;
 	};
+#endif // USE_HLSL2GLSL
 
 }
 
@@ -201,6 +211,7 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnShaderImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Sources_", &ScnShaderImport::Sources_, bcRFF_IMPORTER ),
+		new ReField( "Defines_", &ScnShaderImport::Defines_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
 		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "IncludePermutations_", &ScnShaderImport::IncludePermutations_, bcRFF_IMPORTER ),
@@ -268,9 +279,9 @@ ScnShaderImport::~ScnShaderImport()
 BcBool ScnShaderImport::import( const Json::Value& )
 {
 #if PSY_IMPORT_PIPELINE
-	if( Source_.empty() )
+	if( Source_.empty() && Sources_.empty() )
 	{
-		PSY_LOG( "ERROR: Missing 'source' field.\n" );
+		PSY_LOG( "ERROR: Missing 'source' or 'sources' fields.\n" );
 		return BcFalse;
 	}
 
@@ -287,8 +298,11 @@ BcBool ScnShaderImport::import( const Json::Value& )
 	// Reset pending permutations.
 	PendingPermutations_.store( 0 );
 
+#if USE_HLSL2GLSL
 	// Initialise Hlsl2Glsl.
 	Hlsl2Glsl_Initialize();
+#endif // USE_HLSL2GLSL
+
 	
 #if PLATFORM_WINDOWS
 	// Setup include paths.
@@ -316,6 +330,17 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		RetVal = newPipeline();
 	}
 
+	// Wait for permutation building jobs.
+	while( PendingPermutations_ > 0 )
+	{
+		std::this_thread::yield();
+	}
+
+	// No errors hit?
+	if( GotErrorBuilding_ > 0 )
+	{
+		RetVal = BcFalse;
+	}
 
 	// Export.
 	if( RetVal == BcTrue )
@@ -376,8 +401,10 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		}
 	}
 
+#if USE_HLSL2GLSL
 	// Shutdown Hlsl2Glsl.
 	Hlsl2Glsl_Shutdown();
+#endif // USE_HLSL2GLSL
 
 	return RetVal;
 #else
@@ -390,7 +417,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 BcBool ScnShaderImport::oldPipeline()
 {
 	BcBool RetVal = BcFalse;
-
+#if PSY_IMPORT_PIPELINE
 	// Read in source.
 	if( !Source_.empty() )
 	{
@@ -416,10 +443,11 @@ BcBool ScnShaderImport::oldPipeline()
 	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
 
 	// Sort input types from lowest to highest.
-	std::sort( CodeTypes_.begin(), CodeTypes_.end(), []( RsShaderCodeType A, RsShaderCodeType B )
-	{
-		return A < B;
-	});
+	std::sort( CodeTypes_.begin(), CodeTypes_.end(), 
+		[]( RsShaderCodeType A, RsShaderCodeType B )
+		{
+			return A < B;
+		} );
 
 	// Backend types. If it's empty, default to all.
 	if( BackendTypes_.empty() )
@@ -468,6 +496,8 @@ BcBool ScnShaderImport::oldPipeline()
 						{
 							InputCodeType,
 							OutputCodeType,
+							Source_,
+							SourceFileData_,
 							Permutation,
 							Entries
 						};
@@ -475,7 +505,7 @@ BcBool ScnShaderImport::oldPipeline()
 						++PendingPermutations_;
 
 						SysKernel::pImpl()->pushFunctionJob( 
-							0, 
+							0,
 							[ this, JobParams ]()
 							{
 								if( buildPermutation( JobParams ) == BcFalse )
@@ -488,25 +518,16 @@ BcBool ScnShaderImport::oldPipeline()
 			}
 		}
 	}
-
-	// Wait for permutation building jobs.
-	while( PendingPermutations_ > 0 )
-	{
-		std::this_thread::yield();
-	}
-
-	// No errors hit?
-	if( GotErrorBuilding_ == 0 )
-	{
-		RetVal = BcTrue;
-	}
-	return RetVal;	
+#endif
+	return BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // newPipeline
 BcBool ScnShaderImport::newPipeline()
 {
+	BcBool RetVal = BcFalse;
+#if PSY_IMPORT_PIPELINE
 	// Read in sources.
 	for( auto& SourcePair : Sources_ )
 	{
@@ -520,9 +541,118 @@ BcBool ScnShaderImport::newPipeline()
 			SourceFile.read( FileData.data(), FileData.size() );
 			SourcesFileData_[ SourcePair.first ] = FileData.data();
 
+			CodeTypes_.push_back( SourcePair.first );
+			PSY_LOG( "- - Added code type %u", SourcePair.first );
 			addDependency( SourcePair.second.c_str() );
 		}
+		else
+		{
+			return BcFalse;
+		}
 	}
+
+	// Generate permutation.
+	auto Permutation = getDefaultPermutation();
+
+	// Generate permutations.
+	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
+
+	// Sort input types from lowest to highest.
+	std::sort( CodeTypes_.begin(), CodeTypes_.end(), 
+		[]( RsShaderCodeType A, RsShaderCodeType B )
+		{
+			return A < B;
+		} );
+
+	// Kick off all permutation building jobs.
+	for( auto& Permutation : Permutations_ )
+	{
+		for( const auto& InputCodeType : CodeTypes_ )
+		{
+			std::vector< ScnShaderLevelEntry > Entries;
+			if( RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL ||
+				RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL_ES )
+			{
+				// Setup entries for input code type.
+				std::vector< ScnShaderLevelEntry > GLSLEntries = 
+				{
+					{ "pixel", RsShaderType::PIXEL, InputCodeType },
+					{ "hull", RsShaderType::HULL, InputCodeType },
+					{ "domain", RsShaderType::DOMAIN, InputCodeType },
+					{ "geometry", RsShaderType::GEOMETRY, InputCodeType },
+					{ "vertex", RsShaderType::VERTEX, InputCodeType },
+					{ "compute", RsShaderType::COMPUTE, InputCodeType },
+				};
+
+				for( auto& ShaderLevelEntry : GLSLEntries )
+				{
+					const auto& Entry = Entrypoints_[ ShaderLevelEntry.Type_ ];
+					if( ShaderLevelEntry.CodeType_ == InputCodeType &&
+						!Entry.empty() )
+					{
+						ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
+						Entries.push_back( NewEntry );
+					}
+				}
+			}
+			else if( RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::D3D11 )
+			{
+				for( auto& ShaderLevelEntry : GShaderLevelEntries )
+				{
+					const auto& Entry = Entrypoints_[ ShaderLevelEntry.Type_ ];
+					if( ShaderLevelEntry.CodeType_ == InputCodeType &&
+						!Entry.empty() )
+					{
+						ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
+						Entries.push_back( NewEntry );
+					}
+				}
+			}
+
+			// If we've got valid entries, continue.
+			if( Entries.size() > 0 )
+			{
+				// No conversion in this step.
+				RsShaderCodeType OutputCodeType = InputCodeType;
+
+				// If it isn't invalid, add and build.
+				if( OutputCodeType != RsShaderCodeType::INVALID )
+				{
+					// Add output code type.
+					if( std::find( OutputCodeTypes_.begin(), OutputCodeTypes_.end(), OutputCodeType ) == OutputCodeTypes_.end() )
+					{
+						OutputCodeTypes_.push_back( OutputCodeType );
+					}
+
+					// Build on a job.
+					ScnShaderPermutationJobParams JobParams =
+					{
+						InputCodeType,
+						OutputCodeType,
+						Sources_[ InputCodeType ],
+						SourcesFileData_[ InputCodeType ],
+						Permutation,
+						Entries
+					};
+
+					++PendingPermutations_;
+
+					SysKernel::pImpl()->pushFunctionJob( 
+						BcErrorCode,
+						[ this, JobParams ]()
+						{
+							if( buildPermutation( JobParams ) == BcFalse )
+							{
+							}
+						} );
+
+					RetVal = BcTrue;
+				}
+			}
+		}
+	}
+#endif
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -531,6 +661,7 @@ ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
 {
 	// Setup permutations.
 	ScnShaderPermutation Permutation;
+#if PSY_IMPORT_PIPELINE
 
 	// Default to alway use cbuffers.
 	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
@@ -550,16 +681,8 @@ ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
 		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE_%1%" ) % BackendTypeString );
 		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
 	}
-
+#endif
 	return Permutation;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// buildInputHLSL
-BcBool ScnShaderImport::buildInputHLSL(
-		const std::string& InHLSL )
-{
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -624,6 +747,12 @@ void ScnShaderImport::generatePermutations(
 			}
 			else
 			{
+				// Add all base defines at the end.
+				for( auto Define : Defines_ )
+				{
+					NewPermutation.Defines_.insert( Define );
+				}
+
 				Permutations_.push_back( NewPermutation );
 			}
 		}
@@ -636,9 +765,6 @@ void ScnShaderImport::generatePermutations(
 BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 {
 #if PSY_IMPORT_PIPELINE
-	BcBool RetVal = BcTrue;
-	BcAssertMsg( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::D3D11, "Expecting D3D11 code input. Need to implement other input backends." );
-
 	// Early out in case any jobs failed previously.
 	if( GotErrorBuilding_ != 0 )
 	{
@@ -648,13 +774,45 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 
 	// Add code type and backend types.
 	{
-		auto Define = boost::str( boost::format( "PSY_CODE_TYPE" ) );
+		auto Define = boost::str( boost::format( "PSY_OUTPUT_CODE_TYPE" ) );
 		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)Params.OutputCodeType_ );
 	}
 	{
-		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE" ) );
+		auto Define = boost::str( boost::format( "PSY_INPUT_CODE_TYPE" ) );
+		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)Params.InputCodeType_ );
+	}
+	{
+		auto Define = boost::str( boost::format( "PSY_OUTPUT_BACKEND_TYPE" ) );
 		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) );
 	}
+	{
+		auto Define = boost::str( boost::format( "PSY_INPUT_BACKEND_TYPE" ) );
+		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) );
+	}
+
+	switch( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) )
+	{
+	case RsShaderBackendType::D3D11:
+		return buildPermutationHLSL( Params );
+		break;
+	case RsShaderBackendType::GLSL:
+	case RsShaderBackendType::GLSL_ES:
+		return buildPermutationGLSL( Params );
+		break;
+	default:
+		BcBreakpoint;
+	}
+#endif // PSY_IMPORT_PIPELINE
+	return BcFalse;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// buildPermutationHLSL
+BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParams& Params )
+{
+	BcBool RetVal = BcTrue;
+#if PSY_IMPORT_PIPELINE
+	BcAssertMsg( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::D3D11, "Expecting D3D11 code input." );
 
 	// Setup initial header.
 	ScnShaderProgramHeader ProgramHeader = {};
@@ -663,13 +821,13 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	ProgramHeader.ShaderCodeType_ = Params.OutputCodeType_;
 	
 	// Cross dependenies needed for GLSL.
-    GLSLCrossDependencyData GLSLDependencies;
+	GLSLCrossDependencyData GLSLDependencies;
 
 	// Vertex attributes needed by GLSL.
 	std::vector< RsProgramVertexAttribute > VertexAttributes;
 
-    for( auto& Entry : Params.Entries_ )
-    {
+	for( auto& Entry : Params.Entries_ )
+	{
 		ScnShaderBuiltData BuiltShader;
 		BcBinaryData ByteCode;
 		std::vector< std::string > ErrorMessages;
@@ -679,7 +837,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::D3D11 )
 		{
 			if( compileShader( 
-					Source_, 
+					Params.ShaderSource_, 
 					Entrypoint, 
 					Params.Permutation_.Defines_, 
 					IncludePaths_, 
@@ -705,6 +863,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				RetVal = BcFalse;
 			}
 		}
+		/*
 		else if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
 		{
 			std::string OutputShaderCode;
@@ -712,7 +871,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 					Params, 
 					Entry, 
 					Entrypoint,
-					SourceFileData_, 
+					Params.ShaderSourceData_, 
 					OutputShaderCode,
 					VertexAttributes,
 					ErrorMessages ) )
@@ -728,7 +887,9 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 				RetVal = BcFalse;
 			}
 		}
-		else if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL )
+		*/
+		else if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL ||
+			RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
 		{
 			std::string OutputShaderCode;
 			if( convertHLSLCC( 
@@ -756,13 +917,13 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		{
 			PSY_LOG( "Invalid code type: %u, %u", RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ), Params.OutputCodeType_ );
 			RetVal = BcFalse;
-			
-			if( ErrorMessages.size() > 0 )
-			{
-				std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-				ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
-			}
 			break;
+		}
+
+		if( ErrorMessages.size() > 0 )
+		{
+			std::lock_guard< std::mutex > Lock( BuildingMutex_ );
+			ErrorMessages_.insert( ErrorMessages_.end(), ErrorMessages.begin(), ErrorMessages.end() );
 		}
 
 		// Setup program + shaders.
@@ -816,16 +977,13 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 			Errors += Error;
 		}
 
-		PSY_LOG( "%s\n%s\n", Source_.c_str(), Errors.c_str() );
+		PSY_LOG( "%s\n%s\n", Params.ShaderSource_.c_str(), Errors.c_str() );
 		//throw CsImportException( Source_.c_str(), Errors.c_str() );
 	}
 
 	--PendingPermutations_;
-
-	return RetVal;
-#else
-	return BcFalse;
 #endif
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -841,6 +999,7 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 {
 	BcBool RetVal = BcTrue;
 #if PSY_IMPORT_PIPELINE
+#if USE_HLSL2GLSL
 	// Vertex shader attributes.
 	EShLanguage Language;
 
@@ -1027,7 +1186,8 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 			boost::replace_all( OutGLSL, "gl_FragData[0]", "gl_FragColor" );
 		}
 	}
-#endif
+#endif // USE_HLSL2GLSL
+#endif // PSY_IMPORT_PIPELINE
 	return RetVal;
 }
 
@@ -1088,12 +1248,12 @@ BcBool ScnShaderImport::convertHLSLCC(
 			}
 		
 			int Flags = HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO | 
-			            HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
+						HLSLCC_FLAG_UNIFORM_BUFFER_OBJECT;
 
 			// GLSL ES needs to not bother with uniform objects.
 			if( Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_100 ||
-			    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
-			    Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 )
+				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
+				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 )
 			{
 				Flags = 0;
 			}
@@ -1119,6 +1279,14 @@ BcBool ScnShaderImport::convertHLSLCC(
 				nullptr,
 				reinterpret_cast< GLSLCrossDependencyData* >( InOutCrossDependencyData ),
 				&GLSLResult );
+
+			// GLSL ES needs to not bother with uniform objects.
+			if( Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_100 ||
+				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_300 ||
+				Params.OutputCodeType_ == RsShaderCodeType::GLSL_ES_310 )
+			{
+				//logSource( GLSLResult.sourceCode );
+			}
 
 			// Check success.
 			if( GLSLSuccess )
@@ -1201,6 +1369,26 @@ std::string ScnShaderImport::removeComments( std::string Input )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// logSource
+void ScnShaderImport::logSource( std::string Source )
+{
+	int LineNum = 1;
+	std::istringstream Stream( Source.c_str() );
+	std::string Line;
+	while( std::getline( Stream, Line ) )
+	{
+		if( !Line.empty() )
+		{
+			PSY_LOG( "%u:\t%s", LineNum++, Line.c_str() );
+		}
+		else
+		{
+			LineNum++;
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // semanticToVertexChannel
 RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index )
 {
@@ -1255,6 +1443,10 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 		VertexAttribute.Usage_ = RsVertexUsage::POSITIONT;
 	}
 	else if( Name == "COLOR" )
+	{
+		VertexAttribute.Usage_ = RsVertexUsage::COLOUR;
+	}
+	else if( Name == "COLOUR" )
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::COLOUR;
 	}

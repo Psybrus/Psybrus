@@ -55,6 +55,24 @@ void BcPrintf( const BcChar* Text, ... )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// BcPrintBacktrace
+void BcPrintBacktrace( const BcBacktraceResult& Result )
+{
+	BcPrintf( "Backtrace:\n" );
+	for( const auto& Entry : Result.Backtrace_ )
+	{
+		if( Entry.Symbol_.size() > 0 )
+		{
+			BcPrintf( " - %s\n", Entry.Symbol_.c_str() );
+		}
+		else
+		{
+			BcPrintf( " - %p\n", Entry.Address_ );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // BcAssertInternal
 BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, ... )
 {

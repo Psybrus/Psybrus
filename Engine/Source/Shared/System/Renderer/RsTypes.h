@@ -292,8 +292,27 @@ enum class RsTextureFormat : BcU32
 };
 
 //////////////////////////////////////////////////////////////////////////
+// RsTextureBlockInfo
+struct RsBlockInfo
+{
+	BcU32 Width_;
+	BcU32 Height_;
+	BcU32 Bits_;
+};
+
+extern RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat );
+
+//////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
 extern BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
+
+//////////////////////////////////////////////////////////////////////////
+// RsTexturePitch
+extern BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height );
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureSlicePitch
+extern BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height );
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureFace
@@ -483,8 +502,8 @@ enum class RsShaderCodeType : BcU32
 	D3D9_3_0,
 	
 	// D3D11
-	D3D11_4_0_LEVEL_9_0,
 	D3D11_4_0_LEVEL_9_1,
+	D3D11_4_0_LEVEL_9_2,
 	D3D11_4_0_LEVEL_9_3,
 	D3D11_4_0,
 	D3D11_4_1,

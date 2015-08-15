@@ -138,6 +138,7 @@ private:
 public:
 	RsFrame* allocateFrame( RsContext* pContext ) override;
 	void queueFrame( RsFrame* pFrame ) override;
+	BcF32 getFrameTime() const override;
 
 public:
 	// Platform specific interface.
@@ -151,6 +152,8 @@ protected:
 	TContextMap ContextMap_;
 
 	std::vector< std::function< void() > > ResourceDeletionList_;
+
+	BcF32 FrameTime_;
 	
 };
 

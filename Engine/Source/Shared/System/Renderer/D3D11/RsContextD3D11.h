@@ -34,6 +34,7 @@ public:
 	virtual BcU32 getWidth() const override;
 	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
+	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
@@ -141,6 +142,8 @@ private:
 	BcComRef< ID3D11Device > Device_;
 	BcComRef< ID3D11DeviceContext > Context_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
+
+	RsFeatures Features_;
 
 	BcComRef<ID3D11Texture2D> BackBuffer_;
 	RsTexture* BackBufferRT_;

@@ -1,4 +1,4 @@
-﻿/**************************************************************************
+/**************************************************************************
 *
 * File:		RsContextGL.cpp
 * Author: 	Neil Richardson 
@@ -47,7 +47,7 @@
 
 #include <algorithm>
 
-#define ENABLE_DEBUG_OUTPUT ( 0 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 )
+#define ENABLE_DEBUG_OUTPUT ( 1 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 && !PLATFORM_ANDROID )
 
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
@@ -183,6 +183,17 @@ static GLenum gTextureTypes[] =
 	GL_TEXTURE_2D,
 	GL_TEXTURE_3D,
 	GL_TEXTURE_CUBE_MAP
+};
+
+static GLenum gTextureFaces[] =
+{
+	0,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 };
 
 static GLenum gVertexDataTypes[] = 
@@ -450,6 +461,14 @@ OsClient* RsContextGL::getClient() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFeatures
+//virtual
+const RsFeatures& RsContextGL::getFeatures() const
+{
+	return Version_.Features_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextGL::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
@@ -578,6 +597,23 @@ void RsContextGL::create()
 {
 	bool WantGLES = SysArgs_.find( "-gles" ) != std::string::npos;
 
+	// Attempt to create core profile.
+	RsOpenGLVersion Versions[] = 
+	{
+		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
+		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
+		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
+		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
+		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
+		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
+		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
+		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
+		RsOpenGLVersion( 3, 2, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_310 ),
+		RsOpenGLVersion( 3, 1, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_310 ),
+		RsOpenGLVersion( 3, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_300 ),
+		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
+	};
+
 #if PLATFORM_WINDOWS
 	// Get client device handle.
 	WindowDC_ = (HDC)pClient_->getDeviceHandle();
@@ -627,20 +663,6 @@ void RsContextGL::create()
 	glewExperimental = 1;
 	GL( ewInit() );
 	
-	// Attempt to create core profile.
-	RsOpenGLVersion Versions[] = 
-	{
-		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
-		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
-		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
-		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
-		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
-		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
-		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
-		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
-	};
-
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
 	for( auto Version : Versions )
 	{
@@ -688,20 +710,6 @@ void RsContextGL::create()
 	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
 	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-
-	// Attempt to create core profile.
-	RsOpenGLVersion Versions[] = 
-	{
-		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
-		RsOpenGLVersion( 4, 4, RsOpenGLType::CORE, RsShaderCodeType::GLSL_440 ),
-		RsOpenGLVersion( 4, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_430 ),
-		RsOpenGLVersion( 4, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_420 ),
-		RsOpenGLVersion( 4, 1, RsOpenGLType::CORE, RsShaderCodeType::GLSL_410 ),
-		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
-		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
-		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
-	};
 
 	BcAssert( pParent_ == nullptr );
 	SDL_Window* Window = reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() );
@@ -863,8 +871,13 @@ void RsContextGL::create()
 #if ENABLE_DEBUG_OUTPUT
 	if( GLEW_ARB_debug_output )
 	{
-		GL( DebugMessageCallbackARB( debugOutput, nullptr ) );
+		GL( DebugMessageCallback( debugOutput, nullptr ) );
 		GL( GetError() );
+		PSY_LOG( "INFO: Using ARB_debug_output" );
+	}
+	else
+	{
+		PSY_LOG( "WARNING: No ARB_debug_output" );
 	}
 #endif // ENABLE_DEBUG_OUTPUT
 
@@ -900,11 +913,14 @@ void RsContextGL::create()
 	// BINDING, not state..
 	setDefaultState();
 
-	// Clear screen and flip.
-	clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
+	for( BcU32 Idx = 0; Idx < 3; ++Idx )
+	{
+		// Clear screen and flip.
+		clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
 
-	// Present back buffer.
-	presentBackBuffer();
+		// Present back buffer.
+		presentBackBuffer();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -970,20 +986,13 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 		ContextAttribs[ 1 ] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 		break;
 	case RsOpenGLType::ES:
-		if( Version.Major_ == 2 )
+		if( Version.Major_ == 2 && Version.Minor_ == 0 )
 		{
 			ContextAttribs[ 1 ] = WGL_CONTEXT_ES2_PROFILE_BIT_EXT;
 		}
-		else if( Version.Major_ = 3 )
-		{
-			BcBreakpoint;
-#if 0 
-			ContextAttribs[ 1 ] = WGL_CONTEXT_ES3_PROFILE_BIT_EXT;
-#endif
-		}
 		else
 		{
-			BcBreakpoint;
+			return false;
 		}
 		break;
 	}
@@ -1180,12 +1189,12 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) !=
 				RsResourceBindFlags::NONE );
 			RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
-			glFramebufferTexture2D( 
+			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
 				GL_TEXTURE_2D,
 				TextureImpl->Handle_,
-				0 );
+				0 ) );
 		}
 	}
 
@@ -1216,12 +1225,12 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			RsResourceBindFlags::NONE );
 
 		RsTextureImplGL* TextureImpl = Desc.DepthStencilTarget_->getHandle< RsTextureImplGL* >();
-		glFramebufferTexture2D( 
+		GL( FramebufferTexture2D( 
 			GL_FRAMEBUFFER,
 			Attachment,
 			GL_TEXTURE_2D,
 			TextureImpl->Handle_,
-			0 );
+			0 ) );
 	}
 
 	// Check status.
@@ -1444,9 +1453,8 @@ bool RsContextGL::updateBuffer(
 				UpdateFunc( Buffer, Lock );
 				GL( UnmapBuffer( TypeGL ) );
 			}
-
-			
 #else
+			glFlush();
 
 			// Get usage flags for GL.
 			GLuint UsageFlagsGL = 0;
@@ -1466,7 +1474,7 @@ bool RsContextGL::updateBuffer(
 			}
 
 			// Seem to get an OOM on a Mali GPU, but may not even need this now.
-#if !defined( RENDER_USE_GLES )
+#if 0 && !defined( RENDER_USE_GLES )
 			// Perform orphaning.
 			if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
 			{
@@ -1556,14 +1564,11 @@ bool RsContextGL::createTexture(
 		UsageFlagsGL |= GL_STREAM_DRAW;
 	}
 
-	// Check if format is a depth one.
-	if( IsDepthFormat( TextureDesc.Format_ ) )
+	// Check if format is supported one.
+	if( !Version_.Features_.TextureFormat_[ (int)TextureDesc.Format_ ] )
 	{
-		if( !Version_.SupportDepthTextures_ )
-		{
-			PSY_LOG( "ERROR: No depth texture support." );
-			return false;
-		}
+		PSY_LOG( "ERROR: No support for %u format.", TextureDesc.Format_ );
+		return false;
 	}
 
 	// Create GL texture.
@@ -1572,8 +1577,6 @@ bool RsContextGL::createTexture(
 
 	GL( GenTextures( 1, &TextureImpl->Handle_ ) );
 	
-	
-
 	if( TextureImpl->Handle_ != 0 )
 	{
 		// Bind texture.
@@ -1603,20 +1606,40 @@ bool RsContextGL::createTexture(
 		BcU32 Width = TextureDesc.Width_;
 		BcU32 Height = TextureDesc.Height_;
 		BcU32 Depth = TextureDesc.Depth_;
-		for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+		if( TextureDesc.Type_ != RsTextureType::TEXCUBE )
 		{
-			auto TextureSlice = Texture->getSlice( LevelIdx );
+			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+			{
+				auto TextureSlice = Texture->getSlice( LevelIdx );
 
-			// Load slice.
-			loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
-			// TODO: Error checking on loadTexture.
+				// Load slice.
+				loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
+				// TODO: Error checking on loadTexture.
 
-			// Down a power of two.
-			Width = BcMax( 1, Width >> 1 );
-			Height = BcMax( 1, Height >> 1 );
-			Depth = BcMax( 1, Depth >> 1 );
+				// Down a power of two.
+				Width = BcMax( 1, Width >> 1 );
+				Height = BcMax( 1, Height >> 1 );
+				Depth = BcMax( 1, Depth >> 1 );
+			}
 		}
+		else
+		{
+			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+			{
+				for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
+				{
+					auto TextureSlice = Texture->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
 
+					// Load slice.
+					loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
+					// TODO: Error checking on loadTexture.
+
+					// Down a power of two.
+					Width = BcMax( 1, Width >> 1 );
+					Height = BcMax( 1, Height >> 1 );
+				}
+			}
+		}
 		++NoofTextures_;
 
 		return true;
@@ -1678,8 +1701,14 @@ bool RsContextGL::updateTexture(
 			Depth,
 			1 );
 		std::vector< BcU8 > Data( DataSize );
-		BcU32 SlicePitch = DataSize / Depth;
-		BcU32 Pitch = SlicePitch / Height;
+		BcU32 SlicePitch = RsTextureSlicePitch( 
+			TextureDesc.Format_,
+			Width,
+			Height );
+		BcU32 Pitch = RsTexturePitch( 
+			TextureDesc.Format_,
+			Width,
+			Height );;
 		RsTextureLock Lock = 
 		{
 			&Data[ 0 ],
@@ -1755,8 +1784,12 @@ bool RsContextGL::createShader(
 		std::string ShaderLine;
 		int Line = 1;
 		while( std::getline( ShaderStream, ShaderLine, '\n' ) )
-		{
-			PSY_LOG( "%u: %s", Line++, ShaderLine.c_str() );
+		{	
+			auto PrintLine = Line++;
+			if( ShaderLine.size() > 0 )
+			{
+				PSY_LOG( "%u: %s", PrintLine, ShaderLine.c_str() );
+			}
 		}
 		PSY_LOG( "=======================================================\n" );
 		delete [] pszInfoLog;
@@ -1796,7 +1829,7 @@ bool RsContextGL::destroyShader(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createProgram
+// `
 bool RsContextGL::createProgram(
 	RsProgram* Program )
 {
@@ -1848,7 +1881,13 @@ bool RsContextGL::createProgram(
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		GL( GetProgramInfoLog( ProgramImpl->Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog ) );
-		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		PSY_LOG( "RsShaderGL: Infolog:\n", pszInfoLog );
+		std::stringstream LogStream( pszInfoLog );
+		std::string LogLine;
+		while( std::getline( LogStream, LogLine, '\n' ) )
+		{
+			PSY_LOG( LogLine.c_str() );
+		}
 		delete [] pszInfoLog;
 
 		for( auto& Shader : Shaders )
@@ -1860,7 +1899,11 @@ bool RsContextGL::createProgram(
 			int Line = 1;
 			while( std::getline( ShaderStream, ShaderLine, '\n' ) )
 			{
-				PSY_LOG( "%u: %s", Line++, ShaderLine.c_str() );
+				auto PrintLine = Line++;
+				if( ShaderLine.size() > 0 )
+				{
+					PSY_LOG( "%u: %s", PrintLine, ShaderLine.c_str() );
+				}
 			}
 			PSY_LOG( "=======================================================\n" );
 		}
@@ -2165,6 +2208,9 @@ bool RsContextGL::createProgram(
 		return false;
 	}
 
+	// When creating programs, we want to make sure the program is rebound for next draw.
+	ProgramDirty_ = BcTrue;
+
 	++NoofPrograms_;
 
 	return true;
@@ -2323,8 +2369,9 @@ void RsContextGL::setProgram( class RsProgram* Program )
 void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( IndexBuffer, "Can't bind a null index buffer." );
 	BcAssertMsg( IndexBuffer->getDesc().Type_ == RsBufferType::INDEX, "Buffer must be index buffer." );
-
+	
 	if( IndexBuffer_ != IndexBuffer )
 	{
 		IndexBuffer_ = IndexBuffer;
@@ -2340,6 +2387,7 @@ void RsContextGL::setVertexBuffer(
 	BcU32 Stride )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( VertexBuffer, "Can't bind a null vertex buffer." );
 	BcAssertMsg( VertexBuffer->getDesc().Type_ == RsBufferType::VERTEX, "Buffer must be vertex buffer." );
 
 	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||
@@ -2359,6 +2407,7 @@ void RsContextGL::setUniformBuffer(
 	class RsBuffer* UniformBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssertMsg( UniformBuffer, "Can't bind a null uniform buffer." );
 	BcAssertMsg( UniformBuffer->getDesc().Type_ == RsBufferType::UNIFORM, "Buffer must be uniform buffer." );
 
 	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
@@ -2432,7 +2481,7 @@ void RsContextGL::flushState()
 		BcU32 TextureStateID = TextureStateBinds_[ TextureStateIdx ];
 		TTextureStateValue& TextureStateValue = TextureStateValues_[ TextureStateID ];
 
-		if( TextureStateValue.Dirty_ && TextureStateID < Version_.MaxTextureSlots_ )
+		if( TextureStateValue.Dirty_ && (GLint)TextureStateID < Version_.MaxTextureSlots_ )
 		{
 			RsTexture* pTexture = TextureStateValue.pTexture_;			
 			const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
@@ -2519,9 +2568,8 @@ void RsContextGL::flushState()
 					auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
 					BcAssert( BufferImpl );
 					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
-					
-					++BindingPoint;
 				}
+				++BindingPoint;
 			}
 		}
 		else
@@ -2646,12 +2694,12 @@ void RsContextGL::flushState()
 				// Bind.
 				BcU64 CalcOffset = FoundElement->Offset_;
 
-				glVertexAttribPointer( Attribute.Channel_, 
+				GL( VertexAttribPointer( Attribute.Channel_, 
 					FoundElement->Components_,
 					gVertexDataTypes[ (BcU32)FoundElement->DataType_ ],
 					gVertexDataNormalised[ (BcU32)FoundElement->DataType_ ],
 					VertexStride,
-					(GLvoid*)CalcOffset );
+					(GLvoid*)CalcOffset ) );
 
 				++BoundElements;
 			}
@@ -2728,10 +2776,10 @@ void RsContextGL::clear(
 		GL( DepthMask( GL_TRUE ) );
 		BoundDepthStencilState.DepthWriteEnable_ = BcTrue;
 	}
-	glClear( 
+	GL( Clear( 
 		( EnableClearColour ? GL_COLOR_BUFFER_BIT : 0 ) | 
 		( EnableClearDepth ? GL_DEPTH_BUFFER_BIT : 0 ) | 
-		( EnableClearStencil ? GL_STENCIL_BUFFER_BIT : 0 ) );	
+		( EnableClearStencil ? GL_STENCIL_BUFFER_BIT : 0 ) ) );
 	
 }
 
@@ -2877,8 +2925,6 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 	}
 
 	const auto& TextureDesc = Texture->getDesc();
-	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
-	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 
 	DirtyFrameBuffer_ = BcTrue;
 	RsTextureImplGL* SrcTextureImpl = Texture->getHandle< RsTextureImplGL* >();
@@ -2982,10 +3028,10 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 		FBHeight = RT->getDesc().Height_;
 	}
 
-	auto SX = X;
-	auto SY = FBHeight - Height;
-	auto SW = Width - X;
-	auto SH = Height - Y;
+	BcS32 SX = X;
+	BcS32 SY = FBHeight - Height;
+	BcS32 SW = Width - X;
+	BcS32 SH = Height - Y;
 
 	if( ScissorX_ != SX ||
 		ScissorY_ != SY ||
@@ -3170,7 +3216,18 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
-			BcBreakpoint;
+			PSY_LOG( "TexImage2D! %u, %p", Slice.Face_, Data );
+			GL( TexImage2D( 
+				gTextureFaces[ (int)Slice.Face_ ],
+				Slice.Level_,
+				FormatGL.InternalFormat_,
+				Width,
+				Height,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data ) );
+			break;
 
 		default:
 			BcBreakpoint;
@@ -3227,7 +3284,15 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
-			BcBreakpoint;
+			GL( CompressedTexImage2D( 
+				gTextureFaces[ (int)Slice.Face_ ],
+				Slice.Level_,
+				FormatGL.InternalFormat_,
+				Width,
+				Height,
+				0,
+				DataSize,
+				Data ) );
 #endif
 
 		default:
@@ -3241,7 +3306,7 @@ void RsContextGL::loadTexture(
 void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
 {
 #if !defined( RENDER_USE_GLES )
-	if( Version_.SupportSeparateBlendState_ )
+	if( Version_.Features_.SeparateBlendState_ )
 	{
 		for( BcU32 Idx = 0; Idx < 8; ++Idx )
 		{
@@ -3332,7 +3397,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 				gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] ) );
 		}
 
-		if( Version_.SupportMRT_ )
+		if( Version_.Features_.MRT_ )
 		{
 #if !defined( RENDER_USE_GLES )
 			for( BcU32 Idx = 0; Idx < 8; ++Idx )
@@ -3507,7 +3572,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	}
 
 #if !defined( RENDER_USE_GLES )
-	if( Version_.SupportAntialiasedLines_ )
+	if( Version_.Features_.AntialiasedLines_ )
 	{
 		if( Force ||
 			RasteriserState.AntialiasedLineEnable_ != BoundRasteriserState.AntialiasedLineEnable_ )

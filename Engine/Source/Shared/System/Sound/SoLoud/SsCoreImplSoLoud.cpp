@@ -34,7 +34,8 @@ public:
 		File_.open( FileName, fsFM_READ );
 		Position_ = 0;
 	}
-	~SsFileSoLoud()
+
+	virtual ~SsFileSoLoud()
 	{
 		File_.close();
 	}

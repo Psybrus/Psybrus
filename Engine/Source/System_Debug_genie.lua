@@ -25,7 +25,7 @@ PsyProjectEngineLib( "System_Debug" )
   	  "raknet", 
  		}
 
-  configuration { "windows-* or linux-* or osx-*" }
+  configuration { "windows-* or linux-* or osx-* or android-*" }
     defines { "USE_WEBBY=1" }
     PsyAddExternalLinks { "webby" }    
     includedirs { "../../External/webby/" }

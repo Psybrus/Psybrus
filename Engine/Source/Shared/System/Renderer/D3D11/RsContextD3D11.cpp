@@ -405,12 +405,28 @@ OsClient* RsContextD3D11::getClient() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getFeatures
+//virtual
+const RsFeatures& RsContextD3D11::getFeatures() const
+{
+	return Features_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isShaderCodeTypeSupported
 //virtual
 BcBool RsContextD3D11::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
 	switch( CodeType )
 	{
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_1:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_1 );
+		break;
+
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_2:
+		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_2 );
+		break;
+
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_3:
 		return ( FeatureLevel_ >= D3D_FEATURE_LEVEL_9_3 );
 		break;
@@ -541,6 +557,72 @@ void RsContextD3D11::create()
 		BackBufferDesc.Format,
 		BackBufferDesc.Format );
 
+	// 
+	auto BackBufferRTFormat = RsTextureFormat::R8G8B8A8; // TODO: Get for BackBufferDesc.Format...
+	auto BackBufferDSFormat = RsTextureFormat::D24S8;
+
+	// Fill in features.
+	D3D11_FEATURE_DATA_D3D9_OPTIONS D3D9Options;
+	Device_->CheckFeatureSupport(
+		D3D11_FEATURE_D3D9_OPTIONS,
+		&D3D9Options,
+		sizeof( D3D9Options ) );
+
+	Features_.MRT_ = true;
+	Features_.DepthTextures_ = true;
+	Features_.NPOTTextures_ = D3D9Options.FullNonPow2TextureSupport ? true : false;
+	Features_.SeparateBlendState_ = true;
+	Features_.AnisotropicFiltering_ = true;
+	Features_.AntialiasedLines_ = true;
+	Features_.Texture1D_ = true;
+	Features_.Texture2D_ = true;
+	Features_.Texture3D_ = true;
+	Features_.TextureCube_ = true;
+
+	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
+	{
+		DXGI_FORMAT DXTextureFormat = gTextureFormats[ Format ];
+		DXGI_FORMAT DXRTVFormat = gTextureFormats[ Format ];
+		DXGI_FORMAT DXDSVFormat = gDSVFormats[ Format ];
+		if( DXTextureFormat != DXGI_FORMAT_UNKNOWN )
+		{
+			UINT FormatSupport = 0;
+			if( SUCCEEDED( Device_->CheckFormatSupport( DXTextureFormat, &FormatSupport ) ) )
+			{
+				if( FormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D )
+				{
+					Features_.TextureFormat_[ Format ] = true;
+				}
+				if( FormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET )
+				{
+					Features_.RenderTargetFormat_[ Format ] = true;
+				}
+			}
+		}
+		if( DXRTVFormat != DXGI_FORMAT_UNKNOWN )
+		{
+			UINT FormatSupport = 0;
+			if( SUCCEEDED( Device_->CheckFormatSupport( DXRTVFormat, &FormatSupport ) ) )
+			{
+				if( FormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET )
+				{
+					Features_.RenderTargetFormat_[ Format ] = true;
+				}
+			}
+		}
+		if( DXDSVFormat != DXGI_FORMAT_UNKNOWN )
+		{
+			UINT FormatSupport = 0;
+			if( SUCCEEDED( Device_->CheckFormatSupport( DXDSVFormat, &FormatSupport ) ) )
+			{
+				if( FormatSupport & D3D11_FORMAT_SUPPORT_DEPTH_STENCIL )
+				{
+					Features_.DepthStencilTargetFormat_[ Format ] = true;
+				}
+			}
+		}
+	}
+
 	// Create back buffer RT.
 	BackBufferRT_ = new RsTexture(
 			this,
@@ -548,7 +630,7 @@ void RsContextD3D11::create()
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC, 
 				RsResourceBindFlags::RENDER_TARGET,
-				RsTextureFormat::R8G8B8A8, 1,
+				BackBufferRTFormat, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
 				1 ) );
@@ -561,7 +643,7 @@ void RsContextD3D11::create()
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC, 
 				RsResourceBindFlags::DEPTH_STENCIL,
-				RsTextureFormat::D24S8, 1,
+				BackBufferDSFormat, 1,
 				pClient->getWidth(),
 				pClient->getHeight(),
 				1 ) );
@@ -615,6 +697,8 @@ void RsContextD3D11::destroy()
 	destroyTexture( BackBufferDS_ );
 	delete BackBufferDS_;
 	BackBufferDS_ = nullptr;
+
+	BackBuffer_ = nullptr;
 
 	// Verify all resources have been freed.
 #if !defined( PSY_PRODUCTION )
@@ -773,7 +857,8 @@ void RsContextD3D11::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 	}
 
 	// Find shader resource view.
-	ID3D11ShaderResourceView* ShaderResourceView = getD3DShaderResourceView( pTexture->getHandle< BcU32 >() );
+	ID3D11ShaderResourceView* ShaderResourceView = 
+		pTexture ? getD3DShaderResourceView( pTexture->getHandle< BcU32 >() ) : nullptr;
 
 	// Bind for each shader based on specified handle.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
@@ -1404,7 +1489,7 @@ bool RsContextD3D11::createTexture(
 			Desc.Usage = D3D11_USAGE_DEFAULT;
 			Desc.BindFlags = BindFlagsD3D;
 			Desc.CPUAccessFlags = 0;
-			Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+			Desc.MiscFlags = 0;
 
 			ID3D11Texture3D* D3DTexture = nullptr;
 			Result = Device_->CreateTexture3D( &Desc, nullptr, &D3DTexture );
@@ -1432,7 +1517,7 @@ bool RsContextD3D11::createTexture(
 			Desc.Usage = D3D11_USAGE_DEFAULT;
 			Desc.BindFlags = BindFlagsD3D;
 			Desc.CPUAccessFlags = 0;
-			Desc.MiscFlags = 0;
+			Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 			ID3D11Texture2D* D3DTexture = nullptr;
 			Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
@@ -1549,6 +1634,15 @@ bool RsContextD3D11::updateTexture(
 	// Update.
 	UpdateFunc( Texture, Lock );
 
+	BcU32 SubResource = Slice.Level_;
+	
+	// Calculate cubemap subresource.
+	if( Desc.Type_ == RsTextureType::TEXCUBE )
+	{
+		BcAssert( Slice.Face_ != RsTextureFace::NONE );
+		SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ - 1 );
+	}
+
 	// Buffer sub resource.
 	switch( Desc.Type_ )
 	{
@@ -1556,7 +1650,7 @@ bool RsContextD3D11::updateTexture(
 		{
 			Context_->UpdateSubresource(
 				D3DResource,
-				Slice.Level_,
+				SubResource,
 				nullptr,
 				&TextureData[ 0 ],
 				Lock.Pitch_,
@@ -1568,7 +1662,7 @@ bool RsContextD3D11::updateTexture(
 		{
 			Context_->UpdateSubresource(
 				D3DResource,
-				Slice.Level_,
+				SubResource,
 				nullptr,
 				&TextureData[ 0 ],
 				Lock.Pitch_,
@@ -1592,7 +1686,7 @@ bool RsContextD3D11::updateTexture(
 		{
 			Context_->UpdateSubresource(
 				D3DResource,
-				Slice.Level_ + ( (BcU32)Slice.Face_ * 6 ),
+				SubResource,
 				nullptr,
 				&TextureData[ 0 ],
 				Lock.Pitch_,
@@ -2362,9 +2456,18 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
 				Desc.Format = Entry.SRVFormat_;
-				Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
-				Desc.Texture2D.MipLevels = TexDesc.MipLevels;
-				Desc.Texture2D.MostDetailedMip = 0;
+				if( ( TexDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE ) == 0 )
+				{
+					Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
+					Desc.Texture2D.MipLevels = TexDesc.MipLevels;
+					Desc.Texture2D.MostDetailedMip = 0;
+				}
+				else
+				{
+					Desc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBE;
+					Desc.TextureCube.MipLevels = TexDesc.MipLevels;
+					Desc.TextureCube.MostDetailedMip = 0;
+				}
 			}
 			break;
 

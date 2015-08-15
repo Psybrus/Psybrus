@@ -114,6 +114,8 @@ struct ScnShaderPermutationJobParams
 {
 	RsShaderCodeType InputCodeType_;
 	RsShaderCodeType OutputCodeType_;
+	std::string ShaderSource_;
+	std::string ShaderSourceData_;
 	ScnShaderPermutation Permutation_;
 	std::vector< ScnShaderLevelEntry > Entries_;
 
@@ -153,10 +155,6 @@ private:
 	BcBool newPipeline();
 	ScnShaderPermutation getDefaultPermutation();
 
-	BcBool buildInputHLSL(
-		const std::string& InHLSL );
-
-
 	BcBool compileShader( 
 		const std::string& FileName,
 		const std::string& EntryPoint,
@@ -176,6 +174,8 @@ private:
 		ScnShaderPermutation Permutation );
 
 	BcBool buildPermutation( ScnShaderPermutationJobParams Params );
+	BcBool buildPermutationHLSL( const ScnShaderPermutationJobParams& Params );
+	BcBool buildPermutationGLSL( const ScnShaderPermutationJobParams& Params );
 
 	BcBool convertHLSL2GLSL(
 		ScnShaderPermutationJobParams Params,
@@ -199,6 +199,7 @@ private:
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
 	std::string removeComments( std::string Input );
+	void logSource( std::string Source );
 
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
@@ -207,16 +208,18 @@ private:
 	std::string Source_;
 	std::string SourceFileData_;
 
-	// New any lang.
-	std::map< RsShaderCodeType, std::string > Sources_;
-	std::map< RsShaderCodeType, std::string > SourcesFileData_;
-
 	std::map< RsShaderType, std::string > Entrypoints_;
 	std::vector< ScnShaderPermutationFlags > ExcludePermutations_;
 	std::vector< ScnShaderPermutationFlags > IncludePermutations_;
 	std::vector< RsShaderCodeType > CodeTypes_;
 	std::vector< RsShaderBackendType > BackendTypes_;
 
+	// New any lang.
+	std::map< RsShaderCodeType, std::string > Sources_;
+	std::map< RsShaderCodeType, std::string > SourcesFileData_;
+	std::map< std::string, std::string > Defines_;
+
+	//
 	std::vector< RsShaderCodeType > OutputCodeTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;
 	std::vector< std::string > IncludePaths_;

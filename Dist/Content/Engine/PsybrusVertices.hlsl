@@ -59,7 +59,7 @@ struct VertexDefault
  * @param _v Input vertex. Should be float4.
  * @param _p Input properties. Should be a structure containing BlendIndices_, and BlendWeights_.
  */
-#if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
 /* WEBGL HACKY
 

@@ -119,6 +119,8 @@ public:
 	Callback Callback_;
 };
 
+static_assert( std::is_trivially_destructible< RsRenderNode >::value, "RsRenderNode must be trivially destructible." );
+
 //////////////////////////////////////////////////////////////////////////
 // Inline
 inline void RsRenderNode::render( RsContext* Context )

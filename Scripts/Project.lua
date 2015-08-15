@@ -375,6 +375,7 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	       "regex",
 	       "filesystem",
 	       "system",
+	       "thread",
 	       "wave",
 	    }
 
@@ -384,13 +385,18 @@ function PsyProjectPsybrusExe( _name, _suffix )
        PsyAddExternalLinks {
           "assimp",
           "assimp_contrib",
+          "glslang",
           "glsl-optimizer",
           "hlsl2glslfork",
           "HLSLCrossCompiler",
           "glew",
+          "ThinkGear",
+       }
+
+    configuration { "windows-* or linux-* or osx-* or android-*" }
+       PsyAddExternalLinks {
           "RakNet",
           "webby",
-          "ThinkGear",
        }
 
 	-- asmjs post build.
