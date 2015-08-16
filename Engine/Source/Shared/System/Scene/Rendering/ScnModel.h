@@ -95,7 +95,7 @@ public:
 	void updateNodes( MaMat4d RootMatrix );
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
-	void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
+	void render( ScnRenderContext & RenderContext );
 	
 protected:
 	ScnModelRef Model_;

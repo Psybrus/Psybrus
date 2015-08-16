@@ -184,13 +184,13 @@ MaAABB ScnPostProcessComponent::getAABB() const
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnPostProcessComponent::render(
-	class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
+void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 {
-	auto* InputFrameBuffer = pViewComponent->getFrameBuffer();
+	auto* InputFrameBuffer = RenderContext.pViewComponent_->getFrameBuffer();
+	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Pass_ = RS_SORT_PASS_POSTPROCESS;
 	RenderFence_.increment();
-	pFrame->queueRenderNode( Sort,
+	RenderContext.pFrame_->queueRenderNode( Sort,
 		[ this, InputFrameBuffer ]( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );

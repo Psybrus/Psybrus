@@ -23,18 +23,13 @@ class ScnRenderingVisitor:
 	public ScnVisitor
 {
 public:
-	ScnRenderingVisitor( 
-		class ScnViewComponent* pViewComponent, 
-		class RsFrame* pFrame,
-		RsRenderSort Sort );
+	ScnRenderingVisitor( class ScnRenderContext & RenderContext );
 	virtual ~ScnRenderingVisitor();
 
 	virtual void visit( class ScnRenderableComponent* pComponent );
 
 private:
-	class ScnViewComponent* pViewComponent_;
-	class RsFrame* pFrame_;
-	RsRenderSort Sort_;
+	class ScnRenderContext & RenderContext_;
 };
 
 #endif

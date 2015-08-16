@@ -19,15 +19,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnRenderingVisitor::ScnRenderingVisitor( 
-		class ScnViewComponent* pViewComponent, 
-		class RsFrame* pFrame,
-		RsRenderSort Sort ):
-	pViewComponent_( pViewComponent ),
-	pFrame_( pFrame ),
-	Sort_( Sort )
+ScnRenderingVisitor::ScnRenderingVisitor( ScnRenderContext & RenderContext ):
+	RenderContext_( RenderContext )
 {
-	ScnCore::pImpl()->visitView( this, pViewComponent_ );
+	ScnCore::pImpl()->visitView( this, RenderContext_.pViewComponent_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,10 +38,10 @@ ScnRenderingVisitor::~ScnRenderingVisitor()
 //virtual
 void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 {
-	if( pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
+	if( RenderContext_.pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
 	{
 		PSY_LOGSCOPEDCATEGORY( *pComponent->getClass()->getName() );
 		BcAssert( pComponent->isReady() );
-		pComponent->render( pViewComponent_, pFrame_, Sort_ );
+		pComponent->render( RenderContext_ );
 	}
 }

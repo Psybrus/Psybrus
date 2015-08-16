@@ -120,7 +120,7 @@ MaAABB ScnParticleSystemComponent::getAABB() const
 //////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
+void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 {
 	// Grab vertex buffer and flip for next frame to use.
 	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
@@ -297,16 +297,17 @@ void ScnParticleSystemComponent::render( class ScnViewComponent* pViewComponent,
 	// Draw particles last.
 	if( NoofParticlesToRender > 0 )
 	{
+		RsRenderSort Sort = RenderContext.Sort_;
 		Sort.Layer_ = 15;
 
 		// Set material parameters for view.
-		pViewComponent->setMaterialParameters( MaterialComponent_ );
+		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
 
 		// Bind material component.
-		MaterialComponent_->bind( pFrame, Sort );
+		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
 
 		// Add to frame.
-		pFrame->queueRenderNode( Sort,
+		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ this, VertexBuffer, NoofParticlesToRender ]( RsContext* Context )
 			{
 				Context->setVertexBuffer( 0, VertexBuffer.pVertexBuffer_, sizeof( ScnParticleVertex ) );

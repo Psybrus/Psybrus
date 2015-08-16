@@ -581,7 +581,7 @@ void ScnCanvasComponent::clear()
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
+void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 {
 	// Upload.
 	size_t VertexDataSize = VertexIndex_ * sizeof( ScnCanvasComponentVertex );
@@ -602,6 +602,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	}
 
 	// HUD pass.
+	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = 0;
 	Sort.Pass_ = RS_SORT_PASS_MAX;
 
@@ -616,7 +617,7 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
 		// Copy primitive sections in.
-		auto* PrimitiveSection = pFrame->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
+		auto* PrimitiveSection = RenderContext.pFrame_->alloc< ScnCanvasComponentPrimitiveSection >( 1 );
 		BcMemZero( PrimitiveSection, sizeof( ScnCanvasComponentPrimitiveSection ) );
 		*PrimitiveSection = PrimitiveSectionList_[ Idx ];
 		
@@ -626,11 +627,11 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
-			pLastMaterialComponent->bind( pFrame, Sort );
+			pLastMaterialComponent->bind( RenderContext.pFrame_, Sort );
 		}
 		
 		// Add to frame.
-		pFrame->queueRenderNode( Sort,
+		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ this, PrimitiveSection ]( RsContext* Context )
 			{
 				if( PrimitiveSection->RenderFunc_ != nullptr )

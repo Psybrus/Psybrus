@@ -777,11 +777,11 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // renderPrimitives
-void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
+void ScnModelComponent::render( ScnRenderContext & RenderContext )
 {
 	PSY_PROFILE_FUNCTION;
 
-	Super::render( pViewComponent, pFrame, Sort );
+	Super::render( RenderContext );
 
 	// Wait for model to have updated.
 	UpdateFence_.wait();
@@ -795,6 +795,7 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
 
 	// Set layer.
+	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = Layer_;
 	Sort.Pass_ = Pass_;
 
@@ -822,13 +823,13 @@ void ScnModelComponent::render( class ScnViewComponent* pViewComponent, RsFrame*
 		LightingVisitor.setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 #endif		
 		// Set material components for view.
-		pViewComponent->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
+		RenderContext.pViewComponent_->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 			
 		// Bind material.
-		PerComponentMeshData.MaterialComponentRef_->bind( pFrame, Sort );
+		PerComponentMeshData.MaterialComponentRef_->bind( RenderContext.pFrame_, Sort );
 			
 		// Render primitive.
-		pFrame->queueRenderNode( Sort,
+		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ pMeshData, pMeshRuntime, Offset ]( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
