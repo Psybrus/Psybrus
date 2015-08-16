@@ -529,6 +529,7 @@ void RsContextGL::presentBackBuffer()
 			for( BcU32 X = 0; X < W; ++X )
 			{
 				ImgColour* pColour = (ImgColour*)pReadImageData++;
+				pColour->A_ = 0xff;
 				pImage->setPixel( X, RealY, *pColour );
 			}
 		}
