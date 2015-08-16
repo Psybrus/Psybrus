@@ -869,15 +869,15 @@ void RsContextGL::create()
 
 	// Debug output extension.	
 #if ENABLE_DEBUG_OUTPUT
-	if( GLEW_ARB_debug_output )
+	if( GLEW_KHR_debug )
 	{
 		GL( DebugMessageCallback( debugOutput, nullptr ) );
 		GL( GetError() );
-		PSY_LOG( "INFO: Using ARB_debug_output" );
+		PSY_LOG( "INFO: Using GLEW_KHR_debug" );
 	}
 	else
 	{
-		PSY_LOG( "WARNING: No ARB_debug_output" );
+		PSY_LOG( "WARNING: No GLEW_KHR_debug" );
 	}
 #endif // ENABLE_DEBUG_OUTPUT
 
