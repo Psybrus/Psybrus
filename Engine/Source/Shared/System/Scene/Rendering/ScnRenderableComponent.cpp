@@ -56,7 +56,7 @@ ScnRenderableComponent::~ScnRenderableComponent()
 //////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void ScnRenderableComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
+void ScnRenderableComponent::render( ScnRenderContext & RenderContext )
 {
 	
 }

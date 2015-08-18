@@ -74,7 +74,7 @@ BcS32 BcRandom::randRange( BcS32 Min, BcS32 Max )
 BcF32 BcRandom::noise( BcU32 X, BcU32 Width )
 {
 	X = X % Width;
-	X = ( X << 13 ) ^ X;
+	X = ( X << 13 ) ^ Seed_ ^ X;
 	return ( 1.0f - ( ( X * ( X * X * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0f );
 }
 

@@ -210,7 +210,7 @@ public:
 public:
 	virtual void onAttach( ScnEntityWeakRef Parent );
 	virtual void onDetach( ScnEntityWeakRef Parent );
-	virtual void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort );
+	virtual void render( ScnRenderContext & RenderContext );
 
 	static void clearAll( const ScnComponentList& Components );
 	static void endAll( const ScnComponentList& Components );

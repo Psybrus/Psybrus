@@ -450,7 +450,7 @@ public:
 	RsVertexDeclaration* VertexDeclaration_;
 };
 
-void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
+void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 {
 	// Upload.
 	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnDebugRenderComponentVertex );
@@ -471,6 +471,7 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 	}
 
 	// HUD pass.
+	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = RS_SORT_LAYER_MAX;
 	Sort.Pass_ = 0;
 
@@ -506,14 +507,14 @@ void ScnDebugRenderComponent::render( class ScnViewComponent* pViewComponent, Rs
 				} );
 			pLastMaterialComponent->setObjectUniformBlock( pRenderResource_->UniformBuffer_ );
 
-			pViewComponent->setMaterialParameters( pLastMaterialComponent );
+			RenderContext.pViewComponent_->setMaterialParameters( pLastMaterialComponent );
 
-			pLastMaterialComponent->bind( pFrame, Sort );
+			pLastMaterialComponent->bind( RenderContext.pFrame_, Sort );
 		}
 		
 		// Add to frame.
 		auto& RenderResource = *pRenderResource_;
-		pFrame->queueRenderNode( Sort,
+		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ this, RenderResource, PrimitiveSection ]( RsContext* Context )
 			{
 				Context->setVertexBuffer( 0, RenderResource.pVertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );

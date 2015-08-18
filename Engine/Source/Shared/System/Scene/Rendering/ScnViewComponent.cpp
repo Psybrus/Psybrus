@@ -18,6 +18,7 @@
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
 
+#include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 
@@ -420,6 +421,12 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
 
 	RsRenderSort Sort( 0 );
+	
+	// Check viewport count.
+	if( Components.size() > RS_SORT_VIEWPORT_MAX )
+	{
+		PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
+	}
 
 	// Iterate over all view components.
 	for( auto Component : Components )
@@ -427,9 +434,11 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 		BcAssert( Component->isTypeOf< ScnViewComponent >() );
 		auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
 
+		ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
+
 		ViewComponent->bind( pFrame, Sort );
 
-		ScnRenderingVisitor Visitor( ViewComponent, pFrame, Sort );
+		ScnRenderingVisitor Visitor( RenderContext );
 
 		// Increment viewport.
 		Sort.Viewport_++;

@@ -20,6 +20,25 @@
 #include "System/Scene/ScnSpatialComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnRenderContext
+class ScnRenderContext
+{
+public:
+	ScnRenderContext( 
+			class ScnViewComponent* pViewComponent,
+			class RsFrame* pFrame,
+			RsRenderSort Sort ):
+		pViewComponent_( pViewComponent ),
+		pFrame_( pFrame ),
+		Sort_( Sort )
+	{}
+
+	class ScnViewComponent* pViewComponent_;
+	class RsFrame* pFrame_;
+	RsRenderSort Sort_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnRenderableComponent
 class ScnRenderableComponent:
 	public ScnSpatialComponent
@@ -32,10 +51,7 @@ public:
 	ScnRenderableComponent();
 	virtual ~ScnRenderableComponent();
 	
-	virtual void render( 
-		class ScnViewComponent* pViewComponent, 
-		class RsFrame* pFrame, 
-		RsRenderSort Sort );
+	virtual void render( ScnRenderContext & RenderContext );
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 

@@ -65,7 +65,7 @@ public:
 
 	MaAABB getAABB() const override;
 
-	void render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 	
 protected:
 	void recreateResources();
