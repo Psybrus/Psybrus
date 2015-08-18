@@ -1,0 +1,23 @@
+{
+	"$Objects" : [
+		{
+			"$Class" : "CsPlatformParams",
+			"$ID" : "",
+			"name" : "html5",
+			"filters" : [
+				// Platform
+				"html5",
+
+				// Assumed compressed texture formats.
+				"dxt1",
+				"dxt3",
+				"dxt5"
+			],
+
+			"intermediatepath" : "Intermediate/html5",
+			"packedcontentpath" : "PackedContent/html5"
+		}
+	],
+	"$RootID" : ""
+}
+

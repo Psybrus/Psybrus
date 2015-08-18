@@ -33,7 +33,7 @@ private:
 
 public:
 	CsPackage();
-	CsPackage( const BcName& Name );
+	CsPackage( const BcName& Name, const BcPath& Filename );
 	~CsPackage();
 
 	/**

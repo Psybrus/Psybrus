@@ -3,7 +3,7 @@ if PsyProjectExternalLib( "png", "C" ) then
 		kind ( EXTERNAL_PROJECT_KIND )
 		files { "./png/**.h", "./png/**.c" }
 		includedirs { ".png/", "./zlib/" }
-		links {
+		PsyAddExternalLinks {
 			"zlib"
 		}
 end

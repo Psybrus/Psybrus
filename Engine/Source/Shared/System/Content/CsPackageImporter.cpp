@@ -32,6 +32,8 @@
 #include "System/SysKernel.h"
 
 #include <regex>
+#include <iostream>
+#include <sstream>
 
 #if PSY_IMPORT_PIPELINE
 #include <boost/filesystem.hpp>
@@ -43,9 +45,64 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Regex for resource references.
-std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
-std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
-std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
+static std::regex GRegex_ResourceReference( "^\\$\\((.*?):(.*?)\\.(.*?)\\)" );		// Matches "$(Type:Package.Resource)"
+static std::regex GRegex_WeakResourceReference( "^\\#\\((.*?):(.*?)\\.(.*?)\\)" );	// Matches "#(Type:Package.Resource)" // TODO: Merge into the ResourceReference regex.
+static std::regex GRegex_ResourceIdReference( "^\\$\\((.*?)\\)" );					// Matches "$(ID)".
+static std::regex GRegex_Filter( "^@\\((.*?)\\)" );								// Matches "(String)".
+
+//////////////////////////////////////////////////////////////////////////
+// Anonymous namespace
+namespace 
+{
+	/**
+	 * Process filters in Json. Will merge down, and remove filter blocks as appropriate.
+	 */
+	void ProcessFiltersOnJson( const CsPlatformParams& Params, Json::Value & Value )
+	{
+		// Recurse down.
+		for( auto & ChildValue : Value )
+		{
+			ProcessFiltersOnJson( Params, ChildValue );
+		}
+
+		// Process.
+		if( Value.type() == Json::objectValue )
+		{
+			std::vector< std::string > FilterGroups;
+			std::cmatch Match;
+
+			// Gather filter groups.
+			auto MemberNames = Value.getMemberNames();
+			for( const auto& MemberName : MemberNames )
+			{
+				if( std::regex_match( MemberName.c_str(), Match, GRegex_Filter ) )
+				{
+					FilterGroups.push_back( MemberName );
+				}
+			}
+
+			// Sort filter groups alphabetically.
+			std::sort( FilterGroups.begin(), FilterGroups.end() );
+
+			// Move contents of each filter group that we should.
+			for( const auto& FilterGroup : FilterGroups )
+			{
+				if( Params.checkFilterString( FilterGroup ) )
+				{
+					const auto& Group = Value[ FilterGroup ];
+					auto GroupMemberNames = Group.getMemberNames();
+					for( const auto& GroupMemberName : GroupMemberNames )
+					{
+						Value[ GroupMemberName ] = Group[ GroupMemberName ];
+					}
+				}
+
+				// Remove filter group.
+				Value.removeMember( FilterGroup );
+			}
+		}
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
@@ -55,7 +112,7 @@ void CsPackageDependencies::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Dependencies_",	&CsPackageDependencies::Dependencies_ ),
+		new ReField( "Dependencies_", &CsPackageDependencies::Dependencies_ ),
 	};
 
 	ReRegisterClass< CsPackageDependencies >( Fields );
@@ -65,8 +122,18 @@ void CsPackageDependencies::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-CsPackageImporter::CsPackageImporter():
-	BuildingBeginCount_( 0 )
+CsPackageImporter::CsPackageImporter(
+		const CsPlatformParams& Params,
+		const BcName& Name,
+		const BcPath& Filename ):
+	Params_( Params ),
+	Name_( Name ),
+	Filename_( Filename ),
+	Resources_(),
+	BuildingBeginCount_( 0 ),
+	ImportErrorCount_( 0 ),
+	ResourceIds_( 0 ),
+	DataPosition_( 0 )
 {
 
 }
@@ -93,12 +160,10 @@ CsPackageImporter::~CsPackageImporter()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool CsPackageImporter::import( const BcName& Name )
+BcBool CsPackageImporter::import()
 {
-	Name_ = Name;
-	BcPath Path = CsCore::pImpl()->getPackageImportPath( Name );
 	PSY_LOGSCOPEDCATEGORY( "Import" );
-	PSY_LOG( "Importing %s...\n", (*Path).c_str() );
+	PSY_LOG( "Importing %s...\n", Filename_.c_str() );
 
 	PSY_LOGSCOPEDINDENT;
 
@@ -107,7 +172,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 
 	// Store source file info.
 	FsStats Stats;
-	if( FsCore::pImpl()->fileStats( (*Path).c_str(), Stats ) )
+	if( FsCore::pImpl()->fileStats( Filename_.c_str(), Stats ) )
 	{
 		Header_.SourceFileStatsHash_ = BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) );
 	}
@@ -117,15 +182,18 @@ BcBool CsPackageImporter::import( const BcName& Name )
 	}
 
 	beginImport();
-	Header_.SourceFile_ = addString( (*Path).c_str() );
+	Header_.SourceFile_ = addString( Filename_.c_str() );
 	endImport();
 
 	Json::Value Root;
-	if( loadJsonFile( (*Path).c_str(), Root ) )
+	if( loadJsonFile( Filename_.c_str(), Root ) )
 	{
+		// Process filters.
+		ProcessFiltersOnJson( Params_, Root );
+
 		// Add as dependency.
 		beginImport();
-		addDependency( (*Path).c_str() );
+		addDependency( Filename_.c_str() );
 
 		// Get resource list.
 		Json::Value Resources( Root.get( "resources", Json::Value( Json::arrayValue ) ) );
@@ -170,7 +238,6 @@ BcBool CsPackageImporter::import( const BcName& Name )
 				else
 				{
 					PSY_LOG( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
- 					BcBreakpoint;
 					endImport();
 					return BcFalse;
 				}
@@ -180,14 +247,14 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			catch( CsImportException ImportException )
 			{
 				PSY_LOG( "FAILED: Time: %.2f seconds.\n", ResourceTimer.time() );
-				PSY_LOG( "ERROR: in file %s:\n%s\n", ImportException.file().c_str(), ImportException.what() );	
+				PSY_LOG( "ERROR: in file %s:\n%s\n", ImportException.file(), ImportException.what() );	
 				endImport();
 				return BcFalse;
 			}
 		}
 
 		// Save and return.
-		BcPath PackedPackage( CsCore::pImpl()->getPackagePackedPath( Name ) );
+		BcPath PackedPackage( Params_.getPackagePackedPath( Name_ ) );
 		BcBool SaveSuccess = save( PackedPackage );
 
 		if( SaveSuccess )
@@ -195,7 +262,7 @@ BcBool CsPackageImporter::import( const BcName& Name )
 			PSY_LOG( "SUCCEEDED: Time: %.2f seconds.\n", TotalTimer.time() );
 
 			// Write out dependencies.
-			std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( Name ) + "/deps.json";
+			std::string OutputDependencies = *Params_.getPackageIntermediatePath( Name_ ) + "/deps.json";
 			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 			SeJsonWriter Writer( &ObjectCodec );
 			Writer << Dependencies_;
@@ -204,7 +271,6 @@ BcBool CsPackageImporter::import( const BcName& Name )
 		else
 		{
 			PSY_LOG( "FAILED: Time: %.2f seconds.\n", TotalTimer.time() );
-			BcBreakpoint;
 		}
 
 		return SaveSuccess;
@@ -218,11 +284,11 @@ BcBool CsPackageImporter::import( const BcName& Name )
 BcBool CsPackageImporter::save( const BcPath& Path )
 {
 	// Create target folder.
-	std::string PackedPath = *CsCore::pImpl()->getPackagePackedPath( "" );
+	const auto& PackedPath = Params_.PackedContentPath_;
 
-	if( !boost::filesystem::exists( PackedPath ) )
+	if( !boost::filesystem::exists( PackedPath.c_str() ) )
 	{
-		boost::filesystem::create_directories( PackedPath );
+		boost::filesystem::create_directories( PackedPath.c_str() );
 	}
 
 	// Open package output.
@@ -254,11 +320,11 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 
 		// Calculate package alloc size.
 		Header_.TotalAllocSize_ += (BcU32)StringTableStream.dataSize();
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( PackageCrossRefList_.size() * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( PackageDependencyList_.size() * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ResourceHeaders_.size() * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
-		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( ChunkHeaders_.size() * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)PackageCrossRefList_.size() * (BcU32)sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)PackageDependencyList_.size() * (BcU32)sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)ResourceHeaders_.size() * (BcU32)sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)ChunkHeaders_.size() * (BcU32)sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+		Header_.TotalAllocSize_ += (BcU32)BcCalcAlignment( (BcU32)ChunkHeaders_.size() * (BcU32)sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 		
 		// Align total size to 1 page for the start of resource data.
 		Header_.TotalAllocSize_ = (BcU32)BcCalcAlignment( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
@@ -359,13 +425,12 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 		}
 		else
 		{
-			PSY_LOG( "Failed to parse Json:\n %s\n", Reader.getFormatedErrorMessages().c_str() );
- 			BcAssertMsg( BcFalse, "Failed to parse \"%s\", see log for more details.", pFileName );
+ 			throw CsImportException( pFileName, "%s", Reader.getFormattedErrorMessages().c_str() );
 		}
-			}
+	}
 	else
 	{
-		BcAssertMsg( BcFalse, "Failed to load \"%s\"", pFileName );
+		throw CsImportException( pFileName, "Failed to load Json." );
 	}
 	
 	return Success;
@@ -473,6 +538,7 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	if( Type == Json::nullValue )
 	{
 		Type = Resource.get( "type", Json::nullValue );
+		BcAssert( Type != Json::nullValue );
 	}
 	BcAssertMsg( Name.type() == Json::stringValue, "Name not specified for resource.\n" );
 	BcAssertMsg( Type.type() == Json::stringValue, "Type not specified for resource.\n" )
@@ -736,7 +802,7 @@ BcU32 CsPackageImporter::addChunk( BcU32 ID, const void* pData, BcSize Size, BcS
 	BcAssert( BuildingBeginCount_ > 0 );
 
 	BcAssert( Size > 0 );
-	BcAssert( BcPot( RequiredAlignment ) );
+	BcAssert( BcPot( (BcU32)RequiredAlignment ) );
 	BcAssert( RequiredAlignment <= 4096 );
 
 	const BcU8* pPackedData = reinterpret_cast< const BcU8* >( pData );
@@ -846,6 +912,13 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 			addAllPackageCrossRefs( Root[ MemberValues[ Idx ] ] );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getParams
+const CsPlatformParams& CsPackageImporter::getParams() const
+{
+	return Params_;
 }
 
 //////////////////////////////////////////////////////////////////////////

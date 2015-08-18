@@ -35,6 +35,27 @@ PsyProjectEngineLib( "Engine" )
             "./Platforms/Linux/",
         }
 
+    configuration "osx-*"
+        files {
+            "./Platforms/OSX/*.h", 
+            "./Platforms/OSX/*.inl", 
+            "./Platforms/OSX/*.cpp", 
+            "./Platforms/OSX/*.mm", 
+        }
+        includedirs {
+            "./Platforms/OSX/",
+        }
+
+    configuration "android-*"
+        files {
+            "./Platforms/Android/*.h", 
+            "./Platforms/Android/*.inl", 
+            "./Platforms/Android/*.cpp"
+        }
+        includedirs {
+            "./Platforms/Android/",
+        }
+
     configuration "asmjs"
         files {
             "./Platforms/HTML5/*.h", 

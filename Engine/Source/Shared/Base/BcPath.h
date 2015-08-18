@@ -33,6 +33,7 @@ public:
 	BcPath( const BcChar* pValue );
 	virtual ~BcPath();
 
+	const char* c_str() const;
 	std::string operator * () const;
 	std::string getFileName() const;
 	std::string getExtension() const;

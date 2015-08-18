@@ -27,10 +27,6 @@
 
 #include "Base/BcMath.h"
 
-#if PSY_IMPORT_PIPELINE
-#include <boost/filesystem.hpp>
-#endif
-
 using namespace std::placeholders;
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,7 +47,7 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
 	{
-#if PSY_IMPORT_PIPELINE
+#if !PSY_PRODUCTION
 		// Load in package header synchronously to catch errors.
 		BcU32 Bytes = sizeof( Header_ );
 		++PendingCallbackCount_;
@@ -286,75 +282,6 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 		return;
 	}
 
-#if PSY_IMPORT_PIPELINE
-	// Reimport if source file stats or dependencies have changed.
-	const BcPath ImportPackage( CsCore::pImpl()->getPackageImportPath( pPackage_->getName() ) );
-
-	// Read in dependencies.
-	FsStats Stats;
-	std::string OutputDependencies = *CsCore::pImpl()->getPackageIntermediatePath( pPackage_->getName() ) + "/deps.json";
-	BcBool AnythingChanged = BcFalse;
-	if( FsCore::pImpl()->fileStats( (*ImportPackage).c_str(), Stats ) )
-	{
-		AnythingChanged = ( Header_.SourceFileStatsHash_ != BcHash( reinterpret_cast< BcU8* >( &Stats ), sizeof( Stats ) ) );
-	}
-
-	// Import package & output dependencies changed?
-	if( boost::filesystem::exists( *ImportPackage ) )
-	{
-		if(	boost::filesystem::exists( OutputDependencies ) )
-		{
-			PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
-			PSY_LOGSCOPEDINDENT;
-
-			CsPackageDependencies Dependencies;
-
-			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
-			SeJsonReader Reader( &ObjectCodec );
-			Reader.load( OutputDependencies.c_str() );
-			Reader << Dependencies;
-
-			// Check other dependencies.
-			if( !AnythingChanged )
-			{
-				for( const auto& Dependency : Dependencies.Dependencies_ )
-				{
-					if( Dependency.hasChanged() )
-					{
-						PSY_LOG( "WARNING: \"%s\" has changed.\n", Dependency.getFileName().c_str() );
-						AnythingChanged = BcTrue;
-						break;
-					}
-					else
-					{
-						PSY_LOG( "\"%s\" has not changed.\n", Dependency.getFileName().c_str() );						
-					}
-				}
-			}
-		}
-		else
-		{
-			PSY_LOG( "WARNING: Can't find package dependency info \"%s\", perform full build.\n", OutputDependencies.c_str() );
-
-			// No deps file, assume worst.
-			AnythingChanged = BcTrue;
-		}
-	}
-	else
-	{
-		PSY_LOG( "WARNING: Can't find package \"%s\", skipping dependency checking.\n", (*ImportPackage).c_str() );
-	}
-
-	// Reimport.
-	if( AnythingChanged )
-	{
-		PSY_LOG( "CsPackageLoader: Source file stats have changed.\n" );
-		HasError_ = BcTrue;
-		--PendingCallbackCount_;
-		return;
-	}
-#endif
-
 	// Allocate all the memory we need up front.
 	pPackageData_ = BcMemAlign( Header_.TotalAllocSize_, Header_.MaxAlignment_ );
 
@@ -366,19 +293,19 @@ void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 	pCurrPackageData += BcCalcAlignment( Header_.StringTableBytes_, Header_.MinAlignment_ );
 
 	pPackageCrossRefs_ = reinterpret_cast< CsPackageCrossRefData* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalPackageCrossRefs_ * sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalPackageCrossRefs_ * (BcU32)sizeof( CsPackageCrossRefData ), Header_.MinAlignment_ );
 
 	pPackageDependencies_ = reinterpret_cast< CsPackageDependencyData* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalPackageDependencies_ * sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalPackageDependencies_ * (BcU32)sizeof( CsPackageDependencyData ), Header_.MinAlignment_ );
 
 	pResourceHeaders_ = reinterpret_cast< CsPackageResourceHeader* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalResources_ * sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalResources_ * (BcU32)sizeof( CsPackageResourceHeader ), Header_.MinAlignment_ );
 
 	pChunkHeaders_ = reinterpret_cast< CsPackageChunkHeader* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalChunks_ * sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalChunks_ * (BcU32)sizeof( CsPackageChunkHeader ), Header_.MinAlignment_ );
 
 	pChunkData_ = reinterpret_cast< CsPackageChunkData* >( pCurrPackageData );
-	pCurrPackageData += BcCalcAlignment( Header_.TotalChunks_ * sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
+	pCurrPackageData += BcCalcAlignment( (BcU32)Header_.TotalChunks_ * (BcU32)sizeof( CsPackageChunkData ), Header_.MinAlignment_ );
 
 	// Clear string table.
 	BcMemZero( pStringTable_, Header_.StringTableBytes_ );

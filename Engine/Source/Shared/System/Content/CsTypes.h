@@ -30,6 +30,14 @@
 #undef ERROR
 
 //////////////////////////////////////////////////////////////////////////
+// Paths
+class CsPaths
+{
+public:
+	static const BcPath PACKED_CONTENT;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // CsCrossRefId
 typedef BcU32 CsCrossRefId;
 static const CsCrossRefId CSCROSSREFID_INVALID = static_cast< CsCrossRefId >( -1 );
@@ -114,20 +122,16 @@ class CsImportException:
 {
 public:
 	CsImportException( 
-			const std::string& Error,
-			const std::string& File ):
-		//std::exception( Error.c_str() ), // TODO LINUX
-		File_( File )
-	{}
-	virtual ~CsImportException(){}
-
-	const std::string& file() const
-	{
-		return File_;
-	}
+		const char* File,
+		const char* Error,
+		... ) NOEXCEPT;
+	const char* what() const NOEXCEPT;
+	const char* file() const NOEXCEPT;
+	const char* error() const NOEXCEPT;
 
 private:
-	std::string File_;
+	BcChar File_[ 1024 ];
+	BcChar Error_[ 4096 ];
 };
 
 #endif

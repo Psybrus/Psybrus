@@ -17,11 +17,64 @@
 
 #include <soloud.h>
 #include <soloud_biquadresonantfilter.h>
+#include <soloud_file.h>
 #include <soloud_sfxr.h>
 #include <soloud_wav.h>
 #include <soloud_wavstream.h>
 
 #include <algorithm>
+
+//////////////////////////////////////////////////////////////////////////
+// File IO.
+class SsFileSoLoud : public SoLoud::File
+{
+public:
+	SsFileSoLoud( const char* FileName )
+	{
+		File_.open( FileName, fsFM_READ );
+		Position_ = 0;
+	}
+
+	virtual ~SsFileSoLoud()
+	{
+		File_.close();
+	}
+
+	int eof() override
+	{
+		return Position_ >= File_.size();
+	}
+
+	unsigned int read( unsigned char *aDst, unsigned int aBytes ) override
+	{
+		File_.read( Position_, aDst, aBytes );
+		Position_ += aBytes;
+		// TODO: Return bytes read.
+		return aBytes;
+	}
+	
+	unsigned int length() override
+	{
+		return static_cast< unsigned int >( File_.size() );
+	}
+
+	void seek( int aOffset ) override
+	{
+		Position_ = aOffset;
+	}
+
+	unsigned int pos()
+	{
+		return Position_;
+	}
+	
+	virtual FILE * getFilePtr() { return 0; }
+	virtual unsigned char * getMemPtr() { return 0; }
+
+private:
+	FsFile File_;
+	unsigned int Position_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -234,8 +287,8 @@ class SsSource* SsCoreImplSoLoud::createSource(
 	auto createFunc = [ this, Resource, FileData ]()
 	{
 		auto InFileName = 
-			*CsCore::pImpl()->getPackagePackedPath( BcName::INVALID ) + 
-			std::string( "/" ) + 
+			*CsPaths::PACKED_CONTENT +
+			std::string( "/" ) +
 			FileData->FileHash_.getName() + std::string( ".dat" );
 		SoLoud::AudioSource* AudioSource = nullptr;
 		switch( FileData->Type_ )
@@ -243,21 +296,22 @@ class SsSource* SsCoreImplSoLoud::createSource(
 		case SsSourceFileData::SFXR:
 			{
 				auto SoLoudSfxr = new SoLoud::Sfxr();
-				SoLoudSfxr->loadParams( InFileName.c_str() );
+				SoLoudSfxr->loadParamsFile( new SsFileSoLoud( InFileName.c_str() ) );
 				AudioSource = SoLoudSfxr;
 			}
 			break;
 		case SsSourceFileData::WAV:
 			{
 				auto SoLoudWav = new SoLoud::Wav();
-				SoLoudWav->load( InFileName.c_str() );
+				SoLoudWav->loadFile( new SsFileSoLoud( InFileName.c_str() ) );
 				AudioSource = SoLoudWav;
 			}
 			break;
 		case SsSourceFileData::WAVSTREAM:
 			{
 				auto SoLoudWav = new SoLoud::WavStream();
-				SoLoudWav->load( InFileName.c_str() );
+				SoLoudWav->loadFile( new SsFileSoLoud( InFileName.c_str() ) );
+
 				AudioSource = SoLoudWav;
 			}
 			break;

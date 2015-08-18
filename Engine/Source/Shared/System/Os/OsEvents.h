@@ -87,6 +87,15 @@ struct OsEventInputMouse: OsEventInput< OsEventInputMouse >
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// OsEventInputTouch
+struct OsEventInputTouch: OsEventInput< OsEventInputTouch >
+{
+	BcU16			TouchID_;
+	BcS16			TouchX_;			///!< X coordinate of touch relative to window.
+	BcS16			TouchY_;			///!< Y coordinate of touch relative to window.
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // OsEventInputMouseWheel
 struct OsEventInputMouseWheel: OsEventInput< OsEventInputMouseWheel >
 {

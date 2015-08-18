@@ -19,11 +19,9 @@
 #if PLATFORM_WINDOWS
 #define caseInsensitiveComparison stricmp
 #define safeCaseInsensitiveComparison strnicmp
-#elif PLATFORM_LINUX || PLATFORM_OSX || PLATFORM_HTML5
+#else
 #define caseInsensitiveComparison strcasecmp
 #define safeCaseInsensitiveComparison strncasecmp
-#else
-
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,13 +29,6 @@
 BcU32 BcStrLength( const BcChar* pString )
 {
 	return static_cast< BcU32 >( strlen( pString ) );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// BcStrCopy
-void BcStrCopy( BcChar* pDest, const BcChar* pSrc )
-{
-	strcpy( pDest, pSrc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,11 +45,10 @@ const BcChar* BcStrStr( const BcChar* pStr, const BcChar* pSubStr )
 
 
 //////////////////////////////////////////////////////////////////////////
-// BcStrNCopy
-void BcStrCopyN( BcChar* pDest, const BcChar* pSrc, BcU32 Count )
+// BcStrCopy
+void BcStrCopy( BcChar* pDest, BcU32 DestSize, const BcChar* pSrc )
 {
-	strncpy( pDest, pSrc, Count );
-	pDest[ Count - 1 ] = '\0';		// Auto termination.
+	strncpy( pDest, pSrc, DestSize );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -180,6 +180,20 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 		}
 
+#if PSY_DEBUG
+		if( TargetCodeType_ == RsShaderCodeType::INVALID )
+		{
+			PSY_LOG( "Supported shader types in %s:", (*getName()).c_str() );
+			const ReEnum* Enum = ReManager::GetEnum( "RsShaderCodeType" );
+			for( BcU32 Idx = 0; Idx < pHeader_->NoofShaderCodeTypes_; ++Idx )
+			{
+				auto EnumConstant = Enum->getEnumConstant( static_cast< BcU32 >( pCodeTypes[ Idx ] ) );
+				PSY_LOG( "- %s", (*EnumConstant->getName()).c_str() );
+			}
+
+		}
+
+#endif
 		BcAssertMsg( TargetCodeType_ != RsShaderCodeType::INVALID, "No valid code type built in shader. Please add to your package." );
 
 		// Grab the rest of the chunks.
@@ -213,6 +227,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				FreeShaderData = BcTrue;
 			}
 #endif
+			PSY_LOG( "Creating shader: %x", pShaderHeader->PermutationFlags_ );
 			RsShader* pShader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize,
@@ -246,6 +261,17 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// Shrink to fit.
 			Shaders.shrink_to_fit();
 
+#if PSY_DEBUG
+			if( Shaders.size() == 0)
+			{
+				PSY_LOG( "Unable to find shaders:" );
+				for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+				{
+					PSY_LOG( " - Shader %u: %x", Idx, pProgramHeader->ShaderHashes_[ Idx ] != 0 );
+				}
+			}
+#endif
+
 			RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( pProgramHeader + 1 );
 			RsProgramVertexAttributeList VertexAttributes;
 			VertexAttributes.reserve( pProgramHeader->NoofVertexAttributes_ );
@@ -255,6 +281,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 		
 			// Create program.
+			PSY_LOG( "Creating program: %x", pProgramHeader->ProgramPermutationFlags_ );
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
 				std::move( VertexAttributes ),

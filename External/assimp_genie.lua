@@ -20,7 +20,7 @@ revisionFile:close()
 
 if PsyProjectExternalLib( "assimp", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	configuration "windows-* or linux-*"
+	configuration "windows-* or linux-* or osx-*"
 		files { 
 			"./assimp/include/**.h", 
 			"./assimp/code/**.h",
@@ -80,22 +80,21 @@ if PsyProjectExternalLib( "assimp", "C++" ) then
 			"./assimp/code/Ogre**.*",
 		}
 
-
 	configuration "vs*"
 		pchheader "AssimpPCH.h"
 		pchsource "./assimp/code/AssimpPCH.cpp"
 
-	configuration "windows-*"
-   		links {
-   			-- External libs.
-	        "External_assimp_contrib",
-   		}
+	configuration "windows-* or linux-* osx-*"
+		links {
+			-- External libs.
+			"External_assimp_contrib",
+		}
 end
 
 
 if PsyProjectExternalLib( "assimp_contrib", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-	configuration "windows or linux-gcc or linux-clang"
+	configuration "windows-* or linux-* or osx-*"
 		files { 
 			"./assimp/contrib/clipper/**.cpp",
 			"./assimp/contrib/clipper/**.hpp",

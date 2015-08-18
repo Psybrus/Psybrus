@@ -1,16 +1,43 @@
-//
-//  BcDebug.mm
-//  TestBed
-//
-//  Created by Neil Richardson on 25/09/11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #import <AppKit/AppKit.h>
 
-#include "BcDebug.h"
+#include "Base/BcDebug.h"
+#include "Base/BcLog.h"
+
+#define SUPPORT_BACKTRACE 1
+
+#if SUPPORT_BACKTRACE
+#include <execinfo.h>
+#endif // SUPPORT_BACKTRACE
+
+//////////////////////////////////////////////////////////////////////////
+// BcMessageBox
+BcBacktraceResult BcBacktrace()
+{
+	BcBacktraceResult Result;
+
+#if SUPPORT_BACKTRACE
+	static const int BacktraceBufferSize = 1024;
+	void* BacktraceBuffer[ BacktraceBufferSize ];
+
+	int Size = backtrace( BacktraceBuffer, BacktraceBufferSize );
+	auto Symbols = backtrace_symbols( BacktraceBuffer, Size );
+	for( BcU32 Idx = 0; Idx < Size; ++Idx )
+	{
+		BcBacktraceEntry Entry;
+		Entry.Address_ = BacktraceBuffer[ Idx ];
+		Entry.Symbol_ = Symbols[ Idx ];
+
+		Result.Backtrace_.push_back( Entry );
+	}
+
+	// We must fre symbols ourselves.
+	free( Symbols );
+#endif // SUPPORT_BACKTRACE
+
+	return Result;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // BcMessageBox
@@ -70,60 +97,65 @@
 
 BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
+	PSY_LOG( "%s: %s\n", pTitle, pMessage );
+
 	BcMessageBoxReturn RetVal = bcMBR_OK;
-	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	NSString* title = [[NSString alloc] initWithCString: pTitle encoding: NSUTF8StringEncoding];
-	NSString* message = [[NSString alloc] initWithCString: pMessage encoding: NSUTF8StringEncoding];
-	
-	NSString* button0 = nil;
-	NSString* button1 = nil;
-	NSString* button2 = nil;
-	
-	switch( Type )
+
+	if( BcIsGameThread() )
 	{
-		case bcMBT_OK:
-			button0 = @"OK";
-			break;
-		case bcMBT_OKCANCEL:
-			button0 = @"OK";
-			button1 = @"Cancel";
-			break;
-		case bcMBT_YESNO:
-			button0 = @"Yes";
-			button2 = @"No";
-			break;
-		case bcMBT_YESNOCANCEL:
-			button0 = @"Yes";
-			button1 = @"Cancel";
-			button2 = @"No";
-			break;
+		NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+		NSString* title = [[NSString alloc] initWithCString: pTitle encoding: NSUTF8StringEncoding];
+		NSString* message = [[NSString alloc] initWithCString: pMessage encoding: NSUTF8StringEncoding];
+		
+		NSString* button0 = nil;
+		NSString* button1 = nil;
+		NSString* button2 = nil;
+		
+		switch( Type )
+		{
+			case bcMBT_OK:
+				button0 = @"OK";
+				break;
+			case bcMBT_OKCANCEL:
+				button0 = @"OK";
+				button1 = @"Cancel";
+				break;
+			case bcMBT_YESNO:
+				button0 = @"Yes";
+				button2 = @"No";
+				break;
+			case bcMBT_YESNOCANCEL:
+				button0 = @"Yes";
+				button1 = @"Cancel";
+				button2 = @"No";
+				break;
+		}
+		
+		BcMessageBoxObject* messageBox = [BcMessageBoxObject new];
+		NSInteger selection = [messageBox display: title
+										  message: message
+										  button0: button0
+										  button1: button1
+										  button2: button2
+											 icon: Icon];
+		
+		// Determine which button was selected.
+		switch( selection )
+		{
+			case NSAlertAlternateReturn:	// alternate (1)
+				RetVal = bcMBR_CANCEL;
+				break;
+			case NSAlertDefaultReturn: // default (0)
+				RetVal = bcMBR_YES;
+				break;
+			case NSAlertOtherReturn: // other (2)
+				RetVal = bcMBR_NO;
+				break;
+			default:
+				break;
+		}
+		[pool drain];	
 	}
-	
-	BcMessageBoxObject* messageBox = [BcMessageBoxObject new];
-	NSInteger selection = [messageBox display: title
-									  message: message
-									  button0: button0
-									  button1: button1
-									  button2: button2
-										 icon: Icon];
-	
-	// Determine which button was selected.
-	switch( selection )
-	{
-		case NSAlertAlternateReturn:	// alternate (1)
-			RetVal = bcMBR_CANCEL;
-			break;
-		case NSAlertDefaultReturn: // default (0)
-			RetVal = bcMBR_YES;
-			break;
-		case NSAlertOtherReturn: // other (2)
-			RetVal = bcMBR_NO;
-			break;
-		default:
-			break;
-	}
-	
-	[pool drain];
-	
 	return RetVal;
 }
+

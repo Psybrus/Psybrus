@@ -67,35 +67,6 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 	return evtRET_REMOVE;
 }
 
-// HACK HACK HACK: Offline package importing is a major hack for now.
-eEvtReturn OnPostCsOpen_ImportPackages( EvtID, const EvtBaseEvent& )
-{
-	WIN32_FIND_DATA FindFileData;
-	HANDLE Handle = ::FindFirstFileA( "Content/*.pkg", &FindFileData );
-
-	if( Handle != INVALID_HANDLE_VALUE )
-	{
-		do
-		{
-			BcPath PackagePath( FindFileData.cFileName );
-			CsPackage* pPackage = new CsPackage( PackagePath.getFileNameNoExtension() );
-			BcUnusedVar( pPackage );
-
-			// HACK: Package importing is a major hack currently so we can automate offline building and packaging for LD25.
-			//       The system is due a change soon, this is a purely temporary measure until we break out importing into
-			//       a seperate tool.
-			// delete pPackage;
-		}
-		while(::FindNextFileA( Handle, &FindFileData ));
-
-		::FindClose( Handle );
-	}
-
-	// HACK: We just wanna bail here. No clean shutdown yet.
-	exit(0);
-	//return evtRET_REMOVE;
-}
-
 int main(int argc, char** argv)
 {
 #if COMPILER_MSVC
@@ -122,11 +93,21 @@ int main(int argc, char** argv)
 
 	// Start.
 	std::string CommandLine;
-
 	for( int Idx = 0; Idx < argc; ++Idx )
 	{
-		CommandLine += argv[ Idx ];
-		CommandLine += " ";
+		if( strstr( argv[ Idx ], " " ) )
+		{
+			CommandLine += std::string( "\"" ) + argv[ Idx ] + std::string( "\"" );	
+		}
+		else
+		{
+			CommandLine += argv[ Idx ];
+		}
+
+		if( Idx != argc - 1 )
+		{
+			CommandLine += " ";
+		}
 	}
 
 	return WinMain( NULL, NULL, (LPSTR)CommandLine.c_str(), 0 );
@@ -150,6 +131,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	timeBeginPeriod( 1 );
 
 	GInstance_ = (BcHandle)hInstance;
+
+	// Set exe path.
+	SysExePath_ = "";
 
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
@@ -210,24 +194,29 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Main shared.
 	MainShared();
 
-	// HACK HACK HACK: Offline package importing is a major hack for now.
-	if( SysArgs_.find( "ImportPackages" ) == std::string::npos )
+	// Game or tool init.
+	if( GPsySetupParams.Flags_ & psySF_GAME )
 	{
-		// Hook up create client delegate
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
-
-		// Hook up event pump delegate.
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
-
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
 
 		// Init game.
 		PsyGameInit();
 	}
-	else
+	else if( GPsySetupParams.Flags_ & psySF_TOOL )
 	{
-		// HACK HACK HACK: Offline package importing is a major hack for now.
-		CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostCsOpen_ImportPackages );
+		extern void PsyToolInit();
+		PsyToolInit();
+
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
+		[]( EvtID, const EvtBaseEvent& )
+			{
+				extern void PsyToolMain();
+				PsyToolMain();
+				SysKernel::pImpl()->stop();
+				return evtRET_REMOVE;
+			} );
 	}
 
 	if( ( GPsySetupParams.Flags_ & psySF_MANUAL ) == 0 )

@@ -281,8 +281,9 @@ void ScnPhysicsRigidBodyComponent::updateBodies( const ScnComponentList& Compone
 		auto* RBComponent = static_cast< ScnPhysicsRigidBodyComponent* >( Component.get() );
 
 		// Set transform from rigid body.
+		BcAssert( RBComponent->RigidBody_ );
 		const btTransform& BulletTransform = RBComponent->RigidBody_->getCenterOfMassTransform();
-		MaMat4d Transform;
+		ATTRIBUTE_ALIGNED16( MaMat4d ) Transform;
 
 		// Set transform using bullet's GL matrix stuff.
 		BulletTransform.getOpenGLMatrix( reinterpret_cast< btScalar* >( &Transform ) );

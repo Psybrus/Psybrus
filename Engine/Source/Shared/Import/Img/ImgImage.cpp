@@ -19,6 +19,7 @@
 #include "Base/BcMath.h"
 
 #include "squish.h"
+#include "rg_etc1.h"
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
@@ -826,6 +827,9 @@ BcBool ImgImage::encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSi
 	case ImgEncodeFormat::DXT5:
 		return encodeAsDXT( Format, pOutData, OutSize );
 		
+	case ImgEncodeFormat::ETC1:
+		return encodeAsETC1( pOutData, OutSize );
+
 	default:
 		return BcFalse;
 	}
@@ -1106,3 +1110,79 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 	
 	return BcFalse;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// encodeAsETC1
+BcBool ImgImage::encodeAsETC1( BcU8*& pOutData, BcU32& OutSize )
+{
+	// Check if its a multiple of 4.
+	if( ( Width_ % 4 == 0 ) && ( Height_ % 4 ) == 0 )
+	{
+		// Initialise rg-etc1
+		static bool Initialised = false;
+		if( !Initialised )
+		{
+			rg_etc1::pack_etc1_block_init();
+			Initialised = true;
+		}
+
+		// Calculate output side.
+		OutSize = ( Width_ * Height_ ) / 2;
+		pOutData = new BcU8[ OutSize ];
+		BcU8* EncodedData = pOutData;
+
+		// Pack params. 
+		// TODO: Pass up with encoder.
+		rg_etc1::etc1_pack_params PackParams;
+		PackParams.m_quality = rg_etc1::cLowQuality;
+		PackParams.m_dithering = false;
+
+		// Source block to decode into.
+		ImgColour SrcBlock[ 4 * 4 ];
+
+		// Grab blocks and encode.
+		for( BcU32 Y = 0; Y < Height_; Y += 4 )
+		{
+			for( BcU32 X = 0; X < Width_; X += 4 )
+			{
+				SrcBlock[  0 ] = getPixel( X + 0, Y + 0 );
+				SrcBlock[  1 ] = getPixel( X + 1, Y + 0 );
+				SrcBlock[  2 ] = getPixel( X + 2, Y + 0 );
+				SrcBlock[  3 ] = getPixel( X + 3, Y + 0 );
+				SrcBlock[  4 ] = getPixel( X + 0, Y + 1 );
+				SrcBlock[  5 ] = getPixel( X + 1, Y + 1 );
+				SrcBlock[  6 ] = getPixel( X + 2, Y + 1 );
+				SrcBlock[  7 ] = getPixel( X + 3, Y + 1 );
+				SrcBlock[  8 ] = getPixel( X + 0, Y + 2 );
+				SrcBlock[  9 ] = getPixel( X + 1, Y + 2 );
+				SrcBlock[ 10 ] = getPixel( X + 2, Y + 2 );
+				SrcBlock[ 11 ] = getPixel( X + 3, Y + 2 );
+				SrcBlock[ 12 ] = getPixel( X + 0, Y + 3 );
+				SrcBlock[ 13 ] = getPixel( X + 1, Y + 3 );
+				SrcBlock[ 14 ] = getPixel( X + 2, Y + 3 );
+				SrcBlock[ 15 ] = getPixel( X + 3, Y + 3 );
+
+				// Ensure alpha is 255.
+				for( BcU32 Idx = 0; Idx < 16; ++Idx )
+				{
+					SrcBlock[ Idx ].A_ = 255;
+				}
+
+				rg_etc1::pack_etc1_block( 
+					EncodedData,
+					reinterpret_cast< const unsigned int* >( &SrcBlock[ 0 ] ), 
+					PackParams );
+
+				EncodedData += 8;
+			}
+		}
+		
+		BcAssert( EncodedData == pOutData + ( OutSize ) );
+			
+		//
+		return BcTrue;
+	}
+
+	return BcFalse;
+}
+

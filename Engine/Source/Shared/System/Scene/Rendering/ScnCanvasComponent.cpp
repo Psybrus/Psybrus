@@ -581,38 +581,6 @@ void ScnCanvasComponent::clear()
 
 //////////////////////////////////////////////////////////////////////////
 // render
-class ScnCanvasComponentRenderNode: public RsRenderNode
-{
-public:
-	void render( RsContext* Context )
-	{
-		// TODO: Cache material instance so we don't rebind?
-		for( BcU32 Idx = 0; Idx < NoofSections_; ++Idx )
-		{
-			ScnCanvasComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
-			
-			if( pPrimitiveSection->RenderFunc_ != nullptr )
-			{
-				pPrimitiveSection->RenderFunc_( Context );
-			}
-
-			if( pPrimitiveSection->Type_ != RsTopologyType::INVALID )
-			{
-				Context->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
-				Context->setVertexDeclaration( VertexDeclaration_ );
-				Context->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
-			}
-
-			pPrimitiveSection->~ScnCanvasComponentPrimitiveSection();
-		}
-	}
-	
-	BcU32 NoofSections_;
-	ScnCanvasComponentPrimitiveSection* pPrimitiveSections_;
-	RsBuffer* VertexBuffer_;
-	RsVertexDeclaration* VertexDeclaration_;
-};
-
 void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Upload.
@@ -690,6 +658,8 @@ void ScnCanvasComponent::render( class ScnViewComponent* pViewComponent, RsFrame
 //virtual
 void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	BcAssert( NoofVertices_ > 0 );
+
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 3 )

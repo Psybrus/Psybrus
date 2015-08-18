@@ -373,7 +373,6 @@ ScnAnimationImport::AnimatedNode& ScnAnimationImport::findAnimatedNode( std::str
 
 	// Should never hit here.
 	BcBreakpoint;
-
-	return *(ScnAnimationImport::AnimatedNode*)( nullptr );
 #endif
+	return *(ScnAnimationImport::AnimatedNode*)( nullptr );
 }

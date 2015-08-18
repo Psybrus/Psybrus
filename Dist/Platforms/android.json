@@ -1,0 +1,21 @@
+{
+	"$Objects" : [
+		{
+			"$Class" : "CsPlatformParams",
+			"$ID" : "",
+			"name" : "android",
+			"filters" : [
+				// Platform
+				"android",
+
+				// Assumed compressed texture formats.
+				"etc1"
+			],
+
+			"intermediatepath" : "Intermediate/android",
+			"packedcontentpath" : "PackedContent/android"
+		}
+	],
+	"$RootID" : ""
+}
+

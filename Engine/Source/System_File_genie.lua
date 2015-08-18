@@ -17,6 +17,16 @@ PsyProjectEngineLib( "System_File" )
       "System",
     }
 
+  configuration "android-*"
+      files {
+          "./Platforms/Android/System/File/*.h", 
+          "./Platforms/Android/System/File/*.inl", 
+          "./Platforms/Android/System/File/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/Android/",
+      }
+
   configuration "linux-*"
       files {
           "./Platforms/Linux/System/File/*.h", 
@@ -25,6 +35,17 @@ PsyProjectEngineLib( "System_File" )
       }
       includedirs {
           "./Platforms/Linux/",
+      }
+
+  configuration "osx-*"
+      files {
+          "./Platforms/OSX/System/File/*.h", 
+          "./Platforms/OSX/System/File/*.inl", 
+          "./Platforms/OSX/System/File/*.cpp", 
+          "./Platforms/OSX/System/File/*.mm", 
+      }
+      includedirs {
+          "./Platforms/OSX/",
       }
 
   configuration "asmjs"

@@ -114,7 +114,6 @@ CsResourceImporter::CsResourceImporter(
 	MessageCount_( { 0, 0, 0, 0 } ),
 	Importer_( nullptr )
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,6 +145,17 @@ BcBool CsResourceImporter::import(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPackageName
+std::string CsResourceImporter::getPackageName() const
+{
+#if PSY_IMPORT_PIPELINE
+	return *Importer_->getName();
+#else
+	return "";
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getResourceName
 std::string CsResourceImporter::getResourceName() const
 {
@@ -172,7 +182,7 @@ const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() co
 {
 	auto Attr = static_cast< CsResourceImporterAttribute* >( 
 		ReManager::GetClass( getResourceType() )->getAttribute( CsResourceImporterAttribute::StaticGetClass() ) );
-	BcAssert( Attr );
+	BcAssertMsg( Attr, "Class \"%s\" has no importer attribute.", getResourceType().c_str() );
 	return Attr;
 }
 
@@ -299,8 +309,9 @@ CsFileHash CsResourceImporter::addFile(
 			get() + InFile.size() );
 		Hasher.get_digest( FileHash.Hash_ );
 
+		auto PackedPath = Importer_->getParams().getPackagePackedPath( BcName::INVALID );
 		auto OutFileName = 
-			*CsCore::pImpl()->getPackagePackedPath( BcName::INVALID ) + 
+			*PackedPath + 
 			std::string( "/" ) + 
 			FileHash.getName() + std::string( ".dat" );
 
@@ -315,7 +326,7 @@ CsFileHash CsResourceImporter::addFile(
 	}
 	else
 	{
-		throw new CsImportException( "Unable to open file", FileName );
+		throw new CsImportException( "Unable to open file", FileName.c_str() );
 	}
 
 	return FileHash;
@@ -340,7 +351,7 @@ void CsResourceImporter::addDependency(
 std::string CsResourceImporter::getIntermediatePath()
 {
 #if PSY_IMPORT_PIPELINE
-	return *CsCore::pImpl()->getIntermediatePath( *Importer_->getName() );
+	return *Importer_->getParams().getPackageIntermediatePath( *Importer_->getName() );
 #else
 	return "";
 #endif // PSY_IMPORT_PIPELINE

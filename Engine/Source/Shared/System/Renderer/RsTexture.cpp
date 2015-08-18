@@ -61,14 +61,14 @@ RsTextureDesc::RsTextureDesc(
 	BcU32 MinHeight = BcMax( 1, Height_ );
 	BcU32 MinDepth = BcMax( 1, Depth_ );
 	BcU32 MaxLevels = 0;
-	while( MinWidth > 1 || MinHeight > 1 || MinDepth > 1 )
+	while( MinWidth >= 1 || MinHeight >= 1 || MinDepth >= 1 )
 	{
 		++MaxLevels;
 		MinWidth >>= 1;
 		MinHeight >>= 1;
 		MinDepth >>= 1;
 	}
-	BcAssert( Levels_ <= MaxLevels );
+	BcAssertMsg( Levels_ <= MaxLevels, "Levels_ (%u) <= MaxLevels (%u). Width (%u), Height (%u), Depth (%u)", Levels_, MaxLevels, Width_, Height_, Depth_ );
 
 	// Calculate minimum dimension.
 	BcU32 MinimumDimension = 1;

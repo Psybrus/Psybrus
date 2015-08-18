@@ -48,7 +48,7 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 
 ////////////////////////////////////////////////////////////////////////
 // Texture, samplers, and sampling.
-#if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if 0 // PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 #  define PSY_SAMPLER_1D( _n )									\
 		sampler1D a##_n											\
 
@@ -72,24 +72,31 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 		texture3D a##_n;										\
 		SamplerState s##_n										\
 
+#  define PSY_SAMPLER_CUBE( _n )								\
+		textureCUBE a##_n;										\
+		SamplerState s##_n										\
+
 #endif
 
-#if PSY_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
+#if 1 // PSY_OUTPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
 #  define PSY_SAMPLE_1D( _n, _c ) a##_n.Sample( s##_n, _c )
 #  define PSY_SAMPLE_2D( _n, _c ) a##_n.Sample( s##_n, _c )
 #  define PSY_SAMPLE_3D( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_CUBE( _n, _c ) a##_n.Sample( s##_n, _c )
 
 #else
 #  define PSY_SAMPLE_1D( _n, _c ) tex1D( a##_n, _c )
 #  define PSY_SAMPLE_2D( _n, _c ) tex2D( a##_n, _c )
 #  define PSY_SAMPLE_3D( _n, _c ) tex3D( a##_n, _c )
+#  define PSY_SAMPLE_CUBE( _n, _c ) texCUBE( a##_n, _c )
 
 #endif
 
 
 ////////////////////////////////////////////////////////////////////////
 // Position + target defines for GLSL ES translation.
-#if PSY_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+/*
+#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 #  define SV_POSITION POSITION
 #  define SV_POSITION0 POSITION0
 #  define SV_POSITION1 POSITION1
@@ -102,10 +109,11 @@ float4 PsyMatMulTranspose( float4 Row0, float4 Row1, float4 Row2, float4 Row3, f
 #  define SV_TARGET2 COLOR2
 #  define SV_TARGET3 COLOR3
 #endif
+*/
 
 ////////////////////////////////////////////////////////////////////////
 // Unrolling utility.
-#if PSY_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
+#if ( PSY_INPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_D3D11 ) && ( PSY_OUTPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES )
 #  define PSY_UNROLL [unroll]
 #else
 #  define PSY_UNROLL

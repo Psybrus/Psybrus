@@ -51,6 +51,7 @@ void MainUnitTests()
 	extern void BcTypes_UnitTest();
 	BcTypes_UnitTest();
 	
+#if !PLATFORM_ANDROID
 	// Fixed unit test.
 	extern void BcFixed_UnitTest();
 	BcFixed_UnitTest();
@@ -58,6 +59,7 @@ void MainUnitTests()
 	// Relative ptr unit test.
 	extern void BcRelativePtr_UnitTest();
 	BcRelativePtr_UnitTest();
+#endif
 
 	// SysKernel unit test.
 	extern void SysKernel_UnitTest();
@@ -66,6 +68,7 @@ void MainUnitTests()
 
 //////////////////////////////////////////////////////////////////////////
 // onCsCoreOpened
+#if !PLATFORM_ANDROID
 eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
 	// Register reflection.
@@ -74,7 +77,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 	return evtRET_REMOVE;
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // OnQuit
@@ -126,21 +129,19 @@ void MainShared()
 	}
 	*/
 
-	// Create default job queue.
-	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 0, 0 );
-
 	// Parse command line params for disabling systems.
-	if( SysArgs_.find( "-noremote " ) != std::string::npos )
+	if( SysArgs_.find( "-noremote" ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
 	}
 
-	if( SysArgs_.find( "-norender " ) != std::string::npos )
+
+	if( SysArgs_.find( "-norender" ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_RENDER;
 	}
 
-	if( SysArgs_.find( "-nosound " ) != std::string::npos )
+	if( SysArgs_.find( "-nosound" ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
@@ -151,11 +152,6 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
 	}
 
-	// Start debug system if not a production build.
-#if !defined( PSY_PRODUCTION )
-	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
-	SysKernel::pImpl()->startSystem( "DsCore" );
-#endif
 
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
@@ -178,6 +174,12 @@ void MainShared()
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
 
+	// Start debug system if not a production build.
+#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
+	SysKernel::pImpl()->startSystem( "DsCore" );
+#endif
+
 	// Start scene system.
 	SysKernel::pImpl()->startSystem( "ScnCore" );
 
@@ -193,9 +195,11 @@ void MainShared()
 	PSY_LOG( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
 	PSY_LOG( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
+#if !PLATFORM_ANDROID
 	// Setup callback for post CsCore open for resource registration.
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, onCsCoreOpened );
-
+#endif
+	
 	// Subscribe to quit.
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, onQuit );
 

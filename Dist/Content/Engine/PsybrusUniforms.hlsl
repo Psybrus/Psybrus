@@ -2,12 +2,12 @@
 // cbuffer macros
 #if PSY_USE_CBUFFER
 #	define BEGIN_CBUFFER( _n ) cbuffer _n {
-#	define ENTRY( _t, _n ) _t _n;
+#	define ENTRY( _p, _t, _n ) _t _n;
 #	define END_CBUFFER };
 #else
-#	define BEGIN_CBUFFER( _n ) struct _n {
-#	define ENTRY( _t, _n ) _t X##_n;
-#	define END_CBUFFER };
+#	define BEGIN_CBUFFER( _n )
+#	define ENTRY( _p, _t, _n ) _t _p##VS_X##_n;
+#	define END_CBUFFER
 #endif
 
 
@@ -15,21 +15,20 @@
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderViewUniformBlockData
 BEGIN_CBUFFER( ScnShaderViewUniformBlockData )
-	ENTRY( float4x4, InverseProjectionTransform_ )
-	ENTRY( float4x4, ProjectionTransform_ )
-	ENTRY( float4x4, InverseViewTransform_ )
-	ENTRY( float4x4, ViewTransform_ )
-	ENTRY( float4x4, ClipTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseProjectionTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, ProjectionTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseViewTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, ViewTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, ClipTransform_ )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderViewUniformBlockData ScnShaderViewUniformBlockDataVS;
 
-#  define InverseProjectionTransform_ ScnShaderViewUniformBlockDataVS.XInverseProjectionTransform_
-#  define ProjectionTransform_ ScnShaderViewUniformBlockDataVS.XProjectionTransform_
-#  define InverseViewTransform_ ScnShaderViewUniformBlockDataVS.XInverseViewTransform_
-#  define ViewTransform_ ScnShaderViewUniformBlockDataVS.XViewTransform_
-#  define ClipTransform_ ScnShaderViewUniformBlockDataVS.XClipTransform_
+#  define InverseProjectionTransform_ ScnShaderViewUniformBlockDataVS_XInverseProjectionTransform_
+#  define ProjectionTransform_ ScnShaderViewUniformBlockDataVS_XProjectionTransform_
+#  define InverseViewTransform_ ScnShaderViewUniformBlockDataVS_XInverseViewTransform_
+#  define ViewTransform_ ScnShaderViewUniformBlockDataVS_XViewTransform_
+#  define ClipTransform_ ScnShaderViewUniformBlockDataVS_XClipTransform_
 
 #endif
 
@@ -37,21 +36,20 @@ ScnShaderViewUniformBlockData ScnShaderViewUniformBlockDataVS;
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderLightUniformBlockData
 BEGIN_CBUFFER( ScnShaderLightUniformBlockData )
-	ENTRY( float4, LightPosition_[4] )
-	ENTRY( float4, LightDirection_[4] )
-	ENTRY( float4, LightAmbientColour_[4] )
-	ENTRY( float4, LightDiffuseColour_[4] )
-	ENTRY( float4, LightAttn_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightPosition_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightDirection_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightAmbientColour_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightDiffuseColour_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightAttn_[4] )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderLightUniformBlockData ScnShaderLightUniformBlockDataVS;
 
-#  define LightPosition_ ScnShaderLightUniformBlockDataVS.XLightPosition_
-#  define LightDirection_ ScnShaderLightUniformBlockDataVS.XLightDirection_
-#  define LightAmbientColour_ ScnShaderLightUniformBlockDataVS.XLightAmbientColour_
-#  define LightDiffuseColour_ ScnShaderLightUniformBlockDataVS.XLightDiffuseColour_
-#  define LightAttn_ ScnShaderLightUniformBlockDataVS.XLightAttn_
+#  define LightPosition_ ScnShaderLightUniformBlockDataVS_XLightPosition_
+#  define LightDirection_ ScnShaderLightUniformBlockDataVS_XLightDirection_
+#  define LightAmbientColour_ ScnShaderLightUniformBlockDataVS_XLightAmbientColour_
+#  define LightDiffuseColour_ ScnShaderLightUniformBlockDataVS_XLightDiffuseColour_
+#  define LightAttn_ ScnShaderLightUniformBlockDataVS_XLightAttn_
 
 #endif
 
@@ -59,15 +57,14 @@ ScnShaderLightUniformBlockData ScnShaderLightUniformBlockDataVS;
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderObjectUniformBlockData
 BEGIN_CBUFFER( ScnShaderObjectUniformBlockData )
-	ENTRY( float4x4, WorldTransform_ )
-	ENTRY( float4x4, NormalTransform_ )
+	ENTRY( ScnShaderObjectUniformBlockData, float4x4, WorldTransform_ )
+	ENTRY( ScnShaderObjectUniformBlockData, float4x4, NormalTransform_ )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderObjectUniformBlockData ScnShaderObjectUniformBlockDataVS;
 
-#  define WorldTransform_ ScnShaderObjectUniformBlockDataVS.XWorldTransform_
-#  define NormalTransform_ ScnShaderObjectUniformBlockDataVS.XNormalTransform_
+#  define WorldTransform_ ScnShaderObjectUniformBlockDataVS_XWorldTransform_
+#  define NormalTransform_ ScnShaderObjectUniformBlockDataVS_XNormalTransform_
 
 #endif
 
@@ -75,13 +72,12 @@ ScnShaderObjectUniformBlockData ScnShaderObjectUniformBlockDataVS;
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderBoneUniformBlockData
 BEGIN_CBUFFER( ScnShaderBoneUniformBlockData )
-	ENTRY( float4x4, BoneTransform_[24] )
+	ENTRY( ScnShaderBoneUniformBlockData, float4x4, BoneTransform_[24] )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderBoneUniformBlockData ScnShaderBoneUniformBlockDataVS;
 
-#  define BoneTransform_ ScnShaderBoneUniformBlockDataVS.XBoneTransform_
+#  define BoneTransform_ ScnShaderBoneUniformBlockDataVS_XBoneTransform_
 
 #endif
 
@@ -90,28 +86,26 @@ ScnShaderBoneUniformBlockData ScnShaderBoneUniformBlockDataVS;
 // ScnShaderAlphaTestUniformBlockData
 BEGIN_CBUFFER( ScnShaderAlphaTestUniformBlockData )
 	/// x = smoothstep min, y = smoothstep max, z = ref (<)
-	ENTRY( float4, AlphaTestParams_ ) 
+	ENTRY( ScnShaderAlphaTestUniformBlockData, float4, AlphaTestParams_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderAlphaTestUniformBlockData ScnShaderAlphaTestUniformBlockDataVS;
 
-#  define AlphaTestParams_ ScnShaderAlphaTestUniformBlockDataVS.XAlphaTestParams_
+#  define AlphaTestParams_ ScnShaderAlphaTestUniformBlockDataVS_XAlphaTestParams_
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessConfigData
 BEGIN_CBUFFER( ScnShaderPostProcessConfigData )
-	ENTRY( float4, InputDimensions_[16] ) 
-	ENTRY( float4, OutputDimensions_[4] ) 
+	ENTRY( ScnShaderPostProcessConfigData, float4, InputDimensions_[16] ) 
+	ENTRY( ScnShaderPostProcessConfigData, float4, OutputDimensions_[4] ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderPostProcessConfigData ScnShaderPostProcessConfigDataVS;
 
-#  define InputDimensions_ ScnShaderPostProcessConfigDataVS.XInputDimensions_
-#  define OutputDimensions_ ScnShaderPostProcessConfigDataVS.XOutputDimensions_
+#  define InputDimensions_ ScnShaderPostProcessConfigDataVS_XInputDimensions_
+#  define OutputDimensions_ ScnShaderPostProcessConfigDataVS_XOutputDimensions_
 
 #endif
 
@@ -119,29 +113,27 @@ ScnShaderPostProcessConfigData ScnShaderPostProcessConfigDataVS;
 // ScnShaderPostProcessCopyBlockData
 BEGIN_CBUFFER( ScnShaderPostProcessCopyBlockData )
 	/// Colour transform to copy using.
-	ENTRY( float4, ColourTransform_ ) 
+	ENTRY( ScnShaderPostProcessCopyBlockData, float4, ColourTransform_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderPostProcessCopyBlockData ScnShaderPostProcessCopyVS;
 
-#  define ColourTransform_ ScnShaderPostProcessCopyVS.XColourTransform_
+#  define ColourTransform_ ScnShaderPostProcessCopyVS_XColourTransform_
 
 #endif
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessBlurBlockData
 BEGIN_CBUFFER( ScnShaderPostProcessBlurBlockData )
-	ENTRY( float2, TextureDimensions_ ) 
-	ENTRY( float, Radius_ ) 
-	ENTRY( float, Unused_ ) 
+	ENTRY( ScnShaderPostProcessBlurBlockData, float2, TextureDimensions_ ) 
+	ENTRY( ScnShaderPostProcessBlurBlockData, float, Radius_ ) 
+	ENTRY( ScnShaderPostProcessBlurBlockData, float, Unused_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnShaderPostProcessBlurBlockData ScnShaderPostProcessBlurVS;
 
-#  define TextureDimensions_ ScnShaderPostProcessBlurVS.XTextureDimensions_
-#  define Radius_ ScnShaderPostProcessBlurVS.XRadius_
+#  define TextureDimensions_ ScnShaderPostProcessBlurVS_XTextureDimensions_
+#  define Radius_ ScnShaderPostProcessBlurVS_XRadius_
 
 #endif
 
@@ -149,22 +141,21 @@ ScnShaderPostProcessBlurBlockData ScnShaderPostProcessBlurVS;
 // ScnFontUniformBlockData
 BEGIN_CBUFFER( ScnFontUniformBlockData )
 	/// x = smoothstep min, y = smoothstep max, z = ref (<)
-	ENTRY( float4, TextSettings_ ) 
-	ENTRY( float4, BorderSettings_ ) 
-	ENTRY( float4, ShadowSettings_ ) 
-	ENTRY( float4, TextColour_ ) 
-	ENTRY( float4, BorderColour_ ) 
-	ENTRY( float4, ShadowColour_ ) 
+	ENTRY( ScnFontUniformBlockData, float4, TextSettings_ ) 
+	ENTRY( ScnFontUniformBlockData, float4, BorderSettings_ ) 
+	ENTRY( ScnFontUniformBlockData, float4, ShadowSettings_ ) 
+	ENTRY( ScnFontUniformBlockData, float4, TextColour_ ) 
+	ENTRY( ScnFontUniformBlockData, float4, BorderColour_ ) 
+	ENTRY( ScnFontUniformBlockData, float4, ShadowColour_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
-ScnFontUniformBlockData ScnFontUniformBlockDataVS;
 
-#  define TextSettings_ ScnFontUniformBlockDataVS.XTextSettings_
-#  define BorderSettings_ ScnFontUniformBlockDataVS.XBorderSettings_
-#  define ShadowSettings_ ScnFontUniformBlockDataVS.XShadowSettings_
-#  define TextColour_ ScnFontUniformBlockDataVS.XTextColour_
-#  define BorderColour_ ScnFontUniformBlockDataVS.XBorderColour_
-#  define ShadowColour_ ScnFontUniformBlockDataVS.XShadowColour_
+#  define TextSettings_ ScnFontUniformBlockDataVS_XTextSettings_
+#  define BorderSettings_ ScnFontUniformBlockDataVS_XBorderSettings_
+#  define ShadowSettings_ ScnFontUniformBlockDataVS_XShadowSettings_
+#  define TextColour_ ScnFontUniformBlockDataVS_XTextColour_
+#  define BorderColour_ ScnFontUniformBlockDataVS_XBorderColour_
+#  define ShadowColour_ ScnFontUniformBlockDataVS_XShadowColour_
 
 #endif

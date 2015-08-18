@@ -25,7 +25,6 @@
 
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Content/CsPackageImporter.h"
-#include <json/json.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,26 +127,6 @@ public:
 	 */
 	void								requestPackageReadyCallback( const BcName& Package, const CsPackageReadyCallback& Callback, BcU32 ID );
 	
-	/**
-	 * Get package import path.
-	 */
-	BcPath								getPackageImportPath( const BcName& Package );
-
-	/**
-	 * Get package intermediate path.
-	 */
-	BcPath								getPackageIntermediatePath( const BcName& Package );
-
-	/**
-	 * Get package packed path.
-	 */
-	BcPath								getPackagePackedPath( const BcName& Package );
-
-	/**
-	 * Get intermediate path.
-	 */
-	BcPath								getIntermediatePath( const std::string& SubFolder );
-
 protected:
 	friend class CsResource;
 

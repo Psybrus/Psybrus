@@ -41,8 +41,16 @@ ReObject* ReConstructObject(
 	const ReClass* InClass, 
 	const std::string& InName, 
 	ReObject* InOwner = nullptr, 
-	ReObject* InBasis = nullptr,
-	std::function< void( ReObject* ) > postCreateFunc = nullptr );
+	ReObject* InBasis = nullptr );
+
+template< typename _Ty >
+_Ty* ReConstructObject( 
+	const std::string& InName, 
+	ReObject* InOwner = nullptr, 
+	ReObject* InBasis = nullptr )
+{
+	return ReConstructObject( _Ty::StaticGetClass(), InName, InOwner, InBasis );
+}
 
 /**
  * @brief Register a new class. Will get as usual, but setup what we need.

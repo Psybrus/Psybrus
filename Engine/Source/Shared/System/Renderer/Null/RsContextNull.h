@@ -31,6 +31,7 @@ public:
 	virtual BcU32 getWidth() const override;
 	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
+	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
@@ -130,6 +131,7 @@ private:
 	RsContextNull* pParent_;
 	OsClient* pClient_;
 	BcThreadId OwningThread_;
+	RsFeatures Features_;
 };
 
 #endif

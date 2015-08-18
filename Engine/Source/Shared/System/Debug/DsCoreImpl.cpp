@@ -18,8 +18,10 @@
 
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
+#if USE_WEBBY
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
+#endif
 #include "Psybrus.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,9 +85,10 @@ void DsCoreImpl::open()
 		}
 	}
 #endif
-	std::vector<std::string> bindAddresses = GetIPAddresses();
+	std::vector<std::string> bindAddresses = getIPAddresses();
 	for ( int i = 0; i < bindAddresses.size(); ++i )
 	{
+		PSY_LOG( "Binding to %s", bindAddresses[ i ].c_str() );
 		memset( &config, 0, sizeof config );
 		config.bind_address = bindAddresses[ i ].c_str();
 		config.listening_port = 1337;
@@ -108,25 +111,39 @@ void DsCoreImpl::open()
 			PSY_LOG( "Failed to initialise Webby server" );
 			fprintf( stderr, "failed to init server\n" );
 		}
-		Servers_.push_back( TempServer_ );
+		if( TempServer_ != nullptr )
+		{
+			Servers_.push_back( TempServer_ );
+		}
 		ServerMemory_.push_back( TempMemory );
 	}
 #endif
 
 	// Setup init/deinit hooks.
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
+	if( OsCore::pImpl()->getClient( 0 ) )
 	{
-		ImGui::Psybrus::Init();
-		return evtRET_REMOVE;
-	} );
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
+			[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			ImGui::Psybrus::Init();
+			return evtRET_REMOVE;
+		} );
 
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
-	{
-		ImGui::Psybrus::Shutdown();
-		return evtRET_REMOVE;
-	} );
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
+			[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			ImGui::Psybrus::Shutdown();
+			return evtRET_REMOVE;
+		} );
+
+		DrawPanels_ = BcTrue;
+#if PLATFORM_ANDROID
+		auto& Style = ImGui::GetStyle();
+		Style.FramePadding.x *= 2.0f;
+		Style.FramePadding.y *= 2.0f;
+		Style.GrabMinSize *= 2.0f;
+#endif
+	}
 
 	// Setup toggle of debug panels.
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
@@ -151,15 +168,20 @@ void DsCoreImpl::update()
 {
 #if USE_WEBBY
 	for ( unsigned int Idx = 0; Idx < Servers_.size(); ++Idx )
-		WebbyServerUpdate( Servers_[ Idx ] );
-#endif // USE_WEBBY
-	if ( ImGui::Psybrus::NewFrame() )
 	{
-		if ( DrawPanels_ )
+		WebbyServerUpdate( Servers_[ Idx ] );
+	}
+#endif // USE_WEBBY
+	if( OsCore::pImpl() && OsCore::pImpl()->getClient( 0 ) )
+	{
+		if ( ImGui::Psybrus::NewFrame() )
 		{
-			for ( auto& Panel : PanelFunctions_ )
+			if ( DrawPanels_ )
 			{
-				Panel.Function_( Panel.Handle_ );
+				for ( auto& Panel : PanelFunctions_ )
+				{
+					Panel.Function_( Panel.Handle_ );
+				}
 			}
 		}
 	}
@@ -294,6 +316,29 @@ int DsCoreImpl::externalWebbyFrame( WebbyConnection *connection, const WebbyWsFr
 	return static_cast<DsCoreImpl*>( DsCore::pImpl() )->webbyFrame( connection, frame );
 }
 
+std::vector< std::string > DsCoreImpl::getIPAddresses()
+{
+	std::vector< std::string > result;
+	result.push_back( "127.0.0.1" );
+	RakNet::RakPeerInterface* peer = NULL;
+	peer = RakNet::RakPeerInterface::GetInstance();
+
+	int port = 1337;
+
+	RakNet::SocketDescriptor sd( port, 0 );
+
+	peer->Startup( 1, &sd, 1 );
+
+	unsigned int addressCount = peer->GetNumberOfAddresses();
+	for ( unsigned int Idx = 0; Idx < addressCount; ++Idx )
+	{
+		result.push_back( peer->GetLocalIP( Idx ) );
+	}
+	peer->Shutdown( 500, 0, LOW_PRIORITY );
+	RakNet::RakPeerInterface::DestroyInstance( peer );
+
+	return result;
+}
 #endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
@@ -738,7 +783,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		std::string* Value = ( std::string* )Object;
 		char Buffer[ 1024 ] = { 0 };
-		BcStrCopyN( Buffer, Value->c_str(), BcArraySize( Buffer ) );
+		BcStrCopy( Buffer, BcArraySize( Buffer ) - 1, Value->c_str() );
 		if ( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = Buffer;
@@ -751,7 +796,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcName* Value = ( BcName* ) Object;
 		char Buffer[ 1024 ] = { 0 };
-		BcStrCopyN( Buffer, ( **Value ).c_str(), BcArraySize( Buffer ) );
+		BcStrCopy( Buffer, BcArraySize( Buffer ), ( **Value ).c_str() );
 		if ( ImGui::InputText( Name.c_str(), Buffer, BcArraySize( Buffer ) ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = Buffer;
@@ -1113,8 +1158,8 @@ void DsCoreImpl::cmdScene( DsParameters params, BcHtmlNode& Output, std::string 
 void DsCoreImpl::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32 Depth )
 {
 	BcHtmlNode ul = Output.createChildNode( "ul" );
-	BcChar Id[ 32 ];
-	BcSPrintf( Id, "%d", Entity->getUniqueId() );
+	BcChar Id[ 32 ] = { 0 };
+	BcSPrintf( Id, sizeof( Id ) - 1, "%d", Entity->getUniqueId() );
 
 	// Entity name.
 	BcHtmlNode li = ul.createChildNode( "li" );
@@ -1143,8 +1188,8 @@ void DsCoreImpl::cmdScene_Entity( ScnEntityRef Entity, BcHtmlNode& Output, BcU32
 // cmdScene_Component
 void DsCoreImpl::cmdScene_Component( ScnComponentRef Component, BcHtmlNode& Output, BcU32 Depth )
 {
-	BcChar Id[ 32 ];
-	BcSPrintf( Id, "%d", Component->getUniqueId() );
+	BcChar Id[ 32 ] = { 0 };
+	BcSPrintf( Id, sizeof( Id ) - 1, "%d", Component->getUniqueId() );
 	BcHtmlNode tmp = DsTemplate::loadTemplate( Output, "Content/Debug/scene_component_template.html" );
 
 	tmp.findNodeById( "component-link" ).setAttribute( "href", "/Resource/" + std::string( Id ) );
@@ -1538,27 +1583,4 @@ void DsCoreImpl::cmdJson( DsParameters params, BcHtmlNode& Output, std::string P
 	std::string output = writer.serialiseToString<CsResource>( Resource, Resource->getClass() );
 
 	Output.setContents( output );
-}
-
-std::vector< std::string > DsCoreImpl::GetIPAddresses()
-{
-	std::vector< std::string > result;
-	RakNet::RakPeerInterface* peer = NULL;
-	peer = RakNet::RakPeerInterface::GetInstance();
-
-	int port = 1337;
-
-	RakNet::SocketDescriptor sd( port, 0 );
-
-	peer->Startup( 1, &sd, 1 );
-
-	unsigned int addressCount = peer->GetNumberOfAddresses();
-	for ( unsigned int Idx = 0; Idx < addressCount; ++Idx )
-	{
-		result.push_back( peer->GetLocalIP( Idx ) );
-	}
-	peer->Shutdown( 500, 0, LOW_PRIORITY );
-	RakNet::RakPeerInterface::DestroyInstance( peer );
-
-	return result;
 }

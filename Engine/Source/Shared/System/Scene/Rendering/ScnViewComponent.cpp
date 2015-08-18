@@ -267,7 +267,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		Width = static_cast< BcF32 >( RenderTarget_->getWidth() );
 		Height = static_cast< BcF32 >( RenderTarget_->getHeight() );
 	}
-
+	
 	const BcF32 ViewWidth = Width_ * Width;
 	const BcF32 ViewHeight = Height_ * Height;
 	const BcF32 Aspect = ViewWidth / ViewHeight;

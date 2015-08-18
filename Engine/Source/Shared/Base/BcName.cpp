@@ -104,9 +104,9 @@ std::string BcName::operator * () const
 		if( ID_ != BcErrorCode )
 		{
 			// Generate "value_id" string.
-			static BcChar Buffer[ BcNameEntry::MAX_STRING_LENGTH + 12 ];
+			static BcChar Buffer[ BcNameEntry::MAX_STRING_LENGTH + 12 ] = { 0 };
 
-			BcSPrintf( Buffer, "%s_%u", &Entry.Value_[ 0 ], ID_ );
+			BcSPrintf( Buffer, sizeof( Buffer ) - 1, "%s_%u", &Entry.Value_[ 0 ], ID_ );
 			return Buffer;
 		}
 		else
@@ -295,8 +295,8 @@ BcU32 BcName::getEntryIndex( const std::string& Value )
 	}
 
 	// If we make it here, add a new entry.
-	BcNameEntry NewEntry;
-	BcStrCopyN( &NewEntry.Value_[ 0 ], Value.c_str(), BcNameEntry::MAX_STRING_LENGTH );
+	BcNameEntry NewEntry = { 0, 0 };
+	BcStrCopy( &NewEntry.Value_[ 0 ], BcNameEntry::MAX_STRING_LENGTH - 1, Value.c_str() );
 	NewEntry.ID_ = 0;
 	StringEntries.push_back( NewEntry );
 

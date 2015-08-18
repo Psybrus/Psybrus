@@ -23,18 +23,14 @@
 BcU32 BcStrLength( const BcChar* pString );
 
 //////////////////////////////////////////////////////////////////////////
-// BcStrCopy
-void BcStrCopy( BcChar* pDest, const BcChar* pSrc );
-
-//////////////////////////////////////////////////////////////////////////
 // BcStrStr
 BcChar* BcStrStr( BcChar* pStr, const BcChar* pSubStr );
 const BcChar* BcStrStr( const BcChar* pStr, const BcChar* pSubStr );
 
 
 //////////////////////////////////////////////////////////////////////////
-// BcStrNCopy
-void BcStrCopyN( BcChar* pDest, const BcChar* pSrc, BcU32 Count );
+// BcStrCopy
+void BcStrCopy( BcChar* pDest, BcU32 DestSize, const BcChar* pSrc );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCompare
@@ -46,7 +42,11 @@ BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
 
 //////////////////////////////////////////////////////////////////////////
 // BcSPrintf
-#define BcSPrintf		sprintf
+#if PLATFORM_WINDOWS
+#define BcSPrintf		sprintf_s
+#else
+#define BcSPrintf		snprintf
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // BcSScanf
@@ -58,7 +58,6 @@ void BcStrReverse( BcChar* pStart, BcChar* pEnd );
 
 //////////////////////////////////////////////////////////////////////////
 // T.K. - waz 'ere messing with you strings ;-) 
-// NOTE: this bad inline, but no cpp?
 void BcStrItoa( BcS32 value, BcChar* pStr, BcU32 base = 10 );
 
 //////////////////////////////////////////////////////////////////////////

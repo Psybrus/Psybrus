@@ -37,7 +37,7 @@ public:
 		const Json::Value& Object );
 
 private:
-	
+
 };
 
 #endif

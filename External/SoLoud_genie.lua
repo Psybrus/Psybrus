@@ -3,6 +3,7 @@ local WITH_SDL_STATIC = 0
 local WITH_SDL2_STATIC = 0
 local WITH_PORTAUDIO = 0
 local WITH_OPENAL = 0
+local WITH_OPENSLES = 0
 local WITH_XAUDIO2 = 0
 local WITH_WINMM = 0
 local WITH_WASAPI = 0
@@ -10,6 +11,7 @@ local WITH_OSS = 0
 local WITH_LIBMODPLUG = 0
 local WITH_PORTMIDI = 0
 local WITH_TOOLS = 0
+local WITH_NULL = 1
 
 if (os.is("Windows")) then
 	WITH_WINMM = 1
@@ -18,13 +20,26 @@ else
 	WITH_SDL2_STATIC = 1
 end
 
--- Hack io asmjs.
+-- asmjs.
 if _OPTIONS[ "toolchain" ] == "asmjs" then
 	WITH_OSS = 0
 	WITH_WINMM = 0
 	WITH_WASAPI = 0
 	WITH_SDL = 0
 	WITH_SDL_STATIC = 1
+	WITH_SDL2_STATIC = 0
+end
+
+-- Android.
+if _OPTIONS[ "toolchain" ] == "android-clang-arm" or
+   _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
+	WITH_OSS = 0
+	WITH_WINMM = 0
+	WITH_WASAPI = 0
+	WITH_SDL = 0
+	WITH_SDL_STATIC = 0
+	WITH_SDL2_STATIC = 0
+	WITH_OPENSLES = 1
 end
 
 
@@ -35,6 +50,7 @@ local portmidi_root  = "./portmidi"
 local dxsdk_root     = os.getenv("DXSDK_DIR") and os.getenv("DXSDK_DIR") or "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)"
 local portaudio_root = "./portaudio"
 local openal_root    = "./openal"
+local opensles_root    = "/Users/Neilo/android-ndk-r10e/platforms/arch-arm/usr"
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --
 
@@ -46,6 +62,7 @@ local portmidi_release  = portmidi_root .. "/release"
 local dxsdk_include     = dxsdk_root .. "/include"
 local portaudio_include = portaudio_root .. "/include"
 local openal_include    = openal_root .. "/include"
+local opensles_include    = opensles_root .. "/include"
 
 local buildroot = ""
 
@@ -56,7 +73,25 @@ if PsyProjectExternalLib( "SoLoud", "C++" ) then
 if (WITH_LIBMODPLUG == 1) then
 	defines { "WITH_MODPLUG" }
 end		
+
+	configuration { "osx-*" }
+		flags {	"EnableSSE2" }
+	configuration { "linux-*" }
+		flags {	"EnableSSE2" }
+	configuration { "windows-*" }
+		flags {	"EnableSSE2" }
+	-- Enable SSE4.1 when using gmake + gcc.
+	-- TODO: SoLoud could do with some better platform determination. genie
+	--       doesn't do this well on it's own and is recommended to setup this
+	--       manually. See https://github.com/bkaradzic/bx/blob/master/scripts/toolchain.lua
+
+	configuration { "osx-*" }
+		buildoptions { "-msse4.1" }
+	configuration { "linux-*" }
+		buildoptions { "-msse4.1" }
 	
+	configuration {}
+
 	files 
 	{ 
 		"./SoLoud/src/audiosource/**.c*",
@@ -83,6 +118,19 @@ if (WITH_OPENAL == 1) then
 		openal_include
 	}
 end    
+
+if (WITH_OPENSLES == 1) then
+	defines {"WITH_OPENSLES"}
+	files
+	{
+		"./SoLoud/src/backend/opensles/**.c*"
+	}
+	includedirs
+	{
+		"./SoLoud/include",
+		opensles_include
+	}
+end  
 
 if (WITH_OSS == 1) then 
 	defines {"WITH_OSS"}
@@ -181,4 +229,17 @@ if (WITH_WINMM == 1) then
 		"./SoLoud/include"
 	}        
 end
+
+if (WITH_NULL == 1) then
+	defines { "WITH_NULL" }
+	files
+	{
+		"./SoLoud/src/backend/null/**.c*"
+	}
+	includedirs 
+	{
+		"./SoLoud/include"
+	}        
+end
+
 end 

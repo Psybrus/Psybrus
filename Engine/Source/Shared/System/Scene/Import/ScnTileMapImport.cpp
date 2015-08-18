@@ -127,6 +127,7 @@ void ScnTileMapImport::parseMap(
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapData > Header )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssertMsg( std::string( "map" ) == Node.name(), "Node is not a map node." );
 
 	// Parse attributes.
@@ -222,6 +223,7 @@ void ScnTileMapImport::parseMap(
 
 		ChildNode = ChildNode->next_sibling();
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,6 +233,7 @@ void ScnTileMapImport::parseTileSet(
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapTileSet > TileSet )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssertMsg( std::string( "tileset" ) == Node.name(), "Node is not a tileset node." );
 
 	// Parse attributes.
@@ -288,6 +291,7 @@ void ScnTileMapImport::parseTileSet(
 		}
 		ChildNode = ChildNode->next_sibling();
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -299,6 +303,7 @@ void ScnTileMapImport::parseImage(
 		BcStream::Object< ScnTileMapTileSet > TileSet, 
 		BcStream::Object< ScnTileMapTileSetImage > Image )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssertMsg( std::string( "image" ) == Node.name(), "Node is not an image node." );
 
 	// Parse attributes.
@@ -348,6 +353,7 @@ void ScnTileMapImport::parseImage(
 		}
 		ChildAttrib = ChildAttrib->next_attribute();
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -357,6 +363,7 @@ void ScnTileMapImport::parseLayer(
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapLayer > Layer )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssertMsg( std::string( "layer" ) == Node.name(), "Node is not a layer node." );
 
 	// Parse attributes.
@@ -449,6 +456,7 @@ void ScnTileMapImport::parseLayer(
 	{
 		CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Invalid encoding for layer." );
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -458,6 +466,7 @@ void ScnTileMapImport::parseLayerTile(
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapTile > Tile )
 {
+#if PSY_IMPORT_PIPELINE
 	BcAssertMsg( std::string( "tile" ) == Node.name(), "Node is not a tile node." );
 
 	// Parse attributes.
@@ -470,6 +479,7 @@ void ScnTileMapImport::parseLayerTile(
 		}
 		ChildAttrib = ChildAttrib->next_attribute();
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -479,6 +489,7 @@ void ScnTileMapImport::parseProperty(
 		rapidxml::xml_node<char>& Node, 
 		BcStream::Object< ScnTileMapProperty > Property )
 {
+#if PSY_IMPORT_PIPELINE
 	// Parse attributes.
 	auto* ChildAttrib = Node.first_attribute();
 	while( ChildAttrib != nullptr )
@@ -493,6 +504,7 @@ void ScnTileMapImport::parseProperty(
 		}
 		ChildAttrib = ChildAttrib->next_attribute();
 	}	
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -500,7 +512,7 @@ void ScnTileMapImport::parseProperty(
 CsCrossRefId ScnTileMapImport::findTexture( const std::string& TextureName )
 {
 	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
-
+#if PSY_IMPORT_PIPELINE
 	for( const auto& TextureEntry : Textures_ )
 	{
 		if( std::regex_match( TextureName, std::regex( TextureEntry.first ) ) )
@@ -508,6 +520,7 @@ CsCrossRefId ScnTileMapImport::findTexture( const std::string& TextureName )
 			RetVal = TextureEntry.second;
 		}
 	}
+#endif // PSY_IMPORT_PIPELINE
 	return RetVal;
 }
 
@@ -516,7 +529,7 @@ CsCrossRefId ScnTileMapImport::findTexture( const std::string& TextureName )
 CsCrossRefId ScnTileMapImport::findMaterialMatch( const std::string& Path )
 {
 	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
-
+#if PSY_IMPORT_PIPELINE
 	for( const auto& MaterialEntry : Materials_ )
 	{
 		if( std::regex_match( Path, std::regex( MaterialEntry.first ) ) )
@@ -532,6 +545,6 @@ CsCrossRefId ScnTileMapImport::findMaterialMatch( const std::string& Path )
 		
 		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
 	}
-
+#endif // PSY_IMPORT_PIPELINE
 	return RetVal;
 }

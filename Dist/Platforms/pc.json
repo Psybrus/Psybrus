@@ -1,0 +1,23 @@
+{
+	"$Objects" : [
+		{
+			"$Class" : "CsPlatformParams",
+			"$ID" : "",
+			"name" : "pc",
+			"filters" : [
+				// Platform
+				"pc",
+
+				// Assumed compressed texture formats.
+				"dxt1",
+				"dxt3",
+				"dxt5"
+			],
+
+			"intermediatepath" : "Intermediate/pc",
+			"packedcontentpath" : "PackedContent/pc"
+		}
+	],
+	"$RootID" : ""
+}
+

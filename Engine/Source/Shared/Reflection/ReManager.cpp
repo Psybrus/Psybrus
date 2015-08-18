@@ -154,6 +154,8 @@ void ReManager::Init()
 	GetClass( "BcS64" )->setType< BcS64 >( new ReClassSerialiser_BasicType< BcS64 >( "BcS64" ) );
 	GetClass( "BcF32" )->setType< BcF32 >( new ReClassSerialiser_BasicType< BcF32 >( "BcF32" ) );
 	GetClass( "BcF64" )->setType< BcF64 >( new ReClassSerialiser_BasicType< BcF64 >( "BcF64" ) );
+	GetClass( "BcSize" )->setType< BcSize >( new ReClassSerialiser_BasicType< BcSize >( "BcSize" ) );
+	GetClass( "size_t" )->setType< size_t >( new ReClassSerialiser_BasicType< size_t >( "size_t" ) );
 	GetClass( "BcBool" )->setType< BcBool >( new ReClassSerialiser_BasicType< BcBool >( "BcBool" ) );
 	GetClass( "bool" )->setType< bool >( new ReClassSerialiser_BasicType< bool >( "bool" ) );
 	GetClass( "string" )->setType< std::string >( new ReClassSerialiser_StringType( "string" ) );

@@ -85,6 +85,11 @@ public:
 		const Json::Value& Object );
 
 	/**
+	 * Get package name.
+	 */
+	std::string getPackageName() const;
+
+	/**
 	 * Get resource name.
 	 */
 	std::string getResourceName() const;

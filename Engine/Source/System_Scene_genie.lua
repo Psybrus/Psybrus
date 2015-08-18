@@ -15,6 +15,8 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/libb64/include/",
       "../../External/HLSLCrossCompiler/include/",
       "../../External/hlsl2glslfork/include/",
+      "../../External/hlsl2glslfork/include/",
+      "../../External/glslang/glslang/Public",
       "../../External/glsl-optimizer/src",
       "../../External/rapidxml/",
       BOOST_INCLUDE_PATH,
@@ -54,6 +56,14 @@ PsyProjectEngineLib( "System_Scene" )
 
       includedirs {
           "./Platforms/Linux/",
+      }
+
+  configuration "osx-*"
+      files {
+      }
+
+      includedirs {
+          "./Platforms/OSX/",
       }
 
   configuration "windows-*"

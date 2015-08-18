@@ -49,6 +49,8 @@ void SysKernel::StaticRegisterClass()
 // SysKernel_UnitTest
 void SysKernel_UnitTest()
 {
+	PSY_LOG( "SysKernel_UnitTest:\n" );
+
 	SysKernel Kernel;
 
 	// Setup job queues.
@@ -136,6 +138,7 @@ size_t SysKernel::DEFAULT_JOB_QUEUE_ID = (size_t)-1;
 
 //////////////////////////////////////////////////////////////////////////
 // Command line
+std::string SysExePath_;
 std::string SysArgs_;
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,7 +264,10 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 	JobQueue->flushJobs( BcFalse );
 
 	// Reassign worker allocation index.
-	CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
+	if( NoofWorkers > 0 && JobWorkers_.size() > 0 )
+	{
+		CurrWorkerAllocIdx_ = ( CurrWorkerAllocIdx_ + NoofWorkers ) % JobWorkers_.size(); 
+	}
 
 	return JobQueueId;
 #else
@@ -560,7 +566,6 @@ void SysKernel::runOnce()
 		BcYield();
 	}
 #endif
-	
 
 #if PSY_USE_PROFILER
 	++FrameCount;

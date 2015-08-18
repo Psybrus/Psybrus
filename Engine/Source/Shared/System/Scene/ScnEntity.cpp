@@ -503,8 +503,7 @@ void ScnEntity::setupComponents()
 						Component->getClass(), 
 						*Component->getName().getUnique(), 
 						getPackage(), 
-						Component,
-						nullptr );
+						Component );
 
 				NewComponent->visitHierarchy(
 					ScnComponentVisitType::BOTTOM_UP,

@@ -204,6 +204,7 @@ public:
 			PSY_LOG( "copyClassData: %p->%p, %s (trivial POD)", 
 				SrcObject, DstObject,
 				(*InClass->getName()).c_str() );
+
 			BcAssert( InClass->getSize() == 0 || InClass->getSize() == InField->getSize() );
 			BcMemCopy( DstObject, SrcObject, InField->getSize() );
 			return;
@@ -220,7 +221,6 @@ public:
 			{
 				auto Field = CopyingClass->getField( Idx );
 				ReFieldAccessor SrcFieldAccessor( SrcObject, Field );
-					
 				PSY_LOG( "copyClassData: Field %s::%s",
 					(*Field->getType()->getName()).c_str(),
 					(*Field->getName()).c_str() );
@@ -260,6 +260,17 @@ public:
 							// Only do copy if it's not a shallow copy.
 							if( !SrcFieldAccessor.isShallowCopy() )
 							{
+#if PSY_DEBUG
+								auto Serialiser = SrcFieldAccessor.getUpperClass()->getTypeSerialiser();
+								if( Serialiser != nullptr )
+								{
+									std::string OutString;
+									if( Serialiser->serialiseToString( SrcFieldAccessor.getData(), OutString ) )
+									{
+										PSY_LOG( "- As string: %s", OutString.c_str() );
+									}
+								}
+#endif
 								// Create a copy and recurse down.
 								if( !DstFieldAccessor.copy( SrcFieldAccessor.getData() ) )
 								{
@@ -367,6 +378,10 @@ public:
 // CopyClass
 void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
+	BcAssert( DstObject != nullptr );
+	BcAssert( SrcObject != nullptr );
+	BcAssert( InClass != nullptr );
+
 	PSY_LOGSCOPEDCATEGORY( "Reflection" );
 	PSY_LOG( "ReCopyClass: \"%s\"", (*InClass->getName()).c_str() );
 	PSY_LOGSCOPEDINDENT;
@@ -388,9 +403,10 @@ ReObject* ReConstructObject(
 	const ReClass* InClass, 
 	const std::string& InName, 
 	ReObject* InOwner, 
-	ReObject* InBasis,
-	std::function< void( ReObject* ) > postCreateFunc )
+	ReObject* InBasis )
 {
+	BcAssert( InClass != nullptr );
+
 	PSY_LOGSCOPEDCATEGORY( "Reflection" );
 	PSY_LOG( "ReConstructObject: \"%s\", name \"%s\", basis \"%s\"", 
 		(*InClass->getName()).c_str(),
@@ -404,12 +420,6 @@ ReObject* ReConstructObject(
 	// If we've succeeded...
 	if( NewObject != nullptr )
 	{
-		// Call post create.
-		if( postCreateFunc != nullptr )
-		{
-			postCreateFunc( NewObject );
-		}
-
 		// If we have a basis, we need to perform a deep copy.
 		if( InBasis != nullptr )
 		{

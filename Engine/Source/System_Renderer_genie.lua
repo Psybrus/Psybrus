@@ -24,7 +24,7 @@ PsyProjectEngineLib( "System_Renderer" )
  		}
 
   -- Windows and linux get glew.
-  configuration { "windows-* or linux-*" }
+  configuration { "windows-* or linux-* or osx-*" }
     defines { "GLEW_STATIC" }
     includedirs {
       "../../External/glew/include",
@@ -51,6 +51,26 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Platforms/Linux/",
       }
 
+  configuration "osx-*"
+      files {
+          "./Shared/System/Renderer/GL/*.h", 
+          "./Shared/System/Renderer/GL/*.inl", 
+          "./Shared/System/Renderer/GL/*.cpp", 
+      }
+      includedirs {
+          "./Platforms/OSX/",
+      }
+
+  configuration "android-*"
+    files {
+          "./Shared/System/Renderer/GL/*.h", 
+          "./Shared/System/Renderer/GL/*.inl", 
+          "./Shared/System/Renderer/GL/*.cpp", 
+    }
+    includedirs {
+        "./Platforms/Android/",
+    }
+
   configuration "asmjs"
       files {
           "./Shared/System/Renderer/GL/*.h", 
@@ -69,12 +89,20 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Shared/System/Renderer/D3D11/*.h", 
           "./Shared/System/Renderer/D3D11/*.inl", 
           "./Shared/System/Renderer/D3D11/*.cpp", 
+      }
+
+if _OPTIONS["with-dx12"] then
+      files {
           "./Shared/System/Renderer/D3D12/*.h", 
           "./Shared/System/Renderer/D3D12/*.inl", 
           "./Shared/System/Renderer/D3D12/*.cpp", 
           "./Shared/System/Renderer/D3D12/Shaders/*.hlsl",
           "./Shared/System/Renderer/D3D12/Shaders/*.h",
       }
+
+      defines { "WITH_DX12=1" }
+end
+
       includedirs {
             "./Platforms/Windows/",
       }

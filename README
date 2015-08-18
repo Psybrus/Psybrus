@@ -61,11 +61,9 @@ Dependencies:
 ANDROID_NDK env var must be set to the location of your Android NDK.
 ANDROID_SDK env var must be set to the location of your Android SDK.
 
+adb, and ant must be in your PATH.
+
 From Windows, once you've generated the projects, you can simply use build_gmake_android-gcc-arm_build.bat to build source code.
 
 To deploy, you need to have packed data. This is built by running the game on either Windows, Linux, or OSX (Import tool coming soon).
 Running deploy_gmake_android-gcc-arm_build.bat will deploy to an attached device. Will deploy assets to /sdcard/PackedContent (Packing into apk coming soon).
-
-
-
-

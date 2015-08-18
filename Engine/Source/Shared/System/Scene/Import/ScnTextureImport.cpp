@@ -21,10 +21,11 @@
 #include "System/Renderer/RsTypes.h"
 
 #include "Base/BcFile.h"
-#include "Base/BcMath.h"
 #include "Base/BcStream.h"
 
 #endif // PSY_IMPORT_PIPELINE
+
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection

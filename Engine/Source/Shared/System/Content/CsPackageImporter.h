@@ -19,6 +19,7 @@
 #include "System/Content/CsPackageFileData.h"
 #include "System/Content/CsResource.h"
 #include "System/Content/CsResourceImporter.h"
+#include "System/Content/CsPlatformParams.h"
 #include "System/SysFence.h"
 
 #include <json/json.h>
@@ -45,17 +46,20 @@ struct CsPackageDependencies
 class CsPackageImporter
 {
 private:
-	CsPackageImporter( const CsPackageImporter& ){}
+	CsPackageImporter( const CsPackageImporter& ) = delete;
 
 public:
-	CsPackageImporter();
+#if PSY_IMPORT_PIPELINE
+	CsPackageImporter(
+		const CsPlatformParams& Params,
+		const BcName& Name,
+		const BcPath& Filename );
 	~CsPackageImporter();
 
 	/**
-	 * Import package by name.
+	 * Import package.
 	 */
-	BcBool import( 
-		const BcName& Name );
+	BcBool import();
 	
 	/**
 	 * Save package out to a path.
@@ -145,9 +149,16 @@ public:
 	void addAllPackageCrossRefs( 
 		Json::Value& Root );
 
+	/**
+	 * Get import params.
+	 */
+	const CsPlatformParams& getParams() const;
+
+
 private:
 	BcBool havePackageDependency( const BcName& PackageName );
 
+#endif // PSY_IMPORT_PIPELINE
 
 private:
 	typedef std::vector< std::string > TStringList;
@@ -200,6 +211,8 @@ private:
 
 		bool operator < ( const TResourceImport& Other ) const
 		{
+			BcAssert( Importer_ );
+			BcAssert( Importer_->getImporterAttribute() );
 			return Importer_->getImporterAttribute()->getPriority() <
 				Other.Importer_->getImporterAttribute()->getPriority();
 		}
@@ -208,30 +221,33 @@ private:
 		Json::Value Resource_; // Temporary until we get rid of all importer Json deps.
 	};
 	
+	const CsPlatformParams& Params_;
+	BcName Name_;
+	BcPath Filename_;
+
 	typedef std::vector< TResourceImport > ResourceImportList;
 	ResourceImportList Resources_;
 
-	CsPackageResourceHeader			CurrResourceHeader_;
+	CsPackageResourceHeader CurrResourceHeader_;
 
-	mutable std::recursive_mutex	BuildingLock_;
-	mutable SysFence				BuildingFence_;
-	std::atomic< BcU32 >			BuildingBeginCount_;
-	std::atomic< BcU32 >			ImportErrorCount_;
-	std::atomic< BcU32 >			ResourceIds_;
-	BcName							Name_;
-	BcU32							DataPosition_;
-	BcFile							File_;
-	CsPackageHeader					Header_;
-	TStringList						StringList_;
-	TPackageCrossRefList			PackageCrossRefList_;
-	TPackageDependencyDataList		PackageDependencyDataList_;
-	CsPackageResourceHeaderList		ResourceHeaders_;
-	CsPackageChunkHeaderList		ChunkHeaders_;
-	CsPackageChunkDataList			ChunkDatas_;
-	TPackageDependencyList			PackageDependencyList_;
+	mutable std::recursive_mutex BuildingLock_;
+	mutable SysFence BuildingFence_;
+	std::atomic< BcU32 > BuildingBeginCount_;
+	std::atomic< BcU32 > ImportErrorCount_;
+	std::atomic< BcU32 > ResourceIds_;
+	BcU32 DataPosition_;
+	BcFile File_;
+	CsPackageHeader Header_;
+	TStringList StringList_;
+	TPackageCrossRefList PackageCrossRefList_;
+	TPackageDependencyDataList PackageDependencyDataList_;
+	CsPackageResourceHeaderList ResourceHeaders_;
+	CsPackageChunkHeaderList ChunkHeaders_;
+	CsPackageChunkDataList ChunkDatas_;
+	TPackageDependencyList PackageDependencyList_;
 
 	// Building.
-	CsPackageDependencies			Dependencies_;
+	CsPackageDependencies Dependencies_;
 };
 
 #endif

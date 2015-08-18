@@ -23,7 +23,7 @@
 
 #include "Base/BcMisc.h"
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 #include <SDL2/SDL.h>
 #endif
 
@@ -99,6 +99,7 @@ public:
 	virtual BcU32 getWidth() const override;
 	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
+	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
@@ -216,7 +217,7 @@ protected:
 	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext );
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	bool createProfile( RsOpenGLVersion Version, SDL_Window* Window );
 #endif
 
@@ -226,8 +227,20 @@ private:
 	HGLRC WindowRC_;
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_OSX
 	SDL_GLContext SDLGLContext_;
+#endif
+
+#if PLATFORM_ANDROID
+	EGLDisplay EGLDisplay_;
+	EGLConfig EGLConfig_; 
+	EGLint EGLNumConfigs_;
+	EGLint EGLFormat_;
+	EGLSurface EGLSurface_;
+	EGLContext EGLContext_;
+	EGLint EGLWidth_;
+	EGLint EGLHeight_;
+	GLfloat EGLRatio_;
 #endif
 
 	RsContextGL* pParent_;

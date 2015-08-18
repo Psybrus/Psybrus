@@ -36,15 +36,16 @@ enum PsySetupFlags
 	psySF_RENDER							= 0x00000020,		// Create render system.
 	psySF_SOUND								= 0x00000040,		// Create sound system.
 
-	// Content.
-	psySF_CONTENT_CLIENT					= 0x00000100,		// Content client.
-	psySF_CONTENT_SERVER					= 0x00000200,		// Content server.
+	// Run mode.
+	psySF_GAME								= 0x00000100,		// Game.
+	psySF_TOOL								= 0x00000200,		// Tool.
 
 	// Defaults.
 	psySF_DEFAULT_SYSTEMS					= psySF_RENDER | psySF_SOUND,
 	psySF_GAME_FINAL						= psySF_DEFAULT_SYSTEMS | psySF_WINDOW,
-	psySF_GAME_DEV							= psySF_CONTENT_CLIENT | psySF_GAME_FINAL | psySF_REMOTE,
-	psySF_SERVER							= psySF_CONTENT_SERVER | psySF_CONSOLE | psySF_REMOTE | psySF_DEFAULT_SYSTEMS,
+	psySF_GAME_DEV							= psySF_GAME | psySF_GAME_FINAL | psySF_REMOTE,
+	psySF_SERVER							= psySF_GAME | psySF_CONSOLE | psySF_REMOTE | psySF_DEFAULT_SYSTEMS,
+	psySF_IMPORTER							= psySF_TOOL | psySF_CONSOLE,
 };
 
 struct PsySetupParams
@@ -72,6 +73,11 @@ extern PsySetupParams GPsySetupParams;
  * Called after engine is initialised, and game needs to be initialised.
  */
 extern void PsyGameInit();
+
+/**
+ * Called to launch game once scene has initialised.
+ */
+extern void PsyLaunchGame();
 
 
 #endif

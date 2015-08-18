@@ -22,3 +22,12 @@
 [submodule "External/imgui"]
 	path = External/imgui
 	url = https://github.com/Psybrus/imgui
+[submodule "External/jsoncpp"]
+	path = External/jsoncpp
+	url = https://github.com/Psybrus/jsoncpp
+[submodule "External/rg-etc1"]
+	path = External/rg-etc1
+	url = https://github.com/Psybrus/rg-etc1
+[submodule "External/glslang"]
+	path = External/glslang
+	url = https://github.com/Psybrus/glslang

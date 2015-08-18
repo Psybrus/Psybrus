@@ -114,6 +114,8 @@ struct ScnShaderPermutationJobParams
 {
 	RsShaderCodeType InputCodeType_;
 	RsShaderCodeType OutputCodeType_;
+	std::string ShaderSource_;
+	std::string ShaderSourceData_;
 	ScnShaderPermutation Permutation_;
 	std::vector< ScnShaderLevelEntry > Entries_;
 
@@ -149,6 +151,10 @@ public:
 	void addDependency( const BcChar* Dependency );
 
 private:
+	BcBool oldPipeline();
+	BcBool newPipeline();
+	ScnShaderPermutation getDefaultPermutation();
+
 	BcBool compileShader( 
 		const std::string& FileName,
 		const std::string& EntryPoint,
@@ -160,7 +166,7 @@ private:
 
 	RsProgramVertexAttributeList extractShaderVertexAttributes(
 		BcBinaryData& ShaderByteCode );
-		 
+
 	void generatePermutations( 
 		BcU32 GroupIdx, 
 		BcU32 NoofGroups,
@@ -168,21 +174,52 @@ private:
 		ScnShaderPermutation Permutation );
 
 	BcBool buildPermutation( ScnShaderPermutationJobParams Params );
+	BcBool buildPermutationHLSL( const ScnShaderPermutationJobParams& Params );
+	BcBool buildPermutationGLSL( const ScnShaderPermutationJobParams& Params );
+
+	BcBool convertHLSL2GLSL(
+		ScnShaderPermutationJobParams Params,
+		ScnShaderLevelEntry LevelEntry,
+		const std::string& Entrypoint,
+		const std::string& InHLSL, 
+		std::string& OutGLSL,
+		std::vector< RsProgramVertexAttribute >& OutVertexAttributes,
+		std::vector< std::string >& OutErrorMessages );
+
+	BcBool convertHLSLCC(
+		ScnShaderPermutationJobParams Params,
+		ScnShaderLevelEntry LevelEntry,
+		const std::string& Entrypoint,
+		const std::string& InHLSL, 
+		void* InOutCrossDependencyData,
+		std::string& OutGLSL,
+		std::vector< RsProgramVertexAttribute >& OutVertexAttributes,
+		std::vector< std::string >& OutErrorMessages );
+
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
 	std::string removeComments( std::string Input );
+	void logSource( std::string Source );
 
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );
 
 private:
+	// Old HLSL only.
 	std::string Source_;
 	std::string SourceFileData_;
+
 	std::map< RsShaderType, std::string > Entrypoints_;
 	std::vector< ScnShaderPermutationFlags > ExcludePermutations_;
 	std::vector< ScnShaderPermutationFlags > IncludePermutations_;
 	std::vector< RsShaderCodeType > CodeTypes_;
 	std::vector< RsShaderBackendType > BackendTypes_;
 
+	// New any lang.
+	std::map< RsShaderCodeType, std::string > Sources_;
+	std::map< RsShaderCodeType, std::string > SourcesFileData_;
+	std::map< std::string, std::string > Defines_;
+
+	//
 	std::vector< RsShaderCodeType > OutputCodeTypes_;
 	std::vector< ScnShaderPermutation > Permutations_;
 	std::vector< std::string > IncludePaths_;

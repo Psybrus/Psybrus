@@ -69,8 +69,14 @@ void* BcSysMemAlign( BcSize Bytes, BcSize Alignment )
 {
 #if PLATFORM_WINDOWS
 	return _aligned_malloc( Bytes, Alignment );
+#elif PLATFORM_OSX
+	void* Mem = nullptr;
+	BcVerifyMsg( posix_memalign( &Mem, Alignment, Bytes ) >= 0, "Failed to allocate with posix_memalign" );
+	return Mem;
 #else
-	return memalign( Alignment, Bytes );
+	auto Mem = memalign( Alignment, Bytes );
+	BcAssert( Mem );
+	return Mem;
 #endif
 }
 
@@ -82,7 +88,7 @@ void* BcSysMemRealloc( void* pMemory, BcSize Bytes, BcSize Alignment )
 	return _aligned_realloc( pMemory, Bytes, Alignment );
 #else
 	BcBreakpoint;
-	return memalign( Alignment, Bytes );
+	return nullptr;
 #endif
 }
 

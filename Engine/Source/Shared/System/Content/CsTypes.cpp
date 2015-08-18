@@ -14,6 +14,19 @@
 #include "System/Content/CsTypes.h"
 #include "System/File/FsCore.h"
 
+#include "Base/BcString.h"
+
+#include <cstdarg>
+#include <cstdio>
+
+//////////////////////////////////////////////////////////////////////////
+// Paths
+#if PLATFORM_LINUX | PLATFORM_WINDOWS | PLATFORM_OSX
+const BcPath CsPaths::PACKED_CONTENT( "PackedContent/pc" );
+#else
+const BcPath CsPaths::PACKED_CONTENT( "PackedContent" );
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies
 REFLECTION_DEFINE_BASIC( CsDependency );
@@ -117,12 +130,54 @@ bool CsDependency::operator < ( const CsDependency& Dep ) const
 // getName
 std::string CsFileHash::getName() const
 {
-	BcChar OutChars[ 128 ];
-	BcSPrintf( OutChars, "%08X%08X%08X%08X%08X",
+	BcChar OutChars[ 128 ] = { 0 };
+	BcSPrintf( OutChars, sizeof( OutChars ) - 1, "%08X%08X%08X%08X%08X",
 		Hash_[ 0 ],
 		Hash_[ 1 ],
 		Hash_[ 2 ],
 		Hash_[ 3 ],
 		Hash_[ 4 ] );
 	return OutChars;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsImportException::CsImportException( 
+		const char* File,
+		const char* Error,
+		... ) NOEXCEPT
+{
+	BcAssert( File );
+	BcAssert( Error );
+
+	BcMemSet( File_, 0, sizeof( File_ ) );
+	BcStrCopy( File_, sizeof( File_ ) - 1, File );
+
+	BcMemSet( Error_, 0, sizeof( Error_ ) );
+
+	va_list Args;
+	va_start( Args, Error );
+	vsnprintf( Error_, sizeof( Error_ ), Error, Args );
+	va_end( Args );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// what
+const char* CsImportException::what() const NOEXCEPT
+{
+	return Error_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// file
+const char* CsImportException::file() const NOEXCEPT
+{
+	return File_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// error
+const char* CsImportException::error() const NOEXCEPT
+{
+	return Error_;
 }

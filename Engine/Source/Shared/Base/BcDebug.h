@@ -67,6 +67,7 @@ struct BcBacktraceResult
 	std::vector< BcBacktraceEntry > Backtrace_;
 };
 
+extern void BcPrintBacktrace( const BcBacktraceResult& Result );
 extern BcBacktraceResult BcBacktrace();
 
 //////////////////////////////////////////////////////////////////////////
@@ -187,16 +188,16 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 #  define BcUnitTest( a )							\
 	BcPrintf( "- Test: %s\n", #a );					\
 	if( a )											\
-	{ BcPrintf( "- - Passed.\n" );	}				\
+	{ BcPrintf( "- - Passed. %s:%u\n", __FILE__, __LINE__ );	} \
 	else											\
-	{ BcPrintf( "- - FAILED.\n" ); BcBreakpoint; } 
+	{ BcPrintf( "- - FAILED. %s:%u\n", __FILE__, __LINE__ ); BcBreakpoint; } 
 
 #  define BcUnitTestMsg( a, b )						\
 	BcPrintf( "- Test (%s): %s\n", b, #a );			\
 	if( a )											\
-	{ BcPrintf( "- - Passed.\n" ); }				\
+	{ BcPrintf( "- - Passed. %s:%u\n", __FILE__, __LINE__ ); } \
 	else											\
-	{ BcPrintf( "- - FAILED.\n" ); BcBreakpoint; } 
+	{ BcPrintf( "- - FAILED. %s:%u\n", __FILE__, __LINE__ ); BcBreakpoint; } 
 #else
 #  define BcUnitTest( a )
 #  define BcUnitTestMsg( a, b )

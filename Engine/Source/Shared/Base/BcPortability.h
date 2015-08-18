@@ -17,6 +17,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Platform Identification
+#define PLATFORM_HTML5			0
+#define PLATFORM_ANDROID		0
 #define PLATFORM_LINUX			0
 #define PLATFORM_WINDOWS		0
 #define PLATFORM_IOS			0
@@ -26,6 +28,11 @@
 #if defined( EMSCRIPTEN ) || defined( __EMSCRIPTEN__ )
 #  undef PLATFORM_HTML5
 #  define PLATFORM_HTML5		1
+
+// Android
+#elif defined( __ANDROID__ )
+#  undef PLATFORM_ANDROID
+#  define PLATFORM_ANDROID		1
 
 // Linux
 #elif defined( linux ) || defined( __linux )
@@ -82,10 +89,10 @@
 #  define PSY_ENDIAN_LITTLE		0
 
 // ARM
-#elif defined( __arm__ ) || defined( TARGET_OS_IPHONE )
+#elif defined( __arm__ ) || defined( __ARM_ARCH_7A__ ) || defined( __ARM_ARCH_7S__ ) || defined( TARGET_OS_IPHONE )
 #  define ARCH_ARM				1
 #  define PSY_ENDIAN_LITTLE		1
-#  define PSY_ENDIAN_LITTLE		0
+#  define PSY_ENDIAN_BIG		0
 
 // THUMB
 #elif defined( __thumb__ )
@@ -112,6 +119,7 @@
 // GCC
 #if defined( __GNU__ ) || defined( __GNUG__ )
 #  define COMPILER_GCC			1
+#  define NOEXCEPT				noexcept
 #else
 #  define COMPILER_GCC			0
 #endif
@@ -119,6 +127,7 @@
 // Clang
 #if defined( __llvm__ )
 #  define COMPILER_CLANG		1
+#  define NOEXCEPT				noexcept
 #else
 #  define COMPILER_CLANG		0
 #endif
@@ -126,6 +135,7 @@
 // Codewarrior
 #if defined( __MWERKS__ )
 #  define COMPILER_CW			1
+#  define NOEXCEPT
 #else
 #  define COMPILER_CW			0
 #endif
@@ -133,8 +143,23 @@
 // MSVC
 #if defined( _MSC_VER	)
 #  define COMPILER_MSVC			1
+#  define NOEXCEPT
 #else
 #  define COMPILER_MSVC			0
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// Verify we have macros with build params.
+#if !defined( BUILD_ACTION )
+#  error "BUILD_ACTION not defined." )
+#endif
+
+#if !defined( BUILD_TOOLCHAIN )
+#  error "BUILD_TOOLCHAIN not defined." )
+#endif
+
+#if !defined( BUILD_CONFIG )
+#  error "BUILD_CONFIG not defined." )
 #endif
 
 #endif

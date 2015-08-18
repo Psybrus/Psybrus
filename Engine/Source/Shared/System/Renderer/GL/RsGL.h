@@ -16,7 +16,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
-#include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsFeatures.h"
 
 #include <tuple>
 
@@ -24,6 +24,24 @@
 // HTML5
 #if PLATFORM_HTML5
 #  include "GL/glew.h"
+
+#  define RENDER_USE_GLES
+
+////////////////////////////////////////////////////////////////////////////////
+// Android
+#elif PLATFORM_ANDROID
+#  include "GLES2/gl2.h"
+#  include "GLES2/gl2ext.h"
+#  include "GLES3/gl3.h"
+#  include "GLES3/gl3ext.h"
+
+#  include <EGL/egl.h>
+
+#  define RENDER_USE_GLES
+
+#if ANDROID_NDK_VERSION >= 20
+#  define RENDER_USE_GLES3
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Linux
@@ -33,10 +51,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Mac
 #elif PLATFORM_OSX
-#  include <OpenGL/OpenGL.h>
-#  include <AGL/agl.h>
-
-extern AGLContext GAGLContext;
+#  include "GL/glew.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Win32
@@ -68,15 +83,25 @@ extern AGLContext GAGLContext;
 #  include "GL/wglew.h"
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+// GLES defines.
+#if !defined( RENDER_USE_GLES )
+#define GL_ETC1_RGB8_OES           0x8D64
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#define PSY_GL_CATCH_ERRORS ( 0 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
+#define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
+
+GLuint RsReportGLErrors( const char* File, int Line, const char* CallString );
 
 #if PSY_GL_CATCH_ERRORS
-GLuint RsGLCatchError();
+#  define GL( _call ) \
+	gl##_call; RsReportGLErrors( __FILE__, __LINE__, #_call  )
+
 #else
-inline GLuint RsGLCatchError(){ return 0; };
+#  define GL( _call ) \
+	gl##_call
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,23 +142,20 @@ struct RsOpenGLVersion
 	RsShaderCodeType MaxCodeType_;
 
 	// Features.
-	BcBool SupportMRT_;
-	BcBool SupportSeparateBlendState_;
-	BcBool SupportDXTTextures_;
-	BcBool SupportNpotTextures_;
-	BcBool SupportDepthTextures_;
-	BcBool SupportFloatTextures_;
-	BcBool SupportHalfFloatTextures_;
-	BcBool SupportAnisotropicFiltering_;
-	BcBool SupportPolygonMode_;
-	BcBool SupportVAOs_;
-	BcBool SupportSamplerStates_;
-	BcBool SupportUniformBuffers_;
-	BcBool SupportGeometryShaders_;
-	BcBool SupportTesselationShaders_;
-	BcBool SupportComputeShaders_;
-	BcBool SupportAntialiasedLines_;
-	BcBool SupportDrawElementsBaseVertex_;
+	RsFeatures Features_;
+
+	// GL specific features.
+	bool SupportPolygonMode_;
+	bool SupportVAOs_;
+	bool SupportSamplerStates_;
+	bool SupportUniformBuffers_;
+	bool SupportGeometryShaders_;
+	bool SupportTesselationShaders_;
+	bool SupportComputeShaders_;
+	bool SupportDrawElementsBaseVertex_;
+
+	GLint MaxTextureSlots_;
+
 };
 
 #endif

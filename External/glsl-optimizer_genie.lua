@@ -6,7 +6,7 @@ if PsyProjectExternalLib( "glsl-optimizer", "C++" ) then
 			"./glsl-optimizer/src/glsl/main.cpp"
 		}
 
-	configuration "windows-* or linux-gcc or linux-clang"
+	configuration "windows-* or linux-* or osx-*"
 		files { 
 			"./glsl-optimizer/src/glsl/**.h",
 			"./glsl-optimizer/src/glsl/**.c",
@@ -25,7 +25,7 @@ if PsyProjectExternalLib( "glsl-optimizer", "C++" ) then
 			"./glsl-optimizer/src/mesa",
 		}
 
-	configuration "linux-gcc or linux-clang"
+	configuration "linux-* or osx-*"
 		files { 
 			"./glsl-optimizer/src/getopt/**.h",
 			"./glsl-optimizer/src/getopt/**.c",

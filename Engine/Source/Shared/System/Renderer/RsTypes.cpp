@@ -29,8 +29,8 @@ void RsColour::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const RsColour& Vec = *reinterpret_cast< const RsColour* >( pInstance );
-			BcChar OutChars[ 128 ];
-			BcSPrintf( OutChars, "%f, %f, %f, %f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
+			BcChar OutChars[ 128 ] = { 0 };
+			BcSPrintf( OutChars, sizeof( OutChars ) - 1, "%.16f, %.16f, %.16f, %.16f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
 			OutString = OutChars;
 			return true;
 		}
@@ -166,6 +166,77 @@ void RsColour::premultiplyAlpha()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// RsTextureBlockInfo
+RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
+{
+	// Bits per block.
+	RsBlockInfo BlockInfo;
+	BlockInfo.Bits_ = 8;
+	BlockInfo.Width_ = 1;
+	BlockInfo.Height_ = 1;
+	switch( TextureFormat )
+	{
+	case RsTextureFormat::R8:
+		BlockInfo.Bits_ = 8;
+		break;
+	case RsTextureFormat::R8G8:
+		BlockInfo.Bits_ = 16;
+		break;
+	case RsTextureFormat::R8G8B8:
+		BlockInfo.Bits_ = 24;
+		break;
+	case RsTextureFormat::R8G8B8A8:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::R16F:
+		BlockInfo.Bits_ = 16;
+		break;
+	case RsTextureFormat::R16FG16F:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::R16FG16FB16F:
+		BlockInfo.Bits_ = 48;
+		break;
+	case RsTextureFormat::R16FG16FB16FA16F:
+		BlockInfo.Bits_ = 64;
+		break;
+	case RsTextureFormat::R32F:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::R32FG32F:
+		BlockInfo.Bits_ = 64;
+		break;
+	case RsTextureFormat::R32FG32FB32F:
+		BlockInfo.Bits_ = 96;
+		break;
+	case RsTextureFormat::R32FG32FB32FA32F:
+		BlockInfo.Bits_ = 128;
+		break;
+	case RsTextureFormat::DXT1:
+		BlockInfo.Bits_ = 64;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsTextureFormat::DXT3:
+	case RsTextureFormat::DXT5:			
+		BlockInfo.Bits_ = 128;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsTextureFormat::ETC1:
+		BlockInfo.Bits_ = 64;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	default:
+		BcBreakpoint; // Format not defined.
+		break;
+	}
+
+	return BlockInfo;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // RsTextureFormatSize
 BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
 {
@@ -249,9 +320,42 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 			
 	default:
 		break;
+
+	case RsTextureFormat::ETC1:
+		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
+		{
+			Size += ( Width * Height ) / 2;
+			Width >>= 1;
+			Height >>= 1;
+		}
+		Size *= Depth;
+		break;
 	}
 	
 	return Size;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RsTexturePitch
+BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
+{
+	BcU32 Pitch = 0;
+	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
+	auto WidthByBlock = ( Width / BlockInfo.Width_ );
+	Pitch = ( WidthByBlock * BlockInfo.Bits_ ) / 8;
+	return Pitch;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureSlicePitch
+BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
+{
+	BcU32 SlicePitch = 0;
+	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
+	auto WidthByBlock = ( Width / BlockInfo.Width_ );
+	auto HeightByBlock = ( Height / BlockInfo.Height_ );
+	SlicePitch = ( WidthByBlock * HeightByBlock * BlockInfo.Bits_ ) / 8;
+	return SlicePitch;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -286,9 +390,9 @@ RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType )
 		return RsShaderBackendType::GLSL_ES;
 	case RsShaderCodeType::D3D9_3_0:
 		return RsShaderBackendType::D3D9;
-	case RsShaderCodeType::D3D11_4_0_LEVEL_9_0:
-		return RsShaderBackendType::D3D11;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_1:
+		return RsShaderBackendType::D3D11;
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_2:
 		return RsShaderBackendType::D3D11;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_3:
 		return RsShaderBackendType::D3D11;
@@ -353,11 +457,11 @@ std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType )
 	case RsShaderCodeType::D3D9_3_0:
 		RetVal = "D3D9_3_0";
 		break;
-	case RsShaderCodeType::D3D11_4_0_LEVEL_9_0:
-		RetVal = "D3D11_4_0_LEVEL_9_0";
-		break;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_1:
 		RetVal = "D3D11_4_0_LEVEL_9_1";
+		break;
+	case RsShaderCodeType::D3D11_4_0_LEVEL_9_2:
+		RetVal = "D3D11_4_0_LEVEL_9_2";
 		break;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_3:
 		RetVal = "D3D11_4_0_LEVEL_9_3";
@@ -541,8 +645,8 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 
 		// D3D11 to GLSL
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
-		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_0 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_140;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_140;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_2 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_140;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_140;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_150;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_1 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_330;
@@ -555,8 +659,8 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 
 		// D3D11 to GLSL ES
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
-		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_0 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_2 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_1 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
@@ -577,7 +681,7 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		
 		// GLSL ES to D3D11
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
-		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_100 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_0;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_100 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_1;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_300 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_310 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
 

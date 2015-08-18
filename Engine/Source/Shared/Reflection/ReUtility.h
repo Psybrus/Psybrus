@@ -192,6 +192,22 @@ struct ReTypeTraits< BcF64 >
 	}
 };
 
+#if PLATFORM_OSX
+
+template<>
+struct ReTypeTraits< size_t >
+{
+	typedef BcSize Type;
+	static const BcU32 Flags = bcRFF_POD;
+	static const bool IsEnum = false;
+	static const char* Name()
+	{
+		return "size_t";
+	}
+};
+
+#endif
+
 template<>
 struct ReTypeTraits< std::string >
 {

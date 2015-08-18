@@ -30,8 +30,8 @@ void MaQuat::StaticRegisterClass()
 		virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
 		{
 			const MaQuat& Vec = *reinterpret_cast< const MaQuat* >( pInstance );
-			BcChar OutChars[ 128 ];
-			BcSPrintf( OutChars, "%f, %f, %f, %f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
+			BcChar OutChars[ 128 ] = { 0 };
+			BcSPrintf( OutChars, sizeof( OutChars ) - 1, "%.16f, %.16f, %.16f, %.16f", Vec.x(), Vec.y(), Vec.z(), Vec.w() );
 			OutString = OutChars;
 			return true;
 		}
