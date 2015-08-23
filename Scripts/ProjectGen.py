@@ -58,12 +58,12 @@ def doBuild( _build ):
 	print "Launching GENie with: " + commandLine
 
 	if platform.system() == "Linux":
-		os.system( "./Psybrus/Tools/genie/genie-linux " + commandLine )
+		os.system( "./Psybrus/Tools/genie/linux/genie " + commandLine )
 	elif platform.system() == "Darwin":
-		os.system( "./Psybrus/Tools/genie/genie-osx " + commandLine )
+		os.system( "./Psybrus/Tools/genie/darwin/genie " + commandLine )
 	elif platform.system() == "Windows":
 		commandLine = commandLine.replace( "$BOOST_ROOT", "%BOOST_ROOT%" );
-		os.system( "Psybrus\\Tools\\genie\\genie.exe " + commandLine )
+		os.system( "Psybrus\\Tools\\genie\\windows\\genie.exe " + commandLine )
 
 def selectBuild():
 	idx = 0
