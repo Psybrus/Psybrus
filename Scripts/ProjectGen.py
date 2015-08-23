@@ -13,7 +13,8 @@ BUILDS = [
 		"android-gcc-arm", 
 		"x32",
 		"linux",
-		"gmake", 
+		"gmake",
+		[]
 	),
 	( 
 		"HTML5 (Clang)", 
@@ -21,6 +22,7 @@ BUILDS = [
 		"x32",
 		"linux",
 		"gmake",
+		[]
 	),
 	( 
 		"Linux (Clang 3.5)", 
@@ -28,6 +30,7 @@ BUILDS = [
 		"x64",
 		"linux",
 		"gmake", 
+		[]
 	),
 	( 
 		"OSX (Clang)",
@@ -35,13 +38,15 @@ BUILDS = [
 		"x64",
 		"macosx",
 		"gmake", 
-	),
+		[]
+	),	
 	(
 		"Windows (VS2013)", 
 		"windows-vs-v120", 
 		"x64",
 		"windows", 
 		"vs2013", 
+		[]
 	),
 	( 
 		"Windows (VS2015)", 
@@ -49,11 +54,23 @@ BUILDS = [
 		"x64",
 		"windows",
 		"vs2015", 
+		[]
+	),
+	( 
+		"Windows + DX12 (VS2015)", 
+		"windows-vs-v140", 
+		"x64",
+		"windows",
+		"vs2015", 
+		[ "--with-dx12" ] # TODO: Have this as a subset of togglable options.
 	),
 ]
 
 def doBuild( _build ):
-	commandLine = "--toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( _build[1], _build[2], _build[3], _build[4] )
+	commandLine = ""
+	for additionalOption in _build[5]:
+		commandLine += additionalOption + " "
+	commandLine += "--toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( _build[1], _build[2], _build[3], _build[4] )
 
 	print "Launching GENie with: " + commandLine
 
