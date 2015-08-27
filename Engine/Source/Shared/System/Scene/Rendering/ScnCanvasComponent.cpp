@@ -631,6 +631,7 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 		}
 		
 		// Add to frame.
+		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ this, PrimitiveSection ]( RsContext* Context )
 			{
@@ -647,6 +648,7 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 				}
 
 				PrimitiveSection->~ScnCanvasComponentPrimitiveSection();
+				RenderFence_.decrement();
 			} );
 	}
 	
@@ -687,6 +689,7 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	UploadFence_.wait();
+	RenderFence_.wait();
 
 	// Allocate render side vertex buffer.
 	RsCore::pImpl()->destroyResource( RenderResource_.pVertexBuffer_ );

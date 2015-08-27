@@ -307,12 +307,14 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
 
 		// Add to frame.
+		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ this, VertexBuffer, NoofParticlesToRender ]( RsContext* Context )
 			{
 				Context->setVertexBuffer( 0, VertexBuffer.pVertexBuffer_, sizeof( ScnParticleVertex ) );
 				Context->setVertexDeclaration( VertexDeclaration_ );
 				Context->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
+				RenderFence_.decrement();
 			} );
 	}
 }
@@ -370,6 +372,7 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	UploadFence_.wait();
+	RenderFence_.wait();
 
 	Parent->detach( MaterialComponent_ );
 

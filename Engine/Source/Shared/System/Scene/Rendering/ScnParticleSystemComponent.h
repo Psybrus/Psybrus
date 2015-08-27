@@ -118,8 +118,9 @@ private:
 	// AABB
 	MaAABB AABB_;
 
-	// Fences for uploading + updating.
+	// Fences for uploading + render.
 	SysFence UploadFence_;
+	SysFence RenderFence_;
 };
 
 #endif

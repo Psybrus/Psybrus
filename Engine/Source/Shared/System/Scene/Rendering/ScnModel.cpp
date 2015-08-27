@@ -748,10 +748,10 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	// Wait for update + upload to complete.
+	// Wait for update, upload + render to complete.
 	UpdateFence_.wait();
 	UploadFence_.wait();
-	//SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+	RenderFence_.wait();
 
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
@@ -827,16 +827,18 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 			
 		// Bind material.
 		PerComponentMeshData.MaterialComponentRef_->bind( RenderContext.pFrame_, Sort );
-			
+		
 		// Render primitive.
+		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ pMeshData, pMeshRuntime, Offset ]( RsContext* Context )
+			[ this, pMeshData, pMeshRuntime, Offset ]( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
 				Context->setIndexBuffer( pMeshRuntime->pIndexBuffer_ );
 				Context->setVertexBuffer( 0, pMeshRuntime->pVertexBuffer_, pMeshData->VertexStride_ );
 				Context->setVertexDeclaration( pMeshRuntime->pVertexDeclaration_ );
 				Context->drawIndexedPrimitives( pMeshData->Type_, Offset, pMeshData->NoofIndices_, 0 );
+				RenderFence_.decrement();
 			} );
 	}
 }

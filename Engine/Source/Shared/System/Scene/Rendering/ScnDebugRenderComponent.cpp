@@ -428,28 +428,6 @@ void ScnDebugRenderComponent::clear()
 
 //////////////////////////////////////////////////////////////////////////
 // render
-class ScnDebugRenderComponentRenderNode: public RsRenderNode
-{
-public:
-	void render( RsContext* Context )
-	{
-		// TODO: Cache material instance so we don't rebind?
-		for( BcU32 Idx = 0; Idx < NoofSections_; ++Idx )
-		{
-			ScnDebugRenderComponentPrimitiveSection* pPrimitiveSection = &pPrimitiveSections_[ Idx ];
-			
-			Context->setVertexBuffer( 0, VertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
-			Context->setVertexDeclaration( VertexDeclaration_ );
-			Context->drawPrimitives( pPrimitiveSection->Type_, pPrimitiveSection->VertexIndex_, pPrimitiveSection->NoofVertices_ );
-		}
-	}
-	
-	BcU32 NoofSections_;
-	ScnDebugRenderComponentPrimitiveSection* pPrimitiveSections_;
-	RsBuffer* VertexBuffer_;
-	RsVertexDeclaration* VertexDeclaration_;
-};
-
 void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 {
 	// Upload.
@@ -514,12 +492,14 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 		
 		// Add to frame.
 		auto& RenderResource = *pRenderResource_;
+		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[ this, RenderResource, PrimitiveSection ]( RsContext* Context )
 			{
 				Context->setVertexBuffer( 0, RenderResource.pVertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
 				Context->setVertexDeclaration( VertexDeclaration_ );
 				Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
+				RenderFence_.decrement();
 			} );
 	}
 	
@@ -587,6 +567,7 @@ void ScnDebugRenderComponent::onDetach( ScnEntityWeakRef Parent )
 	getParentEntity()->detach( MaterialComponent_ );
 
 	UploadFence_.wait();
+	RenderFence_.wait();
 
 	for( BcU32 Idx = 0; Idx < 2; ++Idx )
 	{

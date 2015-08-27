@@ -110,6 +110,7 @@ protected:
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
 	SysFence UpdateFence_;
+	SysFence RenderFence_;
 
 	MaAABB AABB_;
 

@@ -241,6 +241,7 @@ protected:
 	BcSize NoofVertices_;
 	BcSize VertexIndex_;
 	SysFence UploadFence_;
+	SysFence RenderFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef MaterialComponent_;

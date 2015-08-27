@@ -186,6 +186,7 @@ protected:
 	BcU32 NoofVertices_;
 	BcU32 VertexIndex_;
 	SysFence UploadFence_;
+	SysFence RenderFence_;
 	
 	// Materials.
 	ScnMaterialRef Material_;
