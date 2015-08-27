@@ -220,8 +220,16 @@ void OsClientAndroid::pollLooper()
 	}
 
 	// Update window.
-	Window_ = App_->window;
-}
+	if( App_->window != Window_ )
+	{
+		// Ensure all job queues are flushed before caching new window.
+		// This just means that all threads that may depend upon this can
+		// complete their work safely.
+		SysKernel::pImpl()->flushAllJobQueues();
+
+		Window_ = App_->window;
+	}
+}	
 
 //////////////////////////////////////////////////////////////////////////
 // handleInput
