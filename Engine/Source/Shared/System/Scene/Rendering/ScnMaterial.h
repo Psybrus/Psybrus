@@ -74,7 +74,6 @@ private:
 
 	const RsRenderStateDesc* RenderStateDesc_;
 	RsRenderStateUPtr RenderState_;
-
 	std::vector< RsSamplerStateUPtr > SamplerStates_;
 
 };

@@ -30,10 +30,9 @@ void ScnMaterial::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "pHeader_", &ScnMaterial::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "Shader_", &ScnMaterial::Shader_ ),
+		new ReField( "Shader_", &ScnMaterial::Shader_, bcRFF_SHALLOW_COPY ),
 		new ReField( "TextureMap_", &ScnMaterial::TextureMap_ ),
 		new ReField( "RenderStateDesc_", &ScnMaterial::RenderStateDesc_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "RenderState_", &ScnMaterial::RenderState_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnMaterial, Super >( Fields );
