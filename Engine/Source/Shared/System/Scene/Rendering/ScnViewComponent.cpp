@@ -395,9 +395,12 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 	// Get context.
 	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
 
-	// Check for native window handle.
-	// TODO: Better check on client "shouldRender" ?
-	if( pContext->getClient()->getWindowHandle() != 0 )
+	// Check for native window handle, and a size greater than 0.
+	// Don't want to render at all if none of those conditions are met.
+	auto Client = pContext->getClient();
+	if( Client->getWindowHandle() != 0 &&
+		Client->getWidth() > 0 &&
+		Client->getHeight() > 0 )
 	{
 		// Allocate a frame to render using default context.
 		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
