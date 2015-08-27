@@ -368,6 +368,20 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 			return BcTrue;
 		}
 		break;
+	case RsShaderCodeType::GLSL_ES_300:
+		if( CombinedVersion >= 0x00030000 &&
+			Type_ == RsOpenGLType::ES )
+		{
+			return BcTrue;
+		}
+		break;
+	case RsShaderCodeType::GLSL_ES_310:
+		if( CombinedVersion >= 0x00030001 &&
+			Type_ == RsOpenGLType::ES )
+		{
+			return BcTrue;
+		}
+		break;
 	default:
 		break;
 	}
