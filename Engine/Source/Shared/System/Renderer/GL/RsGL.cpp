@@ -455,7 +455,14 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 
 	if( TotalErrors > 0 )
 	{
+#if PLATFORM_WINDOWS
+		if( ::IsDebuggerPresent() )
+		{
+			BcBreakpoint;
+		}
+#else
 		BcBreakpoint;
+#endif
 	}
 
 	return Error;
