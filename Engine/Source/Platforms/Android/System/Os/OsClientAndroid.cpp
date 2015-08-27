@@ -101,8 +101,25 @@ BcBool OsClientAndroid::create( const BcChar* pTitle )
 	App_->userData = this;
 	App_->onAppCmd = []( struct android_app* App, int32_t Cmd )->void
 		{
-			// TODO: Handle 
+			OsClientAndroid* Client = static_cast< OsClientAndroid* >( App->userData );
+			switch( Cmd )
+			{
+			case APP_CMD_TERM_WINDOW:
+				{
+					SysKernel::pImpl()->flushAllJobQueues();
+					Client->Window_ = nullptr;
+				}
+				break;
+
+			case APP_CMD_INIT_WINDOW:
+				{
+					SysKernel::pImpl()->flushAllJobQueues();
+					Client->Window_ = App->window;
+				}
+				break;
+			}
 		};
+
 	App_->onInputEvent = []( struct android_app* App, AInputEvent* Event )->int32_t
 		{
 			OsClientAndroid* Client = static_cast< OsClientAndroid* >( App->userData ); 
@@ -203,17 +220,6 @@ void OsClientAndroid::pollLooper()
 		{
 			PollSource->process( App_, PollSource );
 		}
-	}
-
-	// Update window.
-	if( App_->window != Window_ )
-	{
-		// Ensure all job queues are flushed before caching new window.
-		// This just means that all threads that may depend upon this can
-		// complete their work safely.
-		SysKernel::pImpl()->flushAllJobQueues();
-
-		Window_ = App_->window;
 	}
 }	
 
