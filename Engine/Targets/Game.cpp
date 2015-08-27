@@ -55,11 +55,12 @@ void PsyAndroidMain( struct android_app* State )
 
 	static bool IsInitialised = false;
 	BcAssertMsg( IsInitialised == false, "Need to implement second tick through android_main." );
+	IsInitialised = BcTrue;
 
-    // Make sure glue isn't stripped.
-    app_dummy();
+	// Make sure glue isn't stripped.
+	app_dummy();
 
-    // Catch signals.
+	// Catch signals.
 	struct sigaction Handler;
 	memset( &Handler, 0, sizeof( Handler ) );
 	Handler.sa_sigaction = android_sigaction;
@@ -74,7 +75,7 @@ void PsyAndroidMain( struct android_app* State )
 	CATCHSIG( SIGPIPE );
 #undef CATCHSIG
 
-    GAndroidApp = State;
+	GAndroidApp = State;
 
 	// Set game thread to be this one. 
 	BcSetGameThread();

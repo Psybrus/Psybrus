@@ -28,7 +28,8 @@
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 OsClientAndroid::OsClientAndroid( android_app* App ):
-	App_( App )
+	App_( App ),
+	Window_( nullptr )
 {
 	// Setup keycode map.
 	KeyCodeMap_[ AKEYCODE_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
@@ -98,20 +99,24 @@ BcBool OsClientAndroid::create( const BcChar* pTitle )
 {
 	// Setup input.
 	App_->userData = this;
+	App_->onAppCmd = []( struct android_app* App, int32_t Cmd )->void
+		{
+			// TODO: Handle 
+		};
 	App_->onInputEvent = []( struct android_app* App, AInputEvent* Event )->int32_t
 		{
 			OsClientAndroid* Client = static_cast< OsClientAndroid* >( App->userData ); 
-			Client->handleInput( Event );
+			return Client->handleInput( Event ) ? 1 : 0;
 		};
 
 
-
 	// Wait until window init event is picked up.
-	while( App_->window == nullptr )
+	while( Window_ == nullptr )
 	{
 		pollLooper();
 
 	}
+
 	return BcTrue;
 }
 
@@ -142,7 +147,7 @@ BcHandle OsClientAndroid::getDeviceHandle()
 //virtual
 BcHandle OsClientAndroid::getWindowHandle()
 {
-	return static_cast< BcHandle >( App_->window );
+	return static_cast< BcHandle >( Window_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,20 +204,28 @@ void OsClientAndroid::pollLooper()
 			PollSource->process( App_, PollSource );
 		}
 
+		if( App_->activityState )
+		{
+
+		}
+
 		// Check if we are exiting.
 		if( App_->destroyRequested != 0 )
 		{
 			PSY_LOG( "Engine thread destroy requested!" );
 			PSY_LOG( "TODO: Recreate without destroying engine." );
-			SysKernel::pImpl()->stop();
-			return;
+			//SysKernel::pImpl()->stop();
+			//return;
 		}
 	}
+
+	// Update window.
+	Window_ = App_->window;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // handleInput
-void OsClientAndroid::handleInput( struct AInputEvent* Event )
+BcBool OsClientAndroid::handleInput( struct AInputEvent* Event )
 {
 	auto Source = AInputEvent_getSource( Event );
 	auto Type = AInputEvent_getType( Event );
@@ -279,7 +292,9 @@ void OsClientAndroid::handleInput( struct AInputEvent* Event )
 					EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, MouseEvent );
 				}
 			}
+			return BcTrue;
 		}
 		break;
 	}
+	return BcFalse;
 }

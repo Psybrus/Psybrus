@@ -89,10 +89,11 @@ public:
 private:
 	void pollLooper();
 
-	void handleInput( struct AInputEvent* Event );
+	BcBool handleInput( struct AInputEvent* Event );
 
 private:
 	struct android_app* App_;
+	struct ANativeWindow* Window_;
 
 	typedef std::map< BcU64, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;

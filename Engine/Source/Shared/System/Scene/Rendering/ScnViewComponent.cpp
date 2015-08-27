@@ -395,38 +395,43 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 	// Get context.
 	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
 
-	// Allocate a frame to render using default context.
-	RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-	RsRenderSort Sort( 0 );
-	
-	// Check viewport count.
-	if( Components.size() > RS_SORT_VIEWPORT_MAX )
+	// Check for native window handle.
+	// TODO: Better check on client "shouldRender" ?
+	if( pContext->getClient()->getWindowHandle() != 0 )
 	{
-		PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
+		// Allocate a frame to render using default context.
+		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+
+		RsRenderSort Sort( 0 );
+		
+		// Check viewport count.
+		if( Components.size() > RS_SORT_VIEWPORT_MAX )
+		{
+			PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
+		}
+
+		// Iterate over all view components.
+		for( auto Component : Components )
+		{
+			BcAssert( Component->isTypeOf< ScnViewComponent >() );
+			auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
+
+			ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
+
+			ViewComponent->bind( pFrame, Sort );
+
+			ScnRenderingVisitor Visitor( RenderContext );
+
+			// Increment viewport.
+			Sort.Viewport_++;
+		}
+
+		// TODO: Move completely to DsCore.
+		//       Probably depends on registration with RsCore.
+		// Render ImGui.
+		ImGui::Psybrus::Render( pContext, pFrame );
+
+		// Queue frame for render.
+		RsCore::pImpl()->queueFrame( pFrame );
 	}
-
-	// Iterate over all view components.
-	for( auto Component : Components )
-	{
-		BcAssert( Component->isTypeOf< ScnViewComponent >() );
-		auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
-
-		ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
-
-		ViewComponent->bind( pFrame, Sort );
-
-		ScnRenderingVisitor Visitor( RenderContext );
-
-		// Increment viewport.
-		Sort.Viewport_++;
-	}
-
-	// TODO: Move completely to DsCore.
-	//       Probably depends on registration with RsCore.
-	// Render ImGui.
-	ImGui::Psybrus::Render( pContext, pFrame );
-
-	// Queue frame for render.
-	RsCore::pImpl()->queueFrame( pFrame );
 }

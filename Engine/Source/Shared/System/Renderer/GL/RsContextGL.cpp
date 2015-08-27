@@ -497,15 +497,58 @@ void RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 0 );
 	++InsideBeginEnd_;
+
+#if PLATFORM_ANDROID
+	//
+	ANativeWindow* Window = static_cast< ANativeWindow* >( pClient_->getWindowHandle() );
+	BcAssert( Window != nullptr );
+
+	if( Width != Width_ || Height != Height_ || EGLWindow_ != Window )
+	{
+		EGLWindow_ = Window;
+
+		// Destroy old surface.
+		if( EGLSurface_ != nullptr )
+		{
+			if( !eglDestroySurface( EGLSurface_, EGLContext_ ) )
+			{
+				PSY_LOG( "eglDestroySurface() returned error %d", eglGetError() );
+			}
+		}
+
+		ANativeWindow_setBuffersGeometry( Window, 0, 0, EGLFormat_ );
+
+		// Recreate EGL surface for new window.
+		if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
+		{
+			PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
+			return;
+		}
+		else
+		{
+			PSY_LOG( "eglCreateWindowSurface() success" );
+		}
+
+
+		// Make context current with new surface.
+		if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
+		{
+			PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
+			return;
+		}
+		else
+		{
+			PSY_LOG( "eglMakeCurrent() success" );
+		}
+	}
+
+#endif
+
 	Width_ = Width;
 	Height_ = Height;
 
 	setDefaultState();
 	setFrameBuffer( nullptr );
-
-#if PLATFORM_ANDROID
-	// If we need to recreate egl surface, do so here.
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -798,7 +841,7 @@ void RsContextGL::create()
 
 	if ( !eglInitialize( EGLDisplay_, 0, 0 ) )
 	{
-		BcAssertMsg( false, "eGL( Initialize() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglInitialize() returned error %d", eglGetError() );
 		return;
 	}
 	else
@@ -808,7 +851,7 @@ void RsContextGL::create()
 
 	if ( !eglChooseConfig( EGLDisplay_, EGLConfigAttribs, &EGLConfig_, 1, &EGLNumConfigs_ ) )
 	{
-		BcAssertMsg( false, "eGL( ChooseConfig() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglChooseConfig() returned error %d", eglGetError() );
 		return;
 	}
 	else
@@ -818,7 +861,7 @@ void RsContextGL::create()
 
 	if ( !eglGetConfigAttrib( EGLDisplay_, EGLConfig_, EGL_NATIVE_VISUAL_ID, &EGLFormat_ ) ) 
 	{
-		BcAssertMsg( false, "eGL( GetConfigAttrib() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglGetConfigAttrib() returned error %d", eglGetError() );
 		return;
 	}
 	else
@@ -828,22 +871,13 @@ void RsContextGL::create()
 
 	ANativeWindow* Window = static_cast< ANativeWindow* >( pClient_->getWindowHandle() );
 	BcAssert( Window != nullptr );
+	EGLWindow_ = Window;
 
 	ANativeWindow_setBuffersGeometry( Window, 0, 0, EGLFormat_ );
 	
 	PSY_LOG( "ANativeWindow_setBuffersGeometry() success" );
 
-	if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
-	{
-		PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
-		return;
-	}
-	else
-	{
-		PSY_LOG( "eglCreateWindowSurface() success" );
-	}
-	
-	if ( !( EGLContext_ = eglCreateContext( EGLDisplay_, EGLConfig_, 0, EGContextAttribs ) ) )
+		if ( !( EGLContext_ = eglCreateContext( EGLDisplay_, EGLConfig_, 0, EGContextAttribs ) ) )
 	{
 		PSY_LOG( "eglCreateContext() returned error %d", eglGetError() );
 		return;
@@ -853,6 +887,16 @@ void RsContextGL::create()
 		PSY_LOG( "eglCreateContext() success" );
 	}
 	
+	if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
+	{
+		PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
+		return;
+	}
+	else
+	{
+		PSY_LOG( "eglCreateWindowSurface() success" );
+	}
+
 	if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
 	{
 		PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
@@ -874,6 +918,8 @@ void RsContextGL::create()
 		PSY_LOG( "eglQuerySurface() success. %u x %u", EGLWidth_, EGLHeight_ );
 		OsClientAndroid* Client = static_cast< OsClientAndroid* >( pClient_ );
 		Client->setSize( EGLWidth_, EGLHeight_ );
+		Width_ = EGLWidth_;
+		Height_ = EGLHeight_;
 	}
 
 #endif

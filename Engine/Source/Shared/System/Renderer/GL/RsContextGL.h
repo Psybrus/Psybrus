@@ -242,6 +242,7 @@ private:
 	EGLint EGLWidth_;
 	EGLint EGLHeight_;
 	GLfloat EGLRatio_;
+	struct ANativeWindow* EGLWindow_;
 #endif
 
 	RsContextGL* pParent_;
