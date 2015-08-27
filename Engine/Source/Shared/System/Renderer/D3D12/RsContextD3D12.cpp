@@ -423,14 +423,14 @@ void RsContextD3D12::create()
 
 	// Setup swap chain desc.
 	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
-    SwapChainDesc_.BufferCount = NumSwapBuffers_;
+	SwapChainDesc_.BufferCount = NumSwapBuffers_;
 	SwapChainDesc_.BufferDesc.Width = Client->getWidth();
-    SwapChainDesc_.BufferDesc.Height = Client->getHeight();
-    SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	SwapChainDesc_.BufferDesc.Height = Client->getHeight();
+	SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	SwapChainDesc_.OutputWindow = (HWND)Client->getWindowHandle();
 	SwapChainDesc_.SampleDesc.Count = 1;
-    SwapChainDesc_.Windowed = TRUE;
+	SwapChainDesc_.Windowed = TRUE;
 	SwapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	SwapChainDesc_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
@@ -1372,8 +1372,8 @@ void RsContextD3D12::flushState()
 	}
 
 	// Setup viewport.
-	CommandList->RSSetScissorRects( static_cast< UINT >( ScissorRects_.size() ), ScissorRects_.data() );
 	CommandList->RSSetViewports( static_cast< UINT >( Viewports_.size() ), Viewports_.data() );
+	CommandList->RSSetScissorRects( static_cast< UINT >( ScissorRects_.size() ), ScissorRects_.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////

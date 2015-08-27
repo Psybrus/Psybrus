@@ -3098,10 +3098,10 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 		FBHeight = RT->getDesc().Height_;
 	}
 
-	BcS32 SX = X;
-	BcS32 SY = FBHeight - Height;
-	BcS32 SW = Width - X;
-	BcS32 SH = Height - Y;
+	const BcS32 SX = X;
+	const BcS32 SY = FBHeight - ( Height + Y );
+	const BcS32 SW = Width;
+	const BcS32 SH = Height;
 
 	if( ScissorX_ != SX ||
 		ScissorY_ != SY ||
