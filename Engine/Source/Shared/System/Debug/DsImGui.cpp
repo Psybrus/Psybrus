@@ -206,8 +206,8 @@ namespace
 							Context->setScissorRect(
 								(BcS32)Cmd->clip_rect.x, 
 								(BcS32)Cmd->clip_rect.y, 
-								(BcS32)Cmd->clip_rect.z, 
-								(BcS32)Cmd->clip_rect.w );
+								(BcS32)( Cmd->clip_rect.z - Cmd->clip_rect.x ), 
+								(BcS32)( Cmd->clip_rect.w - Cmd->clip_rect.y ) );
 							if( Cmd->texture_id != nullptr )
 							{
 								Context->setTexture( 0, (RsTexture*)Cmd->texture_id );
