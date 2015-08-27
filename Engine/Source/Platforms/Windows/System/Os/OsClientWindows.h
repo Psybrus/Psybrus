@@ -28,66 +28,19 @@ public:
 	OsClientWindows();
 	~OsClientWindows();
 
-	/**
-	*	Create window.
-	*/
-	BcBool			create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
+	BcBool create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
+	void destroy();
 
-	/**
-	 *	Update.
-	 */
-	virtual void	update();
-
-
-	/**
-	*	Destroy window.
-	*/
-	void			destroy();
-
-	/**
-	 * Get device handle.
-	 */
-	virtual BcHandle getDeviceHandle();
-
-	/**
-	 * Get window handle.
-	 */
-	virtual BcHandle getWindowHandle();
-
-	/**
- 	 * Get width.
-	 */
-	virtual BcU32 getWidth() const;
-
-	/**
- 	 * Get height.
-	 */
-	virtual BcU32 getHeight() const;
-
-	/**
-	 * Centre the window.
-	 */
-	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
-
-	/**
-	 * Get window center.
-	 */
-	MaVec2d getWindowCentre() const;
-
-	/**
-	 * Set mouse lock.
-	 */
+	void update();
+	BcHandle getDeviceHandle();
+	BcHandle getWindowHandle();
+	BcU32 getWidth() const;
+	BcU32 getHeight() const;
+	bool haveFocus() const;
 	void setMouseLock( BcBool Enabled );
 
-	/**
-	 * Get device context.
-	 */
-	HDC	getHDC();
-
-	/**
-	 * Get window handle.
-	 */
-	HWND getHWND();
+	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
+	MaVec2d getWindowCentre() const;
 
 private:
 	void mapKeyEvent( OsEventInputKeyboard& Event, WPARAM wParam );

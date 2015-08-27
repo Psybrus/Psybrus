@@ -428,7 +428,7 @@ void RsContextD3D12::create()
     SwapChainDesc_.BufferDesc.Height = Client->getHeight();
     SwapChainDesc_.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	SwapChainDesc_.OutputWindow = Client->getHWND();
+	SwapChainDesc_.OutputWindow = (HWND)Client->getWindowHandle();
 	SwapChainDesc_.SampleDesc.Count = 1;
     SwapChainDesc_.Windowed = TRUE;
 	SwapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;

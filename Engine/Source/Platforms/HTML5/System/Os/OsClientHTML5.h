@@ -28,61 +28,16 @@ public:
 	OsClientHTML5();
 	~OsClientHTML5();
 
-	/**
-	*	Create window.
-	*/
 	BcBool create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
-
-	/**
-	 *	Update.
-	 */
-	virtual void update();
-
-
-	/**
-	*	Destroy window.
-	*/
 	void destroy();
 
-	/**
-	 * Get device handle.
-	 */
-	virtual BcHandle getDeviceHandle();
-
-	/**
-	 * Get window handle.
-	 */
-	virtual BcHandle getWindowHandle();
-
-	/**
- 	 * Get width.
-	 */
-	virtual BcU32 getWidth() const;
-
-	/**
- 	 * Get height.
-	 */
-	virtual BcU32 getHeight() const;
-
-	/**
-	 * Centre the window.
-	 */
-	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
-
-	/**
-	 * Get window center.
-	 */
-	MaVec2d getWindowCentre() const;
-
-	/**
-	 * Set mouse lock.
-	 */
+	void update() override;
+	BcHandle getDeviceHandle() override;
+	BcHandle getWindowHandle() override;
+	BcU32 getWidth() const override;
+	BcU32 getHeight() const override;
+	bool haveFocus() const override;
 	void setMouseLock( BcBool Enabled );
-
-	/**
-	 * Get Window ID.
-	 */
-	BcU32 getWindowId() const;
 
 	/**
 	 * Handle event. Called from OsCoreImplSDL.

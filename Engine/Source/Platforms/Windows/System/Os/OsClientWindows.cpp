@@ -260,6 +260,27 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 }
 
 //////////////////////////////////////////////////////////////////////////
+// destroy
+void OsClientWindows::destroy()
+{	
+	// Destroy.
+	if ( hDC_ && !::ReleaseDC( hWnd_, hDC_ ) )
+	{
+		hDC_ = NULL;
+	}
+
+	if ( hWnd_ && !::DestroyWindow( hWnd_ ) )
+	{
+		hWnd_ = NULL;
+	}
+
+	::UnregisterClass( ClassName_, (HINSTANCE)hInstance_ );
+
+	hDC_ = NULL;
+	hWnd_ = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // update
 void OsClientWindows::update()
 {
@@ -325,27 +346,6 @@ void OsClientWindows::update()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroy
-void OsClientWindows::destroy()
-{	
-	// Destroy.
-	if ( hDC_ && !::ReleaseDC( hWnd_, hDC_ ) )
-	{
-		hDC_ = NULL;
-	}
-
-	if ( hWnd_ && !::DestroyWindow( hWnd_ ) )
-	{
-		hWnd_ = NULL;
-	}
-
-	::UnregisterClass( ClassName_, (HINSTANCE)hInstance_ );
-
-	hDC_ = NULL;
-	hWnd_ = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getDeviceHandle
 //virtual
 BcHandle OsClientWindows::getDeviceHandle()
@@ -378,30 +378,10 @@ BcU32 OsClientWindows::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// centreWindow
-BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
+// haveFocus
+bool OsClientWindows::haveFocus() const
 {
-	RECT Rect;
-
-	::SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
-
-	BcS32 Width = Rect.right - Rect.left;
-	BcS32 Height = Rect.bottom - Rect.top;
-	BcS32 slX = ( ( Width - SizeX ) / 2 ) + Rect.left;
-	BcS32 slY = ( ( Height - SizeY ) / 2 ) + Rect.top;
-
-	WindowSize_.left = slX;
-	WindowSize_.top = slY;
-	WindowSize_.right = ( SizeX + slX );
-	WindowSize_.bottom = ( SizeY + slY ); 
-	BcBool RetValue = BcTrue;
-
-	if( ::AdjustWindowRectEx( &WindowSize_, WindowStyle_, BcFalse, WindowStyleEx_ ) == FALSE )
-	{
-		RetValue  = BcFalse;
-	}
-	
-	return RetValue;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -464,17 +444,30 @@ void OsClientWindows::setMouseLock( BcBool Enabled )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getHDC
-HDC	OsClientWindows::getHDC()
+// centreWindow
+BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 {
-	return hDC_;
-}
+	RECT Rect;
 
-//////////////////////////////////////////////////////////////////////////
-// getHWND
-HWND OsClientWindows::getHWND()
-{
-	return hWnd_;
+	::SystemParametersInfo( SPI_GETWORKAREA, 0, &Rect, 0 );
+
+	BcS32 Width = Rect.right - Rect.left;
+	BcS32 Height = Rect.bottom - Rect.top;
+	BcS32 slX = ( ( Width - SizeX ) / 2 ) + Rect.left;
+	BcS32 slY = ( ( Height - SizeY ) / 2 ) + Rect.top;
+
+	WindowSize_.left = slX;
+	WindowSize_.top = slY;
+	WindowSize_.right = ( SizeX + slX );
+	WindowSize_.bottom = ( SizeY + slY ); 
+	BcBool RetValue = BcTrue;
+
+	if( ::AdjustWindowRectEx( &WindowSize_, WindowStyle_, BcFalse, WindowStyleEx_ ) == FALSE )
+	{
+		RetValue  = BcFalse;
+	}
+	
+	return RetValue;
 }
 
 //////////////////////////////////////////////////////////////////////////

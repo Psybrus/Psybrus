@@ -29,7 +29,8 @@
 // Ctor
 OsClientAndroid::OsClientAndroid( android_app* App ):
 	App_( App ),
-	Window_( nullptr )
+	Window_( nullptr ),
+	HaveFocus_( true )
 {
 	// Setup keycode map.
 	KeyCodeMap_[ AKEYCODE_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
@@ -117,6 +118,22 @@ BcBool OsClientAndroid::create( const BcChar* pTitle )
 					Client->Window_ = App->window;
 				}
 				break;
+
+			case APP_CMD_LOST_FOCUS:
+				{
+					SysKernel::pImpl()->flushAllJobQueues();
+					Client->HaveFocus_ = false;
+					Client->Window_ = nullptr;
+				}
+				break;
+
+			case APP_CMD_GAINED_FOCUS:
+				{
+					SysKernel::pImpl()->flushAllJobQueues();
+					Client->HaveFocus_ = true;
+					Client->Window_ = App->window;
+				}
+				break;
 			}
 		};
 
@@ -138,17 +155,17 @@ BcBool OsClientAndroid::create( const BcChar* pTitle )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// update
-void OsClientAndroid::update()
-{
-	pollLooper();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // destroy
 void OsClientAndroid::destroy()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// update
+void OsClientAndroid::update()
+{
+	pollLooper();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,17 +201,17 @@ BcU32 OsClientAndroid::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// haveFocus
+bool OsClientAndroid::haveFocus() const
+{
+	return HaveFocus_ && Window_ != nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setMouseLock
 void OsClientAndroid::setMouseLock( BcBool Enabled )
 {
 	MouseLocked_ = Enabled;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// handleEvent
-BcU32 OsClientAndroid::getWindowId() const
-{
-	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

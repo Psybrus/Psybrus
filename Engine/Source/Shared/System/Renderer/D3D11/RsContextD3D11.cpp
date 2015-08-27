@@ -630,7 +630,7 @@ void RsContextD3D11::create()
     SwapChainDesc_.BufferDesc.RefreshRate.Numerator = 60;
     SwapChainDesc_.BufferDesc.RefreshRate.Denominator = 1;
     SwapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	SwapChainDesc_.OutputWindow = pClient->getHWND();
+	SwapChainDesc_.OutputWindow = (HWND)pClient->getWindowHandle();
 	SwapChainDesc_.SampleDesc.Count = 1;
 	SwapChainDesc_.SampleDesc.Quality = 0;
     SwapChainDesc_.Windowed = TRUE;

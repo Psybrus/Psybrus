@@ -52,6 +52,11 @@ public:
 	virtual BcU32 getHeight() const = 0;
 
 	/**
+	 * Have focus.
+	 */
+	virtual bool haveFocus() const = 0;
+
+	/**
 	 * Set mouse lock.
 	 */
 	virtual void setMouseLock( BcBool Enabled ) = 0;

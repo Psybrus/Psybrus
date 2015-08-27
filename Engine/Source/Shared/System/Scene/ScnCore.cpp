@@ -295,18 +295,22 @@ void ScnCore::update()
 
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
-	// Iterate over all component process funcs.
-	for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
+	// Update scene only if we have focus.
+	if( OsCore::pImpl()->getClient( 0 )->haveFocus() )
 	{
-		auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
-		auto& ComponentList = ComponentLists_[ ComponentListIdx ];
-		ComponentProcessFunc.Func_( ComponentList );
-	}
+		// Iterate over all component process funcs.
+		for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
+		{
+			auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
+			auto& ComponentList = ComponentLists_[ ComponentListIdx ];
+			ComponentProcessFunc.Func_( ComponentList );
+		}
 
-	// Process pending components at the end of the tick.
-	// We do this because they can be immediately created,
-	// and need a create tick from CsCore next frame.
-	processPendingComponents();
+		// Process pending components at the end of the tick.
+		// We do this because they can be immediately created,
+		// and need a create tick from CsCore next frame.
+		processPendingComponents();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
