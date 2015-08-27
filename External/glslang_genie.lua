@@ -7,8 +7,8 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 			"./glslang/glslang/GenericCodeGen/**.cpp",
 			"./glslang/glslang/MachineIndependent/**.h",
 			"./glslang/glslang/MachineIndependent/**.cpp",
-			"./glslang/glslang/MachineIndependent/gen_glslang_tab.cpp",
-			"./glslang/glslang/MachineIndependent/gen_glslang_tab.h",
+			"./glslang/glslang/MachineIndependent/glslang_tab.cpp",
+			"./glslang/glslang/MachineIndependent/glslang_tab.cpp.h",
 			"./glslang/OGLCompilersDLL/**.h",
 			"./glslang/OGLCompilersDLL/**.cpp",
 			"./glslang/glslang/Include/**.h",
@@ -32,11 +32,12 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 		glslangPath = "..\\..\\Psybrus\\External\\glslang\\glslang\\MachineIndependent"
 		glslangBisonPath = "..\\..\\Psybrus\\External\\glslang\\Tools\\bison.exe"
 		prebuildcommands {
-			"@echo Generating gen_glslang_tab.cpp",
-			glslangBisonPath .. " -t -v -d " .. glslangPath .. "\\glslang.y",
-			"move glslang.tab.c " .. glslangPath .. "\\gen_glslang_tab.cpp",
-			"move glslang.tab.h " .. glslangPath .. "\\glslang_tab.cpp.h",
-		}
+			"@echo Generating glslang_tab.cpp + glslang_tab.cpp.h",
+			glslangBisonPath .. 
+				" --defines=" .. glslangPath .. "\\glslang_tab.cpp.h" .. 
+				" -t " .. glslangPath .. "\\glslang.y" .. 
+				" -o " .. glslangPath .. "\\glslang_tab.cpp"
+			}
 
 	configuration "linux-* or osx-*"
 		files { 
@@ -52,9 +53,10 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 		glslangPath = "../../Psybrus/External/glslang/glslang/MachineIndependent"
 		prebuildcommands {
 			"@echo Generating gen_glslang_tab.cpp",
-			"bison -t -v -d " .. glslangPath .. "/glslang.y",
-			"mv glslang.tab.c " .. glslangPath .. "/gen_glslang_tab.cpp",
-			"mv glslang.tab.h " .. glslangPath .. "/glslang_tab.cpp.h",
+			glslangBisonPath .. 
+				" --defines=" .. glslangPath .. "/glslang_tab.cpp.h" .. 
+				" -t " .. glslangPath .. "/glslang.y" .. 
+				" -o " .. glslangPath .. "/glslang_tab.cpp"
 		}
 
 end
