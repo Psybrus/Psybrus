@@ -21,6 +21,8 @@ precision mediump float;
 
 //////////////////////////////////////////////////////////////////////////
 // Input attributes.
+#define VsPosition gl_Position
+
 #if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
 #  define VS_IN( _Ty, _Name, _Semantic )		in _Ty _Name : _Semantic
 #  define VS_OUT( _Ty, _Name )					out _Ty _Name
@@ -158,6 +160,7 @@ vec4 mul( mat4 M, vec4 V )
 #  define PSY_SAMPLE_3D( _n, _c ) texture3D( a##_n, _c )
 #  define PSY_SAMPLE_CUBE( _n, _c ) textureCUBE( a##_n, _c )
 #endif
+
 
 //////////////////////////////////////////////////////////////////////////
 // Uniforms.
