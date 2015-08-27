@@ -246,7 +246,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		
 		// Only create target code type.
 		if( pProgramHeader->ShaderCodeType_ == TargetCodeType_ )
-		{	
+		{
 			for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
 			{
 				if( pProgramHeader->ShaderHashes_[ Idx ] != 0 )
@@ -294,5 +294,12 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( TotalProgramsLoaded_ == pHeader_->NoofProgramPermutations_ )
 	{
 		markCreate();
+
+		if( ProgramMap_.size() == 0 )
+		{
+			PSY_LOG( "WARNING: No programs created for $(ScnShader:%s.%s)",
+				(*getPackage()->getName()).c_str(),
+				(*getName()).c_str() );
+		}
 	}
 }
