@@ -341,9 +341,14 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	RsContext( pParent ),
 	pParent_( pParent ),
 	pClient_( pClient ),
+	InsideBeginEnd_( 0 ),
+	Width_( 0 ),
+	Height_( 0 ),
 	Adapter_( nullptr ),
 	Device_( nullptr ),
 	Context_( nullptr ),
+	BackBufferRT_( nullptr ),
+	BackBufferDS_( nullptr ),
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode )
 {
@@ -378,22 +383,6 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 RsContextD3D11::~RsContextD3D11()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getWidth
-//virtual
-BcU32 RsContextD3D11::getWidth() const
-{
-	return pClient_->getWidth();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getHeight
-//virtual
-BcU32 RsContextD3D11::getHeight() const
-{
-	return pClient_->getHeight();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -482,9 +471,137 @@ RsShaderCodeType RsContextD3D11::maxShaderCodeType( RsShaderCodeType CodeType ) 
 }
 
 //////////////////////////////////////////////////////////////////////////
-// presentBackBuffer
-void RsContextD3D11::presentBackBuffer()
+// getWidth
+//virtual
+BcU32 RsContextD3D11::getWidth() const
 {
+	BcAssert( InsideBeginEnd_ == 1 );
+	return Width_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeight
+//virtual
+BcU32 RsContextD3D11::getHeight() const
+{
+	BcAssert( InsideBeginEnd_ == 1 );
+	return Height_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginFrame
+void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
+{
+	BcAssert( InsideBeginEnd_ == 0 );
+	++InsideBeginEnd_;
+
+	// Resize swap chain.
+	if( Width_ != Width || Height_ != Height )
+	{
+		// Default formats.
+		auto BackBufferRTFormat = RsTextureFormat::R8G8B8A8; // TODO: Get for BackBufferDesc.Format...
+		auto BackBufferDSFormat = RsTextureFormat::D24S8;
+
+		// Free old buffers.
+		if( BackBufferRT_ != nullptr )
+		{
+			delete BackBufferRT_;
+			BackBufferRT_ = nullptr;
+			delD3DResource( BackBufferRTResourceIdx_ );
+			BackBufferRTResourceIdx_ = BcErrorCode;
+		}
+
+		if( BackBufferDS_ != nullptr )
+		{
+			delete BackBufferDS_;
+			BackBufferDS_ = nullptr;
+			delD3DResource( BackBufferDSResourceIdx_ );
+			BackBufferDSResourceIdx_ = BcErrorCode;
+		}
+
+		// Resize buffers.
+		HRESULT Result = SwapChain_->ResizeBuffers( 
+			SwapChainDesc_.BufferCount, Width, Height, 
+			SwapChainDesc_.BufferDesc.Format, 
+			SwapChainDesc_.Flags );
+		BcAssert( SUCCEEDED( Result ) );
+		
+		// Get back buffer from swap chain.
+		SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
+		D3D11_TEXTURE2D_DESC BackBufferDesc;
+		BackBuffer_->GetDesc( &BackBufferDesc );
+		BackBufferRTResourceIdx_ = addD3DResource( 
+			BackBuffer_,
+			BackBufferDesc.Format,
+			BackBufferDesc.Format,
+			BackBufferDesc.Format );
+
+		// Create back buffer RT.
+		BackBufferRT_ = new RsTexture(
+				this,
+				RsTextureDesc( 
+					RsTextureType::TEX2D,
+					RsResourceCreationFlags::STATIC, 
+					RsResourceBindFlags::RENDER_TARGET,
+					BackBufferRTFormat, 1,
+					Width,
+					Height,
+					1 ) );
+		BackBufferRT_->setHandle< size_t >( BackBufferRTResourceIdx_ );
+
+		// Create back buffer DS.
+		BackBufferDS_ = new RsTexture(
+				this,
+				RsTextureDesc( 
+					RsTextureType::TEX2D,
+					RsResourceCreationFlags::STATIC, 
+					RsResourceBindFlags::DEPTH_STENCIL,
+					BackBufferDSFormat, 1,
+					Width,
+					Height,
+					1 ) );
+		const auto& TextureDesc = BackBufferDS_->getDesc();
+		D3D11_TEXTURE2D_DESC Desc;
+		Desc.Width = TextureDesc.Width_;
+		Desc.Height = TextureDesc.Height_;
+		Desc.MipLevels = TextureDesc.Levels_;
+		Desc.ArraySize = 1;
+		Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+		Desc.SampleDesc.Count = 1;
+		Desc.SampleDesc.Quality = 0;
+		Desc.Usage = D3D11_USAGE_DEFAULT;
+		Desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		Desc.CPUAccessFlags = 0;
+		Desc.MiscFlags = 0;
+
+		ID3D11Texture2D* D3DTexture = nullptr;
+ 		Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
+		BcAssert( SUCCEEDED( Result ) );
+		BackBufferDS_->setHandle( addD3DResource( 
+			D3DTexture,
+			gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+			gDSVFormats[ (BcU32)TextureDesc.Format_ ],
+			gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+		BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
+
+		RenderTargetViews_.fill( nullptr );
+		DepthStencilView_ = nullptr;
+	}
+
+	Width_ = Width;
+	Height_ = Height;
+
+	setDefaultState();
+	setFrameBuffer( nullptr );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endFrame
+void RsContextD3D11::endFrame()
+{
+	BcAssert( InsideBeginEnd_ == 1 );
+	--InsideBeginEnd_;
+
 	SwapChain_->Present( 0, 0 );
 
 	++FrameCounter_;
@@ -547,20 +664,6 @@ void RsContextD3D11::create()
 		&FeatureThreading,
 		sizeof( FeatureThreading ) );
 
-	// Get back buffer from swap chain.
-	SwapChain_->GetBuffer( 0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer_ );
-	D3D11_TEXTURE2D_DESC BackBufferDesc;
-	BackBuffer_->GetDesc( &BackBufferDesc );
-	BackBufferRTResourceIdx_ = addD3DResource( 
-		BackBuffer_,
-		BackBufferDesc.Format,
-		BackBufferDesc.Format,
-		BackBufferDesc.Format );
-
-	// 
-	auto BackBufferRTFormat = RsTextureFormat::R8G8B8A8; // TODO: Get for BackBufferDesc.Format...
-	auto BackBufferDSFormat = RsTextureFormat::D24S8;
-
 	// Fill in features.
 	D3D11_FEATURE_DATA_D3D9_OPTIONS D3D9Options;
 	Device_->CheckFeatureSupport(
@@ -622,59 +725,6 @@ void RsContextD3D11::create()
 			}
 		}
 	}
-
-	// Create back buffer RT.
-	BackBufferRT_ = new RsTexture(
-			this,
-			RsTextureDesc( 
-				RsTextureType::TEX2D,
-				RsResourceCreationFlags::STATIC, 
-				RsResourceBindFlags::RENDER_TARGET,
-				BackBufferRTFormat, 1,
-				pClient->getWidth(),
-				pClient->getHeight(),
-				1 ) );
-	BackBufferRT_->setHandle< size_t >( BackBufferRTResourceIdx_ );
-
-	// Create back buffer DS.
-	BackBufferDS_ = new RsTexture(
-			this,
-			RsTextureDesc( 
-				RsTextureType::TEX2D,
-				RsResourceCreationFlags::STATIC, 
-				RsResourceBindFlags::DEPTH_STENCIL,
-				BackBufferDSFormat, 1,
-				pClient->getWidth(),
-				pClient->getHeight(),
-				1 ) );
-	const auto& TextureDesc = BackBufferDS_->getDesc();
-	D3D11_TEXTURE2D_DESC Desc;
-	Desc.Width = TextureDesc.Width_;
-	Desc.Height = TextureDesc.Height_;
-	Desc.MipLevels = TextureDesc.Levels_;
-	Desc.ArraySize = 1;
-	Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
-	Desc.SampleDesc.Count = 1;
-	Desc.SampleDesc.Quality = 0;
-	Desc.Usage = D3D11_USAGE_DEFAULT;
-	Desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	Desc.CPUAccessFlags = 0;
-	Desc.MiscFlags = 0;
-
-	ID3D11Texture2D* D3DTexture = nullptr;
- 	Result = Device_->CreateTexture2D( &Desc, nullptr, &D3DTexture );
-	BcAssert( SUCCEEDED( Result ) );
-	BackBufferDS_->setHandle( addD3DResource( 
-		D3DTexture,
-		gTextureFormats[ (BcU32)TextureDesc.Format_ ],
-		gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-		gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
-
-	BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
-	RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
-	DepthStencilView_ = getD3DDepthStencilView( BackBufferDSResourceIdx_ );
-
-	Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
 
 	setDefaultState();
 }
@@ -1092,7 +1142,7 @@ bool RsContextD3D11::createRenderState(
 		Blend.RenderTarget[ Idx ].SrcBlendAlpha = gBlendType[ (size_t)SrcBlendState.SrcBlendAlpha_ ];
 		Blend.RenderTarget[ Idx ].DestBlendAlpha = gBlendType[ (size_t)SrcBlendState.DestBlendAlpha_ ];
 		Blend.RenderTarget[ Idx ].BlendOpAlpha = gBlendOp[ (size_t)SrcBlendState.BlendOpAlpha_ ];
-		Blend.RenderTarget[ Idx ].RenderTargetWriteMask = SrcBlendState.WriteMask_;
+		Blend.RenderTarget[ Idx ].RenderTargetWriteMask = (UINT8)SrcBlendState.WriteMask_;
 	}
 
 	// Rasterizer state.

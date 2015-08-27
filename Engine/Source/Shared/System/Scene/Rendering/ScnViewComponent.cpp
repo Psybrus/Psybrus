@@ -234,33 +234,11 @@ RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 
 //////////////////////////////////////////////////////////////////////////
 // bind
-class ScnViewComponentViewport: public RsRenderNode
-{
-public:
-	void render( RsContext* Context )
-	{
-		PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
-		Context->setFrameBuffer( FrameBuffer_ );
-		Context->setViewport( Viewport_ );
-		Context->clear( ClearColour_, EnableClearColour_, EnableClearDepth_, EnableClearStencil_ );
-	}
-
-	RsFrameBuffer* FrameBuffer_;
-	RsViewport Viewport_;
-	RsColour ClearColour_;
-	BcBool EnableClearColour_;
-	BcBool EnableClearDepth_;
-	BcBool EnableClearStencil_;	
-
-};
-
 void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 {
-	RsContext* pContext = pFrame->getContext();
-
 	// Calculate the viewport.
-	BcF32 Width = static_cast< BcF32 >( pContext->getWidth() );
-	BcF32 Height = static_cast< BcF32 >( pContext->getHeight() );
+	BcF32 Width = static_cast< BcF32 >( pFrame->getBackBufferWidth() );
+	BcF32 Height = static_cast< BcF32 >( pFrame->getBackBufferHeight() );
 
 	// If we're using a render target, we want to use it for dimensions.
 	if( RenderTarget_.isValid() )

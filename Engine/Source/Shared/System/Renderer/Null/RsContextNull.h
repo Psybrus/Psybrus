@@ -28,15 +28,16 @@ public:
 	RsContextNull( OsClient* pClient, RsContextNull* pParent );
 	virtual ~RsContextNull();
 	
-	virtual BcU32 getWidth() const override;
-	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
 	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
 
-	void presentBackBuffer();
+	BcU32 getWidth() const override;
+	BcU32 getHeight() const override;
+	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	void endFrame() override;
 	void takeScreenshot();
 	void setViewport( const class RsViewport& Viewport );
 
@@ -130,6 +131,8 @@ protected:
 private:
 	RsContextNull* pParent_;
 	OsClient* pClient_;
+	BcU32 Width_;
+	BcU32 Height_;
 	BcThreadId OwningThread_;
 	RsFeatures Features_;
 };

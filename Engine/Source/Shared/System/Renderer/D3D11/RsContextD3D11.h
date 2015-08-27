@@ -31,16 +31,17 @@ public:
 	RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent );
 	virtual ~RsContextD3D11();
 	
-	virtual BcU32 getWidth() const override;
-	virtual BcU32 getHeight() const override;
-	virtual OsClient* getClient() const override;
-	virtual const RsFeatures& getFeatures() const override;
+	OsClient* getClient() const override;
+	const RsFeatures& getFeatures() const override;
 
-	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
-	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
+	BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
+	RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
 
-	void presentBackBuffer();
-	void takeScreenshot();
+	BcU32 getWidth() const override;
+	BcU32 getHeight() const override;
+	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	void endFrame() override;
+	void takeScreenshot() override;
 
 	void setDefaultState();
 	void invalidateRenderState();
@@ -135,6 +136,10 @@ protected:
 private:
 	RsContextD3D11* pParent_;
 	OsClient* pClient_;
+
+	BcU32 InsideBeginEnd_;
+	BcU32 Width_;
+	BcU32 Height_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
 	BcComRef< IDXGIAdapter > Adapter_;

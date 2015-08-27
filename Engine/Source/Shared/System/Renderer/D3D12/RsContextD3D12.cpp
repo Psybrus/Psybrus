@@ -49,6 +49,9 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	RsContext( pParent ),
 	Parent_( pParent ),
 	Client_( pClient ),
+	InsideBeginEnd_( 0 ),
+	Width_( 0 ),
+	Height_( 0 ),
 	Adapter_(),
 	CommandQueueDesc_(),
 	CommandQueue_(),
@@ -58,7 +61,7 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 	FrameCounter_( 0 ),
 	FlushCounter_( 1 ),
 	NumSwapBuffers_( 3 ),
-	LastSwapBuffer_( 0 ),
+	CurrentSwapBuffer_( 0 ),
 	DefaultRootSignature_(),
 	DefaultPSO_(),
 	PSOCache_(),
@@ -87,22 +90,6 @@ RsContextD3D12::RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent ):
 RsContextD3D12::~RsContextD3D12()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getWidth
-//virtual
-BcU32 RsContextD3D12::getWidth() const
-{
-	return Client_->getWidth();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getHeight
-//virtual
-BcU32 RsContextD3D12::getHeight() const
-{
-	return Client_->getHeight();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,15 +186,54 @@ RsShaderCodeType RsContextD3D12::maxShaderCodeType( RsShaderCodeType CodeType ) 
 }
 
 //////////////////////////////////////////////////////////////////////////
-// presentBackBuffer
-void RsContextD3D12::presentBackBuffer()
+// getWidth
+//virtual
+BcU32 RsContextD3D12::getWidth() const
+{
+	BcAssert( InsideBeginEnd_ == 1 );
+	return Width_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeight
+//virtual
+BcU32 RsContextD3D12::getHeight() const
+{
+	BcAssert( InsideBeginEnd_ == 1 );
+	return Height_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginFrame
+void RsContextD3D12::beginFrame( BcU32 Width, BcU32 Height )
 {
 	PSY_PROFILE_FUNCTION;
+	BcAssert( InsideBeginEnd_ == 0 );
+	++InsideBeginEnd_;
+
+	// Recreate as needed.
+	recreateBackBuffers( Width, Height );
+
+	// Grab current swap buffer index.
+	CurrentSwapBuffer_ = SwapChain_->GetCurrentBackBufferIndex();
+
+	// Bind up default states.
+	setDefaultState();
+	setFrameBuffer( nullptr );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endFrame
+void RsContextD3D12::endFrame()
+{
+	PSY_PROFILE_FUNCTION;
+	BcAssert( InsideBeginEnd_ == 1 );
+	--InsideBeginEnd_;
 
 	// Transition back buffer to present.
 	{
 		auto CommandList = getCurrentCommandList();
-		RsResourceD3D12* BackBufferResource = BackBufferRT_[ LastSwapBuffer_ ]->getHandle< RsResourceD3D12* >();
+		RsResourceD3D12* BackBufferResource = BackBufferRT_[ CurrentSwapBuffer_ ]->getHandle< RsResourceD3D12* >();
 		BackBufferResource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_PRESENT );
 	}
 
@@ -222,15 +248,6 @@ void RsContextD3D12::presentBackBuffer()
 			BcAssert( SUCCEEDED( RetVal ) );
 			++FrameCounter_;
 		} );
-
-	// Get next buffer.
-	LastSwapBuffer_ = SwapChain_->GetCurrentBackBufferIndex();
-
-	// Prep for next frame.
-	recreateBackBuffer();
-	
-	// Back to default frame buffer.
-	setFrameBuffer( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -443,20 +460,8 @@ void RsContextD3D12::create()
 	// TODO: Use more than 1. For now this is so we don't need to fence/flush to handle resource deletion.
 	createCommandListData( 1 );
 
-	// Create backbuffers.
-	createBackBuffers();
-
 	// Flush command list.
 	flushCommandList( nullptr );
-
-	// Recreate backbuffer.
-	recreateBackBuffer();
-
-	// Default state.
-	setDefaultState();
-
-	// Default frame buffer.
-	setFrameBuffer( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -476,7 +481,7 @@ void RsContextD3D12::destroy()
 		destroyFrameBuffer( BackBufferFB );
 	}
 
-	for( auto BackBufferRT : BackBufferRT_)
+	for( auto BackBufferRT : BackBufferRT_ )
 	{
 		destroyTexture( BackBufferRT );
 	}
@@ -667,7 +672,7 @@ void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Even if null, we want backbuffer bound.
 	if( FrameBuffer == nullptr )
 	{
-		FrameBuffer_ = BackBufferFB_[ LastSwapBuffer_ ];
+		FrameBuffer_ = BackBufferFB_[ CurrentSwapBuffer_ ];
 	}
 	else
 	{
@@ -1391,8 +1396,11 @@ void RsContextD3D12::flushCommandList( std::function< void() > PostExecute )
 		ID3D12CommandList* CommandLists[] = { CommandListData.CommandList_.Get() };
 		CommandQueue_->ExecuteCommandLists( 1, CommandLists );
 
-		PostExecute();
-		
+		if( PostExecute )
+		{
+			PostExecute();
+		}
+
 		// Signal next.
 		RetVal = CommandQueue_->Signal( CommandListData.CompleteFence_.Get(), ++CommandListData.CompletionValue_ );
 		BcAssert( SUCCEEDED( RetVal ) );
@@ -1425,14 +1433,6 @@ void RsContextD3D12::flushCommandList( std::function< void() > PostExecute )
 		// Reset allocator.
 		CommandListData.UploadAllocator_->reset();
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// recreateBackBuffer
-void RsContextD3D12::recreateBackBuffer()
-{
-	PSY_PROFILE_FUNCTION;
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1557,64 +1557,99 @@ void RsContextD3D12::createCommandListData( size_t NoofBuffers )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createBackBuffers
-void RsContextD3D12::createBackBuffers()
+// recreateBackBuffers
+void RsContextD3D12::recreateBackBuffers( BcU32 Width, BcU32 Height )
 {
-	// Resize.
-	BackBufferFB_.resize( SwapChainDesc_.BufferCount );
-	BackBufferRT_.resize( SwapChainDesc_.BufferCount );
-
-	// Create depth stencil.
+	if( Width_ != Width || Height_ != Height )
 	{
-		RsTextureDesc Desc;
-		Desc.Type_ = RsTextureType::TEX2D;
-		Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
-		Desc.Levels_ = 1;
-		Desc.Width_ = SwapChainDesc_.BufferDesc.Width;
-		Desc.Height_ = SwapChainDesc_.BufferDesc.Height;
-		Desc.Depth_= 1;
+		// Flush command list in flight before recreating back buffer.
+		for( BcU32 Idx = 0; Idx < SwapChainDesc_.BufferCount; ++Idx )
+		{
+			flushCommandList( nullptr );
+		}
 
-		// Depth stencil.
-		Desc.BindFlags_ = RsResourceBindFlags::DEPTH_STENCIL;
-		Desc.Format_ = RsTextureFormat::D24S8;
-		BackBufferDS_ = new RsTexture( this, Desc );
-		auto RetVal = createTexture( BackBufferDS_ );
-		BcAssert( RetVal );
-	}
+		// Destroy backbuffer.
+		for( auto BackBufferFB : BackBufferFB_ )
+		{
+			destroyFrameBuffer( BackBufferFB );
+		}
 
-	// Create RT + FBs.
-	for( BcU32 Idx = 0; Idx < SwapChainDesc_.BufferCount; ++Idx )
-	{
-		RsTextureDesc Desc;
-		Desc.Type_ = RsTextureType::TEX2D;
-		Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
-		Desc.Levels_ = 1;
-		Desc.Width_ = SwapChainDesc_.BufferDesc.Width;
-		Desc.Height_ = SwapChainDesc_.BufferDesc.Height;
-		Desc.Depth_= 1;
+		for( auto BackBufferRT : BackBufferRT_ )
+		{
+			destroyTexture( BackBufferRT );
+		}
 
-		// Render target.
-		Desc.BindFlags_ = RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::PRESENT | RsResourceBindFlags::SHADER_RESOURCE;
-		Desc.Format_ = RsTextureFormat::R8G8B8A8;
-		BackBufferRT_[ Idx ] = new RsTexture( this, Desc );
+		if( BackBufferDS_ != nullptr )
+		{
+			destroyTexture( BackBufferDS_ );
+		}
 
-		ComPtr< ID3D12Resource > BackBufferResource;
-		auto RetVal = SwapChain_->GetBuffer( Idx, IID_PPV_ARGS( BackBufferResource.GetAddressOf() ));
-		BcAssert( SUCCEEDED( RetVal ) );
+		// Resize.
+		BackBufferFB_.resize( SwapChainDesc_.BufferCount );
+		BackBufferRT_.resize( SwapChainDesc_.BufferCount );
+
+		// Resize buffers.
+		SwapChain_->ResizeBuffers( 
+			SwapChainDesc_.BufferCount, 
+			Width, Height, 
+			SwapChainDesc_.BufferDesc.Format, 
+			SwapChainDesc_.Flags );
+
+		// Create depth stencil.
+		{
+			RsTextureDesc Desc;
+			Desc.Type_ = RsTextureType::TEX2D;
+			Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
+			Desc.Levels_ = 1;
+			Desc.Width_ = Width;
+			Desc.Height_ = Height;
+			Desc.Depth_= 1;
+
+			// Depth stencil.
+			Desc.BindFlags_ = RsResourceBindFlags::DEPTH_STENCIL;
+			Desc.Format_ = RsTextureFormat::D24S8;
+			BackBufferDS_ = new RsTexture( this, Desc );
+			auto RetVal = createTexture( BackBufferDS_ );
+			BcAssert( RetVal );
+		}
+
+		// Create RT + FBs.
+		for( BcU32 Idx = 0; Idx < SwapChainDesc_.BufferCount; ++Idx )
+		{
+			RsTextureDesc Desc;
+			Desc.Type_ = RsTextureType::TEX2D;
+			Desc.CreationFlags_  = RsResourceCreationFlags::NONE;
+			Desc.Levels_ = 1;
+			Desc.Width_ = Width;
+			Desc.Height_ = Height;
+			Desc.Depth_= 1;
+
+			// Render target.
+			Desc.BindFlags_ = RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::PRESENT | RsResourceBindFlags::SHADER_RESOURCE;
+			Desc.Format_ = RsTextureFormat::R8G8B8A8;
+			BackBufferRT_[ Idx ] = new RsTexture( this, Desc );
+
+			ComPtr< ID3D12Resource > BackBufferResource;
+			auto RetVal = SwapChain_->GetBuffer( Idx, IID_PPV_ARGS( BackBufferResource.GetAddressOf() ));
+			BcAssert( SUCCEEDED( RetVal ) );
 		
-		auto BackBufferRTResource = new RsResourceD3D12( BackBufferResource.Get(), 
-			RsUtilsD3D12::GetResourceUsage( Desc.BindFlags_ ),
-			D3D12_RESOURCE_STATE_PRESENT );
-		BackBufferRT_[ Idx ]->setHandle( BackBufferRTResource );
+			auto BackBufferRTResource = new RsResourceD3D12( BackBufferResource.Get(), 
+				RsUtilsD3D12::GetResourceUsage( Desc.BindFlags_ ),
+				D3D12_RESOURCE_STATE_PRESENT );
+			BackBufferRT_[ Idx ]->setHandle( BackBufferRTResource );
 
-		RsFrameBufferDesc FBDesc = RsFrameBufferDesc( 1 ).setRenderTarget( 0, BackBufferRT_[ Idx ] );
+			RsFrameBufferDesc FBDesc = RsFrameBufferDesc( 1 ).setRenderTarget( 0, BackBufferRT_[ Idx ] );
 
-		FBDesc.setDepthStencilTarget( BackBufferDS_ );
+			FBDesc.setDepthStencilTarget( BackBufferDS_ );
 
-		BackBufferFB_[ Idx ] = new RsFrameBuffer( this, FBDesc );
-		RetVal = createFrameBuffer( BackBufferFB_[ Idx ] );
-		BcAssert( RetVal );
+			BackBufferFB_[ Idx ] = new RsFrameBuffer( this, FBDesc );
+			RetVal = createFrameBuffer( BackBufferFB_[ Idx ] );
+			BcAssert( RetVal );
+		}
 	}
+
+	Width_ = Width;
+	Height_ = Height;
 }
 
 //////////////////////////////////////////////////////////////////////////

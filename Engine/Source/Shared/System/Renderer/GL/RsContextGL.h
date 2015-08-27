@@ -96,16 +96,17 @@ public:
 	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
 	
-	virtual BcU32 getWidth() const override;
-	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
 	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
 
-	void presentBackBuffer();
-	void takeScreenshot();
+	BcU32 getWidth() const override;
+	BcU32 getHeight() const override;
+	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	void endFrame() override;
+	void takeScreenshot() override;
 
 	bool createRenderState(
 		RsRenderState* RenderState );
@@ -245,6 +246,10 @@ private:
 
 	RsContextGL* pParent_;
 	OsClient* pClient_;
+
+	BcU32 InsideBeginEnd_;
+	BcU32 Width_;
+	BcU32 Height_;
 
 	RsOpenGLVersion Version_;
 

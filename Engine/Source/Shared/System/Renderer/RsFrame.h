@@ -31,12 +31,22 @@ public:
 		BcU32 NoofNodes = 32 * 1024, 
 		BcU32 NodeMem = 1024 * 1024 );
 	~RsFrame();
-	
+
 	/**
 	 *	Get context.
 	 */
 	class RsContext* getContext() const;
 
+	/**
+	 *	Get back buffer width.
+	 */
+	BcU32 getBackBufferWidth() const;
+	
+	/**
+	 *	Get back buffer height.
+	 */
+	BcU32 getBackBufferHeight() const;
+	
 	/**
 	 * Reset frame.
 	 */
@@ -85,6 +95,8 @@ private:
 
 private:
 	class RsContext* pContext_;
+	BcU32 Width_;
+	BcU32 Height_;
 	class RsRenderNode** ppNodeArray_;
 	class RsRenderNode** ppNodeSortArray_;
 	BcU32 NoofNodes_;

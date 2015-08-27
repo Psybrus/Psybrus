@@ -35,6 +35,8 @@ RsContextNull::RsContextNull( OsClient* pClient, RsContextNull* pParent ):
 	RsContext( pParent ),
 	pParent_( pParent ),
 	pClient_( pClient ),
+	Width_( 0 ),
+	Height_( 0 ),
 	OwningThread_( BcErrorCode )
 {
 
@@ -46,22 +48,6 @@ RsContextNull::RsContextNull( OsClient* pClient, RsContextNull* pParent ):
 RsContextNull::~RsContextNull()
 {
 
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getWidth
-//virtual
-BcU32 RsContextNull::getWidth() const
-{
-	return pClient_->getWidth();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getHeight
-//virtual
-BcU32 RsContextNull::getHeight() const
-{
-	return pClient_->getHeight();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,8 +83,32 @@ RsShaderCodeType RsContextNull::maxShaderCodeType( RsShaderCodeType CodeType ) c
 }
 
 //////////////////////////////////////////////////////////////////////////
-// presentBackBuffer
-void RsContextNull::presentBackBuffer()
+// getWidth
+//virtual
+BcU32 RsContextNull::getWidth() const
+{
+	return Width_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeight
+//virtual
+BcU32 RsContextNull::getHeight() const
+{
+	return Height_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginFrame
+void RsContextNull::beginFrame( BcU32 Width, BcU32 Height )
+{
+	Width_ = Width;
+	Height_ = Height;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endFrame
+void RsContextNull::endFrame()
 {
 }
 

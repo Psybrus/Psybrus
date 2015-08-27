@@ -33,16 +33,17 @@ public:
 	RsContextD3D12( OsClient* pClient, RsContextD3D12* pParent );
 	virtual ~RsContextD3D12();
 	
-	virtual BcU32 getWidth() const override;
-	virtual BcU32 getHeight() const override;
 	virtual OsClient* getClient() const override;
 	virtual const RsFeatures& getFeatures() const override;
 
 	virtual BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const override;
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const override;
 
-	void presentBackBuffer();
-	void takeScreenshot();
+	BcU32 getWidth() const override;
+	BcU32 getHeight() const override;
+	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	void endFrame() override;
+	void takeScreenshot() override;
 	void setViewport( const class RsViewport& Viewport ) override;
 	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
@@ -130,11 +131,6 @@ public:
 	void flushCommandList( std::function< void() > PostExecute );
 
 	/**
-	 * (Re)create backbuffer.
-	 */
-	void recreateBackBuffer();
-
-	/**
 	 * Create default root signature.
 	 */
 	void createDefaultRootSignature();
@@ -150,9 +146,9 @@ public:
 	void createCommandListData( size_t NoofBuffers );
 
 	/**
-	 * Create backbuffers.
+	 * Recreate backbuffers.
 	 */
-	void createBackBuffers();
+	void recreateBackBuffers( BcU32 Width, BcU32 Height );
 
 	/**
 	 * Get current command list.
@@ -173,6 +169,10 @@ protected:
 private:
 	RsContextD3D12* Parent_;
 	OsClient* Client_;
+
+	BcU32 InsideBeginEnd_;
+	BcU32 Width_;
+	BcU32 Height_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
 	ComPtr< IDXGIFactory4 > Factory_;
@@ -244,7 +244,7 @@ private:
 	BcU64 FrameCounter_;
 	BcU64 FlushCounter_;
 	BcU32 NumSwapBuffers_;
-	BcU32 LastSwapBuffer_;
+	BcU32 CurrentSwapBuffer_;
 	
 	/// Graphics pipeline state management.
 	ComPtr< ID3D12RootSignature > DefaultRootSignature_;

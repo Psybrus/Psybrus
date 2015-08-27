@@ -48,18 +48,6 @@ public:
 	virtual ~RsContext();
 
 	/**
- 	 * Get width.
-	 * Thread safe.
-	 */
-	virtual BcU32 getWidth() const = 0;
-
-	/**
- 	 * Get height.
-	 * Thread safe.
-	 */
-	virtual BcU32 getHeight() const = 0;
-
-	/**
 	 * Get client.
 	 * Thread safe.
 	 */
@@ -85,10 +73,29 @@ public:
 	 */
 	virtual RsShaderCodeType maxShaderCodeType( RsShaderCodeType CodeType ) const = 0;
 
-	/** 
-	 * Present back buffer.
+	/**
+ 	 * Get width.
+	 * @pre Between beginFrame/endFrame calls. 
 	 */
-	virtual void presentBackBuffer() = 0;
+	virtual BcU32 getWidth() const = 0;
+
+	/**
+ 	 * Get height.
+	 * @pre Between beginFrame/endFrame calls. 
+	 */
+	virtual BcU32 getHeight() const = 0;
+
+	/**
+	 *	Begin frame.
+	 *	Will resize or setup backbuffer, depending on what is appropriate.
+	 */
+	virtual void beginFrame( BcU32 Width, BcU32 Height ) = 0;
+	
+	/**
+	 * End frame.
+	 * Will present backbuffer to client.
+	 */
+	virtual void endFrame() = 0;
 
 	/**
 	 * Requests a screenshot from the context.

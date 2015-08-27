@@ -15,6 +15,7 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsRenderNode.h"
+#include "System/Os/OsClient.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -65,6 +66,20 @@ RsContext* RsFrame::getContext() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getBackBufferWidth
+BcU32 RsFrame::getBackBufferWidth() const
+{
+	return Width_;
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// getBackBufferHeight
+BcU32 RsFrame::getBackBufferHeight() const
+{
+	return Height_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // reset
 void RsFrame::reset()
 {
@@ -73,6 +88,10 @@ void RsFrame::reset()
 
 	// Reset frame memory.
 	pCurrFrameMem_ = pFrameMem_;
+
+	// Cache width + height from client.
+	Width_ = pContext_->getClient()->getWidth();
+	Height_ = pContext_->getClient()->getHeight();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,8 +103,8 @@ void RsFrame::render()
 	// Only render if we have a valid context.
 	if( pContext_ != NULL )
 	{
-		// Set default state.
-		pContext_->setDefaultState();
+		// Begin frame.
+		pContext_->beginFrame( Width_, Height_ );
 
 		// Sort all nodes.
 		sortNodes();
@@ -98,7 +117,7 @@ void RsFrame::render()
 		}
 
 		// Present.
-		pContext_->presentBackBuffer();
+		pContext_->endFrame();
 
 		// Reset everything.
 		reset();

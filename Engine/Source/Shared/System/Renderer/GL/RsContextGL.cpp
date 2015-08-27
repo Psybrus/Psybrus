@@ -386,6 +386,9 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	RsContext( pParent ),
 	pParent_( pParent ),
 	pClient_( pClient ),
+	InsideBeginEnd_( 0 ),
+	Width_( 0 ),
+	Height_( 0 ),
 	ScreenshotRequested_( BcFalse ),
 	OwningThread_( BcErrorCode ),
 	FrameCount_( 0 ),
@@ -437,22 +440,6 @@ RsContextGL::~RsContextGL()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getWidth
-//virtual
-BcU32 RsContextGL::getWidth() const
-{
-	return pClient_->getWidth();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getHeight
-//virtual
-BcU32 RsContextGL::getHeight() const
-{
-	return pClient_->getHeight();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getClient
 //virtual
 OsClient* RsContextGL::getClient() const
@@ -485,11 +472,50 @@ RsShaderCodeType RsContextGL::maxShaderCodeType( RsShaderCodeType CodeType ) con
 }
 
 //////////////////////////////////////////////////////////////////////////
-// presentBackBuffer
-void RsContextGL::presentBackBuffer()
+// getWidth
+//virtual
+BcU32 RsContextGL::getWidth() const
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::presentBackBuffer" );
+	BcAssert( InsideBeginEnd_ == 1 );
+	return Width_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getHeight
+//virtual
+BcU32 RsContextGL::getHeight() const
+{
+	BcAssert( InsideBeginEnd_ == 1 );
+	return Height_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginFrame
+void RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
+{
+	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssert( InsideBeginEnd_ == 0 );
+	++InsideBeginEnd_;
+	Width_ = Width;
+	Height_ = Height;
+
+	setDefaultState();
+	setFrameBuffer( nullptr );
+
+#if PLATFORM_ANDROID
+	// If we need to recreate egl surface, do so here.
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endFrame
+void RsContextGL::endFrame()
+{
+	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssert( InsideBeginEnd_ == 1 );
+	--InsideBeginEnd_;
 
 	//PSY_LOG( "Draw calls: %u\n", NoofDrawCalls_ );
 	//PSY_LOG( "Render state flushes: %u\n", NoofRenderStateFlushes_ );
@@ -510,8 +536,8 @@ void RsContextGL::presentBackBuffer()
 		GL( Finish() );
 
 #if !defined( RENDER_USE_GLES )
-		BcU32 W = getWidth();
-		BcU32 H = getHeight();
+		BcU32 W = Width_;
+		BcU32 H = Height_;
 
 		// Read the back buffer.
 		GL( ReadBuffer( GL_BACK ) );
@@ -910,17 +936,14 @@ void RsContextGL::create()
 	RsRenderStateDesc RenderStateDesc = BoundRenderStateDesc_;
 	setRenderStateDesc( RenderStateDesc, BcTrue );
 
-	// Set default state.
-	// BINDING, not state..
-	setDefaultState();
-
+	// Ensure all buffers are cleared to black first.
+	const BcU32 Width = pClient_->getWidth();
+	const BcU32 Height = pClient_->getHeight();
 	for( BcU32 Idx = 0; Idx < 3; ++Idx )
 	{
-		// Clear screen and flip.
+		beginFrame( Width, Height );
 		clear( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
-
-		// Present back buffer.
-		presentBackBuffer();
+		endFrame();
 	}
 }
 
@@ -2430,8 +2453,8 @@ void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		DirtyFrameBuffer_ = BcTrue;
 		FrameBuffer_ = FrameBuffer;
 
-		BcU32 Width = getWidth();
-		BcU32 Height = getHeight();
+		BcU32 Width = Width_;
+		BcU32 Height = Height_;
 		if( FrameBuffer )
 		{
 			const auto& FBDesc = FrameBuffer->getDesc();
@@ -2831,8 +2854,8 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 {
 #if !defined( RENDER_USE_GLES )
 	// Grab current width + height.
-	auto FBWidth = getWidth();
-	auto FBHeight = getHeight();
+	auto FBWidth = Width_;
+	auto FBHeight = Height_;
 	if( FrameBuffer_ != nullptr )
 	{
 		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
@@ -2902,8 +2925,8 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 {
 #if !defined( RENDER_USE_GLES )
 	// Grab current width + height.
-	auto FBWidth = getWidth();
-	auto FBHeight = getHeight();
+	auto FBWidth = Width_;
+	auto FBHeight = Height_;
 	if( FrameBuffer_ != nullptr )
 	{
 		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
@@ -2982,8 +3005,8 @@ void RsContextGL::setViewport( const class RsViewport& Viewport )
 	BcAssert( Viewport.width() > 0 );
 	BcAssert( Viewport.height() > 0 );
 
-	auto FBWidth = getWidth();
-	auto FBHeight = getHeight();
+	auto FBWidth = Width_;
+	auto FBHeight = Height_;
 	if( FrameBuffer_ != nullptr )
 	{
 		auto RT = FrameBuffer_->getDesc().RenderTargets_[ 0 ];
