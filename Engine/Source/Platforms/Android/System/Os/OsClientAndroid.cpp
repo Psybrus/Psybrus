@@ -203,20 +203,6 @@ void OsClientAndroid::pollLooper()
 		{
 			PollSource->process( App_, PollSource );
 		}
-
-		if( App_->activityState )
-		{
-
-		}
-
-		// Check if we are exiting.
-		if( App_->destroyRequested != 0 )
-		{
-			PSY_LOG( "Engine thread destroy requested!" );
-			PSY_LOG( "TODO: Recreate without destroying engine." );
-			//SysKernel::pImpl()->stop();
-			//return;
-		}
 	}
 
 	// Update window.
