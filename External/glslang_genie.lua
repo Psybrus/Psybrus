@@ -54,7 +54,7 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 		glslangBisonPath = "bison"
 		prebuildcommands {
 			"@echo Generating Generating glslang_tab.cpp + glslang_tab.cpp.h",
-			"glslangBisonPath" .. 
+			glslangBisonPath .. 
 				" --defines=" .. glslangPath .. "/glslang_tab.cpp.h" .. 
 				" -t " .. glslangPath .. "/glslang.y" .. 
 				" -o " .. glslangPath .. "/glslang_tab.cpp"
