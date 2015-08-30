@@ -296,7 +296,7 @@ void ScnCore::update()
 	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
 
 	// Update scene only if we have focus.
-	if( OsCore::pImpl()->getClient( 0 )->haveFocus() )
+	if( OsCore::pImpl()->getClient( 0 )->isActive() )
 	{
 		// Iterate over all component process funcs.
 		for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )

@@ -36,7 +36,8 @@ public:
 	BcHandle getWindowHandle() override;
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	bool haveFocus() const override;
+	bool isActive() const override;
+	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;
 
 	/**
@@ -60,8 +61,8 @@ private:
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap KeyCodeMap_;
 
-	BcBool MouseLocked_;
-	
+	BcBool IsFocused_;
+	BcBool MouseLocked_;	
 	BcS16 PrevMouseX_;
 	BcS16 PrevMouseY_;
 

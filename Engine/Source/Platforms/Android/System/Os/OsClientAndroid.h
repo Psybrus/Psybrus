@@ -35,7 +35,8 @@ public:
 	BcHandle getWindowHandle() override;
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	bool haveFocus() const override;
+	bool isActive() const override;
+	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;
 
 public:
@@ -49,7 +50,7 @@ private:
 private:
 	struct android_app* App_;
 	struct ANativeWindow* Window_;
-	bool HaveFocus_;
+	bool IsActive_;
 
 	typedef std::map< BcU64, BcU16 > TKeyCodeMap;
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;

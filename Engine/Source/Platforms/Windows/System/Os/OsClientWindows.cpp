@@ -106,9 +106,10 @@ OsClientWindows::OsClientWindows()
 	KeyCodeMap_[ VK_PLAY ] = OsEventInputKeyboard::KEYCODE_PLAY;
 	KeyCodeMap_[ VK_ZOOM ] = OsEventInputKeyboard::KEYCODE_ZOOM;
 
+	IsFocused_ = BcTrue;
+	MouseLocked_ = BcFalse;
 	PrevMouseX_ = 0;
 	PrevMouseY_ = 0;
-	MouseLocked_ = BcFalse;
 
 	MousePrevDelta_ = MaVec2d( 0.0f, 0.0f );
 	MouseDelta_ = MaVec2d( 0.0f, 0.0f );
@@ -378,10 +379,17 @@ BcU32 OsClientWindows::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// haveFocus
-bool OsClientWindows::haveFocus() const
+// isActive
+bool OsClientWindows::isActive() const
 {
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isFocused
+bool OsClientWindows::isFocused() const
+{
+	return IsFocused_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -549,6 +557,18 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 				}
 				break;
 			}
+		}
+		break;
+
+	case WM_SETFOCUS:
+		{
+			IsFocused_ = BcTrue;
+		}
+		break;
+
+	case WM_KILLFOCUS:
+		{
+			IsFocused_ = BcFalse;
 		}
 		break;
 

@@ -36,8 +36,9 @@ public:
 	BcHandle getWindowHandle() override;
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	bool haveFocus() const override;
-	void setMouseLock( BcBool Enabled );
+	bool isActive() const override;
+	bool isFocused() const override;
+	void setMouseLock( BcBool Enabled ) override;
 
 	/**
 	 * Handle event. Called from OsCoreImplSDL.

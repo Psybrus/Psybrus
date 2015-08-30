@@ -30,7 +30,7 @@
 OsClientAndroid::OsClientAndroid( android_app* App ):
 	App_( App ),
 	Window_( nullptr ),
-	HaveFocus_( true )
+	IsActive_( true )
 {
 	// Setup keycode map.
 	KeyCodeMap_[ AKEYCODE_TAB ] = OsEventInputKeyboard::KEYCODE_TAB;
@@ -122,7 +122,7 @@ BcBool OsClientAndroid::create( const BcChar* pTitle )
 			case APP_CMD_LOST_FOCUS:
 				{
 					SysKernel::pImpl()->flushAllJobQueues();
-					Client->HaveFocus_ = false;
+					Client->IsActive_ = false;
 					Client->Window_ = nullptr;
 				}
 				break;
@@ -130,7 +130,7 @@ BcBool OsClientAndroid::create( const BcChar* pTitle )
 			case APP_CMD_GAINED_FOCUS:
 				{
 					SysKernel::pImpl()->flushAllJobQueues();
-					Client->HaveFocus_ = true;
+					Client->IsActive_ = true;
 					Client->Window_ = App->window;
 				}
 				break;
@@ -201,10 +201,17 @@ BcU32 OsClientAndroid::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// haveFocus
-bool OsClientAndroid::haveFocus() const
+// isActive
+bool OsClientAndroid::isActive() const
 {
-	return HaveFocus_ && Window_ != nullptr;
+	return IsActive_ && Window_ != nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isFocused
+bool OsClientAndroid::isFocused() const
+{
+	return isActive();
 }
 
 //////////////////////////////////////////////////////////////////////////

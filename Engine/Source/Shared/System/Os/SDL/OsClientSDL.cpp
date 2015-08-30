@@ -91,9 +91,10 @@ OsClientSDL::OsClientSDL()
 	KeyCodeMap_[ SDLK_F23 ] = OsEventInputKeyboard::KEYCODE_F23;
 	KeyCodeMap_[ SDLK_F24 ] = OsEventInputKeyboard::KEYCODE_F24;
 
+	IsFocused_ = BcTrue;
+	MouseLocked_ = BcFalse;
 	PrevMouseX_ = 0;
 	PrevMouseY_ = 0;
-	MouseLocked_ = BcFalse;
 	Width_ = 0;
 	Height_ = 0;
 
@@ -181,10 +182,17 @@ BcU32 OsClientSDL::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// haveFocus
-bool OsClientSDL::haveFocus() const
+// isActive
+bool OsClientSDL::isActive() const
 {
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isFocused
+bool OsClientSDL::isFocused() const
+{
+	return IsFocused_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,6 +233,14 @@ void OsClientSDL::handleEvent( const SDL_Event& SDLEvent )
 	
 	case SDL_WINDOWEVENT:
 		handleWindowEvent( SDLEvent );
+		break;
+
+	case SDL_WINDOWEVENT_FOCUS_LOST:
+		IsFocused_ = BcFalse;
+		break;
+
+	case SDL_WINDOWEVENT_FOCUS_GAINED:
+		IsFocused_ = BcTrue;
 		break;
 	}
 }

@@ -52,9 +52,14 @@ public:
 	virtual BcU32 getHeight() const = 0;
 
 	/**
-	 * Have focus.
+	 * Is client active?
 	 */
-	virtual bool haveFocus() const = 0;
+	virtual bool isActive() const = 0;
+
+	/**
+	 * Is client focused?
+	 */
+	virtual bool isFocused() const = 0;
 
 	/**
 	 * Set mouse lock.

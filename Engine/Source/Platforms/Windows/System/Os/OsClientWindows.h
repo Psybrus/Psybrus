@@ -31,13 +31,14 @@ public:
 	BcBool create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible );
 	void destroy();
 
-	void update();
-	BcHandle getDeviceHandle();
-	BcHandle getWindowHandle();
-	BcU32 getWidth() const;
-	BcU32 getHeight() const;
-	bool haveFocus() const;
-	void setMouseLock( BcBool Enabled );
+	void update() override;
+	BcHandle getDeviceHandle() override;
+	BcHandle getWindowHandle() override;
+	BcU32 getWidth() const override;
+	BcU32 getHeight() const override;
+	bool isActive() const override;
+	bool isFocused() const override;
+	void setMouseLock( BcBool Enabled ) override;
 
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
 	MaVec2d getWindowCentre() const;
@@ -71,6 +72,7 @@ private:
 	typedef TKeyCodeMap::iterator TKeyCodeMapIterator;
 	TKeyCodeMap		KeyCodeMap_;
 
+	BcBool			IsFocused_;
 	BcBool			MouseLocked_;
 	
 	BcS16			PrevMouseX_;

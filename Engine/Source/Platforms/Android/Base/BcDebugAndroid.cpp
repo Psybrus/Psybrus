@@ -15,36 +15,66 @@
 
 #include <malloc.h>
 
-#define SUPPORT_BACKTRACE 0
-
-#if SUPPORT_BACKTRACE
-#include <execinfo.h>
-#endif // SUPPORT_BACKTRACE
+#include <unwind.h>
+#include <dlfcn.h>
 
 //////////////////////////////////////////////////////////////////////////
-// BcMessageBox
+// Backtrace utility.
+namespace
+{
+	struct BacktraceState
+	{
+	    void** Curr_;
+	    void** End_;
+	};
+
+	static _Unwind_Reason_Code unwindCallback( struct _Unwind_Context* Context, void* Arg )
+	{
+	    BacktraceState* State = static_cast< BacktraceState* >( Arg );
+	    uintptr_t PC = _Unwind_GetIP( Context );
+	    if( PC )
+	    {
+	        if( State->Curr_ == State->End_ )
+	        {
+	            return _URC_END_OF_STACK;
+	        }
+	        else
+	        {
+	            *State->Curr_++ = reinterpret_cast< void* >( PC );
+	        }
+	    }
+	    return _URC_NO_REASON;
+	}
+
+	static size_t captureBacktrace( void** Buffer, size_t Max )
+	{
+	    BacktraceState State = { Buffer, Buffer + Max };
+	    _Unwind_Backtrace( unwindCallback, &State );
+	    return State.Curr_ - Buffer;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcBacktrace
 BcBacktraceResult BcBacktrace()
 {
 	BcBacktraceResult Result;
 
-#if SUPPORT_BACKTRACE
 	static const int BacktraceBufferSize = 1024;
-	void* BacktraceBuffer[ BacktraceBufferSize ];
-
-	int Size = backtrace( BacktraceBuffer, BacktraceBufferSize );
-	auto Symbols = backtrace_symbols( BacktraceBuffer, Size );
+	void* BacktraceBuffer[ BacktraceBufferSize ] = { nullptr };
+	auto Size = captureBacktrace( BacktraceBuffer, BacktraceBufferSize );
 	for( BcU32 Idx = 0; Idx < Size; ++Idx )
 	{
 		BcBacktraceEntry Entry;
 		Entry.Address_ = BacktraceBuffer[ Idx ];
-		Entry.Symbol_ = Symbols[ Idx ];
+        Dl_info Info;
+		if( dladdr( Entry.Address_, &Info ) && Info.dli_sname )
+		{
+			Entry.Symbol_ = Info.dli_sname;
+		}
 
 		Result.Backtrace_.push_back( Entry );
 	}
-
-	// We must fre symbols ourselves.
-	free( Symbols );
-#endif // SUPPORT_BACKTRACE
 
 	return Result;
 }
