@@ -13,6 +13,7 @@
 
 #include "System/Sound/SoLoud/SsCoreImplSoLoud.h"
 #include "System/Content/CsCore.h"
+#include "System/Os/OsCore.h"
 #include "System/SysKernel.h"
 
 #include <soloud.h>
@@ -631,6 +632,10 @@ void SsCoreImplSoLoud::freeChannel( SsChannel* Channel )
 // internalUpdate
 void SsCoreImplSoLoud::internalUpdate()
 {
+	// Check focus and set volume accordingly.
+	auto IsFocused = OsCore::pImpl()->getClient( 0 )->isFocused();
+	SoLoudCore_->setGlobalVolume( IsFocused ? 1.0f : 0.0f );
+
 	// Update 3D audio.
 	SoLoudCore_->update3dAudio();
 
