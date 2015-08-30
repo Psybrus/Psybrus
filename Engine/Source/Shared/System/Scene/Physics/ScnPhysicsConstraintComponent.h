@@ -27,8 +27,6 @@ public:
 	ScnPhysicsConstraintComponent();
 	virtual ~ScnPhysicsConstraintComponent();
 
-	virtual void initialise();
-
 	void onAttach( ScnEntityWeakRef Parent );
 	void onDetach( ScnEntityWeakRef Parent );
 

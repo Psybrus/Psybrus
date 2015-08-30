@@ -52,14 +52,6 @@ ScnPhysicsConstraintComponent::~ScnPhysicsConstraintComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnPhysicsConstraintComponent::initialise()
-{
-	Super::initialise();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 void ScnPhysicsConstraintComponent::onAttach( ScnEntityWeakRef Parent )
 {

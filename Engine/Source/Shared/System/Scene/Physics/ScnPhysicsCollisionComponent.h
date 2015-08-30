@@ -27,8 +27,6 @@ public:
 	ScnPhysicsCollisionComponent();
 	virtual ~ScnPhysicsCollisionComponent();
 
-	virtual void initialise();
-
 	void setLocalScaling( const MaVec3d& LocalScaling );
 
 	class btCollisionShape* getCollisionShape();

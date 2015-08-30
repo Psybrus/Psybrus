@@ -51,14 +51,6 @@ ScnPhysicsCollisionComponent::~ScnPhysicsCollisionComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// initialise
-//virtual
-void ScnPhysicsCollisionComponent::initialise()
-{
-	Super::initialise();
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setLocalScaling
 void ScnPhysicsCollisionComponent::setLocalScaling( const MaVec3d& LocalScaling )
 {
