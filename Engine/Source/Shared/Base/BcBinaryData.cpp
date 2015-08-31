@@ -4,7 +4,6 @@ BcBinaryData::BcBinaryData():
 	pData_( nullptr ),
 	DataSize_( 0 )
 {
-
 }
 	
 BcBinaryData::BcBinaryData( void* pData, size_t DataSize, BcBool Copy )
@@ -37,7 +36,9 @@ BcBinaryData::BcBinaryData( const BcBinaryData& Other )
 	BcMemCopy( pData_, Other.pData_, getDataSize() );		
 }
 
-BcBinaryData::BcBinaryData( BcBinaryData&& Other )
+BcBinaryData::BcBinaryData( BcBinaryData&& Other ):
+	pData_( nullptr ),
+	DataSize_( 0 )
 {
 	std::swap( pData_, Other.pData_ );
 	std::swap( DataSize_, Other.DataSize_ );
