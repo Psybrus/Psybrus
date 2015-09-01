@@ -67,27 +67,30 @@ void RsFrameBufferD3D12::setupRTVs()
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE ThisDescriptorHandle( RTVDescriptorHandle, Idx, DescriptorSize );
 		auto RTTexture = ParentDesc.RenderTargets_[ Idx ];
-		const auto& RTTextureDesc = RTTexture->getDesc();
-		auto RTResource = RTTexture->getHandle< RsResourceD3D12* >();
-		BcAssert( RTResource );
-		D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
-		BcMemZero( &RTVDesc, sizeof( RTVDesc ) );
-
-		switch( RTTextureDesc.Type_ )
+		if( RTTexture != nullptr )
 		{
-		case RsTextureType::TEX2D:
-			{
-				RTVDesc.Format = RsUtilsD3D12::GetTextureFormat( RTTextureDesc.Format_ ).RTVFormat_;
-				RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-				RTVDesc.Texture2D.MipSlice = 0;
-			}
-			break;
+			const auto& RTTextureDesc = RTTexture->getDesc();
+			auto RTResource = RTTexture->getHandle< RsResourceD3D12* >();
+			BcAssert( RTResource );
+			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
+			BcMemZero( &RTVDesc, sizeof( RTVDesc ) );
 
-		default:
-			BcBreakpoint;
-			break;
-		}	
-		Device_->CreateRenderTargetView( RTResource->getInternalResource().Get(), &RTVDesc, ThisDescriptorHandle );
+			switch( RTTextureDesc.Type_ )
+			{
+			case RsTextureType::TEX2D:
+				{
+					RTVDesc.Format = RsUtilsD3D12::GetTextureFormat( RTTextureDesc.Format_ ).RTVFormat_;
+					RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+					RTVDesc.Texture2D.MipSlice = 0;
+				}
+				break;
+
+			default:
+				BcBreakpoint;
+				break;
+			}	
+			Device_->CreateRenderTargetView( RTResource->getInternalResource().Get(), &RTVDesc, ThisDescriptorHandle );
+		}
 	}
 }
 
@@ -166,8 +169,11 @@ void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandLis
 	for( size_t Idx = 0; Idx < ParentDesc.RenderTargets_.size(); ++Idx )
 	{
 		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
-		auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
-		Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET );
+		if( RenderTarget != nullptr )
+		{
+			auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+			Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET );
+		}
 	}
 	if( ParentDesc.DepthStencilTarget_ != nullptr )
 	{
@@ -201,11 +207,14 @@ void RsFrameBufferD3D12::transitionToRead( ID3D12GraphicsCommandList* CommandLis
 	for( size_t Idx = 0; Idx < ParentDesc.RenderTargets_.size(); ++Idx )
 	{
 		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
-		const auto& RenderTargetDesc = RenderTarget->getDesc();
-		if( ( RenderTargetDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
-		{ 
-			auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
-			Resource->resourceBarrierTransition( CommandList, Usage );
+		if( RenderTarget != nullptr )
+		{
+			const auto& RenderTargetDesc = RenderTarget->getDesc();
+			if( ( RenderTargetDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+			{ 
+				auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+				Resource->resourceBarrierTransition( CommandList, Usage );
+			}
 		}
 	}
 

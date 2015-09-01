@@ -87,11 +87,17 @@ public:
 
 	/**
 	 * Set frame buffer.
+	 * @post Frame buffer is set to specified one, or backbuffer if nullptr.
+	 * @post Viewport will be set to size of frame buffer.
+	 * @post Scissor rect will be set to size of frame buffer.
 	 */
 	virtual void setFrameBuffer( class RsFrameBuffer* FrameBuffer ) = 0;
 
 	/**
 	 * Set viewport.
+	 * @pre Viewport is no larger than the currently bound frame buffer.
+	 * @post Viewport will be set to specified one.
+	 * @post Scissor rect will be set to size of viewport.
 	 */
 	virtual void setViewport( const class RsViewport& Viewport ) = 0;
 

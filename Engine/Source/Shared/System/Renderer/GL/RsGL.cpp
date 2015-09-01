@@ -66,6 +66,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 	PSY_LOG( "Version: %s", Version );
 	PSY_LOG( "Extensions: %s", Extensions );
 
+	// RT origin is bottom left in GL.
+	Features_.RTOrigin_ = RsFeatureRenderTargetOrigin::BOTTOM_LEFT;
+
 	switch( Type_ )
 	{
 	case RsOpenGLType::COMPATIBILITY:
@@ -122,6 +125,8 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
 			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 
+			Features_.MRT_= BcTrue;
+			Features_.DepthTextures_ = BcTrue;
 			Features_.NPOTTextures_ = BcTrue;
 			Features_.AnisotropicFiltering_ = BcTrue;
 			Features_.AntialiasedLines_ = BcTrue;

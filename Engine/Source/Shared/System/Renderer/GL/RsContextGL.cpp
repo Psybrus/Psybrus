@@ -2508,8 +2508,7 @@ void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			Width = TexDesc.Width_;
 			Height = TexDesc.Height_;
 		}
-		auto Viewport = RsViewport( 0, 0, Width, Height );
-		setViewport( Viewport );
+		setViewport( RsViewport( 0, 0, Width, Height ) );
 	}
 }
 

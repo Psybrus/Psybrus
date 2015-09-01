@@ -251,7 +251,8 @@ BcU32 ScnTexture::noofRects() const
 // recreate
 void ScnTexture::recreate()
 {
-	RsContext* Context = RsCore::pImpl()->getContext( nullptr );
+	auto* Context = RsCore::pImpl()->getContext( nullptr );
+	const auto& Features = Context->getFeatures();
 
 	Width_ = Header_.Width_;
 	Height_ = Header_.Height_;
@@ -260,16 +261,18 @@ void ScnTexture::recreate()
 	// If a target, use negative width + height as multiples of resolution.
 	if( Header_.RenderTarget_ || Header_.DepthStencilTarget_ )
 	{
+		auto* Client = Context->getClient();
 		if( Header_.Width_ <= 0 )
 		{
-			Width_ = Context->getWidth() >> -Header_.Width_;
+			Width_ = Client->getWidth() >> -Header_.Width_;
 		}
 
 		if( Header_.Height_ <= 0 )
 		{
-			Height_ = Context->getHeight() >> -Header_.Height_;
+			Height_ = Client->getHeight() >> -Header_.Height_;
 		}
 	}
+
 
 	BcAssert( Width_ >= 0 );
 	BcAssert( Height_ >= 0 );
@@ -289,6 +292,17 @@ void ScnTexture::recreate()
 		Depth_ = 1;
 	}
 
+	// If texture is NPOT and we don't support it, round up size and warn.
+	// We don't want to crash out if possible.
+	const BcBool IsNPOT = !BcPot( Width_ ) || !BcPot( Height_ ) || !BcPot( Depth_ );
+	if( IsNPOT && Features.NPOTTextures_ == false )
+	{
+		PSY_LOG( "WARNING: Rounding up texture \"%s\" to a power of two.", (*getName()).c_str() );
+		Width_ = BcPotNext( Width_ );
+		Height_ = BcPotNext( Height_ );
+		Depth_ = BcPotNext( Depth_ );
+	}
+
 	// Create new one immediately.
 	auto CreationFlags = Header_.Editable_ ? RsResourceCreationFlags::DYNAMIC : RsResourceCreationFlags::STATIC;
 	RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
@@ -300,6 +314,11 @@ void ScnTexture::recreate()
 	if( Header_.DepthStencilTarget_ )
 	{
 		BindFlags = RsResourceBindFlags::DEPTH_STENCIL;
+
+		if( Features.DepthTextures_ )
+		{
+			BindFlags = BindFlags | RsResourceBindFlags::SHADER_RESOURCE;
+		}
 	}
 
 	// Free old.

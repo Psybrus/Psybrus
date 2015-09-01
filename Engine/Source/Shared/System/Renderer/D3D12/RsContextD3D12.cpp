@@ -685,6 +685,11 @@ void RsContextD3D12::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		auto D3DFrameBuffer = LastFrameBuffer->getHandle< RsFrameBufferD3D12* >();
 		D3DFrameBuffer->transitionToRead( CommandList );
 	}
+
+	// Set viewport to framebuffer size.
+
+	const auto& Desc = FrameBuffer_->getDesc().RenderTargets_[ 0 ]->getDesc();
+	setViewport( RsViewport( 0, 0, Desc.Width_, Desc.Height_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1251,8 +1256,11 @@ void RsContextD3D12::flushState()
 	for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
 	{
 		auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
-		const auto& RenderTargetDesc =  RenderTarget->getDesc();
-		GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
+		if( RenderTarget != nullptr )
+		{
+			const auto& RenderTargetDesc =  RenderTarget->getDesc();
+			GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
+		}
 	}
 
 	if( FrameBufferDesc.DepthStencilTarget_ != nullptr )

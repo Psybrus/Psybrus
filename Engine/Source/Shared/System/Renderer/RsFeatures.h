@@ -3,6 +3,14 @@
 #include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
+// RsFeatureRenderTargetOrigin
+enum class RsFeatureRenderTargetOrigin
+{
+	TOP_LEFT,
+	BOTTOM_LEFT,
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsFeatures
 struct RsFeatures
 {
@@ -13,6 +21,7 @@ struct RsFeatures
 	bool SeparateBlendState_ = false;
 	bool AnisotropicFiltering_ = false;
 	bool AntialiasedLines_ = false;
+	RsFeatureRenderTargetOrigin RTOrigin_ = RsFeatureRenderTargetOrigin::TOP_LEFT;
 
 	// Texture types.
 	bool Texture1D_ = false;

@@ -2,6 +2,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
+#include "System/Renderer/RsFeatures.h"
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
 
@@ -59,7 +60,10 @@ void ScnPostProcessUniforms::StaticRegisterClass()
 	ReRegisterClass< ScnPostProcessUniforms >( Fields );
 }
 
-ScnPostProcessUniforms::ScnPostProcessUniforms()
+ScnPostProcessUniforms::ScnPostProcessUniforms():
+	Name_( "" ),
+	Data_(),
+	Buffer_( nullptr )
 {
 
 }
@@ -196,135 +200,140 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );
 
 
-			auto InputTexture = Input_->getTexture();
-			auto OutputTexture = Output_->getTexture();
-			if( OutputTexture != nullptr )
+			auto InputTexture = Input_ != nullptr ? Input_->getTexture() : nullptr;
+			auto OutputTexture = Output_ != nullptr ? Output_->getTexture() : nullptr;
+
+			// Copy FB into usable texture.
+			// TODO: Determine if this step is required base on nodes.
+			if( InputTexture != nullptr )
 			{
-				// Copy FB into usable texture.
-				// TODO: Determine if this step is required base on nodes.
 				Context->copyFrameBufferRenderTargetToTexture( InputFrameBuffer, 0, InputTexture );
+			}
 
-				ScnShaderPermutationFlags Permutation = 
-					ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-					ScnShaderPermutationFlags::PASS_MAIN |
-					ScnShaderPermutationFlags::MESH_STATIC_2D |
-					ScnShaderPermutationFlags::LIGHTING_NONE;
+			ScnShaderPermutationFlags Permutation = 
+				ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+				ScnShaderPermutationFlags::PASS_MAIN |
+				ScnShaderPermutationFlags::MESH_STATIC_2D |
+				ScnShaderPermutationFlags::LIGHTING_NONE;
 
-				// Iterate over nodes to process.
-				for( size_t NodeIdx = 0; NodeIdx < Nodes_.size(); ++NodeIdx )
-				{
- 					auto& Node = Nodes_[ NodeIdx ];
- 					auto& FrameBuffer = FrameBuffers_[ NodeIdx ];
- 					auto& RenderState = RenderStates_[ NodeIdx ];
+			// Iterate over nodes to process.
+			for( size_t NodeIdx = 0; NodeIdx < Nodes_.size(); ++NodeIdx )
+			{
+ 				auto& Node = Nodes_[ NodeIdx ];
+ 				auto& FrameBuffer = FrameBuffers_[ NodeIdx ];
+ 				auto& RenderState = RenderStates_[ NodeIdx ];
 
- 					// Bind program.
-					auto Program = Node.Shader_->getProgram( Permutation );
-					BcAssert( Program );
-					Context->setProgram( Program );
+ 				// Bind program.
+				auto Program = Node.Shader_->getProgram( Permutation );
+				BcAssert( Program );
+				Context->setProgram( Program );
 					
-					// Copy in base config data.
-					ScnShaderPostProcessConfigData* ConfigUniformBlock = nullptr;
-					auto FoundConfigBlockIt = std::find_if( Node.Uniforms_.begin(), Node.Uniforms_.end(),
-						[ this ]( const ScnPostProcessUniforms& Uniforms )
-						{
-							return Uniforms.Name_ == "ScnShaderPostProcessConfigData";
-						} );
-					if( FoundConfigBlockIt != Node.Uniforms_.end() )
+				// Copy in base config data.
+				ScnShaderPostProcessConfigData* ConfigUniformBlock = nullptr;
+				auto FoundConfigBlockIt = std::find_if( Node.Uniforms_.begin(), Node.Uniforms_.end(),
+					[ this ]( const ScnPostProcessUniforms& Uniforms )
 					{
-						ConfigUniformBlock = FoundConfigBlockIt->Data_.getData< ScnShaderPostProcessConfigData >();
+						return Uniforms.Name_ == "ScnShaderPostProcessConfigData";
+					} );
+				if( FoundConfigBlockIt != Node.Uniforms_.end() )
+				{
+					ConfigUniformBlock = FoundConfigBlockIt->Data_.getData< ScnShaderPostProcessConfigData >();
+				}
+
+				// Bind samplers + textures.
+				// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
+				BcU32 TextureIdx = 0;
+				for( auto& InputTexture : Node.InputTextures_ )
+				{
+					BcU32 Slot = Program->findTextureSlot( InputTexture.first.c_str() );
+					if( Slot != BcErrorCode )
+					{
+						Context->setTexture( Slot, InputTexture.second->getTexture() );
 					}
 
-					// Bind samplers + textures.
-					// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
-					for( auto& InputTexture : Node.InputTextures_ )
+					// TODO: Support for more than 16, and also D3D11 (need to change how it maps)
+					if( ConfigUniformBlock )
 					{
-						BcU32 Slot = Program->findTextureSlot( InputTexture.first.c_str() );
-						if( Slot != BcErrorCode )
-						{
-							Context->setTexture( Slot, InputTexture.second->getTexture() );
-						}
+						BcAssert( TextureIdx < 16 );
+						const auto& Desc = InputTexture.second->getTexture()->getDesc();
+						ConfigUniformBlock->InputDimensions_[ TextureIdx++ ] = 
+							MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
+					}
+				}
 
-						// TODO: Support for more than 16, and also D3D11 (need to change how it maps)
-						if( ConfigUniformBlock )
+				for( auto& InputSampler : SamplerStates_ )
+				{
+					BcU32 Slot = Program->findSamplerSlot( InputSampler.first.c_str() );
+					if( Slot != BcErrorCode )
+					{
+						Context->setSamplerState( Slot, InputSampler.second.get() );
+					}
+				}
+
+				// Set output texture sizes.
+				if( ConfigUniformBlock )
+				{
+					const auto& FrameBufferDesc = FrameBuffer->getDesc(); 
+					for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
+					{
+						RsTexture* RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
+						if( RenderTarget )
 						{
-							BcAssert( Slot < 16 );
-							const auto& Desc = InputTexture.second->getTexture()->getDesc();
-							ConfigUniformBlock->InputDimensions_[ Slot ] = 
+							const auto& Desc = RenderTarget->getDesc();
+							ConfigUniformBlock->OutputDimensions_[ Idx ] = 
 								MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
 						}
 					}
-
-					for( auto& InputSampler : SamplerStates_ )
-					{
-						BcU32 Slot = Program->findSamplerSlot( InputSampler.first.c_str() );
-						if( Slot != BcErrorCode )
-						{
-							Context->setSamplerState( Slot, InputSampler.second.get() );
-						}
-					}
-
-					// Set output texture sizes.
-					if( ConfigUniformBlock )
-					{
-						const auto& FrameBufferDesc = FrameBuffer->getDesc(); 
-						for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
-						{
-							RsTexture* RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
-							if( RenderTarget )
-							{
-								const auto& Desc = RenderTarget->getDesc();
-								ConfigUniformBlock->OutputDimensions_[ Idx ] = 
-									MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
-							}
-						}
-					}
-
-					// Update config buffer.
-					if( FoundConfigBlockIt != Node.Uniforms_.end() )
-					{
-						Context->updateBuffer( 
-							FoundConfigBlockIt->Buffer_, 
-							0, sizeof( ConfigUniformBlock ),
-							RsResourceUpdateFlags::ASYNC,
-							[ &ConfigUniformBlock ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-							{
-								memcpy( Lock.Buffer_, &ConfigUniformBlock, sizeof( ConfigUniformBlock ) );
-							} );
-					}
-
-					// Bind uniform buffers.
-					// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
-					for( auto& Uniforms : Node.Uniforms_ )
-				{
-						BcU32 Slot = Program->findUniformBufferSlot( Uniforms.Name_.c_str() );
-						if( Slot != BcErrorCode )
-						{
-							Context->updateBuffer( 
-								Uniforms.Buffer_, 
-								0, Uniforms.Data_.getDataSize(),
-								RsResourceUpdateFlags::ASYNC,
-								[ &Uniforms ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-								{
-									memcpy( Lock.Buffer_, Uniforms.Data_.getData< BcU8* >(), Uniforms.Data_.getDataSize() );
-								} );
-							Context->setUniformBuffer( Slot, Uniforms.Buffer_ );
-						}
-					}
-
-					// Draw.
-					Context->setFrameBuffer( FrameBuffer.get() );
-					Context->setRenderState( RenderState.get() );
-					Context->setVertexDeclaration( VertexDeclaration_.get() );
-					Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnPostProcessVertex ) );
-					Context->drawPrimitives( RsTopologyType::TRIANGLE_STRIP, 0, 4 );
 				}
 
-				// Copy back to FB.
-				// TODO: Determine if this step is required based on nodes.
-				Context->copyTextureToFrameBufferRenderTarget( OutputTexture, InputFrameBuffer, 0 );
+				// Update config buffer.
+				if( FoundConfigBlockIt != Node.Uniforms_.end() )
+				{
+					Context->updateBuffer( 
+						FoundConfigBlockIt->Buffer_, 
+						0, sizeof( ConfigUniformBlock ),
+						RsResourceUpdateFlags::ASYNC,
+						[ &ConfigUniformBlock ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+						{
+							memcpy( Lock.Buffer_, &ConfigUniformBlock, sizeof( ConfigUniformBlock ) );
+						} );
+				}
 
-				RenderFence_.decrement();
+				// Bind uniform buffers.
+				// TODO: Remove the findTextureSlot & findSamplerSlot calls. Do ahead of time.
+				for( auto& Uniforms : Node.Uniforms_ )
+				{
+					BcU32 Slot = Program->findUniformBufferSlot( Uniforms.Name_.c_str() );
+					if( Slot != BcErrorCode )
+					{
+						Context->updateBuffer( 
+							Uniforms.Buffer_, 
+							0, Uniforms.Data_.getDataSize(),
+							RsResourceUpdateFlags::ASYNC,
+							[ &Uniforms ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+							{
+								memcpy( Lock.Buffer_, Uniforms.Data_.getData< BcU8* >(), Uniforms.Data_.getDataSize() );
+							} );
+						Context->setUniformBuffer( Slot, Uniforms.Buffer_ );
+					}
+				}
+
+				// Draw.
+				Context->setFrameBuffer( FrameBuffer.get() );
+				Context->setRenderState( RenderState.get() );
+				Context->setVertexDeclaration( VertexDeclaration_.get() );
+				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnPostProcessVertex ) );
+				Context->drawPrimitives( RsTopologyType::TRIANGLE_STRIP, 0, 4 );
 			}
+
+			// Copy back to FB.
+			// TODO: Determine if this step is required based on nodes.
+			if( OutputTexture != nullptr )
+			{
+				Context->copyTextureToFrameBufferRenderTarget( OutputTexture, InputFrameBuffer, 0 );
+			}
+
+			RenderFence_.decrement();
 		} );
 }
 
@@ -333,8 +342,6 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 void ScnPostProcessComponent::recreateResources()
 {
 	RsContext* Context = RsCore::pImpl()->getContext( nullptr );
-	auto Width = Context->getWidth();
-	auto Height = Context->getHeight();
 
 	if( VertexDeclaration_ == nullptr )
 	{
@@ -352,21 +359,40 @@ void ScnPostProcessComponent::recreateResources()
 				RsBufferType::VERTEX,
 				RsResourceCreationFlags::STREAM, 
 				VertexBufferSize ) ) );
+
+		const auto& Features = RsCore::pImpl()->getContext( 0 )->getFeatures();
+		const auto RTOrigin = Features.RTOrigin_;
 		RsCore::pImpl()->updateBuffer( 
 			VertexBuffer_.get(),
 			0, VertexBufferSize,
 			RsResourceUpdateFlags::ASYNC,
-			[]( RsBuffer* Buffer, const RsBufferLock& Lock )
+			[ RTOrigin ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 			{
 				auto Vertices = reinterpret_cast< ScnPostProcessVertex* >( Lock.Buffer_ );
-				*Vertices++ = ScnPostProcessVertex( 
-					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
-				*Vertices++ = ScnPostProcessVertex( 
-					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
-				*Vertices++ = ScnPostProcessVertex( 
-					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
-				*Vertices++ = ScnPostProcessVertex( 
-					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
+
+				// TODO: Pass in separate UVs for what is intended to be a render target source?
+				if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
+				{
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
+				}
+				else
+				{
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
+					*Vertices++ = ScnPostProcessVertex( 
+						MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
+				}
 			} );		
 	}
 

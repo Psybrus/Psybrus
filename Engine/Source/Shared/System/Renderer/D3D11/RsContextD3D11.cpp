@@ -995,6 +995,9 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	BcU32 Width = Width_;
+	BcU32 Height = Height_;
+
 	if( FrameBuffer != nullptr )
 	{
 		const auto& Desc = FrameBuffer->getDesc();
@@ -1020,6 +1023,9 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		{
 			DepthStencilView_ = nullptr;
 		}
+
+		Width = Desc.RenderTargets_[ 0 ]->getDesc().Width_;
+		Height = Desc.RenderTargets_[ 0 ]->getDesc().Height_;
 	}
 	else
 	{
@@ -1027,6 +1033,8 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		RenderTargetViews_[ 0 ] = getD3DRenderTargetView( BackBufferRTResourceIdx_ );
 		DepthStencilView_ = getD3DDepthStencilView( BackBufferDSResourceIdx_ );
 	}
+
+	setViewport( RsViewport( 0, 0, Width, Height ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
