@@ -29,12 +29,12 @@ public:
 	/**
 	 * Increment fence.
 	 */
-	void increment( size_t Value = 1 );
+	size_t increment( size_t Value = 1 );
 
 	/**
 	 * Decrement fence.
 	 */
-	void decrement( size_t Value = 1 );
+	size_t decrement( size_t Value = 1 );
 
 	/*
 	 * Get the count.

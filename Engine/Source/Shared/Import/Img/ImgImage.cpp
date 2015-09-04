@@ -78,6 +78,14 @@ void ImgImage::create( BcU32 Width, BcU32 Height, const ImgColour* pFillColour )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setPixels
+void ImgImage::setPixels( const ImgColour* Pixels )
+{
+	BcAssertMsg( pPixelData_ != NULL, "ImgImage: Pixel data is NULL." );
+	memcpy( pPixelData_, Pixels, sizeof( ImgColour ) * Width_ * Height_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setPixel
 void ImgImage::setPixel( BcU32 X, BcU32 Y, const ImgColour& Colour )
 {

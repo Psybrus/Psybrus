@@ -252,7 +252,7 @@ void RsContextD3D12::endFrame()
 
 //////////////////////////////////////////////////////////////////////////
 // takeScreenshot
-void RsContextD3D12::takeScreenshot()
+void RsContextD3D12::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 {
 	BcBreakpoint;
 }

@@ -38,6 +38,7 @@ static struct sigaction OldSignalHandler[ NSIG ];
 void android_sigaction( int Signal, siginfo_t* Info, void* Reserved )
 {
 	__android_log_print( ANDROID_LOG_INFO, "Psybrus", "Caught signal. Exiting." );	
+	BcPrintBacktrace( BcBacktrace() );
 	OldSignalHandler[ Signal ].sa_handler( Signal );
 	exit(1);
 }
@@ -60,6 +61,7 @@ void PsyAndroidMain( struct android_app* State )
 	// Make sure glue isn't stripped.
 	app_dummy();
 
+#if 0
 	// Catch signals.
 	struct sigaction Handler;
 	memset( &Handler, 0, sizeof( Handler ) );
@@ -74,6 +76,7 @@ void PsyAndroidMain( struct android_app* State )
 	CATCHSIG( SIGSTKFLT );
 	CATCHSIG( SIGPIPE );
 #undef CATCHSIG
+#endif
 
 	GAndroidApp = State;
 

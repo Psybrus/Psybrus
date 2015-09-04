@@ -49,6 +49,12 @@ public:
 	void					create( BcU32 Width, BcU32 Height, const ImgColour* pFillColour = NULL );
 
 	/**
+	*	Set pixels.
+	*	@param Pixels Buffer of (X * Y) pixels
+	*/
+	void					setPixels( const ImgColour* Pixels );
+
+	/**
 	*	Set pixel.
 	*	@param X X pos.
 	*	@param Y Y pos.

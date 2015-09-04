@@ -60,6 +60,7 @@ BcBacktraceResult BcBacktrace()
 {
 	BcBacktraceResult Result;
 
+#if 0 // Doesn't work, investigate later.
 	static const int BacktraceBufferSize = 1024;
 	void* BacktraceBuffer[ BacktraceBufferSize ] = { nullptr };
 	auto Size = captureBacktrace( BacktraceBuffer, BacktraceBufferSize );
@@ -75,7 +76,8 @@ BcBacktraceResult BcBacktrace()
 
 		Result.Backtrace_.push_back( Entry );
 	}
-
+#endif
+	
 	return Result;
 }
 

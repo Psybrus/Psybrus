@@ -27,11 +27,152 @@ BcU32 GResolutionHeight = 720;
 #include "System/SysKernel.h"
 
 #include "System/Content/CsCore.h"
+#include "System/Debug/DsCore.h"
 #include "System/File/FsCore.h"
 #include "System/Os/OsCore.h"
 #include "System/Renderer/RsCore.h"
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
+
+#include "Import/Img/Img.h"
+#include "Import/Img/gif.h"
+
+#include "Base/BcBuildInfo.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Screenshot utility.
+namespace ScreenshotUtil
+{
+	size_t ScreenshotJobQueue( 0 );
+	BcBool ScreenCapturing( BcFalse );
+	GifWriter Writer;
+	size_t FrameCounter( 0 );
+	std::atomic< size_t > TotalFramesRemaining( 0 );
+
+	void Init()
+	{
+		// Create job queue for screenshot encoding/saving.
+		ScreenshotJobQueue = SysKernel::pImpl()->createJobQueue( 1, 1 );
+	}
+
+	void TakeScreenshot()
+	{
+		if( ScreenCapturing )
+		{
+			return;
+		}
+
+		RsCore::pImpl()->getContext( nullptr )->takeScreenshot(
+			[]( RsScreenshot Screenshot )->BcBool
+			{
+				// Convert to image.
+				const BcU32 W = Screenshot.Width_;
+				const BcU32 H = Screenshot.Height_;
+				const BcU32* ImageData = reinterpret_cast< const BcU32* >( Screenshot.Data_ );
+				ImgImage* Image( new ImgImage() );
+				Image->create( W, H, nullptr );
+				Image->setPixels( reinterpret_cast< const ImgColour* >( ImageData ) );
+
+				SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
+					[ Image ]()->void
+					{
+						PSY_LOG( "Processing screenshot..." );
+
+						// Solid alpha.
+						for( BcU32 Y = 0; Y < Image->height(); ++Y )
+						{
+							for( BcU32 X = 0; X < Image->width(); ++X )
+							{
+								ImgColour Pixel = Image->getPixel( X, Y );
+								Pixel.A_ = 0xff;
+								Image->setPixel( X, Y, Pixel );
+							}
+						}
+
+						// Save out image.
+						auto Time = std::time( nullptr );
+						auto LocalTime = *std::localtime( &Time );
+						BcChar FileName[ 1024 ] = { 0 };
+#if PLATFORM_ANDROID
+						strftime( FileName, sizeof( FileName ) - 1, "/sdcard/Pictures/screenshot_%Y-%m-%d-%H-%M-%S.png", &LocalTime );
+#else
+						strftime( FileName, sizeof( FileName ) - 1, "screenshot_%Y-%m-%d-%H-%M-%S.png", &LocalTime );
+#endif
+						Img::save( FileName, Image );
+						PSY_LOG( "Saved screenshot to %s", FileName );
+						delete Image;
+					} );
+
+				return BcFalse;
+			} );
+	}
+
+	void BeginCapture()
+	{
+		// Early out.
+		if( ScreenshotUtil::ScreenCapturing == BcTrue || ScreenshotUtil::TotalFramesRemaining > 0 )
+		{
+			return;
+		}
+
+		// Begin the gif capture.
+		auto Time = std::time( nullptr );
+		auto LocalTime = *std::localtime( &Time );
+		BcChar FileName[ 1024 ] = { 0 };
+#if PLATFORM_ANDROID
+		strftime( FileName, sizeof( FileName ) - 1, "/sdcard/Pictures/screencapture_%Y-%m-%d-%H-%M-%S.gif", &LocalTime );
+#else
+		strftime( FileName, sizeof( FileName ) - 1, "screencapture_%Y-%m-%d-%H-%M-%S.gif", &LocalTime );
+#endif
+		const BcU32 W = OsCore::pImpl()->getClient( 0 )->getWidth();
+		const BcU32 H = OsCore::pImpl()->getClient( 0 )->getHeight();
+		GifBegin( &Writer, FileName, W / 2, H / 2, 1, 8, false );
+
+		// Mark capturing.
+		ScreenCapturing = BcTrue;
+		FrameCounter = 0;
+
+		// 
+		RsCore::pImpl()->getContext( nullptr )->takeScreenshot( 
+			[]( RsScreenshot Screenshot )->BcBool
+			{
+				const BcBool IsScreenCapturing = ScreenCapturing;
+				if( ( FrameCounter % 6 ) == 0 || IsScreenCapturing == BcFalse )
+				{
+					const BcU32 W = Screenshot.Width_;
+					const BcU32 H = Screenshot.Height_;
+					ImgImage* Image = new ImgImage();
+					Image->create( W, H, nullptr );
+					Image->setPixels( reinterpret_cast< ImgColour* >( Screenshot.Data_ ) );
+					++TotalFramesRemaining;
+					SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
+						[ W, H, IsScreenCapturing, Image ]()->void
+						{
+							auto ImageDiv2 = Image->resize( W / 2, H / 2 );
+							GifWriteFrame(
+								&Writer,
+								reinterpret_cast< const uint8_t* >( ImageDiv2->getImageData() ), 
+								W / 2, H / 2, 0, 8, false );
+
+							if( IsScreenCapturing == BcFalse )
+							{
+								GifEnd( &Writer );
+							}
+
+							delete Image;
+							TotalFramesRemaining--;
+						} );
+				}
+				++FrameCounter;
+				return IsScreenCapturing;
+			} );
+	}
+
+	void EndCapture()
+	{
+		ScreenCapturing = BcFalse;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // MainUnitTests
@@ -80,6 +221,93 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// onDsCoreOpened
+eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
+{
+#if !PSY_PRODUCTION
+	DsCore::pImpl()->registerPanel( 
+		"Engine", []( BcU32 )->void
+		{
+			static BcF32 GameTimeTotal = 0.0f;
+			static BcF32 RenderTimeTotal = 0.0f;
+			static BcF32 FrameTimeTotal = 0.0f;
+			static BcF32 GameTimeAccum = 0.0f;
+			static BcF32 RenderTimeAccum = 0.0f;
+			static BcF32 FrameTimeAccum = 0.0f;
+			static int CaptureAmount = 60;
+			static int CaptureAccum = 0;
+
+			GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
+			RenderTimeAccum += RsCore::pImpl()->getFrameTime();
+			FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
+			++CaptureAccum;
+			if( CaptureAccum >= CaptureAmount )
+			{
+				GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
+				RenderTimeTotal = RenderTimeAccum / BcF32( CaptureAccum );
+				FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
+				GameTimeAccum = 0.0f;
+				RenderTimeAccum = 0.0f;
+				FrameTimeAccum = 0.0f;
+				CaptureAccum = 0;
+			}
+
+			OsClient* Client = OsCore::pImpl()->getClient( 0 );
+			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
+			static bool ShowOpened = true;
+			ImGui::SetNextWindowPos( WindowPos );
+			if ( ImGui::Begin( "Engine", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			{
+				ImGui::Text( "Build: %s-%s-%s", 
+					BUILD_ACTION,
+					BUILD_TOOLCHAIN,
+					BUILD_CONFIG );
+				ImGui::Text( "Date/Time: %s %s", 
+					BUILD_DATE,
+					BUILD_TIME );
+				ImGui::Text( "Worker count: %u", 
+					SysKernel::pImpl()->workerCount() );
+				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
+				ImGui::Text( "Render time: %.2fms (%.2fms avg.)", 
+					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f );
+				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
+
+				if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
+				{
+					if( ImGui::Button( "Begin Capture (F1)" ) )
+					{
+						ScreenshotUtil::BeginCapture();
+					}
+				}
+				else
+				{
+					if( ImGui::Button( "End Capture (F1)" ) )
+					{
+						ScreenshotUtil::EndCapture();
+					}
+				}
+
+				if( !ScreenshotUtil::ScreenCapturing )
+				{
+					ImGui::SameLine();
+					if( ImGui::Button( "Screenshot (F2)" ) )
+					{
+						ScreenshotUtil::TakeScreenshot();
+					}
+				}
+
+				ImGui::Text( "Capture frames processing: %u", ScreenshotUtil::TotalFramesRemaining.load() );
+			}
+			ImGui::End();
+		} );
+#endif
+	return evtRET_REMOVE;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // OnQuit
 eEvtReturn onQuit( EvtID ID, const EvtBaseEvent& Event )
 {
@@ -90,15 +318,25 @@ eEvtReturn onQuit( EvtID ID, const EvtBaseEvent& Event )
 
 
 //////////////////////////////////////////////////////////////////////////
-// OnScreenshot
+// onScreenshot
 eEvtReturn onScreenshot( EvtID ID, const EvtBaseEvent& Event )
 {
 	const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
 	if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F1 )
 	{
-		RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
-	}	
-
+		if( ScreenshotUtil::ScreenCapturing == BcFalse )
+		{
+			ScreenshotUtil::BeginCapture();
+		}
+		else
+		{
+			ScreenshotUtil::EndCapture();
+		}
+	}
+	else if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F2 )
+	{
+		ScreenshotUtil::TakeScreenshot();
+	}
 	return evtRET_PASS;
 }
 
@@ -180,6 +418,9 @@ void MainShared()
 	SysKernel::pImpl()->startSystem( "DsCore" );
 #endif
 
+	// Init screenshot.
+	ScreenshotUtil::Init();
+
 	// Start scene system.
 	SysKernel::pImpl()->startSystem( "ScnCore" );
 
@@ -199,10 +440,16 @@ void MainShared()
 	// Setup callback for post CsCore open for resource registration.
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, onCsCoreOpened );
 #endif
+
+	// Setup callback for post DsCore open.
+	if( DsCore::pImpl() )
+	{
+		DsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, onDsCoreOpened );
+	}
 	
 	// Subscribe to quit.
 	OsCore::pImpl()->subscribe( osEVT_CORE_QUIT, onQuit );
 
-	// Subscribe to F11 for screenshot
+	// Subscribe to F1 & F2 for screenshot
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, onScreenshot );
 }

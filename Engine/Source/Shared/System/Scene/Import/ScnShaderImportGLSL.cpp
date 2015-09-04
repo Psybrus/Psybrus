@@ -427,7 +427,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 				{
 					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
-					glslopt_set_max_unroll_iterations( GlslOptContext, 32 );
+					glslopt_set_max_unroll_iterations( GlslOptContext, 64 );
 
 					// Vertex shader attributes.
 					glslopt_shader_type GlslOptLanguage;

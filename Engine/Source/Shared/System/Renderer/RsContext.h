@@ -99,8 +99,9 @@ public:
 
 	/**
 	 * Requests a screenshot from the context.
+	 * @param ScreenshotFunc Function to call when screenshot has been taken.
 	 */
-	virtual void takeScreenshot() = 0;
+	virtual void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) = 0;
 };
 
 #endif

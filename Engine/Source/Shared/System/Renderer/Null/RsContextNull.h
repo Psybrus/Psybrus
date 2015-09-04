@@ -38,7 +38,7 @@ public:
 	BcU32 getHeight() const override;
 	void beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
-	void takeScreenshot();
+	void takeScreenshot( RsScreenshotFunc ScreenshotFunc );
 	void setViewport( const class RsViewport& Viewport );
 
 	void setDefaultState();

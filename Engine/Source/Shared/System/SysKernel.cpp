@@ -531,7 +531,7 @@ void SysKernel::runOnce()
 #endif
 
 	// Store frame time.
-	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), TickRate_ * 4.0f );
+	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), 1.0f );
 
 	BcAssert( FrameTime_ >= 0.0f );
 

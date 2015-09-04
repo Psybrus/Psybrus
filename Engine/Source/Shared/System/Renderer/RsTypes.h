@@ -701,4 +701,17 @@ struct RsTextureLock
 
 typedef std::function< void( class RsTexture*, const RsTextureLock& ) > RsTextureUpdateFunc;
 
+//////////////////////////////////////////////////////////////////////////
+// Screenshot
+
+struct RsScreenshot
+{
+	void* Data_;
+	BcU32 Width_;
+	BcU32 Height_;
+	RsTextureFormat Format_;
+};
+
+typedef std::function< BcBool( const RsScreenshot& ) > RsScreenshotFunc;
+
 #endif

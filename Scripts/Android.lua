@@ -67,6 +67,7 @@ function SetupAndroidProject()
 		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. ANDROID_SDK_VERSION .. "\" />\n" )
 		-- Read external storage. TODO: Make an option.
 		manifestFile:write( "  <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />\n" )
+		manifestFile:write( "  <uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" )
 		-- Internet. TODO: Make an option.
 		manifestFile:write( "  <uses-permission android:name=\"android.permission.INTERNET\" />\n" )
 		manifestFile:write( "  <uses-feature android:glEsVersion=\"0x00020000\" />\n" )

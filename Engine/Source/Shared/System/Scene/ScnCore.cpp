@@ -16,6 +16,7 @@
 #include "System/SysKernel.h"
 #include "System/SysSystem.h"
 
+#include "System/File/FsCore.h"
 #include "System/Os/OsCore.h"
 #include "System/Renderer/RsCore.h"
 
@@ -34,7 +35,6 @@
 
 #include "Serialisation/SeJsonWriter.h"
 
-#include "Base/BcBuildInfo.h"
 #include "Base/BcProfiler.h"
 
 #include <algorithm>
@@ -117,64 +117,6 @@ void ScnCore::open()
 	}
 
 #if !PSY_PRODUCTION
-	DsCore::pImpl()->registerPanel( 
-		"Scene Stats", [ this ]( BcU32 )->void
-		{
-			static BcF32 GameTimeTotal = 0.0f;
-			static BcF32 RenderTimeTotal = 0.0f;
-			static BcF32 FrameTimeTotal = 0.0f;
-			static BcF32 GameTimeAccum = 0.0f;
-			static BcF32 RenderTimeAccum = 0.0f;
-			static BcF32 FrameTimeAccum = 0.0f;
-
-			static int CaptureAmount = 60;
-			static int CaptureAccum = 0;
-			GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
-			RenderTimeAccum += RsCore::pImpl()->getFrameTime();
-			FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
-			++CaptureAccum;
-			if( CaptureAccum >= CaptureAmount )
-			{
-				GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
-				RenderTimeTotal = RenderTimeAccum / BcF32( CaptureAccum );
-				FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
-				GameTimeAccum = 0.0f;
-				RenderTimeAccum = 0.0f;
-				FrameTimeAccum = 0.0f;
-				CaptureAccum = 0;
-			}
-
-			OsClient* Client = OsCore::pImpl()->getClient( 0 );
-			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
-			static bool ShowOpened = true;
-			ImGui::SetNextWindowPos( WindowPos );
-			if ( ImGui::Begin( "Engine", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
-				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
-			{
-				ImGui::Text( "Build: %s-%s-%s", 
-					BUILD_ACTION,
-					BUILD_TOOLCHAIN,
-					BUILD_CONFIG );
-				ImGui::Text( "Date/Time: %s %s", 
-					BUILD_DATE,
-					BUILD_TIME );
-				ImGui::Text( "Worker count: %u", 
-					SysKernel::pImpl()->workerCount() );
-				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
-				ImGui::Text( "Render time: %.2fms (%.2fms avg.)", 
-					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f );
-				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
-
-				if( ImGui::Button( "Screenshot" ) )
-				{
-					RsCore::pImpl()->getContext( nullptr )->takeScreenshot();
-				}
-			}
-			ImGui::End();
-		} );
-
 	DsCore::pImpl()->registerPanel(
 		"Scene Hierarchy", [ this ]( BcU32 )->void
 		{

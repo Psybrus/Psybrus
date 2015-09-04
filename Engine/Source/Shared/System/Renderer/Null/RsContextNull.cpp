@@ -114,7 +114,7 @@ void RsContextNull::endFrame()
 
 //////////////////////////////////////////////////////////////////////////
 // takeScreenshot
-void RsContextNull::takeScreenshot()
+void RsContextNull::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 {
 }
 

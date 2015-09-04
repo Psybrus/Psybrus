@@ -389,7 +389,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	InsideBeginEnd_( 0 ),
 	Width_( 0 ),
 	Height_( 0 ),
-	ScreenshotRequested_( BcFalse ),
+	ScreenshotFunc_(),
 	OwningThread_( BcErrorCode ),
 	FrameCount_( 0 ),
 	DirtyFrameBuffer_( BcTrue ),
@@ -560,66 +560,53 @@ void RsContextGL::endFrame()
 	BcAssert( InsideBeginEnd_ == 1 );
 	--InsideBeginEnd_;
 
+	GL( Flush() );		
+
 	//PSY_LOG( "Draw calls: %u\n", NoofDrawCalls_ );
 	//PSY_LOG( "Render state flushes: %u\n", NoofRenderStateFlushes_ );
 	NoofDrawCalls_ = 0;
 	NoofRenderStateFlushes_ = 0;
 
-	if( ScreenshotRequested_ == BcFalse )
-	{
-		GL( Flush() );
-		
-	}
-	else
+	auto ScreenshotFunc = std::move( ScreenshotFunc_ );
+	if( ScreenshotFunc != nullptr )
 	{
 		setFrameBuffer( nullptr );
 		flushState();
 
-		// Finish all rendering.
-		GL( Finish() );
-
-#if !defined( RENDER_USE_GLES )
-		BcU32 W = Width_;
-		BcU32 H = Height_;
+		const BcU32 W = Width_;
+		const BcU32 H = Height_;
 
 		// Read the back buffer.
+#if !PLATFORM_ANDROID
 		GL( ReadBuffer( GL_BACK ) );
-		BcU32* pImageData = new BcU32[ W * H ];
-		BcU32* pReadImageData = pImageData;
-		GL( ReadPixels( 0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, pImageData ) );
-		
-		// Convert to image.
-		ImgImage* pImage = new ImgImage();
-		pImage->create( W, H, NULL );
-		
-		for( BcU32 Y = 0; Y < H; ++Y )
+#endif
+		std::unique_ptr< BcU32[] > ImageData( new BcU32[ W * H ] );
+		std::unique_ptr< BcU32[] > RowData( new BcU32[ W ] );
+		GL( ReadPixels( 0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, ImageData.get() ) );
+
+		const BcU32 RowPitch = sizeof( BcU32 ) * W;
+		for( BcU32 Y = 0; Y < ( H / 2 ); ++Y )
 		{
-			BcU32 RealY = ( H - Y ) - 1;
-			for( BcU32 X = 0; X < W; ++X )
-			{
-				ImgColour* pColour = (ImgColour*)pReadImageData++;
-				pColour->A_ = 0xff;
-				pImage->setPixel( X, RealY, *pColour );
-			}
+			const BcU32 OppositeY = ( H - Y ) - 1;
+
+			// Swap rows to flip image.
+			BcU32* RowA = ImageData.get() + ( Y * W );
+			BcU32* RowB = ImageData.get() + ( OppositeY * W );
+			memcpy( RowData.get(), RowA, RowPitch );
+			memcpy( RowA, RowB, RowPitch );
+			memcpy( RowB, RowData.get(), RowPitch );
 		}
-	
-		PSY_LOG( "Took screenshot: %u x %u", W, H );
 
-		// Save out image.				
-		// NEILO TODO: Generate an automatic filename.
-		Img::save( "screenshot.png", pImage );
-
-		// Free image.
-		delete pImage;
-
-		// Free image data.
-		delete [] pImageData;
-#endif // !defined( RENDER_USE_GLES )
-
-		// No more screenshot requested.
-		ScreenshotRequested_ = BcFalse;
+		RsScreenshot Screenshot;
+		Screenshot.Data_ = ImageData.get();
+		Screenshot.Width_ = W;
+		Screenshot.Height_ = H;
+		Screenshot.Format_ = RsTextureFormat::R8G8B8A8;
+		if( ScreenshotFunc( Screenshot ) )
+		{
+			ScreenshotFunc_ = ScreenshotFunc;
+		}
 	}
-
 	
 
 #if PLATFORM_WINDOWS
@@ -655,9 +642,9 @@ void RsContextGL::endFrame()
 
 //////////////////////////////////////////////////////////////////////////
 // takeScreenshot
-void RsContextGL::takeScreenshot()
+void RsContextGL::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 {
-	ScreenshotRequested_ = BcTrue;
+	ScreenshotFunc_ = std::move( ScreenshotFunc );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1234,7 +1221,6 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-#if !PLATFORM_ANDROID // TODO
 	const auto& Desc = FrameBuffer->getDesc();
 	BcAssertMsg( Desc.RenderTargets_.size() < GL_MAX_COLOR_ATTACHMENTS, "Too many targets" );
 
@@ -1310,7 +1296,6 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	// Unbind.
 	GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
 
-#endif // #if !PLATFORM_ANDROID
 	return true;
 }
 

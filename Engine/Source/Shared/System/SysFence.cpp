@@ -33,16 +33,16 @@ SysFence::~SysFence()
 
 ////////////////////////////////////////////////////////////////////////////////
 // increment
-void SysFence::increment( size_t Value )
+size_t SysFence::increment( size_t Value )
 {
-	Count_.fetch_add( Value );
+	return Count_.fetch_add( Value );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // decrement
-void SysFence::decrement( size_t Value )
+size_t SysFence::decrement( size_t Value )
 {
-	Count_.fetch_sub( Value );
+	return Count_.fetch_sub( Value );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -46,7 +46,8 @@ void ScnShaderLightUniformBlockData::StaticRegisterClass()
 		new ReField( "LightAttn_", &ScnShaderLightUniformBlockData::LightAttn_ )
 	};
 		
-	ReRegisterClass< ScnShaderLightUniformBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderLightUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,8 @@ void ScnShaderObjectUniformBlockData::StaticRegisterClass()
 		new ReField( "NormalTransform_", &ScnShaderObjectUniformBlockData::NormalTransform_ ),
 	};
 		
-	ReRegisterClass< ScnShaderObjectUniformBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderObjectUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,7 +77,8 @@ void ScnShaderBoneUniformBlockData::StaticRegisterClass()
 		new ReField( "BoneTransform_", &ScnShaderBoneUniformBlockData::BoneTransform_ ),
 	};
 		
-	ReRegisterClass< ScnShaderBoneUniformBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderBoneUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,7 +92,8 @@ void ScnShaderAlphaTestUniformBlockData::StaticRegisterClass()
 		new ReField( "AlphaTestParams_", &ScnShaderAlphaTestUniformBlockData::AlphaTestParams_ ),
 	};
 		
-	ReRegisterClass< ScnShaderAlphaTestUniformBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderAlphaTestUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -104,7 +108,8 @@ void ScnShaderPostProcessConfigData::StaticRegisterClass()
 		new ReField( "OutputDimensions_", &ScnShaderPostProcessConfigData::OutputDimensions_ ),
 	};
 		
-	ReRegisterClass< ScnShaderPostProcessConfigData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderPostProcessConfigData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,7 +123,8 @@ void ScnShaderPostProcessCopyBlockData::StaticRegisterClass()
 		new ReField( "ColourTransform_", &ScnShaderPostProcessCopyBlockData::ColourTransform_ ),
 	};
 		
-	ReRegisterClass< ScnShaderPostProcessCopyBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderPostProcessCopyBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -133,5 +139,6 @@ void ScnShaderPostProcessBlurBlockData::StaticRegisterClass()
 		new ReField( "Radius_", &ScnShaderPostProcessBlurBlockData::Radius_ ),
 	};
 		
-	ReRegisterClass< ScnShaderPostProcessBlurBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderPostProcessBlurBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
 }

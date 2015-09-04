@@ -371,13 +371,21 @@ void ScnViewComponent::recreateFrameBuffer()
 {
 	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
 	{
-		BcAssert( RenderTarget_.isValid() && DepthStencilTarget_.isValid() );
-		BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
-		BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
-
+		BcAssert( RenderTarget_.isValid() || DepthStencilTarget_.isValid() );
+		if( RenderTarget_.isValid() && DepthStencilTarget_.isValid() )
+		{
+			BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
+			BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
+		}
 		RsFrameBufferDesc FrameBufferDesc( 1 );
-		FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
-		FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
+		if( RenderTarget_.isValid() )
+		{
+			FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
+		}
+		if( DepthStencilTarget_.isValid() )
+		{
+			FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
+		}
 
 		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
 	}
