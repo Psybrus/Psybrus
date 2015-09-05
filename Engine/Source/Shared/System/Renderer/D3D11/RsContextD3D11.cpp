@@ -24,6 +24,7 @@
 #include "System/Renderer/RsViewport.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 #include "System/Os/OsClient.h"
 #include "System/Os/OsClientWindows.h"
@@ -350,7 +351,11 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	BackBufferRT_( nullptr ),
 	BackBufferDS_( nullptr ),
 	ScreenshotRequested_( BcFalse ),
-	OwningThread_( BcErrorCode )
+	OwningThread_( BcErrorCode ),
+	UniformBuffersDirty_( BcTrue ),
+	TexturesDirty_( BcTrue ),
+	FrameBuffer_( nullptr ),
+	FrameBufferDirty_( BcTrue )
 {
 	IndexBuffer_ = nullptr;
 	D3DIndexBuffer_ = nullptr;
@@ -364,7 +369,7 @@ RsContextD3D11::RsContextD3D11( OsClient* pClient, RsContextD3D11* pParent ):
 	BcMemZero( &D3DShaderResourceViews_[ 0 ], sizeof( D3DShaderResourceViews_ ) );
 	BcMemZero( &D3DSamplerStates_[ 0 ], sizeof( D3DSamplerStates_ ) );
 
-	InputLayoutChanged_ = false;
+	InputLayoutDirty_ = BcFalse;
 	Program_ = nullptr;
 	VertexDeclaration_ = nullptr;
 	TopologyType_ = RsTopologyType::INVALID;
@@ -861,6 +866,10 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 
 		if( SlotIdx != MaxBindPoints )
 		{
+			if( D3DSamplerState.Sampler_ != D3DSamplerStates_[ Idx ][ SlotIdx ] )
+			{
+				TexturesDirty_ = BcTrue;
+			}
 			D3DSamplerStates_[ Idx ][ SlotIdx ] = D3DSamplerState.Sampler_;
 		}
 	}
@@ -917,6 +926,10 @@ void RsContextD3D11::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 
 		if( SlotIdx != MaxBindPoints )
 		{
+			if( pTexture != Textures_[ Idx ][ SlotIdx ] )
+			{
+				TexturesDirty_ = BcTrue;
+			}
 			Textures_[ Idx ][ SlotIdx ] = pTexture;
 			D3DShaderResourceViews_[ Idx ][ SlotIdx ] = ShaderResourceView;
 		}
@@ -929,7 +942,8 @@ void RsContextD3D11::setProgram( class RsProgram* Program )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	InputLayoutChanged_ |= Program_ != Program; // TODO: Only check vertex shader.
+	InputLayoutDirty_ |= Program_ != Program; // TODO: Only check vertex shader.
+	ProgramDirty_ |= Program_ != Program;
 	Program_ = Program;
 }
 
@@ -973,6 +987,10 @@ void RsContextD3D11::setUniformBuffer(
 
 		if( SlotIdx != MaxBindPoints )
 		{
+			if( UniformBuffers_[ Idx ][ SlotIdx ] != UniformBuffer )
+			{
+				UniformBuffersDirty_ = BcTrue;
+			}
 			UniformBuffers_[ Idx ][ SlotIdx ] = UniformBuffer;
 			D3DConstantBuffers_[ Idx ][ SlotIdx ] = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
 		}
@@ -985,7 +1003,7 @@ void RsContextD3D11::setVertexDeclaration( class RsVertexDeclaration* VertexDecl
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	InputLayoutChanged_ |= VertexDeclaration_ != VertexDeclaration;
+	InputLayoutDirty_ |= VertexDeclaration_ != VertexDeclaration;
 	VertexDeclaration_ = VertexDeclaration;
 }
 
@@ -998,6 +1016,12 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	BcU32 Width = Width_;
 	BcU32 Height = Height_;
 
+	if( FrameBuffer_ != FrameBuffer )
+	{
+		FrameBuffer_ = FrameBuffer;
+		FrameBufferDirty_ = BcTrue;
+	}
+
 	if( FrameBuffer != nullptr )
 	{
 		const auto& Desc = FrameBuffer->getDesc();
@@ -1005,23 +1029,27 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		for( size_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
 		{
 			auto* Tex = Desc.RenderTargets_[ Idx ];
+			ID3D11RenderTargetView* RTV = nullptr;
 			if( Tex != nullptr )
 			{
-				RenderTargetViews_[ Idx ] = getD3DRenderTargetView( Tex->getHandle< size_t >() );
+				RTV = getD3DRenderTargetView( Tex->getHandle< size_t >() );
 			}
-			else
+
+			if( RenderTargetViews_[ Idx ] != RTV )
 			{
-				RenderTargetViews_[ Idx ] = nullptr;
+				RenderTargetViews_[ Idx ] = RTV;
 			}
 		}
 
+		ID3D11DepthStencilView* DSV = nullptr;
 		if( Desc.DepthStencilTarget_ != nullptr )
 		{
-			DepthStencilView_ = getD3DDepthStencilView( Desc.DepthStencilTarget_->getHandle< size_t >() );
+			DSV = getD3DDepthStencilView( Desc.DepthStencilTarget_->getHandle< size_t >() );
 		}
-		else
+
+		if( DepthStencilView_ != DSV )
 		{
-			DepthStencilView_ = nullptr;
+			DepthStencilView_ = DSV;
 		}
 
 		Width = Desc.RenderTargets_[ 0 ]->getDesc().Width_;
@@ -2008,16 +2036,23 @@ bool RsContextD3D11::destroyVertexDeclaration(
 //virtual
 void RsContextD3D11::flushState()
 {
+	PSY_PROFILER_SECTION( FlushRoot, "RsContextD3D11::flushState" );
+
 	HRESULT Result = 0;
 
 	// Set render targets.
-	Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
+	if( FrameBufferDirty_ )
+	{
+		PSY_PROFILER_SECTION( FBRoot, "FB" );
+		Context_->OMSetRenderTargets( static_cast< UINT >( RenderTargetViews_.size() ), &RenderTargetViews_[ 0 ], DepthStencilView_ );
+		FrameBufferDirty_ = BcFalse;
+	}
 
 	// Bind shaders.
-	RsShader* VertexShader = nullptr;
 	std::array< bool, (BcU32)RsShaderType::MAX > HasShaders = { false };
-	if( Program_ != nullptr )
+	if( Program_ != nullptr && ProgramDirty_ )
 	{
+		PSY_PROFILER_SECTION( ShadersRoot, "Shaders" );
 		const auto& Shaders = Program_->getShaders();
 		for( auto* Shader : Shaders )
 		{
@@ -2027,199 +2062,27 @@ void RsContextD3D11::flushState()
 			switch( Desc.ShaderType_ )
 			{
 			case RsShaderType::VERTEX:
-				{
-					// Cache for input assembly.
-					VertexShader = Shader;
-
-					// Bind.
-					Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
-					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->VSSetConstantBuffers( 
-								Idx,
-								1,							
-								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->VSSetShaderResources( 
-								Idx,
-								1,							
-								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
-							Context_->VSSetSamplers( 
-								Idx,
-								1,
-								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-				}
+				Context_->VSSetShader( Shader->getHandle< ID3D11VertexShader* >(), nullptr, 0 );
 				break;
 
 			case RsShaderType::HULL:
-				{
-					// Bind.
-					Context_->HSSetShader( Shader->getHandle< ID3D11HullShader* >(), nullptr, 0 );
-					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->HSSetConstantBuffers( 
-								Idx,
-								1,							
-								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->HSSetShaderResources( 
-								Idx,
-								1,							
-								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
-							Context_->HSSetSamplers( 
-								Idx,
-								1,
-								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-				}
+				Context_->HSSetShader( Shader->getHandle< ID3D11HullShader* >(), nullptr, 0 );
 				break;
 
 			case RsShaderType::DOMAIN:
-				{
-					// Bind.
-					Context_->DSSetShader( Shader->getHandle< ID3D11DomainShader* >(), nullptr, 0 );
-					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->DSSetConstantBuffers( 
-								Idx,
-								1,							
-								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->DSSetShaderResources( 
-								Idx,
-								1,							
-								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
-							Context_->DSSetSamplers( 
-								Idx,
-								1,
-								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-				}
+				Context_->DSSetShader( Shader->getHandle< ID3D11DomainShader* >(), nullptr, 0 );
 				break;
 
 			case RsShaderType::GEOMETRY:
-				{
-					// Bind.
-					Context_->GSSetShader( Shader->getHandle< ID3D11GeometryShader* >(), nullptr, 0 );
-					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->GSSetConstantBuffers( 
-								Idx,
-								1,							
-								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->GSSetShaderResources( 
-								Idx,
-								1,							
-								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
-							Context_->GSSetSamplers( 
-								Idx,
-								1,
-								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-				}
+				Context_->GSSetShader( Shader->getHandle< ID3D11GeometryShader* >(), nullptr, 0 );
 				break;
 
 			case RsShaderType::PIXEL:
-				{
-					// Bind.
-					Context_->PSSetShader( Shader->getHandle< ID3D11PixelShader* >(), nullptr, 0 );
-					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->PSSetConstantBuffers( 
-								Idx,
-								1,							
-								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->PSSetShaderResources( 
-								Idx,
-								1,							
-								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
-							Context_->PSSetSamplers( 
-								Idx,
-								1,
-								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-				}
+				Context_->PSSetShader( Shader->getHandle< ID3D11PixelShader* >(), nullptr, 0 );
 				break;
 
 			case RsShaderType::COMPUTE:
-				{
-					// Bind.
-					Context_->CSSetShader( Shader->getHandle< ID3D11ComputeShader* >(), nullptr, 0 );
-					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->CSSetConstantBuffers( 
-								Idx,
-								1,							
-								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-
-					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
-					{
-						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
-						{
-							Context_->CSSetShaderResources( 
-								Idx,
-								1,							
-								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
-							Context_->CSSetSamplers( 
-								Idx,
-								1,
-								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
-						}
-					}
-				}
+				Context_->CSSetShader( Shader->getHandle< ID3D11ComputeShader* >(), nullptr, 0 );
 				break;
 			}
 		}
@@ -2229,7 +2092,7 @@ void RsContextD3D11::flushState()
 		{
 			if( HasShaders[ Idx ] == false )
 			{
-				switch( Idx )
+				switch( (RsShaderType)Idx )
 				{
 				case RsShaderType::VERTEX:
 					Context_->VSSetShader( nullptr, nullptr, 0 );
@@ -2252,11 +2115,251 @@ void RsContextD3D11::flushState()
 				}
 			}
 		}
+
+		ProgramDirty_ = BcFalse;
+	}
+
+	// Bind up uniform buffers
+	if( UniformBuffersDirty_ )
+	{
+		PSY_PROFILER_SECTION( ShaderRoot, "Uniforms" );
+		const auto& Shaders = Program_->getShaders();
+		for( auto* Shader : Shaders )
+		{
+			const auto& Desc = Shader->getDesc();
+			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
+			switch( Desc.ShaderType_ )
+			{
+			case RsShaderType::VERTEX:
+				{
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->VSSetConstantBuffers( 
+								Idx,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::HULL:
+				{
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->HSSetConstantBuffers( 
+								Idx,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::DOMAIN:
+				{
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->DSSetConstantBuffers( 
+								Idx,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::GEOMETRY:
+				{
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->GSSetConstantBuffers( 
+								Idx,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::PIXEL:
+				{
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->PSSetConstantBuffers( 
+								Idx,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::COMPUTE:
+				{
+					for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->CSSetConstantBuffers( 
+								Idx,
+								1,							
+								&D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+			}
+		}
+
+		UniformBuffersDirty_ = BcFalse;
+	}
+
+	if( TexturesDirty_ )
+	{
+		PSY_PROFILER_SECTION( ShaderRoot, "Shader resources + samplers" );
+		const auto& Shaders = Program_->getShaders();
+		for( auto* Shader : Shaders )
+		{
+			const auto& Desc = Shader->getDesc();
+			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
+			switch( Desc.ShaderType_ )
+			{
+			case RsShaderType::VERTEX:
+				{
+					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->VSSetShaderResources( 
+								Idx,
+								1,							
+								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
+							Context_->VSSetSamplers( 
+								Idx,
+								1,
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::HULL:
+				{
+					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->HSSetShaderResources( 
+								Idx,
+								1,							
+								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
+							Context_->HSSetSamplers( 
+								Idx,
+								1,
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+
+				}
+				break;
+
+			case RsShaderType::DOMAIN:
+				{
+					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->DSSetShaderResources( 
+								Idx,
+								1,							
+								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
+							Context_->DSSetSamplers( 
+								Idx,
+								1,
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::GEOMETRY:
+				{
+					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->GSSetShaderResources( 
+								Idx,
+								1,							
+								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
+							Context_->GSSetSamplers( 
+								Idx,
+								1,
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::PIXEL:
+				{
+					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->PSSetShaderResources( 
+								Idx,
+								1,							
+								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
+							Context_->PSSetSamplers( 
+								Idx,
+								1,
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+
+			case RsShaderType::COMPUTE:
+				{
+					for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+					{
+						if( D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] != nullptr )
+						{
+							Context_->CSSetShaderResources( 
+								Idx,
+								1,							
+								&D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ] );
+							Context_->CSSetSamplers( 
+								Idx,
+								1,
+								&D3DSamplerStates_[ ShaderTypeIdx ][ Idx ] );
+						}
+					}
+				}
+				break;
+			}
+		}
+
+		TexturesDirty_ = BcFalse;
 	}
 
 	// Input layout.
-	if( InputLayoutChanged_ )
+	if( InputLayoutDirty_ )
 	{
+		PSY_PROFILER_SECTION( ILRoot, "Input layout" );
+
 		// Grab current input layout.
 		BcU32 InputLayoutHash = generateInputLayoutHash();
 
@@ -2266,6 +2369,18 @@ void RsContextD3D11::flushState()
 			const auto& Desc = VertexDeclaration_->getDesc();
 			const auto& VertexAttributes = Program_->getVertexAttributeList();
 
+			// Find vertex shader.
+			RsShader* VertexShader = nullptr;
+			const auto& Shaders = Program_->getShaders();
+			for( auto* Shader : Shaders )
+			{
+				if( Shader->getDesc().ShaderType_ == RsShaderType::VERTEX )
+				{
+					VertexShader = Shader;
+					break;
+				}
+			}
+
 			// Create input layout for current setup.
 			// For missing vertex attributes, we just fudge them to be zero offset.
 			std::vector< D3D11_INPUT_ELEMENT_DESC > ElementDescs;
@@ -2274,7 +2389,7 @@ void RsContextD3D11::flushState()
 			for( const auto& VertexAttribute : VertexAttributes )
 			{
 				auto FoundElement = std::find_if( Desc.Elements_.begin(), Desc.Elements_.end(),
-					[ & ]( const RsVertexElement& Element )
+					[ &VertexAttribute ]( const RsVertexElement& Element )
 					{
 						return ( Element.Usage_ == VertexAttribute.Usage_ &&
 							Element.UsageIdx_ == VertexAttribute.UsageIdx_ );
@@ -2285,7 +2400,7 @@ void RsContextD3D11::flushState()
 				if( FoundElement == Desc.Elements_.end() )
 				{
 					FoundElement = std::find_if( Desc.Elements_.begin(), Desc.Elements_.end(),
-					[ & ]( const RsVertexElement& Element )
+					[]( const RsVertexElement& Element )
 					{
 						return Element.Offset_ == 0;
 					} );
@@ -2327,6 +2442,8 @@ void RsContextD3D11::flushState()
 		// Set topology.
 		Context_->IASetPrimitiveTopology(
 			gTopologyType[ (BcU32)TopologyType_ ] );
+
+		InputLayoutDirty_ = BcFalse;
 	}
 
 	// Set buffers.

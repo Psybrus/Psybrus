@@ -217,8 +217,9 @@ private:
 	typedef std::array< D3DConstantBufferSlots, (size_t)RsShaderType::MAX > D3DConstantBuffers;
 	
 	UniformBuffers UniformBuffers_;
-	D3DConstantBuffers D3DConstantBuffers_;
+	BcBool UniformBuffersDirty_;
 
+	D3DConstantBuffers D3DConstantBuffers_;
 	// Shader resources.
 	typedef std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureSlots;
 	typedef std::array< ID3D11ShaderResourceView*, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
@@ -228,13 +229,15 @@ private:
 	typedef std::array< D3DSamplerStateSlots, (size_t)RsShaderType::MAX > D3DSamplerStates;
 
 	Textures Textures_;
+	BcBool TexturesDirty_;
 	D3DShaderResourceViews D3DShaderResourceViews_;
 	D3DSamplerStates D3DSamplerStates_;
 
 	// Input layout, program, topology.
-	BcBool InputLayoutChanged_;
-	RsProgram* Program_;
+	BcBool InputLayoutDirty_;
 	RsVertexDeclaration* VertexDeclaration_;
+	RsProgram* Program_;
+	BcBool ProgramDirty_;
 	RsTopologyType TopologyType_;
 
 	// Input assembly mapping.
@@ -282,6 +285,8 @@ private:
 	// Render targets.
 	typedef std::array< ID3D11RenderTargetView*, 8 > RenderTargetViews;
 	
+	RsFrameBuffer* FrameBuffer_;
+	BcBool FrameBufferDirty_;
 	RenderTargetViews RenderTargetViews_;
 	ID3D11DepthStencilView* DepthStencilView_;
 };
