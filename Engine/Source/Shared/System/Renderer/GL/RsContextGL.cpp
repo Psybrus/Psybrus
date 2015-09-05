@@ -2728,67 +2728,70 @@ void RsContextGL::flushState()
 		else
 #endif
 		{
-			RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
-		
-			PSY_PROFILER_SECTION( UniformRoot, "Uniform" );
-			for( auto& UniformEntry : ProgramImpl->UniformEntries_ )
+			if( Program_ != nullptr )
 			{
-				const BcU32 BindingPoint = UniformEntry.BindingPoint_;
-				auto Buffer = UniformBuffers_[ BindingPoint ].Buffer_;
-				if( Buffer != nullptr )
+				RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
+		
+				PSY_PROFILER_SECTION( UniformRoot, "Uniform" );
+				for( auto& UniformEntry : ProgramImpl->UniformEntries_ )
 				{
-					const auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-					BcAssert( BufferImpl );
-
-					// Check version, if equal, then don't update uniform.
-					if( UniformEntry.Buffer_ != Buffer ||
-						UniformEntry.Version_ != BufferImpl->Version_ )
+					const BcU32 BindingPoint = UniformEntry.BindingPoint_;
+					auto Buffer = UniformBuffers_[ BindingPoint ].Buffer_;
+					if( Buffer != nullptr )
 					{
-						// Update buffer & version.
-						UniformEntry.Buffer_ = Buffer;
-						UniformEntry.Version_ = BufferImpl->Version_;
+						const auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+						BcAssert( BufferImpl );
 
-						// Setup uniforms.
-						const auto* BufferData = BufferImpl->BufferData_;
-						BcAssert( BufferData );
-						const auto* UniformData = BufferData + UniformEntry.Offset_;
-						auto* CachedUniformData = ProgramImpl->CachedUniforms_.get() + UniformEntry.CachedOffset_;
-
-						// Check if value has changed.
-						if( memcmp( CachedUniformData, UniformData, UniformEntry.Size_ ) != 0 )
+						// Check version, if equal, then don't update uniform.
+						if( UniformEntry.Buffer_ != Buffer ||
+							UniformEntry.Version_ != BufferImpl->Version_ )
 						{
-							memcpy( CachedUniformData, UniformData, UniformEntry.Size_ );
-							switch( UniformEntry.Type_ )
+							// Update buffer & version.
+							UniformEntry.Buffer_ = Buffer;
+							UniformEntry.Version_ = BufferImpl->Version_;
+
+							// Setup uniforms.
+							const auto* BufferData = BufferImpl->BufferData_;
+							BcAssert( BufferData );
+							const auto* UniformData = BufferData + UniformEntry.Offset_;
+							auto* CachedUniformData = ProgramImpl->CachedUniforms_.get() + UniformEntry.CachedOffset_;
+
+							// Check if value has changed.
+							if( memcmp( CachedUniformData, UniformData, UniformEntry.Size_ ) != 0 )
 							{
-							case RsProgramImplGL::UniformEntry::Type::UNIFORM_1IV:
-								GL( Uniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) ) );
-								break;
-							case RsProgramImplGL::UniformEntry::Type::UNIFORM_1FV:
-								GL( Uniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-								break;
-							case RsProgramImplGL::UniformEntry::Type::UNIFORM_2FV:
-								GL( Uniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-								break;
-							case RsProgramImplGL::UniformEntry::Type::UNIFORM_3FV:
-								GL( Uniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-								break;
-							case RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV:
-								GL( Uniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-								break;
-							case RsProgramImplGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
-								GL( UniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) ) );
-								break;
-							default:
-								BcBreakpoint;
-								break;
-							}
+								memcpy( CachedUniformData, UniformData, UniformEntry.Size_ );
+								switch( UniformEntry.Type_ )
+								{
+								case RsProgramImplGL::UniformEntry::Type::UNIFORM_1IV:
+									GL( Uniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) ) );
+									break;
+								case RsProgramImplGL::UniformEntry::Type::UNIFORM_1FV:
+									GL( Uniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+									break;
+								case RsProgramImplGL::UniformEntry::Type::UNIFORM_2FV:
+									GL( Uniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+									break;
+								case RsProgramImplGL::UniformEntry::Type::UNIFORM_3FV:
+									GL( Uniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+									break;
+								case RsProgramImplGL::UniformEntry::Type::UNIFORM_4FV:
+									GL( Uniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+									break;
+								case RsProgramImplGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
+									GL( UniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) ) );
+									break;
+								default:
+									BcBreakpoint;
+									break;
+								}
 							
+							}
 						}
 					}
-				}
-				else
-				{
-					BcBreakpoint;
+					else
+					{
+						BcBreakpoint;
+					}
 				}
 			}
 		}
