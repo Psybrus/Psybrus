@@ -392,7 +392,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	ScreenshotFunc_(),
 	OwningThread_( BcErrorCode ),
 	FrameCount_( 0 ),
-	DirtyFrameBuffer_( BcTrue ),
+	FrameBufferDirty_( BcTrue ),
 	FrameBuffer_( nullptr ),
 	DirtyViewport_( BcTrue ),
 	Viewport_( 0, 0, 0, 0 ),
@@ -402,15 +402,19 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	ScissorW_( 0 ),
 	ScissorH_( 0 ),
 	GlobalVAO_( 0 ),
-	ProgramDirty_( BcTrue ),
-	BindingsDirty_( BcTrue ),
+	VertexDeclaration_( nullptr ),
 	Program_( nullptr ),
+	ProgramDirty_( BcTrue ),
 	IndexBuffer_( nullptr ),
-	VertexDeclaration_( nullptr )
+	IndexBufferDirty_( BcTrue ),
+	VertexBuffersDirty_( BcTrue ),
+	UniformBuffersDirty_( BcTrue )
 {
 	BcMemZero( &TextureStateValues_[ 0 ], sizeof( TextureStateValues_ ) );
 	BcMemZero( &TextureStateBinds_[ 0 ], sizeof( TextureStateBinds_ ) );
 	BcMemZero( &VertexBuffers_[ 0 ], sizeof( VertexBuffers_ ) );
+	BcMemZero( &VertexBufferActiveState_[ 0 ], sizeof( VertexBufferActiveState_ ) );
+	BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
 	BcMemZero( &UniformBuffers_[ 0 ], sizeof( UniformBuffers_ ) );
 	RenderState_ = nullptr;
 	LastRenderStateHandle_ = 0;
@@ -611,7 +615,7 @@ void RsContextGL::endFrame()
 
 #if PLATFORM_WINDOWS
 	{
-		PSY_PROFILER_SECTION( UpdateRoot, "::SwapBuffers" );
+		PSY_PROFILER_SECTION( SwapRoot, "::SwapBuffers" );
 		::SwapBuffers( WindowDC_ );
 	}
 #endif
@@ -2430,7 +2434,7 @@ void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 	if( IndexBuffer_ != IndexBuffer )
 	{
 		IndexBuffer_ = IndexBuffer;
-		BindingsDirty_ = BcTrue;
+		IndexBufferDirty_ = BcTrue;
 	}
 }
 
@@ -2450,8 +2454,7 @@ void RsContextGL::setVertexBuffer(
 	{
 		VertexBuffers_[ StreamIdx ].Buffer_ = VertexBuffer;
 		VertexBuffers_[ StreamIdx ].Stride_ = Stride;
-		BindingsDirty_ = BcTrue;
-		ProgramDirty_ = BcTrue;
+		VertexBuffersDirty_ = BcTrue;
 	}
 }
 
@@ -2468,8 +2471,8 @@ void RsContextGL::setUniformBuffer(
 	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
 	{
 		UniformBuffers_[ SlotIdx ].Buffer_ = UniformBuffer;
-		BindingsDirty_ = BcTrue;
-		ProgramDirty_ = BcTrue;
+		UniformBuffers_[ SlotIdx ].Dirty_ = BcTrue;
+		UniformBuffersDirty_ = BcTrue;
 	}
 }
 
@@ -2481,7 +2484,7 @@ void RsContextGL::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 
 	if( FrameBuffer_ != FrameBuffer )
 	{
-		DirtyFrameBuffer_ = BcTrue;
+		FrameBufferDirty_ = BcTrue;
 		FrameBuffer_ = FrameBuffer;
 
 		BcU32 Width = Width_;
@@ -2506,7 +2509,6 @@ void RsContextGL::setVertexDeclaration( class RsVertexDeclaration* VertexDeclara
 	if( VertexDeclaration_ != VertexDeclaration )
 	{
 		VertexDeclaration_ = VertexDeclaration;
-		BindingsDirty_ = BcTrue;
 		ProgramDirty_ = BcTrue;
 	}
 }
@@ -2525,70 +2527,74 @@ void RsContextGL::flushState()
 	// TODO: Check for redundant state.
 	if( RenderState_ != nullptr )
 	{
+		PSY_PROFILER_SECTION( RSRoot, "Render state" );
 		const auto& Desc = RenderState_->getDesc();
 		setRenderStateDesc( Desc, BcFalse );
 	}	
 
 	// Bind texture states.
-	for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )
 	{
-		BcU32 TextureStateID = TextureStateBinds_[ TextureStateIdx ];
-		TTextureStateValue& TextureStateValue = TextureStateValues_[ TextureStateID ];
-
-		if( TextureStateValue.Dirty_ && (GLint)TextureStateID < Version_.MaxTextureSlots_ )
+		PSY_PROFILER_SECTION( TextureRoot, "Texture state" );
+		for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )
 		{
-			RsTexture* pTexture = TextureStateValue.pTexture_;			
-			const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
-			const RsTextureType InternalType = pTexture ? pTexture->getDesc().Type_ : RsTextureType::TEX2D;
-			const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
+			BcU32 TextureStateID = TextureStateBinds_[ TextureStateIdx ];
+			TTextureStateValue& TextureStateValue = TextureStateValues_[ TextureStateID ];
 
-			GL( ActiveTexture( GL_TEXTURE0 + TextureStateID ) );
-			if( pTexture != nullptr )
+			if( TextureStateValue.Dirty_ && (GLint)TextureStateID < Version_.MaxTextureSlots_ )
 			{
-				RsTextureImplGL* TextureImpl = pTexture->getHandle< RsTextureImplGL* >();
-				BcAssert( TextureImpl != nullptr );
-				GL( BindTexture( TextureType, TextureImpl->Handle_ ) );
-			}
-			else
-			{
-				GL( BindTexture( TextureType, 0 ) );
-			}
-			
+				RsTexture* pTexture = TextureStateValue.pTexture_;			
+				const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
+				const RsTextureType InternalType = pTexture ? pTexture->getDesc().Type_ : RsTextureType::TEX2D;
+				const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
 
-			if( pTexture != nullptr && SamplerState != nullptr )
-			{
-#if !defined( RENDER_USE_GLES )
-				if( Version_.SupportSamplerStates_ )
+				GL( ActiveTexture( GL_TEXTURE0 + TextureStateID ) );
+				if( pTexture != nullptr )
 				{
-					GLuint SamplerObject = SamplerState->getHandle< GLuint >();
-					GL( BindSampler( TextureStateIdx, SamplerObject ) );
+					RsTextureImplGL* TextureImpl = pTexture->getHandle< RsTextureImplGL* >();
+					BcAssert( TextureImpl != nullptr );
+					GL( BindTexture( TextureType, TextureImpl->Handle_ ) );
 				}
 				else
-#endif
 				{
-					// TODO MipLODBias_
-					// TODO MaxAnisotropy_
-					// TODO BorderColour_
-					// TODO MinLOD_
-					// TODO MaxLOD_
-					const auto& SamplerStateDesc = SamplerState->getDesc();
-					GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] ) );
-					GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] ) );
-					GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] ) );
-					GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] ) );	
+					GL( BindTexture( TextureType, 0 ) );
+				}
+			
+
+				if( pTexture != nullptr && SamplerState != nullptr )
+				{
 #if !defined( RENDER_USE_GLES )
-					GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] ) );	
-					GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
-					GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
+					if( Version_.SupportSamplerStates_ )
+					{
+						GLuint SamplerObject = SamplerState->getHandle< GLuint >();
+						GL( BindSampler( TextureStateIdx, SamplerObject ) );
+					}
+					else
+#endif
+					{
+						// TODO MipLODBias_
+						// TODO MaxAnisotropy_
+						// TODO BorderColour_
+						// TODO MinLOD_
+						// TODO MaxLOD_
+						const auto& SamplerStateDesc = SamplerState->getDesc();
+						GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] ) );	
+#if !defined( RENDER_USE_GLES )
+						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] ) );	
+						GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 #endif
 					
+					}
 				}
-			}
 
-			TextureStateValue.Dirty_ = BcFalse;
+				TextureStateValue.Dirty_ = BcFalse;
+			}
 		}
 	}
-	
+
 	// Reset binds.
 	NoofTextureStateBinds_ = 0;
 
@@ -2597,31 +2603,124 @@ void RsContextGL::flushState()
 	// Bind program and primitive.
 	if( ( Program_ != nullptr &&
 		  VertexDeclaration_ != nullptr ) &&
-		( ProgramDirty_ || BindingsDirty_ ) )
+		( ProgramDirty_ || VertexBuffersDirty_ ) )
 	{
+		PSY_PROFILER_SECTION( ProgramRoot, "Program" );
 		const auto& ProgramVertexAttributeList = Program_->getVertexAttributeList();
 		const auto& VertexDeclarationDesc = VertexDeclaration_->getDesc();
 		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
 
-		// Bind program
+		// Bind program if we need to.
 		RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
+		if( ProgramDirty_ )
+		{
+			GL( UseProgram( ProgramImpl->Handle_ ) );
+			ProgramDirty_ = BcFalse;
+		}
 
-		GL( UseProgram( ProgramImpl->Handle_ ) );
-		
+		{
+			PSY_PROFILER_SECTION( VtxRoot, "Vertex attributes" );
 
+			// Cached vertex handle for binding.
+			GLuint BoundVertexHandle = 0;
+
+			// Bind up all elements to attributes.
+			BcU32 BoundElements = 0;
+			for( const auto& Attribute : ProgramVertexAttributeList )
+			{
+				auto FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+					[ &Attribute ]( const RsVertexElement& Element )
+					{
+						return ( Element.Usage_ == Attribute.Usage_ &&
+							Element.UsageIdx_ == Attribute.UsageIdx_ );
+					} );
+
+				// Force to an element with zero offset if we can't find a valid one.
+				// TODO: Find a better approach.
+				if( FoundElement == PrimitiveVertexElementList.end() )
+				{
+					FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+						[]( const RsVertexElement& Element )
+						{
+							return Element.Offset_ == 0;
+						} );
+				}
+
+				// Found an element we can bind to.
+				if( FoundElement != PrimitiveVertexElementList.end() )
+				{
+					auto VertexBufferBinding = VertexBuffers_[ FoundElement->StreamIdx_ ];
+					auto VertexBuffer = VertexBufferBinding.Buffer_;
+					auto VertexStride = VertexBufferBinding.Stride_;
+			
+					// Bind up new vertex buffer if we need to.
+					BcAssertMsg( FoundElement->StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+					BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
+					auto VertexBufferImpl = VertexBuffer->getHandle< RsBufferImplGL* >();
+					BcAssert( VertexBufferImpl );
+					GLuint VertexHandle = VertexBufferImpl->Handle_;
+					if( BoundVertexHandle != VertexHandle )
+					{
+						GL( BindBuffer( GL_ARRAY_BUFFER, VertexHandle ) );
+						BoundVertexHandle = VertexHandle;
+					}
+
+					// Enable array.
+					VertexBufferActiveNextState_[ Attribute.Channel_ ] = true;
+
+					// Bind.
+					BcU64 CalcOffset = FoundElement->Offset_;
+
+					GL( VertexAttribPointer( Attribute.Channel_, 
+						FoundElement->Components_,
+						gVertexDataTypes[ (BcU32)FoundElement->DataType_ ],
+						gVertexDataNormalised[ (BcU32)FoundElement->DataType_ ],
+						VertexStride,
+						(GLvoid*)CalcOffset ) );
+
+					++BoundElements;
+				}
+			}
+			BcAssert( ProgramVertexAttributeList.size() == BoundElements );
+
+			// Enable/disable states.
+			for( BcU32 Idx = 0; Idx < MAX_VERTEX_STREAMS; ++Idx )
+			{
+				if( VertexBufferActiveState_[ Idx ] != VertexBufferActiveNextState_[ Idx ] )
+				{
+					VertexBufferActiveState_[ Idx ] = VertexBufferActiveNextState_[ Idx ];
+					if( VertexBufferActiveState_[ Idx ] )
+					{
+						GL( EnableVertexAttribArray( Idx ) );
+					}
+					else
+					{
+						GL( DisableVertexAttribArray( Idx ) );
+					}
+				}
+			}
+			VertexBuffersDirty_ = BcFalse;
+		}
+	}
+
+	if( UniformBuffersDirty_ )
+	{
 		// Bind up uniform buffers, or uniforms.
 #if !defined( RENDER_USE_GLES )	
 		if( Version_.SupportUniformBuffers_ )
 		{
+			PSY_PROFILER_SECTION( UBORoot, "UBO" );
 			BcU32 BindingPoint = 0;
 			for( auto It( UniformBuffers_.begin() ); It != UniformBuffers_.end(); ++It )
 			{
 				auto Buffer = (*It).Buffer_;
-				if( Buffer != nullptr )
+				const auto Dirty = (*It).Dirty_;
+				if( (*It).Dirty_ && Buffer != nullptr )
 				{
 					auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
 					BcAssert( BufferImpl );
 					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
+					(*It).Dirty_ = BcFalse;
 				}
 				++BindingPoint;
 			}
@@ -2629,6 +2728,9 @@ void RsContextGL::flushState()
 		else
 #endif
 		{
+			RsProgramImplGL* ProgramImpl = Program_->getHandle< RsProgramImplGL* >();
+		
+			PSY_PROFILER_SECTION( UniformRoot, "Uniform" );
 			for( auto& UniformEntry : ProgramImpl->UniformEntries_ )
 			{
 				const BcU32 BindingPoint = UniformEntry.BindingPoint_;
@@ -2690,111 +2792,45 @@ void RsContextGL::flushState()
 				}
 			}
 		}
+	}
 
-
-		// Cached vertex handle for binding.
-		GLuint BoundVertexHandle = 0;
-
-		// Brute force disable vertex arrays.
-		for( BcU32 Idx = 0; Idx < 16; ++Idx )
-		{
-			GL( DisableVertexAttribArray( Idx ) );
-		}
-
-		// Bind up all elements to attributes.
-		BcU32 BoundElements = 0;
-		for( const auto& Attribute : ProgramVertexAttributeList )
-		{
-			auto FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
-				[ & ]( const RsVertexElement& Element )
-				{
-					return ( Element.Usage_ == Attribute.Usage_ &&
-						Element.UsageIdx_ == Attribute.UsageIdx_ );
-				} );
-
-			// Force to an element with zero offset if we can't find a valid one.
-			// TODO: Find a better approach.
-			if( FoundElement == PrimitiveVertexElementList.end() )
-			{
-				FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
-					[ & ]( const RsVertexElement& Element )
-					{
-						return Element.Offset_ == 0;
-					} );
-			}
-
-			// Found an element we can bind to.
-			if( FoundElement != PrimitiveVertexElementList.end() )
-			{
-				auto VertexBufferBinding = VertexBuffers_[ FoundElement->StreamIdx_ ];
-				auto VertexBuffer = VertexBufferBinding.Buffer_;
-				auto VertexStride = VertexBufferBinding.Stride_;
-			
-				// Bind up new vertex buffer if we need to.
-				BcAssertMsg( FoundElement->StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
-				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-				auto VertexBufferImpl = VertexBuffer->getHandle< RsBufferImplGL* >();
-				BcAssert( VertexBufferImpl );
-				GLuint VertexHandle = VertexBufferImpl->Handle_;
-				if( BoundVertexHandle != VertexHandle )
-				{
-					GL( BindBuffer( GL_ARRAY_BUFFER, VertexHandle ) );
-					BoundVertexHandle = VertexHandle;
-				}
-
-				// Enable array.
-				GL( EnableVertexAttribArray( Attribute.Channel_ ) );
-
-				// Bind.
-				BcU64 CalcOffset = FoundElement->Offset_;
-
-				GL( VertexAttribPointer( Attribute.Channel_, 
-					FoundElement->Components_,
-					gVertexDataTypes[ (BcU32)FoundElement->DataType_ ],
-					gVertexDataNormalised[ (BcU32)FoundElement->DataType_ ],
-					VertexStride,
-					(GLvoid*)CalcOffset ) );
-
-				++BoundElements;
-			}
-		}
-
-		BcAssert( ProgramVertexAttributeList.size() == BoundElements );
-
+	if( IndexBufferDirty_ )
+	{
 		// Bind indices.
+		PSY_PROFILER_SECTION( IndicesRoot, "Indices" );
 		auto IndexBufferImpl = IndexBuffer_ ? IndexBuffer_->getHandle< RsBufferImplGL* >() : nullptr;
 		GLuint IndicesHandle = IndexBufferImpl != nullptr ? IndexBufferImpl->Handle_ : 0;
 		GL( BindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle ) );
-		ProgramDirty_ = BcFalse;
-		BindingsDirty_ = BcFalse;
+		IndexBufferDirty_ = BcFalse;
 	}
 
 	// TODO: Redundant state.
-	if( DirtyFrameBuffer_ )
 	{
-		if( FrameBuffer_ != nullptr )
+		PSY_PROFILER_SECTION( FBRoot, "FB, view, scissor" );
+		if( FrameBufferDirty_ )
 		{
-			GL( BindFramebuffer( GL_FRAMEBUFFER, FrameBuffer_->getHandle< GLuint >() ) );
+			if( FrameBuffer_ != nullptr )
+			{
+				GL( BindFramebuffer( GL_FRAMEBUFFER, FrameBuffer_->getHandle< GLuint >() ) );
+			}
+			else
+			{
+				GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
+			}
+			FrameBufferDirty_ = BcFalse;
 		}
-		else
+
+		if( DirtyViewport_ )
 		{
-			GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
+			GL( Viewport( Viewport_.x(), Viewport_.y(), Viewport_.width(), Viewport_.height() ) );
+			DirtyViewport_ = BcFalse;
 		}
-		DirtyFrameBuffer_ = BcFalse;
+		if( DirtyScissor_ )
+		{
+			GL( Scissor( ScissorX_, ScissorY_, ScissorW_, ScissorH_ ) );
+			DirtyScissor_ = BcFalse;
+		}
 	}
-
-	if( DirtyViewport_ )
-	{
-		GL( Viewport( Viewport_.x(), Viewport_.y(), Viewport_.width(), Viewport_.height() ) );
-		DirtyViewport_ = BcFalse;
-	}
-	if( DirtyScissor_ )
-	{
-		GL( Scissor( ScissorX_, ScissorY_, ScissorW_, ScissorH_ ) );
-		DirtyScissor_ = BcFalse;
-	}
-
-	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2916,7 +2952,7 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	{
 		GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );	
 	}
-	DirtyFrameBuffer_ = BcTrue;
+	FrameBufferDirty_ = BcTrue;
 
 	// Set read buffer
 	GL( ReadBuffer( GL_COLOR_ATTACHMENT0 + Idx ) );
@@ -2980,7 +3016,7 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 
 	const auto& TextureDesc = Texture->getDesc();
 
-	DirtyFrameBuffer_ = BcTrue;
+	FrameBufferDirty_ = BcTrue;
 	RsTextureImplGL* SrcTextureImpl = Texture->getHandle< RsTextureImplGL* >();
 
 	GL( BindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] ) );

@@ -280,7 +280,7 @@ private:
 	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
 
 	// Frame buffer.
-	BcBool DirtyFrameBuffer_;
+	BcBool FrameBufferDirty_;
 	class RsFrameBuffer* FrameBuffer_;
 	
 	// Viewport.
@@ -297,12 +297,12 @@ private:
 	BcU32 GlobalVAO_;
 
 	//
-	BcBool ProgramDirty_;
-	BcBool BindingsDirty_; // TODO: Break down to be more fine grained.
+	RsVertexDeclaration* VertexDeclaration_;
 	RsProgram* Program_;
+	BcBool ProgramDirty_;
 
 	RsBuffer* IndexBuffer_;
-
+	BcBool IndexBufferDirty_;
 
 	struct VertexBufferBinding
 	{
@@ -313,11 +313,16 @@ private:
 	struct UniformBufferBinding
 	{
 		RsBuffer* Buffer_;
+		BcBool Dirty_;
 	};
 
 	std::array< VertexBufferBinding, MAX_VERTEX_STREAMS > VertexBuffers_;
+	std::array< bool, MAX_VERTEX_STREAMS > VertexBufferActiveState_;
+	std::array< bool, MAX_VERTEX_STREAMS > VertexBufferActiveNextState_;
+	BcBool VertexBuffersDirty_;
+
 	std::array< UniformBufferBinding, MAX_UNIFORM_SLOTS > UniformBuffers_;
-	RsVertexDeclaration* VertexDeclaration_;
+	BcBool UniformBuffersDirty_;
 
 	BcU32 NoofDrawCalls_;
 	BcU32 NoofRenderStateFlushes_;
