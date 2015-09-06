@@ -5,6 +5,7 @@
 #include "System/Renderer/RsTexture.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -42,6 +43,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RsResourceD3D12::getGPUVirtualAddress()
 // resourceBarrierTransition
 D3D12_RESOURCE_STATES RsResourceD3D12::resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList, D3D12_RESOURCE_STATES Usage )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssert( ( Usage_ & CurrentUsage_ ) != 0 || CurrentUsage_ == D3D12_RESOURCE_STATE_COMMON );
 	auto OldUsage = CurrentUsage_;
 	if( CurrentUsage_ != Usage )

@@ -252,6 +252,7 @@ D3D12_SAMPLER_DESC RsDescriptorHeapCacheD3D12::getSamplerDesc( class RsSamplerSt
 // getDefaultSRVDesc
 D3D12_SHADER_RESOURCE_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultSRVDesc( class RsTexture* Texture )
 {
+	PSY_PROFILE_FUNCTION;
 	D3D12_SHADER_RESOURCE_VIEW_DESC OutDesc;
 	BcMemZero( &OutDesc, sizeof( OutDesc ) );
 	OutDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -303,6 +304,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultSRVDesc( c
 // getDefaultCBVDesc
 D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( class RsBuffer* Buffer )
 {
+	PSY_PROFILE_FUNCTION;
 	D3D12_CONSTANT_BUFFER_VIEW_DESC OutDesc;
 	BcMemZero( &OutDesc, sizeof( OutDesc ) );
 
@@ -318,6 +320,7 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( c
 // destroySamplers
 void RsDescriptorHeapCacheD3D12::destroySamplers( RsSamplerState* SamplerState )
 {
+	PSY_PROFILE_FUNCTION;
 	for( auto It = SampleStateHeaps_.begin(); It != SampleStateHeaps_.end(); )
 	{
 		bool ShouldDestroy = BcFalse;
@@ -349,6 +352,7 @@ void RsDescriptorHeapCacheD3D12::destroySamplers( RsSamplerState* SamplerState )
 // destroyShaderResources
 void RsDescriptorHeapCacheD3D12::destroyShaderResources( RsTexture* Texture )
 {
+	PSY_PROFILE_FUNCTION;
 	for( auto It = ShaderResourceHeaps_.begin(); It != ShaderResourceHeaps_.end(); )
 	{
 		bool ShouldDestroy = BcFalse;
@@ -380,6 +384,7 @@ void RsDescriptorHeapCacheD3D12::destroyShaderResources( RsTexture* Texture )
 // destroyShaderResources
 void RsDescriptorHeapCacheD3D12::destroyShaderResources( RsBuffer* Buffer )
 {
+	PSY_PROFILE_FUNCTION;
 	for( auto It = ShaderResourceHeaps_.begin(); It != ShaderResourceHeaps_.end(); )
 	{
 		bool ShouldDestroy = BcFalse;

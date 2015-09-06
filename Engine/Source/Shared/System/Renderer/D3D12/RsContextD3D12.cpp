@@ -345,12 +345,38 @@ void RsContextD3D12::create()
 	}
 
 	// Create default device.
-	FeatureLevel_ = D3D_FEATURE_LEVEL_11_0;
-	RetVal = D3D12CreateDevice(
-		Adapter_.Get(),
-		FeatureLevel_, 
-		IID_PPV_ARGS( &Device_ ) );
-	BcAssert( SUCCEEDED( RetVal ) );
+	const D3D_FEATURE_LEVEL Features[] = 
+	{
+		D3D_FEATURE_LEVEL_12_1,
+		D3D_FEATURE_LEVEL_12_0,
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+		D3D_FEATURE_LEVEL_9_3,
+		D3D_FEATURE_LEVEL_9_2,
+		D3D_FEATURE_LEVEL_9_1
+	};
+
+	for( BcU32 Idx = 0; Idx < BcArraySize( Features ); ++Idx )
+	{
+		FeatureLevel_ = Features[ Idx ];
+		RetVal = D3D12CreateDevice(
+			Adapter_.Get(),
+			FeatureLevel_, 
+			IID_PPV_ARGS( &Device_ ) );
+		if( SUCCEEDED( RetVal ) )
+		{
+			PSY_LOG( "Created feature level %x", Features[ Idx ] );
+			break;
+		}
+	}
+
+	if( Device_ == nullptr )
+	{
+		BcAssertMsg( BcFalse, "Unable to create device." );
+		return;
+	}
 
 	Features_.MRT_ = true;
 	Features_.DepthTextures_ = true;
@@ -1294,8 +1320,8 @@ void RsContextD3D12::flushState()
 		CommandList->SetPipelineState( GraphicsPS );
 	}
 
-	// Transition for read.
-	// TODO: Do this work ahead of time, and simply assert here.
+	// Assert resource usage.
+#if PSY_DEBUG
 	BcU32 ShaderType = 0;
 	for( const auto& ShaderResourceDesc : ShaderResourceDescs_ )
 	{
@@ -1324,9 +1350,9 @@ void RsContextD3D12::flushState()
 						( Resource->resourceUsage() & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ) != 0 ) );
 			}
 		}
-
 		++ShaderType;
 	} 
+#endif
 
 	// Get descriptor sets from cache.
 	std::array< ID3D12DescriptorHeap*, 2 > DescriptorHeaps;

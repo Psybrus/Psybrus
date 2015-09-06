@@ -204,11 +204,16 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 		auto SrcRasterizerState = Desc.RasteriserState_;
 		PSODesc.RasterizerState.FillMode = RsUtilsD3D12::GetFillMode( SrcRasterizerState.FillMode_ );
 		PSODesc.RasterizerState.CullMode = RsUtilsD3D12::GetCullMode( SrcRasterizerState.CullMode_ );
+		PSODesc.RasterizerState.FrontCounterClockwise = FALSE;
 		PSODesc.RasterizerState.DepthBias = (INT)SrcRasterizerState.DepthBias_;
+		PSODesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
 		PSODesc.RasterizerState.SlopeScaledDepthBias = SrcRasterizerState.SlopeScaledDepthBias_;
 		PSODesc.RasterizerState.DepthClipEnable = SrcRasterizerState.DepthClipEnable_ ? TRUE : FALSE;
+		PSODesc.RasterizerState.MultisampleEnable = FALSE;
 		//PSODesc.RasterizerState.ScissorEnable = SrcRasterizerState.ScissorEnable_ ? TRUE : FALSE;
 		PSODesc.RasterizerState.AntialiasedLineEnable = SrcRasterizerState.AntialiasedLineEnable_ ? TRUE : FALSE;
+		PSODesc.RasterizerState.ForcedSampleCount = 0;
+		PSODesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
 		// Depth stencil state.
 		auto SrcDepthStencilState = Desc.DepthStencilState_;
@@ -256,6 +261,7 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 // destroyResources
 void RsPipelineStateCacheD3D12::destroyResources( ShouldDestroyFunc DestroyFunc )
 {
+	PSY_PROFILE_FUNCTION;
 	for( auto It = GraphicsPSMap_.begin(); It != GraphicsPSMap_.end(); )
 	{
 		auto ShouldDestroy = DestroyFunc( It->first, It->second.Get() );
