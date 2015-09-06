@@ -211,8 +211,14 @@ private:
 	std::array< UINT, MAX_VERTEX_STREAMS > D3DVertexBufferOffsets_;
 
 	// Constant buffers.
+	struct D3DConstantBufferSlot
+	{
+		ID3D11Buffer* Buffer_;
+		BcBool Dirty_;
+	};
+
 	typedef std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBufferSlots;
-	typedef std::array< ID3D11Buffer*, MAX_UNIFORM_SLOTS > D3DConstantBufferSlots;
+	typedef std::array< D3DConstantBufferSlot, MAX_UNIFORM_SLOTS > D3DConstantBufferSlots;
 	typedef std::array< UniformBufferSlots, (size_t)RsShaderType::MAX > UniformBuffers;
 	typedef std::array< D3DConstantBufferSlots, (size_t)RsShaderType::MAX > D3DConstantBuffers;
 	
@@ -222,10 +228,22 @@ private:
 	D3DConstantBuffers D3DConstantBuffers_;
 	// Shader resources.
 	typedef std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureSlots;
-	typedef std::array< ID3D11ShaderResourceView*, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
+
+	struct D3DShaderResourceViewSlot
+	{
+		ID3D11ShaderResourceView* SRV_;
+		BcBool Dirty_;
+	};
+	typedef std::array< D3DShaderResourceViewSlot, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
 	typedef std::array< TextureSlots, (size_t)RsShaderType::MAX > Textures;
 	typedef std::array< D3DShaderResourceViewSlots, (size_t)RsShaderType::MAX > D3DShaderResourceViews;
-	typedef std::array< ID3D11SamplerState*, MAX_TEXTURE_SLOTS > D3DSamplerStateSlots;
+
+	struct D3DSamplerStateSlot
+	{
+		ID3D11SamplerState* Sampler_;
+		BcBool Dirty_;
+	};
+	typedef std::array< D3DSamplerStateSlot, MAX_TEXTURE_SLOTS > D3DSamplerStateSlots;
 	typedef std::array< D3DSamplerStateSlots, (size_t)RsShaderType::MAX > D3DSamplerStates;
 
 	Textures Textures_;
