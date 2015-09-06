@@ -62,6 +62,8 @@ namespace
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	/// Vertex buffer used by internal implementation.
 	RsBufferUPtr VertexBuffer_;
+	/// Index buffer used by internal implementation.
+	RsBufferUPtr IndexBuffer_;
 	/// Uniform buffer.
 	RsBufferUPtr UniformBuffer_;
 	/// Uniform block.
@@ -105,17 +107,19 @@ namespace
 	/**
 	 * Perform the draw.
 	 */
-	void RenderDrawLists( ImDrawList** const CmdLists, int CmdListsCount )
+	void RenderDrawLists( ImDrawData* DrawData )
 	{
 		PSY_LOGSCOPEDCATEGORY( "ImGui" );
 		BcAssert( DrawContext_ != nullptr );
 		BcAssert( DrawFrame_ != nullptr );
 		BcAssert( Package_ != nullptr );
-		if( CmdListsCount == 0 )
+		if( DrawData == nullptr || DrawData->CmdListsCount == 0 )
 		{
 			return;
 		}
 		
+		ImDrawData CachedDrawData = *DrawData;
+
 		if( !Package_->isReady() )
 		{
 			PSY_LOG( "Still waiting on assets to load. Skipping render." );
@@ -147,7 +151,7 @@ namespace
 		auto Width = IO.DisplaySize.x;
 		auto Height = IO.DisplaySize.y;
 		DrawFrame_->queueRenderNode( Sort,
-			[ CmdLists, CmdListsCount, Width, Height ]( RsContext* Context )
+			[ CachedDrawData, Width, Height ]( RsContext* Context )
 			{
 				RsViewport Viewport( 0, 0, Width, Height );
 
@@ -164,17 +168,43 @@ namespace
 				Context->updateBuffer( 
 					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
 					RsResourceUpdateFlags::NONE,
-					[ CmdLists, CmdListsCount ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					[ CachedDrawData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
 						ImDrawVert* Vertices = reinterpret_cast< ImDrawVert* >( Lock.Buffer_ );
 						BcU32 NoofVertices = 0;
-						for ( int CmdListIdx = 0; CmdListIdx < CmdListsCount; ++CmdListIdx )
+						for ( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
 						{
-							const ImDrawList* CmdList = CmdLists[ CmdListIdx ];
-							memcpy( Vertices, &CmdList->vtx_buffer[0], CmdList->vtx_buffer.size() * sizeof( ImDrawVert ) );
-							Vertices += CmdList->vtx_buffer.size();
-							NoofVertices += CmdList->vtx_buffer.size();
-							BcAssert( (BcU8*)Vertices <= ((BcU8*)Lock.Buffer_) + Buffer->getDesc().SizeBytes_ );
+							const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
+							memcpy( Vertices, &CmdList->VtxBuffer[0], CmdList->VtxBuffer.size() * sizeof( ImDrawVert ) );
+							Vertices += CmdList->VtxBuffer.size();
+							NoofVertices += CmdList->VtxBuffer.size();
+							BcAssert( (BcU8*)Vertices <= ((BcU8*)Lock.Buffer_ ) + Buffer->getDesc().SizeBytes_ );
+						}
+					} );
+
+				// Update index buffer.
+				Context->updateBuffer( 
+					IndexBuffer_.get(), 0, IndexBuffer_->getDesc().SizeBytes_, 
+					RsResourceUpdateFlags::NONE,
+					[ CachedDrawData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					{
+						static_assert( sizeof( ImDrawIdx ) == sizeof( BcU16 ), "Indices must be 16 bit." );
+						ImDrawIdx* Indices = reinterpret_cast< ImDrawIdx* >( Lock.Buffer_ );
+						BcU32 NoofIndices = 0;
+		 				BcU32 VertexOffset = 0;
+						for ( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
+						{
+							const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
+							for( BcU32 Idx = 0; Idx < CmdList->IdxBuffer.size(); ++Idx )
+							{
+								BcU32 Index = VertexOffset + static_cast< BcU32 >( CmdList->IdxBuffer[ Idx ] );
+								BcAssert( Index < 0xffff );
+								Indices[ Idx ] = static_cast< BcU16 >( Index );
+							}
+							Indices += CmdList->IdxBuffer.size();
+							NoofIndices += CmdList->IdxBuffer.size();
+							VertexOffset += CmdList->VtxBuffer.size();
+							BcAssert( (BcU8*)Indices <= ((BcU8*)Lock.Buffer_ ) + Buffer->getDesc().SizeBytes_ );
 						}
 					} );
 
@@ -183,46 +213,47 @@ namespace
 				Context->setSamplerState( 0, FontSampler_.get() );
 				Context->setVertexDeclaration( VertexDeclaration_.get() );
 				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
+				Context->setIndexBuffer( IndexBuffer_.get() );
 				Context->setUniformBuffer( 0, UniformBuffer_.get() );
 				Context->setProgram( TexturedProgram_ );
 				Context->setRenderState( RenderState_.get() );
 				Context->setSamplerState( 0, FontSampler_.get() );
 
-
- 				BcU32 VertexOffset = 0;
-				for( int CmdListIdx = 0; CmdListIdx < CmdListsCount; ++CmdListIdx )
+ 				BcU32 IndexOffset = 0;
+				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
 				{
-					const ImDrawList* CmdList = CmdLists[ CmdListIdx ];
+					const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
 
-					for( size_t CmdIdx = 0; CmdIdx < CmdList->commands.size(); ++CmdIdx )
+					for( size_t CmdIdx = 0; CmdIdx < CmdList->CmdBuffer.size(); ++CmdIdx )
 					{
-						const ImDrawCmd* Cmd = &CmdList->commands[ CmdIdx ];
-						if( Cmd->user_callback )
+						const ImDrawCmd* Cmd = &CmdList->CmdBuffer[ CmdIdx ];
+						if( Cmd->UserCallback )
 						{
-							Cmd->user_callback( CmdList, Cmd );
+							Cmd->UserCallback( CmdList, Cmd );
 						}
 						else
 						{
 							Context->setScissorRect(
-								(BcS32)Cmd->clip_rect.x, 
-								(BcS32)Cmd->clip_rect.y, 
-								(BcS32)( Cmd->clip_rect.z - Cmd->clip_rect.x ), 
-								(BcS32)( Cmd->clip_rect.w - Cmd->clip_rect.y ) );
-							if( Cmd->texture_id != nullptr )
+								(BcS32)Cmd->ClipRect.x, 
+								(BcS32)Cmd->ClipRect.y, 
+								(BcS32)( Cmd->ClipRect.z - Cmd->ClipRect.x ), 
+								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
+							if( Cmd->TextureId != nullptr )
 							{
-								Context->setTexture( 0, (RsTexture*)Cmd->texture_id );
+								Context->setTexture( 0, (RsTexture*)Cmd->TextureId );
 								Context->setProgram( TexturedProgram_ );
 							}
 							else
 							{
 								Context->setProgram( DefaultProgram_ );
 							}
-							Context->drawPrimitives( 
-								RsTopologyType::TRIANGLE_LIST, 
-								VertexOffset, 
-								Cmd->vtx_count );
+							Context->drawIndexedPrimitives( 
+								RsTopologyType::TRIANGLE_LIST,
+								IndexOffset,
+								Cmd->ElemCount,
+								0 );
 						}
-						VertexOffset += Cmd->vtx_count;
+						IndexOffset += Cmd->ElemCount;
 					}
 				}
 				Context->setViewport( Viewport );
@@ -380,6 +411,12 @@ namespace Psybrus
 				RsBufferType::VERTEX,
 				RsResourceCreationFlags::STREAM, 
 				65536 * VertexDeclaration_->getDesc().getMinimumStride() ) ) );
+
+		IndexBuffer_.reset( RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::INDEX,
+				RsResourceCreationFlags::STREAM, 
+				65536 * sizeof( BcU16 ) ) ) );
 
 		UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
@@ -580,6 +617,7 @@ namespace Psybrus
 		BcAssert( DrawFrame_ == nullptr );
 		VertexDeclaration_.reset();
 		VertexBuffer_.reset();
+		IndexBuffer_.reset();
 		UniformBuffer_.reset();
 		RenderState_.reset();
 		FontSampler_.reset();
