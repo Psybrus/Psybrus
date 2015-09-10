@@ -47,10 +47,6 @@ extern void AutoGenRegisterReflection();
 
 void PsyAndroidMain( struct android_app* State )
 {
-	// Make sure game isn't stripped.
-	extern void game_dummy();
-	game_dummy();
-
 	extern void engine_dummy();
 	engine_dummy();
 

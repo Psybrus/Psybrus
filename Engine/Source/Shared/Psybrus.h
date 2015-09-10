@@ -59,8 +59,8 @@ struct PsySetupParams
 	{
 	}
 
-	BcU32			Flags_;
 	std::string		Name_;
+	BcU32			Flags_;
 	BcF32			TickRate_;
 };
 
