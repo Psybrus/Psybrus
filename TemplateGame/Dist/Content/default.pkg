@@ -1,0 +1,11 @@
+{
+	"resources" : [
+		{
+			"name"		:		"MainEntity",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+			]
+		}
+	]
+}

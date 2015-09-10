@@ -1,0 +1,9 @@
+Build/
+Dist/screenshot*.png
+Dist/screencapture*.gif
+Dist/imgui.ini
+Dist/Intermediate/
+Dist/PackedContent/
+Projects/
+*.sublime-workspace
+.DS_Store

@@ -1,0 +1,1 @@
+./Psybrus/Scripts/ProjectGen.py $@
