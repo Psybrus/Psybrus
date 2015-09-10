@@ -1,4 +1,4 @@
-#!/usr//bin/python
+#!/usr/bin/python
 
 # Project generation helper.
 import argparse
