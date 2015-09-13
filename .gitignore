@@ -1,5 +1,6 @@
-/*.zip
-/Build/
-/.svn/
+*.zip
+*.pyc
+.svn/
+Build/
 External/git.branch
 External/git.version
