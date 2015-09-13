@@ -6,65 +6,8 @@ import os
 import platform
 import sys
 
-# Builds.
-BUILDS = [
-	(	
-		"Android ARM (GCC 4.9)", 
-		"android-gcc-arm", 
-		"x32",
-		"linux",
-		"gmake",
-		[]
-	),
-	( 
-		"HTML5 (Clang)", 
-		"asmjs", 
-		"x32",
-		"linux",
-		"gmake",
-		[]
-	),
-	( 
-		"Linux (Clang 3.5)", 
-		"linux-clang", 
-		"x64",
-		"linux",
-		"gmake", 
-		[]
-	),
-	( 
-		"OSX (Clang)",
-		"osx-clang", 
-		"x64",
-		"macosx",
-		"gmake", 
-		[]
-	),	
-	(
-		"Windows (VS2013)", 
-		"windows-vs-v120", 
-		"x64",
-		"windows", 
-		"vs2013", 
-		[]
-	),
-	( 
-		"Windows (VS2015)", 
-		"windows-vs-v140", 
-		"x64",
-		"windows",
-		"vs2015", 
-		[]
-	),
-	( 
-		"Windows + DX12 (VS2015)", 
-		"windows-vs-v140", 
-		"x64",
-		"windows",
-		"vs2015", 
-		[ "--with-dx12" ] # TODO: Have this as a subset of togglable options.
-	),
-]
+import Toolset
+BUILDS = Toolset.BUILDS
 
 def doBuild( _build ):
 	commandLine = ""
