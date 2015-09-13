@@ -309,7 +309,7 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	configuration "*"
 		defines{ "STATICLIB" }
 
-	local targetNamePrefix = _name .. _suffix .. "-" .. _ACTION .. "-" .. _OPTIONS[ "toolchain" ]
+	local targetNamePrefix = _name .. _suffix
 	configuration "*"
 		targetname( targetNamePrefix .. "-" )
 
