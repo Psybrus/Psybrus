@@ -85,6 +85,8 @@ GMAKE_TOOLS = {
 	),
 }
 
+MSBUILD = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe"
+
 def getToolsets():
 	ret = []
 	for build in BUILDS:
@@ -134,12 +136,13 @@ def build_gmake( build, config ):
 
 	gmake_executable = gmake_executable.replace( "%ANDROID_NDK%", env["ANDROID_NDK"] )
 	gmake_command = gmake_executable + " -j5 config=" + config
+	gmake_path = os.path.join( "Projects", build[4] + "-" + build[1] )
 
 	print "Launching: " + gmake_command
 
 	cwd = os.getcwd()
 	try:
-		os.chdir( os.path.join( "Projects", build[4] + "-" + build[1] ) )
+		os.chdir( gmake_path )
 		subprocess.Popen( gmake_command, env=env, shell=True ).communicate()
 	except KeyboardInterrupt:
 		print "Build cancelled. Exiting."
@@ -147,6 +150,18 @@ def build_gmake( build, config ):
 	finally:
 		os.chdir( cwd )
 
+def build_vs( build, config )
+	build_command = MSBUILD + " "
+	build_path = os.path.join( "Projects", build[4] + "-" + build[1] )
+	print "Launching: " + build_command
+	cwd = os.getcwd()
+	try:
+		os.chdir( build_path )
+		subprocess.Popen( build_command, env=env, shell=True ).communicate()
+	except KeyboardInterrupt:
+		print "Build cancelled. Exiting."
+		exit(1)
+	finally:
+		os.chdir( cwd )
 
-
-
+	MSBUILD
