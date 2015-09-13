@@ -133,7 +133,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GInstance_ = (BcHandle)hInstance;
 
 	// Set exe path.
-	SysExePath_ = "";
+	char ModuleFileName[ 4096 ] = { 0 };
+	::GetModuleFileNameA( ::GetModuleHandle( nullptr ), ModuleFileName, sizeof( ModuleFileName ) - 1 );
+	SysExePath_ = ModuleFileName;
 
 	// Set command line params.
 	SysArgs_ = lpCmdLine;

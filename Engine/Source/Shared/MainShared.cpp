@@ -33,11 +33,19 @@ BcU32 GResolutionHeight = 720;
 #include "System/Renderer/RsCore.h"
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
+#include "System/SysKernel.h"
 
 #include "Import/Img/Img.h"
 #include "Import/Img/gif.h"
 
 #include "Base/BcBuildInfo.h"
+
+#define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
+
+#if SEARCH_FOR_CORRECT_PATH
+#include <boost/filesystem.hpp>
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////
 // Screenshot utility.
@@ -344,6 +352,49 @@ eEvtReturn onScreenshot( EvtID ID, const EvtBaseEvent& Event )
 // MainShared
 void MainShared()
 {
+#if SEARCH_FOR_CORRECT_PATH
+	// Search each level up from the executable until we hit either a "PackedContent" folder,
+	// or we hit a "Dist" folder in non-production builds. This will allow executables to be
+	// subfoldered by platform or similar.
+	using namespace boost::filesystem;
+	path SearchPath( canonical( SysExePath_ ).parent_path() );
+	path CurrentPath( canonical( current_path() ) );
+
+	// Search up the path to find where we should be.
+	bool FoundRoot = false;
+	while( FoundRoot == false && SearchPath.has_leaf() )
+	{
+		auto It = directory_iterator( SearchPath );
+		while( It != directory_iterator() )
+		{
+			directory_entry Entry = *It;
+			if( Entry.path().filename() == "PackedContent" )
+			{
+				CurrentPath = SearchPath;
+				FoundRoot = true;
+				break;
+			}
+#if !PSY_PRODUCTION
+			else if( Entry.path().filename() == "Dist" )
+			{
+				CurrentPath = Entry;
+				FoundRoot = true;
+				break;
+			}
+#endif
+			++It;
+		}
+		SearchPath = SearchPath.remove_leaf();
+	}
+
+	// Change to found path.
+	if( FoundRoot )
+	{
+		current_path( CurrentPath );
+	}
+#endif
+
+
 	// Setup default system job queues.
 	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
 
