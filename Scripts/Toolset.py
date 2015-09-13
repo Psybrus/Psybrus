@@ -150,7 +150,7 @@ def build_gmake( build, config ):
 	finally:
 		os.chdir( cwd )
 
-def build_vs( build, config )
+def build_vs( build, config ):
 	build_command = MSBUILD + " "
 	build_path = os.path.join( "Projects", build[4] + "-" + build[1] )
 	print "Launching: " + build_command
