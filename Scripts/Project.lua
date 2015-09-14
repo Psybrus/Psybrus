@@ -289,12 +289,12 @@ end
 
 
 -- Setup psybrus exe project.
-function PsyProjectPsybrusExe( _name, _suffix )
+function PsyProjectPsybrusExe( _name, _exeName )
 	LLVMcxxabiProject()
 
 	group( _name )
 
-	PsyProjectCommonEngine( _name .. _suffix )
+	PsyProjectCommonEngine( _exeName )
 	PsyPlatformIncludes()
 
 	configuration "asmjs or linux-* or osx-* or android-*"
@@ -309,7 +309,7 @@ function PsyProjectPsybrusExe( _name, _suffix )
 	configuration "*"
 		defines{ "STATICLIB" }
 
-	local targetNamePrefix = _name .. _suffix
+	local targetNamePrefix = _exeName
 	configuration "*"
 		targetname( targetNamePrefix .. "-" )
 
@@ -478,7 +478,7 @@ end
 
 -- Setup game exe project.
 function PsyProjectGameExe( _name )
-	PsyProjectPsybrusExe( _name, "" )
+	PsyProjectPsybrusExe( _name, _name )
 	print( "Adding Game Executable: " .. _name )
 
 	configuration "linux-* or osx-* or windows-*"
@@ -498,7 +498,7 @@ function PsyProjectImporterExe( _name )
 	   string.match( _OPTIONS[ "toolchain" ], "linux-.*" ) or
 	   string.match( _OPTIONS[ "toolchain" ], "osx-.*" ) then
 		PsyProjectPsybrusExe( _name, "Importer" )
-		print( "Adding Game Executable: " .. _name )
+		print( "Adding Importer Executable: " .. "Importer" )
 
 		configuration "*"
 			kind "ConsoleApp"
