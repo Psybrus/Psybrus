@@ -7,13 +7,17 @@ import platform
 import sys
 
 import Toolset
-BUILDS = Toolset.BUILDS
+PLATFORMS = Toolset.PLATFORMS
 
-def doBuild( _build ):
+def doBuild( _build_platform ):
 	commandLine = ""
-	for additionalOption in _build[5]:
+	for additionalOption in _build_platform.extra_flags:
 		commandLine += additionalOption + " "
-	commandLine += "--toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( _build[1], _build[2], _build[3], _build[4] )
+	commandLine += "--toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( 
+		_build_platform.name, 
+		_build_platform.arch, 
+		_build_platform.build_type, 
+		_build_platform.project_type )
 
 	print "Launching GENie with: " + commandLine
 
@@ -28,8 +32,8 @@ def doBuild( _build ):
 def selectBuild():
 	idx = 0
 	print "\nSelect build:"
-	for build in BUILDS:
-		print "\t{0}) {1} ({2}, {3})".format( idx + 1, build[0], build[1], build[2] )
+	for build_platform in PLATFORMS:
+		print "\t{0}) {1} ({2}, {3})".format( idx + 1, build_platform.desc, build_platform.name, build_platform.arch )
 		idx += 1
 	pass
 	valid = False
@@ -39,16 +43,16 @@ def selectBuild():
 		try:
 			selected = int(selected)
 			selected -= 1
-			if selected >= 0 and selected < len(BUILDS):
+			if selected >= 0 and selected < len(PLATFORMS):
 				valid = True
 		except ValueError:
 			pass
-	doBuild( BUILDS[ selected ] )
+	doBuild( PLATFORMS[ selected ] )
 
 # Arg help.
 buildHelpString = ""
-for build in BUILDS:
-	buildHelpString += build[1] + ", "
+for build_platform in PLATFORMS:
+	buildHelpString += build_platform.name + ", "
 
 # Parse args.
 parser = argparse.ArgumentParser()
@@ -59,9 +63,9 @@ if args.build == None:
 	selectBuild()
 	exit(0)
 else:
-	for build in BUILDS:
-		if build[1] == args.build:
-			doBuild( build )
+	for build_platform in PLATFORMS:
+		if build_platform.name == args.build:
+			doBuild( build_platform )
 			exit(0)
 	print "Invalid build. Please select one of the following:\n\t" + buildHelpString
 	exit(1)
