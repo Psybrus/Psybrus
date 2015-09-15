@@ -42,7 +42,7 @@ class BuildMSBuild( Build ):
 	def launch( self, _params ):
 		env = os.environ
 
-		msbuild_command = "\"" + self.tool + "\" " + _params + " /nologo /maxcpucount:4"
+		msbuild_command = "\"" + self.tool + "\" " + _params + " /verbosity:minimal /nologo /maxcpucount:4"
 
 		print "Launching: " + msbuild_command
 
