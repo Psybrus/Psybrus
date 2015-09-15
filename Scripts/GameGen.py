@@ -3,7 +3,6 @@
 # Game generation helper.
 import argparse
 import os
-import platform
 import sys
 import shutil
 import glob

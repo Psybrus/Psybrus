@@ -3,7 +3,7 @@
 # Project generation helper.
 import argparse
 import os
-import platform
+from platform import system
 import sys
 
 import Toolset
@@ -21,11 +21,11 @@ def doBuild( _build_platform ):
 
 	print "Launching GENie with: " + commandLine
 
-	if platform.system() == "Linux":
+	if system() == "Linux":
 		os.system( "./Psybrus/Tools/genie/linux/genie " + commandLine )
-	elif platform.system() == "Darwin":
+	elif system() == "Darwin":
 		os.system( "./Psybrus/Tools/genie/darwin/genie " + commandLine )
-	elif platform.system() == "Windows":
+	elif system() == "Windows":
 		commandLine = commandLine.replace( "$BOOST_ROOT", "%BOOST_ROOT%" );
 		os.system( "Psybrus\\Tools\\genie\\windows\\genie.exe " + commandLine )
 

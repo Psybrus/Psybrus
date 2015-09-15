@@ -3,7 +3,6 @@
 # Build helper.
 import argparse
 import os
-import platform
 import sys
 import shutil
 
@@ -16,4 +15,10 @@ parser.add_argument( "--config", "-c", type=str, help="Config to build " + str(T
 args = parser.parse_args()
 
 
-Toolset.buildToolset( args.toolset, args.config )
+
+platform = Toolset.findPlatform( args.toolset )
+if platform == None:
+	print "Unable to find platform \"" + args.toolset + "\"."
+	exit(1)
+
+platform.build_tool.build( args.config )
