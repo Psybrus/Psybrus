@@ -5,5 +5,5 @@ class Build():
 	def clean( self ):
 		print "clean unimplemented!"
 
-	def build( self ):
+	def build( self, _config ):
 		print "build unimplemented!"

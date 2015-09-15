@@ -1,19 +1,20 @@
 from Platform import *
 from Build import *
+from BuildMSBuild import *
 
 vs2013Platform = Platform(
 	"windows-vs-v120", "Windows (VS2013)", "windows",
-	"x64", "windows", "vs2013", Build,
+	"x64", "windows", "vs2013", BuildMSBuild,
 	[] )
 
 vs2015Platform = Platform(
 	"windows-vs-v140", "Windows (VS2015)", "windows",
-	"x64", "windows", "vs2015", Build,
+	"x64", "windows", "vs2015", BuildMSBuild,
 	[] )
 
 vs2015dx12Platform = Platform(
 	"windows-vs-v140", "Windows + DX12 (VS2015)", "windows",
-	"x64", "windows", "vs2015", Build,
+	"x64", "windows", "vs2015", BuildMSBuild,
 	[ "--with-dx12" ] )  # TODO: Have this as a subset of togglable options.
 
 
