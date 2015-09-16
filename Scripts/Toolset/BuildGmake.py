@@ -1,12 +1,15 @@
+import copy
 import os
 from platform import system
 import subprocess
 
 from Build import *
 
+import Log
+
 class BuildGmake( Build ):
-	def __init__( self, _root_path ):
-		Build.__init__( self, _root_path )
+	def __init__( self, _root_path, _platform ):
+		Build.__init__( self, _root_path, _platform )
 
 		PlatformSpecificGmake = {
 			"Windows" : (
@@ -28,7 +31,7 @@ class BuildGmake( Build ):
 		self.root_path = _root_path
 
 		# TODO: Should make generic to replace all env vars found.
-		env = os.environ
+		env = copy.deepcopy( os.environ )
 		self.tool = self.tool.replace( "%ANDROID_NDK%", env["ANDROID_NDK"] )
 		pass
 
@@ -39,20 +42,20 @@ class BuildGmake( Build ):
 		self.launch( "-j5 config=" + _config )
 
 	def launch( self, _params ):
-		env = os.environ
+		env = copy.deepcopy( os.environ )
 		if self.path_env != None:
 			env[ "PATH" ] = self.path_env
 
 		gmake_command = self.tool + " " + _params
 
-		print "Launching: " + gmake_command
+		Log.write( "Launching: " + gmake_command )
 
 		cwd = os.getcwd()
 		try:
 			os.chdir( self.root_path )
 			subprocess.Popen( gmake_command, env=env, shell=True ).communicate()
 		except KeyboardInterrupt:
-			print "Build cancelled. Exiting."
+			Log.write( "Build cancelled. Exiting." )
 			exit(1)
 		finally:
 			os.chdir( cwd )

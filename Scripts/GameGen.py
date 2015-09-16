@@ -8,16 +8,13 @@ import shutil
 import glob
 import git
 
+from Toolset import Log
+
 # Parse args.
 parser = argparse.ArgumentParser()
 parser.add_argument( "--name", "-n", type=str, help="Game name. Will create in current working directory.", required=True )
 parser.add_argument( "--branch", "-b", type=str, help="Psybrus branch name to checkout." )
 args = parser.parse_args()
-
-def log( msg ):
-	print msg
-	sys.stdout.flush()
-
 
 def recurseFiles( path, func, args ):
 	files = glob.glob( path )
@@ -30,13 +27,13 @@ def recurseFiles( path, func, args ):
 # Check name has been specified.
 # TODO: Validate name has no spaces in it.
 if args.name == None:
-	log( "ERROR: No -n/--name specified." )
+	Log.write( "ERROR: No -n/--name specified." )
 	exit(1)
 else:
 
 	# Validate path foesn't exists.
 	if os.path.exists( args.name ) == True:
-		log( "ERROR: Game \"" + args.name + "\" exists in current directory. Can't create." )
+		Log.write( "ERROR: Game \"" + args.name + "\" exists in current directory. Can't create." )
 		exit(1)
 
 	# Paths + URLs
@@ -46,10 +43,10 @@ else:
 	TEMPLATEGAME_PATH = os.path.join( SCRIPTS_PATH, "..", "TemplateGame" )
 
 	try:
-		log( "Copying template..." )
+		Log.write( "Copying template..." )
 		shutil.copytree( TEMPLATEGAME_PATH, args.name )
 
-		log( "Replacing \"TemplateGame\" with \"" + args.name + "\"..." )
+		Log.write( "Replacing \"TemplateGame\" with \"" + args.name + "\"..." )
 
 		def replaceContents( file, args ):
 			fileString = open( file ).read()
@@ -61,31 +58,31 @@ else:
 				f.close()
 		recurseFiles( args.name, replaceContents, ( "TemplateGame", args.name ) )
 
-		log( "Initialising repo..." )
+		Log.write( "Initialising repo..." )
 		git.init( args.name )
 
-		log( "Committing initial files..." )
+		Log.write( "Committing initial files..." )
 		git.stage( args.name, '.' )
 		git.commit( args.name, "Initial game files." )
 
-		log( "Adding Psybrus submodule..." )
+		Log.write( "Adding Psybrus submodule..." )
 		git.submodule_add( args.name, PSYBRUS_URL )
 
 		if args.branch == None:
-			log( "Checking out to revision " + PSYBRUS_REV + "..." )
+			Log.write( "Checking out to revision " + PSYBRUS_REV + "..." )
 			git.checkout( os.path.join( args.name, "Psybrus" ), PSYBRUS_REV )
 		else:
-			log( "Checking out to branch " + args.branch + "..." )
+			Log.write( "Checking out to branch " + args.branch + "..." )
 			git.checkout( os.path.join( args.name, "Psybrus" ), args.branch )
 
-		log( "Committing submodules..." )
+		Log.write( "Committing submodules..." )
 		git.stage( args.name, '.' )
 		git.commit( args.name, "Initial Psybrus submodule at revision " + PSYBRUS_REV + "." )
 
-		log( "Updating submodules..." )
+		Log.write( "Updating submodules..." )
 		git.submodule_update( args.name )
 
-		log( "Done!" )
+		Log.write( "Done!" )
 
 	finally:
 		pass

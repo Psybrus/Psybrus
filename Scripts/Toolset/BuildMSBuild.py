@@ -1,3 +1,4 @@
+import copy
 import glob
 import os
 import subprocess
@@ -5,9 +6,11 @@ from platform import system
 
 from Build import *
 
+import Log
+
 class BuildMSBuild( Build ):
-	def __init__( self, _root_path ):
-		Build.__init__( self, _root_path )
+	def __init__( self, _root_path, _platform ):
+		Build.__init__( self, _root_path, _platform )
 
 		if system() == "Windows":
 			import _winreg
@@ -37,17 +40,22 @@ class BuildMSBuild( Build ):
 		self.launch( "/t:Clean" )
 
 	def build( self, _config ):
-		self.launch(  self.findSolution() + " /t:Build /property:Configuration=" + _config + " /property:Platform=x64" )
+		archs = {
+			"x32" : "Win32",
+			"x64" : "x64"
+		}
+
+		self.launch(  self.findSolution() + " /t:Build /property:Configuration=" + _config + " /property:Platform=" + archs[ self.platform.arch ] )
 
 	def launch( self, _params ):
-		env = os.environ
+		env = copy.deepcopy( os.environ )
 
 		msbuild_command = "\"" + self.tool + "\" " + _params + " /verbosity:minimal /nologo /maxcpucount:4"
 
-		print "Launching: " + msbuild_command
+		Log.write( "Launching: " + msbuild_command )
 
 		try:
 			subprocess.Popen( msbuild_command, env=env, shell=True ).communicate()
 		except KeyboardInterrupt:
-			print "Build cancelled. Exiting."
+			Log.write( "Build cancelled. Exiting." )
 			exit(1)
