@@ -115,7 +115,7 @@ function SetupAndroidProject()
 
 			androidTarget = "android-" .. ANDROID_SDK_VERSION
 
-		libPrefixName = "lib" .. libName .. "-gmake-" .. suffix
+		libPrefixName = "lib" .. libName
 		libExt = ".so"
 
 		os.execute( mkdirCommand( buildPath .. "/project" ) )
