@@ -46,7 +46,7 @@ class DeployAndroid( Deploy ):
 
 		# Package up using ant.
 		Log.write( "Launching ant debug..." )
-		self.launch_ant( "release" )
+		self.launch_ant( "debug" )
 		Log.write( "Launching ant release..." )
 		self.launch_ant( "release" )
 
