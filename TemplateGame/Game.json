@@ -1,0 +1,20 @@
+{
+	"name" : "TemplateGame",
+	"fullname" : "TemplateGame Full Name",
+	"desc" : "Description for your game.",
+
+	"android" : {
+		"package" : "com.Psybrus.TemplateGame",
+		"version_code" : "1",
+		"version_name" : "1.0",
+		"es_version" : "0x00020000",
+		"orientation" : "landscape",
+		"ndk_version" : "18",
+		"sdk_version" : "18",
+		"permissions" : [
+			"android.permission.READ_EXTERNAL_STORAGE",
+			"android.permission.WRITE_EXTERNAL_STORAGE",
+			"android.permission.INTERNET"
+		]
+	}
+}

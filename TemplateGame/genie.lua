@@ -1,9 +1,8 @@
-
 -- Run psybrus scripts.
 dofile( "Psybrus/Scripts/Psybrus.lua" )
 
 -- Solution.
-PsySolutionGame( "TemplateGame" )
+PsySolutionGame( GAME.name )
 
 -- Build externals.
 dofile( "Psybrus/External/genie.lua" )
@@ -12,4 +11,4 @@ dofile( "Psybrus/External/genie.lua" )
 dofile( "Psybrus/Engine/genie.lua" )
 
 -- Build game source.
-dofile( "./Source/genie.lua" )
+dofile( "Source/genie.lua" )
