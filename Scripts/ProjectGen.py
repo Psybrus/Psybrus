@@ -13,7 +13,7 @@ def doBuild( _build_platform ):
 	commandLine = ""
 	for additionalOption in _build_platform.extra_flags:
 		commandLine += additionalOption + " "
-	commandLine += "--toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( 
+	commandLine += "--file=genie.lua --toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( 
 		_build_platform.name, 
 		_build_platform.arch, 
 		_build_platform.build_type, 

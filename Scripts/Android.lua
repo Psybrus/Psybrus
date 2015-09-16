@@ -45,7 +45,6 @@ function SetupAndroidProject()
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
 
 		local abi = "armeabi-v7a"
-		local orientation = "landscape"
 
 		local libName = solution().name
 		buildPath = "../Build/" .. _ACTION .. "-" .. suffix
@@ -55,26 +54,24 @@ function SetupAndroidProject()
 		postBuildPath = "../" .. buildPath
 		postBuildProjectPath = "../" .. projectPath
 
-		packagePrefix = "com.psybrus."
-
 		-- Create AndroidManifest.xml
 		manifestFile = assert( io.open( projectPath .. "/AndroidManifest.xml", "w+" ) )
 		manifestFile:write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
 		manifestFile:write( "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" )
-		manifestFile:write( "          package=\"" .. packagePrefix .. libName .. "\"\n" )
-		manifestFile:write( "          android:versionCode=\"1\"\n" )
-		manifestFile:write( "          android:versionName=\"1.0\">\n" )
-		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. ANDROID_SDK_VERSION .. "\" />\n" )
-		-- Read external storage. TODO: Make an option.
-		manifestFile:write( "  <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />\n" )
-		manifestFile:write( "  <uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" )
-		-- Internet. TODO: Make an option.
-		manifestFile:write( "  <uses-permission android:name=\"android.permission.INTERNET\" />\n" )
-		manifestFile:write( "  <uses-feature android:glEsVersion=\"0x00020000\" />\n" )
+		manifestFile:write( "          package=\"" .. GAME.android.package .. "\"\n" )
+		manifestFile:write( "          android:versionCode=\"" .. GAME.android.version_code .. "\"\n" )
+		manifestFile:write( "          android:versionName=\"" .. GAME.android.version_name .. "\">\n" )
+		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. GAME.android.sdk_version .. "\" />\n" )
+
+		for i, permission in ipairs(GAME.android.permissions) do
+			manifestFile:write( "  <uses-permission android:name=\"" .. permission .. "\" />\n" )
+		end
+
+		manifestFile:write( "  <uses-feature android:glEsVersion=\"" .. GAME.android.es_version .. "\" />\n" )
 		manifestFile:write( "  <application android:label=\"@string/app_name\"\n" )
 		manifestFile:write( "               android:hasCode=\"false\" android:debuggable=\"true\">\n" )
 		manifestFile:write( "    <activity android:name=\"android.app.NativeActivity\"\n" )
-		manifestFile:write( "              android:screenOrientation=\"" .. orientation .. "\"\n" )
+		manifestFile:write( "              android:screenOrientation=\"" .. GAME.android.orientation .. "\"\n" )
 		manifestFile:write( "              android:label=\"@string/app_name\">\n" )
 		manifestFile:write( "      <meta-data android:name=\"android.app.lib_name\"\n" )
 		manifestFile:write( "                 android:value=\"" .. libName .. "\" />\n" )
@@ -113,7 +110,7 @@ function SetupAndroidProject()
 				"llvmcxxabi"
 			}
 
-			androidTarget = "android-" .. ANDROID_SDK_VERSION
+			androidTarget = "android-" .. GAME.android.sdk_version
 
 		libPrefixName = "lib" .. libName
 		libExt = ".so"

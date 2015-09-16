@@ -1,4 +1,4 @@
-
+dofile( "GameConfig.lua" )
 dofile( "Toolchain.lua" )
 dofile( "SDK.lua" )
 dofile( "Solution.lua" )
