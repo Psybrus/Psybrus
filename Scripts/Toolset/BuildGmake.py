@@ -39,7 +39,7 @@ class BuildGmake( Build ):
 		self.launch( "clean" )
 
 	def build( self, _config ):
-		self.launch( "-j5 config=" + _config )
+		self.launch( " -j5 config=" + _config )
 
 	def launch( self, _params ):
 		env = copy.deepcopy( os.environ )

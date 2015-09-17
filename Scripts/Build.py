@@ -21,4 +21,5 @@ if platform == None:
 	print "Unable to find platform \"" + args.toolset + "\"."
 	exit(1)
 
+platform.build_tool.generate()
 platform.build_tool.build( args.config )

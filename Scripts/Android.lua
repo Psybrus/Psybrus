@@ -35,8 +35,8 @@ end
 function SetupAndroidProject()
 	local suffix = _OPTIONS["toolchain"]
 
-	if _OPTIONS["toolchain"] == "android-clang-arm" or 
-	   _OPTIONS["toolchain"] == "android-gcc-arm" then
+	if _OPTIONS["toolchain"] == "android-gcc-arm" or 
+	   _OPTIONS["toolchain"] == "android-gcc-x86" then
 		kind "SharedLib"
 		flags { "NoImportLib" }
 		--kind "ConsoleApp"
@@ -44,7 +44,11 @@ function SetupAndroidProject()
 		-- TODO: Other abis.
 		local gdbserver = ANDROID_NDK_PATH .. "/prebuilt/android-arm/gdbserver/gdbserver"
 
-		local abi = "armeabi-v7a"
+		if _OPTIONS["toolchain"] == "android-gcc-arm" then
+			abi = "armeabi-v7a"
+		elseif _OPTIONS["toolchain"] == "android-gcc-x86" then
+			abi = "x86"
+		end
 
 		local libName = solution().name
 		buildPath = "../Build/" .. _ACTION .. "-" .. suffix
@@ -167,8 +171,8 @@ function SetupAndroidProject()
 end
 
 function LLVMcxxabiProject()
-	if _OPTIONS["toolchain"] == "android-clang-arm" or 
-	   _OPTIONS["toolchain"] == "android-gcc-arm" then
+	if _OPTIONS["toolchain"] == "android-gcc-arm" or 
+	   _OPTIONS["toolchain"] == "android-gcc-x86" then
 		project( "llvmcxxabi" )
 			language( "C++" )
 			configuration "*"

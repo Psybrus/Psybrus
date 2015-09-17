@@ -33,8 +33,8 @@ function PsySetupToolchain()
 				{ "asmjs",				"Emscripten/asm.js"				},
 
 				-- Android targets: Experimental.
-				{ "android-clang-arm", "Android ARM (Clang 3.5 compiler)" },
 				{ "android-gcc-arm", "Android ARM (GCC 4.9 compiler)" },
+				{ "android-gcc-x86", "Android x86 (GCC 4.9 compiler)" },
 			},
 		}
 
@@ -76,112 +76,11 @@ function PsySetupToolchain()
 		-- asmjs.
 		if _OPTIONS[ "toolchain" ] == "asmjs" then
 			-- todo: try ccache.
+			premake.gcc.llvm = true
 			premake.gcc.cc = "$(EMSCRIPTEN)/emcc"
 			premake.gcc.cxx = "$(EMSCRIPTEN)/em++"
-			premake.gcc.ar = "ar"
+			premake.gcc.ar = "$(EMSCRIPTEN)/emar"
 			location ( "Projects/" .. _ACTION .. "-asmjs" )
-		end
-
-		-- android-clang-arm
-		if _OPTIONS[ "toolchain" ] == "android-clang-arm" then
-			local sdkVersion = "android-" .. GAME.android.ndk_version
-
-			premake.gcc.llvm = true
-			premake.gcc.cc = "$(ANDROID_NDK)/toolchains/llvm-3.5/prebuilt/linux-x86_64/bin/clang --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
-			premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/llvm-3.5/prebuilt/linux-x86_64/bin/clang++ -B $(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86_64/arm-linux-androideabi/bin --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
-			premake.gcc.ar = "$(ANDROID_NDK)/toolchains/llvm-3.5/prebuilt/linux-x86_64/bin/llvm-ar"
-			location ( "Projects/" .. _ACTION .. "-android-clang-arm" )
-
-			buildoptions { 
-				"-target armv7-none-linux-androideabi",
-				"-march=armv7-a",
-				"-mfpu=vfp",
-				"-mhard-float",
-				--"-mfloat-abi=hard",
-				--"-nostdinc",
-
-				-- Disable as it causes noise that we can't fix just yet.
-				"-Wno-macro-redefined"
-			}
-
-			linkoptions { 
-				"-target armv7-none-linux-androideabi",
-				"-Wl,--fix-cortex-a8",
-				"-Wl,--no-warn-mismatch",
-				"-nostdlib",
-			}
-
-			configuration( "*" )
-				defines {
-					"_NDK_MATH_NO_SOFTFP"
-				}
-
-				links {
-					"c",
-					"m",
-					"dl"
-				}
-
-				defines {
-					"GAME.android.sdk_version=" .. GAME.android.sdk_version,
-					"GAME.android.ndk_version=" .. GAME.android.ndk_version
-				}
-
-				local useStdCpp = true
-				local useLibCpp = false
-
-				-- GNU stdc++
-				if useStdCpp then
-					links {
-						"gnustl_static"
-					}
-
-					includedirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/include",
-						"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include"
-					}
-
-					libdirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a",
-						"$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/lib/gcc/arm-linux-androideabi/4.9"
-					}
-				end
-
-
-				-- LLVM libc++
-				if useLibCpp then
-					links {
-						"gabi++_shared",
-						"c++_shared"
-					}
-
-					includedirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libcxx/include"
-					}
-
-					libdirs {
-						"$(ANDROID_NDK)/sources/cxx-stl/gabi++/libs/armeabi-v7a",
-						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a",
-					}
-				end
-
-				includedirs {
-					"$(ANDROID_NDK)/toolchains/llvm-3.5/prebuilt/linux-x86_64/lib/clang/3.5/include",
-					"$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm/usr/include",
-					"$(ANDROID_NDK)/sources/android/support/include",
-				}
-
-
-				includedirs {
-					"$(ANDROID_NDK)/toolchains/llvm-3.5/prebuilt/linux-x86_64/lib/clang/3.5/include",
-					"$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm/usr/include",
-					"$(ANDROID_NDK)/sources/android/support/include",
-				}
-
-				libdirs {
-					"$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm/usr/lib",
-			}
-
 		end
 
 		-- android-clang-arm
@@ -235,8 +134,8 @@ function PsySetupToolchain()
 				}
 
 				defines {
-					"GAME.android.sdk_version=" .. GAME.android.sdk_version,
-					"GAME.android.ndk_version=" .. GAME.android.ndk_version
+					"ANDROID_SDK_VERSION=" .. GAME.android.sdk_version,
+					"ANDROID_NDK_VERSION=" .. GAME.android.ndk_version
 				}
 
 				local useStdCpp = false
@@ -297,6 +196,116 @@ function PsySetupToolchain()
 
 		end
 
+		-- android-clang-arm
+		if _OPTIONS[ "toolchain" ] == "android-gcc-x86" then
+			local sdkVersion = "android-" .. GAME.android.ndk_version
+
+			if IsHostOS("windows") then
+				premake.gcc.llvm = true
+				premake.gcc.cc = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/windows-x86_64/bin/i686-linux-android-gcc.exe --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+				premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/windows-x86_64/bin/i686-linux-android-g++.exe --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+				premake.gcc.ar = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/windows-x86_64/bin/i686-linux-android-ar.exe"
+			elseif IsHostOS("linux") then
+				premake.gcc.llvm = true
+				premake.gcc.cc = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/linux-x86_64/bin/i686-linux-android-gcc --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+				premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/linux-x86_64/bin/i686-linux-android-g++ --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+				premake.gcc.ar = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/linux-x86_64/bin/i686-linux-android-ar"
+			elseif IsHostOS("macosx") then
+				premake.gcc.llvm = true
+				premake.gcc.cc = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/darwin-x86_64/bin/i686-linux-android-gcc --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+				premake.gcc.cxx = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/darwin-x86_64/bin/i686-linux-android-g++ --sysroot=$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+				premake.gcc.ar = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/darwin-x86_64/bin/i686-linux-android-ar"
+			else
+				print "Toolchain does not exist for host OS"
+				os.exit(1)
+			end
+			location ( "Projects/" .. _ACTION .. "-android-gcc-x86" )
+
+			buildoptions { 
+				--"-march=i686",
+				--"-mlong-double-128"
+			}
+
+			linkoptions { 
+				--"-Wl,--no-warn-mismatch",
+			}
+
+			-- Add default include paths.
+			configuration( "*" )
+				defines {
+				}
+
+				links {
+					"c",
+					"m",
+					"dl",
+					"android",
+					"log"
+				}
+
+				defines {
+					"ANDROID_SDK_VERSION=" .. GAME.android.sdk_version,
+					"ANDROID_NDK_VERSION=" .. GAME.android.ndk_version
+				}
+
+				local useStdCpp = false
+				local useLibCpp = true
+
+				-- GNU stdc++
+				if useStdCpp then
+					links {
+						"gnustl_static"
+					}
+
+					includedirs {
+						"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/include",
+						"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86/include"
+					}
+
+					if IsHostOS("windows") then
+						libdirs {
+							"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86",
+							"$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/windows-x86_64/lib/gcc/x86/4.9"
+						}
+					else
+						libdirs {
+							"$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86",
+							"$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/linux-x86_64/lib/gcc/x86/4.9"
+						}
+					end
+				end
+
+
+				-- LLVM libc++
+				if useLibCpp then
+					links {
+						"c++_static",
+					}
+
+					includedirs {
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libcxxabi/include",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libcxx/include",
+					}
+
+					libdirs {
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libs/x86",
+						"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/x86",
+					}
+				end
+
+				includedirs {
+					"$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/linux-x86_64/include",
+					"$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86/usr/include",
+					"$(ANDROID_NDK)/sources/android/support/include",
+				}
+
+				libdirs {
+					"$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/linux-x86_64/lib",
+					"$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86/usr/lib",
+			}
+
+		end
+
 		-- Configurations
 		targetdir ( "Build/" .. _ACTION .. "/bin" )
 		objdir ( "Build/" .. _ACTION .. "/obj" )
@@ -335,13 +344,13 @@ function PsySetupToolchain()
 			targetdir ( "Build/" .. _ACTION .. "-asmjs/bin" )
 			objdir ( "Build/" .. _ACTION .. "-asmjs/obj" )
 
-		configuration { "android-clang-arm" }
-			targetdir ( "Build/" .. _ACTION .. "-android-clang-arm/bin" )
-			objdir ( "Build/" .. _ACTION .. "-android-clang-arm/obj" )
-
 		configuration { "android-gcc-arm" }
 			targetdir ( "Build/" .. _ACTION .. "-android-gcc-arm/bin" )
 			objdir ( "Build/" .. _ACTION .. "-android-gcc-arm/obj" )
+
+		configuration { "android-gcc-x86" }
+			targetdir ( "Build/" .. _ACTION .. "-android-gcc-x86/bin" )
+			objdir ( "Build/" .. _ACTION .. "-android-gcc-x86/obj" )
 	end
 
 	-- Experimental.

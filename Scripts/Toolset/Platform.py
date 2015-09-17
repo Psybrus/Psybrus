@@ -46,6 +46,8 @@ class Platform():
 				importers = new_importers
 
 			found_importer = None
+			if len(importers) == 0:
+				raise Exception( "No importers built. Please build one for your host OS." )
 
 			for importer in importers:
 				if os.path.exists( importer ):

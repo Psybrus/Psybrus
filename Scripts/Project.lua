@@ -481,7 +481,7 @@ function PsyProjectGameExe( _name )
 	PsyProjectPsybrusExe( _name, _name )
 	print( "Adding Game Executable: " .. _name )
 
-	configuration "linux-* or osx-* or windows-*"
+	configuration "asmjs or linux-* or osx-* or windows-*"
 		kind "WindowedApp"
 		language "C++"
 

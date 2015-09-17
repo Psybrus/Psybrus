@@ -19,6 +19,14 @@ elif system() == "Windows":
 	import PlatformAndroid
 	import PlatformWindows
 
+def loadGameJson():
+	with open( "Game.json" ) as f:
+		game_config_data = f.read()
+		json_decode = json.JSONDecoder()
+		GAME_CONFIG = jsoE_CONFIG[0]
+		return GAME_CONFIG[0]
+	return None
+	
 def getToolsets():
 	ret = []
 	for platform in PLATFORMS:

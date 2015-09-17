@@ -9,26 +9,6 @@ import sys
 import Toolset
 PLATFORMS = Toolset.PLATFORMS
 
-def doBuild( _build_platform ):
-	commandLine = ""
-	for additionalOption in _build_platform.extra_flags:
-		commandLine += additionalOption + " "
-	commandLine += "--file=genie.lua --toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( 
-		_build_platform.name, 
-		_build_platform.arch, 
-		_build_platform.build_type, 
-		_build_platform.project_type )
-
-	print "Launching GENie with: " + commandLine
-
-	if system() == "Linux":
-		os.system( "./Psybrus/Tools/genie/linux/genie " + commandLine )
-	elif system() == "Darwin":
-		os.system( "./Psybrus/Tools/genie/darwin/genie " + commandLine )
-	elif system() == "Windows":
-		commandLine = commandLine.replace( "$BOOST_ROOT", "%BOOST_ROOT%" );
-		os.system( "Psybrus\\Tools\\genie\\windows\\genie.exe " + commandLine )
-
 def selectBuild():
 	idx = 0
 	print "\nSelect build:"
@@ -47,7 +27,7 @@ def selectBuild():
 				valid = True
 		except ValueError:
 			pass
-	doBuild( PLATFORMS[ selected ] )
+	PLATFORMS[ selected ].build_tool.generate()
 
 # Arg help.
 buildHelpString = ""
@@ -65,7 +45,7 @@ if args.build == None:
 else:
 	for build_platform in PLATFORMS:
 		if build_platform.name == args.build:
-			doBuild( build_platform )
+			build_platform.build_tool.generate()
 			exit(0)
 	print "Invalid build. Please select one of the following:\n\t" + buildHelpString
 	exit(1)
