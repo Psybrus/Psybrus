@@ -31,8 +31,8 @@ if _OPTIONS[ "toolchain" ] == "asmjs" then
 end
 
 -- Android.
-if _OPTIONS[ "toolchain" ] == "android-clang-arm" or
-   _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
+if _OPTIONS[ "toolchain" ] == "android-gcc-arm" or
+   _OPTIONS[ "toolchain" ] == "android-gcc-x86" then
 	WITH_OSS = 0
 	WITH_WINMM = 0
 	WITH_WASAPI = 0

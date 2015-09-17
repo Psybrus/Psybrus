@@ -217,7 +217,7 @@ void MainUnitTests()
 
 //////////////////////////////////////////////////////////////////////////
 // onCsCoreOpened
-#if !PLATFORM_ANDROID
+#if !PLATFORM_ANDROID && !PLATFORM_HTML5
 eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
 	// Register reflection.
@@ -487,7 +487,7 @@ void MainShared()
 	PSY_LOG( " - RsCore::JOB_QUEUE_ID: 0x%x\n", RsCore::JOB_QUEUE_ID );
 	PSY_LOG( " - SsCore::JOB_QUEUE_ID: 0x%x\n", SsCore::JOB_QUEUE_ID );
 
-#if !PLATFORM_ANDROID
+#if !PLATFORM_ANDROID && !PLATFORM_HTML5
 	// Setup callback for post CsCore open for resource registration.
 	CsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, onCsCoreOpened );
 #endif

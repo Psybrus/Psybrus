@@ -403,7 +403,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	configuration { "asmjs", "Debug" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) mkdir ./PackedContent",
+			"$(SILENT) mkdir -p ./PackedContent",
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
@@ -413,7 +413,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	configuration { "asmjs", "Release" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) mkdir ./PackedContent",
+			"$(SILENT) mkdir -p ./PackedContent",
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
@@ -423,7 +423,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	configuration { "asmjs", "Production" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
-			"$(SILENT) mkdir ./PackedContent",
+			"$(SILENT) mkdir -p ./PackedContent",
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Production\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
