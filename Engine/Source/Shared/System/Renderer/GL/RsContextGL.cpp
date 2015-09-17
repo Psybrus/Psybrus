@@ -581,7 +581,7 @@ void RsContextGL::endFrame()
 		const BcU32 H = Height_;
 
 		// Read the back buffer.
-#if !PLATFORM_ANDROID
+#if !PLATFORM_ANDROID && !PLATFORM_HTML5
 		GL( ReadBuffer( GL_BACK ) );
 #endif
 		std::unique_ptr< BcU32[] > ImageData( new BcU32[ W * H ] );
