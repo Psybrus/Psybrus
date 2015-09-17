@@ -66,7 +66,7 @@ PsyProjectEngineLib( "Base" )
     }
 
   -- asmjs
-  configuration( "asmjs" )
+  configuration( "html5-clang-asmjs" )
     files {
       "./Platforms/HTML5/Base/**.h",
       "./Platforms/HTML5/Base/**.inl",

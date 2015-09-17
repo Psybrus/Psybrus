@@ -19,7 +19,7 @@ function PsyPlatformIncludes()
     }
 
     -- Platform includes.
-    configuration "asmjs"
+    configuration "html5-clang-asmjs"
        includedirs {
           "../Psybrus/Engine/Source/Platforms/HTML5/",
        }
@@ -147,7 +147,7 @@ function PsyProjectCommon( _name, _lang )
 	configuration "*-gcc"
 		buildoptions( gccLanguageOptions[ _lang ] )
 
-	configuration "*-clang or asmjs"
+	configuration "*-clang or html5-clang-*"
 		buildoptions( clangLanguageOptions[ _lang ] )
 
 	-- Terminate project.
@@ -223,7 +223,7 @@ function PsyProjectCommonEngine( _name )
 			"./Platforms/Android/",
 		}
 
-	configuration( "asmjs" )
+	configuration( "html5-clang-asmjs" )
 		includedirs {
 			"./Platforms/HTML5/",
 			"$(EMSCRIPTEN)/system/lib/libcxxabi/include",
@@ -297,7 +297,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	PsyProjectCommonEngine( _exeName )
 	PsyPlatformIncludes()
 
-	configuration "asmjs or linux-* or osx-* or android-*"
+	configuration "html5-* or linux-* or osx-* or android-*"
 		prebuildcommands {
 			"python ../../Psybrus/reflection_parse.py " .. solution().name
 		}
@@ -400,34 +400,34 @@ function PsyProjectPsybrusExe( _name, _exeName )
        }
 
 	-- asmjs post build.
-	configuration { "asmjs", "Debug" }
+	configuration { "html5-clang-asmjs", "Debug" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
 			"$(SILENT) mkdir -p ./PackedContent",
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
-	configuration { "asmjs", "Release" }
+	configuration { "html5-clang-asmjs", "Release" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
 			"$(SILENT) mkdir -p ./PackedContent",
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
-	configuration { "asmjs", "Production" }
+	configuration { "html5-clang-asmjs", "Production" }
 		postbuildcommands {
 			"$(SILENT) echo Copying packed content.",
 			"$(SILENT) mkdir -p ./PackedContent",
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Production\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 --llvm-lto 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=268435456 \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 --llvm-lto 1 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
    configuration "windows-*"
@@ -462,7 +462,7 @@ function PsyProjectGameLib( _name )
 	configuration "*"
 		defines{ "STATICLIB" }
 
-	configuration "asmjs or linux-* or osx-* or android-*"
+	configuration "html5-* or linux-* or osx-* or android-*"
 		prebuildcommands {
 			"python ../../Psybrus/reflection_parse.py " .. solution().name
 		}
@@ -481,7 +481,7 @@ function PsyProjectGameExe( _name )
 	PsyProjectPsybrusExe( _name, _name )
 	print( "Adding Game Executable: " .. _name )
 
-	configuration "asmjs or linux-* or osx-* or windows-*"
+	configuration "html5-* or linux-* or osx-* or windows-*"
 		kind "WindowedApp"
 		language "C++"
 

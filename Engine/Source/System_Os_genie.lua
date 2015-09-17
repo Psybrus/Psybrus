@@ -56,7 +56,7 @@ PsyProjectEngineLib( "System_Os" )
       "./Platforms/Android/",
     }
     
-  configuration "asmjs"
+  configuration "html5-clang-asmjs"
     files {
       "./Platforms/HTML5/System/Os/*.h", 
       "./Platforms/HTML5/System/Os/*.inl", 

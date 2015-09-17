@@ -71,7 +71,7 @@ PsyProjectEngineLib( "System_Renderer" )
         "./Platforms/Android/",
     }
 
-  configuration "asmjs"
+  configuration "html5-clang-asmjs"
       files {
           "./Shared/System/Renderer/GL/*.h", 
           "./Shared/System/Renderer/GL/*.inl", 

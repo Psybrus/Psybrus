@@ -19,7 +19,7 @@ dofile ("zlib_genie.lua")
 dofile ("SoLoud_genie.lua")
 
 -- Stuff we don't want to build for asmjs (import pipeline or other stuff only)
-if _OPTIONS[ "toolchain" ] ~= "asmjs" then
+if _OPTIONS[ "toolchain" ] ~= "html5-clang-asmjs" then
 	dofile ("assimp_genie.lua")
 	dofile ("glew_genie.lua")
 	dofile ("glslang_genie.lua")

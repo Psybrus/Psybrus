@@ -21,7 +21,7 @@ else
 end
 
 -- asmjs.
-if _OPTIONS[ "toolchain" ] == "asmjs" then
+if _OPTIONS[ "toolchain" ] == "html5-clang-asmjs" then
 	WITH_OSS = 0
 	WITH_WINMM = 0
 	WITH_WASAPI = 0

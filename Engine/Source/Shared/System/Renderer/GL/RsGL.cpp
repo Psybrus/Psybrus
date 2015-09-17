@@ -205,7 +205,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			bool SupportDXTTextures = false;
 			SupportDXTTextures |= 
-				HaveExtension( "texture_compression_s3tc" );
+				HaveExtension( "texture_compression_s3tc" ) ||
+				HaveExtension( "compressed_texture_s3tc" );
+
 			SupportDXTTextures |= 
 				HaveExtension( "texture_compression_dxt1" ) &&
 				HaveExtension( "texture_compression_dxt3" ) &&

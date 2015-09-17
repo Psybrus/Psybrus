@@ -20,21 +20,18 @@ function PsySetupToolchain()
 			description = "Choose toolchain",
 			allowed = {
 				-- Linux targets
-				{ "linux-gcc",			"Linux (GCC compiler)"			},
-				{ "linux-clang",		"Linux (Clang 3.5 compiler)"	},
+				{ "linux-gcc",			"Linux (GCC compiler)"				},
+				{ "linux-clang",		"Linux (Clang 3.5 compiler)"		},
 
 				-- OSX targets
-				{ "osx-clang",			"OSX (Clang compiler)"		},
+				{ "osx-clang",			"OSX (Clang compiler)"				},
 
-				-- Windows targets: Experimental cross compilation.
-				{ "windows-mingw-gcc",	"Windows (mingw GCC compiler)"	},
-				
-				-- asm.js targets: Experimental JS compilation.
-				{ "asmjs",				"Emscripten/asm.js"				},
+				-- HTML5 targets
+				{ "html5-clang-asmjs",	"HTML5 asm.js (Clang compiler)"		},
 
-				-- Android targets: Experimental.
-				{ "android-gcc-arm", "Android ARM (GCC 4.9 compiler)" },
-				{ "android-gcc-x86", "Android x86 (GCC 4.9 compiler)" },
+				-- Android targets
+				{ "android-gcc-arm", 	"Android ARM (GCC 4.9 compiler)"	},
+				{ "android-gcc-x86", 	"Android x86 (GCC 4.9 compiler)"	},
 			},
 		}
 
@@ -74,13 +71,13 @@ function PsySetupToolchain()
 		end
 
 		-- asmjs.
-		if _OPTIONS[ "toolchain" ] == "asmjs" then
+		if _OPTIONS[ "toolchain" ] == "html5-clang-asmjs" then
 			-- todo: try ccache.
 			premake.gcc.llvm = true
 			premake.gcc.cc = "$(EMSCRIPTEN)/emcc"
 			premake.gcc.cxx = "$(EMSCRIPTEN)/em++"
 			premake.gcc.ar = "$(EMSCRIPTEN)/emar"
-			location ( "Projects/" .. _ACTION .. "-asmjs" )
+			location ( "Projects/" .. _ACTION .. "-html5-clang-asmjs" )
 		end
 
 		-- android-clang-arm
@@ -340,9 +337,9 @@ function PsySetupToolchain()
 			objdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/obj" )
 			buildoptions { "-m64" }
 
-		configuration { "asmjs" }
-			targetdir ( "Build/" .. _ACTION .. "-asmjs/bin" )
-			objdir ( "Build/" .. _ACTION .. "-asmjs/obj" )
+		configuration { "html5-clang-asmjs" }
+			targetdir ( "Build/" .. _ACTION .. "-html5-clang-asmjs/bin" )
+			objdir ( "Build/" .. _ACTION .. "-html5-clang-asmjs/obj" )
 
 		configuration { "android-gcc-arm" }
 			targetdir ( "Build/" .. _ACTION .. "-android-gcc-arm/bin" )

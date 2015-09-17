@@ -466,6 +466,9 @@ void MainShared()
 	// Start debug system if not a production build.
 #if !defined( PSY_PRODUCTION )
 	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
+#endif
+
+#if !defined( PSY_PRODUCTION )
 	SysKernel::pImpl()->startSystem( "DsCore" );
 #endif
 

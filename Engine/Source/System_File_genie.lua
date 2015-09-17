@@ -48,7 +48,7 @@ PsyProjectEngineLib( "System_File" )
           "./Platforms/OSX/",
       }
 
-  configuration "asmjs"
+  configuration "html5-clang-asmjs"
       files {
           "./Platforms/HTML5/System/File/*.h", 
           "./Platforms/HTML5/System/File/*.inl", 
