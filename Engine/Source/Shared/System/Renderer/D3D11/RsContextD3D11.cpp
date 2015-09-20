@@ -649,7 +649,7 @@ void RsContextD3D11::create()
 #endif
 
 	// Create device and swap chain.
-	FeatureLevel_ = D3D_FEATURE_LEVEL_12_1;
+	FeatureLevel_ = D3D_FEATURE_LEVEL_11_1;
 	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
 		Adapter_,
 		D3D_DRIVER_TYPE_HARDWARE,
