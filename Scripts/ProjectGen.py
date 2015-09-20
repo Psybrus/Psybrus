@@ -36,17 +36,17 @@ for build_platform in PLATFORMS:
 
 # Parse args.
 parser = argparse.ArgumentParser()
-parser.add_argument( "--build", "-b", type=str, help="Build to select (" + buildHelpString + ")" )
+parser.add_argument( "--toolset", "-t", type=str, help="Toolset to select (" + buildHelpString + ")" )
 args = parser.parse_args()
 
-if args.build == None:
+if args.toolset == None:
 	selectBuild()
 	exit(0)
 else:
 	for build_platform in PLATFORMS:
-		if build_platform.name == args.build:
+		if build_platform.name == args.toolset:
 			build_platform.build_tool.generate()
 			exit(0)
-	print "Invalid build. Please select one of the following:\n\t" + buildHelpString
+	print "Invalid toolset. Please select one of the following:\n\t" + buildHelpString
 	exit(1)
 
