@@ -208,16 +208,16 @@ namespace
 						}
 					} );
 
+				const BcU32 DefaultUniformBufferSlot = DefaultProgram_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				const BcU32 TexturedUniformBufferSlot = TexturedProgram_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				const BcU32 TexturedTextureSlot = TexturedProgram_->findTextureSlot( "aDiffuseTex" );
+
 				Context->setFrameBuffer( nullptr );
 				Context->setViewport( Viewport );
-				Context->setSamplerState( 0, FontSampler_.get() );
 				Context->setVertexDeclaration( VertexDeclaration_.get() );
 				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
 				Context->setIndexBuffer( IndexBuffer_.get() );
-				Context->setUniformBuffer( 0, UniformBuffer_.get() );
-				Context->setProgram( TexturedProgram_ );
 				Context->setRenderState( RenderState_.get() );
-				Context->setSamplerState( 0, FontSampler_.get() );
 
  				BcU32 IndexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
@@ -240,12 +240,15 @@ namespace
 								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
 							if( Cmd->TextureId != nullptr )
 							{
-								Context->setTexture( 0, (RsTexture*)Cmd->TextureId );
 								Context->setProgram( TexturedProgram_ );
+								Context->setUniformBuffer( TexturedUniformBufferSlot, UniformBuffer_.get() );
+								Context->setTexture( TexturedTextureSlot, (RsTexture*)Cmd->TextureId );
+								Context->setSamplerState( TexturedTextureSlot, FontSampler_.get() );
 							}
 							else
 							{
 								Context->setProgram( DefaultProgram_ );
+								Context->setUniformBuffer( DefaultUniformBufferSlot, UniformBuffer_.get() );
 							}
 							Context->drawIndexedPrimitives( 
 								RsTopologyType::TRIANGLE_LIST,
