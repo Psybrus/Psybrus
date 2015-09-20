@@ -12,7 +12,7 @@ class Build():
 	def generate( self ):
 		command_line = ""
 		for additional_option in self.platform.extra_flags:
-			commandLine += additional_option + " "
+			command_line += additional_option + " "
 		command_line += "--file=genie.lua --toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( 
 			self.platform.name, 
 			self.platform.arch, 

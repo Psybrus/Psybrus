@@ -53,7 +53,8 @@ function SetupBoost()
 		[ "1_55" ] = true,
 		[ "1_56" ] = true,
 		[ "1_57" ] = true,
-		[ "1_58" ] = true
+		[ "1_58" ] = true,
+		[ "1_59" ] = true
 	}
 
 	if not validVersions[ boostVersion ] then
