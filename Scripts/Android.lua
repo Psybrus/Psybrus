@@ -58,50 +58,6 @@ function SetupAndroidProject()
 		postBuildPath = "../" .. buildPath
 		postBuildProjectPath = "../" .. projectPath
 
-		-- Create AndroidManifest.xml
-		manifestFile = assert( io.open( projectPath .. "/AndroidManifest.xml", "w+" ) )
-		manifestFile:write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
-		manifestFile:write( "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" )
-		manifestFile:write( "          package=\"" .. GAME.android.package .. "\"\n" )
-		manifestFile:write( "          android:versionCode=\"" .. GAME.android.version_code .. "\"\n" )
-		manifestFile:write( "          android:versionName=\"" .. GAME.android.version_name .. "\">\n" )
-		manifestFile:write( "  <uses-sdk android:minSdkVersion=\"" .. GAME.android.sdk_version .. "\" />\n" )
-
-		for i, permission in ipairs(GAME.android.permissions) do
-			manifestFile:write( "  <uses-permission android:name=\"" .. permission .. "\" />\n" )
-		end
-
-		manifestFile:write( "  <uses-feature android:glEsVersion=\"" .. GAME.android.es_version .. "\" />\n" )
-		manifestFile:write( "  <application android:label=\"@string/app_name\"\n" )
-		manifestFile:write( "               android:hasCode=\"false\" android:debuggable=\"true\">\n" )
-		manifestFile:write( "    <activity android:name=\"android.app.NativeActivity\"\n" )
-		manifestFile:write( "              android:screenOrientation=\"" .. GAME.android.orientation .. "\"\n" )
-		manifestFile:write( "              android:label=\"@string/app_name\">\n" )
-		manifestFile:write( "      <meta-data android:name=\"android.app.lib_name\"\n" )
-		manifestFile:write( "                 android:value=\"" .. libName .. "\" />\n" )
-		manifestFile:write( "      <intent-filter>\n" )
-		manifestFile:write( "        <action android:name=\"android.intent.action.MAIN\" />\n" )
-		manifestFile:write( "        <category android:name=\"android.intent.category.LAUNCHER\" />\n" )
-		manifestFile:write( "      </intent-filter>\n" )
-		manifestFile:write( "    </activity>\n" )
-		manifestFile:write( "  </application>\n" )
-		manifestFile:write( "</manifest>\n" )
-		manifestFile:close()
-
-		-- Create strings xml.
-		stringsFile = assert( io.open( projectPath .. "/res/values/strings.xml", "w+" ) )
-		stringsFile:write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
-		stringsFile:write( "<resources>\n" )
-		stringsFile:write( "  <string name=\"app_name\">" .. libName .. "</string>\n" )
-		stringsFile:write( "</resources>\n" )
-		stringsFile:close()
-
-		-- Create gdb config.
-		gdbFile = assert( io.open( projectPath .. "/libs/" .. abi .. "/gdb.setup", "w+" ) )
-		gdbFile:write( "set solib-search-path ../obj\n" )
-		gdbFile:write( "source " .. ANDROID_NDK_PATH .. "/prebuilt/common/gdb/common.setup\n" )
-		gdbFile:write( "directory ../../../Source ../../../Psybrus/Engine/Source\n" )
-
 		-- Setup post build setp.
 		configuration { "android-*" }
 			PsyAddExternalLinks( "llvmcxxabi" )

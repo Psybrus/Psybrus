@@ -26,38 +26,54 @@ class DeployAndroid( Deploy ):
 		# Load in config.
 		self.game_config = GameConfig.load()
 		self.game_name = self.game_config[ "name" ]
-		self.package = self.game_config[ "android" ][ "package" ]
-		self.sdk_version = self.game_config[ "android" ][ "sdk_version" ]
-		self.ndk_version = self.game_config[ "android" ][ "ndk_version" ]
+		self.android_config = self.game_config[ "android" ]
+		self.package = self.android_config[ "package" ]
+		self.sdk_version = self.android_config[ "sdk_version" ]
+		self.ndk_version = self.android_config[ "ndk_version" ]
 
-	def package_build( self, _config ):
-		Deploy.package_build( self, _config )
-
-		# Create project directory.
-		Log.write( "Creating project directory..." )
-		createDir( self.android_project_root )
-		createDir( os.path.join( self.android_project_root, "libs" ) )
-
-		# Update project.
-		target = "android-" + self.sdk_version
-		self.launch_android_tool( "update project -p ./ -t \"" + target + "\" -n \"" + self.game_name + "\"" )
-
-		# Copy build(s) in to target directory.
-		configs = {
+		# Tables for lookup.
+		self.configs = {
 			"debug" : "Debug",
 			"release" : "Release",
 			"profile" : "Profile",
 			"production" : "Production",
 		}
 
-		abis = {
+		self.abis = {
 			"android-gcc-arm" : "armeabi-v7a",
 			"android-gcc-x86" : "x86"
 		}
-		abi = abis[ self.platform.name ]
+
+	def package_build( self, _config ):
+		Deploy.package_build( self, _config )
+
+		# TODO: Kill adb and delete project folder?
+
+		# Create project directory.
+		Log.write( "Creating project directory..." )
+		createDir( self.android_project_root )
+		createDir( os.path.join( self.android_project_root, "assets" ) )
+		createDir( os.path.join( self.android_project_root, "assets", "PackedContent" ) )
+		createDir( os.path.join( self.android_project_root, "libs" ) )
+		for abi_key in self.abis:
+			abi = self.abis[ abi_key ]
+			createDir( os.path.join( self.android_project_root, "libs", abi ) )
+		createDir( os.path.join( self.android_project_root, "res" ) )
+		createDir( os.path.join( self.android_project_root, "res", "values" ) )
+
+		# Setup manifest & strings.
+		self.write_manifest()
+		self.write_strings()
+
+		# Update project.
+		target = "android-" + self.sdk_version
+		self.launch_android_tool( "update project -p ./ -t \"" + target + "\" -n \"" + self.game_name + "\"" )
+
+		# Copy build(s) in to target directory.
+		abi = self.abis[ self.platform.name ]
 
 		srcBuilds = [
-			os.path.join( self.android_project_root, "..", "bin", "lib" + self.game_name + "-" + configs[ _config ] + ".so" )
+			os.path.join( self.android_project_root, "..", "bin", "lib" + self.game_name + "-" + self.configs[ _config ] + ".so" )
 		]
 
 		destBuilds = [
@@ -68,10 +84,9 @@ class DeployAndroid( Deploy ):
 			Log.write( "Copying " + s + " -> " + d )
 			shutil.copy( s, d )
 
-		# Create target asset directory.
-		Log.write( "Creating asset directory..." )
-		createDir( os.path.join( self.android_project_root, "assets" ) )
-		createDir( os.path.join( self.android_project_root, "assets/PackedContent" ) )
+		# Setup gdb.
+		if _config != "production":
+			self.write_gdb_config()
 
 		# Copy all files.
 		Log.write( "Copying all files..." )
@@ -98,6 +113,50 @@ class DeployAndroid( Deploy ):
 
 		Log.write( "Launching ant " + _config + " install..." )
 		self.launch_ant( _config + " install" )
+
+	def write_manifest( self ):
+		with open( os.path.join( self.android_project_root, "AndroidManifest.xml" ), "w+" ) as manifestFile:
+			manifestFile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
+			manifestFile.write( "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" )
+			manifestFile.write( "          package=\"" + self.android_config["package"] + "\"\n" )
+			manifestFile.write( "          android:versionCode=\"" + self.android_config["version_code"] + "\"\n" )
+			manifestFile.write( "          android:versionName=\"" + self.android_config["version_name"] + "\">\n" )
+			manifestFile.write( "  <uses-sdk android:minSdkVersion=\"" + self.android_config["sdk_version"] + "\" />\n" )
+
+			for permission in self.android_config[ "permissions" ]:
+				manifestFile.write( "  <uses-permission android:name=\"" + permission + "\" />\n" )
+
+			manifestFile.write( "  <uses-feature android:glEsVersion=\"" + self.android_config["es_version"] + "\" />\n" )
+			manifestFile.write( "  <application android:label=\"@string/app_name\"\n" )
+			manifestFile.write( "               android:hasCode=\"false\" android:debuggable=\"true\">\n" )
+			manifestFile.write( "    <activity android:name=\"android.app.NativeActivity\"\n" )
+			manifestFile.write( "              android:screenOrientation=\"" + self.android_config["orientation"] + "\"\n" )
+			manifestFile.write( "              android:label=\"@string/app_name\">\n" )
+			manifestFile.write( "      <meta-data android:name=\"android.app.lib_name\"\n" )
+			manifestFile.write( "                 android:value=\"" + self.game_name + "\" />\n" )
+			manifestFile.write( "      <intent-filter>\n" )
+			manifestFile.write( "        <action android:name=\"android.intent.action.MAIN\" />\n" )
+			manifestFile.write( "        <category android:name=\"android.intent.category.LAUNCHER\" />\n" )
+			manifestFile.write( "      </intent-filter>\n" )
+			manifestFile.write( "    </activity>\n" )
+			manifestFile.write( "  </application>\n" )
+			manifestFile.write( "</manifest>\n" )
+
+	def write_strings( self ):
+		with open( os.path.join( self.android_project_root, "res", "values", "strings.xml" ), "w+" ) as stringsFile:
+			stringsFile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
+			stringsFile.write( "<resources>\n" )
+			stringsFile.write( "  <string name=\"app_name\">" + self.game_name + "</string>\n" )
+			stringsFile.write( "</resources>\n" )
+
+	def write_gdb_config( self ):
+		env = copy.deepcopy( os.environ )
+		abi = self.abis[ self.platform.name ]
+		with open( os.path.join( self.android_project_root, "libs", abi, "gdb.setup" ), "w+" ) as gdbFile:
+			gdbFile.write( "set solib-search-path ../obj\n" )
+			gdbFile.write( "source " + os.path.join( env["ANDROID_NDK"], "prebuilt", "common", "gdb", "common.setup" ) + "\n" )
+			gdbFile.write( "directory  ../../../Source ../../../Psybrus/Engine/Source\n" )
+
 
 	def launch_android_tool( self, _params ):
 		env = copy.deepcopy( os.environ )
