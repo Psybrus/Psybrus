@@ -119,53 +119,6 @@ function SetupAndroidProject()
 		libPrefixName = "lib" .. libName
 		libExt = ".so"
 
-		os.execute( mkdirCommand( buildPath .. "/project" ) )
-		os.execute( mkdirCommand( buildPath .. "/project/libs" ) )
-		os.execute( mkdirCommand( buildPath .. "/project/libs/" .. abi ) )
-
-		configuration { "android-*", "Debug" }
-			postbuildcommands {
-				--"$(SILENT) echo Copying packed content."
-				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
-				"$(SILENT) echo Copying debug build...",
-				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Debug" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
-
-				"$(SILENT) echo Copying gdbserver...",
-				"$(SILENT) " .. copyCommand( gdbserver, postBuildProjectPath .. "/libs/" .. abi .. "/gdbserver" ),
-
-				"$(SILENT) echo Updating project...",
-				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
-
-				--"$(SILENT) cd " .. postBuildProjectPath,
-				--"$(SILENT) ant debug",
-				--"$(SILENT) adb install -r bin/" .. solution().name .. "-debug.apk"
-			}
-
-		configuration { "android-*", "Release" }
-			postbuildcommands {
-				--"$(SILENT) echo Copying packed content."
-				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
-				"$(SILENT) echo Copying release build...",
-				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Release" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
-				"$(SILENT) echo Updating project...",
-				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
-				--"$(SILENT) cd " .. postBuildProjectPath,
-				--"$(SILENT) ant debug",
-				--"$(SILENT) adb install -r bin/" .. solution().name .. "-debug.apk"
-			}
-
-		configuration { "android-*", "Production" }
-			postbuildcommands {
-				--"$(SILENT) echo Copying packed content."
-				--"$(SILENT) cp -r ../../Dist/PackedContent ./",
-				"$(SILENT) echo Copying production build...",
-				"$(SILENT) " .. copyCommand( postBuildPath .. "/bin/" .. libPrefixName .. "-Production" .. libExt, postBuildProjectPath .. "/libs/" .. abi .. "/lib" .. libName .. ".so" ),
-				"$(SILENT) echo Updating project...",
-				ANDROID_TOOL .. " update project -p " .. postBuildProjectPath .. " -t \"" .. androidTarget  .. "\" -n \"" .. libName ..  "\"",
-				--"$(SILENT) cd " .. postBuildProjectPath,
-				--"$(SILENT) ant debug",
-				--"$(SILENT) adb install -r bin/" .. solution().name .. "-debug.apk"
-			}
 	end
 
 end
