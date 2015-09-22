@@ -39,7 +39,7 @@ PsyProjectEngineLib( "System_Sound" )
           "./Platforms/OSX/",
       }
 
-  configuration "windows-*"
+  configuration "windows-* or winphone-*"
       files {
       }
       

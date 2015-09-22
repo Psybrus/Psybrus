@@ -16,7 +16,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 #define caseInsensitiveComparison stricmp
 #define safeCaseInsensitiveComparison strnicmp
 #else

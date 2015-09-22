@@ -22,8 +22,8 @@ BcBacktraceResult BcBacktrace()
 {
 	BcBacktraceResult Result;
 
-	void* Addresses[ 1024 ];
-
+#if PLATFORM_WINDOWS
+	void* Addresses[ 1024 ] = { false };
 	auto NoofFrames = ::CaptureStackBackTrace( 1, ARRAYSIZE( Addresses ), Addresses, nullptr );
 	for( decltype( NoofFrames ) Idx = 0; Idx < NoofFrames; ++Idx )
 	{
@@ -35,7 +35,7 @@ BcBacktraceResult BcBacktrace()
 
 		Result.Backtrace_.push_back( Entry );
 	}
-
+#endif
 	return Result;
 }
 
@@ -43,6 +43,7 @@ BcBacktraceResult BcBacktrace()
 // BcMessageBox
 BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, BcMessageBoxType Type, BcMessageBoxIcon Icon )
 {
+#if PLATFORM_WINDOWS
 	UINT MBType = MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST;
 
 	switch( Type )
@@ -101,5 +102,6 @@ BcMessageBoxReturn BcMessageBox( const BcChar* pTitle, const BcChar* pMessage, B
 			break;
 	};
 
+#endif
 	return bcMBR_OK;
 }

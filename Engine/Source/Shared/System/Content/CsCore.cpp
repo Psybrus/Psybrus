@@ -15,10 +15,6 @@
 #include "System/Content/CsRedirector.h"
 #include "System/File/FsCore.h"
 
-#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
-#include <boost/filesystem.hpp>
-#endif // !PLATFORM_HTML5
-
 SYS_CREATOR( CsCore );
 
 //////////////////////////////////////////////////////////////////////////

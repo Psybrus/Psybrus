@@ -39,7 +39,7 @@ PsyProjectEngineLib( "System_Content" )
           "./Platforms/OSX/",
       }
 
-  configuration "windows-*"
+  configuration( "windows-* or winphone-*" )
         files {
             "./Platforms/Windows/System/Content/*.h", 
             "./Platforms/Windows/System/Content/*.inl", 

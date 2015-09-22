@@ -319,6 +319,7 @@ int DsCoreImpl::externalWebbyFrame( WebbyConnection *connection, const WebbyWsFr
 std::vector< std::string > DsCoreImpl::getIPAddresses()
 {
 	std::vector< std::string > result;
+#if !PLATFORM_WINPHONE
 	result.push_back( "127.0.0.1" );
 	RakNet::RakPeerInterface* peer = NULL;
 	peer = RakNet::RakPeerInterface::GetInstance();
@@ -336,7 +337,7 @@ std::vector< std::string > DsCoreImpl::getIPAddresses()
 	}
 	peer->Shutdown( 500, 0, LOW_PRIORITY );
 	RakNet::RakPeerInterface::DestroyInstance( peer );
-
+#endif
 	return result;
 }
 #endif // USE_WEBBY

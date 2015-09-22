@@ -650,6 +650,7 @@ void RsContextD3D11::create()
 
 	// Create device and swap chain.
 	FeatureLevel_ = D3D_FEATURE_LEVEL_11_1;
+#if PLATFORM_WINDOWS
 	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
 		Adapter_,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -664,7 +665,10 @@ void RsContextD3D11::create()
 		&FeatureLevel_,
 		&Context_ );
 	BcAssert( SUCCEEDED( Result ) ); 
-	
+#else
+	BcBreakpoint;
+#endif // PLATFORM_WINDOWS
+
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();

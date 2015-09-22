@@ -45,6 +45,12 @@ function PsyPlatformIncludes()
           BOOST_INCLUDE_PATH
        }
 
+    configuration "winphone-*"
+       includedirs {
+          "../Psybrus/Engine/Source/Platforms/Windows/",
+          BOOST_INCLUDE_PATH
+       }
+
     configuration "*"
 end
 
@@ -54,11 +60,18 @@ function PsyProjectCommon( _name, _lang )
 
 	-- Common flags for all configurations.
 	configuration "*"
-		flags { "StaticRuntime", "FloatFast", "NativeWChar" }
+		flags { "FloatFast", "NativeWChar", "NoEditAndContinue" }
+
+	configuration "windows-*"
+		flags { "StaticRuntime" }
 
 	-- Windows config defines + flags.
 	configuration "windows-*"
 		defines { "WINDOWS", "_WIN32", "WIN32" }
+
+	-- Windows config defines + flags.
+	configuration "winphone-*"
+		defines { "WINPHONE" }
 
 	configuration "vs* and x32"
 		flags { "EnableSSE", "EnableSSE2" }
@@ -203,7 +216,7 @@ function PsyProjectCommonEngine( _name )
 			"../../External/imgui"
 		}
 
-	configuration( "windows-*" )
+	configuration( "windows-* or winphone-*" )
 		includedirs {
 			"./Platforms/Windows/",
 		}
@@ -481,7 +494,7 @@ function PsyProjectGameExe( _name )
 	PsyProjectPsybrusExe( _name, _name )
 	print( "Adding Game Executable: " .. _name )
 
-	configuration "html5-* or linux-* or osx-* or windows-*"
+	configuration "html5-* or linux-* or osx-* or windows-* or winphone-*"
 		kind "WindowedApp"
 		language "C++"
 
@@ -548,6 +561,10 @@ function PsyProjectExternalLib( _name, _lang )
 	configuration "linux-* or osx-*"
 		kind "StaticLib"
 		flags { "Optimize" }
+
+	-- External librarys should be built with no WinRT language extensions.
+	configuration "winphone-*"
+		flags { "NoWinRTExtensions" }
 
 	-- Add STATICLIB define for libraries.
 	configuration "*"

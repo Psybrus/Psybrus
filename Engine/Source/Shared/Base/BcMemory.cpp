@@ -16,7 +16,7 @@
 #include <mutex>
 
 
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 #include <windows.h>
 #endif
 
@@ -67,7 +67,7 @@ void BcMemoryAllocator::free( void* pMemory )
 // BcSysMemAlign
 void* BcSysMemAlign( BcSize Bytes, BcSize Alignment )
 {
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 	return _aligned_malloc( Bytes, Alignment );
 #elif PLATFORM_OSX
 	void* Mem = nullptr;
@@ -84,7 +84,7 @@ void* BcSysMemAlign( BcSize Bytes, BcSize Alignment )
 // BcSysMemRealloc
 void* BcSysMemRealloc( void* pMemory, BcSize Bytes, BcSize Alignment )
 {
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 	return _aligned_realloc( pMemory, Bytes, Alignment );
 #else
 	BcBreakpoint;
@@ -96,7 +96,7 @@ void* BcSysMemRealloc( void* pMemory, BcSize Bytes, BcSize Alignment )
 // free
 void BcSysMemFree( void* pMemory )
 {
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 	_aligned_free( pMemory );
 #else
 	free( pMemory );

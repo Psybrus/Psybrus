@@ -18,9 +18,11 @@
 #include "Base/BcMath.h"
 #include "Base/BcStream.h"
 
+#if PSY_IMPORT_PIPELINE
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
@@ -291,6 +293,7 @@ BcBool ScnFontImport::import(
 ImgImageUPtr ScnFontImport::makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, BcU32 BorderSize )
 {
 	ImgImageUPtr pImage = nullptr;
+#if PSY_IMPORT_PIPELINE
 	BcU32 DoubleBorderSize = BorderSize * 2;
 	{	
 		FT_BitmapGlyph Bitmap = (FT_BitmapGlyph)Glyph;
@@ -332,7 +335,7 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, B
 			}
 		}
 	}
-	
+#endif	
 	return pImage;
 }
 
@@ -341,6 +344,7 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, B
 ImgImageUPtr ScnFontImport::makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph, BcU32 BorderSize )
 {
 	ImgImageUPtr pImage = nullptr;
+#if PSY_IMPORT_PIPELINE
 	BcU32 DoubleBorderSize = BorderSize * 2;
 	{	
 		const FT_BitmapGlyph& Bitmap = (FT_BitmapGlyph)Glyph;
@@ -374,7 +378,7 @@ ImgImageUPtr ScnFontImport::makeImageForGlyphNormal( struct FT_GlyphRec_* Glyph,
 			}									
 		}
 	}
-	
+#endif
 	return pImage;
 }
 

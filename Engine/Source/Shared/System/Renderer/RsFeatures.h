@@ -14,6 +14,13 @@ enum class RsFeatureRenderTargetOrigin
 // RsFeatures
 struct RsFeatures
 {
+	RsFeatures()
+	{
+		TextureFormat_.fill( false );
+		RenderTargetFormat_.fill( false );
+		DepthStencilTargetFormat_.fill( false );
+	}
+
 	// Misc.
 	bool MRT_ = false;
 	bool DepthTextures_ = false;
@@ -30,9 +37,9 @@ struct RsFeatures
 	bool TextureCube_ = false;
 
 	// Texture formats.
-	bool TextureFormat_[ (int)RsTextureFormat::MAX ] = { false };
-	bool RenderTargetFormat_[ (int)RsTextureFormat::MAX ] = { false };
-	bool DepthStencilTargetFormat_[ (int)RsTextureFormat::MAX ] = { false };
+	std::array< bool, (int)RsTextureFormat::MAX > TextureFormat_;
+	std::array< bool, (int)RsTextureFormat::MAX > RenderTargetFormat_;
+	std::array< bool, (int)RsTextureFormat::MAX > DepthStencilTargetFormat_;
 
 	// TODO: Buffer types.
 

@@ -175,6 +175,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 	}
 	while( EnumSuccess );
 
+#if PLATFORM_WINDOWS
 	BcU32 MonitorIdx = 0;
 	do
 	{
@@ -190,6 +191,7 @@ BcBool OsClientWindows::create( const BcChar* pTitle, BcHandle Instance, BcU32 W
 		}
 	}
 	while( EnumSuccess );
+#endif // PLATFORM_WINDOWS
 
 	// Generate class name.
 	BcSPrintf( ClassName_, sizeof( ClassName_ ) - 1, "PsybrusWindow_0x%x", gClassID_++ );

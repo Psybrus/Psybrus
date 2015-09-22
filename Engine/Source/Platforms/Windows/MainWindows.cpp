@@ -19,7 +19,7 @@ BcHandle GInstance_ = NULL;
 eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
 {
 	MSG Msg;
-
+#if PLATFORM_WINDOWS
 	while( ::PeekMessage( &Msg, NULL, 0, 0, PM_REMOVE ) == TRUE )
 	{
 		::TranslateMessage( &Msg );
@@ -32,7 +32,7 @@ eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
 			OsCore::pImpl()->publish( osEVT_CORE_QUIT, OsEventCore() );
 		}
 	}
-
+#endif
 	return evtRET_PASS;
 }
 
@@ -49,6 +49,7 @@ extern BcU32 GResolutionHeight;
 
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
+#if PLATFORM_WINDOWS
 	OsClientWindows* pMainWindow = new OsClientWindows();
 	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
@@ -63,13 +64,15 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
 		BcUnusedVar( pContext );
 	}
-
+#endif
 	return evtRET_REMOVE;
 }
 
+int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow );
+
 int main(int argc, char** argv)
 {
-#if COMPILER_MSVC
+#if COMPILER_MSVC && PLATFORM_WINDOWS
 	if( OsMinidumpWindows::pImpl() == NULL )
 	{
 		new OsMinidumpWindows();
@@ -119,7 +122,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	( void )lpCmdLine;
 	( void )nCmdShow;
 
-#if COMPILER_MSVC
+#if COMPILER_MSVC && PLATFORM_WINDOWS
 	// Initialise minidumping as early as possible.
 	if( OsMinidumpWindows::pImpl() == NULL )
 	{
@@ -127,15 +130,20 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 #endif
 
+#if PLATFORM_WINDOWS
 	// Setup for more accurate timing.
 	timeBeginPeriod( 1 );
+#endif
 
 	GInstance_ = (BcHandle)hInstance;
 
+
+#if PLATFORM_WINDOWS
 	// Set exe path.
 	char ModuleFileName[ 4096 ] = { 0 };
 	::GetModuleFileNameA( ::GetModuleHandle( nullptr ), ModuleFileName, sizeof( ModuleFileName ) - 1 );
 	SysExePath_ = ModuleFileName;
+#endif
 
 	// Set command line params.
 	SysArgs_ = lpCmdLine;
@@ -184,8 +192,10 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
+#if PLATFORM_WINDOWS
 	SYS_REGISTER( "OsCore", OsCoreImplWindows );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
+#endif
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
 	SYS_REGISTER( "SsCore", SsCoreImplSoLoud );
@@ -233,8 +243,9 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Delete log.
 	delete BcLog::pImpl();
 
-	//
+#if PLATFORM_WINDOWS
 	timeEndPeriod( 1 );
+#endif
 
 	// Done.
 	return 0;

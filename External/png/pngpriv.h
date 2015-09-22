@@ -208,7 +208,7 @@ typedef PNG_CONST png_uint_16p FAR * png_const_uint_16pp;
 #  define png_memset  _fmemset
 #  define png_sprintf sprintf
 #else
-#  ifdef _WINDOWS_  /* Favor Windows over C runtime fns */
+#  if defined(_WINDOWS_) && !defined( WINPHONE ) /* Favor Windows over C runtime fns */
 #    define CVT_PTR(ptr)         (ptr)
 #    define CVT_PTR_NOCHECK(ptr) (ptr)
 #    define png_strcpy  lstrcpyA

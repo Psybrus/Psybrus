@@ -21,6 +21,7 @@
 #define PLATFORM_ANDROID		0
 #define PLATFORM_LINUX			0
 #define PLATFORM_WINDOWS		0
+#define PLATFORM_WINPHONE		0
 #define PLATFORM_IOS			0
 #define PLATFORM_OSX			0
 
@@ -43,6 +44,11 @@
 #elif defined( WINDOWS ) || defined( _WINDOWS )
 #  undef PLATFORM_WINDOWS
 #  define PLATFORM_WINDOWS		1
+
+// Windows
+#elif defined( WINPHONE ) || defined( _WINPHONE )
+#  undef PLATFORM_WINPHONE
+#  define PLATFORM_WINPHONE		1
 
 // iOS
 #elif defined( __APPLE__ ) && ( TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR )
@@ -89,7 +95,7 @@
 #  define PSY_ENDIAN_LITTLE		0
 
 // ARM
-#elif defined( __arm__ ) || defined( __ARM_ARCH_7A__ ) || defined( __ARM_ARCH_7S__ ) || defined( TARGET_OS_IPHONE )
+#elif defined( __arm__ ) || defined( __ARM_ARCH_7A__ ) || defined( __ARM_ARCH_7S__ ) || defined( TARGET_OS_IPHONE ) || defined( _M_ARM )
 #  define ARCH_ARM				1
 #  define PSY_ENDIAN_LITTLE		1
 #  define PSY_ENDIAN_BIG		0

@@ -66,7 +66,7 @@ PsyProjectEngineLib( "Engine" )
             "./Platforms/HTML5/",
         }
 
-	configuration "windows-*"
+    configuration( "windows-* or winphone-*" )
         files {
             "./Platforms/Windows/*.h", 
             "./Platforms/Windows/*.inl", 

@@ -71,3 +71,9 @@ PsyProjectEngineLib( "System_File" )
       libdirs {
            BOOST_LIB_PATH
         }
+        
+  configuration "winphone-*"
+        includedirs {
+          "./Platforms/Windows/",
+        }
+

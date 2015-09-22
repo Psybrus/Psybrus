@@ -91,6 +91,7 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Shared/System/Renderer/D3D11/*.cpp", 
       }
 
+
 if _OPTIONS["with-dx12"] then
       files {
           "./Shared/System/Renderer/D3D12/*.h", 
@@ -102,11 +103,21 @@ if _OPTIONS["with-dx12"] then
 
       defines { "WITH_DX12=1" }
 end
-
       includedirs {
             "./Platforms/Windows/",
       }
 
       libdirs {
            BOOST_LIB_PATH
+      }
+
+  configuration "winphone-*"
+      files {
+          "./Shared/System/Renderer/D3D11/*.h", 
+          "./Shared/System/Renderer/D3D11/*.inl", 
+          "./Shared/System/Renderer/D3D11/*.cpp", 
+      }
+
+      includedirs {
+            "./Platforms/Windows/",
       }

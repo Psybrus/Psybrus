@@ -71,7 +71,7 @@ end
 
 -- Add boost libs to current project (all configurations)
 function PsyAddBoostLibs( _links )
-	configuration "vs*"
+	configuration "windows-*"
 		includedirs { BOOST_INCLUDE_PATH }
 		libdirs { BOOST_LIB_PATH }
 
@@ -112,6 +112,11 @@ function PsyAddSystemLibs()
 			"winmm",
 			"ws2_32",
 			"IPHlpApi",
+		}
+
+	configuration "winphone-*"
+		links {
+			"ws2_32"
 		}
 
 	 configuration "linux-*"

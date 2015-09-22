@@ -409,16 +409,15 @@ function PsySetupToolchain()
 	end
 
 
-	if _ACTION == "vs2012" or _ACTION == "vs2013" or _ACTION == "vs2015" then
+	if _ACTION == "vs2013" or _ACTION == "vs2015" then
 		newoption {
 			trigger = "toolchain",
 			value = "toolchain",
 			description = "Choose toolchain",
 			allowed = {
-				{ "windows-vs-v110",		"Windows (VS2012 compiler)" },
 				{ "windows-vs-v120",		"Windows (VS2013 compiler)" },
 				{ "windows-vs-v140",		"Windows (VS2015 compiler)" },
-				{ "windows-vs-clang",		"Windows (Clang)" },
+				{ "winphone-vs-v120_wp81",	"Windows Phone (8.1)"}
 			},
 		}
 
@@ -431,34 +430,27 @@ function PsySetupToolchain()
 			windowstargetplatformversion "10.0.10240.0"
 		end
 
-		-- win-vs-v110
-		if _OPTIONS[ "toolchain" ] == "windows-vs-v110" then
-			premake.vstudio.toolset = "v110"
-			location ( "Projects/" .. _ACTION .. "-windows-vs-v110" )
-		end
-
 		-- win-vs-v120
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v120" then
 			premake.vstudio.toolset = "v120"
 			location ( "Projects/" .. _ACTION .. "-windows-vs-v120" )
 		end
 
-		-- win-vs-v130
+		-- win-vs-v140
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v140" then
 			premake.vstudio.toolset = "v140"
 			location ( "Projects/" .. _ACTION .. "-windows-vs-v140" )
 		end
-				-- win-vs-clang
-		if _OPTIONS[ "toolchain" ] == "windows-vs-clang" then
-			premake.vstudio.toolset = "LLVM-" .. _ACTION
-			location ( "Projects/" .. _ACTION .. "-windows-vs-clang" )
+
+		-- win-vs-v140
+		if _OPTIONS[ "toolchain" ] == "winphone-vs-v120_wp81" then
+			premake.vstudio.toolset = "v120_wp81"
+			premake.vstudio.storeapp = "8.1"
+			premake.vstudio.splashpath = "..\\..\\Dist\\WinPhone\\SplashScreen.scale-240.png"
+			location ( "Projects/" .. _ACTION .. "-winphone-vs-v120_wp81" )
 		end
 
 		-- Configurations
-		configuration { "windows-vs-v110" }
-			targetdir ( "Build/" .. _ACTION .. "-windows-vs-v110/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows-vs-v110/obj" )
-
 		configuration { "windows-vs-v120" }
 			targetdir ( "Build/" .. _ACTION .. "-windows-vs-v120/bin" )
 			objdir ( "Build/" .. _ACTION .. "-windows-vs-v120/obj" )
@@ -467,9 +459,9 @@ function PsySetupToolchain()
 			targetdir ( "Build/" .. _ACTION .. "-windows-vs-v140/bin" )
 			objdir ( "Build/" .. _ACTION .. "-windows-vs-v140/obj" )
 
-		configuration { "windows-vs-clang" }
-			targetdir ( "Build/" .. _ACTION .. "-windows-vs-clang/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows-vs-clang/obj" )
+		configuration { "winphone-vs-v120_wp81" }
+			targetdir ( "Build/" .. _ACTION .. "-winphone-vs-v120_wp81/bin" )
+			objdir ( "Build/" .. _ACTION .. "-winphone-vs-v120_wp81/obj" )
 	end
 
 	-- Check we got a valid toolchain

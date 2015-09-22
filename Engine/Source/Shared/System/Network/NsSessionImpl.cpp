@@ -1,7 +1,7 @@
 #include "System/Network/NsSessionImpl.h"
 #include "System/SysKernel.h"
 
-#if !PLATFORM_HTML5
+#if !PLATFORM_HTML5 && !PLATFORM_WINPHONE
 
 #include "MessageIdentifiers.h"
 #include "RakPeer.h"
@@ -295,4 +295,4 @@ void NsSessionImpl::workerThread()
 	}
 }
 
-#endif // !PLATFORM_HTML5
+#endif // !PLATFORM_HTML5 && !PLATFORM_WINPHONE

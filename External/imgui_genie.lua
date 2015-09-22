@@ -13,4 +13,10 @@ if PsyProjectExternalLib( "imgui", "C++" ) then
 		includedirs { 
 			"./imgui/"
 		}
+
+	configuration "winphone-*"
+		defines { 
+			"IMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS=1",
+			"IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCS=1"
+		}
 end

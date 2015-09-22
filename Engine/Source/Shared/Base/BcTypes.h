@@ -18,7 +18,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Windows defines
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 
 #include <new>
 #include <cstdint>

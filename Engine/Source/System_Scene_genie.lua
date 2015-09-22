@@ -41,10 +41,14 @@ PsyProjectEngineLib( "System_Scene" )
     }
 
     PsyAddExternalLinks {
-      "assimp",
       "BulletPhysics",
       "freetype",
-      "jsoncpp",
+      "jsoncpp"
+    }
+
+  configuration "linux-* or osx-* or windows-*"
+    PsyAddExternalLinks {
+      "assimp",
       "glsl-optimizer",
       "hlsl2glslfork",
       "HLSLCrossCompiler"
@@ -66,7 +70,7 @@ PsyProjectEngineLib( "System_Scene" )
           "./Platforms/OSX/",
       }
 
-  configuration "windows-*"
+  configuration "windows-* or winphone-*"
       files {
       }
       

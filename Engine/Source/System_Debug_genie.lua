@@ -51,7 +51,7 @@ PsyProjectEngineLib( "System_Debug" )
           "./Platforms/OSX/",
       }
 
-  configuration "windows-*"
+  configuration "windows-* or winphone-*"
         files {
             "./Platforms/Windows/System/Debug/*.h", 
             "./Platforms/Windows/System/Debug/*.inl", 

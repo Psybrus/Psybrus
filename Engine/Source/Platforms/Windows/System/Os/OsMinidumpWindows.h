@@ -16,7 +16,7 @@
 
 #include "Base/BcPortability.h"
 
-#if COMPILER_MSVC
+#if COMPILER_MSVC && PLATFORM_WINDOWS
 
 #include "OsWindows.h"
 #include "Base/BcGlobal.h"

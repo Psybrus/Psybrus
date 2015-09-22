@@ -20,6 +20,12 @@ else
 	WITH_SDL2_STATIC = 1
 end
 
+--
+if _OPTIONS[ "toolchain" ] == "winphone-vs-v120_wp81" then
+	WITH_WINMM = 0
+	WITH_WASAPI = 0
+end
+
 -- asmjs.
 if _OPTIONS[ "toolchain" ] == "html5-clang-asmjs" then
 	WITH_OSS = 0

@@ -56,8 +56,9 @@ private:
 private:
 	std::vector< DEVMODEA > DeviceModes_;
 	std::vector< DISPLAY_DEVICEA > DisplayDevices_;
+#if PLATFORM_WINDOWS
 	std::vector< MONITORINFO > MonitorInfos_;
-
+#endif
 	HDC				hDC_;
 	HWND			hWnd_;
 	BcHandle		hInstance_;

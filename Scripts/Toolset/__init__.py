@@ -18,6 +18,7 @@ elif system() == "Linux":
 elif system() == "Windows":
 	import PlatformAndroid
 	import PlatformWindows
+	import PlatformWinPhone
 	
 def getToolsets():
 	ret = []

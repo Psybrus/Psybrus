@@ -21,7 +21,7 @@ PsyProjectEngineLib( "Base" )
     }
 
   -- Windows
-  configuration( "windows-*" )
+  configuration( "windows-* or winphone-*" )
     files {
       "./Platforms/Windows/Base/**.h",
       "./Platforms/Windows/Base/**.inl",

@@ -518,8 +518,9 @@ BcBool ScnShaderImport::oldPipeline()
 			}
 		}
 	}
+	RetVal = BcTrue;
 #endif
-	return BcTrue;
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////

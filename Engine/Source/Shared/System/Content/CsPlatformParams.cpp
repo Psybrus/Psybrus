@@ -67,9 +67,9 @@ BcPath CsPlatformParams::getPackageIntermediatePath( const BcName& Package ) con
 		Path = IntermediatePath_;
 	}
 
-#if !PLATFORM_HTML5 && !PLATFORM_ANDROID
+#if PSY_IMPORT_PIPELINE
 	boost::filesystem::create_directories( *Path );
-#endif // !PLATFORM_HTML5 && !PLATFORM_ANDROID
+#endif // PSY_IMPORT_PIPELINE
 
 	return Path;
 }
