@@ -426,6 +426,11 @@ function PsySetupToolchain()
 			description = "Build with DirectX 12"
 		}
 
+		newoption {
+			trigger = "with-vk",
+			description = "Build with Vulkan"
+		}
+
 		if _OPTIONS[ "with-dx12" ] then
 			windowstargetplatformversion "10.0.10240.0"
 		end

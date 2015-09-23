@@ -91,6 +91,14 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Shared/System/Renderer/D3D11/*.cpp", 
       }
 
+      includedirs {
+            "./Platforms/Windows/",
+      }
+
+      libdirs {
+           BOOST_LIB_PATH
+      }
+
 
 if _OPTIONS["with-dx12"] then
       files {
@@ -103,13 +111,26 @@ if _OPTIONS["with-dx12"] then
 
       defines { "WITH_DX12=1" }
 end
+
+if _OPTIONS["with-vk"] then
+      VK_SDK_PATH = os.getenv("VK_SDK_PATH")
+      files {
+          "./Shared/System/Renderer/VK/*.h", 
+          "./Shared/System/Renderer/VK/*.inl", 
+          "./Shared/System/Renderer/VK/*.cpp", 
+      }
+
       includedirs {
-            "./Platforms/Windows/",
+          VK_SDK_PATH .. "/Include"
       }
 
       libdirs {
-           BOOST_LIB_PATH
+          VK_SDK_PATH .. "/Bin"
       }
+
+      defines { "WITH_VK=1" }
+
+end
 
   configuration "winphone-*"
       files {

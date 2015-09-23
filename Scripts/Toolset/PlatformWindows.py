@@ -21,7 +21,14 @@ vs2015dx12Platform = Platform(
 	"Psybrus/Dist/Platforms/pc.json",
 	[ "--with-dx12" ] )  # TODO: Have this as a subset of togglable options.
 
+vs2015dx12vkPlatform = Platform(
+	"windows-vs-v140", "Windows + DX12 + Vulkan (VS2015)", "windows",
+	"x64", "windows", "vs2015", BuildMSBuild, Deploy, 
+	"Psybrus/Dist/Platforms/pc.json",
+	[ "--with-dx12", "--with-vk" ] )  # TODO: Have this as a subset of togglable options.
+
 
 PLATFORMS.append( vs2013Platform )
 PLATFORMS.append( vs2015Platform )
 PLATFORMS.append( vs2015dx12Platform )
+PLATFORMS.append( vs2015dx12vkPlatform )

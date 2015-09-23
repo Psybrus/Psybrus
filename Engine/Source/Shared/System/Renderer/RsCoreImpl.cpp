@@ -36,6 +36,10 @@
 
 #endif
 
+#if WITH_VK
+#include "System/Renderer/VK/RsContextVK.h"
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Creator
 SYS_CREATOR( RsCoreImpl );
@@ -173,6 +177,12 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			{
 				pResource = new RsContextNull( pClient, nullptr );
 			}
+#if WITH_VK
+			else if( SysArgs_.find( "-vk" ) != std::string::npos)
+			{
+				pResource = new RsContextVK( pClient, nullptr );
+			}
+#endif
 #if !PLATFORM_WINPHONE
 			else
 			{

@@ -1,21 +1,22 @@
 /**************************************************************************
 *
-* File:		RsNull.h
+* File:		RsVK.h
 * Author: 	Neil Richardson 
 * Ver/Date:	
 * Description:
-*		Null includes.
+*		Vulkan includes.
 *		
 *
 *
 * 
 **************************************************************************/
 
-#ifndef __RSNULL_H__
-#define __RSNULL_H__
+#ifndef __RSVK_H__
+#define __RSVK_H__
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
+
 
 #endif
 
