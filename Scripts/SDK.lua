@@ -116,6 +116,9 @@ function PsyAddSystemLibs()
 
 	configuration "winphone-*"
 		links {
+			"WindowsPhoneCore",
+			"RuntimeObject",
+			"PhoneAppModelHost",
 			"ws2_32"
 		}
 
