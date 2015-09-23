@@ -30,14 +30,31 @@
 #include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Utility
+#define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                        \
+{                                                                       \
+    fp##entrypoint##_ = (PFN_vk##entrypoint) vkGetInstanceProcAddr(inst, "vk"#entrypoint); \
+    if (fp##entrypoint##_ == NULL) {                                 \
+        BcAssertMsg( false, "vkGetInstanceProcAddr failed to find vk"#entrypoint,  \
+                 "vkGetInstanceProcAddr Failure");                      \
+    }                                                                   \
+}
+
+#define GET_DEVICE_PROC_ADDR(dev, entrypoint)                           \
+{                                                                       \
+    fp##entrypoint##_ = (PFN_vk##entrypoint) vkGetDeviceProcAddr(dev, "vk"#entrypoint);   \
+    if (fp##entrypoint##_ == NULL) {                                 \
+        BcAssertMsg( false, "vkGetDeviceProcAddr failed to find vk"#entrypoint,    \
+                 "vkGetDeviceProcAddr Failure");                        \
+    }                                                                   \
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 RsContextVK::RsContextVK( OsClient* pClient, RsContextVK* pParent ):
 	RsContext( pParent ),
 	pParent_( pParent ),
-	pClient_( pClient ),
-	Width_( 0 ),
-	Height_( 0 ),
-	OwningThread_( BcErrorCode )
+	pClient_( pClient )
 {
 
 }
@@ -126,11 +143,190 @@ void RsContextVK::setViewport( const class RsViewport& )
 
 //////////////////////////////////////////////////////////////////////////
 // create
+void RsContextVK::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// create
 void RsContextVK::create()
 {
+	VkResult RetVal = VK_SUCCESS;
+
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
+
+	// Grab layers.
+	uint32_t InstanceLayerCount = 0;
+    if( ( RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, nullptr ) ) == VK_SUCCESS )
+	{
+		InstanceLayers_.resize( InstanceLayerCount );
+		RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, InstanceLayers_.data() );
+		BcAssert( !RetVal );
+	}
+	else
+	{
+		// TODO: Error message.
+		BcBreakpoint;
+		return;
+	}
+
+	// Grab extensions.
+	uint32_t InstanceExtensionCount = 0;
+	if( ( RetVal = vkGetGlobalExtensionProperties( nullptr, &InstanceExtensionCount, nullptr ) ) == VK_SUCCESS )
+	{
+		InstanceExtensions_.resize( InstanceExtensionCount );
+		RetVal = vkGetGlobalExtensionProperties( nullptr, &InstanceExtensionCount, InstanceExtensions_.data() );
+		BcAssert( !RetVal );
+	}
+	else
+	{
+		// TODO: Error message.
+		BcBreakpoint;
+		return;
+	}
+
+	// Setup application.
+	AppInfo_.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	AppInfo_.pNext = nullptr;
+	AppInfo_.pAppName = "Psybrus";
+	AppInfo_.appVersion = 0;
+	AppInfo_.pEngineName = "Psybrus";
+	AppInfo_.engineVersion = 0;
+	AppInfo_.apiVersion = VK_API_VERSION;
+
+	InstanceCreateInfo_.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	InstanceCreateInfo_.pNext = nullptr;
+	InstanceCreateInfo_.pAppInfo = &AppInfo_;
+	InstanceCreateInfo_.pAllocCb = nullptr;
+	InstanceCreateInfo_.layerCount = 0;
+	InstanceCreateInfo_.ppEnabledLayerNames = nullptr;
+	InstanceCreateInfo_.extensionCount = 0;
+	InstanceCreateInfo_.ppEnabledExtensionNames = nullptr;
+
+	// Create instance.
+	if( ( RetVal = vkCreateInstance( &InstanceCreateInfo_, &Instance_ ) ) == VK_SUCCESS )
+	{
+		// Enumerate physical devices.
+		uint32_t GPUCount = 256;
+		if( ( RetVal = vkEnumeratePhysicalDevices( Instance_, &GPUCount, nullptr ) ) == VK_SUCCESS )
+		{
+			BcAssert( GPUCount > 0 );
+			PhysicalDevices_.resize( GPUCount );
+			RetVal = vkEnumeratePhysicalDevices( Instance_, &GPUCount, PhysicalDevices_.data() );
+			BcAssert( !RetVal );
+		}
+		else
+		{
+			// TODO: Error message.
+			BcBreakpoint;
+			return;
+		}
+
+		// Create first device.
+		DeviceQueueCreateInfo_.queueFamilyIndex = 0;
+		DeviceQueueCreateInfo_.queueCount = 1;
+		DeviceCreateInfo_.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		DeviceCreateInfo_.pNext = nullptr;
+		DeviceCreateInfo_.queueRecordCount = 1;
+		DeviceCreateInfo_.pRequestedQueues = &DeviceQueueCreateInfo_;
+		DeviceCreateInfo_.layerCount = 0;
+		DeviceCreateInfo_.ppEnabledLayerNames = nullptr;
+		DeviceCreateInfo_.extensionCount = 0;
+		DeviceCreateInfo_.ppEnabledExtensionNames = nullptr;
+		DeviceCreateInfo_.flags = 0;
+
+		if( ( RetVal = vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo_, &Device_ ) ) == VK_SUCCESS )
+		{
+			// Get fps.
+			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceSupportWSI );
+			GET_DEVICE_PROC_ADDR( Device_, GetSurfaceInfoWSI );
+			GET_DEVICE_PROC_ADDR( Device_, CreateSwapChainWSI );
+			GET_DEVICE_PROC_ADDR( Device_, CreateSwapChainWSI );
+			GET_DEVICE_PROC_ADDR( Device_, DestroySwapChainWSI );
+			GET_DEVICE_PROC_ADDR( Device_, GetSwapChainInfoWSI );
+			GET_DEVICE_PROC_ADDR( Device_, AcquireNextImageWSI );
+			GET_DEVICE_PROC_ADDR( Device_, QueuePresentWSI );
+
+			//
+			RetVal = vkGetPhysicalDeviceProperties( PhysicalDevices_[ 0 ], &DeviceProps_ );
+			BcAssert( !RetVal );
+			uint32_t DeviceQueueCount = 0;
+			RetVal = vkGetPhysicalDeviceQueueCount( PhysicalDevices_[ 0 ], &DeviceQueueCount );
+			BcAssert( !RetVal );
+			DeviceQueueProps_.resize( DeviceQueueCount );
+			RetVal = vkGetPhysicalDeviceQueueProperties( PhysicalDevices_[ 0 ], DeviceQueueCount, DeviceQueueProps_.data() );
+			BcAssert( !RetVal );
+		}
+		else
+		{
+			// TODO: Error message.
+			BcBreakpoint;
+			return;
+		}
+
+		// Setup windowing.
+		WindowSurfaceDesc_.sType = VK_STRUCTURE_TYPE_SURFACE_DESCRIPTION_WINDOW_WSI;
+		WindowSurfaceDesc_.pNext = NULL;
+#ifdef PLATFORM_WINDOWS
+		WindowSurfaceDesc_.platform = VK_PLATFORM_WIN32_WSI;
+		WindowSurfaceDesc_.pPlatformHandle = ::GetModuleHandle( nullptr );
+		WindowSurfaceDesc_.pPlatformWindow = pClient_->getWindowHandle();
+#else  // PLATFORM_WINDOWS
+		BcBreakpoint;
+#endif // PLATFORM_WINDOWS
+
+		// Find queue that can present.
+		// TODO: Find queue that supports graphics & present if possible, then just present only, then error.
+		uint32_t FoundQueue = UINT32_MAX;
+		for( uint32_t Idx = 0; Idx < DeviceQueueProps_.size(); ++Idx )
+		{
+			VkBool32 SupportsPresent = 0;
+			if( ( RetVal = fpGetPhysicalDeviceSurfaceSupportWSI_( PhysicalDevices_[ 0 ], Idx, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, &SupportsPresent ) ) == VK_SUCCESS )
+			{
+				if( SupportsPresent )
+				{
+					FoundQueue = Idx;
+					break;
+				}
+			}
+			else
+			{
+				// TODO: Error message.
+				BcBreakpoint;
+				return;
+			}
+		}
+
+		// Get queue.
+		RetVal = vkGetDeviceQueue( Device_, FoundQueue, 0, &GraphicsQueue_ );
+		BcAssert( !RetVal );
+
+		// Get formats.
+		size_t FormatCount = 0;
+		if( ( RetVal = fpGetSurfaceInfoWSI_( Device_, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, VK_SURFACE_INFO_TYPE_FORMATS_WSI, &FormatCount, nullptr ) ) == VK_SUCCESS )
+		{
+			SurfaceFormats_.resize( FormatCount );
+			RetVal = fpGetSurfaceInfoWSI_( Device_, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, VK_SURFACE_INFO_TYPE_FORMATS_WSI, &FormatCount, SurfaceFormats_.data() );
+			BcAssert( !RetVal );
+		}
+		else
+		{
+			// TODO: Error message.
+			BcBreakpoint;
+			return;
+		}
+
+	}
+	else
+	{
+		// TODO: Error message.
+		BcBreakpoint;
+		return;
+	}
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -143,6 +339,11 @@ void RsContextVK::update()
 // destroy
 void RsContextVK::destroy()
 {
+    vkDestroyDevice( Device_ );
+	Device_ = nullptr;
+
+    vkDestroyInstance( Instance_ );
+	Instance_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

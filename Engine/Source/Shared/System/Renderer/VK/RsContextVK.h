@@ -38,8 +38,9 @@ public:
 	BcU32 getHeight() const override;
 	void beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
-	void takeScreenshot( RsScreenshotFunc ScreenshotFunc );
-	void setViewport( const class RsViewport& Viewport );
+	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
+	void setViewport( const class RsViewport& Viewport ) override;
+	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
 	void setDefaultState();
 	void invalidateRenderState();
@@ -129,12 +130,42 @@ protected:
 	virtual void destroy();	
 
 private:
-	RsContextVK* pParent_;
-	OsClient* pClient_;
-	BcU32 Width_;
-	BcU32 Height_;
-	BcThreadId OwningThread_;
+	RsContextVK* pParent_ = nullptr;
+	OsClient* pClient_ = nullptr;
+	BcU32 Width_ = 0;
+	BcU32 Height_ = 0;
+	BcThreadId OwningThread_ = 0;
 	RsFeatures Features_;
+
+	// Instance info.
+	std::vector< VkLayerProperties > InstanceLayers_;
+	std::vector< VkLayerProperties > DeviceLayers_;
+	std::vector< VkExtensionProperties > InstanceExtensions_;
+	VkApplicationInfo AppInfo_ = {};
+	VkInstanceCreateInfo InstanceCreateInfo_ = {};
+	VkDeviceQueueCreateInfo DeviceQueueCreateInfo_ = {};
+	VkInstance Instance_ = nullptr;
+	std::vector< VkPhysicalDevice > PhysicalDevices_;
+	VkDeviceCreateInfo DeviceCreateInfo_ = {};
+	VkDevice Device_ = nullptr;
+	VkPhysicalDeviceProperties DeviceProps_ = {};
+	std::vector< VkPhysicalDeviceQueueProperties > DeviceQueueProps_;
+
+	// Windowing.
+    PFN_vkGetPhysicalDeviceSurfaceSupportWSI fpGetPhysicalDeviceSurfaceSupportWSI_ = nullptr;
+    PFN_vkGetSurfaceInfoWSI fpGetSurfaceInfoWSI_ = nullptr;
+    PFN_vkCreateSwapChainWSI fpCreateSwapChainWSI_ = nullptr;
+    PFN_vkDestroySwapChainWSI fpDestroySwapChainWSI_ = nullptr;
+    PFN_vkGetSwapChainInfoWSI fpGetSwapChainInfoWSI_ = nullptr;
+    PFN_vkAcquireNextImageWSI fpAcquireNextImageWSI_ = nullptr;
+    PFN_vkQueuePresentWSI fpQueuePresentWSI_ = nullptr;
+	VkSurfaceDescriptionWindowWSI WindowSurfaceDesc_ = {};
+
+	// Queues.
+	VkQueue GraphicsQueue_;
+
+	// Formats.
+	std::vector< VkSurfaceFormatPropertiesWSI > SurfaceFormats_;
 };
 
 #endif
