@@ -125,11 +125,14 @@ if _OPTIONS["with-vk"] then
       }
 
       libdirs {
-          VK_SDK_PATH .. "/Bin"
+          VK_SDK_PATH .. "/Source/lib"
+      }
+
+      links {
+          "vulkan.0"
       }
 
       defines { "WITH_VK=1" }
-
 end
 
   configuration "winphone-*"
