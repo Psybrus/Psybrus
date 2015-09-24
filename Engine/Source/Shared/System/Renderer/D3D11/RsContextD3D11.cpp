@@ -1165,9 +1165,9 @@ bool RsContextD3D11::createRenderState(
 
 	const auto& Desc = RenderState->getDesc();
 
-	CD3D11_BLEND_DESC Blend;
-	CD3D11_RASTERIZER_DESC Rasterizer;
-	CD3D11_DEPTH_STENCIL_DESC DepthStencil;
+	CD3D11_BLEND_DESC Blend( D3D11_DEFAULT );
+	CD3D11_RASTERIZER_DESC Rasterizer( D3D11_DEFAULT );
+	CD3D11_DEPTH_STENCIL_DESC DepthStencil( D3D11_DEFAULT );
 
 	// Blend state.
 	Blend.AlphaToCoverageEnable = FALSE;
@@ -1302,7 +1302,7 @@ bool RsContextD3D11::createSamplerState(
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	CD3D11_SAMPLER_DESC SamplerStateDesc;
+	CD3D11_SAMPLER_DESC SamplerStateDesc( D3D11_DEFAULT );
 
 	auto Desc = SamplerState->getDesc();
 
