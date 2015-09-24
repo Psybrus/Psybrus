@@ -8,7 +8,7 @@ struct VertexDefault
 	float4 TexCoord0_		: TEXCOORD0;
 
 #if defined( PERM_MESH_SKINNED_3D )
-	float4 BlendIndices_	: BLENDINDICES;
+	int4 BlendIndices_		: BLENDINDICES;
 	float4 BlendWeights_	: BLENDWEIGHTS;
 
 #elif defined( PERM_MESH_PARTICLE_3D )

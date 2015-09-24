@@ -889,26 +889,6 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderState
-BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	//PSY_LOG( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
-
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setSamplerState
 void RsContextD3D11::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
 {
@@ -1209,6 +1189,7 @@ bool RsContextD3D11::createRenderState(
 	auto SrcRasterizerState = Desc.RasteriserState_;
 	Rasterizer.FillMode = gFillMode[ (size_t)SrcRasterizerState.FillMode_ ];
 	Rasterizer.CullMode = gCullMode[ (size_t)SrcRasterizerState.CullMode_ ];
+	Rasterizer.FrontCounterClockwise = FALSE;
 	Rasterizer.DepthBias = (INT)SrcRasterizerState.DepthBias_;
 	Rasterizer.SlopeScaledDepthBias = SrcRasterizerState.SlopeScaledDepthBias_;
 	Rasterizer.DepthClipEnable = SrcRasterizerState.DepthClipEnable_ ? TRUE : FALSE;

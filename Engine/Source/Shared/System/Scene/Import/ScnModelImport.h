@@ -21,6 +21,27 @@
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelVertexFormat
+class ScnModelVertexFormat
+{
+	REFLECTION_DECLARE_BASIC( ScnModelVertexFormat );
+
+	ScnModelVertexFormat(){}
+
+	RsVertexDataType Position_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType Normal_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType Binormal_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType Tangent_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType Colour_ = RsVertexDataType::UBYTE_NORM;
+	RsVertexDataType BlendIndices_ = RsVertexDataType::UBYTE;
+	RsVertexDataType BlendWeights_ = RsVertexDataType::USHORT_NORM;
+	RsVertexDataType TexCoord0_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType TexCoord1_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType TexCoord2_ = RsVertexDataType::FLOAT32;
+	RsVertexDataType TexCoord3_ = RsVertexDataType::FLOAT32;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnModelImport
 class ScnModelImport:
 	public CsResourceImporter
@@ -88,6 +109,8 @@ private:
 	std::vector< ScnModelMeshData > MeshData_;
 	std::vector< RsVertexDeclarationDesc > VertexDeclarations_;
 	std::vector< MaMat4d > InverseBindposes_;
+
+	ScnModelVertexFormat VertexFormat_;
 };
 
 #endif

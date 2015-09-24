@@ -459,7 +459,7 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 	// Setup sort value with material specifics.
 	//ScnMaterial* pMaterial_ = Material_;
 	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
-	Sort.Blend_ = 0; //StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
+	Sort.Blend_ = 0;;
 	
 	ScnMaterialComponentRenderData Data;
 	Data.pMaterial_ = this;

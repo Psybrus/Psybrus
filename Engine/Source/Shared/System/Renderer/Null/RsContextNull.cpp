@@ -181,21 +181,6 @@ void RsContextNull::setSamplerState( BcU32 Handle, class RsSamplerState* Sampler
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextNull::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderState
-BcS32 RsContextNull::getRenderState( RsRenderStateType State ) const
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // setSamplerState
 void RsContextNull::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
 {

@@ -13,6 +13,7 @@
 
 #include "System/Renderer/RsTypes.h"
 
+#include "Base/BcHalf.h"
 #include "Base/BcMath.h"
 #include <algorithm>
 
@@ -163,6 +164,101 @@ void RsColour::premultiplyAlpha()
 	X_ = X_ * W_;
 	Y_ = Y_ * W_;
 	Z_ = Z_ * W_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// RsFloatToVertexDataType
+bool RsFloatToVertexDataType( BcF32* InFloats, BcU32 NoofFloats, RsVertexDataType OutDataType, void* OutData, BcU32& OutDataSize )
+{
+	BcAssert( InFloats != nullptr );
+	BcAssert( NoofFloats > 0 );
+	BcAssert( OutDataType != RsVertexDataType::MAX );
+	BcAssert( OutDataType != RsVertexDataType::INVALID );
+
+	BcU32 VertexDataBytes[] = 
+	{
+		4, // FLOAT32 = 0,
+		2, // FLOAT16,
+		4, // FIXED,
+		1, // BYTE,
+		1, // BYTE_NORM,
+		1, // UBYTE,
+		1, // UBYTE_NORM,
+		2, // SHORT,
+		2, // SHORT_NORM,
+		2, // USHORT,
+		2, // USHORT_NORM,
+		4, // INT,
+		4, // INT_NORM,
+		4, // UINT,
+		4, // UINT_NORM,
+	};
+
+	// Calculate total output size.
+	const BcU32 ElementBytes = VertexDataBytes[ (BcU32)OutDataType ];
+	BcU8* OutDataBytes = reinterpret_cast< BcU8* >( OutData );
+	OutDataSize = VertexDataBytes[ (BcU32)OutDataType ] * NoofFloats;
+	
+	// Early out for total bytes.
+	if( OutData == nullptr )
+	{
+		return true;
+	}
+
+#define INTEGER_ELEMENT( _vtxType, _dataType ) \
+	case _vtxType: \
+		for( BcU32 Idx = 0; Idx < NoofFloats; ++Idx ) \
+		{ \
+			*reinterpret_cast< _dataType* >( OutDataBytes ) = \
+				BcClamp( static_cast< _dataType >( *InFloats++ ), \
+					std::numeric_limits< _dataType >::min(), \
+					std::numeric_limits< _dataType >::max() ); \
+			OutDataBytes += ElementBytes; \
+		} \
+		break; \
+	case _vtxType##_NORM: \
+		for( BcU32 Idx = 0; Idx < NoofFloats; ++Idx ) \
+		{ \
+			*reinterpret_cast< _dataType* >( OutDataBytes ) = \
+				BcClamp( static_cast< _dataType >( *InFloats++ * std::numeric_limits< _dataType >::max() ), \
+					std::numeric_limits< _dataType >::min(), \
+					std::numeric_limits< _dataType >::max() ); \
+			OutDataBytes += ElementBytes; \
+		} \
+		break;
+
+
+	switch( OutDataType )
+	{
+	case RsVertexDataType::FLOAT32:
+		memcpy( OutData, InFloats, OutDataSize );
+		break;
+
+	case RsVertexDataType::FLOAT16:
+		for( BcU32 Idx = 0; Idx < NoofFloats; ++Idx )
+		{
+			*reinterpret_cast< BcU16* >( OutDataBytes ) = BcF32ToHalf( *InFloats++ );
+			OutDataBytes += ElementBytes;
+		}
+		break;
+
+	case RsVertexDataType::FIXED:
+		return false;
+
+	INTEGER_ELEMENT( RsVertexDataType::BYTE, BcS8 )
+	INTEGER_ELEMENT( RsVertexDataType::UBYTE, BcU8 )
+	INTEGER_ELEMENT( RsVertexDataType::SHORT, BcS16 )
+	INTEGER_ELEMENT( RsVertexDataType::USHORT, BcU16 )
+	INTEGER_ELEMENT( RsVertexDataType::INT, BcS32 )
+	INTEGER_ELEMENT( RsVertexDataType::UINT, BcU32 )
+
+	default:
+		return false;
+	}
+
+#undef INTEGER_ELEMENT
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

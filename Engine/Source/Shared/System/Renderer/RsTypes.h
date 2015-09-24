@@ -168,47 +168,6 @@ enum class RsStencilOp : BcU32
 	INVALID = BcErrorCode
 };
 
-
-//////////////////////////////////////////////////////////////////////////
-// Colour Format (RT)
-enum class RsColourFormat : BcU32
-{
-	NONE = 0,
-	A2R10G10B10,
-	A8R8G8B8,
-	X8R8G8B8,
-	A1R5G5B5,
-	X1R5G5B5,
-	R5G6B5,
-	R16F,
-	G16R16F,
-	A16B16G16R16F,
-	R32F,
-	G32R32F,
-	A32B32G32R32F,
-	
-	MAX,
-	INVALID = BcErrorCode
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Depth Stencil Format (RT)
-enum class RsDepthStencilFormat : BcU32
-{
-	NONE = 0,
-	D16,
-	D32,
-	D15S1,
-	D24S8,
-	D24X8,
-	D24X4S4,
-	D32F,
-	D24FS8,
-	
-	MAX,
-	INVALID = BcErrorCode
-};
-
 //////////////////////////////////////////////////////////////////////////
 // Vertex data type.
 enum class RsVertexDataType : BcU32
@@ -232,6 +191,17 @@ enum class RsVertexDataType : BcU32
 	MAX,
 	INVALID = BcErrorCode
 };
+
+/**
+ * Convert a stream of floats to output vertex data format.
+ * @param InFloats Input floats.
+ * @param NoofFloats Number of floats.
+ * @param OutDataType Output data type.
+ * @param OutData Output data. Can be nullptr.
+ * @param OutDataSize Output data size in bytes.
+ * @return true for success.
+ */
+bool RsFloatToVertexDataType( BcF32* InFloats, BcU32 NoofFloats, RsVertexDataType OutDataType, void* OutData, BcU32& OutDataSize );
 
 //////////////////////////////////////////////////////////////////////////
 // Vertex data type.
@@ -391,32 +361,6 @@ struct RsTextureParams
 		       ( VMode_ != Other.VMode_ ) ||
 		       ( WMode_ != Other.WMode_ );
 	}
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Render state
-enum class RsRenderStateType : BcU32
-{
-	DEPTH_WRITE_ENABLE = 0,		///!< Depth write enable/disable. true or false.
-	DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
-	DEPTH_TEST_COMPARE,			///!< Depth test compare. RsCompareMode
-	STENCIL_WRITE_MASK,			///!< Stencil write mask.
-	STENCIL_TEST_ENABLE,			///!< Stencil test enable.
-	STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.
-	STENCIL_TEST_FUNC_REF,			///!< Stencil test reference value.
-	STENCIL_TEST_FUNC_MASK,		///!< Stencil test mask.
-	STENCIL_TEST_OP_SFAIL,			///!< Stencil test fail operation.
-	STENCIL_TEST_OP_DPFAIL,		///!< Stencil test passes, but depth fails operation.
-	STENCIL_TEST_OP_DPPASS,		///!< Stencil test and depth pass operation.
-	COLOR_WRITE_MASK_0,			///!< Color write mask, RT 0. Bits 0-3, RGBA
-	COLOR_WRITE_MASK_1,			///!< Color write mask, RT 1. Bits 0-3, RGBA
-	COLOR_WRITE_MASK_2,			///!< Color write mask, RT 2. Bits 0-3, RGBA
-	COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
-	BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
-	FILL_MODE,					///!< Fill mode. RsFillMode.
-	
-	MAX,
-	INVALID = BcErrorCode
 };
 
 //////////////////////////////////////////////////////////////////////////

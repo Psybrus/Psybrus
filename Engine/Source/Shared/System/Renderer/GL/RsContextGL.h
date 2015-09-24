@@ -265,10 +265,6 @@ private:
 		BcBool Dirty_;
 	};
 
-	enum
-	{
-		NOOF_RENDERSTATES = (BcU32)RsRenderStateType::MAX,
-	};
 	
 	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
 
