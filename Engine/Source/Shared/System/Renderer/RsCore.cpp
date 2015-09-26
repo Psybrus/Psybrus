@@ -127,27 +127,25 @@ void RsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< RsTextureSamplingMode >( RsTextureSamplingModeEnumConstants );
 
-	ReEnumConstant* RsRenderStateTypeEnumConstants[] = 
+	ReEnumConstant* RsVertexDataTypeEnumConstants[] = 
 	{
-		new ReEnumConstant( "DEPTH_WRITE_ENABLE", (BcU32)RsRenderStateType::DEPTH_WRITE_ENABLE ),
-		new ReEnumConstant( "DEPTH_TEST_ENABLE", (BcU32)RsRenderStateType::DEPTH_TEST_ENABLE ),
-		new ReEnumConstant( "DEPTH_TEST_COMPARE", (BcU32)RsRenderStateType::DEPTH_TEST_COMPARE ),
-		new ReEnumConstant( "STENCIL_WRITE_MASK", (BcU32)RsRenderStateType::STENCIL_WRITE_MASK ),
-		new ReEnumConstant( "STENCIL_TEST_ENABLE", (BcU32)RsRenderStateType::STENCIL_TEST_ENABLE ),
-		new ReEnumConstant( "STENCIL_TEST_FUNC_COMPARE", (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_COMPARE ),
-		new ReEnumConstant( "STENCIL_TEST_FUNC_REF", (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_REF ),
-		new ReEnumConstant( "STENCIL_TEST_FUNC_MASK", (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_MASK ),
-		new ReEnumConstant( "STENCIL_TEST_OP_SFAIL", (BcU32)RsRenderStateType::STENCIL_TEST_OP_SFAIL ),
-		new ReEnumConstant( "STENCIL_TEST_OP_DPFAIL", (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPFAIL ),
-		new ReEnumConstant( "STENCIL_TEST_OP_DPPASS", (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPPASS ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_0", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_0 ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_1", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_1 ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_2", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_2 ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_3", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_3 ),
-		new ReEnumConstant( "BLEND_MODE", (BcU32)RsRenderStateType::BLEND_MODE ),
-		new ReEnumConstant( "FILL_MODE", (BcU32)RsRenderStateType::FILL_MODE ),
+		new ReEnumConstant( "FLOAT32", (BcU32)RsVertexDataType::FLOAT32 ),
+		new ReEnumConstant( "FLOAT16", (BcU32)RsVertexDataType::FLOAT16 ),
+		new ReEnumConstant( "FIXED", (BcU32)RsVertexDataType::FIXED ),
+		new ReEnumConstant( "BYTE", (BcU32)RsVertexDataType::BYTE ),
+		new ReEnumConstant( "BYTE_NORM", (BcU32)RsVertexDataType::BYTE_NORM ),
+		new ReEnumConstant( "UBYTE_NORM", (BcU32)RsVertexDataType::UBYTE_NORM ),
+		new ReEnumConstant( "SHORT", (BcU32)RsVertexDataType::SHORT ),
+		new ReEnumConstant( "SHORT_NORM", (BcU32)RsVertexDataType::SHORT_NORM ),
+		new ReEnumConstant( "USHORT", (BcU32)RsVertexDataType::USHORT ),
+		new ReEnumConstant( "USHORT_NORM", (BcU32)RsVertexDataType::USHORT_NORM ),
+		new ReEnumConstant( "INT", (BcU32)RsVertexDataType::INT ),
+		new ReEnumConstant( "INT_NORM", (BcU32)RsVertexDataType::INT_NORM ),
+		new ReEnumConstant( "UINT", (BcU32)RsVertexDataType::UINT ),
+		new ReEnumConstant( "UINT_NORM", (BcU32)RsVertexDataType::UINT_NORM ),
+		new ReEnumConstant( "INVALID", (BcU32)RsVertexDataType::INVALID ),
 	};
-	ReRegisterEnum< RsRenderStateType >( RsRenderStateTypeEnumConstants );
+	ReRegisterEnum< RsVertexDataType >( RsVertexDataTypeEnumConstants );
 
 	ReEnumConstant* RsTextureFormatEnumConstants[] = 
 	{

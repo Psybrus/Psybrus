@@ -25,6 +25,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#if PLATFORM_WINDOWS
+#include <Windows.h>
+#endif
+
 #if PLATFORM_ANDROID
 #include <android_native_app_glue.h>
 #include <android/log.h>
@@ -41,6 +45,16 @@
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
+
+#if PLATFORM_WINDOWS
+#define WIN_COLOR_RED     FOREGROUND_RED 
+#define WIN_COLOR_GREEN   FOREGROUND_GREEN
+#define WIN_COLOR_YELLOW  ( FOREGROUND_RED | FOREGROUND_GREEN )
+#define WIN_COLOR_BLUE    FOREGROUND_BLUE
+#define WIN_COLOR_MAGENTA ( FOREGROUND_RED | FOREGROUND_BLUE )
+#define WIN_COLOR_CYAN    ( FOREGROUND_GREEN | FOREGROUND_BLUE )
+#define WIN_COLOR_RESET   FOREGROUND_INTENSITY
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // BcLogListenerDefault
@@ -81,51 +95,66 @@ private:
 	{
 		// Just handle all platforms in here. That way deriving is simpler for everyone.
 #if PLATFORM_WINDOWS
+		HANDLE HConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		::OutputDebugStringA( pText );
 #endif
-
-		// TODO: Regex capture of errors.
 
 		// Do some colour markup for important information.
 		if( BcStrStr( pText, "ERROR:" ) || BcStrStr( pText, "error:" ) || BcStrStr( pText, "Error," ) ||
 			BcStrStr( pText, "FAILED:" ) || BcStrStr( pText, "FAILURE:" ) || BcStrStr( pText, "error C" ) )
 		{
-			printf( ANSI_COLOR_RED "%s", pText );
-#if PLATFORM_ANDROID
+#if PLATFORM_WINDOWS
+			SetConsoleTextAttribute( HConsole, WIN_COLOR_RED );
+			printf( "%s", pText );
+#elif PLATFORM_ANDROID
 			__android_log_print( ANDROID_LOG_ERROR, LOG_TAG, pText );
+#else
+			printf( ANSI_COLOR_RED "%s", pText );
 #endif
 		}
 		else if( BcStrStr( pText, "SUCCESS:" ) || BcStrStr( pText, "SUCCEEDED:" ) )
 		{
-			printf( ANSI_COLOR_GREEN "%s", pText );
-
-#if PLATFORM_ANDROID
+#if PLATFORM_WINDOWS
+			SetConsoleTextAttribute( HConsole, WIN_COLOR_RED );
+			printf( "%s", pText );
+#elif PLATFORM_ANDROID
 			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+#else
+			printf( ANSI_COLOR_GREEN "%s", pText );
 #endif
 		}
 		else if( BcStrStr( pText, "WARNING:" ) || BcStrStr( pText, "warning:" ) || BcStrStr( pText, "Warning," ) )
 		{
-			printf( ANSI_COLOR_YELLOW "%s", pText );
-
-#if PLATFORM_ANDROID
+#if PLATFORM_WINDOWS
+			SetConsoleTextAttribute( HConsole, WIN_COLOR_YELLOW );
+			printf( "%s", pText );
+#elif PLATFORM_ANDROID
 			__android_log_print( ANDROID_LOG_WARN, LOG_TAG, pText );
+#else
+			printf( ANSI_COLOR_YELLOW "%s", pText );
 #endif
 		}
 		else if( BcStrStr( pText, "INFO:" ) || BcStrStr( pText, "info:" ) ||
 			BcStrStr( pText, "NOTE:" ) || BcStrStr( pText, "note:" ) )
 		{
-			printf( ANSI_COLOR_CYAN "%s", pText );
-
-#if PLATFORM_ANDROID
+#if PLATFORM_WINDOWS
+			SetConsoleTextAttribute( HConsole, WIN_COLOR_CYAN );
+			printf( "%s", pText );
+#elif PLATFORM_ANDROID
 			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+#else
+			printf( ANSI_COLOR_CYAN "%s", pText );
 #endif
 		}
 		else
 		{
-			printf( ANSI_COLOR_RESET "%s", pText );
-
-#if PLATFORM_ANDROID
+#if PLATFORM_WINDOWS
+			SetConsoleTextAttribute( HConsole, WIN_COLOR_RESET );
+			printf( "%s", pText );
+#elif PLATFORM_ANDROID
 			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+#else
+			printf( ANSI_COLOR_RESET "%s", pText );
 #endif
 		}
 
