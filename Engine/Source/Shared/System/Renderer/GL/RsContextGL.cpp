@@ -339,12 +339,11 @@ static RsTextureFormatGL gTextureFormats[] =
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D24,
 #if !defined( RENDER_USE_GLES )
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
+	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32,
 #else
 	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
 #endif
 	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32F,
 };
 
 static GLenum gShaderType[] = 
@@ -371,7 +370,6 @@ namespace
 		case RsTextureFormat::D24:
 		case RsTextureFormat::D32:
 		case RsTextureFormat::D24S8:
-		case RsTextureFormat::D32F:
 			return true;
 		default:
 			break;
@@ -1268,7 +1266,6 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		case RsTextureFormat::D16:
 		case RsTextureFormat::D24:
 		case RsTextureFormat::D32:
-		case RsTextureFormat::D32F:
 			Attachment = GL_DEPTH_ATTACHMENT;
 			break;
 		case RsTextureFormat::D24S8:
@@ -1651,8 +1648,7 @@ bool RsContextGL::createTexture(
 		if( TextureDesc.Format_ == RsTextureFormat::D16 ||
 			TextureDesc.Format_ == RsTextureFormat::D24 ||
 			TextureDesc.Format_ == RsTextureFormat::D32 ||
-			TextureDesc.Format_ == RsTextureFormat::D24S8 ||
-			TextureDesc.Format_ == RsTextureFormat::D32F )
+			TextureDesc.Format_ == RsTextureFormat::D24S8 )
 		{
 			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 			

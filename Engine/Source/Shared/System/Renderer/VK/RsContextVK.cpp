@@ -13,6 +13,13 @@
 
 #include "System/Renderer/VK/RsContextVK.h"
 
+#include "System/Renderer/VK/RsAllocatorVK.h"
+#include "System/Renderer/VK/RsBufferVK.h"
+#include "System/Renderer/VK/RsCommandBufferVK.h"
+#include "System/Renderer/VK/RsFrameBufferVK.h"
+#include "System/Renderer/VK/RsTextureVK.h"
+#include "System/Renderer/VK/RsUtilsVK.h"
+
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsProgram.h"
@@ -22,6 +29,7 @@
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
+
 
 #include "Base/BcMath.h"
 
@@ -278,8 +286,8 @@ void RsContextVK::create()
 #endif // PLATFORM_WINDOWS
 
 		// Find queue that can present.
-		// TODO: Find queue that supports graphics & present if possible, then just present only, then error.
-		uint32_t FoundQueue = UINT32_MAX;
+		// TODO: Find queue that supports graphics & present.
+		uint32_t FoundGraphicsQueue = UINT32_MAX;
 		for( uint32_t Idx = 0; Idx < DeviceQueueProps_.size(); ++Idx )
 		{
 			VkBool32 SupportsPresent = 0;
@@ -287,7 +295,7 @@ void RsContextVK::create()
 			{
 				if( SupportsPresent )
 				{
-					FoundQueue = Idx;
+					FoundGraphicsQueue = Idx;
 					break;
 				}
 			}
@@ -300,24 +308,143 @@ void RsContextVK::create()
 		}
 
 		// Get queue.
-		RetVal = vkGetDeviceQueue( Device_, FoundQueue, 0, &GraphicsQueue_ );
+		RetVal = vkGetDeviceQueue( Device_, FoundGraphicsQueue, 0, &GraphicsQueue_ );
 		BcAssert( !RetVal );
 
+		
+
 		// Get formats.
-		size_t FormatCount = 0;
-		if( ( RetVal = fpGetSurfaceInfoWSI_( Device_, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, VK_SURFACE_INFO_TYPE_FORMATS_WSI, &FormatCount, nullptr ) ) == VK_SUCCESS )
+		size_t FormatSize = 0;
+		if( ( RetVal = fpGetSurfaceInfoWSI_( Device_, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, VK_SURFACE_INFO_TYPE_FORMATS_WSI, &FormatSize, nullptr ) ) == VK_SUCCESS )
 		{
-			SurfaceFormats_.resize( FormatCount );
-			RetVal = fpGetSurfaceInfoWSI_( Device_, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, VK_SURFACE_INFO_TYPE_FORMATS_WSI, &FormatCount, SurfaceFormats_.data() );
+			SurfaceFormats_.resize( FormatSize / sizeof( VkSurfaceFormatPropertiesWSI ) );
+			RetVal = fpGetSurfaceInfoWSI_( Device_, (VkSurfaceDescriptionWSI*)&WindowSurfaceDesc_, VK_SURFACE_INFO_TYPE_FORMATS_WSI, &FormatSize, SurfaceFormats_.data() );
 			BcAssert( !RetVal );
 		}
 		else
 		{
 			// TODO: Error message.
-			BcBreakpoint;
-			return;
+			return; 
 		}
 
+		// Check format.
+	    if (SurfaceFormats_.size() == 1 && SurfaceFormats_[ 0 ].format == VK_FORMAT_UNDEFINED)
+	    {
+			SurfaceFormats_[ 0 ].format = VK_FORMAT_B8G8R8A8_UNORM;
+		}
+
+		// Create allocator.
+		Allocator_.reset( new RsAllocatorVK( PhysicalDevices_[ 0 ], Device_ ) );
+
+		// Command pool & buffer.
+		CommandPoolCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_POOL_CREATE_INFO;
+		CommandPoolCreateInfo_.pNext = nullptr;
+		CommandPoolCreateInfo_.queueFamilyIndex = FoundGraphicsQueue;
+		CommandPoolCreateInfo_.flags = 0;
+
+		RetVal = vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, &CommandPool_ );
+		BcAssert( !RetVal );
+
+        CommandBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_CREATE_INFO;
+        CommandBufferCreateInfo_.pNext = nullptr;
+        CommandBufferCreateInfo_.cmdPool = CommandPool_;
+        CommandBufferCreateInfo_.level = VK_CMD_BUFFER_LEVEL_PRIMARY;
+        CommandBufferCreateInfo_.flags = 0;
+
+		RetVal = vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffer_ );
+		BcAssert( !RetVal );
+
+		// Swap chain.
+		// TODO: Get present mode info and try to use mailbox, then try immediate, then try FIFO.
+		// TODO: Get present mode info to determine correct number of iamges. Use 3 for now.
+		// TODO: Get present mode info to get pre transform.
+	    VkPresentModeWSI SwapChainPresentMode = VK_PRESENT_MODE_FIFO_WSI;
+		uint32_t DesiredNumberOfSwapChainImages = 3;
+		VkSurfaceTransformWSI PreTransform = VK_SURFACE_TRANSFORM_NONE_WSI;
+
+
+		SwapChainCreateInfo_.sType = VK_STRUCTURE_TYPE_SWAP_CHAIN_CREATE_INFO_WSI;
+        SwapChainCreateInfo_.pNext = nullptr;
+        SwapChainCreateInfo_.pSurfaceDescription = (const VkSurfaceDescriptionWSI *)&SurfaceDescription_;
+        SwapChainCreateInfo_.minImageCount = DesiredNumberOfSwapChainImages;
+        SwapChainCreateInfo_.imageFormat = SurfaceFormats_[ 0 ].format;
+		SwapChainCreateInfo_.imageExtent.width = pClient_->getWidth();
+		SwapChainCreateInfo_.imageExtent.height = pClient_->getHeight();
+        SwapChainCreateInfo_.preTransform = PreTransform;
+        SwapChainCreateInfo_.imageArraySize = 1;
+        SwapChainCreateInfo_.presentMode = SwapChainPresentMode;
+        SwapChainCreateInfo_.oldSwapChain.handle = 0;
+        SwapChainCreateInfo_.clipped = true;
+
+		RetVal = fpCreateSwapChainWSI_( Device_, &SwapChainCreateInfo_, &SwapChain_ );
+		BcAssert( !RetVal );
+
+		size_t SwapChainImagesSize = 0;
+		RetVal = fpGetSwapChainInfoWSI_( Device_, SwapChain_, 
+			VK_SWAP_CHAIN_INFO_TYPE_IMAGES_WSI, &SwapChainImagesSize, nullptr );
+		BcAssert( !RetVal );
+
+		size_t SwapChainImageCount = SwapChainImagesSize / sizeof( VkSwapChainImagePropertiesWSI );
+		SwapChainImages_.resize( SwapChainImageCount );
+		RetVal = fpGetSwapChainInfoWSI_( Device_, SwapChain_, 
+			VK_SWAP_CHAIN_INFO_TYPE_IMAGES_WSI, &SwapChainImagesSize, (VkSwapChainImagePropertiesWSI*)SwapChainImages_.data() );
+		BcAssert( !RetVal );
+
+		SwapChainTextures_.resize( SwapChainImageCount );
+		for( BcU32 Idx = 0; Idx < SwapChainTextures_.size(); ++Idx )
+		{
+			auto& SwapChainTexture = SwapChainTextures_[ Idx ];
+
+			// Setup texture descriptor.
+			RsTextureDesc Desc(
+				RsTextureType::TEX2D,
+				RsResourceCreationFlags::STATIC,
+				RsResourceBindFlags::RENDER_TARGET,
+				RsUtilsVK::GetTextureFormat(  SurfaceFormats_[ 0 ].format ),
+				1,
+				pClient_->getWidth(),
+				pClient_->getHeight() );
+
+			// Create texture.
+			SwapChainTexture = new RsTexture( this, Desc );
+			RsTextureVK* TextureVK = new RsTextureVK( SwapChainTexture , Device_, Allocator_.get()/*, SwapChainImages_[ Idx ].image*/ );
+			SwapChainTexture->setHandle( TextureVK );
+		}
+
+		// TODO: Depth buffer.
+
+		// Render pass.
+		VkAttachmentDescription Attachment = {};
+		Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
+		Attachment.pNext = nullptr;
+		Attachment.format = SurfaceFormats_[ 0 ].format;
+		Attachment.samples = 1;
+		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkAttachmentReference ColorReference = {};
+        ColorReference.attachment = 0;
+        ColorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		// Frame buffers.
+		FrameBuffers_.resize( SwapChainImageCount );
+		
+		VkAttachmentBindInfo AttachmentBindInfo = {};
+		AttachmentBindInfo.view.handle = VK_NULL_HANDLE;
+		AttachmentBindInfo.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		FrameBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		FrameBufferCreateInfo_.pNext = nullptr;
+		FrameBufferCreateInfo_.renderPass = RenderPass_;
+		FrameBufferCreateInfo_.attachmentCount = 1;
+		FrameBufferCreateInfo_.pAttachments = &AttachmentBindInfo;
+		FrameBufferCreateInfo_.width  = pClient_->getWidth();
+		FrameBufferCreateInfo_.height = pClient_->getHeight();
+		FrameBufferCreateInfo_.layers = 1;
 	}
 	else
 	{
@@ -339,11 +466,17 @@ void RsContextVK::update()
 // destroy
 void RsContextVK::destroy()
 {
+	vkDestroyCommandBuffer( Device_, CommandBuffer_ );
+	CommandBuffer_ = 0;
+
+	vkDestroyCommandPool( Device_, CommandPool_ );
+	CommandPool_ = 0;
+
     vkDestroyDevice( Device_ );
-	Device_ = nullptr;
+	Device_ = 0;
 
     vkDestroyInstance( Instance_ );
-	Instance_ = nullptr;
+	Instance_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -379,21 +512,6 @@ void RsContextVK::setRenderState( RsRenderState* RenderState )
 void RsContextVK::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextVK::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderState
-BcS32 RsContextVK::getRenderState( RsRenderStateType State ) const
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

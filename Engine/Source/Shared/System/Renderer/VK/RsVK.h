@@ -17,6 +17,8 @@
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
 
+#include "System/Renderer/RsTypes.h"
+
 #define VK_PROTOTYPES
 #include <vulkan.h>
 

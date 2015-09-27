@@ -272,8 +272,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 				if( SupportDepthTextures )
 				{
-					Features_.TextureFormat_[ (int)RsTextureFormat::D32F ] = true;
-					Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32F ] = true;
+					Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
 				}
 			}
 
@@ -281,7 +280,6 @@ void RsOpenGLVersion::setupFeatureSupport()
 			{
 				Features_.TextureFormat_[ (int)RsTextureFormat::D16 ] = true;
 				Features_.TextureFormat_[ (int)RsTextureFormat::D24 ] = true;
-				Features_.TextureFormat_[ (int)RsTextureFormat::D32 ] = true;
 				Features_.TextureFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 			}
 

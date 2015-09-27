@@ -47,8 +47,6 @@ public:
 	void invalidateTextureState();
 	void setRenderState( class RsRenderState* RenderState );
 	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
@@ -144,10 +142,10 @@ private:
 	VkApplicationInfo AppInfo_ = {};
 	VkInstanceCreateInfo InstanceCreateInfo_ = {};
 	VkDeviceQueueCreateInfo DeviceQueueCreateInfo_ = {};
-	VkInstance Instance_ = nullptr;
+	VkInstance Instance_ = 0;
 	std::vector< VkPhysicalDevice > PhysicalDevices_;
 	VkDeviceCreateInfo DeviceCreateInfo_ = {};
-	VkDevice Device_ = nullptr;
+	VkDevice Device_ = 0;
 	VkPhysicalDeviceProperties DeviceProps_ = {};
 	std::vector< VkPhysicalDeviceQueueProperties > DeviceQueueProps_;
 
@@ -162,10 +160,32 @@ private:
 	VkSurfaceDescriptionWindowWSI WindowSurfaceDesc_ = {};
 
 	// Queues.
-	VkQueue GraphicsQueue_;
+	VkQueue GraphicsQueue_ = nullptr;
 
 	// Formats.
 	std::vector< VkSurfaceFormatPropertiesWSI > SurfaceFormats_;
+
+	// Command pool & buffer.
+	VkCmdPoolCreateInfo CommandPoolCreateInfo_ = {};
+	VkCmdPool CommandPool_ = 0;
+	VkCmdBufferCreateInfo CommandBufferCreateInfo_ = {};
+	VkCmdBuffer CommandBuffer_ = 0;
+
+	// Swap chain
+	VkSwapChainCreateInfoWSI SwapChainCreateInfo_ = {};
+	VkSurfaceDescriptionWindowWSI SurfaceDescription_ = {};
+	VkSwapChainWSI SwapChain_ = 0;
+	std::vector< VkSwapChainImagePropertiesWSI > SwapChainImages_;
+
+	std::vector< class RsTexture* > SwapChainTextures_;
+
+	// Frame buffers.
+	VkFramebufferCreateInfo FrameBufferCreateInfo_ = {};
+	std::vector< VkFramebuffer > FrameBuffers_ = {};
+	VkRenderPass RenderPass_ = 0;
+
+	// Internal utilities.
+	std::unique_ptr< class RsAllocatorVK > Allocator_;
 };
 
 #endif
