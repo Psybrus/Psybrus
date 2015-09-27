@@ -10,6 +10,9 @@ public:
 	RsFrameBufferVK( class RsFrameBuffer* Parent, VkDevice Device );
 	~RsFrameBufferVK();
 
+	VkFramebuffer getFrameBuffer() const { return FrameBuffer_; }
+	VkRenderPass getRenderPass() const { return RenderPass_; }
+
 private:
 	void createFrameBuffer();
 	void createRenderPass();

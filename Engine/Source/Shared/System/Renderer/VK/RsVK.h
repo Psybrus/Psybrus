@@ -21,6 +21,7 @@
 
 #define VK_PROTOTYPES
 #include <vulkan.h>
+#include <vk_debug_report_lunarg.h>
 
 #if PLATFORM_WINDOWS
 #  include <Windows.h>

@@ -22,6 +22,11 @@ public:
 	 */
 	~RsTextureVK();
 
+	/**
+	 * Set image layout.
+	 */
+	void setImageLayout( VkCmdBuffer CommandBuffer, VkImageAspect Aspect, VkImageLayout ImageLayout );
+
 	VkImage getImage() const { return Image_; }
 	VkImageView getImageView() const { return ImageView_; }
 	VkDeviceMemory getDeviceMemory() const { return DeviceMemory_; }

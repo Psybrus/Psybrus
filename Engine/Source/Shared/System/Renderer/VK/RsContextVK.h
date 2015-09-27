@@ -137,19 +137,16 @@ private:
 
 	// Instance info.
 	std::vector< VkLayerProperties > InstanceLayers_;
-	std::vector< VkLayerProperties > DeviceLayers_;
 	std::vector< VkExtensionProperties > InstanceExtensions_;
-	VkApplicationInfo AppInfo_ = {};
-	VkInstanceCreateInfo InstanceCreateInfo_ = {};
-	VkDeviceQueueCreateInfo DeviceQueueCreateInfo_ = {};
+	std::vector< VkLayerProperties > DeviceLayers_;
+	std::vector< VkExtensionProperties > DeviceExtensions_;
 	VkInstance Instance_ = 0;
 	std::vector< VkPhysicalDevice > PhysicalDevices_;
-	VkDeviceCreateInfo DeviceCreateInfo_ = {};
 	VkDevice Device_ = 0;
 	VkPhysicalDeviceProperties DeviceProps_ = {};
 	std::vector< VkPhysicalDeviceQueueProperties > DeviceQueueProps_;
 
-	// Windowing.
+	// WSI.
     PFN_vkGetPhysicalDeviceSurfaceSupportWSI fpGetPhysicalDeviceSurfaceSupportWSI_ = nullptr;
     PFN_vkGetSurfaceInfoWSI fpGetSurfaceInfoWSI_ = nullptr;
     PFN_vkCreateSwapChainWSI fpCreateSwapChainWSI_ = nullptr;
@@ -158,6 +155,12 @@ private:
     PFN_vkAcquireNextImageWSI fpAcquireNextImageWSI_ = nullptr;
     PFN_vkQueuePresentWSI fpQueuePresentWSI_ = nullptr;
 	VkSurfaceDescriptionWindowWSI WindowSurfaceDesc_ = {};
+
+	// Debug
+    PFN_vkDbgCreateMsgCallback fpCreateMsgCallback_ = nullptr;
+    PFN_vkDbgDestroyMsgCallback fpDestroyMsgCallback_ = nullptr;
+    PFN_vkDbgMsgCallback fpBreakCallback_ = nullptr;
+    VkDbgMsgCallback DebugCallback_ = 0;
 
 	// Queues.
 	VkQueue GraphicsQueue_ = nullptr;
@@ -173,7 +176,6 @@ private:
 
 	// Swap chain
 	VkSwapChainCreateInfoWSI SwapChainCreateInfo_ = {};
-	VkSurfaceDescriptionWindowWSI SurfaceDescription_ = {};
 	VkSwapChainWSI SwapChain_ = 0;
 	std::vector< VkSwapChainImagePropertiesWSI > SwapChainImages_;
 
@@ -182,6 +184,7 @@ private:
 
 	// Frame buffers.
 	std::vector< class RsFrameBuffer* > FrameBuffers_ = {};
+	uint32_t CurrentFrameBuffer_ = 0;
 
 	// Internal utilities.
 	std::unique_ptr< class RsAllocatorVK > Allocator_;

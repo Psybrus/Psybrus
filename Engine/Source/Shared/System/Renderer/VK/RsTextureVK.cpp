@@ -58,6 +58,40 @@ RsTextureVK::~RsTextureVK()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setImageLayout
+void RsTextureVK::setImageLayout( VkCmdBuffer CommandBuffer, VkImageAspect Aspect, VkImageLayout ImageLayout )
+{
+	VkImageMemoryBarrier ImageMemoryBarrier = {};
+	ImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	ImageMemoryBarrier.pNext = NULL;
+	ImageMemoryBarrier.outputMask = 0;
+	ImageMemoryBarrier.inputMask = 0;
+	ImageMemoryBarrier.oldLayout = ImageLayout_;
+	ImageMemoryBarrier.newLayout = ImageLayout;
+	ImageMemoryBarrier.image = Image_;
+	ImageMemoryBarrier.subresourceRange = { Aspect, 0, 1, 0, 0 };
+
+	if( ImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL )
+	{
+		// Make sure anything that was copying from this image has completed.
+		ImageMemoryBarrier.inputMask = VK_MEMORY_INPUT_TRANSFER_BIT;
+	}
+
+	if( ImageLayout_ == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
+	{
+		// Make sure any Copy or CPU writes to image are flushed.
+		ImageMemoryBarrier.outputMask = VK_MEMORY_OUTPUT_HOST_WRITE_BIT | VK_MEMORY_OUTPUT_TRANSFER_BIT;
+	}
+
+	VkImageMemoryBarrier* MemoryBarriers = &ImageMemoryBarrier;
+
+	VkPipelineStageFlags SrcStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	VkPipelineStageFlags DestStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+	vkCmdPipelineBarrier( CommandBuffer, SrcStages, DestStages, false, 1, (const void * const*)&MemoryBarriers);
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createViews
 void RsTextureVK::createImage()
 {
@@ -147,6 +181,10 @@ void RsTextureVK::createImage()
 		MemoryRequirements.alignment,
 		MemoryRequirements.memoryTypeBits,
 		PropertyFlags );
+
+	// Bind image memory.
+    RetVal = vkBindImageMemory( Device_, Image_, DeviceMemory_ , 0 );
+	BcAssert( !RetVal );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -31,7 +31,7 @@ RsFrameBufferVK::~RsFrameBufferVK()
 		RenderPass_ = 0;
 	}
 }
-
+	
 //////////////////////////////////////////////////////////////////////////
 // createFrameBuffer
 void RsFrameBufferVK::createFrameBuffer()
@@ -109,10 +109,10 @@ void RsFrameBufferVK::createRenderPass()
 		Attachment.pNext = nullptr;
 		Attachment.format = RsUtilsVK::GetTextureFormat( RenderTargetDesc.Format_ );
 		Attachment.samples = 1;
-		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // AHH LOAD.
 		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -130,10 +130,10 @@ void RsFrameBufferVK::createRenderPass()
 		Attachment.pNext = nullptr;
 		Attachment.format = RsUtilsVK::GetTextureFormat( DepthStencilDesc.Format_ );
 		Attachment.samples = 1;
-		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // AHH LOAD.
 		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		Attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		Attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 

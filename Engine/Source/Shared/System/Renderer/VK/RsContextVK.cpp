@@ -129,12 +129,99 @@ void RsContextVK::beginFrame( BcU32 Width, BcU32 Height )
 {
 	Width_ = Width;
 	Height_ = Height;
+
+	// Command buffer setup.
+	VkCmdBufferBeginInfo CommandBufferInfo = {};
+	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
+	CommandBufferInfo.pNext = nullptr;
+	CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
+
+	// Set render pass for frame buffer.
+	RsFrameBuffer* FrameBuffer = FrameBuffers_[ CurrentFrameBuffer_ ];
+	RsFrameBufferVK* FrameBufferVK = FrameBuffer->getHandle< RsFrameBufferVK* >();
+
+	VkClearValue ClearValues[ 2 ];
+	ClearValues[ 0 ].color.f32[ 0 ] = 1.0f;
+	ClearValues[ 0 ].color.f32[ 1 ] = 0.0f;
+	ClearValues[ 0 ].color.f32[ 2 ] = 1.0f;
+	ClearValues[ 0 ].color.f32[ 3 ] = 1.0f;
+	ClearValues[ 1 ].ds.depth = 0.0f;
+	ClearValues[ 1 ].ds.stencil = 0;
+
+	VkRenderPassBeginInfo BeginInfo = {};
+	BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	BeginInfo.pNext = nullptr;
+	BeginInfo.renderPass = FrameBufferVK->getRenderPass();
+	BeginInfo.framebuffer = FrameBufferVK->getFrameBuffer();
+	BeginInfo.renderArea.offset.x = 0;
+	BeginInfo.renderArea.offset.y = 0;
+	BeginInfo.renderArea.extent.width = FrameBuffer->getDesc().RenderTargets_[ 0 ]->getDesc().Width_;
+	BeginInfo.renderArea.extent.height = FrameBuffer->getDesc().RenderTargets_[ 0 ]->getDesc().Height_;
+	BeginInfo.attachmentCount = 2;
+	BeginInfo.pAttachmentClearValues = ClearValues;
+
+	// Begin command buffer.
+	auto RetVal = vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo );
+	BcAssert( !RetVal );
+
+	// Begin render pass.
+	//vkCmdBeginRenderPass( CommandBuffer_, &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // endFrame
 void RsContextVK::endFrame()
 {
+	// End last pass and 
+	//vkCmdEndRenderPass( CommandBuffer_ );
+
+	// End command buffer.
+	auto RetVal = vkEndCommandBuffer( CommandBuffer_ );
+	BcAssert( !RetVal );
+
+	// Create semaphore to wait for queue to complete.
+	VkSemaphore PresentCompleteSemaphore;
+	VkSemaphoreCreateInfo PresentCompleteSemaphoreCreateInfo = {};
+	PresentCompleteSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	PresentCompleteSemaphoreCreateInfo.pNext = nullptr;
+	PresentCompleteSemaphoreCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    RetVal = vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, &PresentCompleteSemaphore );
+	BcAssert( !RetVal );
+
+	// Get the index of the next available swapchain image.
+	RetVal = fpAcquireNextImageWSI_( Device_, SwapChain_,
+		UINT64_MAX,
+		PresentCompleteSemaphore,
+		&CurrentFrameBuffer_ );
+	BcAssert( !RetVal );
+
+	// Wait for the present complete semaphore to be signaled to ensure
+	// that the image won't be rendered to until the presentation
+	// engine has fully released ownership to the application, and it is
+	// okay to render to the image.
+	vkQueueWaitSemaphore( GraphicsQueue_, PresentCompleteSemaphore );
+
+	// Submit queue.
+    VkFence NullFence = { VK_NULL_HANDLE };
+	RetVal = vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence );
+    BcAssert( !RetVal );
+
+	VkPresentInfoWSI PresentInfo = {};
+	PresentInfo.sType = VK_STRUCTURE_TYPE_QUEUE_PRESENT_INFO_WSI;
+	PresentInfo.pNext = nullptr;
+	PresentInfo.swapChainCount = 1;
+	PresentInfo.swapChains = &SwapChain_;
+	PresentInfo.imageIndices = &CurrentFrameBuffer_;
+
+    RetVal = fpQueuePresentWSI_( GraphicsQueue_, &PresentInfo );
+    BcAssert( !RetVal );
+
+	RetVal = vkDestroySemaphore( Device_, PresentCompleteSemaphore );
+    BcAssert( !RetVal );
+
+	RetVal = vkQueueWaitIdle( GraphicsQueue_ );
+    BcAssert( !RetVal );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -165,6 +252,12 @@ void RsContextVK::create()
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
 
+	// Enabled layers + extensions.
+	std::vector< const char* > EnabledInstanceLayers;
+	std::vector< const char* > EnabledInstanceExtensions;
+	std::vector< const char* > EnabledDeviceLayers;
+	std::vector< const char* > EnabledDeviceExtensions;
+
 	// Grab layers.
 	uint32_t InstanceLayerCount = 0;
     if( ( RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, nullptr ) ) == VK_SUCCESS )
@@ -172,6 +265,19 @@ void RsContextVK::create()
 		InstanceLayers_.resize( InstanceLayerCount );
 		RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, InstanceLayers_.data() );
 		BcAssert( !RetVal );
+#if 0
+		for( const auto& InstanceLayer : InstanceLayers_ )
+		{
+			if( strstr( InstanceLayer.layerName, "ParamChecker" ) )
+			{
+				EnabledInstanceLayers.push_back( "ParamChecker" );
+			}
+			else if( strstr( InstanceLayer.layerName, "ShaderChecker" ) )
+			{
+				EnabledInstanceLayers.push_back( "ShaderChecker" );
+			}
+		}
+#endif
 	}
 	else
 	{
@@ -181,12 +287,26 @@ void RsContextVK::create()
 	}
 
 	// Grab extensions.
+	bool DebugEnabled = false;
 	uint32_t InstanceExtensionCount = 0;
 	if( ( RetVal = vkGetGlobalExtensionProperties( nullptr, &InstanceExtensionCount, nullptr ) ) == VK_SUCCESS )
 	{
 		InstanceExtensions_.resize( InstanceExtensionCount );
 		RetVal = vkGetGlobalExtensionProperties( nullptr, &InstanceExtensionCount, InstanceExtensions_.data() );
 		BcAssert( !RetVal );
+
+		for( const auto& InstanceExtension : InstanceExtensions_ )
+		{
+			if( strstr( InstanceExtension.extName, "VK_WSI_swapchain" ) )
+			{
+				EnabledInstanceExtensions.push_back( "VK_WSI_swapchain" );
+			}
+			else if( strstr( InstanceExtension.extName, "DEBUG_REPORT" ) )
+			{
+				EnabledInstanceExtensions.push_back( "DEBUG_REPORT" );
+				DebugEnabled = true;
+			}
+		}
 	}
 	else
 	{
@@ -196,25 +316,27 @@ void RsContextVK::create()
 	}
 
 	// Setup application.
-	AppInfo_.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	AppInfo_.pNext = nullptr;
-	AppInfo_.pAppName = "Psybrus";
-	AppInfo_.appVersion = 0;
-	AppInfo_.pEngineName = "Psybrus";
-	AppInfo_.engineVersion = 0;
-	AppInfo_.apiVersion = VK_API_VERSION;
+	VkApplicationInfo AppInfo = {};
+	AppInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	AppInfo.pNext = nullptr;
+	AppInfo.pAppName = "Psybrus";
+	AppInfo.appVersion = 0;
+	AppInfo.pEngineName = "Psybrus";
+	AppInfo.engineVersion = 0;
+	AppInfo.apiVersion = VK_API_VERSION;
 
-	InstanceCreateInfo_.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	InstanceCreateInfo_.pNext = nullptr;
-	InstanceCreateInfo_.pAppInfo = &AppInfo_;
-	InstanceCreateInfo_.pAllocCb = nullptr;
-	InstanceCreateInfo_.layerCount = 0;
-	InstanceCreateInfo_.ppEnabledLayerNames = nullptr;
-	InstanceCreateInfo_.extensionCount = 0;
-	InstanceCreateInfo_.ppEnabledExtensionNames = nullptr;
+	VkInstanceCreateInfo InstanceCreateInfo = {};
+	InstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	InstanceCreateInfo.pNext = nullptr;
+	InstanceCreateInfo.pAppInfo = &AppInfo;
+	InstanceCreateInfo.pAllocCb = nullptr;
+	InstanceCreateInfo.layerCount = EnabledInstanceLayers.size();
+	InstanceCreateInfo.ppEnabledLayerNames = EnabledInstanceLayers.size() > 0 ? EnabledInstanceLayers.data() : nullptr;
+	InstanceCreateInfo.extensionCount = EnabledInstanceExtensions.size();
+	InstanceCreateInfo.ppEnabledExtensionNames = EnabledInstanceExtensions.data();
 
 	// Create instance.
-	if( ( RetVal = vkCreateInstance( &InstanceCreateInfo_, &Instance_ ) ) == VK_SUCCESS )
+	if( ( RetVal = vkCreateInstance( &InstanceCreateInfo, &Instance_ ) ) == VK_SUCCESS )
 	{
 		// Enumerate physical devices.
 		uint32_t GPUCount = 256;
@@ -232,20 +354,131 @@ void RsContextVK::create()
 			return;
 		}
 
-		// Create first device.
-		DeviceQueueCreateInfo_.queueFamilyIndex = 0;
-		DeviceQueueCreateInfo_.queueCount = 1;
-		DeviceCreateInfo_.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		DeviceCreateInfo_.pNext = nullptr;
-		DeviceCreateInfo_.queueRecordCount = 1;
-		DeviceCreateInfo_.pRequestedQueues = &DeviceQueueCreateInfo_;
-		DeviceCreateInfo_.layerCount = 0;
-		DeviceCreateInfo_.ppEnabledLayerNames = nullptr;
-		DeviceCreateInfo_.extensionCount = 0;
-		DeviceCreateInfo_.ppEnabledExtensionNames = nullptr;
-		DeviceCreateInfo_.flags = 0;
+		// Get device layers.
+		uint32_t DeviceLayerCount = 0;
+	    if( ( RetVal = vkGetPhysicalDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, nullptr ) ) == VK_SUCCESS )
+		{
+			DeviceLayers_.resize( DeviceLayerCount );
+			RetVal = vkGetPhysicalDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, DeviceLayers_.data() );
+			BcAssert( !RetVal );
+#if 0
+			for( const auto& DeviceLayer : DeviceLayers_ )
+			{
+				if( strstr( DeviceLayer.layerName, "MemTracker" ) )
+				{
+					EnabledDeviceLayers.push_back( "MemTracker" );
+				}
+				else if( strstr( DeviceLayer.layerName, "ObjectTracker" ) )
+				{
+					EnabledDeviceLayers.push_back( "ObjectTracker" );
+				}
+				else if( strstr( DeviceLayer.layerName, "ParamChecker" ) )
+				{
+					EnabledDeviceLayers.push_back( "ParamChecker" );
+				}
+				else if( strstr( DeviceLayer.layerName, "ShaderChecker" ) )
+				{
+					EnabledDeviceLayers.push_back( "ShaderChecker" );
+				}
+			}
+#endif
+		}
+		else
+		{
+			// TODO: Error message.
+			BcBreakpoint;
+			return;
+		}
 
-		if( ( RetVal = vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo_, &Device_ ) ) == VK_SUCCESS )
+		// Get device extensions.
+		uint32_t DeviceExtensionCount = 0;
+	    if( ( RetVal = vkGetPhysicalDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, nullptr ) ) == VK_SUCCESS )
+		{
+			DeviceExtensions_.resize( DeviceExtensionCount );
+			RetVal = vkGetPhysicalDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, DeviceExtensions_.data() );
+			BcAssert( !RetVal );
+
+			for( const auto& DeviceExtension : DeviceExtensions_ )
+			{
+				if( strstr( DeviceExtension.extName, "VK_WSI_device_swapchain" ) )
+				{
+					EnabledDeviceExtensions.push_back( "VK_WSI_device_swapchain" );
+				}
+			}
+		}
+		else
+		{
+			// TODO: Error message.
+			BcBreakpoint;
+			return;
+		}
+
+		// Setup debug callback.
+		if( DebugEnabled )
+		{
+			fpCreateMsgCallback_ = (PFN_vkDbgCreateMsgCallback) vkGetInstanceProcAddr( Instance_, "vkDbgCreateMsgCallback" );
+			fpDestroyMsgCallback_ = (PFN_vkDbgDestroyMsgCallback) vkGetInstanceProcAddr( Instance_, "vkDbgDestroyMsgCallback" );
+			fpBreakCallback_ = (PFN_vkDbgMsgCallback) vkGetInstanceProcAddr( Instance_, "vkDbgBreakCallback" );
+
+			auto DebugFunc = [](
+					VkFlags                             msgFlags,
+					VkDbgObjectType                     objType,
+					uint64_t                            srcObject,
+					size_t                              location,
+					int32_t                             msgCode,
+					const char*                         pLayerPrefix,
+					const char*                         pMsg,
+					void*                               pUserData )
+				{
+					RsContextVK* Context = reinterpret_cast< RsContextVK* >( pUserData );
+					std::unique_ptr< char[] > Message( new char[ strlen( pMsg ) + 100 ] );
+					BcAssert( Message.get() );
+
+					if( msgFlags & VK_DBG_REPORT_ERROR_BIT )
+					{
+						sprintf( Message.get(), "ERROR: [%s] Code %d : %s", pLayerPrefix, msgCode, pMsg );
+					} 
+					else if( msgFlags & VK_DBG_REPORT_WARN_BIT )
+					{
+						// We know that we're submitting queues without fences, ignore this warning
+						if( strstr(pMsg, "vkQueueSubmit parameter, VkFence fence, is null pointer") )
+						{
+							return;
+						}
+						sprintf( Message.get(), "WARNING: [%s] Code %d : %s", pLayerPrefix, msgCode, pMsg );
+					}
+					else
+					{
+						return;
+					}
+
+					PSY_LOG( Message.get() );
+				};
+			RetVal = fpCreateMsgCallback_(
+				Instance_,
+				VK_DBG_REPORT_ERROR_BIT | VK_DBG_REPORT_WARN_BIT | VK_DBG_REPORT_PERF_WARN_BIT | VK_DBG_REPORT_INFO_BIT | VK_DBG_REPORT_DEBUG_BIT,
+				DebugFunc, this,
+				&DebugCallback_ );
+			BcAssert( !RetVal );
+		}
+
+		// Create first device.
+		VkDeviceQueueCreateInfo DeviceQueueCreateInfo;
+		DeviceQueueCreateInfo.queueFamilyIndex = 0;
+		DeviceQueueCreateInfo.queueCount = 1;
+
+		VkDeviceCreateInfo DeviceCreateInfo = {};
+		DeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		DeviceCreateInfo.pNext = nullptr;
+		DeviceCreateInfo.queueRecordCount = 1;
+		DeviceCreateInfo.pRequestedQueues = &DeviceQueueCreateInfo;
+		DeviceCreateInfo.layerCount = EnabledDeviceLayers.size();
+		DeviceCreateInfo.ppEnabledLayerNames = EnabledDeviceLayers.size() > 0 ? EnabledDeviceLayers.data() : nullptr;
+		DeviceCreateInfo.extensionCount = EnabledDeviceExtensions.size();
+		DeviceCreateInfo.ppEnabledExtensionNames = EnabledDeviceExtensions.data();
+		DeviceCreateInfo.flags = 0;
+
+		if( ( RetVal = vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo, &Device_ ) ) == VK_SUCCESS )
 		{
 			// Get fps.
 			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceSupportWSI );
@@ -354,18 +587,29 @@ void RsContextVK::create()
 		RetVal = vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffer_ );
 		BcAssert( !RetVal );
 
+		// Command buffer setup.
+		VkCmdBufferBeginInfo CommandBufferInfo = {};
+		CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
+		CommandBufferInfo.pNext = nullptr;
+		CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
+
+		// Begin command buffer.
+		auto RetVal = vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo );
+		BcAssert( !RetVal );
+
+
 		// Swap chain.
 		// TODO: Get present mode info and try to use mailbox, then try immediate, then try FIFO.
-		// TODO: Get present mode info to determine correct number of iamges. Use 3 for now.
+		// TODO: Get present mode info to determine correct number of iamges. Use 2 for now.
 		// TODO: Get present mode info to get pre transform.
 	    VkPresentModeWSI SwapChainPresentMode = VK_PRESENT_MODE_FIFO_WSI;
-		uint32_t DesiredNumberOfSwapChainImages = 3;
+		uint32_t DesiredNumberOfSwapChainImages = 2;
 		VkSurfaceTransformWSI PreTransform = VK_SURFACE_TRANSFORM_NONE_WSI;
 
 
 		SwapChainCreateInfo_.sType = VK_STRUCTURE_TYPE_SWAP_CHAIN_CREATE_INFO_WSI;
         SwapChainCreateInfo_.pNext = nullptr;
-        SwapChainCreateInfo_.pSurfaceDescription = (const VkSurfaceDescriptionWSI *)&SurfaceDescription_;
+        SwapChainCreateInfo_.pSurfaceDescription = (const VkSurfaceDescriptionWSI *)&WindowSurfaceDesc_;
         SwapChainCreateInfo_.minImageCount = DesiredNumberOfSwapChainImages;
         SwapChainCreateInfo_.imageFormat = SurfaceFormats_[ 0 ].format;
 		SwapChainCreateInfo_.imageExtent.width = pClient_->getWidth();
@@ -409,6 +653,9 @@ void RsContextVK::create()
 			SwapChainTexture = new RsTexture( this, Desc );
 			RsTextureVK* TextureVK = new RsTextureVK( SwapChainTexture, Device_, Allocator_.get(), SwapChainImages_[ Idx ].image );
 			SwapChainTexture->setHandle( TextureVK );
+
+			// Set image layout.
+			TextureVK->setImageLayout( CommandBuffer_, VK_IMAGE_ASPECT_COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL );
 		}
 
 		// Depth buffer.
@@ -427,6 +674,9 @@ void RsContextVK::create()
 			DepthStencilTexture_ = new RsTexture( this, Desc );
 			RsTextureVK* TextureVK = new RsTextureVK( DepthStencilTexture_, Device_, Allocator_.get() );
 			DepthStencilTexture_->setHandle( TextureVK );
+
+			// Set image layout.
+			TextureVK->setImageLayout( CommandBuffer_, VK_IMAGE_ASPECT_DEPTH, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
 		}
 
 		// Frame buffers.
@@ -444,7 +694,20 @@ void RsContextVK::create()
 			FrameBuffer = new RsFrameBuffer( this, Desc );
 			RsFrameBufferVK* FrameBufferVK = new RsFrameBufferVK( FrameBuffer, Device_ );
 			FrameBuffer->setHandle( FrameBufferVK );
-		}		
+		}
+
+		// End command buffer.
+		RetVal = vkEndCommandBuffer( CommandBuffer_ );
+		BcAssert( !RetVal );
+
+		// Submit queue.
+		VkFence NullFence = { VK_NULL_HANDLE };
+		RetVal = vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence );
+		BcAssert( !RetVal );
+
+		// Wait until queue is idle.
+	    RetVal = vkQueueWaitIdle( GraphicsQueue_ );
+	    BcAssert( !RetVal );
 	}
 	else
 	{
@@ -751,7 +1014,7 @@ bool RsContextVK::updateTexture(
 	BcUnusedVar( Flags );
 	BcUnusedVar( UpdateFunc );
 	const auto& TextureDesc = Texture->getDesc();
-	std::unique_ptr< BcU8[] > TempBuffer;
+	std::unique_ptr< BcU8[] > TextureData;
 		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
 		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
@@ -761,13 +1024,13 @@ bool RsContextVK::updateTexture(
 			Height,
 			Depth,
 			1 );
-	TempBuffer.reset( new BcU8[ DataSize ] );
-	RsTextureLock Lock = 
-	{
-		TempBuffer.get(),
-		TextureDesc.Width_,
-		TextureDesc.Width_ * TextureDesc.Height_
-	};	
+	TextureData.reset( new BcU8[ DataSize ] );
+	const auto BlockInfo = RsTextureBlockInfo( TextureDesc.Format_ );
+	RsTextureLock Lock;
+	Lock.Buffer_ = TextureData.get();
+	Lock.Pitch_ = ( ( Width / BlockInfo.Width_ ) * BlockInfo.Bits_ ) / 8;
+	Lock.SlicePitch_ = ( ( Width / BlockInfo.Width_ ) * ( Height / BlockInfo.Height_ ) * BlockInfo.Bits_ ) / 8;
+
 	UpdateFunc( Texture, Lock );
 	return true;
 }
