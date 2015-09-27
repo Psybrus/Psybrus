@@ -178,11 +178,10 @@ private:
 	std::vector< VkSwapChainImagePropertiesWSI > SwapChainImages_;
 
 	std::vector< class RsTexture* > SwapChainTextures_;
+	RsTexture* DepthStencilTexture_;
 
 	// Frame buffers.
-	VkFramebufferCreateInfo FrameBufferCreateInfo_ = {};
-	std::vector< VkFramebuffer > FrameBuffers_ = {};
-	VkRenderPass RenderPass_ = 0;
+	std::vector< class RsFrameBuffer* > FrameBuffers_ = {};
 
 	// Internal utilities.
 	std::unique_ptr< class RsAllocatorVK > Allocator_;

@@ -407,44 +407,44 @@ void RsContextVK::create()
 
 			// Create texture.
 			SwapChainTexture = new RsTexture( this, Desc );
-			RsTextureVK* TextureVK = new RsTextureVK( SwapChainTexture , Device_, Allocator_.get()/*, SwapChainImages_[ Idx ].image*/ );
+			RsTextureVK* TextureVK = new RsTextureVK( SwapChainTexture, Device_, Allocator_.get(), SwapChainImages_[ Idx ].image );
 			SwapChainTexture->setHandle( TextureVK );
 		}
 
-		// TODO: Depth buffer.
+		// Depth buffer.
+		{
+			// Setup texture descriptor.
+			RsTextureDesc Desc(
+				RsTextureType::TEX2D,
+				RsResourceCreationFlags::STATIC,
+				RsResourceBindFlags::DEPTH_STENCIL,
+				RsTextureFormat::D24S8,
+				1,
+				pClient_->getWidth(),
+				pClient_->getHeight() );
 
-		// Render pass.
-		VkAttachmentDescription Attachment = {};
-		Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
-		Attachment.pNext = nullptr;
-		Attachment.format = SurfaceFormats_[ 0 ].format;
-		Attachment.samples = 1;
-		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkAttachmentReference ColorReference = {};
-        ColorReference.attachment = 0;
-        ColorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			// Create texture.
+			DepthStencilTexture_ = new RsTexture( this, Desc );
+			RsTextureVK* TextureVK = new RsTextureVK( DepthStencilTexture_, Device_, Allocator_.get() );
+			DepthStencilTexture_->setHandle( TextureVK );
+		}
 
 		// Frame buffers.
 		FrameBuffers_.resize( SwapChainImageCount );
-		
-		VkAttachmentBindInfo AttachmentBindInfo = {};
-		AttachmentBindInfo.view.handle = VK_NULL_HANDLE;
-		AttachmentBindInfo.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		for( BcU32 Idx = 0; Idx < FrameBuffers_.size(); ++Idx )
+		{
+			auto& FrameBuffer = FrameBuffers_[ Idx ];
 
-		FrameBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		FrameBufferCreateInfo_.pNext = nullptr;
-		FrameBufferCreateInfo_.renderPass = RenderPass_;
-		FrameBufferCreateInfo_.attachmentCount = 1;
-		FrameBufferCreateInfo_.pAttachments = &AttachmentBindInfo;
-		FrameBufferCreateInfo_.width  = pClient_->getWidth();
-		FrameBufferCreateInfo_.height = pClient_->getHeight();
-		FrameBufferCreateInfo_.layers = 1;
+			// Setup frame buffer descriptor.
+			RsFrameBufferDesc Desc( 1 );
+			Desc.setRenderTarget( 0, SwapChainTextures_[ Idx ] );
+			Desc.setDepthStencilTarget( DepthStencilTexture_ );
+
+			// Create frame buffer.
+			FrameBuffer = new RsFrameBuffer( this, Desc );
+			RsFrameBufferVK* FrameBufferVK = new RsFrameBufferVK( FrameBuffer, Device_ );
+			FrameBuffer->setHandle( FrameBufferVK );
+		}		
 	}
 	else
 	{

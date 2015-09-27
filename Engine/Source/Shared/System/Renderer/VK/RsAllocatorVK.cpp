@@ -22,7 +22,7 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 	MemoryAllocInfo.pNext = nullptr;
 	MemoryAllocInfo.allocationSize = Size;
 	MemoryAllocInfo.memoryTypeIndex = std::numeric_limits< uint32_t >::max();
-	for( uint32_t Idx = 0; Idx < VK_MAX_MEMORY_TYPES; ++Idx )
+	for( uint32_t Idx = 0; Idx < MemoryProperties_.memoryTypeCount; ++Idx )
 	{
 		// Check type.
 		if( ( TypeFlags & 1 ) == 1 )
@@ -49,7 +49,6 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 			PropertyFlags );
 	}
 	
-
 	return Memory;
 }
 
@@ -57,5 +56,6 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 // free
 void RsAllocatorVK::free( VkDeviceMemory Memory )
 {
-
+	auto RetVal = vkFreeMemory( Device_, Memory );
+	BcAssert( !RetVal );
 }

@@ -38,10 +38,10 @@ RsTextureVK::~RsTextureVK()
 		Image_ = 0;
 	}
 
-	if( Memory_ )
+	if( DeviceMemory_ )
 	{
-		Allocator_->free( Memory_ );
-		Memory_ = 0;
+		Allocator_->free( DeviceMemory_ );
+		DeviceMemory_ = 0;
 	}
 
 	if( ImageView_ )
@@ -101,36 +101,36 @@ void RsTextureVK::createImage()
 
 	
 	// Setup property flags, usage, and tiling.
-	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-	ImageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
+	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_ONLY;
+	ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	ImageCreateInfo.usage = VK_IMAGE_USAGE_GENERAL;
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
-		PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_ONLY;
-		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		ImageCreateInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		ImageCreateInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DESTINATION_BIT;
 	}	
 
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
 	{
-		PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_ONLY;
-		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	}	
 
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
 	{
-		PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_ONLY;
-		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_BIT;
 	}	
 
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::TRANSIENT ) != RsResourceBindFlags::NONE )
 	{
 		// TODO: Should not need to allocate memory for transient images.
-		PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_ONLY;
-		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		ImageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+	}
+
+	// If no usage is specified, assume it's for source transfers.
+	if( ImageCreateInfo.usage == VK_IMAGE_USAGE_GENERAL )
+	{
+		PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+		ImageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
+		ImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SOURCE_BIT;
 	}
 
 	// Create image.
@@ -142,7 +142,7 @@ void RsTextureVK::createImage()
 	RetVal = vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements );
 	BcAssert( !RetVal );
 
-	Memory_ = Allocator_->allocate( 
+	DeviceMemory_ = Allocator_->allocate( 
 		MemoryRequirements.size, 
 		MemoryRequirements.alignment,
 		MemoryRequirements.memoryTypeBits,

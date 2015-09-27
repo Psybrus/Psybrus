@@ -11,6 +11,10 @@ public:
 	~RsFrameBufferVK();
 
 private:
+	void createFrameBuffer();
+	void createRenderPass();
+
+private:
 	class RsFrameBuffer* Parent_ = nullptr;
 	VkDevice Device_ = 0;
 	VkFramebuffer FrameBuffer_ = 0;
