@@ -41,20 +41,20 @@
 // Utility
 #define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                        \
 {                                                                       \
-    fp##entrypoint##_ = (PFN_vk##entrypoint) vkGetInstanceProcAddr(inst, "vk"#entrypoint); \
-    if (fp##entrypoint##_ == NULL) {                                 \
-        BcAssertMsg( false, "vkGetInstanceProcAddr failed to find vk"#entrypoint,  \
-                 "vkGetInstanceProcAddr Failure");                      \
-    }                                                                   \
+	fp##entrypoint##_ = (PFN_vk##entrypoint) vkGetInstanceProcAddr(inst, "vk"#entrypoint); \
+	if (fp##entrypoint##_ == NULL) {                                 \
+		BcAssertMsg( false, "vkGetInstanceProcAddr failed to find vk"#entrypoint,  \
+				 "vkGetInstanceProcAddr Failure");                      \
+	}                                                                   \
 }
 
 #define GET_DEVICE_PROC_ADDR(dev, entrypoint)                           \
 {                                                                       \
-    fp##entrypoint##_ = (PFN_vk##entrypoint) vkGetDeviceProcAddr(dev, "vk"#entrypoint);   \
-    if (fp##entrypoint##_ == NULL) {                                 \
-        BcAssertMsg( false, "vkGetDeviceProcAddr failed to find vk"#entrypoint,    \
-                 "vkGetDeviceProcAddr Failure");                        \
-    }                                                                   \
+	fp##entrypoint##_ = (PFN_vk##entrypoint) vkGetDeviceProcAddr(dev, "vk"#entrypoint);   \
+	if (fp##entrypoint##_ == NULL) {                                 \
+		BcAssertMsg( false, "vkGetDeviceProcAddr failed to find vk"#entrypoint,    \
+				 "vkGetDeviceProcAddr Failure");                        \
+	}                                                                   \
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ void RsContextVK::endFrame()
 	PresentCompleteSemaphoreCreateInfo.pNext = nullptr;
 	PresentCompleteSemaphoreCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    RetVal = vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, &PresentCompleteSemaphore );
+	RetVal = vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, &PresentCompleteSemaphore );
 	BcAssert( !RetVal );
 
 	// Get the index of the next available swapchain image.
@@ -203,9 +203,9 @@ void RsContextVK::endFrame()
 	vkQueueWaitSemaphore( GraphicsQueue_, PresentCompleteSemaphore );
 
 	// Submit queue.
-    VkFence NullFence = { VK_NULL_HANDLE };
+	VkFence NullFence = { VK_NULL_HANDLE };
 	RetVal = vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence );
-    BcAssert( !RetVal );
+	BcAssert( !RetVal );
 
 	VkPresentInfoWSI PresentInfo = {};
 	PresentInfo.sType = VK_STRUCTURE_TYPE_QUEUE_PRESENT_INFO_WSI;
@@ -214,14 +214,14 @@ void RsContextVK::endFrame()
 	PresentInfo.swapChains = &SwapChain_;
 	PresentInfo.imageIndices = &CurrentFrameBuffer_;
 
-    RetVal = fpQueuePresentWSI_( GraphicsQueue_, &PresentInfo );
-    BcAssert( !RetVal );
+	RetVal = fpQueuePresentWSI_( GraphicsQueue_, &PresentInfo );
+	BcAssert( !RetVal );
 
 	RetVal = vkDestroySemaphore( Device_, PresentCompleteSemaphore );
-    BcAssert( !RetVal );
+	BcAssert( !RetVal );
 
 	RetVal = vkQueueWaitIdle( GraphicsQueue_ );
-    BcAssert( !RetVal );
+	BcAssert( !RetVal );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -260,7 +260,7 @@ void RsContextVK::create()
 
 	// Grab layers.
 	uint32_t InstanceLayerCount = 0;
-    if( ( RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, nullptr ) ) == VK_SUCCESS )
+	if( ( RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, nullptr ) ) == VK_SUCCESS )
 	{
 		InstanceLayers_.resize( InstanceLayerCount );
 		RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, InstanceLayers_.data() );
@@ -356,7 +356,7 @@ void RsContextVK::create()
 
 		// Get device layers.
 		uint32_t DeviceLayerCount = 0;
-	    if( ( RetVal = vkGetPhysicalDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, nullptr ) ) == VK_SUCCESS )
+		if( ( RetVal = vkGetPhysicalDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, nullptr ) ) == VK_SUCCESS )
 		{
 			DeviceLayers_.resize( DeviceLayerCount );
 			RetVal = vkGetPhysicalDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, DeviceLayers_.data() );
@@ -392,7 +392,7 @@ void RsContextVK::create()
 
 		// Get device extensions.
 		uint32_t DeviceExtensionCount = 0;
-	    if( ( RetVal = vkGetPhysicalDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, nullptr ) ) == VK_SUCCESS )
+		if( ( RetVal = vkGetPhysicalDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, nullptr ) ) == VK_SUCCESS )
 		{
 			DeviceExtensions_.resize( DeviceExtensionCount );
 			RetVal = vkGetPhysicalDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, DeviceExtensions_.data() );
@@ -561,8 +561,8 @@ void RsContextVK::create()
 		}
 
 		// Check format.
-	    if (SurfaceFormats_.size() == 1 && SurfaceFormats_[ 0 ].format == VK_FORMAT_UNDEFINED)
-	    {
+		if (SurfaceFormats_.size() == 1 && SurfaceFormats_[ 0 ].format == VK_FORMAT_UNDEFINED)
+		{
 			SurfaceFormats_[ 0 ].format = VK_FORMAT_B8G8R8A8_UNORM;
 		}
 
@@ -578,11 +578,11 @@ void RsContextVK::create()
 		RetVal = vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, &CommandPool_ );
 		BcAssert( !RetVal );
 
-        CommandBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_CREATE_INFO;
-        CommandBufferCreateInfo_.pNext = nullptr;
-        CommandBufferCreateInfo_.cmdPool = CommandPool_;
-        CommandBufferCreateInfo_.level = VK_CMD_BUFFER_LEVEL_PRIMARY;
-        CommandBufferCreateInfo_.flags = 0;
+		CommandBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_CREATE_INFO;
+		CommandBufferCreateInfo_.pNext = nullptr;
+		CommandBufferCreateInfo_.cmdPool = CommandPool_;
+		CommandBufferCreateInfo_.level = VK_CMD_BUFFER_LEVEL_PRIMARY;
+		CommandBufferCreateInfo_.flags = 0;
 
 		RetVal = vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffer_ );
 		BcAssert( !RetVal );
@@ -602,23 +602,23 @@ void RsContextVK::create()
 		// TODO: Get present mode info and try to use mailbox, then try immediate, then try FIFO.
 		// TODO: Get present mode info to determine correct number of iamges. Use 2 for now.
 		// TODO: Get present mode info to get pre transform.
-	    VkPresentModeWSI SwapChainPresentMode = VK_PRESENT_MODE_FIFO_WSI;
+		VkPresentModeWSI SwapChainPresentMode = VK_PRESENT_MODE_FIFO_WSI;
 		uint32_t DesiredNumberOfSwapChainImages = 2;
 		VkSurfaceTransformWSI PreTransform = VK_SURFACE_TRANSFORM_NONE_WSI;
 
 
 		SwapChainCreateInfo_.sType = VK_STRUCTURE_TYPE_SWAP_CHAIN_CREATE_INFO_WSI;
-        SwapChainCreateInfo_.pNext = nullptr;
-        SwapChainCreateInfo_.pSurfaceDescription = (const VkSurfaceDescriptionWSI *)&WindowSurfaceDesc_;
-        SwapChainCreateInfo_.minImageCount = DesiredNumberOfSwapChainImages;
-        SwapChainCreateInfo_.imageFormat = SurfaceFormats_[ 0 ].format;
+		SwapChainCreateInfo_.pNext = nullptr;
+		SwapChainCreateInfo_.pSurfaceDescription = (const VkSurfaceDescriptionWSI *)&WindowSurfaceDesc_;
+		SwapChainCreateInfo_.minImageCount = DesiredNumberOfSwapChainImages;
+		SwapChainCreateInfo_.imageFormat = SurfaceFormats_[ 0 ].format;
 		SwapChainCreateInfo_.imageExtent.width = pClient_->getWidth();
 		SwapChainCreateInfo_.imageExtent.height = pClient_->getHeight();
-        SwapChainCreateInfo_.preTransform = PreTransform;
-        SwapChainCreateInfo_.imageArraySize = 1;
-        SwapChainCreateInfo_.presentMode = SwapChainPresentMode;
-        SwapChainCreateInfo_.oldSwapChain.handle = 0;
-        SwapChainCreateInfo_.clipped = true;
+		SwapChainCreateInfo_.preTransform = PreTransform;
+		SwapChainCreateInfo_.imageArraySize = 1;
+		SwapChainCreateInfo_.presentMode = SwapChainPresentMode;
+		SwapChainCreateInfo_.oldSwapChain.handle = 0;
+		SwapChainCreateInfo_.clipped = true;
 
 		RetVal = fpCreateSwapChainWSI_( Device_, &SwapChainCreateInfo_, &SwapChain_ );
 		BcAssert( !RetVal );
@@ -706,8 +706,8 @@ void RsContextVK::create()
 		BcAssert( !RetVal );
 
 		// Wait until queue is idle.
-	    RetVal = vkQueueWaitIdle( GraphicsQueue_ );
-	    BcAssert( !RetVal );
+		RetVal = vkQueueWaitIdle( GraphicsQueue_ );
+		BcAssert( !RetVal );
 	}
 	else
 	{
@@ -735,10 +735,10 @@ void RsContextVK::destroy()
 	vkDestroyCommandPool( Device_, CommandPool_ );
 	CommandPool_ = 0;
 
-    vkDestroyDevice( Device_ );
+	vkDestroyDevice( Device_ );
 	Device_ = 0;
 
-    vkDestroyInstance( Instance_ );
+	vkDestroyInstance( Instance_ );
 	Instance_ = 0;
 }
 
