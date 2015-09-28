@@ -127,6 +127,9 @@ BcU32 RsContextVK::getHeight() const
 // beginFrame
 void RsContextVK::beginFrame( BcU32 Width, BcU32 Height )
 {
+	BcAssert( !InsideBeginEndFrame_ );
+	InsideBeginEndFrame_ = true;
+
 	Width_ = Width;
 	Height_ = Height;
 
@@ -160,20 +163,19 @@ void RsContextVK::beginFrame( BcU32 Width, BcU32 Height )
 	BeginInfo.attachmentCount = 2;
 	BeginInfo.pAttachmentClearValues = ClearValues;
 
-	// Begin command buffer.
-	auto RetVal = vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo );
-	BcAssert( !RetVal );
-
 	// Begin render pass.
-	//vkCmdBeginRenderPass( CommandBuffer_, &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
+	vkCmdBeginRenderPass( CommandBuffer_, &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // endFrame
 void RsContextVK::endFrame()
 {
+	BcAssert( InsideBeginEndFrame_ );
+	InsideBeginEndFrame_ = false;
+
 	// End last pass and 
-	//vkCmdEndRenderPass( CommandBuffer_ );
+	vkCmdEndRenderPass( CommandBuffer_ );
 
 	// End command buffer.
 	auto RetVal = vkEndCommandBuffer( CommandBuffer_ );
@@ -222,6 +224,15 @@ void RsContextVK::endFrame()
 
 	RetVal = vkQueueWaitIdle( GraphicsQueue_ );
 	BcAssert( !RetVal );
+
+	// Begin command buffer.
+	VkCmdBufferBeginInfo CommandBufferInfo = {};
+	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
+	CommandBufferInfo.pNext = nullptr;
+	CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
+	RetVal = vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo );
+	BcAssert( !RetVal );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -265,16 +276,32 @@ void RsContextVK::create()
 		InstanceLayers_.resize( InstanceLayerCount );
 		RetVal = vkGetGlobalLayerProperties( &InstanceLayerCount, InstanceLayers_.data() );
 		BcAssert( !RetVal );
-#if 0
+#if 1
 		for( const auto& InstanceLayer : InstanceLayers_ )
 		{
+			if( strstr( InstanceLayer.layerName, "MemTracker" ) )
+			{
+				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
+			}
+			if( strstr( InstanceLayer.layerName, "ObjectTracker" ) )
+			{
+				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
+			}
 			if( strstr( InstanceLayer.layerName, "ParamChecker" ) )
 			{
-				EnabledInstanceLayers.push_back( "ParamChecker" );
+				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
-			else if( strstr( InstanceLayer.layerName, "ShaderChecker" ) )
+			if( strstr( InstanceLayer.layerName, "ShaderChecker" ) )
 			{
-				EnabledInstanceLayers.push_back( "ShaderChecker" );
+				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
+			}
+			if( strstr( InstanceLayer.layerName, "Threading" ) )
+			{
+				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
+			}
+			if( strstr( InstanceLayer.layerName, "DrawState" ) )
+			{
+				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
 		}
 #endif
@@ -299,11 +326,11 @@ void RsContextVK::create()
 		{
 			if( strstr( InstanceExtension.extName, "VK_WSI_swapchain" ) )
 			{
-				EnabledInstanceExtensions.push_back( "VK_WSI_swapchain" );
+				EnabledInstanceExtensions.push_back( InstanceExtension.extName );
 			}
 			else if( strstr( InstanceExtension.extName, "DEBUG_REPORT" ) )
 			{
-				EnabledInstanceExtensions.push_back( "DEBUG_REPORT" );
+				EnabledInstanceExtensions.push_back( InstanceExtension.extName );
 				DebugEnabled = true;
 			}
 		}
@@ -361,24 +388,32 @@ void RsContextVK::create()
 			DeviceLayers_.resize( DeviceLayerCount );
 			RetVal = vkGetPhysicalDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, DeviceLayers_.data() );
 			BcAssert( !RetVal );
-#if 0
+#if 1
 			for( const auto& DeviceLayer : DeviceLayers_ )
 			{
+				if( strstr( DeviceLayer.layerName, "Threading" ) )
+				{
+					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
+				}
 				if( strstr( DeviceLayer.layerName, "MemTracker" ) )
 				{
-					EnabledDeviceLayers.push_back( "MemTracker" );
+					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				else if( strstr( DeviceLayer.layerName, "ObjectTracker" ) )
+				if( strstr( DeviceLayer.layerName, "ObjectTracker" ) )
 				{
-					EnabledDeviceLayers.push_back( "ObjectTracker" );
+					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				else if( strstr( DeviceLayer.layerName, "ParamChecker" ) )
+				if( strstr( DeviceLayer.layerName, "ParamChecker" ) )
 				{
-					EnabledDeviceLayers.push_back( "ParamChecker" );
+					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				else if( strstr( DeviceLayer.layerName, "ShaderChecker" ) )
+				if( strstr( DeviceLayer.layerName, "ShaderChecker" ) )
 				{
-					EnabledDeviceLayers.push_back( "ShaderChecker" );
+					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
+				}
+				if( strstr( DeviceLayer.layerName, "DrawState" ) )
+				{
+					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
 			}
 #endif
@@ -402,7 +437,7 @@ void RsContextVK::create()
 			{
 				if( strstr( DeviceExtension.extName, "VK_WSI_device_swapchain" ) )
 				{
-					EnabledDeviceExtensions.push_back( "VK_WSI_device_swapchain" );
+					EnabledDeviceExtensions.push_back( DeviceExtension.extName );
 				}
 			}
 		}
@@ -430,6 +465,8 @@ void RsContextVK::create()
 					const char*                         pMsg,
 					void*                               pUserData )
 				{
+					PSY_LOGSCOPEDCATEGORY( "Vulkan" );
+
 					RsContextVK* Context = reinterpret_cast< RsContextVK* >( pUserData );
 					std::unique_ptr< char[] > Message( new char[ strlen( pMsg ) + 100 ] );
 					BcAssert( Message.get() );
@@ -447,6 +484,18 @@ void RsContextVK::create()
 						}
 						sprintf( Message.get(), "WARNING: [%s] Code %d : %s", pLayerPrefix, msgCode, pMsg );
 					}
+					else if( msgFlags & VK_DBG_REPORT_INFO_BIT )
+					{
+						sprintf( Message.get(), "INFO: [%s] Code %d : %s", pLayerPrefix, msgCode, pMsg );
+					} 
+					else if( msgFlags & VK_DBG_REPORT_PERF_WARN_BIT )
+					{
+						sprintf( Message.get(), "PERF: [%s] Code %d : %s", pLayerPrefix, msgCode, pMsg );
+					} 
+					else if( msgFlags & VK_DBG_REPORT_DEBUG_BIT )
+					{
+						sprintf( Message.get(), "DEBUG: [%s] Code %d : %s", pLayerPrefix, msgCode, pMsg );
+					} 
 					else
 					{
 						return;
@@ -456,7 +505,7 @@ void RsContextVK::create()
 				};
 			RetVal = fpCreateMsgCallback_(
 				Instance_,
-				VK_DBG_REPORT_ERROR_BIT | VK_DBG_REPORT_WARN_BIT | VK_DBG_REPORT_PERF_WARN_BIT | VK_DBG_REPORT_INFO_BIT | VK_DBG_REPORT_DEBUG_BIT,
+				VK_DBG_REPORT_ERROR_BIT | VK_DBG_REPORT_WARN_BIT | VK_DBG_REPORT_PERF_WARN_BIT | VK_DBG_REPORT_DEBUG_BIT,
 				DebugFunc, this,
 				&DebugCallback_ );
 			BcAssert( !RetVal );
@@ -509,7 +558,7 @@ void RsContextVK::create()
 
 		// Setup windowing.
 		WindowSurfaceDesc_.sType = VK_STRUCTURE_TYPE_SURFACE_DESCRIPTION_WINDOW_WSI;
-		WindowSurfaceDesc_.pNext = NULL;
+		WindowSurfaceDesc_.pNext = nullptr;
 #ifdef PLATFORM_WINDOWS
 		WindowSurfaceDesc_.platform = VK_PLATFORM_WIN32_WSI;
 		WindowSurfaceDesc_.pPlatformHandle = ::GetModuleHandle( nullptr );
@@ -651,10 +700,10 @@ void RsContextVK::create()
 
 			// Create texture.
 			SwapChainTexture = new RsTexture( this, Desc );
+
+			// Manually create the swapchain texture, it's a special case as it takes an image already.
 			RsTextureVK* TextureVK = new RsTextureVK( SwapChainTexture, Device_, Allocator_.get(), SwapChainImages_[ Idx ].image );
 			SwapChainTexture->setHandle( TextureVK );
-
-			// Set image layout.
 			TextureVK->setImageLayout( CommandBuffer_, VK_IMAGE_ASPECT_COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL );
 		}
 
@@ -672,11 +721,7 @@ void RsContextVK::create()
 
 			// Create texture.
 			DepthStencilTexture_ = new RsTexture( this, Desc );
-			RsTextureVK* TextureVK = new RsTextureVK( DepthStencilTexture_, Device_, Allocator_.get() );
-			DepthStencilTexture_->setHandle( TextureVK );
-
-			// Set image layout.
-			TextureVK->setImageLayout( CommandBuffer_, VK_IMAGE_ASPECT_DEPTH, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL );
+			createTexture( DepthStencilTexture_ );
 		}
 
 		// Frame buffers.
@@ -692,22 +737,21 @@ void RsContextVK::create()
 
 			// Create frame buffer.
 			FrameBuffer = new RsFrameBuffer( this, Desc );
-			RsFrameBufferVK* FrameBufferVK = new RsFrameBufferVK( FrameBuffer, Device_ );
-			FrameBuffer->setHandle( FrameBufferVK );
+			createFrameBuffer( FrameBuffer );
 		}
 
-		// End command buffer.
-		RetVal = vkEndCommandBuffer( CommandBuffer_ );
-		BcAssert( !RetVal );
+		// Fill out features (temp work).
+		Features_.MRT_ = true;
+		Features_.DepthTextures_ = true;
+		Features_.NPOTTextures_ = true;
+		Features_.SeparateBlendState_ = true;
+		Features_.AnisotropicFiltering_ = true;
+		Features_.AntialiasedLines_ = true;
+		Features_.Texture1D_ = true;
+		Features_.Texture2D_ = true;
+		Features_.Texture3D_ = true;
+		Features_.TextureCube_ = true;
 
-		// Submit queue.
-		VkFence NullFence = { VK_NULL_HANDLE };
-		RetVal = vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence );
-		BcAssert( !RetVal );
-
-		// Wait until queue is idle.
-		RetVal = vkQueueWaitIdle( GraphicsQueue_ );
-		BcAssert( !RetVal );
 	}
 	else
 	{
@@ -729,6 +773,20 @@ void RsContextVK::update()
 // destroy
 void RsContextVK::destroy()
 {
+	// Destroy framebuffers.
+	for( auto FrameBuffer : FrameBuffers_ )
+	{
+		destroyFrameBuffer( FrameBuffer );
+	}
+
+	// Destroy textures.
+	for( auto Texture : SwapChainTextures_ )
+	{
+		destroyTexture( Texture );
+	}
+	destroyTexture( DepthStencilTexture_ );
+
+	// Destroy everything else.
 	vkDestroyCommandBuffer( Device_, CommandBuffer_ );
 	CommandBuffer_ = 0;
 
@@ -925,7 +983,10 @@ bool RsContextVK::destroySamplerState(
 bool RsContextVK::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( FrameBuffer );
+	
+	RsFrameBufferVK* FrameBufferVK = new RsFrameBufferVK( FrameBuffer, Device_ );
+	FrameBuffer->setHandle( FrameBufferVK );
+	
 	return true;
 }
 
@@ -934,7 +995,12 @@ bool RsContextVK::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 bool RsContextVK::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( FrameBuffer );
+
+	RsFrameBufferVK* FrameBufferVK = FrameBuffer->getHandle< RsFrameBufferVK* >();
+	BcAssert( FrameBufferVK );
+	delete FrameBufferVK;
+	FrameBuffer->setHandle( 0 );
+
 	return true;
 }
 
@@ -986,7 +1052,34 @@ bool RsContextVK::createTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Texture );
+	
+	const auto& Desc = Texture->getDesc();
+	RsTextureVK* TextureVK = new RsTextureVK( Texture, Device_, Allocator_.get() );
+	Texture->setHandle( TextureVK );
+
+	// Determine image aspect + layout.
+	VkImageAspect Aspect = VK_IMAGE_ASPECT_COLOR;
+	VkImageLayout Layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	if( ( Desc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		Aspect = VK_IMAGE_ASPECT_COLOR;
+		Layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
+	else if( ( Desc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		Aspect = VK_IMAGE_ASPECT_DEPTH;
+		Layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	}
+	else if( ( Desc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		Aspect = VK_IMAGE_ASPECT_COLOR;
+		Layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	}
+
+	// Set image layout.
+	TextureVK->setImageLayout( CommandBuffer_, Aspect, Layout );
+
 	return true;
 }
 
@@ -996,7 +1089,11 @@ bool RsContextVK::destroyTexture(
 	class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Texture );
+
+	RsTextureVK* TextureVK = Texture->getHandle< RsTextureVK* >();
+	BcAssert( TextureVK );
+	delete TextureVK;
+	Texture->setHandle( 0 );
 	return true;
 }
 

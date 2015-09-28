@@ -11,24 +11,24 @@ RsFrameBufferVK::RsFrameBufferVK( class RsFrameBuffer* Parent, VkDevice Device )
 	Parent_( Parent ),
 	Device_( Device )
 {
-	createFrameBuffer();
 	createRenderPass();
+	createFrameBuffer();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 RsFrameBufferVK::~RsFrameBufferVK()
 {
-	if( FrameBuffer_ )
-	{
-		vkDestroyFramebuffer( Device_, FrameBuffer_ );
-		FrameBuffer_ = 0;
-	}
-
 	if( RenderPass_ )
 	{
 		vkDestroyRenderPass( Device_, RenderPass_ );
 		RenderPass_ = 0;
+	}
+
+	if( FrameBuffer_ )
+	{
+		vkDestroyFramebuffer( Device_, FrameBuffer_ );
+		FrameBuffer_ = 0;
 	}
 }
 	
@@ -44,19 +44,24 @@ void RsFrameBufferVK::createFrameBuffer()
 	uint32_t Height = std::numeric_limits< uint32_t >::max();
 
 	std::vector< VkAttachmentBindInfo > AttachmentBindInfos( NoofAttachments );
-	uint32_t Idx = 0;
-	for( ; Idx < Desc.RenderTargets_.size(); ++Idx )
+	uint32_t AttachmentIdx = 0;
+	for( uint32_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
 	{
-		auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
-		auto* TextureVK = Desc.RenderTargets_[ Idx ]->getHandle< RsTextureVK* >();
+		if( Desc.RenderTargets_[ Idx ] )
+		{
+			auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
+			auto* TextureVK = Desc.RenderTargets_[ Idx ]->getHandle< RsTextureVK* >();
 			
-		Width = std::min( Width, RenderTargetDesc.Width_ );
-		Height = std::min( Height, RenderTargetDesc.Height_ );
+			Width = std::min( Width, RenderTargetDesc.Width_ );
+			Height = std::min( Height, RenderTargetDesc.Height_ );
 
-		auto& AttachmentBindInfo = AttachmentBindInfos[ Idx ];
+			auto& AttachmentBindInfo = AttachmentBindInfos[ AttachmentIdx ];
+	
+			AttachmentBindInfo.view = TextureVK->getAttachmentView();
+			AttachmentBindInfo.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-		AttachmentBindInfo.view = TextureVK->getAttachmentView();
-		AttachmentBindInfo.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			++AttachmentIdx;
+		}
 	}
 
 	if( Desc.DepthStencilTarget_ )
@@ -67,17 +72,19 @@ void RsFrameBufferVK::createFrameBuffer()
 		Width = std::min( Width, DepthStencilDesc.Width_ );
 		Height = std::min( Height, DepthStencilDesc.Height_ );
 
-		auto& AttachmentBindInfo = AttachmentBindInfos[ Idx ];
+		auto& AttachmentBindInfo = AttachmentBindInfos[ AttachmentIdx ];
 
 		AttachmentBindInfo.view = TextureVK->getAttachmentView();
 		AttachmentBindInfo.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		++AttachmentIdx;
 	}
 
 	VkFramebufferCreateInfo FrameBufferCreateInfo = {};
 	FrameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	FrameBufferCreateInfo.pNext = nullptr;
 	FrameBufferCreateInfo.renderPass = RenderPass_;
-	FrameBufferCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentBindInfos.size() );
+	FrameBufferCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentIdx );
 	FrameBufferCreateInfo.pAttachments = AttachmentBindInfos.data();
 	FrameBufferCreateInfo.width  = Width;
 	FrameBufferCreateInfo.height = Height;
@@ -99,46 +106,53 @@ void RsFrameBufferVK::createRenderPass()
 	std::vector< VkAttachmentDescription > Attachments( NoofAttachments );
 	std::vector< VkAttachmentReference > ColourAttachmentReferences( Desc.RenderTargets_.size() );
 	VkAttachmentReference DepthStencilAttachmentReference = {};
-	uint32_t Idx = 0;
-	for( ; Idx < Desc.RenderTargets_.size(); ++Idx )
+	uint32_t AttachmentIdx = 0;
+	for( uint32_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
 	{
-		auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
+		if( Desc.RenderTargets_[ Idx ] )
+		{
+			auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
 
-		auto& Attachment = Attachments[ Idx ];
-		Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
-		Attachment.pNext = nullptr;
-		Attachment.format = RsUtilsVK::GetTextureFormat( RenderTargetDesc.Format_ );
-		Attachment.samples = 1;
-		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // AHH LOAD.
-		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			auto& Attachment = Attachments[ AttachmentIdx ];
+			Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
+			Attachment.pNext = nullptr;
+			Attachment.format = RsUtilsVK::GetTextureFormat( RenderTargetDesc.Format_ );
+			Attachment.samples = 1;
+			Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+			Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-		auto& ColourAttachmentReference = ColourAttachmentReferences[ Idx ];
-		ColourAttachmentReference.attachment = Idx;
-		ColourAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			auto& ColourAttachmentReference = ColourAttachmentReferences[ Idx ];
+			ColourAttachmentReference.attachment = AttachmentIdx;
+			ColourAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			++AttachmentIdx;
+		}
 	}
 	
 	if( Desc.DepthStencilTarget_ )
 	{
 		auto& DepthStencilDesc = Desc.DepthStencilTarget_->getDesc();
 
-		auto& Attachment = Attachments[ Idx ];
+		auto& Attachment = Attachments[ AttachmentIdx ];
 		Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
 		Attachment.pNext = nullptr;
 		Attachment.format = RsUtilsVK::GetTextureFormat( DepthStencilDesc.Format_ );
 		Attachment.samples = 1;
-		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // AHH LOAD.
+		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 		Attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		Attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		DepthStencilAttachmentReference.attachment = 0;
+		DepthStencilAttachmentReference.attachment = AttachmentIdx;
 		DepthStencilAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		++AttachmentIdx;
 	}
 
 	VkSubpassDescription Subpass = {};
@@ -158,7 +172,7 @@ void RsFrameBufferVK::createRenderPass()
 	VkRenderPassCreateInfo RenderPassCreateInfo = {};
 	RenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	RenderPassCreateInfo.pNext = nullptr;
-	RenderPassCreateInfo.attachmentCount = static_cast< uint32_t >( Attachments.size() );
+	RenderPassCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentIdx );
 	RenderPassCreateInfo.pAttachments = Attachments.data();
 	RenderPassCreateInfo.subpassCount = 1;
 	RenderPassCreateInfo.pSubpasses = &Subpass;

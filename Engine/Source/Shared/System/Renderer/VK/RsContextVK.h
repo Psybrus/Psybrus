@@ -172,6 +172,8 @@ private:
 	VkCmdPoolCreateInfo CommandPoolCreateInfo_ = {};
 	VkCmdPool CommandPool_ = 0;
 	VkCmdBufferCreateInfo CommandBufferCreateInfo_ = {};
+
+
 	VkCmdBuffer CommandBuffer_ = 0;
 
 	// Swap chain
@@ -188,6 +190,9 @@ private:
 
 	// Internal utilities.
 	std::unique_ptr< class RsAllocatorVK > Allocator_;
+
+	// Inside frame?
+	bool InsideBeginEndFrame_ = false;
 };
 
 #endif

@@ -20,7 +20,7 @@ private:
 private:
 	class RsFrameBuffer* Parent_ = nullptr;
 	VkDevice Device_ = 0;
-	VkFramebuffer FrameBuffer_ = 0;
 	VkRenderPass RenderPass_ = 0;
+	VkFramebuffer FrameBuffer_ = 0;
 };
 
