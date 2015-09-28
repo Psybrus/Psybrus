@@ -169,7 +169,6 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "D24", (BcU32)RsTextureFormat::D24 ),
 		new ReEnumConstant( "D32", (BcU32)RsTextureFormat::D32 ),
 		new ReEnumConstant( "D24S8", (BcU32)RsTextureFormat::D24S8 ),
-		new ReEnumConstant( "D32F", (BcU32)RsTextureFormat::D32F ),
 		new ReEnumConstant( "INVALID", (BcU32)RsTextureFormat::INVALID ),
 	};
 	ReRegisterEnum< RsTextureFormat >( RsTextureFormatEnumConstants );

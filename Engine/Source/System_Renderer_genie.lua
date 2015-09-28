@@ -124,12 +124,7 @@ if _OPTIONS["with-vk"] then
           VK_SDK_PATH .. "/Include"
       }
 
-      libdirs {
-          VK_SDK_PATH .. "/Bin"
-      }
-
       defines { "WITH_VK=1" }
-
 end
 
   configuration "winphone-*"

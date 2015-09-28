@@ -79,7 +79,6 @@ static const DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,
 	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32,
 	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24S8,
-	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32F,
 };
 
 // Depth stencil view formats.
@@ -109,7 +108,6 @@ static const DXGI_FORMAT gDSVFormats[] =
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
-	DXGI_FORMAT_D32_FLOAT,				// RsTextureFormat::D32F,
 };
 
 // Shader resource view formats.
@@ -137,9 +135,8 @@ static const DXGI_FORMAT gSRVFormats[] =
 	// Depth.
 	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
 	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32,
 	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24S8,
-	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32F,
 };
 
 static const D3D11_PRIMITIVE_TOPOLOGY gTopologyType[] =

@@ -255,7 +255,6 @@ enum class RsTextureFormat : BcU32
 	D24,
 	D32,
 	D24S8,
-	D32F,
 	
 	MAX,
 	INVALID = BcErrorCode
@@ -571,7 +570,8 @@ enum class RsResourceBindFlags : BcU32
 	RENDER_TARGET		= 0x00000020,
 	DEPTH_STENCIL		= 0x00000040,
 	UNORDERED_ACCESS	= 0x00000080,
-	PRESENT				= 0x00000100
+	PRESENT				= 0x00000100,
+	TRANSIENT			= 0x00000200
 };
 
 inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )

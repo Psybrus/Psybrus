@@ -527,6 +527,26 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
+void RsCoreImpl::destroyResource( RsFrameBuffer* FrameBuffer )
+{
+	BcAssert( BcIsGameThread() );
+	if( FrameBuffer == nullptr )
+	{
+		return;
+	}
+
+	ResourceDeletionList_.push_back(
+		[ FrameBuffer ]()
+		{
+			auto Context = FrameBuffer->getContext();
+			auto RetVal = Context->destroyFrameBuffer( FrameBuffer );
+			delete FrameBuffer;
+			BcUnusedVar( RetVal );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
 void RsCoreImpl::destroyResource( 
 		RsShader* Shader )
 {
