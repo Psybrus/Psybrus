@@ -88,6 +88,9 @@ public:
 		RsTexture* Texture ) override;
 	
 	void destroyResource( 
+		RsFrameBuffer* FrameBuffer ) override;
+
+	void destroyResource( 
 		RsShader* Shader ) override;
 
 	void destroyResource( 
