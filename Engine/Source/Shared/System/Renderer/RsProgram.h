@@ -26,7 +26,9 @@ public:
 	RsProgram( 
 		class RsContext* pContext, 
 		std::vector< class RsShader* >&& Shaders,
-		RsProgramVertexAttributeList&& VertexAttributes );
+		RsProgramVertexAttributeList&& VertexAttributes,
+		RsProgramUniformList&& UniformList,
+		RsProgramUniformBlockList&& UniformBlockList );
 	virtual ~RsProgram();
 	
 	BcU32 findSamplerSlot( const BcChar* Name );
@@ -79,11 +81,12 @@ private:
 	typedef std::vector< TUniformBlock > TUniformBlockList;
 	typedef TUniformBlockList::iterator TUniformBlockListIterator;
 	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
-	TUniformBlockList UniformBlockList_;
+	TUniformBlockList InternalUniformBlockList_;
 	
 	std::vector< class RsShader* > Shaders_;
 	RsProgramVertexAttributeList AttributeList_;
-
+	RsProgramUniformList UniformList_;
+	RsProgramUniformBlockList UniformBlockList_;
 	BcU32 InputLayoutHash_;
 };
 

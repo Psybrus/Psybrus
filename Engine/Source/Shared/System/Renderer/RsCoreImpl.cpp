@@ -400,6 +400,8 @@ RsShader* RsCoreImpl::createShader(
 RsProgram* RsCoreImpl::createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
+		RsProgramUniformList UniformList,
+		RsProgramUniformBlockList UniformBlockList,
 		const std::string& DebugName )
 {
 	auto Context = getContext( nullptr );
@@ -409,7 +411,9 @@ RsProgram* RsCoreImpl::createProgram(
 	RsProgram* pResource = new RsProgram(
 		Context, 
 		std::move( Shaders ), 
-		std::move( VertexAttributes ) );
+		std::move( VertexAttributes ),
+		std::move( UniformList ),
+		std::move( UniformBlockList ) );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(

@@ -412,10 +412,9 @@ enum class RsShaderBackendType : BcU32
 {
 	GLSL,
 	GLSL_ES,
-	D3D9,
 	D3D11,
 	D3D12,
-	MANTLE,
+	SPIRV,
 
 	MAX,
 	INVALID = BcErrorCode
@@ -441,9 +440,6 @@ enum class RsShaderCodeType : BcU32
 	GLSL_ES_300,	// GL ES 3.0+
 	GLSL_ES_310,	// GL ES 3.0+
 
-	// D3D9
-	D3D9_3_0,
-	
 	// D3D11
 	D3D11_4_0_LEVEL_9_1,
 	D3D11_4_0_LEVEL_9_2,
@@ -455,7 +451,8 @@ enum class RsShaderCodeType : BcU32
 
 	// D3D12
 
-	// Mantle
+	// SPIR-V
+	SPIRV,
 
 	//
 	MAX,
@@ -499,8 +496,8 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 BcBool RsIsLowerCodeTypeCompatibleWithHigher( RsShaderCodeType LowerCodeType, RsShaderCodeType HigherCodeType );
 
 //////////////////////////////////////////////////////////////////////////
-// RsShaderParameterType
-enum class RsShaderParameterType : BcU32
+// RsProgramUniformType
+enum class RsProgramUniformType : BcU32
 {
 	FLOAT = 0,
 	FLOAT_VEC2,
@@ -523,6 +520,7 @@ enum class RsShaderParameterType : BcU32
 	SAMPLER_CUBE,
 	SAMPLER_1D_SHADOW,
 	SAMPLER_2D_SHADOW,
+	TEXTURE,
 	
 	MAX,
 	INVALID = BcErrorCode,
@@ -538,6 +536,34 @@ struct RsProgramVertexAttribute
 };
 
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramUniform
+struct RsProgramUniform
+{
+	/// Name of uniform.
+	BcChar							Name_[ 64 ];
+	/// Offset of uniform.
+	BcU32							Offset_;
+	/// Type of uniform.
+	RsProgramUniformType			Type_;
+	/// Index of uniform block.
+	BcU32							UniformBlockIndex_;
+};
+
+typedef std::vector< RsProgramUniform > RsProgramUniformList;
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramUniformBlock
+struct RsProgramUniformBlock
+{
+	/// Name of uniforms block.
+	BcChar							Name_[ 64 ];
+	/// Size of uniform block in bytes.
+	BcU32							Size_;
+};
+
+typedef std::vector< RsProgramUniformBlock > RsProgramUniformBlockList;
 
 //////////////////////////////////////////////////////////////////////////
 // Resource stuff

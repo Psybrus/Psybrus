@@ -70,6 +70,8 @@ public:
 	RsProgram* createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
+		RsProgramUniformList UniformList,
+		RsProgramUniformBlockList UniformBlockList,
 		const std::string& DebugName ) override;
 	
 	void destroyResource( 

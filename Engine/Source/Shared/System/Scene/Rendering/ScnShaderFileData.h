@@ -168,6 +168,8 @@ struct ScnShaderProgramHeader
 	ScnShaderPermutationFlags ShaderFlags_;
 	RsShaderCodeType ShaderCodeType_;
 	BcU32 NoofVertexAttributes_;
+	BcU32 NoofUniforms_;
+	BcU32 NoofUniformBlocks_;
 	BcU32 ShaderHashes_[ (BcU32)RsShaderType::MAX ];
 };
 

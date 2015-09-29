@@ -93,7 +93,6 @@ namespace
 	// NOTE: Put these in the order that HLSLCC needs to build them.
 	static ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
-		{ "ps_3_0", RsShaderType::PIXEL, RsShaderCodeType::D3D9_3_0 },
 		{ "ps_4_0_level_9_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
 		{ "ps_4_0_level_9_2", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
 		{ "ps_4_0_level_9_3", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
@@ -109,7 +108,6 @@ namespace
 		{ "gs_4_1", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_4_1 },
 		{ "gs_5_0", RsShaderType::GEOMETRY, RsShaderCodeType::D3D11_5_0 },
 		
-		{ "vs_3_0", RsShaderType::VERTEX, RsShaderCodeType::D3D9_3_0 },
 		{ "vs_4_0_level_9_1", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
 		{ "vs_4_0_level_9_2", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
 		{ "vs_4_0_level_9_3", RsShaderType::VERTEX, RsShaderCodeType::D3D11_4_0_LEVEL_9_3 },
@@ -382,6 +380,8 @@ BcBool ScnShaderImport::import( const Json::Value& )
 
 		// Export programs.
 		BcU32 VertexAttributeIdx = 0;
+		BcU32 UniformsIdx = 0;
+		BcU32 UniformBlocksIdx = 0;
 		for( BcU32 Idx = 0; Idx < BuiltProgramData_.size(); ++Idx )
 		{
 			auto& ProgramData = BuiltProgramData_[ Idx ];
@@ -389,12 +389,26 @@ BcBool ScnShaderImport::import( const Json::Value& )
 			Stream.clear();
 			Stream.push( &ProgramData, sizeof( ProgramData ) );
 
-			// Only export vertex attributes if it's a shader backend type that requires it.
+			// Export vertex attributes, uniforms, and uniform blocks.
 			if( ProgramData.NoofVertexAttributes_ > 0 )
 			{
 				auto& VertexAttributes = BuiltVertexAttributes_[ VertexAttributeIdx++ ];
 				BcAssert( VertexAttributes.size() > 0 );
 				Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
+			}
+
+			if( ProgramData.NoofUniforms_ > 0 )
+			{
+				auto& Uniforms = BuiltUniforms_[ UniformsIdx++ ];
+				BcAssert( Uniforms.size() > 0 );
+				Stream.push( &Uniforms[ 0 ], Uniforms.size() * sizeof( RsProgramUniform ) );
+			}
+
+			if( ProgramData.NoofUniformBlocks_ > 0 )
+			{
+				auto& UniformBlocks = BuiltUniformBlocks_[ UniformBlocksIdx++ ];
+				BcAssert( UniformBlocks.size() > 0 );
+				Stream.push( &UniformBlocks[ 0 ], UniformBlocks.size() * sizeof( RsProgramUniformBlock ) );
 			}
 
 			CsResourceImporter::addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			
