@@ -38,40 +38,6 @@ struct RsTextureImplGL
 	GLuint Handle_ = 0;
 };
 
-//////////////////////////////////////////////////////////////////////////
-// RsProgramImplGL
-struct RsProgramImplGL
-{
-	struct UniformEntry
-	{
-		enum class Type
-		{
-			UNKNOWN,
-			UNIFORM_1IV,
-			UNIFORM_1FV,
-			UNIFORM_2FV,
-			UNIFORM_3FV,
-			UNIFORM_4FV,
-			UNIFORM_MATRIX_4FV,
-		};
-
-		BcU32 BindingPoint_ = 0;
-		Type Type_ = RsProgramImplGL::UniformEntry::Type::UNKNOWN;
-		GLint Loc_ = 0;
-		GLsizei Count_ = 0;
-		size_t Offset_ = 0;
-		size_t CachedOffset_ = 0;
-		size_t Size_ = 0;
-
-		// Used for redundancy checks.
-		RsBuffer* Buffer_ = nullptr;
-		BcU32 Version_ = 0;
-	};
-
-	GLuint Handle_ = 0;
-	std::vector< UniformEntry > UniformEntries_;
-	std::unique_ptr< BcU8[] > CachedUniforms_;
-};
 
 //////////////////////////////////////////////////////////////////////////
 // RsContextGL
