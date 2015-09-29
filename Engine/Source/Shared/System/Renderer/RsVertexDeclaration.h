@@ -16,9 +16,33 @@
 
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
-#include "System/Renderer/RsVertex.h"
 
 #include <vector>
+
+/**
+ * RsVertexElement
+ */
+struct RsVertexElement
+{
+	RsVertexElement();
+
+	RsVertexElement( BcU32 StreamIdx,
+	                 BcU32 Offset,
+	                 BcU32 Components,
+	                 RsVertexDataType DataType,
+	                 RsVertexUsage Usage,
+	                 BcU32 UsageIdx );
+
+	BcU32 getElementSize() const;
+
+
+	BcU32				StreamIdx_;
+	BcU32				Offset_;
+	BcU32				Components_;
+	RsVertexDataType	DataType_;
+	RsVertexUsage		Usage_;
+	BcU32				UsageIdx_;
+};
 
 /**
  * RsVertexDeclarationDesc
