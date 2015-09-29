@@ -197,7 +197,7 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 			PSODesc.BlendState.RenderTarget[ Idx ].SrcBlendAlpha = RsUtilsD3D12::GetBlend( SrcBlendState.SrcBlendAlpha_ );
 			PSODesc.BlendState.RenderTarget[ Idx ].DestBlendAlpha = RsUtilsD3D12::GetBlend( SrcBlendState.DestBlendAlpha_ );
 			PSODesc.BlendState.RenderTarget[ Idx ].BlendOpAlpha = RsUtilsD3D12::GetBlendOp( SrcBlendState.BlendOpAlpha_ );
-			PSODesc.BlendState.RenderTarget[ Idx ].RenderTargetWriteMask = SrcBlendState.WriteMask_;
+			PSODesc.BlendState.RenderTarget[ Idx ].RenderTargetWriteMask = static_cast< UINT8 >( SrcBlendState.WriteMask_ );
 		}
 
 		// Rasterizer state.

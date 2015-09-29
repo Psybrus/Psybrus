@@ -1,18 +1,4 @@
-/**************************************************************************
-*
-* File:		RsGL.cpp
-* Author: 	Neil Richardson 
-* Ver/Date:	
-* Description:
-*		GL includes.
-*		
-*
-*
-* 
-**************************************************************************/
-
-#ifndef __RSGL_H__
-#define __RSGL_H__
+#pragma once
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
@@ -123,7 +109,7 @@ struct RsOpenGLVersion
 	RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, RsShaderCodeType MaxCodeType );
 
 	/**
-	 * Will setuo feature support + query extensions for active context and setup all the features supported.
+	 * Will setup feature support + query extensions for active context and setup all the features supported.
 	 */
 	void setupFeatureSupport();
 
@@ -160,4 +146,3 @@ struct RsOpenGLVersion
 
 };
 
-#endif

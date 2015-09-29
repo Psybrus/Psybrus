@@ -20,10 +20,7 @@
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsFeatures.h"
 #include "System/Renderer/RsRenderState.h"
-#include "System/Renderer/RsVertex.h"
 #include "System/Renderer/RsViewport.h"
-#include "System/Renderer/RsProjector.h"
-#include "System/Renderer/RsLight.h"
 #include "System/Renderer/RsFrame.h"
 
 #include "System/Renderer/RsBuffer.h"

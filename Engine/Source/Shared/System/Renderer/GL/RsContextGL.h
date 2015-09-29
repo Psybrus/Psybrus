@@ -1,18 +1,4 @@
-/**************************************************************************
-*
-* File:		RsContextGL.h
-* Author: 	Neil Richardson 
-* Ver/Date:	
-* Description:
-*		
-*		
-*
-*
-* 
-**************************************************************************/
-
-#ifndef __RSCONTEXTGL_H__
-#define __RSCONTEXTGL_H__
+#pragma once
 
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/GL/RsGL.h"
@@ -332,6 +318,3 @@ private:
 	GLuint TransferFBOs_[ 2 ];
 
 };
-
-
-#endif
