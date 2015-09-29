@@ -188,10 +188,9 @@ void RsCore::StaticRegisterClass()
 	{
 		new ReEnumConstant( "GLSL", (BcU32)RsShaderBackendType::GLSL ),
 		new ReEnumConstant( "GLSL_ES", (BcU32)RsShaderBackendType::GLSL_ES ),
-		new ReEnumConstant( "D3D9", (BcU32)RsShaderBackendType::D3D9 ),
 		new ReEnumConstant( "D3D11", (BcU32)RsShaderBackendType::D3D11 ),
 		new ReEnumConstant( "D3D12", (BcU32)RsShaderBackendType::D3D12 ),
-		new ReEnumConstant( "MANTLE", (BcU32)RsShaderBackendType::MANTLE ),
+		new ReEnumConstant( "SPIRV", (BcU32)RsShaderBackendType::SPIRV ),
 	};
 	ReRegisterEnum< RsShaderBackendType >( RsShaderBackendTypeEnumConstants );
 
@@ -209,14 +208,14 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "GLSL_ES_100", (BcU32)RsShaderCodeType::GLSL_ES_100 ),
 		new ReEnumConstant( "GLSL_ES_300", (BcU32)RsShaderCodeType::GLSL_ES_300 ),
 		new ReEnumConstant( "GLSL_ES_310", (BcU32)RsShaderCodeType::GLSL_ES_310 ),
-		new ReEnumConstant( "D3D9_3_0", (BcU32)RsShaderCodeType::D3D9_3_0 ),
-		new ReEnumConstant( "D3D11_4_0_LEVEL_9_1", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ),
+				new ReEnumConstant( "D3D11_4_0_LEVEL_9_1", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_2", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_2 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_3", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ),
 		new ReEnumConstant( "D3D11_4_0", (BcU32)RsShaderCodeType::D3D11_4_0 ),
 		new ReEnumConstant( "D3D11_4_1", (BcU32)RsShaderCodeType::D3D11_4_1 ),
 		new ReEnumConstant( "D3D11_5_0", (BcU32)RsShaderCodeType::D3D11_5_0 ),
 		new ReEnumConstant( "D3D11_5_1", (BcU32)RsShaderCodeType::D3D11_5_1 ),
+		new ReEnumConstant( "SPIRV", (BcU32)RsShaderCodeType::SPIRV ),
 	};
 	ReRegisterEnum< RsShaderCodeType >( RsShaderCodeTypeEnumConstants );
 

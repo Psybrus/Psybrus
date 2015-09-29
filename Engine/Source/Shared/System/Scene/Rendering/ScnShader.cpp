@@ -279,12 +279,30 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			{
 				VertexAttributes.push_back( VertexAttributes_[ Idx ] );
 			}
+
+			RsProgramUniform* Uniforms_ = (RsProgramUniform*)( VertexAttributes_ + pProgramHeader->NoofVertexAttributes_ );
+			RsProgramUniformList Uniforms;
+			Uniforms.reserve( pProgramHeader->NoofUniforms_ );
+			for( BcU32 Idx = 0; Idx < pProgramHeader->NoofUniforms_; ++Idx )
+			{
+				Uniforms.push_back( Uniforms_[ Idx ] );
+			}
+
+			RsProgramUniformBlock* UniformBlocks_ = (RsProgramUniformBlock*)( Uniforms_ + pProgramHeader->NoofUniforms_ );
+			RsProgramUniformBlockList UniformBlocks;
+			UniformBlocks.reserve( pProgramHeader->NoofUniformBlocks_ );
+			for( BcU32 Idx = 0; Idx < pProgramHeader->NoofUniformBlocks_; ++Idx )
+			{
+				UniformBlocks.push_back( UniformBlocks_[ Idx ] );
+			}
 		
 			// Create program.
 			PSY_LOG( "Creating program: %x", pProgramHeader->ProgramPermutationFlags_ );
 			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
 				std::move( VertexAttributes ),
+				std::move( Uniforms ),
+				std::move( UniformBlocks ),
 				*getName() );			
 			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
 		}

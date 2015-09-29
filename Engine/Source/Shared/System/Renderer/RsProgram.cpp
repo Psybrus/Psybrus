@@ -17,12 +17,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgram::RsProgram( 
-	class RsContext* pContext, 
-	std::vector< RsShader* >&& Shaders, 
-	RsProgramVertexAttributeList&& VertexAttributes ):
+		class RsContext* pContext, 
+		std::vector< RsShader* >&& Shaders, 
+		RsProgramVertexAttributeList&& VertexAttributes,
+		RsProgramUniformList&& UniformList,
+		RsProgramUniformBlockList&& UniformBlockList ):
 	RsResource( pContext ),
 	Shaders_( std::move( Shaders ) ),
-	AttributeList_( std::move( VertexAttributes ) )
+	AttributeList_( std::move( VertexAttributes ) ),
+	UniformList_( std::move( UniformList ) ),
+	UniformBlockList_( std::move( UniformBlockList ) )
 {
 	// Find vertex shader.
 	BcU64 HashCalc = 0;
@@ -81,7 +85,7 @@ BcU32 RsProgram::findTextureSlot( const BcChar* Name )
 // findUniformBufferSlot
 BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 {
-	for( const auto& It : UniformBlockList_ )
+	for( const auto& It : InternalUniformBlockList_ )
 	{
 		if( It.Name_ == Name )
 		{
@@ -96,7 +100,7 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 // getUniformBufferClass
 const ReClass* RsProgram::getUniformBufferClass( BcU32 Handle )
 {
-	for( const auto& It : UniformBlockList_ )
+	for( const auto& It : InternalUniformBlockList_ )
 	{
 		if( It.Handle_ == Handle )
 		{
@@ -168,5 +172,5 @@ void RsProgram::addUniformBufferSlot( std::string Name, BcU32 Handle, const ReCl
 		Class
 	};
 
-	UniformBlockList_.push_back( std::move( Block ) );
+	InternalUniformBlockList_.push_back( std::move( Block ) );
 }

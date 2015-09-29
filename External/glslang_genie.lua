@@ -13,6 +13,9 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 			"./glslang/OGLCompilersDLL/**.cpp",
 			"./glslang/glslang/Include/**.h",
 			"./glslang/glslang/Public/**.h",
+			"./glslang/SPIRV/**.h",
+			"./glslang/SPIRV/**.hpp",
+			"./glslang/SPIRV/**.cpp",
 		}
 
 		includedirs { 

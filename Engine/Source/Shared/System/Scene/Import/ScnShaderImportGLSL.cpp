@@ -22,6 +22,8 @@
 #define EXCLUDE_PSTDINT
 #include <glsl/glsl_optimizer.h>
 #include <ShaderLang.h>
+#include <GlslangToSpv.h>
+#include <GL/glew.h>
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
@@ -201,14 +203,33 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	}
 
 	// Setup initial header.
-	ScnShaderProgramHeader ProgramHeader = {};
-	ProgramHeader.ProgramPermutationFlags_ = Params.Permutation_.Flags_;
-	ProgramHeader.ShaderFlags_ = ScnShaderPermutationFlags::NONE;
-	ProgramHeader.ShaderCodeType_ = Params.OutputCodeType_;
-	
-	// Vertex attributes needed by GLSL.
-	std::vector< RsProgramVertexAttribute > VertexAttributes;
+	ScnShaderProgramHeader ProgramHeaderGLSL = {};
+	ProgramHeaderGLSL.ProgramPermutationFlags_ = Params.Permutation_.Flags_;
+	ProgramHeaderGLSL.ShaderFlags_ = ScnShaderPermutationFlags::NONE;
+	ProgramHeaderGLSL.ShaderCodeType_ = Params.OutputCodeType_;
+
+	// Should we build SPIRV from the GLSL? Use highest GLSL version.
+	RsShaderCodeType HighestGLSLVersionForSPIRV = RsShaderCodeType::GLSL_330;
+	for( const auto& Source : Sources_ )
+	{
+		if( RsShaderCodeTypeToBackendType( Source.first ) == RsShaderBackendType::GLSL )
+		{
+			if( Source.first >= HighestGLSLVersionForSPIRV )
+			{
+				HighestGLSLVersionForSPIRV = Source.first;
+			}
+		}
+	}
+	bool BuildSPIRV = RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL &&
+			Params.OutputCodeType_ >= HighestGLSLVersionForSPIRV;
+
+	ScnShaderProgramHeader ProgramHeaderSPIRV = {};
+
+	// Vertex attributes, uniforms, and uniform blocks.
 	std::vector< std::string > VertexAttributeNames;
+	RsProgramVertexAttributeList VertexAttributes;
+	RsProgramUniformList Uniforms;
+	RsProgramUniformBlockList UniformBlocks;
 
 	std::vector< glslang::TShader* > Shaders;
 	glslang::TProgram* Program = new glslang::TProgram();
@@ -242,7 +263,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	{
 
 		RetVal = BcFalse;
-		ScnShaderBuiltData BuiltShader;
+		ScnShaderBuiltData BuiltShaderGLSL;
 		BcBinaryData ByteCode;
 		std::vector< std::string > ErrorMessages;
 		std::string Entrypoint = Entrypoints_[ Entry.Type_ ];
@@ -478,7 +499,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				TBuiltInResource Resources = GetDefaultResource();
 
 				const char* ShaderSources[] = { ProcessedSourceData.c_str() };
-				auto Shader = new glslang::TShader( Language[ (int)Entry.Type_ ] );
+				glslang::TShader* Shader( new glslang::TShader( Language[ (int)Entry.Type_ ] ) );
 
 				Shader->setStrings( ShaderSources, 1 );
 
@@ -502,11 +523,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					Shaders.push_back( Shader );
 					Program->addShader( Shader );
 
-					// TODO: glslang/glsl-optimizer
-					BuiltShader.ShaderType_ = Entry.Type_;
-					BuiltShader.CodeType_ = Params.OutputCodeType_;
-					BuiltShader.Code_ = std::move( BcBinaryData( (void*)ProcessedSourceData.c_str(), ProcessedSourceData.size() + 1, BcTrue ) );
-					BuiltShader.Hash_ = generateShaderHash( BuiltShader );
+					// Shader code straight in.
+					BuiltShaderGLSL.ShaderType_ = Entry.Type_;
+					BuiltShaderGLSL.CodeType_ = Params.OutputCodeType_;
+					BuiltShaderGLSL.Code_ = std::move( BcBinaryData( (void*)ProcessedSourceData.c_str(), ProcessedSourceData.size() + 1, BcTrue ) );
+					BuiltShaderGLSL.Hash_ = generateShaderHash( BuiltShaderGLSL );
 					RetVal = BcTrue;
 				}
 			}
@@ -531,17 +552,17 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		// Setup program + shaders.
 		if( RetVal )
 		{
-			ProgramHeader.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
-			ProgramHeader.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShader.Hash_;
+			ProgramHeaderGLSL.NoofVertexAttributes_ = static_cast< BcU32 >( VertexAttributes.size() );
+			ProgramHeaderGLSL.ShaderHashes_[ (BcU32)Entry.Type_ ] = BuiltShaderGLSL.Hash_;
 
 			std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-			auto FoundShader = BuiltShaderData_.find( BuiltShader.Hash_ );
+			auto FoundShader = BuiltShaderData_.find( BuiltShaderGLSL.Hash_ );
 			if( FoundShader != BuiltShaderData_.end() )
 			{
-				BcAssertMsg( FoundShader->second == BuiltShader, "Hash key collision" );
+				BcAssertMsg( FoundShader->second == BuiltShaderGLSL, "Hash key collision" );
 			}
 
-			BuiltShaderData_[ BuiltShader.Hash_ ] = std::move( BuiltShader );
+			BuiltShaderData_[ BuiltShaderGLSL.Hash_ ] = std::move( BuiltShaderGLSL );
 		}
 		else
 		{
@@ -552,10 +573,145 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	// Test linkage if compilation was successful.
 	if( RetVal != BcFalse )
 	{
-		if( Program->link( EShMsgDefault ) )
+		if( Program->link( BuildSPIRV ? EShMsgVulkanRules : EShMsgDefault ) )
 		{
-			//Program->5();
-			//Program->dumpReflection();
+			Program->buildReflection();
+			Program->dumpReflection();
+
+			// Uniforms + uniform blocks.
+			ProgramHeaderGLSL.NoofUniforms_ = Program->getNumLiveUniformVariables();
+			ProgramHeaderGLSL.NoofUniformBlocks_ = Program->getNumLiveUniformBlocks();
+
+			for( BcU32 Idx = 0; Idx < ProgramHeaderGLSL.NoofUniforms_; ++Idx )
+			{
+				const auto* Name = Program->getUniformName( Idx );
+				const BcU32 Offset = Program->getUniformBufferOffset( Idx );
+				const BcU32 Type = Program->getUniformType( Idx );
+				const BcU32 UniformBlockIndex = Program->getUniformBlockIndex( Idx );
+
+				BcAssert( BcStrLength( Name ) < sizeof( RsProgramUniform::Name_ ) );
+				RsProgramUniform Uniform;
+				BcStrCopy( Uniform.Name_, sizeof( Uniform.Name_ ), Name );
+				Uniform.Offset_ = Offset;
+				switch( Type )
+				{
+				case GL_FLOAT:
+					Uniform.Type_ = RsProgramUniformType::FLOAT;
+					break;
+				case GL_FLOAT_VEC2:
+					Uniform.Type_ = RsProgramUniformType::FLOAT_VEC2;
+					break;
+				case GL_FLOAT_VEC3:
+					Uniform.Type_ = RsProgramUniformType::FLOAT_VEC3;
+					break;
+				case GL_FLOAT_VEC4:
+					Uniform.Type_ = RsProgramUniformType::FLOAT_VEC4;
+					break;
+				case GL_FLOAT_MAT2:
+					Uniform.Type_ = RsProgramUniformType::FLOAT_MAT2;
+					break;
+				case GL_FLOAT_MAT3:
+					Uniform.Type_ = RsProgramUniformType::FLOAT_MAT3;
+					break;
+				case GL_FLOAT_MAT4:
+					Uniform.Type_ = RsProgramUniformType::FLOAT_MAT4;
+					break;
+				case GL_INT:
+					Uniform.Type_ = RsProgramUniformType::INT;
+					break;
+				case GL_INT_VEC2:
+					Uniform.Type_ = RsProgramUniformType::INT_VEC2;
+					break;
+				case GL_INT_VEC3:
+					Uniform.Type_ = RsProgramUniformType::INT_VEC3;
+					break;
+				case GL_INT_VEC4:
+					Uniform.Type_ = RsProgramUniformType::INT_VEC4;
+					break;
+				case GL_BOOL:
+					Uniform.Type_ = RsProgramUniformType::BOOL;
+					break;
+				case GL_BOOL_VEC2:
+					Uniform.Type_ = RsProgramUniformType::BOOL_VEC2;
+					break;
+				case GL_BOOL_VEC3:
+					Uniform.Type_ = RsProgramUniformType::BOOL_VEC3;
+					break;
+				case GL_BOOL_VEC4:
+					Uniform.Type_ = RsProgramUniformType::BOOL_VEC4;
+					break;
+				case GL_SAMPLER_1D:
+					Uniform.Type_ = RsProgramUniformType::SAMPLER_1D;
+					break;
+				case GL_SAMPLER_2D:
+					Uniform.Type_ = RsProgramUniformType::SAMPLER_2D;
+					break;
+				case GL_SAMPLER_3D:
+					Uniform.Type_ = RsProgramUniformType::SAMPLER_3D;
+					break;
+				case GL_SAMPLER_CUBE:
+					Uniform.Type_ = RsProgramUniformType::SAMPLER_CUBE;
+					break;
+				case GL_SAMPLER_1D_SHADOW:
+					Uniform.Type_ = RsProgramUniformType::SAMPLER_1D_SHADOW;
+					break;
+				case GL_SAMPLER_2D_SHADOW:
+					Uniform.Type_ = RsProgramUniformType::SAMPLER_2D_SHADOW;
+					break;
+				}
+				
+				Uniform.UniformBlockIndex_ = UniformBlockIndex;
+				Uniforms.push_back( Uniform );
+			}
+
+			for( BcU32 Idx = 0; Idx < ProgramHeaderGLSL.NoofUniformBlocks_; ++Idx )
+			{
+				const auto* Name = Program->getUniformBlockName( Idx );
+				const BcU32 Size = Program->getUniformBlockSize( Idx );
+
+				BcAssert( BcStrLength( Name ) < sizeof( RsProgramUniformBlock::Name_ ) );
+				RsProgramUniformBlock UniformBlock;
+				BcStrCopy( UniformBlock.Name_, sizeof( UniformBlock.Name_ ), Name );
+				UniformBlock.Size_ = Size;
+				UniformBlocks.push_back( UniformBlock );
+			}
+
+			// Should we build SPIR-V?
+			if( BuildSPIRV )
+			{
+				ProgramHeaderSPIRV = ProgramHeaderGLSL;
+				ProgramHeaderSPIRV.ShaderCodeType_ = RsShaderCodeType::SPIRV;
+
+				RsShaderType ShaderTypes[] = {
+					RsShaderType::VERTEX,
+					RsShaderType::HULL,
+					RsShaderType::DOMAIN,
+					RsShaderType::GEOMETRY,
+					RsShaderType::PIXEL,
+					RsShaderType::COMPUTE,
+				};
+
+				for( size_t Idx = 0; Idx < EShLangCount; ++Idx )
+				{
+					auto* Intermediate = Program->getIntermediate( static_cast< EShLanguage >( Idx ) );
+					if( Intermediate != nullptr )
+					{
+						std::vector< unsigned int > SpvOutput;
+						glslang::GlslangToSpv( *Intermediate, SpvOutput );
+
+						ScnShaderBuiltData BuiltShaderSPIRV;
+						BuiltShaderSPIRV.ShaderType_ = ShaderTypes[ Idx ];
+						BuiltShaderSPIRV.CodeType_ = RsShaderCodeType::SPIRV;
+						BuiltShaderSPIRV.Code_ = std::move( BcBinaryData( (void*)SpvOutput.data(), SpvOutput.size() * sizeof( unsigned int ), BcTrue ) );
+						BuiltShaderSPIRV.Hash_ = generateShaderHash( BuiltShaderSPIRV );
+
+						ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)BuiltShaderSPIRV.ShaderType_ ] = BuiltShaderSPIRV.Hash_;
+					}
+				}
+				
+			}					
+
+
 		}
 		else
 		{
@@ -574,17 +730,49 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	if( RetVal != BcFalse )
 	{
 		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-		if( ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
-			ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+		if( ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+			ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
 		{
 			PSY_LOG( "No vertex and pixel shaders in program." );
 			RetVal = BcFalse;
 		}
 
-		BuiltProgramData_.push_back( std::move( ProgramHeader ) );
+		BuiltProgramData_.push_back( std::move( ProgramHeaderGLSL ) );
 		if( VertexAttributes.size() > 0 )
 		{
 			BuiltVertexAttributes_.push_back( VertexAttributes );
+		}
+		if( Uniforms.size() > 0 )
+		{
+			BuiltUniforms_.push_back( Uniforms );
+		}
+		if( UniformBlocks.size() > 0 )
+		{
+			BuiltUniformBlocks_.push_back( UniformBlocks );
+		}
+
+		if( BuildSPIRV )
+		{		
+			if( ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+				ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+			{
+				PSY_LOG( "No vertex and pixel shaders in program." );
+				RetVal = BcFalse;
+			}
+
+			BuiltProgramData_.push_back( std::move( ProgramHeaderSPIRV ) );
+			if( VertexAttributes.size() > 0 )
+			{
+				BuiltVertexAttributes_.push_back( VertexAttributes );
+			}
+			if( Uniforms.size() > 0 )
+			{
+				BuiltUniforms_.push_back( Uniforms );
+			}
+			if( UniformBlocks.size() > 0 )
+			{
+				BuiltUniformBlocks_.push_back( UniformBlocks );
+			}
 		}
 	}
 
@@ -609,11 +797,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	}
 
 	// Clean up.
+	delete Program;
 	for( auto Shader : Shaders )
 	{
 		delete Shader;
 	}
-	delete Program;
 
 	--PendingPermutations_;
 #endif

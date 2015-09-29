@@ -680,7 +680,6 @@ void RsContextGL::create()
 	// Create + bind global VAO.
 	if( Version_.SupportVAOs_ )
 	{
-		PSY_LOG( "Create global VBO" );
 		BcAssert( glGenVertexArrays != nullptr );
 		BcAssert( glBindVertexArray != nullptr );
 		GL( GenVertexArrays( 1, &GlobalVAO_ ) );
@@ -689,13 +688,11 @@ void RsContextGL::create()
 	}
 
 	// Create transfer FBO.
-	PSY_LOG( "Create transfer FBOs" );
 	GL( GenFramebuffers( 2, TransferFBOs_ ) );
 #endif
 
 	// Force set render state to the default.
 	// Initialises redundant state caching.
-	PSY_LOG( "Set default render state" );
 	RsRenderStateDesc RenderStateDesc = BoundRenderStateDesc_;
 	setRenderStateDesc( RenderStateDesc, BcTrue );
 
@@ -1057,7 +1054,6 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	const auto& BufferDesc = Buffer->getDesc();
 
 	BcAssert( BufferDesc.SizeBytes_ > 0 );
-	PSY_LOG( "Creating buffer: %u kb", BufferDesc.SizeBytes_ / 1024 );
 
 	// Get buffer type for GL.
 	auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
@@ -1326,7 +1322,6 @@ bool RsContextGL::createTexture(
 		TextureDesc.Height_,
 		TextureDesc.Depth_,
 		TextureDesc.Levels_ );
-	PSY_LOG( "Creating texture: %u kb", DataSize / 1024 );
 
 	// Get buffer type for GL.
 	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
@@ -1641,7 +1636,7 @@ bool RsContextGL::createProgram(
 	// Bind all slots up.
 	// NOTE: We shouldn't need this in later GL versions with explicit
 	//       binding slots.
-	BcChar ChannelNameChars[ 128 ] = { 0 };
+	BcChar ChannelNameChars[ 64 ] = { 0 };
 	for( BcU32 Channel = 0; Channel < 16; ++Channel )
 	{
 		BcSPrintf( ChannelNameChars, sizeof( ChannelNameChars ) - 1, "dcl_Input%u", Channel );
@@ -1723,39 +1718,39 @@ bool RsContextGL::createProgram(
 				*pIndexStart = '\0';
 			}
 
-			RsShaderParameterType InternalType = RsShaderParameterType::INVALID;
+			RsProgramUniformType InternalType = RsProgramUniformType::INVALID;
 			switch( Type )
 			{
 #if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_1D:
-				InternalType = RsShaderParameterType::SAMPLER_1D;
+				InternalType = RsProgramUniformType::SAMPLER_1D;
 				break;
 #endif
 			case GL_SAMPLER_2D:
-				InternalType = RsShaderParameterType::SAMPLER_2D;
+				InternalType = RsProgramUniformType::SAMPLER_2D;
 				break;
 #if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_3D:
-				InternalType = RsShaderParameterType::SAMPLER_3D;
+				InternalType = RsProgramUniformType::SAMPLER_3D;
 				break;
 #endif
 			case GL_SAMPLER_CUBE:
-				InternalType = RsShaderParameterType::SAMPLER_CUBE;
+				InternalType = RsProgramUniformType::SAMPLER_CUBE;
 				break;
 #if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_1D_SHADOW:
-				InternalType = RsShaderParameterType::SAMPLER_1D_SHADOW;
+				InternalType = RsProgramUniformType::SAMPLER_1D_SHADOW;
 				break;
 #endif
 			case GL_SAMPLER_2D_SHADOW:
-				InternalType = RsShaderParameterType::SAMPLER_2D_SHADOW;
+				InternalType = RsProgramUniformType::SAMPLER_2D_SHADOW;
 				break;
 			default:
-				InternalType = RsShaderParameterType::INVALID;
+				InternalType = RsProgramUniformType::INVALID;
 				break;
 			}
 
-			if( InternalType != RsShaderParameterType::INVALID )
+			if( InternalType != RsProgramUniformType::INVALID )
 			{
 				// Add sampler. Will fail if not supported sampler type.
 				Program->addSamplerSlot( UniformName, ActiveSamplerIdx );
@@ -2955,7 +2950,6 @@ void RsContextGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
-			PSY_LOG( "TexImage2D! %u, %p", Slice.Face_, Data );
 			GL( TexImage2D( 
 				RsUtilsGL::GetTextureFace( Slice.Face_ ),
 				Slice.Level_,

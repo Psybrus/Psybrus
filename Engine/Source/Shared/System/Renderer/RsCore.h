@@ -162,12 +162,15 @@ public:
 	 * Create program.
 	 * @param Shaders Array of shaders to use for program.
 	 * @param VertexAttributes Vertex attributes for program.
-	 * @param pVertexAttributes Vertex attributes.
+	 * @param UniformList Uniforms for program.
+	 * @param UniformBlockList Uniform blocks for program.
 	 * @param DebugName Name used for debugging creation.
 	 */
 	virtual RsProgram* createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
+		RsProgramUniformList UniformList,
+		RsProgramUniformBlockList UniformBlockList,
 		const std::string& DebugName ) = 0;
 
 	/**

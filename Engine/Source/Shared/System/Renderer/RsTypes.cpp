@@ -484,8 +484,6 @@ RsShaderBackendType RsShaderCodeTypeToBackendType( RsShaderCodeType CodeType )
 		return RsShaderBackendType::GLSL_ES;
 	case RsShaderCodeType::GLSL_ES_310:
 		return RsShaderBackendType::GLSL_ES;
-	case RsShaderCodeType::D3D9_3_0:
-		return RsShaderBackendType::D3D9;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_1:
 		return RsShaderBackendType::D3D11;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_2:
@@ -550,9 +548,6 @@ std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType )
 	case RsShaderCodeType::GLSL_ES_310:
 		RetVal = "GLSL_ES_310";
 		break;
-	case RsShaderCodeType::D3D9_3_0:
-		RetVal = "D3D9_3_0";
-		break;
 	case RsShaderCodeType::D3D11_4_0_LEVEL_9_1:
 		RetVal = "D3D11_4_0_LEVEL_9_1";
 		break;
@@ -574,6 +569,9 @@ std::string RsShaderCodeTypeToString( RsShaderCodeType CodeType )
 	case RsShaderCodeType::D3D11_5_1:
 		RetVal = "D3D11_5_1";
 		break;
+	case RsShaderCodeType::SPIRV:
+		RetVal = "SPIRV";
+		break;
 	default:
 		BcBreakpoint;
 	}
@@ -594,17 +592,14 @@ std::string RsShaderBackendTypeToString( RsShaderBackendType BackendType )
 	case RsShaderBackendType::GLSL_ES:
 		RetVal = "GLSL_ES";
 		break;
-	case RsShaderBackendType::D3D9:
-		RetVal = "D3D9";
-		break;
 	case RsShaderBackendType::D3D11:
 		RetVal = "D3D11";
 		break;
 	case RsShaderBackendType::D3D12:
 		RetVal = "D3D12";
 		break;
-	case RsShaderBackendType::MANTLE:
-		RetVal = "MANTLE";
+	case RsShaderBackendType::SPIRV:
+		RetVal = "SPIRV";
 		break;
 	default:
 		BcBreakpoint;
@@ -667,10 +662,6 @@ RsShaderCodeType RsStringToShaderCodeType( std::string String )
 	{
 		CodeType = RsShaderCodeType::GLSL_ES_310;
 	}
-	else if( String == "D3D9_3_0" )
-	{
-		CodeType = RsShaderCodeType::D3D9_3_0;
-	}
 	else if( String == "D3D11_4_0_LEVEL_9_3" )
 	{
 		CodeType = RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
@@ -691,7 +682,10 @@ RsShaderCodeType RsStringToShaderCodeType( std::string String )
 	{
 		CodeType = RsShaderCodeType::D3D11_5_1;
 	}
-	else
+	else if( String == "SPIRV" )
+	{
+		CodeType = RsShaderCodeType::SPIRV;
+	}	else
 	{
 		BcBreakpoint;
 	}
@@ -731,13 +725,13 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_300 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_300;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_310 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_310;
 
-		ConversionTable[ (BcU32)RsShaderCodeType::D3D9_3_0 ][ (BcU32)RsShaderBackendType::D3D9 ] = RsShaderCodeType::D3D9_3_0;
-
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_1 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_1;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_0 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_1 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_1;
+
+		ConversionTable[ (BcU32)RsShaderCodeType::SPIRV ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
 
 		// D3D11 to GLSL
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
@@ -749,10 +743,7 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_0 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_430;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_1 ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_430;
 
-		// D3D9 to GLSL ES
-		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
-		ConversionTable[ (BcU32)RsShaderCodeType::D3D9_3_0 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
-
+		
 		// D3D11 to GLSL ES
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
@@ -762,6 +753,16 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_1 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_0 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
 		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_1 ][ (BcU32)RsShaderBackendType::GLSL_ES ] = RsShaderCodeType::GLSL_ES_100;
+
+		// D3D11 to SPIRV
+		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_2 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_0 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_4_1 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_0 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::D3D11_5_1 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
 
 		// GLSL to D3D11
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
@@ -775,17 +776,38 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_440 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_450 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_0;
 		
+		// GLSL to SPIRV
+		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_140 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_150 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_330 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_400 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_410 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_420 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_430 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_440 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_450 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+
 		// GLSL ES to D3D11
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_100 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_1;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_300 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
 		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_310 ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_4_0_LEVEL_9_3;
 
-		// GLSL ES to D3D9
+		// GLSL ES to SPIRV
 		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
-		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_100 ][ (BcU32)RsShaderBackendType::D3D9 ] = RsShaderCodeType::D3D9_3_0;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_100 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_300 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
+		ConversionTable[ (BcU32)RsShaderCodeType::GLSL_ES_310 ][ (BcU32)RsShaderBackendType::SPIRV ] = RsShaderCodeType::SPIRV;
 
+		// SPIR-V to GLSL
+		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
+		ConversionTable[ (BcU32)RsShaderCodeType::SPIRV ][ (BcU32)RsShaderBackendType::GLSL ] = RsShaderCodeType::GLSL_450;
 
+		// SPIR-V to D3D11
+		// TODO: Revise that these are correct. Just off the top of my head best guesses for now.
+		ConversionTable[ (BcU32)RsShaderCodeType::SPIRV ][ (BcU32)RsShaderBackendType::D3D11 ] = RsShaderCodeType::D3D11_5_1;
+		
 		//
 		return ConversionTable[ (BcU32)CodeType ][ (BcU32)Backend ];
 	}
