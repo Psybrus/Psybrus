@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Renderer/GL/RsContextGL.h"
+#include "System/Renderer/GL/RsUtilsGL.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
@@ -86,280 +87,7 @@ static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity,
 #endif // !defined( PSY_PRODUCTION )
 
 //////////////////////////////////////////////////////////////////////////
-// State value translation.
-static GLenum gCompareMode[] = 
-{
-	GL_NEVER,
-	GL_LESS,
-	GL_EQUAL,
-	GL_LEQUAL,
-	GL_GREATER,
-	GL_NOTEQUAL,
-	GL_GEQUAL,
-	GL_ALWAYS
-};
-
-static GLenum gBlendOp[] = 
-{
-	GL_FUNC_ADD,
-	GL_FUNC_SUBTRACT,
-	GL_FUNC_REVERSE_SUBTRACT,
-	GL_MIN,
-	GL_MAX,
-};
-
-static GLenum gBlendType[] = 
-{
-	GL_ZERO,
-	GL_ONE,
-	GL_SRC_COLOR,
-	GL_ONE_MINUS_SRC_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA,
-	GL_DST_COLOR,
-	GL_ONE_MINUS_DST_COLOR,
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA,
-};
-
-static GLenum gStencilOp[] =
-{
-	GL_KEEP,
-	GL_ZERO,
-	GL_REPLACE,
-	GL_INCR,
-	GL_INCR_WRAP,
-	GL_DECR,
-	GL_DECR_WRAP,
-	GL_INVERT
-};
-
-static GLenum gTextureFiltering[] = 
-{
-	// No mipmapping.
-	GL_NEAREST,
-	GL_LINEAR,
-	
-#if defined( RENDER_USE_GLES )
-	// TODO: Figure out why mipmapping was a problem.
-	// Mipmapping nearest
-	GL_LINEAR, // GL_NEAREST_MIPMAP_NEAREST,
-	GL_LINEAR, // GL_LINEAR_MIPMAP_NEAREST,
-	
-	// Mipmapping linear
-	GL_LINEAR, // GL_NEAREST_MIPMAP_LINEAR,
-	GL_LINEAR, // GL_LINEAR_MIPMAP_LINEAR
-#else
-	// Mipmapping nearest
-	GL_NEAREST_MIPMAP_NEAREST,
-	GL_LINEAR_MIPMAP_NEAREST,
-	
-	// Mipmapping linear
-	GL_NEAREST_MIPMAP_LINEAR,
-	GL_LINEAR_MIPMAP_LINEAR
-#endif
-};
-
-static GLenum gTextureSampling[] = 
-{
-	GL_REPEAT,
-	GL_MIRRORED_REPEAT,
-	GL_CLAMP_TO_EDGE,
-#if !defined( RENDER_USE_GLES )
-	GL_DECAL
-#else
-	GL_CLAMP_TO_EDGE
-#endif
-};
-
-static GLenum gTextureTypes[] = 
-{
-	0,
-#if !defined( RENDER_USE_GLES )
-	GL_TEXTURE_1D,
-#else
-	0,
-#endif
-	GL_TEXTURE_2D,
-	GL_TEXTURE_3D,
-	GL_TEXTURE_CUBE_MAP
-};
-
-static GLenum gTextureFaces[] =
-{
-	0,
-	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-};
-
-static GLenum gVertexDataTypes[] = 
-{
-	GL_FLOAT,			// RsVertexDataType::FLOAT32 = 0,
-	GL_HALF_FLOAT,		// RsVertexDataType::FLOAT16,
-	GL_FIXED,			// RsVertexDataType::FIXED,
-	GL_BYTE,			// RsVertexDataType::BYTE,
-	GL_BYTE,			// RsVertexDataType::BYTE_NORM,
-	GL_UNSIGNED_BYTE,	// RsVertexDataType::UBYTE,
-	GL_UNSIGNED_BYTE,	// RsVertexDataType::UBYTE_NORM,
-	GL_SHORT,			// RsVertexDataType::SHORT,
-	GL_SHORT,			// RsVertexDataType::SHORT_NORM,
-	GL_UNSIGNED_SHORT,	// RsVertexDataType::USHORT,
-	GL_UNSIGNED_SHORT,	// RsVertexDataType::USHORT_NORM,
-	GL_INT,				// RsVertexDataType::INT,
-	GL_INT,				// RsVertexDataType::INT_NORM,
-	GL_UNSIGNED_INT,	// RsVertexDataType::UINT,
-	GL_UNSIGNED_INT		// RsVertexDataType::UINT_NORM,
-};
-
-static GLboolean gVertexDataNormalised[] = 
-{
-	GL_FALSE,			// RsVertexDataType::FLOAT32 = 0,
-	GL_FALSE,			// RsVertexDataType::FLOAT16,
-	GL_FALSE,			// RsVertexDataType::FIXED,
-	GL_FALSE,			// RsVertexDataType::BYTE,
-	GL_TRUE,			// RsVertexDataType::BYTE_NORM,
-	GL_FALSE,			// RsVertexDataType::UBYTE,
-	GL_TRUE,			// RsVertexDataType::UBYTE_NORM,
-	GL_FALSE,			// RsVertexDataType::SHORT,
-	GL_TRUE,			// RsVertexDataType::SHORT_NORM,
-	GL_FALSE,			// RsVertexDataType::USHORT,
-	GL_TRUE,			// RsVertexDataType::USHORT_NORM,
-	GL_FALSE,			// RsVertexDataType::INT,
-	GL_TRUE,			// RsVertexDataType::INT_NORM,
-	GL_FALSE,			// RsVertexDataType::UINT,
-	GL_TRUE				// RsVertexDataType::UINT_NORM,
-};
-
-static GLuint gVertexDataSize[] = 
-{
-	4,					// RsVertexDataType::FLOAT32 = 0,
-	2,					// RsVertexDataType::FLOAT16,
-	4,					// RsVertexDataType::FIXED,
-	1,					// RsVertexDataType::BYTE,
-	1,					// RsVertexDataType::BYTE_NORM,
-	1,					// RsVertexDataType::UBYTE,
-	1,					// RsVertexDataType::UBYTE_NORM,
-	2,					// RsVertexDataType::SHORT,
-	2,					// RsVertexDataType::SHORT_NORM,
-	2,					// RsVertexDataType::USHORT,
-	2,					// RsVertexDataType::USHORT_NORM,
-	4,					// RsVertexDataType::INT,
-	4,					// RsVertexDataType::INT_NORM,
-	4,					// RsVertexDataType::UINT,
-	4					// RsVertexDataType::UINT_NORM,
-};
-
-static GLenum gTopologyType[] =
-{
-	GL_POINTS,						// RsTopologyType::POINTLIST = 0,
-	GL_LINES,						// RsTopologyType::LINE_LIST,
-	GL_LINE_STRIP,					// RsTopologyType::LINE_STRIP,
-#if !defined( RENDER_USE_GLES )
-	GL_LINES_ADJACENCY,				// RsTopologyType::LINE_LIST_ADJACENCY,
-	GL_LINE_STRIP_ADJACENCY,		// RsTopologyType::LINE_STRIP_ADJACENCY,
-#else
-	0, 0,
-#endif
-	GL_TRIANGLES,					// RsTopologyType::TRIANGLE_LIST,
-	GL_TRIANGLE_STRIP,				// RsTopologyType::TRIANGLE_STRIP,
-#if !defined( RENDER_USE_GLES )
-	GL_TRIANGLES_ADJACENCY,			// RsTopologyType::TRIANGLE_LIST_ADJACENCY,
-	GL_TRIANGLE_STRIP_ADJACENCY,	// RsTopologyType::TRIANGLE_STRIP_ADJACENCY,
-	GL_TRIANGLE_FAN,				// RsTopologyType::TRIANGLE_FAN,
-	GL_PATCHES						// RsTopologyType::PATCHES,
-#else
-	0, 0, 0, 0
-#endif
-};
-
-static GLenum gBufferType[] =
-{
-	0,								// RsBufferType::UNKNOWN
-	GL_ARRAY_BUFFER,				// RsBufferType::VERTEX
-	GL_ELEMENT_ARRAY_BUFFER,		// RsBufferType::INDEX
-	GL_UNIFORM_BUFFER,				// RsBufferType::UNIFORM
-#if !defined( RENDER_USE_GLES )
-	GL_IMAGE_BUFFER,				// RsBufferType::UNORDERED_ACCESS
-	GL_DRAW_INDIRECT_BUFFER,		// RsBufferType::DRAW_INDIRECT
-	GL_TRANSFORM_FEEDBACK_BUFFER,	// RsBufferType::STREAM_OUT
-#else
-	0, 0, 0
-#endif
-};
-
-static GLenum gTextureType[] =
-{
-	0,								// RsTextureType::UNKNOWN
-#if !defined( RENDER_USE_GLES )
-	GL_TEXTURE_1D,					// RsTextureType::TEX1D
-#else
-	0,
-#endif
-	GL_TEXTURE_2D,					// RsTextureType::TEX2D
-	GL_TEXTURE_3D,					// RsTextureType::TEX3D
-	GL_TEXTURE_CUBE_MAP,			// RsTextureType::TEXCUBE
-};
-
-struct RsTextureFormatGL
-{
-	BcBool Compressed_;
-	BcBool DepthStencil_;
-	GLint InternalFormat_;
-	GLenum Format_;
-	GLenum Type_;
-};
-
-static RsTextureFormatGL gTextureFormats[] =
-{
-	{ BcFalse, BcFalse, GL_NONE, GL_NONE, GL_NONE },			// RsTextureFormat::UNKNOWN,
-
-	// Colour.	
-	{ BcFalse, BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8,
-	{ BcFalse, BcFalse, GL_RG, GL_RG, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8,
-	{ BcFalse, BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE },		// RsTextureFormat::R8G8B8,
-	{ BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE },	// RsTextureFormat::R8G8B8A8,
-	{ BcFalse, BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT },		// RsTextureFormat::R16F,
-	{ BcFalse, BcFalse, GL_RG16F, GL_RG, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16F,
-	{ BcFalse, BcFalse, GL_RGB16F, GL_RGB, GL_HALF_FLOAT },		// RsTextureFormat::R16FG16FB16F,
-	{ BcFalse, BcFalse, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT },	// RsTextureFormat::R16FG16FB16FA16F,
-	{ BcFalse, BcFalse, GL_R32F, GL_RED, GL_FLOAT },			// RsTextureFormat::R32F,
-	{ BcFalse, BcFalse, GL_RG32F, GL_RG, GL_FLOAT },			// RsTextureFormat::R32FG32F,
-	{ BcFalse, BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT },			// RsTextureFormat::R32FG32FB32F,
-	{ BcFalse, BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT },		// RsTextureFormat::R32FG32FB32FA32F,
-	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 }, // RsTextureFormat::DXT1,
-	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 }, // RsTextureFormat::DXT3,
-	{ BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 }, // RsTextureFormat::DXT5,
-	{ BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 }, 				 // RsTextureFormat::ETC1,
-
-	// Depth stencil.
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT },	// RsTextureFormat::D16,
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D24,
-#if !defined( RENDER_USE_GLES )
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT },			// RsTextureFormat::D32,
-#else
-	{ BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT },		// RsTextureFormat::D32,
-#endif
-	{ BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 },	// RsTextureFormat::D24S8,
-};
-
-static GLenum gShaderType[] = 
-{
-	GL_VERTEX_SHADER,											// RsShaderType::VERTEX
-	GL_FRAGMENT_SHADER,											// RsShaderType::PIXEL
-#if !defined( RENDER_USE_GLES )
-	GL_TESS_CONTROL_SHADER,										// RsShaderType::HULL
-	GL_TESS_EVALUATION_SHADER,									// RsShaderType::DOMAIN
-	GL_GEOMETRY_SHADER,											// RsShaderType::GEOMETRY
-	GL_COMPUTE_SHADER,											// RsShaderType::COMPUTE
-#else
-	0, 0, 0, 0
-#endif
-};
-
+// Small util.
 namespace
 {
 	bool IsDepthFormat( RsTextureFormat Format )
@@ -1176,11 +904,11 @@ bool RsContextGL::createSamplerState(
 		// Setup sampler parmeters.
 		const auto& SamplerStateDesc = SamplerState->getDesc();
 
-		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] ) );
-		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] ) );
-		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] ) );
-		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] ) );	
-		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] ) );	
+		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
+		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
+		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
+		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 		
@@ -1332,7 +1060,7 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	PSY_LOG( "Creating buffer: %u kb", BufferDesc.SizeBytes_ / 1024 );
 
 	// Get buffer type for GL.
-	auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
+	auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
 
 	// Get usage flags for GL.
 	GLuint UsageFlagsGL = 0;
@@ -1481,7 +1209,7 @@ bool RsContextGL::updateBuffer(
 		if( BufferImpl->Handle_ != 0 )
 		{
 			// Get buffer type for GL.
-			auto TypeGL = gBufferType[ (BcU32)BufferDesc.Type_ ];
+			auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
 
 			// Bind buffer.
 			GL( BindBuffer( TypeGL, BufferImpl->Handle_ ) );
@@ -1601,7 +1329,7 @@ bool RsContextGL::createTexture(
 	PSY_LOG( "Creating texture: %u kb", DataSize / 1024 );
 
 	// Get buffer type for GL.
-	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
+	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
 
 	// Get usage flags for GL.
 	GLuint UsageFlagsGL = 0;
@@ -1792,7 +1520,7 @@ bool RsContextGL::createShader(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	const auto& Desc = Shader->getDesc();
-	GLuint ShaderType = gShaderType[ (BcU32)Desc.ShaderType_ ];
+	GLuint ShaderType = RsUtilsGL::GetShaderType( Desc.ShaderType_ );
 
 	// Create handle for shader.
 	GLuint Handle = GL( CreateShader( ShaderType ) );
@@ -2541,7 +2269,7 @@ void RsContextGL::flushState()
 				RsTexture* pTexture = TextureStateValue.pTexture_;			
 				const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
 				const RsTextureType InternalType = pTexture ? pTexture->getDesc().Type_ : RsTextureType::TEX2D;
-				const GLenum TextureType = gTextureTypes[ (BcU32)InternalType ];
+				const GLenum TextureType = RsUtilsGL::GetTextureType( InternalType );
 
 				GL( ActiveTexture( GL_TEXTURE0 + TextureStateID ) );
 				if( pTexture != nullptr )
@@ -2573,12 +2301,12 @@ void RsContextGL::flushState()
 						// TODO MinLOD_
 						// TODO MaxLOD_
 						const auto& SamplerStateDesc = SamplerState->getDesc();
-						GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MinFilter_ ] ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, gTextureFiltering[ (BcU32)SamplerStateDesc.MagFilter_ ] ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, gTextureSampling[ (BcU32)SamplerStateDesc.AddressU_ ] ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, gTextureSampling[ (BcU32)SamplerStateDesc.AddressV_ ] ) );	
+						GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
+						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
 #if !defined( RENDER_USE_GLES )
-						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, gTextureSampling[ (BcU32)SamplerStateDesc.AddressW_ ] ) );	
+						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
 						GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 						GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 #endif
@@ -2669,8 +2397,8 @@ void RsContextGL::flushState()
 
 					GL( VertexAttribPointer( Attribute.Channel_, 
 						FoundElement->Components_,
-						gVertexDataTypes[ (BcU32)FoundElement->DataType_ ],
-						gVertexDataNormalised[ (BcU32)FoundElement->DataType_ ],
+						RsUtilsGL::GetVertexDataType( FoundElement->DataType_ ),
+						RsUtilsGL::GetVertexDataNormalised( FoundElement->DataType_ ),
 						VertexStride,
 						(GLvoid*)CalcOffset ) );
 
@@ -2880,7 +2608,7 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 	++NoofDrawCalls_;
 	flushState();
 	BcAssert( Program_ != nullptr );
-	GL( DrawArrays( gTopologyType[ (BcU32)TopologyType ], IndexOffset, NoofIndices ) );
+	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), IndexOffset, NoofIndices ) );
 
 	
 }
@@ -2897,12 +2625,12 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 
 	if( VertexOffset == 0 )
 	{
-		GL( DrawElements( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) ) );
+		GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) ) );
 	}
 #if !defined( RENDER_USE_GLES )
 	else if( Version_.SupportDrawElementsBaseVertex_ )
 	{
-		GL( DrawElementsBaseVertex( gTopologyType[ (BcU32)TopologyType ], NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset ) );
+		GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset ) );
 	}
 #endif
 	else
@@ -2957,8 +2685,8 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	GL( ReadBuffer( GL_COLOR_ATTACHMENT0 + Idx ) );
 
 	const auto& TextureDesc = Texture->getDesc();
-	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
-	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
+	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
 
 	RsTextureImplGL* DestTextureImpl = Texture->getHandle< RsTextureImplGL* >();
 	if( DestTextureImpl->Handle_ != 0 )
@@ -3158,7 +2886,7 @@ void RsContextGL::loadTexture(
 	const auto& TextureDesc = Texture->getDesc();
 
 	// Get buffer type for GL.
-	auto TypeGL = gTextureType[ (BcU32)TextureDesc.Type_ ];
+	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
 
 	// Bind.
 	if( Bind )
@@ -3171,7 +2899,7 @@ void RsContextGL::loadTexture(
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
 	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
 
-	const auto& FormatGL = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
+	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
 
 	if( FormatGL.Compressed_ == BcFalse )
 	{
@@ -3229,7 +2957,7 @@ void RsContextGL::loadTexture(
 		case RsTextureType::TEXCUBE:
 			PSY_LOG( "TexImage2D! %u, %p", Slice.Face_, Data );
 			GL( TexImage2D( 
-				gTextureFaces[ (int)Slice.Face_ ],
+				RsUtilsGL::GetTextureFace( Slice.Face_ ),
 				Slice.Level_,
 				FormatGL.InternalFormat_,
 				Width,
@@ -3296,7 +3024,7 @@ void RsContextGL::loadTexture(
 
 		case RsTextureType::TEXCUBE:
 			GL( CompressedTexImage2D( 
-				gTextureFaces[ (int)Slice.Face_ ],
+				RsUtilsGL::GetTextureFace( Slice.Face_ ),
 				Slice.Level_,
 				FormatGL.InternalFormat_,
 				Width,
@@ -3343,7 +3071,8 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 			{
 				GL( BlendEquationSeparatei( 
 					Idx, 
-					gBlendOp[ (BcU32)RenderTarget.BlendOp_ ], gBlendOp[ (BcU32)RenderTarget.BlendOpAlpha_ ] ) );
+					RsUtilsGL::GetBlendOp( RenderTarget.BlendOp_ ), 
+					RsUtilsGL::GetBlendOp( RenderTarget.BlendOpAlpha_ ) ) );
 			}
 
 			if( Force ||
@@ -3354,8 +3083,8 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 			{
 				GL( BlendFuncSeparatei( 
 					Idx, 
-					gBlendType[ (BcU32)RenderTarget.SrcBlend_ ], gBlendType[ (BcU32)RenderTarget.DestBlend_ ],
-					gBlendType[ (BcU32)RenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)RenderTarget.DestBlendAlpha_ ] ) );
+					RsUtilsGL::GetBlendType( RenderTarget.SrcBlend_ ), RsUtilsGL::GetBlendType( RenderTarget.DestBlend_ ),
+					RsUtilsGL::GetBlendType( RenderTarget.SrcBlendAlpha_ ), RsUtilsGL::GetBlendType( RenderTarget.DestBlendAlpha_ ) ) );
 			}
 
 			if( Force ||
@@ -3394,7 +3123,8 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 			MainRenderTarget.BlendOpAlpha_ != BoundMainRenderTarget.BlendOpAlpha_ )
 		{
 			GL( BlendEquationSeparate( 
-				gBlendOp[ (BcU32)MainRenderTarget.BlendOp_ ], gBlendOp[ (BcU32)MainRenderTarget.BlendOpAlpha_ ] ) );
+				RsUtilsGL::GetBlendOp( MainRenderTarget.BlendOp_ ), 
+				RsUtilsGL::GetBlendOp( MainRenderTarget.BlendOpAlpha_ ) ) );
 		}
 
 		if( Force ||
@@ -3404,8 +3134,8 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 			MainRenderTarget.DestBlendAlpha_ != BoundMainRenderTarget.DestBlendAlpha_ )
 		{
 			GL( BlendFuncSeparate( 
-				gBlendType[ (BcU32)MainRenderTarget.SrcBlend_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlend_ ],
-				gBlendType[ (BcU32)MainRenderTarget.SrcBlendAlpha_ ], gBlendType[ (BcU32)MainRenderTarget.DestBlendAlpha_ ] ) );
+				RsUtilsGL::GetBlendType( MainRenderTarget.SrcBlend_ ), RsUtilsGL::GetBlendType( MainRenderTarget.DestBlend_ ),
+				RsUtilsGL::GetBlendType( MainRenderTarget.SrcBlendAlpha_ ), RsUtilsGL::GetBlendType( MainRenderTarget.DestBlendAlpha_ ) ) );
 		}
 
 		if( Version_.Features_.MRT_ )
@@ -3468,7 +3198,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	if( Force ||
 		DepthStencilState.DepthFunc_ != BoundDepthStencilState.DepthFunc_ )
 	{
-		GL( DepthFunc( gCompareMode[ (BcU32)DepthStencilState.DepthFunc_ ] ) );
+		GL( DepthFunc( RsUtilsGL::GetCompareMode( DepthStencilState.DepthFunc_ ) ) );
 	}
 
 	if( Force ||
@@ -3491,7 +3221,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	{
 		GL( StencilFuncSeparate( 
 			GL_FRONT,
-			gCompareMode[ (BcU32)DepthStencilState.StencilFront_.Func_ ], 
+			RsUtilsGL::GetCompareMode( DepthStencilState.StencilFront_.Func_ ), 
 			DepthStencilState.StencilRef_, DepthStencilState.StencilFront_.Mask_ ) );
 	}
 
@@ -3502,7 +3232,7 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	{
 		GL( StencilFuncSeparate( 
 			GL_BACK,
-			gCompareMode[ (BcU32)DepthStencilState.StencilBack_.Func_ ], 
+			RsUtilsGL::GetCompareMode( DepthStencilState.StencilBack_.Func_ ), 
 			DepthStencilState.StencilRef_, DepthStencilState.StencilBack_.Mask_ ) );
 	}
 
@@ -3513,9 +3243,9 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	{
 		GL( StencilOpSeparate( 
 			GL_FRONT,
-			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Fail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.DepthFail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilFront_.Pass_ ] ) );
+			RsUtilsGL::GetStencilOp( DepthStencilState.StencilFront_.Fail_ ), 
+			RsUtilsGL::GetStencilOp( DepthStencilState.StencilFront_.DepthFail_ ), 
+			RsUtilsGL::GetStencilOp( DepthStencilState.StencilFront_.Pass_ ) ) );
 	}
 
 	if( Force ||
@@ -3525,9 +3255,9 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 	{
 		GL( StencilOpSeparate( 
 			GL_BACK,
-			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Fail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.DepthFail_ ], 
-			gStencilOp[ (BcU32)DepthStencilState.StencilBack_.Pass_ ] ) );
+			RsUtilsGL::GetStencilOp( DepthStencilState.StencilBack_.Fail_ ), 
+			RsUtilsGL::GetStencilOp( DepthStencilState.StencilBack_.DepthFail_ ), 
+			RsUtilsGL::GetStencilOp( DepthStencilState.StencilBack_.Pass_ ) ) );
 	}
 
 	const auto& RasteriserState = Desc.RasteriserState_;
@@ -3599,8 +3329,6 @@ void RsContextGL::setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Forc
 		}
 	}
 #endif
-	
-	
 
 	// Copy over. Could do less work. Look into this later.
 	BoundRenderStateDesc_ = Desc;
