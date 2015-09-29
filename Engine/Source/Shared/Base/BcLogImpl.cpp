@@ -115,7 +115,7 @@ private:
 		else if( BcStrStr( pText, "SUCCESS:" ) || BcStrStr( pText, "SUCCEEDED:" ) )
 		{
 #if PLATFORM_WINDOWS
-			SetConsoleTextAttribute( HConsole, WIN_COLOR_RED );
+			SetConsoleTextAttribute( HConsole, WIN_COLOR_GREEN );
 			printf( "%s", pText );
 #elif PLATFORM_ANDROID
 			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
