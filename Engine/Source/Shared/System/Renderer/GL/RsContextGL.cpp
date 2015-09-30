@@ -143,6 +143,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	BcMemZero( &VertexBufferActiveState_[ 0 ], sizeof( VertexBufferActiveState_ ) );
 	BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
 	BcMemZero( &UniformBuffers_[ 0 ], sizeof( UniformBuffers_ ) );
+	BcMemZero( &UniformBufferBindingInfo_[ 0 ], sizeof( UniformBufferBindingInfo_ ) );
 	RenderState_ = nullptr;
 	LastRenderStateHandle_ = 0;
 
@@ -1143,11 +1144,11 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 			VertexBufferBinding.Buffer_ = nullptr;
 		}
 	}
-	for( auto& UniformBufferBinding : UniformBuffers_ )
+	for( auto& UniformBuffer : UniformBuffers_ )
 	{
-		if( Buffer == UniformBufferBinding.Buffer_ )
+		if( Buffer == UniformBuffer )
 		{
-			UniformBufferBinding.Buffer_ = nullptr;
+			UniformBuffer = nullptr;
 		}
 	}
 
@@ -1317,13 +1318,7 @@ bool RsContextGL::createTexture(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	const auto& TextureDesc = Texture->getDesc();
-	BcU32 DataSize = RsTextureFormatSize( 
-		TextureDesc.Format_,
-		TextureDesc.Width_,
-		TextureDesc.Height_,
-		TextureDesc.Depth_,
-		TextureDesc.Levels_ );
-
+	
 	// Get buffer type for GL.
 	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
 
@@ -1818,10 +1813,10 @@ void RsContextGL::setUniformBuffer(
 	BcAssertMsg( UniformBuffer, "Can't bind a null uniform buffer." );
 	BcAssertMsg( UniformBuffer->getDesc().Type_ == RsBufferType::UNIFORM, "Buffer must be uniform buffer." );
 
-	if( UniformBuffers_[ SlotIdx ].Buffer_ != UniformBuffer )
+	if( UniformBuffers_[ SlotIdx ] != UniformBuffer )
 	{
-		UniformBuffers_[ SlotIdx ].Buffer_ = UniformBuffer;
-		UniformBuffers_[ SlotIdx ].Dirty_ = BcTrue;
+		UniformBuffers_[ SlotIdx ] = UniformBuffer;
+		UniformBufferBindingInfo_[ SlotIdx ].Dirty_ = BcTrue;
 		UniformBuffersDirty_ = BcTrue;
 	}
 }
@@ -1964,7 +1959,7 @@ void RsContextGL::flushState()
 		RsProgramGL* ProgramGL = Program_->getHandle< RsProgramGL* >();
 		if( ProgramDirty_ )
 		{
-			GL( UseProgram( ProgramGL->Handle_ ) );
+			GL( UseProgram( ProgramGL->getHandle() ) );
 			ProgramDirty_ = BcFalse;
 		}
 
@@ -2053,98 +2048,34 @@ void RsContextGL::flushState()
 		}
 	}
 
-	if( UniformBuffersDirty_ )
+	if( UniformBuffersDirty_ && Program_ )
 	{
-		// Bind up uniform buffers, or uniforms.
+		RsProgramGL* ProgramGL = Program_->getHandle< RsProgramGL* >();
+
 #if !defined( RENDER_USE_GLES )	
+		// Bind up uniform buffers, or uniforms.
 		if( Version_.SupportUniformBuffers_ )
 		{
 			PSY_PROFILER_SECTION( UBORoot, "UBO" );
 			BcU32 BindingPoint = 0;
-			for( auto It( UniformBuffers_.begin() ); It != UniformBuffers_.end(); ++It )
+			for( BcU32 Idx = 0; Idx < UniformBuffers_.size(); ++Idx )
 			{
-				auto Buffer = (*It).Buffer_;
-				const auto Dirty = (*It).Dirty_;
-				if( (*It).Dirty_ && Buffer != nullptr )
+				auto Buffer = UniformBuffers_[ Idx ];
+				auto& BindingInfo = UniformBufferBindingInfo_[ Idx ];
+				if( BindingInfo.Dirty_ && Buffer != nullptr )
 				{
 					auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
 					BcAssert( BufferImpl );
 					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
-					(*It).Dirty_ = BcFalse;
+					BindingInfo.Dirty_ = BcFalse;
 				}
 				++BindingPoint;
 			}
 		}
-		else
 #endif
-		{
-			if( Program_ != nullptr )
-			{
-				RsProgramGL* ProgramGL = Program_->getHandle< RsProgramGL* >();
-		
-				PSY_PROFILER_SECTION( UniformRoot, "Uniform" );
-				for( auto& UniformEntry : ProgramGL->UniformEntries_ )
-				{
-					const BcU32 BindingPoint = UniformEntry.BindingPoint_;
-					auto Buffer = UniformBuffers_[ BindingPoint ].Buffer_;
-					if( Buffer != nullptr )
-					{
-						const auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-						BcAssert( BufferImpl );
 
-						// Check version, if equal, then don't update uniform.
-						if( UniformEntry.Buffer_ != Buffer ||
-							UniformEntry.Version_ != BufferImpl->Version_ )
-						{
-							// Update buffer & version.
-							UniformEntry.Buffer_ = Buffer;
-							UniformEntry.Version_ = BufferImpl->Version_;
-
-							// Setup uniforms.
-							const auto* BufferData = BufferImpl->BufferData_;
-							BcAssert( BufferData );
-							const auto* UniformData = BufferData + UniformEntry.Offset_;
-							auto* CachedUniformData = ProgramGL->CachedUniforms_.get() + UniformEntry.CachedOffset_;
-
-							// Check if value has changed.
-							if( memcmp( CachedUniformData, UniformData, UniformEntry.Size_ ) != 0 )
-							{
-								memcpy( CachedUniformData, UniformData, UniformEntry.Size_ );
-								switch( UniformEntry.Type_ )
-								{
-								case RsProgramGL::UniformEntry::Type::UNIFORM_1IV:
-									GL( Uniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) ) );
-									break;
-								case RsProgramGL::UniformEntry::Type::UNIFORM_1FV:
-									GL( Uniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-									break;
-								case RsProgramGL::UniformEntry::Type::UNIFORM_2FV:
-									GL( Uniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-									break;
-								case RsProgramGL::UniformEntry::Type::UNIFORM_3FV:
-									GL( Uniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-									break;
-								case RsProgramGL::UniformEntry::Type::UNIFORM_4FV:
-									GL( Uniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
-									break;
-								case RsProgramGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
-									GL( UniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) ) );
-									break;
-								default:
-									BcBreakpoint;
-									break;
-								}
-							
-							}
-						}
-					}
-					else
-					{
-						BcBreakpoint;
-					}
-				}
-			}
-		}
+		// Copy uniform buffers into program uniforms as required.
+		ProgramGL->copyUniformBuffersToUniforms( UniformBuffers_.size(), UniformBuffers_.data() );
 	}
 
 	if( IndexBufferDirty_ )

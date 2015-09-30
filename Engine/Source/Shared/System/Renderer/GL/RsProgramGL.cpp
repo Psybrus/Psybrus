@@ -1,8 +1,11 @@
 #include "System/Renderer/GL/RsProgramGL.h"
+#include "System/Renderer/GL/RsContextGL.h" // TODO: Move out?
 
+#include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsShader.h"
 
+#include "Base/BcProfiler.h"
 #include "Math/MaMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -390,3 +393,82 @@ RsProgramGL::~RsProgramGL()
 	Handle_ = 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// copyUniformBuffersToUniforms
+void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, class RsBuffer** Buffers )
+{
+	PSY_PROFILE_FUNCTION;
+
+#if PSY_DEBUG
+	if( UniformEntries_.size() > 0 )
+	{
+		GLint BoundHandle = 0;
+		GL( GetIntegerv( GL_CURRENT_PROGRAM, &BoundHandle ) );
+		BcAssert( (GLuint)BoundHandle == Handle_ );
+	}
+#endif
+
+	for( auto& UniformEntry : UniformEntries_ )
+	{
+		RsBuffer* Buffer = Buffers[ UniformEntry.BindingPoint_ ];
+		if( Buffer != nullptr )
+		{
+			const auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
+			BcAssert( BufferImpl );
+
+			// Check if we have buffer data.
+			if( BufferImpl->BufferData_ != nullptr )
+			{
+				// Check version, if equal, then don't update uniform.
+				if( UniformEntry.Buffer_ != Buffer ||
+					UniformEntry.Version_ != BufferImpl->Version_ )
+				{
+					// Update buffer & version.
+					UniformEntry.Buffer_ = Buffer;
+					UniformEntry.Version_ = BufferImpl->Version_;
+
+					// Setup uniforms.
+					const auto* BufferData = BufferImpl->BufferData_;
+					BcAssert( BufferData );
+					const auto* UniformData = BufferData + UniformEntry.Offset_;
+					auto* CachedUniformData = CachedUniforms_.get() + UniformEntry.CachedOffset_;
+
+					// Check if value has changed.
+					if( memcmp( CachedUniformData, UniformData, UniformEntry.Size_ ) != 0 )
+					{
+						memcpy( CachedUniformData, UniformData, UniformEntry.Size_ );
+						switch( UniformEntry.Type_ )
+						{
+						case RsProgramGL::UniformEntry::Type::UNIFORM_1IV:
+							GL( Uniform1iv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcS32* >( UniformData ) ) );
+							break;
+						case RsProgramGL::UniformEntry::Type::UNIFORM_1FV:
+							GL( Uniform1fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+							break;
+						case RsProgramGL::UniformEntry::Type::UNIFORM_2FV:
+							GL( Uniform2fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+							break;
+						case RsProgramGL::UniformEntry::Type::UNIFORM_3FV:
+							GL( Uniform3fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+							break;
+						case RsProgramGL::UniformEntry::Type::UNIFORM_4FV:
+							GL( Uniform4fv( UniformEntry.Loc_, UniformEntry.Count_, reinterpret_cast< const BcF32* >( UniformData ) ) );
+							break;
+						case RsProgramGL::UniformEntry::Type::UNIFORM_MATRIX_4FV:
+							GL( UniformMatrix4fv( UniformEntry.Loc_, UniformEntry.Count_, GL_FALSE, reinterpret_cast< const BcF32* >( UniformData ) ) );
+							break;
+						default:
+							BcBreakpoint;
+							break;
+						}
+							
+					}
+				}
+			}
+		}
+		else
+		{
+			BcBreakpoint;
+		}
+	}
+}

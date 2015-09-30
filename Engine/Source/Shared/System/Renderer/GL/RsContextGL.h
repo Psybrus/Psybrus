@@ -258,9 +258,8 @@ private:
 		BcU32 Stride_;
 	};
 
-	struct UniformBufferBinding
+	struct UniformBufferBindingInfo
 	{
-		RsBuffer* Buffer_;
 		BcBool Dirty_;
 	};
 
@@ -269,7 +268,9 @@ private:
 	std::array< bool, MAX_VERTEX_STREAMS > VertexBufferActiveNextState_;
 	BcBool VertexBuffersDirty_;
 
-	std::array< UniformBufferBinding, MAX_UNIFORM_SLOTS > UniformBuffers_;
+	std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBuffers_;
+	std::array< UniformBufferBindingInfo, MAX_UNIFORM_SLOTS > UniformBufferBindingInfo_;
+
 	BcBool UniformBuffersDirty_;
 
 	BcU32 NoofDrawCalls_;

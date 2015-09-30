@@ -10,8 +10,17 @@ public:
 	RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Version );
 	~RsProgramGL();
 
+	/**
+	 * Copy data from uniform buffers into the uniforms.
+	 * @pre Currently bound program is this one.
+	 */
+	void copyUniformBuffersToUniforms( size_t NoofBuffers, class RsBuffer** Buffers );
 
-	class RsProgram* Parent_;
+
+	GLuint getHandle() const { return Handle_; }
+
+private:
+	class RsProgram* Parent_ = nullptr;
 	const RsOpenGLVersion& Version_;
 
 	struct UniformEntry
