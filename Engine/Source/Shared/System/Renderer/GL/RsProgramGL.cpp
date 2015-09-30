@@ -1,6 +1,5 @@
 #include "System/Renderer/GL/RsProgramGL.h"
-#include "System/Renderer/GL/RsContextGL.h" // TODO: Move out?
-
+#include "System/Renderer/GL/RsBufferGL.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsShader.h"
@@ -413,24 +412,22 @@ void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, class RsBuff
 		RsBuffer* Buffer = Buffers[ UniformEntry.BindingPoint_ ];
 		if( Buffer != nullptr )
 		{
-			const auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-			BcAssert( BufferImpl );
+			const auto BufferGL = Buffer->getHandle< RsBufferGL* >();
+			BcAssert( BufferGL );
 
 			// Check if we have buffer data.
-			if( BufferImpl->BufferData_ != nullptr )
+			if( BufferGL->BufferData_ != nullptr )
 			{
 				// Check version, if equal, then don't update uniform.
 				if( UniformEntry.Buffer_ != Buffer ||
-					UniformEntry.Version_ != BufferImpl->Version_ )
+					UniformEntry.Version_ != BufferGL->Version_ )
 				{
 					// Update buffer & version.
 					UniformEntry.Buffer_ = Buffer;
-					UniformEntry.Version_ = BufferImpl->Version_;
+					UniformEntry.Version_ = BufferGL->Version_;
 
 					// Setup uniforms.
-					const auto* BufferData = BufferImpl->BufferData_;
-					BcAssert( BufferData );
-					const auto* UniformData = BufferData + UniformEntry.Offset_;
+					const auto* UniformData = BufferGL->BufferData_.get() + UniformEntry.Offset_;
 					auto* CachedUniformData = CachedUniforms_.get() + UniformEntry.CachedOffset_;
 
 					// Check if value has changed.

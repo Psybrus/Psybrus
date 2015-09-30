@@ -14,32 +14,6 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// RsBufferImplGL
-struct RsBufferImplGL
-{
-	~RsBufferImplGL()
-	{
-		BcAssert( BufferData_ == nullptr );
-	}
-
-	GLuint Handle_ = 0;
-	BcU8* BufferData_ = nullptr;
-	BcU32 Version_ = 0;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// RsTextureImplGL
-struct RsTextureImplGL
-{
-	~RsTextureImplGL()
-	{
-	}
-
-	GLuint Handle_ = 0;
-};
-
-
-//////////////////////////////////////////////////////////////////////////
 // RsContextGL
 class RsContextGL:
 	public RsContext

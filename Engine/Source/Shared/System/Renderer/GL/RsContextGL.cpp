@@ -12,7 +12,9 @@
 **************************************************************************/
 
 #include "System/Renderer/GL/RsContextGL.h"
+#include "System/Renderer/GL/RsBufferGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
+#include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsUtilsGL.h"
 
 #include "System/Renderer/RsBuffer.h"
@@ -973,12 +975,12 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 				RsResourceBindFlags::NONE );
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) !=
 				RsResourceBindFlags::NONE );
-			RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
+			RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
 			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
 				GL_TEXTURE_2D,
-				TextureImpl->Handle_,
+				TextureGL->Handle_,
 				0 ) );
 		}
 	}
@@ -1008,12 +1010,12 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) !=
 			RsResourceBindFlags::NONE );
 
-		RsTextureImplGL* TextureImpl = Desc.DepthStencilTarget_->getHandle< RsTextureImplGL* >();
+		RsTextureGL* TextureGL = Desc.DepthStencilTarget_->getHandle< RsTextureGL* >();
 		GL( FramebufferTexture2D( 
 			GL_FRAMEBUFFER,
 			Attachment,
 			GL_TEXTURE_2D,
-			TextureImpl->Handle_,
+			TextureGL->Handle_,
 			0 ) );
 	}
 
@@ -1053,70 +1055,13 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	const auto& BufferDesc = Buffer->getDesc();
-
-	BcAssert( BufferDesc.SizeBytes_ > 0 );
-
-	// Get buffer type for GL.
-	auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
-
-	// Get usage flags for GL.
-	GLuint UsageFlagsGL = 0;
-	
-	// Data update frequencies.
-	if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_STATIC_DRAW;
-	}
-	else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_DYNAMIC_DRAW;
-	}
-	else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_STREAM_DRAW;
-	}
-
 	// Create buffer impl.
-	auto BufferImpl = new RsBufferImplGL();
-	Buffer->setHandle( BufferImpl );
-
-	// Should buffer be in main memory?
-	BcBool BufferInMainMemory = 
-		Version_.SupportUniformBuffers_ == BcFalse &&
-		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
+	auto BufferGL = new RsBufferGL( Buffer, Version_ );
+	Buffer->setHandle( BufferGL );
 
 	++NoofBuffers_;
 
-
-	// Determine which kind of buffer to create.
-	if( !BufferInMainMemory )
-	{
-		// Generate buffer.
-		GL( GenBuffers( 1, &BufferImpl->Handle_ ) );
-
-		// Catch gen error.
-		
-
-		// Attempt to update it.
-		if( BufferImpl->Handle_ != 0 )
-		{
-			GL( BindBuffer( TypeGL, BufferImpl->Handle_ ) );
-			GL( BufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL ) );
-
-			// Catch update error.
-			
-			return true;
-		}
-	}
-	else
-	{
-		// Buffer is in main memory.
-		BufferImpl->BufferData_ = new BcU8[ BufferDesc.SizeBytes_ ];
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1126,10 +1071,6 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Is buffer be in main memory?
-	BcBool BufferInMainMemory =
-		Version_.SupportUniformBuffers_ == BcFalse &&
-		Buffer->getDesc().Type_ == RsBufferType::UNIFORM;
-
 	--NoofBuffers_;
 
 	// Check if it is bound anywhere.
@@ -1152,30 +1093,11 @@ bool RsContextGL::destroyBuffer( RsBuffer* Buffer )
 		}
 	}
 
-	bool RetVal = false;
-	auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-
-	if( !BufferInMainMemory )
-	{
-		if( BufferImpl->Handle_ != 0 )
-		{
-			GL( DeleteBuffers( 1, &BufferImpl->Handle_ ) );
-			
-			RetVal = true;
-		}
-	}
-	else
-	{
-		// Buffer is in main memory.
-		delete [] BufferImpl->BufferData_;
-		BufferImpl->BufferData_ = nullptr;
-		RetVal = true;
-	}
-
-	delete BufferImpl;
+	auto BufferGL = Buffer->getHandle< RsBufferGL* >();
+	delete BufferGL;
 	Buffer->setHandle< int >( 0 );
 
-	return RetVal;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1194,120 +1116,64 @@ bool RsContextGL::updateBuffer(
 	BcAssertMsg( ( Offset + Size ) <= BufferDesc.SizeBytes_, "Typing to update buffer outside of range." );
 	BcAssertMsg( BufferDesc.Type_ != RsBufferType::UNKNOWN, "Buffer type is unknown" );
 
-	auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-	BcAssert( BufferImpl );
+	auto BufferGL = Buffer->getHandle< RsBufferGL* >();
+	BcAssert( BufferGL );
 
-	// Is buffer be in main memory?
-	BcBool BufferInMainMemory =
-		Version_.SupportUniformBuffers_ == BcFalse &&
-		BufferDesc.Type_ == RsBufferType::UNIFORM;
-
-	if( !BufferInMainMemory )
+	// If buffer is backed in main memory, use its own buffer for staging.
+	BcU8* BufferData = BufferGL->BufferData_.get();
+	std::unique_ptr< BcU8[] > LocalBufferData;
+	if( BufferData == nullptr )
 	{
-		if( BufferImpl->Handle_ != 0 )
+		LocalBufferData.reset( new BcU8[ Size ] );
+		BufferData = LocalBufferData.get();
+	}
+
+	// Call update func to fill data.
+	RsBufferLock Lock =
+	{
+		BufferData + Offset
+	};
+	UpdateFunc( Buffer, Lock );
+
+	// If the buffer has a handle, upload to GPU now.
+	if( BufferGL->Handle_ != 0 )
+	{
+		// Get buffer type for GL.
+		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
+
+		// Bind buffer.
+		GL( BindBuffer( TypeGL, BufferGL->Handle_ ) );
+
+		// Get usage flags for GL.
+		GLuint UsageFlagsGL = 0;
+
+		// Data update frequencies.
+		if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
 		{
-			// Get buffer type for GL.
-			auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
+			UsageFlagsGL |= GL_STATIC_DRAW;
+		}
+		else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
+		{
+			UsageFlagsGL |= GL_DYNAMIC_DRAW;
+		}
+		else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
+		{
+			UsageFlagsGL |= GL_STREAM_DRAW;
+		}
 
-			// Bind buffer.
-			GL( BindBuffer( TypeGL, BufferImpl->Handle_ ) );
-
-			// NOTE: The map range path should work correctly.
-			//       The else is a very heavy handed way to force orphaning
-			//       so we don't need to mess around with too much
-			//       synchronisation. 
-			//       NOTE: This is just a bug with the nouveau drivers.
-			//		 TODO: Test this on other drivers.
-#if 0 && !defined( RENDER_USE_GLES )
-			// Get access flags for GL.
-			GLbitfield AccessFlagsGL =
-				GL_MAP_WRITE_BIT |
-				GL_MAP_INVALIDATE_RANGE_BIT;
-
-			// Map and update buffer.
-			auto LockedPointer = GL( MapBufferRange( TypeGL, Offset, Size, AccessFlagsGL ) );
-			if( LockedPointer != nullptr )
-			{
-				RsBufferLock Lock = 
-				{
-					LockedPointer
-				};
-				UpdateFunc( Buffer, Lock );
-				GL( UnmapBuffer( TypeGL ) );
-			}
-#else
-			glFlush();
-
-			// Get usage flags for GL.
-			GLuint UsageFlagsGL = 0;
-
-			// Data update frequencies.
-			if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
-			{
-				UsageFlagsGL |= GL_STATIC_DRAW;
-			}
-			else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
-			{
-				UsageFlagsGL |= GL_DYNAMIC_DRAW;
-			}
-			else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
-			{
-				UsageFlagsGL |= GL_STREAM_DRAW;
-			}
-
-			// Seem to get an OOM on a Mali GPU, but may not even need this now.
-#if 0 && !defined( RENDER_USE_GLES )
-			// Perform orphaning.
-			if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
-			{
-				GL( BufferData( TypeGL, 0, nullptr, UsageFlagsGL ) );
-			}
-#endif
-
-			// Use glBufferSubData to upload.
-			// TODO: Allocate of a temporary per-frame buffer.
-			std::unique_ptr< BcChar[] > Data( new BcChar[ Size ] );
-				RsBufferLock Lock =
-			{
-				Data.get()
-			};
-			UpdateFunc( Buffer, Lock );
-
-			if( Size == BufferDesc.SizeBytes_ )
-			{
-				GL( BufferData( TypeGL, Size, Data.get(), UsageFlagsGL ) );
-			}
-			else
-			{
-				GL( BufferSubData( TypeGL, Offset, Size, Data.get() ) );
-			}
-#endif
-			// Increment version.
-			BufferImpl->Version_++;
-			return true;
+		if( Size == BufferDesc.SizeBytes_ )
+		{
+			GL( BufferData( TypeGL, Size, BufferData, UsageFlagsGL ) );
+		}
+		else
+		{
+			GL( BufferSubData( TypeGL, Offset, Size, BufferData ) );
 		}
 	}
-	else
-	{
-		// Dirty program.
-		// TODO: Optimise later.
-		ProgramDirty_ = BcTrue;
-		BcAssert( BufferImpl->BufferData_ );
 
-		// Buffer is in main memory.
-		RsBufferLock Lock =
-		{
-			BufferImpl->BufferData_ + Offset
-		};
-		UpdateFunc( Buffer, Lock );
-
-		// Increment version.
-		BufferImpl->Version_++;
-		return true;
-	}
-
-	BcBreakpoint;
-	return false;
+	// Increment version.
+	BufferGL->Version_++;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1347,15 +1213,15 @@ bool RsContextGL::createTexture(
 	}
 
 	// Create GL texture.
-	RsTextureImplGL* TextureImpl = new RsTextureImplGL();
-	Texture->setHandle( TextureImpl );
+	RsTextureGL* TextureGL = new RsTextureGL( Texture );
+	Texture->setHandle( TextureGL );
 
-	GL( GenTextures( 1, &TextureImpl->Handle_ ) );
+	GL( GenTextures( 1, &TextureGL->Handle_ ) );
 	
-	if( TextureImpl->Handle_ != 0 )
+	if( TextureGL->Handle_ != 0 )
 	{
 		// Bind texture.
-		GL( BindTexture( TypeGL, TextureImpl->Handle_ ) );
+		GL( BindTexture( TypeGL, TextureGL->Handle_ ) );
 		
 
 #if !defined( RENDER_USE_GLES )
@@ -1430,15 +1296,15 @@ bool RsContextGL::destroyTexture(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Check that we haven't already freed it.
-	RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
-	if( TextureImpl != nullptr )
+	RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
+	if( TextureGL != nullptr )
 	{
 		// Delete it.
-		GL( DeleteTextures( 1, &TextureImpl->Handle_ ) );
+		GL( DeleteTextures( 1, &TextureGL->Handle_ ) );
 		
 
 		setHandle< int >( 0 );
-		delete TextureImpl;
+		delete TextureGL;
 
 		--NoofTextures_;
 		return true;
@@ -1457,11 +1323,11 @@ bool RsContextGL::updateTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
+	RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
 
 	const auto& TextureDesc = Texture->getDesc();
 
-	if( TextureImpl->Handle_ != 0 )
+	if( TextureGL->Handle_ != 0 )
 	{
 		// Allocate a temporary buffer.
 		// TODO: Use PBOs for this part.
@@ -1895,9 +1761,9 @@ void RsContextGL::flushState()
 				GL( ActiveTexture( GL_TEXTURE0 + TextureStateID ) );
 				if( pTexture != nullptr )
 				{
-					RsTextureImplGL* TextureImpl = pTexture->getHandle< RsTextureImplGL* >();
-					BcAssert( TextureImpl != nullptr );
-					GL( BindTexture( TextureType, TextureImpl->Handle_ ) );
+					RsTextureGL* TextureGL = pTexture->getHandle< RsTextureGL* >();
+					BcAssert( TextureGL != nullptr );
+					GL( BindTexture( TextureType, TextureGL->Handle_ ) );
 				}
 				else
 				{
@@ -2001,9 +1867,9 @@ void RsContextGL::flushState()
 					// Bind up new vertex buffer if we need to.
 					BcAssertMsg( FoundElement->StreamIdx_ < VertexBuffers_.size(), "Stream index out of bounds for primitive." );
 					BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-					auto VertexBufferImpl = VertexBuffer->getHandle< RsBufferImplGL* >();
-					BcAssert( VertexBufferImpl );
-					GLuint VertexHandle = VertexBufferImpl->Handle_;
+					auto VertexBufferGL = VertexBuffer->getHandle< RsBufferGL* >();
+					BcAssert( VertexBufferGL );
+					GLuint VertexHandle = VertexBufferGL->Handle_;
 					if( BoundVertexHandle != VertexHandle )
 					{
 						GL( BindBuffer( GL_ARRAY_BUFFER, VertexHandle ) );
@@ -2064,9 +1930,9 @@ void RsContextGL::flushState()
 				auto& BindingInfo = UniformBufferBindingInfo_[ Idx ];
 				if( BindingInfo.Dirty_ && Buffer != nullptr )
 				{
-					auto BufferImpl = Buffer->getHandle< RsBufferImplGL* >();
-					BcAssert( BufferImpl );
-					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferImpl->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
+					auto BufferGL = Buffer->getHandle< RsBufferGL* >();
+					BcAssert( BufferGL );
+					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferGL->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
 					BindingInfo.Dirty_ = BcFalse;
 				}
 				++BindingPoint;
@@ -2082,8 +1948,8 @@ void RsContextGL::flushState()
 	{
 		// Bind indices.
 		PSY_PROFILER_SECTION( IndicesRoot, "Indices" );
-		auto IndexBufferImpl = IndexBuffer_ ? IndexBuffer_->getHandle< RsBufferImplGL* >() : nullptr;
-		GLuint IndicesHandle = IndexBufferImpl != nullptr ? IndexBufferImpl->Handle_ : 0;
+		auto IndexBufferGL = IndexBuffer_ ? IndexBuffer_->getHandle< RsBufferGL* >() : nullptr;
+		GLuint IndicesHandle = IndexBufferGL != nullptr ? IndexBufferGL->Handle_ : 0;
 		GL( BindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle ) );
 		IndexBufferDirty_ = BcFalse;
 	}
@@ -2245,11 +2111,11 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
 	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
 
-	RsTextureImplGL* DestTextureImpl = Texture->getHandle< RsTextureImplGL* >();
-	if( DestTextureImpl->Handle_ != 0 )
+	RsTextureGL* DestTextureGL = Texture->getHandle< RsTextureGL* >();
+	if( DestTextureGL->Handle_ != 0 )
 	{
 		// Bind texture.
-		GL( BindTexture( TypeGL, DestTextureImpl->Handle_ ) );
+		GL( BindTexture( TypeGL, DestTextureGL->Handle_ ) );
 		GL( CopyTexImage2D( 
 			TypeGL, 
 			0, 
@@ -2301,28 +2167,28 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 	const auto& TextureDesc = Texture->getDesc();
 
 	FrameBufferDirty_ = BcTrue;
-	RsTextureImplGL* SrcTextureImpl = Texture->getHandle< RsTextureImplGL* >();
+	RsTextureGL* SrcTextureGL = Texture->getHandle< RsTextureGL* >();
 
 	GL( BindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] ) );
 	GL( FramebufferTexture2D( 
 		GL_READ_FRAMEBUFFER,
 		GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D,
-		SrcTextureImpl->Handle_,
+		SrcTextureGL->Handle_,
 		0 ) );
 	auto ReadStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
 	BcAssertMsg( ReadStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
 
 	if( FrameBuffer != nullptr )
 	{
-		RsTextureImplGL* DestTextureImpl = 
-			FrameBuffer->getDesc().RenderTargets_[ Idx ]->getHandle< RsTextureImplGL* >();
+		RsTextureGL* DestTextureGL = 
+			FrameBuffer->getDesc().RenderTargets_[ Idx ]->getHandle< RsTextureGL* >();
 		GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, TransferFBOs_[ 1 ] ) );
 		GL( FramebufferTexture2D( 
 			GL_DRAW_FRAMEBUFFER,
 			GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D,
-			DestTextureImpl->Handle_,
+			DestTextureGL->Handle_,
 			0 ) );
 		auto DrawStatus = GL( CheckFramebufferStatus( GL_DRAW_FRAMEBUFFER ) );
 		BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
@@ -2438,7 +2304,7 @@ void RsContextGL::loadTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	RsTextureImplGL* TextureImpl = Texture->getHandle< RsTextureImplGL* >();
+	RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
 
 	const auto& TextureDesc = Texture->getDesc();
 
@@ -2448,7 +2314,7 @@ void RsContextGL::loadTexture(
 	// Bind.
 	if( Bind )
 	{
-		GL( BindTexture( TypeGL, TextureImpl->Handle_ ) );
+		GL( BindTexture( TypeGL, TextureGL->Handle_ ) );
 	}
 		
 	// Load level.

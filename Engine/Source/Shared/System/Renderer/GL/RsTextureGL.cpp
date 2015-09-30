@@ -1,0 +1,15 @@
+#include "System/Renderer/GL/RsTextureGL.h"
+#include "System/Renderer/RsTexture.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+RsTextureGL::RsTextureGL( RsTexture* Parent ):
+	Parent_( Parent )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+RsTextureGL::~RsTextureGL()
+{
+}
