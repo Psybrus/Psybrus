@@ -980,7 +980,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments,
 				GL_TEXTURE_2D,
-				TextureGL->Handle_,
+				TextureGL->getHandle(),
 				0 ) );
 		}
 	}
@@ -1015,7 +1015,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			GL_FRAMEBUFFER,
 			Attachment,
 			GL_TEXTURE_2D,
-			TextureGL->Handle_,
+			TextureGL->getHandle(),
 			0 ) );
 	}
 
@@ -1184,26 +1184,6 @@ bool RsContextGL::createTexture(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	const auto& TextureDesc = Texture->getDesc();
-	
-	// Get buffer type for GL.
-	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
-
-	// Get usage flags for GL.
-	GLuint UsageFlagsGL = 0;
-	
-	// Data update frequencies.
-	if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_STATIC_DRAW;
-	}
-	else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_DYNAMIC_DRAW;
-	}
-	else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_STREAM_DRAW;
-	}
 
 	// Check if format is supported one.
 	if( !Version_.Features_.TextureFormat_[ (int)TextureDesc.Format_ ] )
@@ -1215,77 +1195,9 @@ bool RsContextGL::createTexture(
 	// Create GL texture.
 	RsTextureGL* TextureGL = new RsTextureGL( Texture );
 	Texture->setHandle( TextureGL );
-
-	GL( GenTextures( 1, &TextureGL->Handle_ ) );
 	
-	if( TextureGL->Handle_ != 0 )
-	{
-		// Bind texture.
-		GL( BindTexture( TypeGL, TextureGL->Handle_ ) );
-		
-
-#if !defined( RENDER_USE_GLES )
-		// Set max levels.
-		GL( TexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 ) );
-		
-
-		// Set compare mode to none.
-		if( TextureDesc.Format_ == RsTextureFormat::D16 ||
-			TextureDesc.Format_ == RsTextureFormat::D24 ||
-			TextureDesc.Format_ == RsTextureFormat::D32 ||
-			TextureDesc.Format_ == RsTextureFormat::D24S8 )
-		{
-			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
-			
-			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
-			
-		}
-#endif
-
-		// Instantiate levels.
-		BcU32 Width = TextureDesc.Width_;
-		BcU32 Height = TextureDesc.Height_;
-		BcU32 Depth = TextureDesc.Depth_;
-		if( TextureDesc.Type_ != RsTextureType::TEXCUBE )
-		{
-			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
-			{
-				auto TextureSlice = Texture->getSlice( LevelIdx );
-
-				// Load slice.
-				loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
-				// TODO: Error checking on loadTexture.
-
-				// Down a power of two.
-				Width = BcMax( 1, Width >> 1 );
-				Height = BcMax( 1, Height >> 1 );
-				Depth = BcMax( 1, Depth >> 1 );
-			}
-		}
-		else
-		{
-			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
-			{
-				for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
-				{
-					auto TextureSlice = Texture->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
-
-					// Load slice.
-					loadTexture( Texture, TextureSlice, BcFalse, 0, nullptr );
-					// TODO: Error checking on loadTexture.
-
-					// Down a power of two.
-					Width = BcMax( 1, Width >> 1 );
-					Height = BcMax( 1, Height >> 1 );
-				}
-			}
-		}
-		++NoofTextures_;
-
-		return true;
-	}
-
-	return false;
+	++NoofTextures_;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1297,20 +1209,11 @@ bool RsContextGL::destroyTexture(
 
 	// Check that we haven't already freed it.
 	RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
-	if( TextureGL != nullptr )
-	{
-		// Delete it.
-		GL( DeleteTextures( 1, &TextureGL->Handle_ ) );
-		
+	setHandle< int >( 0 );
+	delete TextureGL;
 
-		setHandle< int >( 0 );
-		delete TextureGL;
-
-		--NoofTextures_;
-		return true;
-	}
-
-	return false;
+	--NoofTextures_;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1327,7 +1230,7 @@ bool RsContextGL::updateTexture(
 
 	const auto& TextureDesc = Texture->getDesc();
 
-	if( TextureGL->Handle_ != 0 )
+	if( TextureGL->getHandle() != 0 )
 	{
 		// Allocate a temporary buffer.
 		// TODO: Use PBOs for this part.
@@ -1360,7 +1263,7 @@ bool RsContextGL::updateTexture(
 		UpdateFunc( Texture, Lock );
 
 		// Load slice.
-		loadTexture( Texture, Slice, BcTrue, DataSize, &Data[ 0 ] );
+		TextureGL->loadTexture( Slice, BcTrue, DataSize, &Data[ 0 ] );
 		// TODO: Error checking on loadTexture.
 
 		return true;
@@ -1763,7 +1666,7 @@ void RsContextGL::flushState()
 				{
 					RsTextureGL* TextureGL = pTexture->getHandle< RsTextureGL* >();
 					BcAssert( TextureGL != nullptr );
-					GL( BindTexture( TextureType, TextureGL->Handle_ ) );
+					GL( BindTexture( TextureType, TextureGL->getHandle() ) );
 				}
 				else
 				{
@@ -2112,10 +2015,10 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
 
 	RsTextureGL* DestTextureGL = Texture->getHandle< RsTextureGL* >();
-	if( DestTextureGL->Handle_ != 0 )
+	if( DestTextureGL->getHandle() != 0 )
 	{
 		// Bind texture.
-		GL( BindTexture( TypeGL, DestTextureGL->Handle_ ) );
+		GL( BindTexture( TypeGL, DestTextureGL->getHandle() ) );
 		GL( CopyTexImage2D( 
 			TypeGL, 
 			0, 
@@ -2174,7 +2077,7 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 		GL_READ_FRAMEBUFFER,
 		GL_COLOR_ATTACHMENT0,
 		GL_TEXTURE_2D,
-		SrcTextureGL->Handle_,
+		SrcTextureGL->getHandle(),
 		0 ) );
 	auto ReadStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
 	BcAssertMsg( ReadStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
@@ -2188,7 +2091,7 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 			GL_DRAW_FRAMEBUFFER,
 			GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D,
-			DestTextureGL->Handle_,
+			DestTextureGL->getHandle(),
 			0 ) );
 		auto DrawStatus = GL( CheckFramebufferStatus( GL_DRAW_FRAMEBUFFER ) );
 		BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
@@ -2291,175 +2194,6 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
 {
 	return Version_;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// loadTexture
-void RsContextGL::loadTexture(
-		RsTexture* Texture, 
-		const RsTextureSlice& Slice,
-		BcBool Bind, 
-		BcU32 DataSize,
-		void* Data )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
-
-	const auto& TextureDesc = Texture->getDesc();
-
-	// Get buffer type for GL.
-	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
-
-	// Bind.
-	if( Bind )
-	{
-		GL( BindTexture( TypeGL, TextureGL->Handle_ ) );
-	}
-		
-	// Load level.
-	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
-	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
-	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
-
-	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
-
-	if( FormatGL.Compressed_ == BcFalse )
-	{
-		switch( TextureDesc.Type_ )
-		{
-		case RsTextureType::TEX1D:
-#if !defined( RENDER_USE_GLES )
-			GL( TexImage1D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				0,
-				FormatGL.Format_,
-				FormatGL.Type_,
-				Data ) );
-#else
-			// TODO ES2.
-			BcBreakpoint;
-#endif
-			break;
-
-		case RsTextureType::TEX2D:
-			GL( TexImage2D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				0,
-				FormatGL.Format_,
-				FormatGL.Type_,
-				Data ) );
-			break;
-
-		case RsTextureType::TEX3D:
-#if !defined( RENDER_USE_GLES )
-			GL( TexImage3D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				Depth,
-				0,
-				FormatGL.Format_,
-				FormatGL.Type_,
-				Data ) );
-#else
-			// TODO ES2.
-			BcBreakpoint;
-#endif
-			break;
-
-		case RsTextureType::TEXCUBE:
-			GL( TexImage2D( 
-				RsUtilsGL::GetTextureFace( Slice.Face_ ),
-				Slice.Level_,
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				0,
-				FormatGL.Format_,
-				FormatGL.Type_,
-				Data ) );
-			break;
-
-		default:
-			BcBreakpoint;
-		}
-
-	}
-	else
-	{
-		// TODO: More intrusive checking of format.
-		if( DataSize == 0 || Data == nullptr )
-		{
-			return;
-		}
-
-		switch( TextureDesc.Type_ )
-		{
-#if !defined( RENDER_USE_GLES )
-		case RsTextureType::TEX1D:
-			GL( CompressedTexImage1D( 
-				TypeGL, 
-				Slice.Level_,
-				FormatGL.InternalFormat_,
-				Width,
-				0,
-				DataSize,
-				Data ) );
-			break;
-#endif // !defined( RENDER_USE_GLES )
-
-		case RsTextureType::TEX2D:
-			GL( CompressedTexImage2D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				0,
-				DataSize,
-				Data ) );
-			break;
-
-#if !defined( RENDER_USE_GLES )
-		case RsTextureType::TEX3D:
-			GL( CompressedTexImage3D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				Depth,
-				0,
-				DataSize,
-				Data ) );
-			break;
-
-		case RsTextureType::TEXCUBE:
-			GL( CompressedTexImage2D( 
-				RsUtilsGL::GetTextureFace( Slice.Face_ ),
-				Slice.Level_,
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				0,
-				DataSize,
-				Data ) );
-#endif
-
-		default:
-			BcBreakpoint;
-		}
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

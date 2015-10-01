@@ -7,9 +7,18 @@
 class RsTextureGL
 {
 public:
-	RsTextureGL( RsTexture* Parent );
+	RsTextureGL( class RsTexture* Parent );
 	~RsTextureGL();
 
-	RsTexture* Parent_ = nullptr;
+	void loadTexture( 
+		const struct RsTextureSlice& Slice,
+		BcBool Bind, 
+		BcU32 DataSize,
+		void* Data );
+
+	GLuint getHandle() const { return Handle_; }
+
+private:
+	class RsTexture* Parent_ = nullptr;
 	GLuint Handle_ = 0;
 };

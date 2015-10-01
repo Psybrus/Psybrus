@@ -121,18 +121,6 @@ public:
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
 private:
-	void bindStencilFunc();
-	void bindStencilOp();
-	void bindBlendMode( RsBlendingMode BlendMode );
-	void bindScissor();
-
-	void loadTexture( 
-		RsTexture* Texture, 
-		const RsTextureSlice& Slice,
-		BcBool Bind, 
-		BcU32 DataSize,
-		void* Data );
-
 	void setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force );
 
 protected:
