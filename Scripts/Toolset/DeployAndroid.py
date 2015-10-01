@@ -23,6 +23,7 @@ class DeployAndroid( Deploy ):
 
 		self.android_project_root = os.path.join( "Build", _platform.project_type + "-" + _platform.name, "project" )
 
+	def package_build( self, _config ):
 		# Load in config.
 		self.game_config = GameConfig.load()
 		self.game_name = self.game_config[ "name" ]
@@ -44,7 +45,6 @@ class DeployAndroid( Deploy ):
 			"android-gcc-x86" : "x86"
 		}
 
-	def package_build( self, _config ):
 		Deploy.package_build( self, _config )
 
 		# TODO: Kill adb and delete project folder?
