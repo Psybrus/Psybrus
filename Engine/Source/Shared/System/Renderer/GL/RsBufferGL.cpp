@@ -46,7 +46,8 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 	}
 
 	// Determine which kind of buffer to create.
-	if( Version.SupportUniformBuffers_ )
+	if( Parent_->getDesc().Type_ != RsBufferType::UNIFORM ||
+		Version.SupportUniformBuffers_ )
 	{
 		// Generate buffer.
 		GL( GenBuffers( 1, &Handle_ ) );

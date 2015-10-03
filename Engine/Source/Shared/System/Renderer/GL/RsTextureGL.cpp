@@ -120,6 +120,13 @@ void RsTextureGL::loadTexture(
 		GL( BindTexture( TypeGL, Handle_ ) );
 	}
 		
+	if( Slice.Level_ > 0 )
+	{
+		if( Slice.Level_ > 1 )
+			return;
+		GL( GenerateMipmap( TypeGL ) );
+	}
+
 	// Load level.
 	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
