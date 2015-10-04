@@ -86,6 +86,9 @@ void ScnCore::open()
 			auto* Attr = Class->getAttribute< ScnComponentProcessor >();
 			if( Attr != nullptr )
 			{
+				// Initialise.
+				Attr->initialise();
+
 				// Get process funcs.
 				auto ProcessFuncs = Attr->getProcessFuncs();
 
@@ -264,6 +267,16 @@ void ScnCore::close()
 	processPendingComponents();
 
 	ComponentLists_.clear();
+
+	// Shutdown all component processors.
+	for( auto ClassPair : ComponentClassIndexMap_ )
+	{
+		auto* Attr = ClassPair.first->getAttribute< ScnComponentProcessor >();
+		if( Attr != nullptr )
+		{
+			Attr->shutdown();
+		}
+	}
 
 	// Destroy spacial tree.
 	delete pSpatialTree_;
