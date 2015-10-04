@@ -27,6 +27,7 @@ class DeployAndroid( Deploy ):
 		# Load in config.
 		self.game_config = GameConfig.load()
 		self.game_name = self.game_config[ "name" ]
+		self.game_full_name = self.game_config[ "fullname" ]
 		self.android_config = self.game_config[ "android" ]
 		self.package = self.android_config[ "package" ]
 		self.sdk_version = self.android_config[ "sdk_version" ]
@@ -146,7 +147,7 @@ class DeployAndroid( Deploy ):
 		with open( os.path.join( self.android_project_root, "res", "values", "strings.xml" ), "w+" ) as stringsFile:
 			stringsFile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
 			stringsFile.write( "<resources>\n" )
-			stringsFile.write( "  <string name=\"app_name\">" + self.game_name + "</string>\n" )
+			stringsFile.write( "  <string name=\"app_name\">" + self.game_full_name + "</string>\n" )
 			stringsFile.write( "</resources>\n" )
 
 	def write_gdb_config( self ):
