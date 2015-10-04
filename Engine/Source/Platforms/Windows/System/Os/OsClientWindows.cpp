@@ -588,6 +588,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
 		}
 		break;
+
 	case WM_KEYDOWN:
 		{
 			OsEventInputKeyboard Event;
@@ -606,6 +607,18 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			mapKeyEvent( Event, wParam );			
 			OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_KEYUP, Event );
+			return 0;
+		}
+		break;
+	
+	case WM_CHAR:
+		{
+			OsEventInputText Event;
+			Event.DeviceID_ = 0;
+			memset( Event.Text_, 0, sizeof( Event.Text_ ) );
+			Event.Text_[ 0 ] = wParam;
+			OsCore::pImpl()->publish( osEVT_INPUT_TEXT, Event ); // TODO: REMOVE OLD!
+			EvtPublisher::publish( osEVT_INPUT_TEXT, Event );
 			return 0;
 		}
 		break;
