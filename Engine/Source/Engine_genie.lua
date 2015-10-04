@@ -14,7 +14,6 @@ PsyProjectEngineLib( "Engine" )
             "../../External/jsoncpp/include/",
             "../../External/libb64/include/",
             "../../External/png/",
-            "../../External/SDL2/include/",
             "../../External/squish/",
             "../../External/webby/",
             "../../External/zlib/",
@@ -44,6 +43,7 @@ PsyProjectEngineLib( "Engine" )
         }
         includedirs {
             "./Platforms/OSX/",
+            "/usr/local/Cellar/sdl2/2.0.3/include" 
         }
 
     configuration "android-*"

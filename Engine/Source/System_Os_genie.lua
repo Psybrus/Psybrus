@@ -9,8 +9,6 @@ PsyProjectEngineLib( "System_Os" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
-      "../../External/SDL2/include/",
-      BOOST_INCLUDE_PATH,
     }
 
     PsyAddEngineLinks {
@@ -44,6 +42,7 @@ PsyProjectEngineLib( "System_Os" )
     }
     includedirs {
       "./Platforms/OSX/",
+      "/usr/local/Cellar/sdl2/2.0.3/include" 
     }
 
   configuration "android-*"
