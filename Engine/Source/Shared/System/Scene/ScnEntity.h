@@ -15,6 +15,7 @@
 #define __ScnEntity_H__
 
 #include "System/Content/CsResource.h"
+#include "System/Content/CsPackage.h"
 
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnComponent.h"

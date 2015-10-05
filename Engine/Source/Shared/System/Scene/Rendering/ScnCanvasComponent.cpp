@@ -723,10 +723,10 @@ void ScnCanvasComponent::clearAll( const ScnComponentList& Components )
 
 			MaMat4d Projection;
 			Projection.orthoProjection(
-				CanvasComponent->Left_ * Client->getWidth() * 0.5f,
-				CanvasComponent->Right_ * Client->getWidth() * 0.5f,
-				CanvasComponent->Top_ * Client->getHeight() * 0.5f,
-				CanvasComponent->Bottom_ * Client->getHeight() * 0.5f,
+				CanvasComponent->Left_ * Client->getWidth(),
+				CanvasComponent->Right_ * Client->getWidth(),
+				CanvasComponent->Bottom_ * Client->getHeight(),
+				CanvasComponent->Top_ * Client->getHeight(),
 				-1.0f, 
 				1.0f );
 
