@@ -351,23 +351,25 @@ ScnEntityRef ScnCore::createEntity( const BcName& Package, const BcName& Name, c
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
 
+	// Possibly consider this restriction. Unless the CsCore::requestResource call doesn't guarentee order 
+	// (i.e. aliased resources won't be found before the original named one) then we shouldn't need it.
+#if 0 
+
+	// Check name does not already exist.
+	BcAssertMsg( InstanceName == BcName::INVALID || CsCore::pImpl()->requestResource( Package, InstanceName, TemplateEntity ) == BcFalse, 
+		"Entity named %s.%s already exists. Unique name please. Try BcName::getUnique() on name, or BcName::INVALID to automatically assign.", (*Package).c_str(), (*InstanceName).c_str() );
+#endif
+
 	// Request template entity.
 	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
-		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
 		BcUnusedVar( pPackage );
-#if 0
-		Entity = new ScnEntity( TemplateEntity );
-		Entity->setName( Name );
-		Entity->setOwner( pPackage );
-#else
-		Entity = ReConstructObject( 
+		Entity = ReConstructObject(
 			TemplateEntity->getClass(),
-			*Name,
+			InstanceName == BcName::INVALID ? *Name.getUnique() : *InstanceName,
 			TemplateEntity->getPackage(),
 			TemplateEntity );
-#endif
 	}
 
 	BcAssertMsg( Entity != nullptr, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
@@ -625,14 +627,16 @@ ScnEntity* ScnCore::internalSpawnEntity(
 		Params.Parent_,
 		[ this, &Params ]( ScnComponent* Component, ScnEntity* Parent )
 		{
+			BcAssert( Component->getBasis() );
+			PSY_LOG( "Component \"%s\" has package \"%s\"", 
+				(*Component->getName()).c_str(),
+				(*Component->getPackage()->getName()).c_str() );
 			if( Parent != nullptr )
 			{
-				Component->setOwner( Parent );
+				PSY_LOG( "Component's parent \"%s\" has package \"%s\"", 
+					(*Parent->getName()).c_str(),
+					(*Parent->getPackage()->getName()).c_str() );
 			}
-
-			PSY_LOG( "Component \"%s\" has owner \"%s\"", 
-				(*Component->getName()).c_str(),
-				(*Component->getRootOwner()->getName()).c_str() );
 			
 			Component->initialise();
 			Component->postInitialise();

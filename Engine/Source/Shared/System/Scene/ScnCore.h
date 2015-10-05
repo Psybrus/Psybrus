@@ -70,7 +70,8 @@ public:
 
 	/**
 	 * Spawn an entity from template. Handles loading and scene attachment.
-	 * Will return NULL if async.
+	 * Will return NULL if asynchronously spawning. Can use the OnSpawn_ callback
+	 * in @a Params to schedule work on the spawn.
 	 */
 	ScnEntity* spawnEntity( const ScnEntitySpawnParams& Params );
 
