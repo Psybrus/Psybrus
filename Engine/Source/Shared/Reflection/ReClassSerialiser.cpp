@@ -2,7 +2,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Definitions
-REFLECTION_DEFINE_BASE( ReClassSerialiser );
+REFLECTION_DEFINE_DERIVED( ReClassSerialiser );
+
+void ReClassSerialiser::StaticRegisterClass()
+{
+	ReRegisterAbstractClass< ReClassSerialiser, Super >();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
