@@ -55,14 +55,14 @@ public:
 	ScnMaterial();
 	virtual ~ScnMaterial();
 	
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 
 	ScnTextureRef getTexture( BcName Name );
 
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 private:
 	friend class ScnMaterialComponent;
@@ -114,8 +114,8 @@ public:
 	void bind( class RsFrame* pFrame, class RsRenderSort& Sort );
 
 public:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 private:
 	friend class ScnMaterial;	

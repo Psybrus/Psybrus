@@ -37,7 +37,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( const Json::Value& );
+	BcBool import( const Json::Value& Object ) override;
 
 private:
 	void parseMap( 

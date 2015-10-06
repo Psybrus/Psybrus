@@ -34,14 +34,14 @@ public:
 	ScnSound();
 	virtual ~ScnSound();
 	
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 	
 	class SsSource* getSource();
 
 protected:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 protected:
 	SsSourceFileData* pFileData_;

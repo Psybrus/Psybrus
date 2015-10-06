@@ -26,57 +26,57 @@ public:
 
     virtual ~ReClassSerialiser_BasicType() {}
 
-	void construct( void* pMemory ) const
+	void construct( void* pMemory ) const override
 	{
 		new ( pMemory ) BaseType();
 	}
 
-	void constructNoInit( void* pMemory ) const
+	void constructNoInit( void* pMemory ) const override
 	{
 		new ( pMemory ) BaseType();
 	}
 
-	void destruct( void* pMemory ) const
+	void destruct( void* pMemory ) const override
 	{
 		reinterpret_cast< BaseType* >( pMemory )->~_Ty();
 	}
 
-	void* create() const
+	void* create() const override
 	{
 		return new BaseType();
 	}
 	
-	void* createNoInit() const
+	void* createNoInit() const override
 	{
 		return new BaseType();
 	}
 
-	void destroy( void* Object ) const
+	void destroy( void* Object ) const override
 	{
 		delete reinterpret_cast< BaseType* >( Object );
 	}
 
-	size_t getBinaryDataSize( void* pMemory ) const
+	size_t getBinaryDataSize( const void* pMemory ) const override
 	{
 		return sizeof( BaseType );
 	}
 
 			
-	BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const
+	BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const override
 	{
 		const BaseType* pValue( reinterpret_cast< const BaseType* >( pInstance ) );
 		Serialiser << *pValue;
 		return true;
 	}
 
-	BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const 
+	BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const override
 	{
 		BaseType* pValue( reinterpret_cast< BaseType* >( pInstance ) );
 		Serialiser >> *pValue;
 		return true;
 	}
 
-	BcBool serialiseToString( const void* pInstance, std::string& OutString ) const
+	BcBool serialiseToString( const void* pInstance, std::string& OutString ) const override
 	{
 		const BaseType* pValue( reinterpret_cast< const BaseType* >( pInstance ) );
 		std::stringstream OutStream;
@@ -91,7 +91,7 @@ public:
 		return true;
 	}
 
-	BcBool serialiseFromString( void* pInstance, const std::string& InString ) const
+	BcBool serialiseFromString( void* pInstance, const std::string& InString ) const override
 	{
 		BaseType* pValue( reinterpret_cast< BaseType* >( pInstance ) );
 		CastType InValue;
@@ -103,7 +103,7 @@ public:
 		return true;
 	}
 
-	BcBool copy( void* pDst, void* pSrc ) const
+	BcBool copy( void* pDst, void* pSrc ) const override
 	{
 		BaseType& Dst = *reinterpret_cast< BaseType* >( pDst );
 		BaseType& Src = *reinterpret_cast< BaseType* >( pSrc );

@@ -33,10 +33,10 @@ public:
 	ScnAnimationComponent();
 	virtual ~ScnAnimationComponent();
 
-	virtual void destroy();
+	void destroy() override;
 
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
 	 * Find a node by type.

@@ -68,7 +68,7 @@ public:
 	ScnCanvasComponent( BcU32 NoofVertices );
 	virtual ~ScnCanvasComponent();
 
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 
 	/**
 	 * Set material component.
@@ -208,9 +208,9 @@ public:
 	void clear();
 	
 public:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-	virtual void render( ScnRenderContext & RenderContext );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 
 	static void clearAll( const ScnComponentList& Components );
 	static void endAll( const ScnComponentList& Components );

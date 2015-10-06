@@ -55,6 +55,21 @@
 		return isTypeOf( _Ty::StaticGetClass() );								\
 	}																			\
 
+
+#define __REFLECTION_DECLARE_BASE_OVERRIDE( _Type )								\
+	__REFLECTION_DECLARE_BASIC( _Type )											\
+	BcName getTypeName() const override;										\
+	BcU32 getTypeHash() const override;											\
+	const ReClass* getClass() const override;									\
+	BcBool isType( BcName Type ) const override;								\
+	BcBool isTypeOf( const ReClass* pClass ) const override;					\
+	template < class _Ty >														\
+	inline BcBool isTypeOf() const												\
+	{																			\
+		return isTypeOf( _Ty::StaticGetClass() );								\
+	}																			\
+
+
 /**
  * Internal
  */
@@ -160,6 +175,7 @@
 		return _Type::StaticGetClass() == pClass;								\
 	}																			\
 
+
 /**
  * @brief Declare derived type.
  * 
@@ -169,8 +185,9 @@
 #define REFLECTION_DECLARE_DERIVED( _Type, _Base )								\
 	public:																		\
 		typedef _Base Super;													\
-		__REFLECTION_DECLARE_BASE( _Type )										\
+		__REFLECTION_DECLARE_BASE_OVERRIDE( _Type )								\
 	_Type( ReNoInit ): _Base( NOINIT ) {};
+
 
 /**
  * @brief Declare derived type, no autored
@@ -180,6 +197,7 @@
  */
 #define REFLECTION_DECLARE_DERIVED_NOAUTOREG( _Type, _Base )					\
 		REFLECTION_DECLARE_DERIVED( _Type, _Base )								\
+
 
 /**
  * @brief Declare derived type.
@@ -192,7 +210,8 @@
 #define REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT( _Type, _Base )				\
 	public:																		\
 		typedef _Base Super;													\
-		__REFLECTION_DECLARE_BASE( _Type )										\
+		__REFLECTION_DECLARE_BASE_OVERRIDE( _Type )								\
+
 
 /**
  * @brief Define derived type.
@@ -201,7 +220,7 @@
  * Should be put in the cpp.
  */
 #define REFLECTION_DEFINE_DERIVED( _Type )										\
-	__REFLECTION_DEFINE_BASE( _Type )											\
+	__REFLECTION_DEFINE_BASE( _Type )										\
 	BcU32 _Type::getTypeHash() const											\
 	{																			\
 		return _Type::StaticGetTypeNameHash();									\
@@ -216,5 +235,6 @@
 	{																			\
 		return _Type::StaticGetClass() == pClass || Super::isTypeOf( pClass );	\
 	}																			\
+
 
 #endif

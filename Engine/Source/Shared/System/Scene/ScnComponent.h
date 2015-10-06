@@ -156,11 +156,11 @@ public:
 
 
 private:
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 
-	virtual void fileReady();
-	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 protected:
 	BcU32 ComponentFlags_;

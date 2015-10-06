@@ -18,8 +18,14 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Macro
-#define DECLARE_VISITABLE( _ClassName ) \
+#define DECLARE_VISITABLE_BASE( _ClassName ) \
 	virtual void visit_accept( ScnVisitor* pVisitor ) \
+	{ \
+		pVisitor->visit( (_ClassName*)this ); \
+	}
+
+#define DECLARE_VISITABLE( _ClassName ) \
+	void visit_accept( ScnVisitor* pVisitor ) override \
 	{ \
 		pVisitor->visit( (_ClassName*)this ); \
 	}

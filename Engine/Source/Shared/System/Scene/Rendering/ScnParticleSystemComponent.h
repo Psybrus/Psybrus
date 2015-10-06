@@ -69,13 +69,13 @@ public:
 	virtual ~ScnParticleSystemComponent();
 
 public:
-	virtual void initialise();
+	void initialise() override;
 
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 
-	virtual void render( ScnRenderContext & RenderContext );
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void render( ScnRenderContext & RenderContext ) override;
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	ScnMaterialComponentRef getMaterialComponent();
 

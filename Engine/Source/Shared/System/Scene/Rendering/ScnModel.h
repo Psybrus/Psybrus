@@ -40,12 +40,12 @@ public:
 	ScnModel();
 	virtual ~ScnModel();
 
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 	
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 protected:
 	friend class ScnModelComponent;
@@ -75,7 +75,7 @@ public:
 
 	void initialise() override;
 
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 
 	BcU32 findNodeIndexByName( const BcName& Name ) const;
 	const BcName& findNodeNameByIndex( BcU32 NodeIdx ) const;
@@ -93,9 +93,9 @@ public:
 	static void updateModels( const ScnComponentList& Components );
 	void updateModel( BcF32 Tick );
 	void updateNodes( MaMat4d RootMatrix );
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-	void render( ScnRenderContext & RenderContext );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 	
 protected:
 	ScnModelRef Model_;

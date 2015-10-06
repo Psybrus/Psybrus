@@ -55,8 +55,8 @@ public:
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
 	 * Is this renderable component lit?

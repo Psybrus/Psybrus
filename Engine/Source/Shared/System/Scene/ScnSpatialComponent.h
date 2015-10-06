@@ -26,15 +26,15 @@ class ScnSpatialComponent:
 {
 public:
 	REFLECTION_DECLARE_DERIVED( ScnSpatialComponent, ScnComponent );
-	DECLARE_VISITABLE( ScnSpatialComponent );
+	DECLARE_VISITABLE_BASE( ScnSpatialComponent );
 
 public:
 
 	ScnSpatialComponent();
 	virtual ~ScnSpatialComponent();
 	
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 

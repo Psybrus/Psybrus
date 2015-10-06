@@ -36,8 +36,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import(
-		const Json::Value& Object );
+	BcBool import( const Json::Value& Object ) override;
 
 private:
 	CsCrossRefId Shader_;

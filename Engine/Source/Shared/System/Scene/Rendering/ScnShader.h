@@ -38,8 +38,8 @@ public:
 	ScnShader();
 	virtual ~ScnShader();
 	
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 	
 	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
 	
@@ -57,8 +57,8 @@ private:
 	RsShader* getShader( BcU32 Hash, TShaderMap& ShaderMap );
 	
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 private:
 	ScnShaderHeader* pHeader_;

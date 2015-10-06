@@ -27,8 +27,8 @@ public:
 	ScnPhysicsConstraintComponent();
 	virtual ~ScnPhysicsConstraintComponent();
 
-	void onAttach( ScnEntityWeakRef Parent );
-	void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	class btTypedConstraint* getConstraint();
 

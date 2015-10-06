@@ -44,7 +44,7 @@ public:
 	ScnEntity( ReNoInit );
 	virtual ~ScnEntity();
 
-	void initialise();
+	void initialise() override;
 	void destroy() override;
 
 	void visitHierarchy( 
@@ -53,8 +53,8 @@ public:
 		const ScnComponentVisitFunc& Func ) override;
 
 public:
-	void onAttach( ScnEntityWeakRef Parent );
-	void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
 	 * Attach a component to this entity.
@@ -173,8 +173,8 @@ protected:
 	 */
 	ScnComponent* internalCreateComponent( const BcName& Name, const ReClass* Class );
 
-	virtual void fileReady();
-	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 	void setupComponents();
 

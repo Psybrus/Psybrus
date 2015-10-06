@@ -66,7 +66,7 @@ public:
 	ScnDebugRenderComponent( BcU32 NoofVertices );
 	virtual ~ScnDebugRenderComponent();
 	
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 	
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -149,9 +149,9 @@ public:
 	void clear();
 
 private:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-	virtual void render( ScnRenderContext & RenderContext );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 
 	static void clearAll( const ScnComponentList& Components );
 
