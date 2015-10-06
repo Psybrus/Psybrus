@@ -32,8 +32,8 @@ class BuildGmake( Build ):
 
 		# TODO: Should make generic to replace all env vars found.
 		env = copy.deepcopy( os.environ )
-		self.tool = self.tool.replace( "%ANDROID_NDK%", env["ANDROID_NDK"] )
-		pass
+		if env.has_key( "ANDROID_NDK" ):
+			self.tool = self.tool.replace( "%ANDROID_NDK%", env["ANDROID_NDK"] )
 
 	def clean( self ):
 		self.launch( "clean" )

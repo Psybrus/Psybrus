@@ -56,7 +56,8 @@ local portmidi_root  = "./portmidi"
 local dxsdk_root     = os.getenv("DXSDK_DIR") and os.getenv("DXSDK_DIR") or "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)"
 local portaudio_root = "./portaudio"
 local openal_root    = "./openal"
-local opensles_root    = os.getenv("ANDROID_NDK") .. "/platforms/arch-arm/usr"
+local android_ndk    = os.getenv("ANDROID_NDK") or ""
+local opensles_root    = android_ndk .. "/platforms/arch-arm/usr"
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --
 
