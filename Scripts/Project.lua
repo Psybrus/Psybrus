@@ -482,7 +482,7 @@ function PsyProjectGameLib( _name )
 
 	configuration "windows-*"
 		prebuildcommands {
-			"C:\\Python27\\python.exe ../../Psybrus/reflection_parse.py " .. solution().name
+			"python.exe ../../Psybrus/reflection_parse.py " .. solution().name
 		}
 
 	-- Terminate project.
