@@ -78,7 +78,7 @@ private:
 	RsColour Colour_;
 	BcS32 Index_;
 	BcU32 Layer_;
-	BcBool Center_;
+	BcBool Centre_;
 	BcBool IsScreenSpace_;
 	BcF32 Rotation_;
 
