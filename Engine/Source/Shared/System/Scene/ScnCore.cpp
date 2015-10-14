@@ -612,6 +612,12 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	// Create entity.
 	ScnEntity* Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
 
+	if( Entity == nullptr )
+	{
+		PSY_LOG( "ERROR: Failed to spawn entity %s.%s.",
+			(*Params.Package_).c_str(), 
+			(*Params.Name_).c_str() );
+	}
 	// Set it's transform.
 	Entity->setLocalMatrix( Params.Transform_ );
 
