@@ -592,7 +592,10 @@ BcU32 DsCoreImpl::registerPage( std::string regex, std::vector<std::string> name
 	DsPageDefinition cm( regex, namedCaptures, display );
 	cm.Function_ = fn;
 	PageFunctions_.push_back( cm );
-	DsCoreLogging::pImpl()->addLog( "DsCore", rand(), "Registering page: " + display );
+	if( DsCoreLogging::pImpl() )
+	{
+		DsCoreLogging::pImpl()->addLog( "DsCore", rand(), "Registering page: " + display );
+	}
 	PSY_LOG( "Registered page" );
 	PSY_LOG( "\t%s (%s)", regex.c_str(), display.c_str() );
 
@@ -1212,14 +1215,16 @@ void DsCoreImpl::cmdLog( DsParameters params, BcHtmlNode& Output, std::string Po
 	{
 	ul.createChildNode("li").setContents(val);
 	}//*/
-	BcHtmlNode ul = Output.createChildNode( "ul" );
-	std::vector< DsCoreLogEntry > logs = DsCoreLogging::pImpl()->getEntries( nullptr, 0 );
-
-	for ( auto val : logs )
+	if( DsCoreLogging::pImpl() )
 	{
-		ul.createChildNode( "li" ).setContents( val.Entry_ ).setAttribute( "id", "Log-" + val.Category_ );
-	}//*/
+		BcHtmlNode ul = Output.createChildNode( "ul" );
+		std::vector< DsCoreLogEntry > logs = DsCoreLogging::pImpl()->getEntries( nullptr, 0 );
 
+		for ( auto val : logs )
+		{
+			ul.createChildNode( "li" ).setContents( val.Entry_ ).setAttribute( "id", "Log-" + val.Category_ );
+		}//*/
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

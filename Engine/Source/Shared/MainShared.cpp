@@ -232,7 +232,6 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 // onDsCoreOpened
 eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
-#if !PSY_PRODUCTION
 	DsCore::pImpl()->registerPanel( 
 		"Engine", []( BcU32 )->void
 		{
@@ -311,7 +310,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			}
 			ImGui::End();
 		} );
-#endif
+
 	return evtRET_REMOVE;
 }
 
@@ -468,9 +467,9 @@ void MainShared()
 	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
 #endif
 
-#if !defined( PSY_PRODUCTION )
+//#if !defined( PSY_PRODUCTION )
 	SysKernel::pImpl()->startSystem( "DsCore" );
-#endif
+//#endif
 
 	// Init screenshot.
 	ScreenshotUtil::Init();
