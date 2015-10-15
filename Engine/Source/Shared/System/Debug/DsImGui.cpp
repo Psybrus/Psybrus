@@ -419,7 +419,7 @@ namespace Psybrus
 			RsBufferDesc( 
 				RsBufferType::INDEX,
 				RsResourceCreationFlags::STREAM, 
-				65536 * sizeof( BcU16 ) ) ) );
+				128 * 1024 * sizeof( BcU16 ) ) ) );
 
 		UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
