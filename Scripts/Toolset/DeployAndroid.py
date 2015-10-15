@@ -109,11 +109,15 @@ class DeployAndroid( Deploy ):
 		self.launch_ant( "release" )
 
 	def install( self, _config ):
-		Log.write( "Launching ant " + _config + " uninstall" + self.package + "..." )
-		self.launch_ant( _config + " uninstall " + self.package )
+		antConfig = "debug"
+		if _config == "production":
+			antConfig + "release"
 
-		Log.write( "Launching ant " + _config + " install..." )
-		self.launch_ant( _config + " install" )
+		Log.write( "Launching ant " + antConfig + " uninstall" + self.package + "..." )
+		self.launch_ant( antConfig + " uninstall " + self.package )
+
+		Log.write( "Launching ant " + antConfig + " install..." )
+		self.launch_ant( antConfig + " install" )
 
 	def write_manifest( self ):
 		with open( os.path.join( self.android_project_root, "AndroidManifest.xml" ), "w+" ) as manifestFile:
