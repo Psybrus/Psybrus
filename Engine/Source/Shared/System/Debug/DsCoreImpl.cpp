@@ -136,7 +136,7 @@ void DsCoreImpl::open()
 			return evtRET_REMOVE;
 		} );
 
-		DrawPanels_ = BcTrue;
+		DrawPanels_ = BcFalse;
 #if PLATFORM_ANDROID
 		auto& Style = ImGui::GetStyle();
 		Style.FramePadding.x *= 2.0f;
@@ -150,7 +150,9 @@ void DsCoreImpl::open()
 		[ this ]( EvtID, const EvtBaseEvent& BaseEvent )
 	{
 		const auto& Event = BaseEvent.get< OsEventInputKeyboard >();
-		if ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F12 )
+		if ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F11 ||
+			Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_VOLUME_UP ||
+			Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_VOLUME_DOWN )
 		{
 			DrawPanels_ = !DrawPanels_;
 		}
