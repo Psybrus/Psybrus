@@ -211,6 +211,13 @@ void ScnSpriteComponent::setSpriteIndex( BcU32 Index )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getSpriteIndex
+BcU32 ScnSpriteComponent::getSpriteIndex() const
+{
+	return Index_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // updateAnimation
 void ScnSpriteComponent::updateAnimation( BcF32 Tick )
 {

@@ -61,6 +61,7 @@ public:
 	void setMaterial( ScnMaterialComponentRef Material );
 
 	void setSpriteIndex( BcU32 Index );
+	BcU32 getSpriteIndex() const;
 
 private:
 	void updateAnimation( BcF32 Tick );
