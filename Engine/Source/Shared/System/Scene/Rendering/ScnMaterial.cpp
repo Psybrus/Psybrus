@@ -48,7 +48,8 @@ void ScnMaterial::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnMaterial::ScnMaterial():
-	pHeader_( nullptr )
+	pHeader_( nullptr ),
+	RenderStateDesc_( nullptr )
 {
 
 }
@@ -247,7 +248,8 @@ void ScnMaterialComponent::initialise()
 		BcAssertMsg( Material_->isReady(), 
 			"Material is not ready for use. Possible cause is trying to use a material with a component from within the same package. "
 			"Known issue, can be worked around by moving the material $(ScnMaterial:%s.%s) into another package to allow "
-			"it to be fully loaded. This will hopefully be fixed by #118.",
+			"it to be fully loaded. This will hopefully be fixed by #118.  "
+			"Another possible cause is due to not using the bcRFF_SHALLOW_COPY flag on an imported member field. ",
 			(*Material_->getPackageName()).c_str(), (*Material_->getName()).c_str() );
 		pProgram_ = Material_->Shader_->getProgram( PermutationFlags_ );
 		BcAssert( pProgram_ != nullptr );

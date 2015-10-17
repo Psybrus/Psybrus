@@ -208,6 +208,11 @@ public:
 	
 	/**
 	 * Update buffer.
+	 * @param Buffer Pointer to buffer.
+	 * @param Offset Offset in vertex buffer in bytes.
+	 * @param Size Size to update in bytes. If 0, whole size of buffer is assumed.
+	 * @param Flags Resource update flags.
+	 * @param UpdateFunc Function to call for update.
 	 */
 	virtual bool updateBuffer( 
 		class RsBuffer* Buffer,

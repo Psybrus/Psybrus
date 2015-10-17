@@ -637,8 +637,13 @@ bool RsCoreImpl::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
-	BcAssert( Size > 0 );
 	BcAssert( Buffer != nullptr );
+	BcAssert( Size >= 0 && ( Size + Offset ) <= Buffer->getDesc().SizeBytes_ );
+
+	if( Size == 0 )
+	{
+		Size = Buffer->getDesc().SizeBytes_;
+	}
 
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )

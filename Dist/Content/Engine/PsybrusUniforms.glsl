@@ -1,3 +1,5 @@
+#pragma once
+
 ////////////////////////////////////////////////////////////////////////
 // cbuffer macros
 
@@ -166,3 +168,4 @@ END_CBUFFER
 #  define ShadowColour_ ScnFontUniformBlockDataVS_XShadowColour_
 
 #endif
+
