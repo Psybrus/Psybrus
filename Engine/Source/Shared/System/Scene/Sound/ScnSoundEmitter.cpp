@@ -153,6 +153,23 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound, bool ContinuousUpdate )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// play
+bool ScnSoundEmitterComponent::play( BcName PackageName, BcName SoundName, bool ContinuousUpdate )
+{
+	if( auto Package = CsCore::pImpl()->findPackage( PackageName ) )
+	{
+		ScnSoundRef Sound;
+		if( CsCore::pImpl()->requestResource( PackageName, SoundName, Sound ) )
+		{
+			play( Sound, ContinuousUpdate );
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // stopAll
 void ScnSoundEmitterComponent::stopAll( bool ForceFlush )
 {
