@@ -30,6 +30,8 @@
 
 #include "System/Debug/DsImGui.h"
 
+#include "System/SysKernel.h"
+
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
@@ -125,6 +127,8 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 		} );
 
 	ScnCore::pImpl()->addCallback( this );
+
+	memset( &ViewUniformBlock_, 0, sizeof( ViewUniformBlock_ ) );
 
 	recreateFrameBuffer();
 	Super::onAttach( Parent );
@@ -279,6 +283,10 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 
 	// Clip transform.
 	ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
+
+	// Time.
+	BcF32 Time = SysKernel::pImpl()->getFrameTime();
+	ViewUniformBlock_.ViewTime_ += MaVec4d( Time, Time * 0.5f, Time * 0.25f, Time * 0.125f );
 
 	// Upload uniforms.
 	RsCore::pImpl()->updateBuffer( 

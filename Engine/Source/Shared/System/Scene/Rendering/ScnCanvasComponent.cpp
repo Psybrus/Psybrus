@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Os/OsCore.h"
@@ -170,8 +171,12 @@ void ScnCanvasComponent::setViewMatrix( const MaMat4d& View )
 // getRect
 const ScnRect& ScnCanvasComponent::getRect( BcU32 Idx ) const
 {
-	static ScnRect EMPTY;
-	return DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( Idx ) : EMPTY;
+	static ScnRect Rect = 
+	{
+		0.0f, 0.0f,
+		1.0f, 1.0f
+	};
+	return DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( Idx ) : Rect;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -627,6 +632,7 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 		{
 			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
+			RenderContext.pViewComponent_->setMaterialParameters( pLastMaterialComponent );
 			pLastMaterialComponent->bind( RenderContext.pFrame_, Sort );
 		}
 		

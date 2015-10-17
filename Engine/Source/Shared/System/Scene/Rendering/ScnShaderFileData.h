@@ -185,6 +185,7 @@ struct ScnShaderViewUniformBlockData
 	MaMat4d InverseViewTransform_;
 	MaMat4d ViewTransform_;
 	MaMat4d ClipTransform_;
+	MaVec4d ViewTime_;
 };
 
 //////////////////////////////////////////////////////////////////////////
