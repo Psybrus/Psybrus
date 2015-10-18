@@ -30,6 +30,7 @@ void ScnCanvasComponent::StaticRegisterClass()
 	{
 		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_, bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "Clear_", &ScnCanvasComponent::Clear_, bcRFF_IMPORTER ),
+		new ReField( "AbsoluteCoords_", &ScnCanvasComponent::AbsoluteCoords_, bcRFF_IMPORTER ),
 		new ReField( "Left_", &ScnCanvasComponent::Left_, bcRFF_IMPORTER ),
 		new ReField( "Right_", &ScnCanvasComponent::Right_, bcRFF_IMPORTER ),
 		new ReField( "Top_", &ScnCanvasComponent::Top_, bcRFF_IMPORTER ),
@@ -727,12 +728,15 @@ void ScnCanvasComponent::clearAll( const ScnComponentList& Components )
 			// Just use default client size.
 			auto Client = OsCore::pImpl()->getClient( 0 );
 
+			const BcF32 Width = CanvasComponent->AbsoluteCoords_ ? 1.0f : Client->getWidth();
+			const BcF32 Height = CanvasComponent->AbsoluteCoords_ ? 1.0f : Client->getHeight();
+
 			MaMat4d Projection;
 			Projection.orthoProjection(
-				CanvasComponent->Left_ * Client->getWidth(),
-				CanvasComponent->Right_ * Client->getWidth(),
-				CanvasComponent->Bottom_ * Client->getHeight(),
-				CanvasComponent->Top_ * Client->getHeight(),
+				CanvasComponent->Left_ * Width,
+				CanvasComponent->Right_ * Width,
+				CanvasComponent->Bottom_ * Height,
+				CanvasComponent->Top_ * Height,
 				-1.0f, 
 				1.0f );
 

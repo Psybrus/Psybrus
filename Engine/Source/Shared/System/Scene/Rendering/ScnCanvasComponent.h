@@ -57,7 +57,27 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnCanvasComponent
+/** @class ScnCanvasComponent
+ *
+ * Format in package:
+ {
+   "type" : "ScnCanvasComponent",
+   // Number of vertices to allocate for canvas.
+   "noofvertices" : int
+   // Clear canvas automatically at the beginning of each frame.
+   "clear" : true|false,
+   // If true, will use coords you specify w/o multiplying by client size.
+   "absolutecoords" : true|false,
+   // Left coordinate in canvas.
+   "left" : float,
+   // Right coordinate in canvas.
+   "right" : float,
+   // Top coordinate in canvas.
+   "top" : float,
+   // Bottom coordinate in canvas.
+   "bottom" : float	
+ }
+ */
 class ScnCanvasComponent:
 	public ScnRenderableComponent
 {
@@ -262,6 +282,7 @@ protected:
 
 	// Automatic clear and setup.
 	BcBool Clear_;
+	BcBool AbsoluteCoords_ = BcFalse;
 	BcF32 Left_;
 	BcF32 Right_;
 	BcF32 Top_;

@@ -301,9 +301,8 @@ private:
 	MaVec2d ClipMin_;
 	MaVec2d ClipMax_;
 
-	RsBuffer* UniformBuffer_;
+	RsBufferUPtr UniformBuffer_;
 	ScnFontUniformBlockData FontUniformData_;
-	SysFence UploadFence_;
 };
 
 #endif
