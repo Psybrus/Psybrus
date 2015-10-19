@@ -49,6 +49,14 @@ BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+// BcVSPrintf
+#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
+#define BcVSPrintf		vsprintf_s
+#else
+#define BcVSPrintf		vsnprintf
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // BcSScanf
 #define BcSScanf		sscanf
 
