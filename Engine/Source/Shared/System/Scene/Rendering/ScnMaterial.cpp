@@ -81,12 +81,11 @@ void ScnMaterial::create()
 	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_ );
 
 	// Create sampler states.
-	SamplerStates_.reserve( pHeader_->NoofTextures_ );
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 	{
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
 		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_ );
-		SamplerStates_.emplace_back( std::move( SamplerState ) );
+		SamplerStateMap_[ pTextureHeader->SamplerName_ ] = std::move( SamplerState );
 	}
 
 	// Mark as ready.
@@ -99,7 +98,7 @@ void ScnMaterial::create()
 void ScnMaterial::destroy()
 {
 	RenderState_.reset();
-	SamplerStates_.clear();
+	SamplerStateMap_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,8 +254,8 @@ void ScnMaterialComponent::initialise()
 		BcAssert( pProgram_ != nullptr );
 		
 		// Build a binding list for textures.
-		ScnTextureMap& TextureMap( Material_->TextureMap_ );
-		for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
+		auto& TextureMap( Material_->TextureMap_ );
+		for( auto Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
 		{
 			const BcName& SamplerName = (*Iter).first;
 			ScnTextureRef Texture = (*Iter).second;
@@ -265,6 +264,20 @@ void ScnMaterialComponent::initialise()
 			if( SamplerIdx != BcErrorCode )
 			{
 				setTexture( SamplerIdx, Texture );
+			}
+		}
+
+		// Build a binding list for samplera.
+		auto& SamplerMap( Material_->SamplerStateMap_ );
+		for( auto Iter( SamplerMap.begin() ); Iter != SamplerMap.end(); ++Iter )
+		{
+			const BcName& SamplerName = (*Iter).first;
+			RsSamplerState* Sampler = (*Iter).second.get();
+
+			BcU32 SamplerIdx = findTextureSlot( SamplerName );
+			if( SamplerIdx != BcErrorCode )
+			{
+				setSamplerState( SamplerIdx, Sampler );
 			}
 		}
 
@@ -306,7 +319,8 @@ BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 		TTextureBinding Binding;
 		Binding.Handle_ = Handle;
 		Binding.Texture_ = nullptr;
-		
+		Binding.Sampler_ = nullptr;
+
 		TextureBindingList_.push_back( Binding );
 		return (BcU32)TextureBindingList_.size() - 1;
 	}
@@ -335,6 +349,29 @@ void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 void ScnMaterialComponent::setTexture( const BcName& TextureName, ScnTextureRef Texture )
 {
 	setTexture( findTextureSlot( TextureName ), Texture );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSamplerState
+void ScnMaterialComponent::setSamplerState( BcU32 Slot, RsSamplerState* Sampler )
+{
+	// Find the texture slot to put this in.
+	if( Slot < TextureBindingList_.size() )
+	{
+		auto& TexBinding( TextureBindingList_[ Slot ] );
+		TexBinding.Sampler_ = Sampler;
+	}
+	else
+	{
+		PSY_LOG( "ERROR: Unable to set sampler state for slot %x\n", Slot );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSamplerState
+void ScnMaterialComponent::setSamplerState( const BcName& TextureName, RsSamplerState* Sampler )
+{
+	setSamplerState( findTextureSlot( TextureName ), Sampler );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -490,14 +527,14 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 		if( Binding.Texture_ != nullptr )
 		{
 			Texture = Binding.Texture_->getTexture();
+			SamplerState = Binding.Sampler_;
+			BcAssertMsg( SamplerState, "Sampler state missing for texture binding." );
 		}
 		else
 		{
 			Texture = nullptr;
+			SamplerState = nullptr;
 		}
-
-		// Set sampler state.
-		SamplerState = Material_->SamplerStates_[ Idx ].get();
 	}
 
 	// Setup uniform blocks.

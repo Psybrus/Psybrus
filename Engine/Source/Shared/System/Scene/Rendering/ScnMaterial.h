@@ -71,10 +71,10 @@ private:
 	
 	ScnShaderRef Shader_;
 	ScnTextureMap TextureMap_;
+	std::map< BcName, RsSamplerStateUPtr > SamplerStateMap_;
 
 	const RsRenderStateDesc* RenderStateDesc_;
 	RsRenderStateUPtr RenderState_;
-	std::vector< RsSamplerStateUPtr > SamplerStates_;
 
 };
 
@@ -97,6 +97,8 @@ public:
 	BcU32 findTextureSlot( const BcName& TextureName );	
 	void setTexture( const BcName& TextureName, ScnTextureRef Texture );
 	void setTexture( BcU32 Slot, ScnTextureRef Texture );
+	void setSamplerState( const BcName& TextureName, RsSamplerState* Sampler );
+	void setSamplerState( BcU32 Slot, RsSamplerState* Sampler );
 
 	BcU32 findUniformBlock( const BcName& UniformBlockName );	
 	void setUniformBlock( const BcName& UniformBlockName, RsBuffer* UniformBuffer );
@@ -127,6 +129,7 @@ private:
 
 		BcU32 Handle_;
 		ScnTexture* Texture_;
+		RsSamplerState* Sampler_;
 	};
 	
 	struct TUniformBlockBinding

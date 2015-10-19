@@ -1680,7 +1680,7 @@ void RsContextGL::flushState()
 					if( Version_.SupportSamplerStates_ )
 					{
 						GLuint SamplerObject = SamplerState->getHandle< GLuint >();
-						GL( BindSampler( TextureStateIdx, SamplerObject ) );
+						GL( BindSampler( TextureStateID, SamplerObject ) );
 					}
 					else
 #endif
