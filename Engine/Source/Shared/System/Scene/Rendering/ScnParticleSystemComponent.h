@@ -81,6 +81,11 @@ public:
 
 	BcBool allocParticle( ScnParticle*& pParticle );
 
+	/**
+	 * Set transform if not local space.
+	 */
+	void setTransform( MaMat4d Transform ){ Transform_ = Transform; }
+
 private:
 	void updateParticle( ScnParticle& Particle, BcF32 Tick );
 
@@ -114,6 +119,9 @@ private:
 
 	// UV bounds.
 	std::vector< MaVec4d > UVBounds_;
+
+	// Transform.
+	MaMat4d Transform_;
 
 	// AABB
 	MaAABB AABB_;

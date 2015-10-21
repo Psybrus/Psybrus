@@ -279,7 +279,7 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 	}
 	else
 	{
-		VertexBuffer.ObjectUniforms_.WorldTransform_ = MaMat4d();
+		VertexBuffer.ObjectUniforms_.WorldTransform_ = Transform_;
 	}
 
 	// Upload uniforms.
@@ -302,6 +302,9 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 
 		// Set material parameters for view.
 		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
+
+		// Set ubo.
+		MaterialComponent_->setObjectUniformBlock( VertexBuffer.UniformBuffer_ );
 
 		// Bind material component.
 		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
