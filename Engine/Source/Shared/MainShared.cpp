@@ -46,6 +46,7 @@ BcU32 GResolutionHeight = 720;
 #include <boost/filesystem.hpp>
 #endif
 
+#include <chrono>
 
 //////////////////////////////////////////////////////////////////////////
 // Screenshot utility.

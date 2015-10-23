@@ -154,6 +154,17 @@ class DeployAndroid( Deploy ):
 			stringsFile.write( "  <string name=\"app_name\">" + self.game_full_name + "</string>\n" )
 			stringsFile.write( "</resources>\n" )
 
+	def sign_build( self ):
+		# To generate keystore:
+		# keytool -genkey -v -keystore my-release-key.keystore -alias alias_name -keyalg RSA -keysize 2048 -validity 10000
+
+		# Sign the apk:
+		# jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my-release-key.keystore my_application.apk alias_name
+
+		# Align zip:
+		# zipalign -v 4 your_project_name-unaligned.apk your_project_name.apk
+		pass
+
 	def write_gdb_config( self ):
 		env = copy.deepcopy( os.environ )
 		abi = self.abis[ self.platform.name ]
