@@ -50,6 +50,19 @@ class DeployAndroid( Deploy ):
 
 		# TODO: Kill adb and delete project folder?
 
+		# Grab keystore.
+		cwd = os.getcwd()
+		try:
+			os.chdir( self.android_project_root )
+			keystore_path = self.android_config["keystore"]
+			if os.path.exists(keystore_path) == False:
+				keystore_path = os.path.join( "../../..", keystore_path )
+				if os.path.exists(keystore_path) == False:
+					raise Exception( "Unable to find keystore file." )
+		finally:
+			os.chdir( cwd )
+
+
 		# Create project directory.
 		Log.write( "Creating project directory..." )
 		createDir( self.android_project_root )
@@ -61,6 +74,10 @@ class DeployAndroid( Deploy ):
 			createDir( os.path.join( self.android_project_root, "libs", abi ) )
 		createDir( os.path.join( self.android_project_root, "res" ) )
 		createDir( os.path.join( self.android_project_root, "res", "values" ) )
+		createDir( os.path.join( self.android_project_root, "src" ) )
+
+		# Append project properties.
+		self.append_project_properties();
 
 		# Setup manifest & strings.
 		self.write_manifest()
@@ -105,10 +122,18 @@ class DeployAndroid( Deploy ):
 		# Package up using ant.
 		Log.write( "Launching ant debug..." )
 		self.launch_ant( "debug" )
+
+		#apk_path = os.path.join( "bin", self.game_config[ "name" ] + "-debug.apk" )
+		#self.sign_build( keystore_path, apk_path )
+
 		Log.write( "Launching ant release..." )
 		self.launch_ant( "release" )
 
+		apk_path = os.path.join( "bin", self.game_config[ "name" ] + "-release-unsigned.apk" )
+		self.sign_build( keystore_path, apk_path )
+
 	def install( self, _config ):
+		return
 		antConfig = "debug"
 		if _config == "production":
 			antConfig + "release"
@@ -118,6 +143,32 @@ class DeployAndroid( Deploy ):
 
 		Log.write( "Launching ant " + antConfig + " install..." )
 		self.launch_ant( antConfig + " install" )
+
+	def append_project_properties( self ):
+		if self.android_config.has_key( "references" ):
+			# Update references
+			target = "android-" + self.sdk_version
+			for reference in self.android_config[ "references" ]:
+				self.launch_android_tool( "update project -p " + os.path.join( "../../..", reference ) + " -t " + target )
+
+			# Add references to project.properties
+			ref_idx = 1
+			for reference in self.android_config[ "references" ]:
+				cwd = os.getcwd()
+				try:
+					echo_command = "echo android.library.reference." + str(ref_idx) + "=../../../" + reference + " > project.properties"
+					os.chdir( self.android_project_root )
+					subprocess.Popen( echo_command, shell=True ).communicate()
+					ref_idx += 1
+
+				except KeyboardInterrupt:
+					Log.write( "Build cancelled. Exiting." )
+					exit(1)
+				finally:
+					os.chdir( cwd )
+
+		
+		pass
 
 	def write_manifest( self ):
 		with open( os.path.join( self.android_project_root, "AndroidManifest.xml" ), "w+" ) as manifestFile:
@@ -133,12 +184,21 @@ class DeployAndroid( Deploy ):
 
 			manifestFile.write( "  <uses-feature android:glEsVersion=\"" + self.android_config["es_version"] + "\" />\n" )
 			manifestFile.write( "  <application android:label=\"@string/app_name\"\n" )
-			manifestFile.write( "               android:hasCode=\"false\" android:debuggable=\"true\">\n" )
+			manifestFile.write( "               android:debuggable=\"true\">\n" )
+
+			if self.android_config.has_key( "metadata" ):
+				metadata = self.android_config[ "metadata" ]
+				for metadata_key in metadata:
+					metadata_value = metadata[ metadata_key ]
+					manifestFile.write( "  <meta-data android:name=\"" + metadata_key + "\"\n" )
+					manifestFile.write( "             android:value=\"" + metadata_value + "\" />\n" )
+
 			manifestFile.write( "    <activity android:name=\"android.app.NativeActivity\"\n" )
 			manifestFile.write( "              android:screenOrientation=\"" + self.android_config["orientation"] + "\"\n" )
 			manifestFile.write( "              android:label=\"@string/app_name\">\n" )
 			manifestFile.write( "      <meta-data android:name=\"android.app.lib_name\"\n" )
 			manifestFile.write( "                 android:value=\"" + self.game_name + "\" />\n" )
+
 			manifestFile.write( "      <intent-filter>\n" )
 			manifestFile.write( "        <action android:name=\"android.intent.action.MAIN\" />\n" )
 			manifestFile.write( "        <category android:name=\"android.intent.category.LAUNCHER\" />\n" )
@@ -152,14 +212,29 @@ class DeployAndroid( Deploy ):
 			stringsFile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
 			stringsFile.write( "<resources>\n" )
 			stringsFile.write( "  <string name=\"app_name\">" + self.game_full_name + "</string>\n" )
+			stringsFile.write( "  <string name=\"app_id\">" + self.android_config["app_id"] + "</string>\n" )
 			stringsFile.write( "</resources>\n" )
 
-	def sign_build( self ):
+	def sign_build( self, key_store_path, apk_path ):
+		env = copy.deepcopy( os.environ )
+
 		# To generate keystore:
 		# keytool -genkey -v -keystore my-release-key.keystore -alias alias_name -keyalg RSA -keysize 2048 -validity 10000
 
 		# Sign the apk:
-		# jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my-release-key.keystore my_application.apk alias_name
+		jar_signer = os.path.join( env["JAVA_HOME"], "bin", "jarsigner" )
+		jar_signer_command = "\"" + jar_signer + "\"" + " -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore " + key_store_path + " " + apk_path + " " + self.game_config["name"]
+		Log.write( "Launching: " + jar_signer_command )
+
+		cwd = os.getcwd()
+		try:
+			os.chdir( self.android_project_root )
+			subprocess.Popen( jar_signer_command, env=env, shell=True ).communicate()
+		except KeyboardInterrupt:
+			Log.write( "Build cancelled. Exiting." )
+			exit(1)
+		finally:
+			os.chdir( cwd )
 
 		# Align zip:
 		# zipalign -v 4 your_project_name-unaligned.apk your_project_name.apk
