@@ -206,6 +206,12 @@ BcBool ScnTextureImport::import(
 		// If a tile atlas, reconstruct the image list.
 		if( TileAtlas_ )
 		{
+			if( getResourceType() != "ScnTextureAtlas" )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Need to set resource type to ScnTextureAtlas." );
+				return BcFalse;
+
+			}
 			ImgImageList NewImageList;
 			for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
 			{
