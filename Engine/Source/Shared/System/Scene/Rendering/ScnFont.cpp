@@ -261,7 +261,7 @@ void ScnFontDrawParams::StaticRegisterClass()
 	ReEnumConstant* ScnFontAlignmentEnumConstants[] = 
 	{
 		new ReEnumConstant( "LEFT", ScnFontAlignment::LEFT ),
-		new ReEnumConstant( "RIGHT", ScnFontAlignment::LEFT ),
+		new ReEnumConstant( "RIGHT", ScnFontAlignment::RIGHT ),
 		new ReEnumConstant( "VCENTRE", ScnFontAlignment::VCENTRE ),
 		new ReEnumConstant( "TOP", ScnFontAlignment::TOP ),
 		new ReEnumConstant( "BOTTOM", ScnFontAlignment::BOTTOM ),
