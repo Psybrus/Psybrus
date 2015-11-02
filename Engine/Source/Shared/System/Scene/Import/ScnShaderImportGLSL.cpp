@@ -579,6 +579,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 			Program->dumpReflection();
 
 			// Uniforms + uniform blocks.
+			// NOTE: This returns buffer blocks too. Need to parse out these manually later.
 			ProgramHeaderGLSL.NoofUniforms_ = Program->getNumLiveUniformVariables();
 			ProgramHeaderGLSL.NoofUniformBlocks_ = Program->getNumLiveUniformBlocks();
 
