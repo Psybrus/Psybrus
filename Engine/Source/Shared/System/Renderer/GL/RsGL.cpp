@@ -34,6 +34,7 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportUniformBuffers_( BcFalse ),
 	SupportImageLoadStore_( BcFalse ),
 	SupportShaderStorageBufferObjects_( BcFalse ),
+	SupportProgramInterfaceQuery_( BcFalse ),
 	SupportGeometryShaders_( BcFalse ),
 	SupportTesselationShaders_( BcFalse ),
 	SupportComputeShaders_( BcFalse ),
@@ -167,6 +168,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		{
 			SupportComputeShaders_ = BcTrue;
 			SupportShaderStorageBufferObjects_ = BcTrue;
+			SupportProgramInterfaceQuery_ = BcTrue;
 		}
 
 		break;

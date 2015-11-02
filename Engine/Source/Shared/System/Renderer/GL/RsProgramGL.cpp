@@ -358,6 +358,25 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		BcMemSet( CachedUniforms_.get(), 0xff, UniformEntry.CachedOffset_ );
 	}
 
+	if( Version_.SupportProgramInterfaceQuery_ )
+	{
+#if !defined( RENDER_USE_GLES )
+		BcAssert( Version_.SupportShaderStorageBufferObjects_ );
+		GLint NumActiveShaderStorageBlocks = 0;
+		GL( GetProgramInterfaceiv( Handle_, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &NumActiveShaderStorageBlocks ) );
+
+		GLchar Name[256] = { 0 };
+		GLsizei Length = 0;
+		for( GLint Idx = 0; Idx < NumActiveShaderStorageBlocks; ++Idx )
+		{
+			GL( GetProgramResourceName( Handle_, GL_SHADER_STORAGE_BLOCK, Idx, sizeof( Name ), &Length, Name ) );
+			GL( ShaderStorageBlockBinding( Handle_, Idx, Idx ) );
+
+			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, Idx );
+		}
+#endif // !defined( RENDER_USE_GLES )
+	}
+
 	// Catch error.
 	
 
