@@ -32,6 +32,8 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportVAOs_( BcFalse ),
 	SupportSamplerStates_( BcFalse ),
 	SupportUniformBuffers_( BcFalse ),
+	SupportImageLoadStore_( BcFalse ),
+	SupportShaderStorageBufferObjects_( BcFalse ),
 	SupportGeometryShaders_( BcFalse ),
 	SupportTesselationShaders_( BcFalse ),
 	SupportComputeShaders_( BcFalse ),
@@ -149,15 +151,22 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Minor_ >= 0 )
 		{
 			Features_.SeparateBlendState_ = BcTrue;
+			SupportTesselationShaders_ = BcTrue;
 		}
 
 		// 4.2
 		if( Major_ >= 4 &&
 			Minor_ >= 2 )
 		{
-			// TODO: double check this.
-			SupportTesselationShaders_ = BcTrue;
+			SupportImageLoadStore_ = BcTrue;
+		}
+
+		// 4.3
+		if( Major_ >= 4 &&
+			Minor_ >= 3 )
+		{
 			SupportComputeShaders_ = BcTrue;
+			SupportShaderStorageBufferObjects_ = BcTrue;
 		}
 
 		break;

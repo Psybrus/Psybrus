@@ -211,6 +211,7 @@ void ScnShaderImport::StaticRegisterClass()
 		new ReField( "Sources_", &ScnShaderImport::Sources_, bcRFF_IMPORTER ),
 		new ReField( "Defines_", &ScnShaderImport::Defines_, bcRFF_IMPORTER ),
 		new ReField( "Entrypoints_", &ScnShaderImport::Entrypoints_, bcRFF_IMPORTER ),
+		new ReField( "UsePermutations_", &ScnShaderImport::UsePermutations_, bcRFF_IMPORTER ),
 		new ReField( "ExcludePermutations_", &ScnShaderImport::ExcludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "IncludePermutations_", &ScnShaderImport::IncludePermutations_, bcRFF_IMPORTER ),
 		new ReField( "CodeTypes_", &ScnShaderImport::CodeTypes_, bcRFF_IMPORTER ),
@@ -251,7 +252,8 @@ void ScnShaderImport::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnShaderImport::ScnShaderImport() :
-	ShaderCompileId_( 0 )
+	ShaderCompileId_( 0 ),
+	UsePermutations_( BcTrue )
 {
 
 }
@@ -259,7 +261,8 @@ ScnShaderImport::ScnShaderImport() :
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnShaderImport::ScnShaderImport( ReNoInit ) :
-	ShaderCompileId_( 0 )
+	ShaderCompileId_( 0 ),
+	UsePermutations_( BcTrue )
 {
 
 }
@@ -569,8 +572,15 @@ BcBool ScnShaderImport::newPipeline()
 	// Generate permutation.
 	auto Permutation = getDefaultPermutation();
 
-	// Generate permutations.
-	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
+	// Generate permutations if required.
+	if( UsePermutations_ )
+	{
+		generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
+	}
+	else
+	{
+		Permutations_.push_back( Permutation );
+	}
 
 	// Sort input types from lowest to highest.
 	std::sort( CodeTypes_.begin(), CodeTypes_.end(), 

@@ -730,10 +730,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	if( RetVal != BcFalse )
 	{
 		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-		if( ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
-			ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+		if( ( ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+			  ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 ) &&
+			( ProgramHeaderGLSL.ShaderHashes_[ (BcU32)RsShaderType::COMPUTE ] == 0 ) )
 		{
-			PSY_LOG( "No vertex and pixel shaders in program." );
+			PSY_LOG( "No vertex and pixel shaders in program, or no compute." );
 			RetVal = BcFalse;
 		}
 
@@ -752,14 +753,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		}
 
 		if( BuildSPIRV )
-		{		
-			if( ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
-				ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
-			{
-				PSY_LOG( "No vertex and pixel shaders in program." );
-				RetVal = BcFalse;
-			}
-
+		{
 			BuiltProgramData_.push_back( std::move( ProgramHeaderSPIRV ) );
 			if( VertexAttributes.size() > 0 )
 			{

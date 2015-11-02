@@ -13,6 +13,7 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
 	ResourceHandleMapping SamplerBindings;
 	ResourceHandleMapping TextureBindings;
+	ResourceHandleMapping BufferBindings;
 	ResourceHandleMapping ConstantBufferBindings;
 	ResourceHandleMapping ConstantBufferSizes;
 
@@ -40,8 +41,7 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
 
 				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER ||
-					BindDesc.Type == D3D_SIT_TBUFFER )
+				if( BindDesc.Type == D3D_SIT_CBUFFER || BindDesc.Type == D3D_SIT_TBUFFER )
 				{
 					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
 					{
@@ -59,7 +59,6 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 						BcAssert( BufferDesc.Size == Size );
 					}
 
-
 					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					Size = BufferDesc.Size;
 					ConstantBufferBindings[ BindDesc.Name ] = Handle;
@@ -75,6 +74,17 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 					BcU32 Handle = TextureBindings[ BindDesc.Name ];
 					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					TextureBindings[ BindDesc.Name ] = Handle;
+				}
+				else if( BindDesc.Type == D3D_SIT_STRUCTURED || BindDesc.Type == D3D_SIT_BYTEADDRESS )
+				{
+					if( BufferBindings.find( BindDesc.Name ) == BufferBindings.end() )
+					{
+						BufferBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
+					BcU32 Handle = BufferBindings[ BindDesc.Name ];
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					BufferBindings[ BindDesc.Name ] = Handle;
 				}
 				else if( BindDesc.Type == D3D_SIT_SAMPLER )
 				{
@@ -118,9 +128,19 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	// Add all texture bindings
 	for( const auto& Texture : TextureBindings )
 	{
-		Parent_->addTextureSlot( 
+		Parent_->addShaderResource( 
 			Texture.first,
+			RsShaderResourceType::TEXTURE,
 			Texture.second );
+	}
+
+	// Add all buffer bindings
+	for( const auto& Buffer : BufferBindings )
+	{
+		Parent_->addShaderResource( 
+			Buffer.first,
+			RsShaderResourceType::BUFFER,
+			Buffer.second );
 	}
 }
 

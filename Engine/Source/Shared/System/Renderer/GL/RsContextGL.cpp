@@ -1835,10 +1835,9 @@ void RsContextGL::flushState()
 				{
 					auto BufferGL = Buffer->getHandle< RsBufferGL* >();
 					BcAssert( BufferGL );
-					GL( BindBufferRange( GL_UNIFORM_BUFFER, BindingPoint, BufferGL->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
+					GL( BindBufferRange( GL_UNIFORM_BUFFER, Idx, BufferGL->Handle_, 0, Buffer->getDesc().SizeBytes_ ) );
 					BindingInfo.Dirty_ = BcFalse;
 				}
-				++BindingPoint;
 			}
 		}
 #endif

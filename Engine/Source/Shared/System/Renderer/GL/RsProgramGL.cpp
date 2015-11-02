@@ -21,7 +21,6 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	// Create program.
 	Handle_ = GL( CreateProgram() );
 	
-
 	// Attach shaders.
 	for( auto* Shader : Shaders )
 	{
@@ -152,7 +151,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			{
 				// Add sampler. Will fail if not supported sampler type.
 				Parent_->addSamplerSlot( UniformName, ActiveSamplerIdx );
-				Parent_->addTextureSlot( UniformName, ActiveSamplerIdx );
+				Parent_->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, ActiveSamplerIdx );
 
 				// Bind sampler to known index.
 				GL( UseProgram( Handle_ ) );
@@ -197,16 +196,17 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		GLint ActiveUniformBlocks = 0;
 		GL( GetProgramiv( Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks ) );
 	
-		BcU32 ActiveUniformSlotIndex = 0;
 		for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
 		{
 			// Uniform information.
-			GLchar UniformBlockName[ 256 ];
+			GLchar UniformBlockName[ 256 ] = { 0 };
 			GLsizei UniformBlockNameLength = 0;
 			GLint Size = 0;
+			GLint Binding = 0;
 
 			// Get the uniform block size.
 			GL( GetActiveUniformBlockiv( Handle_, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size ) );
+			GL( GetActiveUniformBlockiv( Handle_, Idx, GL_UNIFORM_BLOCK_BINDING, &Binding ) );
 			GL( GetActiveUniformBlockName( Handle_, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName ) );
 
 			// Add it as a parameter.
@@ -223,8 +223,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 					Idx, 
 					Class );
 
-				GL( UniformBlockBinding( Handle_, Idx, ActiveUniformSlotIndex++ ) );
-				
+				GL( UniformBlockBinding( Handle_, Idx, Idx ) );				
 			}
 		}
 #endif // !defined( RENDER_USE_GLES )

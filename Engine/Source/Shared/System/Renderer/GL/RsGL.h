@@ -137,6 +137,8 @@ struct RsOpenGLVersion
 	bool SupportVAOs_;
 	bool SupportSamplerStates_;
 	bool SupportUniformBuffers_;
+	bool SupportImageLoadStore_;
+	bool SupportShaderStorageBufferObjects_;
 	bool SupportGeometryShaders_;
 	bool SupportTesselationShaders_;
 	bool SupportComputeShaders_;

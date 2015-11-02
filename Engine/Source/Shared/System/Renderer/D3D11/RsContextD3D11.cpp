@@ -1853,6 +1853,7 @@ bool RsContextD3D11::createProgram(
 	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
 	ResourceHandleMapping SamplerBindings;
 	ResourceHandleMapping TextureBindings;
+	ResourceHandleMapping BufferBindings;
 	ResourceHandleMapping ConstantBufferBindings;
 	ResourceHandleMapping ConstantBufferSizes;
 
@@ -1880,8 +1881,7 @@ bool RsContextD3D11::createProgram(
 					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
 
 				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER ||
-					BindDesc.Type == D3D_SIT_TBUFFER )
+				if( BindDesc.Type == D3D_SIT_CBUFFER || BindDesc.Type == D3D_SIT_TBUFFER )
 				{
 					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
 					{
@@ -1915,6 +1915,17 @@ bool RsContextD3D11::createProgram(
 					BcU32 Handle = TextureBindings[ BindDesc.Name ];
 					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					TextureBindings[ BindDesc.Name ] = Handle;
+				}
+				else if( BindDesc.Type == D3D_SIT_STRUCTURED || BindDesc.Type == D3D_SIT_BYTEADDRESS )
+				{
+					if( BufferBindings.find( BindDesc.Name ) == BufferBindings.end() )
+					{
+						BufferBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
+					BcU32 Handle = BufferBindings[ BindDesc.Name ];
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					BufferBindings[ BindDesc.Name ] = Handle;
 				}
 				else if( BindDesc.Type == D3D_SIT_SAMPLER )
 				{
@@ -1958,9 +1969,19 @@ bool RsContextD3D11::createProgram(
 	// Add all texture bindings
 	for( const auto& Texture : TextureBindings )
 	{
-		Program->addTextureSlot( 
+		Program->addShaderResource( 
 			Texture.first,
+			RsShaderResourceType::TEXTURE,
 			Texture.second );
+	}
+
+	// Add all buffer bindings
+	for( const auto& Buffer : BufferBindings )
+	{
+		Program->addShaderResource( 
+			Buffer.first,
+			RsShaderResourceType::BUFFER,
+			Buffer.second );
 	}
 
 	return true;

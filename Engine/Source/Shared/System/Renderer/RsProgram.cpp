@@ -40,7 +40,7 @@ RsProgram::RsProgram(
 
 	// Hash input layout + vertex shader.
 	InputLayoutHash_ = BcHash::GenerateCRC32( 0, &HashCalc, sizeof( HashCalc ) );
-	InputLayoutHash_ = BcHash::GenerateCRC32( InputLayoutHash_, &AttributeList_[ 0 ], sizeof( RsProgramVertexAttribute ) * AttributeList_.size() );
+	InputLayoutHash_ = BcHash::GenerateCRC32( InputLayoutHash_, AttributeList_.data(), sizeof( RsProgramVertexAttribute ) * AttributeList_.size() );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,12 +67,13 @@ BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// findTextureSlot
-BcU32 RsProgram::findTextureSlot( const BcChar* Name )
+// findShaderResourceSlot
+BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name, RsShaderResourceType Type )
 {
-	for( const auto& It : TextureList_ )
+	for( const auto& It : ShaderResourceList_ )
 	{
-		if( It.Name_ == Name )
+		if( It.Name_ == Name && 
+			( Type == RsShaderResourceType::INVALID || It.Type_ == Type ) )
 		{
 			return It.Handle_;
 		}
@@ -94,6 +95,13 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 	}
 
 	return BcErrorCode;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// findTextureSlot
+BcU32 RsProgram::findTextureSlot( const BcChar* Name )
+{
+	return findShaderResourceSlot( Name, RsShaderResourceType::TEXTURE );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -146,16 +154,17 @@ void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addTextureSlot
-void RsProgram::addTextureSlot( std::string Name, BcU32 Handle )
+// addShaderResource
+void RsProgram::addShaderResource( std::string Name, RsShaderResourceType Type, BcU32 Handle )
 {
 	// If parameter is valid, add it.
-	TTexture Texture = 
+	TShaderResource ShaderResource = 
 	{
 		std::move( Name ),
+		Type,
 		Handle,
 	};
-	TextureList_.push_back( std::move( Texture ) );
+	ShaderResourceList_.push_back( std::move( ShaderResource ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
