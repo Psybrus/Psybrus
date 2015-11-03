@@ -194,7 +194,10 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		}
 
 #endif
-		BcAssertMsg( TargetCodeType_ != RsShaderCodeType::INVALID, "No valid code type built in shader. Please add to your package." );
+		if( TargetCodeType_ == RsShaderCodeType::INVALID )
+		{
+			PSY_LOG( "ERROR: No valid code type built in shader. Please add to your package." );
+		}
 
 		// Grab the rest of the chunks.
 		const BcU32 TotalChunks = pHeader_->NoofProgramPermutations_ + pHeader_->NoofShaderPermutations_;
