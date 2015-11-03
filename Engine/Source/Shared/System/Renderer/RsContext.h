@@ -19,6 +19,7 @@
 #include "System/Renderer/RsResource.h"
 #include "System/Renderer/RsResourceInterface.h"
 #include "System/Renderer/RsDrawInterface.h"
+#include "System/Renderer/RsComputeInterface.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -29,7 +30,8 @@ class OsClient;
 class RsContext:
 	public RsResource,
 	public RsResourceInterface,
-	public RsDrawInterface
+	public RsDrawInterface,
+	public RsComputeInterface
 {
 public:
 	enum

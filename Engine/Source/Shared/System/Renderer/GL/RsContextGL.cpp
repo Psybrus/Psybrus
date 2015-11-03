@@ -2189,6 +2189,35 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// dispatchCompute
+void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+{
+	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+	GL( UseProgram( ProgramGL->getHandle() ) );
+
+	// Bind stuff.
+	for( BcU32 Idx = 0; Idx < Bindings.Buffers_.size(); ++Idx )
+	{
+		auto Buffer = Bindings.Buffers_[ Idx ];
+		if( Buffer )
+		{
+			RsBufferGL* BufferGL = Buffer->getHandle< RsBufferGL* >(); 
+			GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+		}
+	}
+
+	// Dispatch.
+	GL( DispatchCompute( XGroups, YGroups, ZGroups ) );
+
+	// Program dirty, need to rebind it later.
+	// Once stateless, won't be a problem.
+	ProgramDirty_ = BcTrue;
+
+	// Uniform buffers dirty, need to rebind later.
+	UniformBuffersDirty_ = BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getOpenGLVersion
 const RsOpenGLVersion& RsContextGL::getOpenGLVersion() const
 {

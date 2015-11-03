@@ -120,12 +120,14 @@ void RsTextureGL::loadTexture(
 		GL( BindTexture( TypeGL, Handle_ ) );
 	}
 		
+#if 0 // wtf was this code for? GLES hack?
 	if( Slice.Level_ > 0 )
 	{
 		if( Slice.Level_ > 1 )
 			return;
 		GL( GenerateMipmap( TypeGL ) );
 	}
+#endif
 
 	// Load level.
 	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );

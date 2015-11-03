@@ -29,6 +29,7 @@ struct RsFeatures
 	bool AnisotropicFiltering_ = false;
 	bool AntialiasedLines_ = false;
 	RsFeatureRenderTargetOrigin RTOrigin_ = RsFeatureRenderTargetOrigin::TOP_LEFT;
+	bool ComputeShaders_ = false;
 
 	// Texture types.
 	bool Texture1D_ = false;
