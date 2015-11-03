@@ -972,8 +972,9 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 	if( RetVal != BcFalse )
 	{
 		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
-		if( ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
-			ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+		if( ( ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+			  ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 ) &&
+			ProgramHeader.ShaderHashes_[ (BcU32)RsShaderType::COMPUTE ] == 0 )
 		{
 			PSY_LOG( "No vertex and pixel shaders in program." );
 			RetVal = BcFalse;
