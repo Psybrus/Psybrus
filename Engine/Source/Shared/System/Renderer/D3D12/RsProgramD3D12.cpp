@@ -86,6 +86,19 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					BufferBindings[ BindDesc.Name ] = Handle;
 				}
+				else if( BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED || BindDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ||
+					BindDesc.Type == D3D_SIT_UAV_APPEND_STRUCTURED || BindDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER )
+				{
+					if( BufferBindings.find( BindDesc.Name ) == BufferBindings.end() )
+					{
+						BufferBindings[ BindDesc.Name ] = BcErrorCode;
+					}
+
+					BcU32 Handle = BufferBindings[ BindDesc.Name ];
+					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					BufferBindings[ BindDesc.Name ] = Handle;
+				}
 				else if( BindDesc.Type == D3D_SIT_SAMPLER )
 				{
 					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
@@ -99,7 +112,7 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 				}
 				else
 				{
-					// TOOD.
+					BcBreakpoint;
 				}
 			}
 		}

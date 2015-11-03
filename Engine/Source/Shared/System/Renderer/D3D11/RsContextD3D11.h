@@ -72,6 +72,7 @@ public:
 
 	void setViewport( const class RsViewport& Viewport ) override;
 	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
+	void dispatchCompute( class RsProgram* Program, RsDispatchBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups );
 
 	bool createRenderState(
 		RsRenderState* RenderState );
@@ -140,10 +141,10 @@ private:
 	BcU32 Height_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
-	BcComRef< IDXGIAdapter > Adapter_;
-	BcComRef< IDXGISwapChain > SwapChain_;
-	BcComRef< ID3D11Device > Device_;
-	BcComRef< ID3D11DeviceContext > Context_;
+	ComPtr< IDXGIAdapter > Adapter_;
+	ComPtr< IDXGISwapChain > SwapChain_;
+	ComPtr< ID3D11Device > Device_;
+	ComPtr< ID3D11DeviceContext > Context_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
 
 	RsFeatures Features_;
@@ -217,13 +218,11 @@ private:
 
 	typedef std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBufferSlots;
 	typedef std::array< D3DConstantBufferSlot, MAX_UNIFORM_SLOTS > D3DConstantBufferSlots;
-	typedef std::array< UniformBufferSlots, (size_t)RsShaderType::MAX > UniformBuffers;
-	typedef std::array< D3DConstantBufferSlots, (size_t)RsShaderType::MAX > D3DConstantBuffers;
 	
-	UniformBuffers UniformBuffers_;
+	UniformBufferSlots UniformBuffers_;
 	BcBool UniformBuffersDirty_;
 
-	D3DConstantBuffers D3DConstantBuffers_;
+	D3DConstantBufferSlots D3DConstantBuffers_;
 	// Shader resources.
 	typedef std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureSlots;
 
@@ -233,8 +232,6 @@ private:
 		BcBool Dirty_;
 	};
 	typedef std::array< D3DShaderResourceViewSlot, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
-	typedef std::array< TextureSlots, (size_t)RsShaderType::MAX > Textures;
-	typedef std::array< D3DShaderResourceViewSlots, (size_t)RsShaderType::MAX > D3DShaderResourceViews;
 
 	struct D3DSamplerStateSlot
 	{
@@ -242,12 +239,11 @@ private:
 		BcBool Dirty_;
 	};
 	typedef std::array< D3DSamplerStateSlot, MAX_TEXTURE_SLOTS > D3DSamplerStateSlots;
-	typedef std::array< D3DSamplerStateSlots, (size_t)RsShaderType::MAX > D3DSamplerStates;
 
-	Textures Textures_;
+	TextureSlots Textures_;
 	BcBool TexturesDirty_;
-	D3DShaderResourceViews D3DShaderResourceViews_;
-	D3DSamplerStates D3DSamplerStates_;
+	D3DShaderResourceViewSlots D3DShaderResourceViews_;
+	D3DSamplerStateSlots D3DSamplerStates_;
 
 	// Input layout, program, topology.
 	BcBool InputLayoutDirty_;

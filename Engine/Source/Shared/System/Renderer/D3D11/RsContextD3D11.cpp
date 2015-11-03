@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Renderer/D3D11/RsContextD3D11.h"
+#include "System/Renderer/D3D11/RsProgramD3D11.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
@@ -22,6 +23,7 @@
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
+
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -649,7 +651,7 @@ void RsContextD3D11::create()
 	FeatureLevel_ = D3D_FEATURE_LEVEL_11_1;
 #if PLATFORM_WINDOWS
 	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
-		Adapter_,
+		Adapter_.Get(),
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
 		CreateDeviceFlags,
@@ -694,6 +696,9 @@ void RsContextD3D11::create()
 	Features_.Texture2D_ = true;
 	Features_.Texture3D_ = true;
 	Features_.TextureCube_ = true;
+
+	// Compute shader support.
+	Features_.ComputeShaders_ = FeatureLevel_ >= D3D_FEATURE_LEVEL_11_0;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
@@ -868,20 +873,16 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 	auto D3DSamplerState = SamplerStateCache_[ SamplerState->getHandle< BcU32 >() ];
 	
 	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	if( Handle != BcErrorCode )
 	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
+		auto& SamplerStateSlot = D3DSamplerStates_[ Handle ];
+		if( D3DSamplerState.Sampler_ != SamplerStateSlot.Sampler_ )
 		{
-			auto& SamplerStateSlot = D3DSamplerStates_[ Idx ][ SlotIdx ];
-			if( D3DSamplerState.Sampler_ != SamplerStateSlot.Sampler_ )
-			{
-				TexturesDirty_ = BcTrue;
-				SamplerStateSlot.Dirty_ = BcTrue;
-			}
-			SamplerStateSlot.Sampler_ = SamplerStateSlot.Sampler_;
+			TexturesDirty_ = BcTrue;
+			SamplerStateSlot.Dirty_ = BcTrue;
 		}
+		SamplerStateSlot.Sampler_ = SamplerStateSlot.Sampler_;
+		SamplerStateSlot.Dirty_ = BcTrue;
 	}
 }
 
@@ -910,21 +911,16 @@ void RsContextD3D11::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 		pTexture ? getD3DShaderResourceView( pTexture->getHandle< BcU32 >() ) : nullptr;
 
 	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	if( Handle != BcErrorCode )
 	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
+		if( pTexture != Textures_[ Handle ] )
 		{
-			if( pTexture != Textures_[ Idx ][ SlotIdx ] )
-			{
-				TexturesDirty_ = BcTrue;
-			}
-			auto& ShaderResourceViewSlot = D3DShaderResourceViews_[ Idx ][ SlotIdx ];
-			Textures_[ Idx ][ SlotIdx ] = pTexture;
-			ShaderResourceViewSlot.Dirty_ = ShaderResourceViewSlot.SRV_ != ShaderResourceView;
-			ShaderResourceViewSlot.SRV_ = ShaderResourceView;
+			TexturesDirty_ = BcTrue;
 		}
+		auto& ShaderResourceViewSlot = D3DShaderResourceViews_[ Handle ];
+		Textures_[ Handle ] = pTexture;
+		ShaderResourceViewSlot.Dirty_ = BcTrue; //ShaderResourceViewSlot.SRV_ != ShaderResourceView;
+		ShaderResourceViewSlot.SRV_ = ShaderResourceView;
 	}
 }
 
@@ -974,22 +970,18 @@ void RsContextD3D11::setUniformBuffer(
 	BcAssert( UniformBuffer != nullptr );
 
 	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	if( Handle != BcErrorCode )
 	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
+		if( UniformBuffers_[ Handle ] != UniformBuffer )
 		{
-			if( UniformBuffers_[ Idx ][ SlotIdx ] != UniformBuffer )
-			{
-				UniformBuffersDirty_ = BcTrue;
-			}
-			UniformBuffers_[ Idx ][ SlotIdx ] = UniformBuffer;
-			auto D3DConstantBuffer = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
-			auto& D3DConstantBufferSlot = D3DConstantBuffers_[ Idx ][ SlotIdx ];
-			D3DConstantBufferSlot.Dirty_ = D3DConstantBuffer != D3DConstantBufferSlot.Buffer_;
-			D3DConstantBufferSlot.Buffer_ = D3DConstantBuffer;
+			UniformBuffersDirty_ = BcTrue;
 		}
+
+		UniformBuffers_[ Handle ] = UniformBuffer;
+		auto D3DConstantBuffer = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
+		auto& D3DConstantBufferSlot = D3DConstantBuffers_[ Handle ];
+		D3DConstantBufferSlot.Dirty_ = BcTrue;//D3DConstantBuffer != D3DConstantBufferSlot.Buffer_;
+		D3DConstantBufferSlot.Buffer_ = D3DConstantBuffer;
 	}
 }
 
@@ -1150,6 +1142,55 @@ void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height
 	D3DRect.right = X + Width;
 	D3DRect.bottom = Y + Height;
 	Context_->RSSetScissorRects( 1, &D3DRect );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// dispatchCompute
+void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+{
+	// Bind compute shader.
+	const auto& Shaders = Program_->getShaders();
+	for( auto* Shader : Shaders )
+	{
+		const auto& Desc = Shader->getDesc();
+		switch( Desc.ShaderType_ )
+		{
+		case RsShaderType::COMPUTE:
+			Context_->CSSetShader( Shader->getHandle< ID3D11ComputeShader* >(), nullptr, 0 );
+			break;
+		default:
+			break;
+		}
+	}
+	Context_->VSSetShader( nullptr, nullptr, 0 );
+	Context_->HSSetShader( nullptr, nullptr, 0 );
+	Context_->DSSetShader( nullptr, nullptr, 0 );
+	Context_->GSSetShader( nullptr, nullptr, 0 );
+	Context_->PSSetShader( nullptr, nullptr, 0 );
+				
+	// Bind stuff.
+	for( BcU32 Idx = 0; Idx < Bindings.Buffers_.size(); ++Idx )
+	{
+		auto Buffer = Bindings.Buffers_[ Idx ];
+		if( Buffer )
+		{
+			ID3D11UnorderedAccessView* UnorderedAccessView = 
+				Buffer ? getD3DUnorderedAccessView( Buffer->getHandle< BcU32 >() ) : nullptr;
+			Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+			//RsBufferGL* BufferGL = Buffer->getHandle< RsBufferGL* >(); 
+			//GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+		}
+	}
+
+	// Dispatch.
+	Context_->Dispatch( XGroups, YGroups, ZGroups );
+
+	// Program dirty, need to rebind it later.
+	// Once stateless, won't be a problem.
+	ProgramDirty_ = BcTrue;
+
+	// Uniform buffers dirty, need to rebind later.
+	UniformBuffersDirty_ = BcTrue;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1847,143 +1888,7 @@ bool RsContextD3D11::createProgram(
 	class RsProgram* Program )
 {
 	PSY_PROFILE_FUNCTION;
-
-	// TODO: Look up also by type, size, and flags. Not just name.
-	// TODO: Do this work offline.
-	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
-	ResourceHandleMapping SamplerBindings;
-	ResourceHandleMapping TextureBindings;
-	ResourceHandleMapping BufferBindings;
-	ResourceHandleMapping ConstantBufferBindings;
-	ResourceHandleMapping ConstantBufferSizes;
-
-	// Iterate over shaders and setup handles for all constant
-	// buffers and shader resources.
-	for( auto* Shader : Program->getShaders() )
-	{
-		const auto& ShaderDesc = Shader->getDesc();
-		ID3D11ShaderReflection* Reflector = nullptr; 
-		D3DReflect( Shader->getData(), Shader->getDataSize(),
-			IID_ID3D11ShaderReflection, (void**)&Reflector );
-
-		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
-		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
-
-		// Just iterate over a big number...we'll assert if we go over.
-		for( BcU32 Idx = 0; Idx < 128; ++Idx )
-		{
-			D3D11_SHADER_INPUT_BIND_DESC BindDesc;
-			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
-			{
-				// Validate.
-				BcAssert( 
-					BindDesc.BindPoint < MaxBindPoints && 
-					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
-
-				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER || BindDesc.Type == D3D_SIT_TBUFFER )
-				{
-					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
-					{
-						ConstantBufferBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
-					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
-					
-					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
-					D3D11_SHADER_BUFFER_DESC BufferDesc;
-					ConstantBuffer->GetDesc( &BufferDesc );
-					if( Size != 0 )
-					{
-						BcAssert( BufferDesc.Size == Size );
-					}
-
-
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					Size = BufferDesc.Size;
-					ConstantBufferBindings[ BindDesc.Name ] = Handle;
-					ConstantBufferSizes[ BindDesc.Name ] = Size;
-				}
-				else if( BindDesc.Type == D3D_SIT_TEXTURE )
-				{
-					if( TextureBindings.find( BindDesc.Name ) == TextureBindings.end() )
-					{
-						TextureBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = TextureBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					TextureBindings[ BindDesc.Name ] = Handle;
-				}
-				else if( BindDesc.Type == D3D_SIT_STRUCTURED || BindDesc.Type == D3D_SIT_BYTEADDRESS )
-				{
-					if( BufferBindings.find( BindDesc.Name ) == BufferBindings.end() )
-					{
-						BufferBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = BufferBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					BufferBindings[ BindDesc.Name ] = Handle;
-				}
-				else if( BindDesc.Type == D3D_SIT_SAMPLER )
-				{
-					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
-					{
-						SamplerBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					SamplerBindings[ BindDesc.Name ] = Handle;
-				}
-				else
-				{
-					// TOOD.
-				}
-			}
-		}
-	}
-
-	// Add all constant buffer bindings
-	for( const auto& ConstantBuffer : ConstantBufferBindings )
-	{
-		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
-		auto Class = ReManager::GetClass( ConstantBuffer.first );
-		BcAssert( Class->getSize() == Size );
-		Program->addUniformBufferSlot( 
-			ConstantBuffer.first,
-			ConstantBuffer.second,
-			Class );
-	}
-
-	// Add all sampler bindings
-	for( const auto& Sampler : SamplerBindings )
-	{
-		Program->addSamplerSlot( 
-			Sampler.first,
-			Sampler.second );
-	}
-
-	// Add all texture bindings
-	for( const auto& Texture : TextureBindings )
-	{
-		Program->addShaderResource( 
-			Texture.first,
-			RsShaderResourceType::TEXTURE,
-			Texture.second );
-	}
-
-	// Add all buffer bindings
-	for( const auto& Buffer : BufferBindings )
-	{
-		Program->addShaderResource( 
-			Buffer.first,
-			RsShaderResourceType::BUFFER,
-			Buffer.second );
-	}
-
+	Program->setHandle( new RsProgramD3D11( Program, Device_.Get() ) );
 	return true;
 }
 
@@ -2135,21 +2040,26 @@ void RsContextD3D11::flushState()
 	if( UniformBuffersDirty_ )
 	{
 		PSY_PROFILER_SECTION( ShaderRoot, "Uniforms" );
+		RsProgramD3D11* ProgramD3D11 = Program_->getHandle< RsProgramD3D11* >();
 		const auto& Shaders = Program_->getShaders();
 		for( auto* Shader : Shaders )
 		{
 			const auto& Desc = Shader->getDesc();
 			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
-			for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+			for( BcU32 Idx = 0; Idx < D3DConstantBuffers_.size(); ++Idx )
 			{
-				auto& D3DConstantBufferSlot = D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ];
-				if( D3DConstantBufferSlot.Dirty_ )
+				BcU32 Slot = ProgramD3D11->getCBSlot( Desc.ShaderType_, Idx );
+				if( Slot != BcErrorCode )
 				{
-					(Context_->*ConstSetters[ ShaderTypeIdx ])( 
-						Idx,
-						1,							
-						&D3DConstantBufferSlot.Buffer_ );
-					D3DConstantBufferSlot.Dirty_ = BcFalse;
+					auto& D3DConstantBufferSlot = D3DConstantBuffers_[ Idx ];
+					if( D3DConstantBufferSlot.Dirty_ )
+					{
+						((Context_.Get())->*ConstSetters[ ShaderTypeIdx ])( 
+							Slot,
+							1,							
+							&D3DConstantBufferSlot.Buffer_ );
+						D3DConstantBufferSlot.Dirty_ = BcFalse;
+					}
 				}
 			}
 		}
@@ -2160,31 +2070,40 @@ void RsContextD3D11::flushState()
 	if( TexturesDirty_ )
 	{
 		PSY_PROFILER_SECTION( ShaderRoot, "Shader resources + samplers" );
+		RsProgramD3D11* ProgramD3D11 = Program_->getHandle< RsProgramD3D11* >();
 		const auto& Shaders = Program_->getShaders();
-
 		for( auto* Shader : Shaders )
 		{
 			const auto& Desc = Shader->getDesc();
 			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
-			for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+			for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_.size(); ++Idx )
 			{
-				auto& D3DShaderResourceViewSlot = D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ];
-				auto& D3DSamplerStateSlot = D3DSamplerStates_[ ShaderTypeIdx ][ Idx ];
-				if( D3DShaderResourceViewSlot.Dirty_ )
+				BcU32 SRVSlot = ProgramD3D11->getSRVSlot( Desc.ShaderType_, Idx );
+				if( SRVSlot != BcErrorCode )
 				{
-					(Context_->*SRVSetters[ ShaderTypeIdx ])( 
-						Idx,
-						1,							
-						&D3DShaderResourceViewSlot.SRV_ );
-					D3DShaderResourceViewSlot.Dirty_ = BcFalse;
+					auto& D3DShaderResourceViewSlot = D3DShaderResourceViews_[ Idx ];
+					if( D3DShaderResourceViewSlot.Dirty_ )
+					{
+						((Context_.Get())->*SRVSetters[ ShaderTypeIdx ])( 
+							SRVSlot,
+							1,							
+							&D3DShaderResourceViewSlot.SRV_ );
+						D3DShaderResourceViewSlot.Dirty_ = BcFalse;
+					}
 				}
-				if( D3DSamplerStateSlot.Dirty_ )
+
+				BcU32 SamplerSlot = SRVSlot; // TODO: ProgramD3D11->getSamplerSlot( Desc.ShaderType_, Idx );
+				if( SamplerSlot != BcErrorCode )
 				{
-					(Context_->*SamplerSetters[ ShaderTypeIdx ])( 
-						Idx,
-						1,
-						&D3DSamplerStateSlot.Sampler_ );
-					D3DSamplerStateSlot.Dirty_ = BcFalse;
+					auto& D3DSamplerStateSlot = D3DSamplerStates_[ Idx ];
+					if( D3DSamplerStateSlot.Dirty_ )
+					{
+						((Context_.Get())->*SamplerSetters[ ShaderTypeIdx ])( 
+							SRVSlot,
+							1,
+							&D3DSamplerStateSlot.Sampler_ );
+						D3DSamplerStateSlot.Dirty_ = BcFalse;
+					}
 				}
 			}
 		}
