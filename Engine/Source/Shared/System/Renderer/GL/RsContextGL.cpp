@@ -1114,7 +1114,7 @@ bool RsContextGL::updateBuffer(
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
 	BcAssertMsg( ( Offset + Size ) <= BufferDesc.SizeBytes_, "Typing to update buffer outside of range." );
-	BcAssertMsg( BufferDesc.Type_ != RsBufferType::UNKNOWN, "Buffer type is unknown" );
+	BcAssertMsg( BufferDesc.BindFlags_ != RsResourceBindFlags::NONE, "Buffer bind flags are unknown" );
 
 	auto BufferGL = Buffer->getHandle< RsBufferGL* >();
 	BcAssert( BufferGL );
@@ -1139,7 +1139,7 @@ bool RsContextGL::updateBuffer(
 	if( BufferGL->Handle_ != 0 )
 	{
 		// Get buffer type for GL.
-		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
+		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.BindFlags_ );
 
 		// Bind buffer.
 		GL( BindBuffer( TypeGL, BufferGL->Handle_ ) );
@@ -1543,7 +1543,8 @@ void RsContextGL::setIndexBuffer( class RsBuffer* IndexBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssertMsg( IndexBuffer, "Can't bind a null index buffer." );
-	BcAssertMsg( IndexBuffer->getDesc().Type_ == RsBufferType::INDEX, "Buffer must be index buffer." );
+	BcAssertMsg( ( IndexBuffer->getDesc().BindFlags_ & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE, 
+		"Buffer must be index buffer." );
 	
 	if( IndexBuffer_ != IndexBuffer )
 	{
@@ -1561,7 +1562,8 @@ void RsContextGL::setVertexBuffer(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssertMsg( VertexBuffer, "Can't bind a null vertex buffer." );
-	BcAssertMsg( VertexBuffer->getDesc().Type_ == RsBufferType::VERTEX, "Buffer must be vertex buffer." );
+	BcAssertMsg( ( VertexBuffer->getDesc().BindFlags_ & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE, 
+		"Buffer must be vertex buffer." );
 
 	if( VertexBuffers_[ StreamIdx ].Buffer_ != VertexBuffer ||
 		VertexBuffers_[ StreamIdx ].Stride_ != Stride )
@@ -1580,7 +1582,8 @@ void RsContextGL::setUniformBuffer(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssertMsg( UniformBuffer, "Can't bind a null uniform buffer." );
-	BcAssertMsg( UniformBuffer->getDesc().Type_ == RsBufferType::UNIFORM, "Buffer must be uniform buffer." );
+	BcAssertMsg( ( UniformBuffer->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE,
+		"Buffer must be uniform buffer." );
 
 	if( UniformBuffers_[ SlotIdx ] != UniformBuffer )
 	{

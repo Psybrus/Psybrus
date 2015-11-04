@@ -133,6 +133,13 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	// Add all sampler bindings
 	for( const auto& Sampler : SamplerBindings )
 	{
+		// TEMPORARY HACK.
+		std::string SamplerName = Sampler.first;
+		if( SamplerName[0] == 's' )
+		{
+			SamplerName[0] = 'a';
+		}
+
 		Parent_->addSamplerSlot( 
 			Sampler.first,
 			Sampler.second );

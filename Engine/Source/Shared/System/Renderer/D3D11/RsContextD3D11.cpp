@@ -42,16 +42,39 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Type conversion.
-static const D3D11_BIND_FLAG gBufferType[] =
+static BcU32 GetBindFlags( RsResourceBindFlags Flags )
 {
-	(D3D11_BIND_FLAG)0,			// RsBufferType::UNKNOWN
-	D3D11_BIND_VERTEX_BUFFER,	// RsBufferType::VERTEX
-	D3D11_BIND_INDEX_BUFFER,	// RsBufferType::INDEX
-	D3D11_BIND_CONSTANT_BUFFER,	// RsBufferType::UNIFORM
-	D3D11_BIND_UNORDERED_ACCESS,// RsBufferType::UNORDERED_ACCESS
-	(D3D11_BIND_FLAG)0,			// RsBufferType::DRAW_INDIRECT
-	D3D11_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
-};
+	BcU32 RetVal = 0;
+	if( ( Flags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_VERTEX_BUFFER;
+	}
+	if( ( Flags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_INDEX_BUFFER;
+	}
+	if( ( Flags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_CONSTANT_BUFFER;
+	}
+	if( ( Flags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_UNORDERED_ACCESS;
+	}
+	if( ( Flags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_STREAM_OUTPUT;
+	}
+	if( ( Flags & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_RENDER_TARGET;
+	}
+	if( ( Flags & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_DEPTH_STENCIL;
+	}
+	return RetVal;
+}
 
 // Texture formats
 static const DXGI_FORMAT gTextureFormats[] =
@@ -881,7 +904,7 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 			TexturesDirty_ = BcTrue;
 			SamplerStateSlot.Dirty_ = BcTrue;
 		}
-		SamplerStateSlot.Sampler_ = SamplerStateSlot.Sampler_;
+		SamplerStateSlot.Sampler_ = D3DSamplerState.Sampler_;
 		SamplerStateSlot.Dirty_ = BcTrue;
 	}
 }
@@ -1149,7 +1172,7 @@ void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height
 void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
 	// Bind compute shader.
-	const auto& Shaders = Program_->getShaders();
+	const auto& Shaders = Program->getShaders();
 	for( auto* Shader : Shaders )
 	{
 		const auto& Desc = Shader->getDesc();
@@ -1177,13 +1200,19 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 			ID3D11UnorderedAccessView* UnorderedAccessView = 
 				Buffer ? getD3DUnorderedAccessView( Buffer->getHandle< BcU32 >() ) : nullptr;
 			Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
-			//RsBufferGL* BufferGL = Buffer->getHandle< RsBufferGL* >(); 
-			//GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
 		}
 	}
 
 	// Dispatch.
 	Context_->Dispatch( XGroups, YGroups, ZGroups );
+
+	// Unbind stuff.
+	// TODO: Optimise./ 
+	for( BcU32 Idx = 0; Idx < Bindings.Buffers_.size(); ++Idx )
+	{
+		ID3D11UnorderedAccessView* UnorderedAccessView = nullptr;
+		Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+	}
 
 	// Program dirty, need to rebind it later.
 	// Once stateless, won't be a problem.
@@ -1453,22 +1482,36 @@ bool RsContextD3D11::createBuffer(
 	D3D11_BUFFER_DESC Desc;
 	Desc.Usage = D3D11_USAGE_DEFAULT;			// TODO.
 	Desc.ByteWidth = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 16 ) );
-	Desc.BindFlags = gBufferType[ (BcU32)BufferDesc.Type_ ];
-	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	Desc.BindFlags = GetBindFlags( BufferDesc.BindFlags_ );
+	Desc.CPUAccessFlags = 0;
 	Desc.MiscFlags = 0;
-	Desc.StructureByteStride = 0;
+	Desc.StructureByteStride = BufferDesc.StructureStride_;
 	
+	// Dynamic? Setup CPU_WRITE + DYNAMIC.
 	if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
 	{
+		Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		Desc.Usage = D3D11_USAGE_DYNAMIC;
 	}
+	// Stream? Setup CPU_WRITE + DYNAMIC.
 	else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
 	{
+		Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		Desc.Usage = D3D11_USAGE_DYNAMIC;
 	}
 
-	// TODO: Use default, immutable, or staging.
-	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	// If unordered access, allow raw views, and setup if a structured buffer or not.
+	if( ( BufferDesc.BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		if( BufferDesc.StructureStride_ > 0 )
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		}
+		else
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+		}
+	}
 
 	// Generate buffers.
 	ID3D11Buffer* D3DBuffer = nullptr; 
@@ -1513,15 +1556,33 @@ bool RsContextD3D11::updateBuffer(
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	const auto& BufferDesc = Buffer->getDesc();
 	ID3D11Buffer* D3DBuffer = getD3DBuffer( Buffer->getHandle< BcU32 >() ); 
-
+	ComPtr<ID3D11Buffer> StagingD3DBuffer( D3DBuffer );
 	if( D3DBuffer != nullptr )
 	{
-		D3D11_MAP MapType = 
-			D3D11_MAP_WRITE_DISCARD;		// TODO: Select more optimal map type.
+		bool RequireStaging = ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE;
+		if( RequireStaging )
+		{
+			D3D11_BUFFER_DESC StagingDesc;
+			StagingDesc.Usage = D3D11_USAGE_STAGING;
+			StagingDesc.ByteWidth = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 16 ) );
+			StagingDesc.BindFlags = 0;
+			StagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			StagingDesc.MiscFlags = 0;
+			StagingDesc.StructureByteStride = 0;
+			HRESULT Result = Device_->CreateBuffer( &StagingDesc, nullptr, StagingD3DBuffer.ReleaseAndGetAddressOf() );
+			if( FAILED( Result ) )
+			{
+				BcBreakpoint;
+				return false;
+			}
+		}
+
+		D3D11_MAP MapType = RequireStaging ? D3D11_MAP_WRITE : D3D11_MAP_WRITE_DISCARD;
 		BcAssert( Offset == 0 );
 		D3D11_MAPPED_SUBRESOURCE SubRes = { nullptr, 0, 0 };
-		HRESULT RetVal = Context_->Map( D3DBuffer, 0, MapType, 0, &SubRes );
+		HRESULT RetVal = Context_->Map( StagingD3DBuffer.Get(), 0, MapType, 0, &SubRes );
 		if( SUCCEEDED( RetVal ) )
 		{
 			RsBufferLock Lock = 
@@ -1529,11 +1590,19 @@ bool RsContextD3D11::updateBuffer(
 				(BcU8*)SubRes.pData + Offset
 			};
 			UpdateFunc( Buffer, Lock );
-			Context_->Unmap( D3DBuffer, 0 );
-			return true;
+			Context_->Unmap( StagingD3DBuffer.Get(), 0 );
 		}
-		BcBreakpoint;
-		
+		else
+		{
+			BcBreakpoint;
+		}
+
+		if( RequireStaging )
+		{
+			Context_->CopyResource( D3DBuffer, StagingD3DBuffer.Get() );
+		}
+
+		return true;
 	}
 
 	return false;
@@ -2438,8 +2507,46 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t Res
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	if( Entry.UnorderedAccessView_ == nullptr )
 	{
+		//
+		D3D11_RESOURCE_DIMENSION ResDim;
+		Entry.Resource_->GetType( &ResDim );
+		
 		// Create unordered access view.
-		BcBreakpoint;
+		D3D11_UNORDERED_ACCESS_VIEW_DESC Desc;
+
+		switch( ResDim )
+		{
+		case D3D11_RESOURCE_DIMENSION_BUFFER:
+			{
+				D3D11_BUFFER_DESC BufferDesc;
+				Entry.BufferResource_->GetDesc( &BufferDesc );
+				Desc.Format = 
+					( BufferDesc.StructureByteStride == 0 ? 
+						DXGI_FORMAT_R32_TYPELESS : 
+						DXGI_FORMAT_UNKNOWN );
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+				Desc.Buffer.FirstElement = 0;
+				Desc.Buffer.NumElements = BufferDesc.ByteWidth / 
+					( BufferDesc.StructureByteStride == 0 ? 
+						4 : 
+						BufferDesc.StructureByteStride );
+				Desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
+			}
+			break;
+
+		default:
+			BcBreakpoint;
+			return nullptr;
+			break;
+		}
+
+		// Create unordered access view.
+		HRESULT Result = Device_->CreateUnorderedAccessView( 
+			Entry.Resource_,
+			&Desc,
+			&Entry.UnorderedAccessView_ );
+ 		BcAssert( SUCCEEDED( Result ) );
+		BcUnusedVar( Result );
 	}
 
 	return Entry.UnorderedAccessView_;

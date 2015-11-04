@@ -12,7 +12,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 	BcAssert( BufferDesc.SizeBytes_ > 0 );
 
 	// Get buffer type for GL.
-	auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.Type_ );
+	auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.BindFlags_ );
 
 	// Get usage flags for GL.
 	GLuint UsageFlagsGL = 0;
@@ -36,7 +36,8 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 	// may need to be implemented as regular uniforms in GL (GL ES especially so).
 	// Buffers with DYNAMIC or STREAM want to avoid allocation on the upload.
 	// Later this should be replaced with a ring buffer.
-	const bool BufferInMainMemory = Parent_->getDesc().Type_ == RsBufferType::UNIFORM ||
+	const bool IsUniformBuffer = ( Parent_->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE;
+	const bool BufferInMainMemory = IsUniformBuffer ||
 		( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE ||
 		( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE;
 	if( BufferInMainMemory )
@@ -46,7 +47,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 	}
 
 	// Determine which kind of buffer to create.
-	if( Parent_->getDesc().Type_ != RsBufferType::UNIFORM ||
+	if( !IsUniformBuffer ||
 		Version.SupportUniformBuffers_ )
 	{
 		// Generate buffer.

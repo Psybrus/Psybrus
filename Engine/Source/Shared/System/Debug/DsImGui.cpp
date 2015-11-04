@@ -211,6 +211,7 @@ namespace
 				const BcU32 DefaultUniformBufferSlot = DefaultProgram_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 				const BcU32 TexturedUniformBufferSlot = TexturedProgram_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 				const BcU32 TexturedTextureSlot = TexturedProgram_->findTextureSlot( "aDiffuseTex" );
+				const BcU32 TexturedSamplerSlot = TexturedProgram_->findSamplerSlot( "aDiffuseTex" );
 
 				Context->setFrameBuffer( nullptr );
 				Context->setViewport( Viewport );
@@ -243,7 +244,7 @@ namespace
 								Context->setProgram( TexturedProgram_ );
 								Context->setUniformBuffer( TexturedUniformBufferSlot, UniformBuffer_.get() );
 								Context->setTexture( TexturedTextureSlot, (RsTexture*)Cmd->TextureId );
-								Context->setSamplerState( TexturedTextureSlot, FontSampler_.get() );
+								Context->setSamplerState( TexturedSamplerSlot, FontSampler_.get() );
 							}
 							else
 							{

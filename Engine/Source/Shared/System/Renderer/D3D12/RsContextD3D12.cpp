@@ -864,32 +864,27 @@ bool RsContextD3D12::createBuffer(
 	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_FLAG_NONE) );
 
 	// Determine appropriate resource usage.
-	D3D12_RESOURCE_STATES ResourceUsage;
-	switch( BufferDesc.Type_ )
+	const auto Flags = BufferDesc.BindFlags_;
+	D3D12_RESOURCE_STATES ResourceUsage = D3D12_RESOURCE_STATE_COMMON;
+	if( ( Flags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
 	{
-	case RsBufferType::VERTEX:
-		ResourceUsage = D3D12_RESOURCE_STATE_GENERIC_READ;
-		break;
-	case RsBufferType::INDEX:
-		ResourceUsage = D3D12_RESOURCE_STATE_GENERIC_READ;
-		break;
-	case RsBufferType::UNIFORM:
-		ResourceUsage = 
-			static_cast< D3D12_RESOURCE_STATES >( 
-				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE );
-		break;
-	case RsBufferType::UNORDERED_ACCESS:
-		ResourceUsage = D3D12_RESOURCE_STATE_UNORDERED_ACCESS; 
-		break;
-	case RsBufferType::DRAW_INDIRECT:
-		ResourceUsage = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-		break;
-	case RsBufferType::STREAM_OUT:
-		ResourceUsage = D3D12_RESOURCE_STATE_STREAM_OUT;
-		break;
-	default:
-		BcBreakpoint;
-		return false;
+		ResourceUsage |= D3D12_RESOURCE_STATE_GENERIC_READ;
+	}
+	if( ( Flags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		ResourceUsage |= D3D12_RESOURCE_STATE_GENERIC_READ;
+	}
+	if( ( Flags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		ResourceUsage |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	}
+	if( ( Flags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		ResourceUsage |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	}
+	if( ( Flags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
+	{
+		ResourceUsage |= D3D12_RESOURCE_STATE_STREAM_OUT;
 	}
 
 	ComPtr< ID3D12Resource > D3DResource;

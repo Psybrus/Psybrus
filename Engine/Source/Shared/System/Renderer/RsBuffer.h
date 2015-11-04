@@ -22,11 +22,15 @@
 struct RsBufferDesc
 {
 	RsBufferDesc();
+	RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride = 0 );
+
+	[[deprecated("Please use constructor which takes RsResourceBindFlags.")]]
 	RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, size_t SizeBytes );
 	
-	RsBufferType Type_;
-	RsResourceCreationFlags Flags_;
-	size_t SizeBytes_;
+	RsResourceBindFlags BindFlags_ = RsResourceBindFlags::NONE;
+	RsResourceCreationFlags Flags_ = RsResourceCreationFlags::NONE;
+	size_t SizeBytes_ = 0;
+	size_t StructureStride_ = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

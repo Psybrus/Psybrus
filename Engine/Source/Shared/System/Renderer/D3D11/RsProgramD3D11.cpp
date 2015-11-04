@@ -112,8 +112,15 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 	BcU32 SamplerIdx = 0;
 	for( const auto& Sampler : SamplerBindings )
 	{
+		// TEMPORARY HACK.
+		std::string SamplerName = Sampler.first;
+		if( SamplerName[0] == 's' )
+		{
+			SamplerName[0] = 'a';
+		}
+
 		Parent_->addSamplerSlot( 
-			Sampler.first,
+			SamplerName,
 			SamplerIdx );
 		SamplerSlots_[ SamplerIdx++ ] = Sampler.second;
 	}
