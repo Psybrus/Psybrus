@@ -2199,13 +2199,39 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
 	// Bind stuff.
-	for( BcU32 Idx = 0; Idx < Bindings.Buffers_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
 	{
-		auto Buffer = Bindings.Buffers_[ Idx ];
-		if( Buffer )
+		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
+		switch( SRVSlot.Type_ )
 		{
-			RsBufferGL* BufferGL = Buffer->getHandle< RsBufferGL* >(); 
-			GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+		case RsShaderResourceType::INVALID:
+			break;
+		case RsShaderResourceType::BUFFER:
+			{
+				RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >(); 
+				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+			}
+			break;
+		default:
+			BcBreakpoint;
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
+	{
+		auto& UAVSlot = Bindings.UnorderedAccessSlots_[ Idx ];
+		switch( UAVSlot.Type_ )
+		{
+		case RsUnorderedAccessType::INVALID:
+			break;
+		case RsUnorderedAccessType::BUFFER:
+			{
+				RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
+				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+				break;
+			}
+		default:
+			BcBreakpoint;
 		}
 	}
 

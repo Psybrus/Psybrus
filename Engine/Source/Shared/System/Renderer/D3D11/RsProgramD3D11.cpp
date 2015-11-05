@@ -35,7 +35,8 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
 			{
 				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER || BindDesc.Type == D3D_SIT_TBUFFER )
+				if( BindDesc.Type == D3D_SIT_CBUFFER || 
+					BindDesc.Type == D3D_SIT_TBUFFER )
 				{
 					if( CBBindings.find( BindDesc.Name ) == CBBindings.end() )
 					{
@@ -57,7 +58,10 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 					Size = BufferDesc.Size;
 					CBSizes[ BindDesc.Name ] = Size;
 				}
-				else if( BindDesc.Type == D3D_SIT_TEXTURE )
+				else if( 
+					BindDesc.Type == D3D_SIT_TEXTURE ||
+					BindDesc.Type == D3D_SIT_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_BYTEADDRESS )
 				{
 					if( SRVBindings.find( BindDesc.Name ) == SRVBindings.end() )
 					{
@@ -67,19 +71,11 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 					SlotMapping& SlotMapping = SRVBindings[ BindDesc.Name ];
 					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
 				}
-				else if( BindDesc.Type == D3D_SIT_STRUCTURED || BindDesc.Type == D3D_SIT_BYTEADDRESS )
-				{
-					if( SRVBindings.find( BindDesc.Name ) == UAVBindings.end() )
-					{
-						SRVBindings[ BindDesc.Name ] = SlotMapping();
-					}
-
-					SlotMapping& SlotMapping = SRVBindings[ BindDesc.Name ];
-					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
-				}
 				else if( BindDesc.Type == D3D_SIT_UAV_RWTYPED ||
-					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED || BindDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ||
-					BindDesc.Type == D3D_SIT_UAV_APPEND_STRUCTURED || BindDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ||
+					BindDesc.Type == D3D_SIT_UAV_APPEND_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED || 
 					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER )
 				{
 					if( UAVBindings.find( BindDesc.Name ) == UAVBindings.end() )
@@ -140,9 +136,9 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 	BcU32 UAVIdx = 0;
 	for( const auto& UAV : UAVBindings )
 	{
-		Parent_->addShaderResource( 
+		Parent_->addUnorderedAccess( 
 			UAV.first,
-			RsShaderResourceType::BUFFER,
+			RsUnorderedAccessType::BUFFER,
 			UAVIdx );
 		UAVSlots_[ UAVIdx++ ] = UAV.second;
 	}

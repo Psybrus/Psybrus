@@ -15,6 +15,8 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 {
 	const auto& Shaders = Parent_->getShaders();
 
+	BcU32 BindingIdx = 0;
+
 	// Some checks to ensure validity.
 	BcAssert( Shaders.size() > 0 );	
 
@@ -155,10 +157,8 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 
 				// Bind sampler to known index.
 				GL( UseProgram( Handle_ ) );
-				GL( Uniform1i( UniformLocation, ActiveSamplerIdx ) );
-				GL( UseProgram( 0 ) );
-				++ActiveSamplerIdx;
-				
+				GL( Uniform1i( UniformLocation, BindingIdx++ ) );
+				GL( UseProgram( 0 ) );				
 			}
 			else
 			{
@@ -220,10 +220,10 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				BcAssert( Class->getSize() == (size_t)Size );
 				Parent_->addUniformBufferSlot( 
 					UniformBlockName, 
-					Idx, 
+					BindingIdx, 
 					Class );
 
-				GL( UniformBlockBinding( Handle_, Idx, Idx ) );				
+				GL( UniformBlockBinding( Handle_, Idx, BindingIdx++ ) );				
 			}
 		}
 #endif // !defined( RENDER_USE_GLES )
@@ -370,9 +370,11 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		for( GLint Idx = 0; Idx < NumActiveShaderStorageBlocks; ++Idx )
 		{
 			GL( GetProgramResourceName( Handle_, GL_SHADER_STORAGE_BLOCK, Idx, sizeof( Name ), &Length, Name ) );
-			GL( ShaderStorageBlockBinding( Handle_, Idx, Idx ) );
+			GL( ShaderStorageBlockBinding( Handle_, Idx, BindingIdx ) );
 
-			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, Idx );
+			// TODO: Determine if it's an ro or rw, and add only the appropriate one.
+			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, BindingIdx );
+			Parent_->addUnorderedAccess( Name, RsUnorderedAccessType::BUFFER, BindingIdx++ );
 		}
 #endif // !defined( RENDER_USE_GLES )
 	}

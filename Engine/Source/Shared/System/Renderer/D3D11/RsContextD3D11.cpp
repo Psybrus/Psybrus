@@ -61,6 +61,10 @@ static BcU32 GetBindFlags( RsResourceBindFlags Flags )
 	{
 		RetVal |= D3D11_BIND_UNORDERED_ACCESS;
 	}
+	if( ( Flags & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_SHADER_RESOURCE;
+	}
 	if( ( Flags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
 	{
 		RetVal |= D3D11_BIND_STREAM_OUTPUT;
@@ -1192,14 +1196,41 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 	Context_->PSSetShader( nullptr, nullptr, 0 );
 				
 	// Bind stuff.
-	for( BcU32 Idx = 0; Idx < Bindings.Buffers_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
 	{
-		auto Buffer = Bindings.Buffers_[ Idx ];
-		if( Buffer )
+		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
+		switch( SRVSlot.Type_ )
 		{
-			ID3D11UnorderedAccessView* UnorderedAccessView = 
-				Buffer ? getD3DUnorderedAccessView( Buffer->getHandle< BcU32 >() ) : nullptr;
-			Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+			case RsShaderResourceType::INVALID:
+				break;
+			case RsShaderResourceType::BUFFER:
+			{
+				ID3D11ShaderResourceView* ShaderResourceView = 
+					SRVSlot.Buffer_ ? getD3DShaderResourceView( SRVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
+				break;
+			}
+			default:
+				BcBreakpoint;
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
+	{
+		auto& UAVSlot = Bindings.UnorderedAccessSlots_[ Idx ];
+		switch( UAVSlot.Type_ )
+		{
+			case RsUnorderedAccessType::INVALID:
+				break;
+			case RsUnorderedAccessType::BUFFER:
+			{
+				ID3D11UnorderedAccessView* UnorderedAccessView = 
+					UAVSlot.Buffer_ ? getD3DUnorderedAccessView( UAVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+				break;
+			}
+			default:
+				BcBreakpoint;
 		}
 	}
 
@@ -1207,8 +1238,14 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 	Context_->Dispatch( XGroups, YGroups, ZGroups );
 
 	// Unbind stuff.
-	// TODO: Optimise./ 
-	for( BcU32 Idx = 0; Idx < Bindings.Buffers_.size(); ++Idx )
+	// TODO: Optimise.
+	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
+	{
+		ID3D11ShaderResourceView* ShaderResourceView = nullptr;
+		Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
+	}
+
+	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
 	{
 		ID3D11UnorderedAccessView* UnorderedAccessView = nullptr;
 		Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
@@ -1513,6 +1550,19 @@ bool RsContextD3D11::createBuffer(
 		}
 	}
 
+	// If shader resource, allow raw views, and setup if a structured buffer or not.
+	if( ( BufferDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		if( BufferDesc.StructureStride_ > 0 )
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		}
+		else
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+		}
+	}
+
 	// Generate buffers.
 	ID3D11Buffer* D3DBuffer = nullptr; 
 
@@ -1619,16 +1669,6 @@ bool RsContextD3D11::createTexture(
 	//
 	const auto& TextureDesc = Texture->getDesc();
 
-	BcAssert( (UINT)RsResourceBindFlags::VERTEX_BUFFER == D3D11_BIND_VERTEX_BUFFER );
-	BcAssert( (UINT)RsResourceBindFlags::INDEX_BUFFER == D3D11_BIND_INDEX_BUFFER );
-	BcAssert( (UINT)RsResourceBindFlags::UNIFORM_BUFFER == D3D11_BIND_CONSTANT_BUFFER );
-	BcAssert( (UINT)RsResourceBindFlags::SHADER_RESOURCE == D3D11_BIND_SHADER_RESOURCE );
-	BcAssert( (UINT)RsResourceBindFlags::STREAM_OUTPUT == D3D11_BIND_STREAM_OUTPUT );
-	BcAssert( (UINT)RsResourceBindFlags::RENDER_TARGET == D3D11_BIND_RENDER_TARGET );
-	BcAssert( (UINT)RsResourceBindFlags::DEPTH_STENCIL == D3D11_BIND_DEPTH_STENCIL );
-	BcAssert( (UINT)RsResourceBindFlags::UNORDERED_ACCESS == D3D11_BIND_UNORDERED_ACCESS );
-	UINT BindFlagsD3D = (UINT)TextureDesc.BindFlags_;
-
 	// Buffer desc.
 	switch( TextureDesc.Type_ )
 	{
@@ -1640,7 +1680,7 @@ bool RsContextD3D11::createTexture(
 			Desc.ArraySize = 1;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1668,7 +1708,7 @@ bool RsContextD3D11::createTexture(
 			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1694,7 +1734,7 @@ bool RsContextD3D11::createTexture(
 			Desc.MipLevels = TextureDesc.Levels_;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1722,7 +1762,7 @@ bool RsContextD3D11::createTexture(
 			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
@@ -2440,6 +2480,18 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 
 		switch( ResDim )
 		{
+		case D3D11_RESOURCE_DIMENSION_BUFFER:
+			{
+				D3D11_BUFFER_DESC BufferDesc;
+				Entry.BufferResource_->GetDesc( &BufferDesc );
+				Desc.Format = DXGI_FORMAT_R32_TYPELESS;
+				Desc.ViewDimension = D3D_SRV_DIMENSION_BUFFEREX;
+				Desc.BufferEx.FirstElement = 0;
+				Desc.BufferEx.NumElements = BufferDesc.ByteWidth / 4;
+				Desc.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
+			}
+			break;
+
 		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
 			{
 				D3D11_TEXTURE1D_DESC TexDesc;

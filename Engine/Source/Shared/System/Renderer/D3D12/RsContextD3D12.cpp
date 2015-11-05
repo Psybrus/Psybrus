@@ -865,27 +865,62 @@ bool RsContextD3D12::createBuffer(
 
 	// Determine appropriate resource usage.
 	const auto Flags = BufferDesc.BindFlags_;
+
+	// Allow flags.
 	D3D12_RESOURCE_STATES ResourceUsage = D3D12_RESOURCE_STATE_COMMON;
 	if( ( Flags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
 	{
-		ResourceUsage |= D3D12_RESOURCE_STATE_GENERIC_READ;
+		ResourceUsage |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+		ResourceUsage |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		//ResourceUsage |= D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 	if( ( Flags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
 	{
-		ResourceUsage |= D3D12_RESOURCE_STATE_GENERIC_READ;
+		ResourceUsage |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+		ResourceUsage |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		//ResourceUsage |= D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 	if( ( Flags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
 	{
+		ResourceUsage |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+		ResourceUsage |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		//ResourceUsage |= D3D12_RESOURCE_STATE_COPY_DEST;
+	}
+	if( ( Flags & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
 		ResourceUsage |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+		ResourceUsage |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		//ResourceUsage |= D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 	if( ( Flags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
 	{
-		ResourceUsage |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	//	ResourceUsage |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+		ResourceUsage |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		//ResourceUsage |= D3D12_RESOURCE_STATE_COPY_DEST;
 	}
 	if( ( Flags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
 	{
 		ResourceUsage |= D3D12_RESOURCE_STATE_STREAM_OUT;
+		ResourceUsage |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+		//ResourceUsage |= D3D12_RESOURCE_STATE_COPY_DEST;
 	}
+
+	// Allow misc flags.
+	D3D12_RESOURCE_FLAGS MiscFlag = D3D12_RESOURCE_FLAG_NONE;
+	if( ( Flags & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	}
+	if( ( Flags & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	}
+	if( ( Flags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		MiscFlag |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+	}
+
+	//ResourceDesc.Flags = MiscFlag;
 
 	ComPtr< ID3D12Resource > D3DResource;
 	RetVal = Device_->CreateCommittedResource( 
@@ -1338,11 +1373,7 @@ void RsContextD3D12::flushState()
 			if( Buffer != nullptr )
 			{
 				auto Resource = Buffer->getHandle< RsResourceD3D12* >();
-				BcAssert( 
-					( static_cast< RsShaderType >( ShaderType ) == RsShaderType::PIXEL && 
-						( Resource->resourceUsage() & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ) != 0 ) ||
-					( static_cast< RsShaderType >( ShaderType ) != RsShaderType::PIXEL && 
-						( Resource->resourceUsage() & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ) != 0 ) );
+				BcAssert( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) != 0 );
 			}
 		}
 		++ShaderType;

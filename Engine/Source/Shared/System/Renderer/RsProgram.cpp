@@ -68,12 +68,26 @@ BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 
 ////////////////////////////////////////////////////////////////////////////////
 // findShaderResourceSlot
-BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name, RsShaderResourceType Type )
+BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name )
 {
 	for( const auto& It : ShaderResourceList_ )
 	{
-		if( It.Name_ == Name && 
-			( Type == RsShaderResourceType::INVALID || It.Type_ == Type ) )
+		if( It.Name_ == Name )
+		{
+			return It.Handle_;
+		}
+	}
+
+	return BcErrorCode;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// findUnorderedAccessSlot
+BcU32 RsProgram::findUnorderedAccessSlot( const BcChar* Name )
+{
+	for( const auto& It : UnorderedAccessList_ )
+	{
+		if( It.Name_ == Name )
 		{
 			return It.Handle_;
 		}
@@ -101,7 +115,7 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 // findTextureSlot
 BcU32 RsProgram::findTextureSlot( const BcChar* Name )
 {
-	return findShaderResourceSlot( Name, RsShaderResourceType::TEXTURE );
+	return findShaderResourceSlot( Name );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -165,6 +179,20 @@ void RsProgram::addShaderResource( std::string Name, RsShaderResourceType Type, 
 		Handle,
 	};
 	ShaderResourceList_.push_back( std::move( ShaderResource ) );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// addUnorderedAccess
+void RsProgram::addUnorderedAccess( std::string Name, RsUnorderedAccessType Type, BcU32 Handle )
+{
+	// If parameter is valid, add it.
+	TUnorderedAccess UnorderedAccess = 
+	{
+		std::move( Name ),
+		Type,
+		Handle,
+	};
+	UnorderedAccessList_.push_back( std::move( UnorderedAccess ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

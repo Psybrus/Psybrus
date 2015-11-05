@@ -32,10 +32,12 @@ public:
 	virtual ~RsProgram();
 	
 	BcU32 findSamplerSlot( const BcChar* Name );
-	BcU32 findShaderResourceSlot( const BcChar* Name, RsShaderResourceType Type );
+	BcU32 findShaderResourceSlot( const BcChar* Name );
+	BcU32 findUnorderedAccessSlot( const BcChar* Name );
 	BcU32 findUniformBufferSlot( const BcChar* Name );
 
-	[[deprecated]] BcU32 findTextureSlot( const BcChar* Name );
+	[[deprecated("Use findShaderResourceSlot")]] 
+	BcU32 findTextureSlot( const BcChar* Name );
 
 	const ReClass* getUniformBufferClass( BcU32 Handle );
 
@@ -48,6 +50,7 @@ public:
 	// into the program.
 	void addSamplerSlot( std::string Name, BcU32 Handle );
 	void addShaderResource( std::string Name, RsShaderResourceType Type, BcU32 Handle );
+	void addUnorderedAccess( std::string Name, RsUnorderedAccessType Type, BcU32 Handle );
 	void addUniformBufferSlot( std::string Name, BcU32 Handle, const ReClass* Class );
 
 private:
@@ -64,6 +67,13 @@ private:
 		BcU32 Handle_;
 	};
 
+	struct TUnorderedAccess
+	{
+		std::string Name_;
+		RsUnorderedAccessType Type_;
+		BcU32 Handle_;
+	};
+
 	struct TUniformBlock
 	{
 		std::string Name_;
@@ -72,18 +82,15 @@ private:
 	};
 
 	typedef std::vector< TSampler > TSamplerList;
-	typedef TSamplerList::iterator TSamplerListIterator;
-	typedef TSamplerList::const_iterator TSamplerListConstIterator;
 	TSamplerList SamplerList_;
 
 	typedef std::vector< TShaderResource > TShaderResourceList;
-	typedef TShaderResourceList::iterator TShaderResourceListIterator;
-	typedef TShaderResourceList::const_iterator TShaderResourceListConstIterator;
 	TShaderResourceList ShaderResourceList_;
 
+	typedef std::vector< TUnorderedAccess > TUnorderedAccessList;
+	TUnorderedAccessList UnorderedAccessList_;
+
 	typedef std::vector< TUniformBlock > TUniformBlockList;
-	typedef TUniformBlockList::iterator TUniformBlockListIterator;
-	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
 	TUniformBlockList InternalUniformBlockList_;
 	
 	std::vector< class RsShader* > Shaders_;

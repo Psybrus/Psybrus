@@ -415,6 +415,15 @@ enum class RsShaderResourceType : BcU32
 	INVALID = BcErrorCode
 };
 
+enum class RsUnorderedAccessType : BcU32
+{
+	BUFFER = 0,
+	TEXTURE,
+	
+	MAX,
+	INVALID = BcErrorCode
+};
+
 //////////////////////////////////////////////////////////////////////////
 // RsShaderBackendType
 enum class RsShaderBackendType : BcU32
