@@ -1210,6 +1210,13 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 				Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
 				break;
 			}
+			case RsShaderResourceType::TEXTURE:
+			{
+				ID3D11ShaderResourceView* ShaderResourceView = 
+					SRVSlot.Texture_ ? getD3DShaderResourceView( SRVSlot.Texture_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
+				break;
+			}
 			default:
 				BcBreakpoint;
 		}
@@ -1226,6 +1233,13 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 			{
 				ID3D11UnorderedAccessView* UnorderedAccessView = 
 					UAVSlot.Buffer_ ? getD3DUnorderedAccessView( UAVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+				break;
+			}
+			case RsUnorderedAccessType::TEXTURE:
+			{
+				ID3D11UnorderedAccessView* UnorderedAccessView = 
+					UAVSlot.Texture_ ? getD3DUnorderedAccessView( UAVSlot.Texture_->getHandle< BcU32 >() ) : nullptr;
 				Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
 				break;
 			}
@@ -2583,6 +2597,38 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t Res
 						4 : 
 						BufferDesc.StructureByteStride );
 				Desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
+			}
+			break;
+
+		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+			{
+				D3D11_TEXTURE1D_DESC TexDesc;
+				Entry.Texture1DResource_->GetDesc( &TexDesc );
+				Desc.Format = Entry.SRVFormat_;
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
+				Desc.Texture1D.MipSlice = 0;
+			}
+			break;
+
+		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+			{
+				D3D11_TEXTURE2D_DESC TexDesc;
+				Entry.Texture2DResource_->GetDesc( &TexDesc );
+				Desc.Format = Entry.SRVFormat_;
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+				Desc.Texture2D.MipSlice = 0;
+			}
+			break;
+
+		case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+			{
+				D3D11_TEXTURE3D_DESC TexDesc;
+				Entry.Texture3DResource_->GetDesc( &TexDesc );
+				Desc.Format = Entry.SRVFormat_;
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+				Desc.Texture3D.MipSlice = 0;
+				Desc.Texture3D.FirstWSlice = 0;
+				Desc.Texture3D.WSize = 0;
 			}
 			break;
 

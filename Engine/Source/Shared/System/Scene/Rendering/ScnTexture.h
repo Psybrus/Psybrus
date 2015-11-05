@@ -42,6 +42,7 @@ public:
 	ScnTexture();
 	virtual ~ScnTexture();
 
+	static ScnTexture* New( const RsTextureDesc& Desc );
 	static ScnTexture* New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format );
 	static ScnTexture* New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format );
 	static ScnTexture* New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format );

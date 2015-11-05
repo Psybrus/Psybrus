@@ -423,6 +423,51 @@ RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// GetImageFormat
+GLenum RsUtilsGL::GetImageFormat( RsTextureFormat Format )
+{
+	switch( Format )
+	{
+	case RsTextureFormat::R8:
+		return GL_R8;
+	case RsTextureFormat::R8G8:
+		return GL_RG8;
+	case RsTextureFormat::R8G8B8:
+		return GL_RGB8;
+	case RsTextureFormat::R8G8B8A8:
+		return GL_RGBA8;
+	case RsTextureFormat::R16F:
+		return GL_R16F;
+	case RsTextureFormat::R16FG16F:
+		return GL_RG16F;
+	case RsTextureFormat::R16FG16FB16F:
+		return GL_RGB16F;
+	case RsTextureFormat::R16FG16FB16FA16F:
+		return GL_RGBA16F;
+	case RsTextureFormat::R32F:
+		return GL_R32F;
+	case RsTextureFormat::R32FG32F:
+		return GL_RG32F;
+	case RsTextureFormat::R32FG32FB32F:
+		return GL_RGB32F;
+	case RsTextureFormat::R32FG32FB32FA32F:
+		return GL_RGBA32F;
+	case RsTextureFormat::DXT1:
+	case RsTextureFormat::DXT3:
+	case RsTextureFormat::DXT5:
+	case RsTextureFormat::ETC1:
+	case RsTextureFormat::D16:
+	case RsTextureFormat::D24:
+	case RsTextureFormat::D32:
+	case RsTextureFormat::D24S8:
+	default:
+		BcBreakpoint;
+	}
+	BcBreakpoint;
+	return GL_NONE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // GetShaderType
 GLenum RsUtilsGL::GetShaderType( RsShaderType V )
 {

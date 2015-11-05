@@ -89,6 +89,28 @@ ScnTexture::~ScnTexture()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// New
+//static
+ScnTexture* ScnTexture::New( const RsTextureDesc& Desc )
+{
+	auto InTexture = RsCore::pImpl()->createTexture( Desc );
+	auto Texture = new ScnTexture();
+	Texture->pTexture_ = InTexture;
+	Texture->pTextureData_ = nullptr;
+	Texture->Width_ = InTexture->getDesc().Width_;
+	Texture->Height_ = InTexture->getDesc().Height_;
+	Texture->Depth_ = InTexture->getDesc().Depth_;
+	Texture->Header_.Levels_ = InTexture->getDesc().Levels_;
+	Texture->Header_.Type_ = InTexture->getDesc().Type_;
+	Texture->Header_.Format_ = InTexture->getDesc().Format_;
+	Texture->Header_.Editable_ = BcFalse;
+	Texture->Header_.RenderTarget_ = ( InTexture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE;
+	Texture->Header_.DepthStencilTarget_ = ( InTexture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE;
+	Texture->markCreate();
+	return Texture;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // New1D
 //static
 ScnTexture* ScnTexture::New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
@@ -189,7 +211,10 @@ void ScnTexture::create()
 			} );
 	}
 
-	recreate();
+	if( pTexture_ == nullptr )
+	{
+		recreate();
+	}
 	markReady();
 }
 

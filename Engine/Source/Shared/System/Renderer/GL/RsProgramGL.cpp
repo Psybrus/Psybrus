@@ -118,6 +118,8 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			}
 
 			RsProgramUniformType InternalType = RsProgramUniformType::INVALID;
+			BcBool IsImage = BcFalse;
+
 			switch( Type )
 			{
 #if !defined( RENDER_USE_GLES )
@@ -144,6 +146,21 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			case GL_SAMPLER_2D_SHADOW:
 				InternalType = RsProgramUniformType::SAMPLER_2D_SHADOW;
 				break;
+
+			case GL_IMAGE_1D:
+			case GL_IMAGE_2D:
+			case GL_IMAGE_3D:
+			case GL_IMAGE_2D_RECT:
+			case GL_IMAGE_CUBE:
+			case GL_IMAGE_BUFFER:
+			case GL_IMAGE_1D_ARRAY:
+			case GL_IMAGE_2D_ARRAY:
+			case GL_IMAGE_CUBE_MAP_ARRAY:
+			case GL_IMAGE_2D_MULTISAMPLE:
+			case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+				IsImage = BcTrue;
+				break;
+
 			default:
 				InternalType = RsProgramUniformType::INVALID;
 				break;
@@ -153,12 +170,23 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			{
 				// Add sampler. Will fail if not supported sampler type.
 				Parent_->addSamplerSlot( UniformName, ActiveSamplerIdx );
-				Parent_->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, ActiveSamplerIdx );
+				Parent_->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, BindingIdx );
 
 				// Bind sampler to known index.
 				GL( UseProgram( Handle_ ) );
 				GL( Uniform1i( UniformLocation, BindingIdx++ ) );
-				GL( UseProgram( 0 ) );				
+				GL( UseProgram( 0 ) );
+			}
+			else if ( IsImage )
+			{
+				// Add srv + uav.
+				Parent->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, BindingIdx );
+				Parent->addUnorderedAccess( UniformName, RsUnorderedAccessType::TEXTURE, BindingIdx );
+
+				// Bind sampler to known index.
+				GL( UseProgram( Handle_ ) );
+				GL( Uniform1i( UniformLocation, BindingIdx++ ) );
+				GL( UseProgram( 0 ) );
 			}
 			else
 			{
@@ -363,7 +391,11 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 #if !defined( RENDER_USE_GLES )
 		BcAssert( Version_.SupportShaderStorageBufferObjects_ );
 		GLint NumActiveShaderStorageBlocks = 0;
+		GLint NumActiveProgramInputs = 0;
+		GLint NumActiveProgramOutputs = 0;
 		GL( GetProgramInterfaceiv( Handle_, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &NumActiveShaderStorageBlocks ) );
+		GL( GetProgramInterfaceiv( Handle_, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &NumActiveProgramInputs ) );
+		GL( GetProgramInterfaceiv( Handle_, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &NumActiveProgramOutputs ) );
 
 		GLchar Name[256] = { 0 };
 		GLsizei Length = 0;
@@ -376,6 +408,8 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, BindingIdx );
 			Parent_->addUnorderedAccess( Name, RsUnorderedAccessType::BUFFER, BindingIdx++ );
 		}
+
+
 #endif // !defined( RENDER_USE_GLES )
 	}
 

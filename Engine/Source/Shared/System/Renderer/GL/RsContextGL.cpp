@@ -2208,9 +2208,18 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 			break;
 		case RsShaderResourceType::BUFFER:
 			{
+				BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 				RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >(); 
 				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
 			}
+			break;
+		case RsShaderResourceType::TEXTURE:
+			{
+				BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+				RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >(); 
+				GL( BindImageTexture( Idx, TextureGL->getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, 
+					RsUtilsGL::GetImageFormat( SRVSlot.Texture_->getDesc().Format_ ) ) );
+			};
 			break;
 		default:
 			BcBreakpoint;
@@ -2226,10 +2235,19 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 			break;
 		case RsUnorderedAccessType::BUFFER:
 			{
+				BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
 				RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
 				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
-				break;
 			}
+			break;
+		case RsUnorderedAccessType::TEXTURE:
+			{
+				BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+				RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
+				GL( BindImageTexture( Idx, TextureGL->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, 
+					RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ ) ) );
+			};
+			break;
 		default:
 			BcBreakpoint;
 		}

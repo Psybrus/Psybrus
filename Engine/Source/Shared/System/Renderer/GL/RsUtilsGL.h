@@ -43,5 +43,6 @@ public:
 	static GLenum GetTopologyType( RsTopologyType V );
 	static GLenum GetBufferType( RsResourceBindFlags V );
 	static TextureFormat GetTextureFormat( RsTextureFormat V );
+	static GLenum GetImageFormat( RsTextureFormat Format );
 	static GLenum GetShaderType( RsShaderType V );
 };
