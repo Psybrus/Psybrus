@@ -1327,8 +1327,11 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsComputeBinding
 
 	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
 	{
-		ID3D11UnorderedAccessView* UnorderedAccessView = nullptr;
-		Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+		if( Idx < 8 )
+		{
+			ID3D11UnorderedAccessView* UnorderedAccessView = nullptr;
+			Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+		}
 	}
 
 	// Program dirty, need to rebind it later.
