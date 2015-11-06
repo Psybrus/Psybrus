@@ -171,9 +171,11 @@ private:
 		};
 
 		DXGI_FORMAT ResourceFormat_;
+		DXGI_FORMAT RTVFormat_;
 		DXGI_FORMAT DSVFormat_;
 		DXGI_FORMAT SRVFormat_;
-
+		DXGI_FORMAT UAVFormat_;
+		
 		ID3D11ShaderResourceView* ShaderResourceView_;
 		ID3D11UnorderedAccessView* UnorderedAccessView_;
 		ID3D11RenderTargetView* RenderTargetView_;
@@ -186,8 +188,10 @@ private:
 	size_t addD3DResource( 
 		ID3D11Resource* D3DResource, 
 		DXGI_FORMAT ResourceFormat,
+		DXGI_FORMAT RTVFormat,
 		DXGI_FORMAT DSVFormat,
-		DXGI_FORMAT SRVFormat );
+		DXGI_FORMAT SRVFormat,
+		DXGI_FORMAT UAVFormat );
 	void delD3DResource( size_t ResourceIdx );
 	ID3D11Resource* getD3DResource( size_t ResourceIdx );
 	ID3D11Buffer* getD3DBuffer( size_t ResourceIdx );

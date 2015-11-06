@@ -52,7 +52,7 @@ struct RsDispatchBindings
 	std::array< class RsBuffer*, 32 > UniformBuffers_;
 	std::array< class RsSamplerState*, 32 > SamplerStates_;
 	std::array< SRVSlot, 32 > ShaderResourceSlots_;
-	std::array< UAVSlot, 8 > UnorderedAccessSlots_;
+	std::array< UAVSlot, 32 > UnorderedAccessSlots_;
 };
 
 //////////////////////////////////////////////////////////////////////////

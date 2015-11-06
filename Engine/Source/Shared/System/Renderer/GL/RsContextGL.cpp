@@ -2199,6 +2199,8 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
 	// Bind stuff.
+	GLbitfield Barrier = 0;
+
 	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
 	{
 		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
@@ -2238,6 +2240,7 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 				BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
 				RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
 				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+				Barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
 			}
 			break;
 		case RsUnorderedAccessType::TEXTURE:
@@ -2246,6 +2249,7 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 				RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
 				GL( BindImageTexture( Idx, TextureGL->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, 
 					RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ ) ) );
+				Barrier |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
 			};
 			break;
 		default:
@@ -2255,6 +2259,12 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings&
 
 	// Dispatch.
 	GL( DispatchCompute( XGroups, YGroups, ZGroups ) );
+
+	// Barrier.
+	if( Barrier )
+	{
+		GL( MemoryBarrier( Barrier ) );
+	}
 
 	// Program dirty, need to rebind it later.
 	// Once stateless, won't be a problem.

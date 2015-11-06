@@ -86,6 +86,36 @@ static const DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_UNKNOWN,
 
 	// Colour.
+	DXGI_FORMAT_R8_TYPELESS,			// RsTextureFormat::R8,
+	DXGI_FORMAT_R8G8_TYPELESS,			// RsTextureFormat::R8G8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
+	DXGI_FORMAT_R8G8B8A8_TYPELESS,		// RsTextureFormat::R8G8B8A8,
+	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
+	DXGI_FORMAT_R16G16_TYPELESS,		// RsTextureFormat::R16FG16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
+	DXGI_FORMAT_R16G16B16A16_TYPELESS,	// RsTextureFormat::R16FG16FB16FA16F,
+	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::R32F,
+	DXGI_FORMAT_R32G32_TYPELESS,		// RsTextureFormat::R32FG32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
+	DXGI_FORMAT_R32G32B32A32_TYPELESS,	// RsTextureFormat::R32FG32FB32FA32F,
+	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
+	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
+
+	// Depth.
+	DXGI_FORMAT_R16_TYPELESS,			// RsTextureFormat::D16,
+	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,
+	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32,
+	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24S8,
+};
+
+// RTV formats
+static const DXGI_FORMAT gRTVFormats[] =
+{
+	DXGI_FORMAT_UNKNOWN,
+
+	// Colour.
 	DXGI_FORMAT_R8_UNORM,				// RsTextureFormat::R8,
 	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
@@ -149,6 +179,35 @@ static const DXGI_FORMAT gSRVFormats[] =
 	DXGI_FORMAT_R8G8_UNORM,				// RsTextureFormat::R8G8,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
 	DXGI_FORMAT_R8G8B8A8_UNORM,			// RsTextureFormat::R8G8B8A8,
+	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
+	DXGI_FORMAT_R16G16_FLOAT,			// RsTextureFormat::R16FG16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
+	DXGI_FORMAT_R16G16B16A16_FLOAT,		// RsTextureFormat::R16FG16FB16FA16F,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::R32F,
+	DXGI_FORMAT_R32G32_FLOAT,			// RsTextureFormat::R32FG32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
+	DXGI_FORMAT_R32G32B32A32_FLOAT,		// RsTextureFormat::R32FG32FB32FA32F,
+	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
+	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
+	// Depth.
+	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
+	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32,
+	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24S8,
+};
+
+// Shader resource view formats.
+static const DXGI_FORMAT gUAVFormats[] = 
+{
+	DXGI_FORMAT_UNKNOWN,
+
+	// Colour.
+	DXGI_FORMAT_R8_UINT,				// RsTextureFormat::R8,
+	DXGI_FORMAT_R8G8_UINT,				// RsTextureFormat::R8G8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
+	DXGI_FORMAT_R8G8B8A8_UINT,			// RsTextureFormat::R8G8B8A8,
 	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
 	DXGI_FORMAT_R16G16_FLOAT,			// RsTextureFormat::R16FG16F,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
@@ -565,6 +624,8 @@ void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 			BackBuffer_,
 			BackBufferDesc.Format,
 			BackBufferDesc.Format,
+			BackBufferDesc.Format,
+			BackBufferDesc.Format,
 			BackBufferDesc.Format );
 
 		// Create back buffer RT.
@@ -611,8 +672,10 @@ void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 		BackBufferDS_->setHandle( addD3DResource( 
 			D3DTexture,
 			gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+			gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 			gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-			gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+			gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+			gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 		BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
 
 		RenderTargetViews_.fill( nullptr );
@@ -1196,9 +1259,11 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 	Context_->PSSetShader( nullptr, nullptr, 0 );
 				
 	// Bind stuff.
+	RsProgramD3D11* ProgramD3D11 = Program->getHandle< RsProgramD3D11* >();
 	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
 	{
 		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
+		BcU32 SRVSlotIdx = ProgramD3D11->getSRVSlot( RsShaderType::COMPUTE, Idx );
 		switch( SRVSlot.Type_ )
 		{
 			case RsShaderResourceType::INVALID:
@@ -1207,14 +1272,14 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 			{
 				ID3D11ShaderResourceView* ShaderResourceView = 
 					SRVSlot.Buffer_ ? getD3DShaderResourceView( SRVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
-				Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
+				Context_->CSSetShaderResources( SRVSlotIdx, 1, &ShaderResourceView );
 				break;
 			}
 			case RsShaderResourceType::TEXTURE:
 			{
 				ID3D11ShaderResourceView* ShaderResourceView = 
 					SRVSlot.Texture_ ? getD3DShaderResourceView( SRVSlot.Texture_->getHandle< BcU32 >() ) : nullptr;
-				Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
+				Context_->CSSetShaderResources( SRVSlotIdx, 1, &ShaderResourceView );
 				break;
 			}
 			default:
@@ -1225,6 +1290,7 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
 	{
 		auto& UAVSlot = Bindings.UnorderedAccessSlots_[ Idx ];
+		BcU32 UAVSlotIdx = ProgramD3D11->getUAVSlot( RsShaderType::COMPUTE, Idx );
 		switch( UAVSlot.Type_ )
 		{
 			case RsUnorderedAccessType::INVALID:
@@ -1233,14 +1299,14 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsDispatchBindin
 			{
 				ID3D11UnorderedAccessView* UnorderedAccessView = 
 					UAVSlot.Buffer_ ? getD3DUnorderedAccessView( UAVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
-				Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+				Context_->CSSetUnorderedAccessViews( UAVSlotIdx, 1, &UnorderedAccessView, nullptr );
 				break;
 			}
 			case RsUnorderedAccessType::TEXTURE:
 			{
 				ID3D11UnorderedAccessView* UnorderedAccessView = 
 					UAVSlot.Texture_ ? getD3DUnorderedAccessView( UAVSlot.Texture_->getHandle< BcU32 >() ) : nullptr;
-				Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+				Context_->CSSetUnorderedAccessViews( UAVSlotIdx, 1, &UnorderedAccessView, nullptr );
 				break;
 			}
 			default:
@@ -1587,6 +1653,8 @@ bool RsContextD3D11::createBuffer(
 			D3DBuffer,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
+			DXGI_FORMAT_UNKNOWN,
+			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN ) );
 		return true;
 	}
@@ -1705,8 +1773,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1733,8 +1803,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1759,8 +1831,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1787,8 +1861,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ]) );
 			return true;
 		}
 		break;
@@ -2356,8 +2432,10 @@ void RsContextD3D11::flushState()
 size_t RsContextD3D11::addD3DResource( 
 		ID3D11Resource* D3DResource,
 		DXGI_FORMAT ResourceFormat,
+		DXGI_FORMAT RTVFormat,
 		DXGI_FORMAT DSVFormat,
-		DXGI_FORMAT SRVFormat )
+		DXGI_FORMAT SRVFormat,
+		DXGI_FORMAT UAVFormat )
 {
 	ResourceViewCacheEntry Entry = {};
 
@@ -2375,8 +2453,10 @@ size_t RsContextD3D11::addD3DResource(
 	// Setup entry.
 	Entry.Resource_ = D3DResource;
 	Entry.ResourceFormat_ = ResourceFormat;
+	Entry.RTVFormat_ = RTVFormat;
 	Entry.DSVFormat_ = DSVFormat;
 	Entry.SRVFormat_ = SRVFormat;
+	Entry.UAVFormat_ = UAVFormat;
 	
 	// Store in cache.
 	ResourceViewCache_[ EntryIdx ] = Entry;
@@ -2604,7 +2684,7 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t Res
 			{
 				D3D11_TEXTURE1D_DESC TexDesc;
 				Entry.Texture1DResource_->GetDesc( &TexDesc );
-				Desc.Format = Entry.SRVFormat_;
+				Desc.Format = Entry.UAVFormat_;
 				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
 				Desc.Texture1D.MipSlice = 0;
 			}
@@ -2614,7 +2694,7 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t Res
 			{
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
-				Desc.Format = Entry.SRVFormat_;
+				Desc.Format = Entry.UAVFormat_;
 				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipSlice = 0;
 			}
@@ -2624,7 +2704,7 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t Res
 			{
 				D3D11_TEXTURE3D_DESC TexDesc;
 				Entry.Texture3DResource_->GetDesc( &TexDesc );
-				Desc.Format = Entry.SRVFormat_;
+				Desc.Format = Entry.UAVFormat_;
 				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
 				Desc.Texture3D.MipSlice = 0;
 				Desc.Texture3D.FirstWSlice = 0;
@@ -2671,7 +2751,7 @@ ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( size_t ResourceI
 			{
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
-				Desc.Format = TexDesc.Format;
+				Desc.Format = Entry.RTVFormat_;
 				Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipSlice = 0;
 			}
