@@ -2193,7 +2193,7 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 
 //////////////////////////////////////////////////////////////////////////
 // dispatchCompute
-void RsContextGL::dispatchCompute( class RsProgram* Program, RsDispatchBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+void RsContextGL::dispatchCompute( class RsProgram* Program, RsComputeBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );

@@ -15,45 +15,7 @@
 #define __RSCOMPUTEINTERFACE_H__
 
 #include "System/Renderer/RsTypes.h"
-
-//////////////////////////////////////////////////////////////////////////
-// RsDispatchBindings
-struct RsDispatchBindings
-{
-	RsDispatchBindings()
-	{
-		UniformBuffers_.fill( nullptr );
-		SamplerStates_.fill( nullptr );
-	}
-
-	struct SRVSlot
-	{
-		RsShaderResourceType Type_ = RsShaderResourceType::INVALID;
-		union
-		{
-			RsResource* Resource_ = nullptr;
-			RsBuffer* Buffer_;
-			RsTexture* Texture_;
-		};
-	};
-
-	struct UAVSlot
-	{
-		RsUnorderedAccessType Type_ = RsUnorderedAccessType::INVALID;
-		union
-		{
-			RsResource* Resource_ = nullptr;
-			RsBuffer* Buffer_;
-			RsTexture* Texture_;
-		};
-	};
-
-	/// Slots.
-	std::array< class RsBuffer*, 32 > UniformBuffers_;
-	std::array< class RsSamplerState*, 32 > SamplerStates_;
-	std::array< SRVSlot, 32 > ShaderResourceSlots_;
-	std::array< UAVSlot, 32 > UnorderedAccessSlots_;
-};
+#include "System/Renderer/RsComputeBindings.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsComputeInterface
@@ -70,7 +32,7 @@ public:
 	 * @param YGroups Number of Y groups to dispatch.
 	 * @param ZGroups Number of Z groups to dispatch.
 	 */
-	virtual void dispatchCompute( class RsProgram* Program, RsDispatchBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
+	virtual void dispatchCompute( class RsProgram* Program, RsComputeBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
 };
 
 #endif
