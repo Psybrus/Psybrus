@@ -3,11 +3,11 @@
 #include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// RsComputeBindings
-class RsComputeBindings
+// RsComputeBindingDesc
+class RsComputeBindingDesc
 {
 public:
-	RsComputeBindings();
+	RsComputeBindingDesc();
 
 	/**
 	 * Set uniform buffer.
@@ -62,8 +62,8 @@ public:
 	};
 
 	/// Slots.
-	std::array< class RsBuffer*, 32 > UniformBuffers_;
-	std::array< class RsSamplerState*, 32 > SamplerStates_;
 	std::array< SRVSlot, 32 > ShaderResourceSlots_;
 	std::array< UAVSlot, 32 > UnorderedAccessSlots_;
+	std::array< class RsBuffer*, 32 > UniformBuffers_;
+	std::array< class RsSamplerState*, 32 > SamplerStates_;
 };

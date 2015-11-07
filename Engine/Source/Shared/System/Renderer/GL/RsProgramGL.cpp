@@ -15,8 +15,6 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 {
 	const auto& Shaders = Parent_->getShaders();
 
-	BcU32 BindingIdx = 0;
-
 	// Some checks to ensure validity.
 	BcAssert( Shaders.size() > 0 );	
 
@@ -27,7 +25,6 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	for( auto* Shader : Shaders )
 	{
 		GL( AttachShader( Handle_, Shader->getHandle< GLuint >() ) );
-		
 	}
 	
 	// Bind all slots up.
@@ -93,7 +90,6 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	GLint ActiveUniforms = 0;
 	GL( GetProgramiv( Handle_, GL_ACTIVE_UNIFORMS, &ActiveUniforms ) );
 	std::set< std::string > UniformBlockSet;
-	BcU32 ActiveSamplerIdx = 0;
 	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniforms; ++Idx )
 	{
 		// Uniform information.
@@ -118,74 +114,113 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			}
 
 			RsProgramUniformType InternalType = RsProgramUniformType::INVALID;
+			BcBool IsSampler = BcFalse;
 			BcBool IsImage = BcFalse;
+			RsTextureType TextureType = RsTextureType::UNKNOWN;
 
 			switch( Type )
 			{
-#if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_1D:
-				InternalType = RsProgramUniformType::SAMPLER_1D;
+				TextureType = RsTextureType::TEX1D;
+				IsSampler = BcTrue;
 				break;
-#endif
 			case GL_SAMPLER_2D:
-				InternalType = RsProgramUniformType::SAMPLER_2D;
+				TextureType = RsTextureType::TEX2D;
+				IsSampler = BcTrue;
 				break;
-#if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_3D:
-				InternalType = RsProgramUniformType::SAMPLER_3D;
+				TextureType = RsTextureType::TEX3D;
+				IsSampler = BcTrue;
 				break;
-#endif
 			case GL_SAMPLER_CUBE:
-				InternalType = RsProgramUniformType::SAMPLER_CUBE;
+				TextureType = RsTextureType::TEXCUBE;
+				IsSampler = BcTrue;
 				break;
-#if !defined( RENDER_USE_GLES )
 			case GL_SAMPLER_1D_SHADOW:
-				InternalType = RsProgramUniformType::SAMPLER_1D_SHADOW;
+				TextureType = RsTextureType::TEX1D;
+				IsSampler = BcTrue;
 				break;
-#endif
 			case GL_SAMPLER_2D_SHADOW:
-				InternalType = RsProgramUniformType::SAMPLER_2D_SHADOW;
+				TextureType = RsTextureType::TEX2D;
+				IsSampler = BcTrue;
 				break;
 
 			case GL_IMAGE_1D:
+				TextureType = RsTextureType::TEX1D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_2D:
+				TextureType = RsTextureType::TEX2D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_3D:
+				TextureType = RsTextureType::TEX3D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_2D_RECT:
+				TextureType = RsTextureType::TEX2D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_CUBE:
+				TextureType = RsTextureType::TEXCUBE;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_BUFFER:
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_1D_ARRAY:
+				TextureType = RsTextureType::TEX1D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_2D_ARRAY:
+				TextureType = RsTextureType::TEX2D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_CUBE_MAP_ARRAY:
+				TextureType = RsTextureType::TEXCUBE;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_2D_MULTISAMPLE:
+				TextureType = RsTextureType::TEX2D;
+				IsImage = BcTrue;
+				break;
 			case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+				TextureType = RsTextureType::TEX2D;
 				IsImage = BcTrue;
 				break;
 
 			default:
-				InternalType = RsProgramUniformType::INVALID;
 				break;
 			}
 
-			if( InternalType != RsProgramUniformType::INVALID )
+			if( IsSampler )
 			{
-				// Add sampler. Will fail if not supported sampler type.
-				Parent_->addSamplerSlot( UniformName, ActiveSamplerIdx );
-				Parent_->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, BindingIdx );
+				BcU32 SamplerSlot = SamplerBindInfo_.size();
+				Parent_->addSamplerSlot( UniformName, SamplerSlot );
+				SamplerBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SAMPLER, TextureType, SamplerSlot ) );
 
-				// Bind sampler to known index.
+				BcU32 SRVSlot = SRVBindInfo_.size();
+				Parent_->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, SRVSlot );
+				SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::TEXTURE, TextureType, SamplerSlot ) );
+
+				// Set sampler uniform to correct slot.
 				GL( UseProgram( Handle_ ) );
-				GL( Uniform1i( UniformLocation, BindingIdx++ ) );
+				GL( Uniform1i( UniformLocation, SamplerSlot ) );
 				GL( UseProgram( 0 ) );
 			}
 			else if ( IsImage )
 			{
-				// Add srv + uav.
-				Parent->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, BindingIdx );
-				Parent->addUnorderedAccess( UniformName, RsUnorderedAccessType::TEXTURE, BindingIdx );
+				BcU32 SRVSlot = SRVBindInfo_.size();
+				Parent->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, SRVSlot );
+				SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, NoofImages_ ) );
 
-				// Bind sampler to known index.
+				BcU32 UAVSlot = UAVBindInfo_.size();
+				Parent->addUnorderedAccess( UniformName, RsUnorderedAccessType::TEXTURE, UAVSlot );
+				UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, NoofImages_ ) );
+
+				// Set sampler uniform to correct slot.
 				GL( UseProgram( Handle_ ) );
-				GL( Uniform1i( UniformLocation, BindingIdx++ ) );
+				GL( Uniform1i( UniformLocation, NoofImages_++ ) );
 				GL( UseProgram( 0 ) );
 			}
 			else
@@ -223,7 +258,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 #if !defined( RENDER_USE_GLES )
 		GLint ActiveUniformBlocks = 0;
 		GL( GetProgramiv( Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks ) );
-	
+
 		for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
 		{
 			// Uniform information.
@@ -246,12 +281,16 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 
 				auto Class = ReManager::GetClass( UniformBlockName );
 				BcAssert( Class->getSize() == (size_t)Size );
+
+				BcU32 UBSlot = UniformBufferBindInfo_.size();
 				Parent_->addUniformBufferSlot( 
 					UniformBlockName, 
-					BindingIdx, 
+					UBSlot, 
 					Class );
 
-				GL( UniformBlockBinding( Handle_, Idx, BindingIdx++ ) );				
+				UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, UBSlot ) );
+
+				GL( UniformBlockBinding( Handle_, Idx, UBSlot ) );				
 			}
 		}
 #endif // !defined( RENDER_USE_GLES )
@@ -402,14 +441,17 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		for( GLint Idx = 0; Idx < NumActiveShaderStorageBlocks; ++Idx )
 		{
 			GL( GetProgramResourceName( Handle_, GL_SHADER_STORAGE_BLOCK, Idx, sizeof( Name ), &Length, Name ) );
-			GL( ShaderStorageBlockBinding( Handle_, Idx, BindingIdx ) );
 
-			// TODO: Determine if it's an ro or rw, and add only the appropriate one.
-			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, BindingIdx );
-			Parent_->addUnorderedAccess( Name, RsUnorderedAccessType::BUFFER, BindingIdx++ );
+			BcU32 SRVSlot = SRVBindInfo_.size();
+			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, SRVSlot );
+			SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, NoofSSBOs_ ) );
+
+			BcU32 UAVSlot = UAVBindInfo_.size();
+			Parent_->addUnorderedAccess( Name, RsUnorderedAccessType::BUFFER, UAVSlot );
+			UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, NoofSSBOs_ ) );
+
+			GL( ShaderStorageBlockBinding( Handle_, Idx, NoofSSBOs_++ ) );
 		}
-
-
 #endif // !defined( RENDER_USE_GLES )
 	}
 

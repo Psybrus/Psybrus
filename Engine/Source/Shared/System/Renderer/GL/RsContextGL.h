@@ -118,7 +118,7 @@ public:
 	void setViewport( const class RsViewport& Viewport ) override;
 	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
-	void dispatchCompute( class RsProgram* Program, RsComputeBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
+	void dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 

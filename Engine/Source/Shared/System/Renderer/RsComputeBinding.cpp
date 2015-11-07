@@ -1,10 +1,10 @@
-#include "System/Renderer/RsComputeBindings.h"
+#include "System/Renderer/RsComputeBinding.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsTexture.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsComputeBindings::RsComputeBindings()
+RsComputeBindingDesc::RsComputeBindingDesc()
 {
 	UniformBuffers_.fill( nullptr );
 	SamplerStates_.fill( nullptr );
@@ -12,7 +12,7 @@ RsComputeBindings::RsComputeBindings()
 
 //////////////////////////////////////////////////////////////////////////
 // setUniformBuffer
-void RsComputeBindings::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer )
+void RsComputeBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer )
 {
 	BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE );
 	UniformBuffers_[ Slot ] = Buffer;
@@ -20,14 +20,14 @@ void RsComputeBindings::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer )
 
 //////////////////////////////////////////////////////////////////////////
 // setSamplerState
-void RsComputeBindings::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
+void RsComputeBindingDesc::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
 {
 	SamplerStates_[ Slot ] = SamplerState;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setShaderResourceView
-void RsComputeBindings::setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer )
+void RsComputeBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer )
 {
 	BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 	ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::BUFFER;
@@ -36,7 +36,7 @@ void RsComputeBindings::setShaderResourceView( BcU32 Slot, class RsBuffer* Buffe
 
 //////////////////////////////////////////////////////////////////////////
 // setShaderResourceView
-void RsComputeBindings::setShaderResourceView( BcU32 Slot, class RsTexture* Texture )
+void RsComputeBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* Texture )
 {
 	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 	ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::TEXTURE;
@@ -45,7 +45,7 @@ void RsComputeBindings::setShaderResourceView( BcU32 Slot, class RsTexture* Text
 
 //////////////////////////////////////////////////////////////////////////
 // setUnorderedAccessView
-void RsComputeBindings::setUnorderedAccessView( BcU32 Slot, class RsBuffer* Buffer )
+void RsComputeBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* Buffer )
 {
 	BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
 	UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::BUFFER;
@@ -54,7 +54,7 @@ void RsComputeBindings::setUnorderedAccessView( BcU32 Slot, class RsBuffer* Buff
 
 //////////////////////////////////////////////////////////////////////////
 // setUnorderedAccessView
-void RsComputeBindings::setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture )
+void RsComputeBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture )
 {
 	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
 	UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::TEXTURE;

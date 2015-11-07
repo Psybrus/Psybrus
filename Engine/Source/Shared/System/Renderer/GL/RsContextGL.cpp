@@ -2193,8 +2193,9 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 
 //////////////////////////////////////////////////////////////////////////
 // dispatchCompute
-void RsContextGL::dispatchCompute( class RsProgram* Program, RsComputeBindings& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+void RsContextGL::dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
+#if !defined( RENDER_USE_GLES )
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
@@ -2204,56 +2205,148 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsComputeBindings& 
 	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
 	{
 		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
-		switch( SRVSlot.Type_ )
+		if( SRVSlot.Resource_ )
 		{
-		case RsShaderResourceType::INVALID:
-			break;
-		case RsShaderResourceType::BUFFER:
+			auto& SRVSlotGL = ProgramGL->getSRVBindInfo( Idx );
+			switch( SRVSlotGL.BindType_ )
 			{
-				BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-				RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >(); 
-				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
+			case RsProgramBindTypeGL::NONE:
+				break;
+			case RsProgramBindTypeGL::TEXTURE:
+				{
+					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					const GLenum TextureType = RsUtilsGL::GetTextureType( SRVSlotGL.TextureType_ );
+					RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >();
+					GL( ActiveTexture( GL_TEXTURE0 + SRVSlotGL.Slot_ ) );
+					GL( BindTexture( TextureType, TextureGL->getHandle() ) );
+
+					// TODO: Properly update state.
+					TextureStateValues_[ SRVSlotGL.Slot_ ].pTexture_ = SRVSlot.Texture_;
+				}
+				break;
+			case RsProgramBindTypeGL::IMAGE:
+				{
+					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >();
+					GL( BindImageTexture( SRVSlotGL.Slot_, TextureGL->getHandle(),
+						0, GL_FALSE, 0, GL_READ_ONLY,
+						RsUtilsGL::GetImageFormat( SRVSlot.Texture_->getDesc().Format_ ) ) );
+				};
+				break;
+			case RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT:
+				{
+					BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >();
+					GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, SRVSlotGL.Slot_, BufferGL->Handle_ ) );
+				}
+				break;
+			default:
+				BcBreakpoint;
 			}
-			break;
-		case RsShaderResourceType::TEXTURE:
-			{
-				BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-				RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >(); 
-				GL( BindImageTexture( Idx, TextureGL->getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, 
-					RsUtilsGL::GetImageFormat( SRVSlot.Texture_->getDesc().Format_ ) ) );
-			};
-			break;
-		default:
-			BcBreakpoint;
 		}
 	}
 
 	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
 	{
 		auto& UAVSlot = Bindings.UnorderedAccessSlots_[ Idx ];
-		switch( UAVSlot.Type_ )
+		if( UAVSlot.Resource_ )
 		{
-		case RsUnorderedAccessType::INVALID:
-			break;
-		case RsUnorderedAccessType::BUFFER:
+			auto& UAVSlotGL = ProgramGL->getUAVBindInfo( Idx );
+			switch( UAVSlotGL.BindType_ )
 			{
-				BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
-				RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
-				GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, Idx, BufferGL->Handle_ ) );
-				Barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
+			case RsProgramBindTypeGL::NONE:
+				break;
+			case RsProgramBindTypeGL::TEXTURE:
+				{
+					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					const GLenum TextureType = RsUtilsGL::GetTextureType( UAVSlotGL.TextureType_ );
+					RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >();
+					GL( ActiveTexture( GL_TEXTURE0 + UAVSlotGL.Slot_ ) );
+					GL( BindTexture( TextureType, TextureGL->getHandle() ) );
+
+					// TODO: Properly update state.
+					TextureStateValues_[ UAVSlotGL.Slot_ ].pTexture_ = UAVSlot.Texture_;
+				}
+				break;
+			case RsProgramBindTypeGL::IMAGE:
+				{
+					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
+					GL( BindImageTexture( UAVSlotGL.Slot_, TextureGL->getHandle(),
+						0, GL_FALSE, 0, GL_READ_WRITE,
+						RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ ) ) );
+					Barrier |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+				};
+				break;
+			case RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT:
+				{
+					BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
+					RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
+					GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, UAVSlotGL.Slot_, BufferGL->Handle_ ) );
+					Barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
+				}
+				break;
+			default:
+				BcBreakpoint;
 			}
-			break;
-		case RsUnorderedAccessType::TEXTURE:
+		}
+	}
+
+	if( Version_.SupportUniformBuffers_ )
+	{
+		for( BcU32 Idx = 0; Idx < Bindings.UniformBuffers_.size(); ++Idx )
+		{
+			auto& UniformBuffer = Bindings.UniformBuffers_[ Idx ];
+			if( UniformBuffer )
 			{
-				BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-				RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
-				GL( BindImageTexture( Idx, TextureGL->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, 
-					RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ ) ) );
-				Barrier |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-			};
-			break;
-		default:
-			BcBreakpoint;
+				auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
+				if( UniformBuffer )
+				{
+					RsBufferGL* BufferGL = UniformBuffer->getHandle< RsBufferGL* >();
+					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Slot_, BufferGL->Handle_, 0, UniformBuffer->getDesc().SizeBytes_ ) );
+				}
+
+				// TODO: Properly update state.
+				UniformBuffers_[ UniformBufferSlotGL.Slot_ ] = UniformBuffer;
+			}
+		}
+	}
+
+	ProgramGL->copyUniformBuffersToUniforms( Bindings.UniformBuffers_.size(), Bindings.UniformBuffers_.data() );
+
+	for( BcU32 Idx = 0; Idx < Bindings.SamplerStates_.size(); ++Idx )
+	{
+		auto& SamplerState = Bindings.SamplerStates_[ Idx ];
+		if( SamplerState )
+		{
+			auto& SamplerStateSlotGL = ProgramGL->getSamplerBindInfo( Idx );
+
+			if( Version_.SupportSamplerStates_ )
+			{
+				GLuint SamplerObject = SamplerState->getHandle< GLuint >();
+				GL( BindSampler( SamplerStateSlotGL.Slot_, SamplerObject ) );
+			}
+			else
+			{
+				// TODO MipLODBias_
+				// TODO MaxAnisotropy_
+				// TODO BorderColour_
+				// TODO MinLOD_
+				// TODO MaxLOD_
+				const auto& SamplerStateDesc = SamplerState->getDesc();
+				const GLenum TextureType = RsUtilsGL::GetTextureType( SamplerStateSlotGL.TextureType_ );
+				GL( ActiveTexture( GL_TEXTURE0 + SamplerStateSlotGL.Slot_ ) );
+				GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
+				GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
+				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
+				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
+				GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
+				GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
+			}
+
+			// TODO: Properly update state.
+			TextureStateValues_[ SamplerStateSlotGL.Slot_ ].pSamplerState_ = SamplerState;
 		}
 	}
 
@@ -2272,6 +2365,8 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsComputeBindings& 
 
 	// Uniform buffers dirty, need to rebind later.
 	UniformBuffersDirty_ = BcTrue;
+
+#endif // !defined( RENDER_USE_GLES )
 }
 
 //////////////////////////////////////////////////////////////////////////
