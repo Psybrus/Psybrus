@@ -34,6 +34,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent ):
 	GL( GenTextures( 1, &Handle_ ) );
 
 	// Bind texture.
+	GL( ActiveTexture( GL_TEXTURE0 ) );
 	GL( BindTexture( TypeGL, Handle_ ) );
 		
 #if !defined( RENDER_USE_GLES )
@@ -117,6 +118,7 @@ void RsTextureGL::loadTexture(
 	// Bind.
 	if( Bind )
 	{
+		GL( ActiveTexture( GL_TEXTURE0 ) );
 		GL( BindTexture( TypeGL, Handle_ ) );
 	}
 		

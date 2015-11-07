@@ -10,8 +10,8 @@ enum class RsProgramBindTypeGL
 	TEXTURE,
 	IMAGE,
 	SHADER_STORAGE_BUFFER_OBJECT,
+	UNIFORM_BLOCK,
 	SAMPLER,
-	UNIFORM_BLOCK
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,10 +54,15 @@ public:
 
 	GLuint getHandle() const { return Handle_; }
 
-	RsProgramBindInfoGL getSRVBindInfo( BcU32 Idx ) { return SRVBindInfo_[ Idx ]; };
-	RsProgramBindInfoGL getUAVBindInfo( BcU32 Idx ) { return UAVBindInfo_[ Idx ]; };
-	RsProgramBindInfoGL getSamplerBindInfo( BcU32 Idx ) { return SamplerBindInfo_[ Idx ]; };
-	RsProgramBindInfoGL getUniformBufferBindInfo( BcU32 Idx ) { return UniformBufferBindInfo_[ Idx ]; };
+	size_t getSRVBindCount() { return SRVBindInfo_.size(); };
+	size_t getUAVBindCount() { return UAVBindInfo_.size(); };
+	size_t getSamplerBindCount() { return SamplerBindInfo_.size(); };
+	size_t getUniformBufferBindCount() { return UniformBufferBindInfo_.size(); };
+
+	RsProgramBindInfoGL getSRVBindInfo( BcU32 Idx ) const { return SRVBindInfo_[ Idx ]; };
+	RsProgramBindInfoGL getUAVBindInfo( BcU32 Idx ) const { return UAVBindInfo_[ Idx ]; };
+	RsProgramBindInfoGL getSamplerBindInfo( BcU32 Idx ) const { return SamplerBindInfo_[ Idx ]; };
+	RsProgramBindInfoGL getUniformBufferBindInfo( BcU32 Idx ) const { return UniformBufferBindInfo_[ Idx ]; };
 
 private:
 	class RsProgram* Parent_ = nullptr;

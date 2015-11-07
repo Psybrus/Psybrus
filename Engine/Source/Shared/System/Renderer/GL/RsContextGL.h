@@ -120,6 +120,11 @@ public:
 
 	void dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 
+	void bindSRVs( RsProgram* Program, RsComputeBindingDesc& Bindings );
+	void bindUAVs( RsProgram* Program, RsComputeBindingDesc& Bindings, GLbitfield& Barrier );
+	void bindSamplerStates( RsProgram* Program, RsComputeBindingDesc& Bindings );
+	void bindUniformBuffers( RsProgram* Program, RsComputeBindingDesc& Bindings );
+
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
 private:
@@ -232,8 +237,42 @@ private:
 	std::array< bool, MAX_VERTEX_STREAMS > VertexBufferActiveNextState_;
 	BcBool VertexBuffersDirty_;
 
-	std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBuffers_;
-	std::array< UniformBufferBindingInfo, MAX_UNIFORM_SLOTS > UniformBufferBindingInfo_;
+
+	RsComputeBindingDesc BindingDesc_;
+
+	struct TextureBindingInfo
+	{
+		GLuint Texture_ = 0;
+		GLenum Target_ = 0;
+	};
+
+	struct ImageBindingInfo
+	{
+		GLuint Texture_ = 0;
+		GLint Level_ = 0;
+		GLboolean Layered_ = 0;
+		GLint Layer_ = 0;
+		GLenum Access_ = 0;
+		GLenum Format_ = 0;
+	};
+
+	struct BufferBindingInfo
+	{
+		GLuint Buffer_ = 0;
+		GLintptr Offset_ = 0;
+		GLsizei Size_ = 0;
+	};
+
+	struct SamplerBindingInfo
+	{
+		GLuint Sampler_ = 0;
+	};
+
+	std::array< TextureBindingInfo, 32 > TextureBindingInfo_;
+	std::array< ImageBindingInfo, 32 > ImageBindingInfo_;
+	std::array< BufferBindingInfo, 32 > ShaderStorageBufferBindingInfo_;
+	std::array< BufferBindingInfo, 32 > UniformBufferBindingInfo_;
+	std::array< SamplerBindingInfo, 32 > SamplerBindingInfo_;
 
 	BcBool UniformBuffersDirty_;
 
