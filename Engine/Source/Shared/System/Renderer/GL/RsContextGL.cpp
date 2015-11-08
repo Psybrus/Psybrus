@@ -20,6 +20,7 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
@@ -1412,6 +1413,22 @@ bool RsContextGL::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createProgramBinding
+bool RsContextGL::createProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyProgramBinding
+bool RsContextGL::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 bool RsContextGL::createVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )
@@ -2066,16 +2083,16 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 
 //////////////////////////////////////////////////////////////////////////
 // dispatchCompute
-void RsContextGL::dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
 #if !defined( RENDER_USE_GLES )
-	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+	RsProgramGL* ProgramGL = ProgramBinding->getProgram()->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
-	bindSRVs( Program, Bindings );
-	bindUAVs( Program, Bindings, MemoryBarrier_ );
-	bindSamplerStates( Program, Bindings );
-	bindUniformBuffers( Program, Bindings );
+	bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
+	bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
 
 	GL( DispatchCompute( XGroups, YGroups, ZGroups ) );
 
@@ -2093,11 +2110,15 @@ void RsContextGL::dispatchCompute( class RsProgram* Program, RsProgramBindingDes
 
 //////////////////////////////////////////////////////////////////////////
 // bindSRVs
-void RsContextGL::bindSRVs( RsProgram* Program, RsProgramBindingDesc& Bindings )
+void RsContextGL::bindSRVs( RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
 	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-	GL( UseProgram( ProgramGL->getHandle() ) );
+#if PSY_DEBUG
+	GLint BoundProgram = 0;
+	GL( GetIntegerv( GL_CURRENT_PROGRAM, &BoundProgram ) );
+	BcAssert( (GLuint)BoundProgram ==  ProgramGL->getHandle() );
+#endif
 
 	for( BcU32 Idx = 0; Idx < ProgramGL->getSRVBindCount(); ++Idx )
 	{
@@ -2165,11 +2186,15 @@ void RsContextGL::bindSRVs( RsProgram* Program, RsProgramBindingDesc& Bindings )
 
 //////////////////////////////////////////////////////////////////////////
 // bindUAVs
-void RsContextGL::bindUAVs( RsProgram* Program, RsProgramBindingDesc& Bindings, GLbitfield& Barrier )
+void RsContextGL::bindUAVs( RsProgram* Program, const RsProgramBindingDesc& Bindings, GLbitfield& Barrier )
 {
 	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-	GL( UseProgram( ProgramGL->getHandle() ) );
+#if PSY_DEBUG
+	GLint BoundProgram = 0;
+	GL( GetIntegerv( GL_CURRENT_PROGRAM, &BoundProgram ) );
+	BcAssert( (GLuint)BoundProgram ==  ProgramGL->getHandle() );
+#endif
 
 	for( BcU32 Idx = 0; Idx < ProgramGL->getUAVBindCount(); ++Idx )
 	{
@@ -2222,11 +2247,15 @@ void RsContextGL::bindUAVs( RsProgram* Program, RsProgramBindingDesc& Bindings, 
 
 //////////////////////////////////////////////////////////////////////////
 // bindSamplerStates
-void RsContextGL::bindSamplerStates( RsProgram* Program, RsProgramBindingDesc& Bindings )
+void RsContextGL::bindSamplerStates( RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
 	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-	GL( UseProgram( ProgramGL->getHandle() ) );
+#if PSY_DEBUG
+	GLint BoundProgram = 0;
+	GL( GetIntegerv( GL_CURRENT_PROGRAM, &BoundProgram ) );
+	BcAssert( (GLuint)BoundProgram ==  ProgramGL->getHandle() );
+#endif
 
 	for( BcU32 Idx = 0; Idx < ProgramGL->getSamplerBindCount(); ++Idx )
 	{
@@ -2272,11 +2301,15 @@ void RsContextGL::bindSamplerStates( RsProgram* Program, RsProgramBindingDesc& B
 
 //////////////////////////////////////////////////////////////////////////
 // bindUniformBuffers
-void RsContextGL::bindUniformBuffers( RsProgram* Program, RsProgramBindingDesc& Bindings )
+void RsContextGL::bindUniformBuffers( RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
 	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-	GL( UseProgram( ProgramGL->getHandle() ) );
+#if PSY_DEBUG
+	GLint BoundProgram = 0;
+	GL( GetIntegerv( GL_CURRENT_PROGRAM, &BoundProgram ) );
+	BcAssert( (GLuint)BoundProgram ==  ProgramGL->getHandle() );
+#endif
 
 	if( Version_.SupportUniformBuffers_ )
 	{

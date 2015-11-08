@@ -50,6 +50,7 @@ public:
 	void operator()( class RsContext* Resource );
 	void operator()( class RsFrameBuffer* Resource );
 	void operator()( class RsProgram* Resource );
+	void operator()( class RsProgramBinding* Resource );
 	void operator()( class RsRenderState* Resource );
 	void operator()( class RsSamplerState* Resource );
 	void operator()( class RsShader* Resource );
@@ -61,6 +62,7 @@ typedef std::unique_ptr< class RsBuffer, RsResourceDeleters > RsBufferUPtr;
 typedef std::unique_ptr< class RsContext, RsResourceDeleters > RsContextUPtr;
 typedef std::unique_ptr< class RsFrameBuffer, RsResourceDeleters > RsFrameBufferUPtr;
 typedef std::unique_ptr< class RsProgram, RsResourceDeleters > RsProgramUPtr;
+typedef std::unique_ptr< class RsProgramBinding, RsResourceDeleters > RsProgramBindingUPtr;
 typedef std::unique_ptr< class RsRenderState, RsResourceDeleters > RsRenderStateUPtr;
 typedef std::unique_ptr< class RsSamplerState, RsResourceDeleters > RsSamplerStateUPtr;
 typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;
@@ -155,7 +157,7 @@ public:
 	 * @param ShaderDataSize Shader data size.
 	 * @param DebugName Name used for debugging creation.
 	 */
-	virtual RsShader* createShader( 
+	virtual RsShaderUPtr createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
 		const std::string& DebugName ) = 0;
@@ -168,13 +170,23 @@ public:
 	 * @param UniformBlockList Uniform blocks for program.
 	 * @param DebugName Name used for debugging creation.
 	 */
-	virtual RsProgram* createProgram( 
+	virtual RsProgramUPtr createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
 		RsProgramUniformList UniformList,
 		RsProgramUniformBlockList UniformBlockList,
 		const std::string& DebugName ) = 0;
 
+	/**
+	 * Create program binding.
+	 * @param Program to create binding for.
+	 * @param ProgramBindingDesc Program binding descriptor.
+	 * @param DebugName Name used for debugging creation.
+	 */
+	virtual RsProgramBindingUPtr createProgramBinding( 
+		RsProgram* Program,
+		const RsProgramBindingDesc& ProgramBindingDesc,
+		const std::string& DebugName ) = 0;
 	/**
 	 * Update resource. Work done on render thread.
 	 * @param pResource Resource to update.
@@ -202,6 +214,8 @@ public:
 		RsShader* Shader ) = 0;
 	virtual void destroyResource( 
 		RsProgram* Program ) = 0;
+	virtual void destroyResource( 
+		RsProgramBinding* ProgramBinding ) = 0;
 	virtual void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) = 0;
 
@@ -249,7 +263,7 @@ public:
 	*	Get frame time.
 	*	Time spent on last frame.
 	*/
-	virtual BcF32				getFrameTime() const = 0;
+	virtual BcF64				getFrameTime() const = 0;
 };
 
 #endif

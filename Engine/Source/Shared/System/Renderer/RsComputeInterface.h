@@ -26,13 +26,12 @@ public:
 
 	/**
 	 * Dispatch compute.
-	 * @param Program Program to use.
-	 * @param Bindings Resource bindings for dispatch.
+	 * @param ProgramBinding Program binding.
 	 * @param XGroups Number of X groups to dispatch.
 	 * @param YGroups Number of Y groups to dispatch.
 	 * @param ZGroups Number of Z groups to dispatch.
 	 */
-	virtual void dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
+	virtual void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
 };
 
 #endif

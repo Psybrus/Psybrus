@@ -74,54 +74,48 @@ public:
 	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
 
 	bool createRenderState(
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 	bool destroyRenderState(
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 	bool createSamplerState(
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 	bool destroySamplerState(
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 
 	bool createFrameBuffer( 
-		class RsFrameBuffer* FrameBuffer );
+		class RsFrameBuffer* FrameBuffer ) override;
 	bool destroyFrameBuffer( 
-		class RsFrameBuffer* FrameBuffer );
+		class RsFrameBuffer* FrameBuffer ) override;
 
 	bool createBuffer( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	bool destroyBuffer( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	bool updateBuffer( 
 		RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
 		RsResourceUpdateFlags Flags,
-		RsBufferUpdateFunc UpdateFunc );
+		RsBufferUpdateFunc UpdateFunc ) override;
 
 	bool createTexture( 
-		class RsTexture* Texture );
+		class RsTexture* Texture ) override;
 	bool destroyTexture( 
-		class RsTexture* Texture );
+		class RsTexture* Texture ) override;
 	bool updateTexture( 
 		class RsTexture* Texture,
 		const struct RsTextureSlice& Slice,
 		RsResourceUpdateFlags Flags,
-		RsTextureUpdateFunc UpdateFunc );
+		RsTextureUpdateFunc UpdateFunc ) override;
 
-	bool createShader(
-		class RsShader* Shader );
-	bool destroyShader(
-		class RsShader* Shader );
-
-	bool createProgram(
-		class RsProgram* Program );
-	bool destroyProgram(
-		class RsProgram* Program );
-	
-	bool createVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration ) override;
-	bool destroyVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration  ) override;
+	bool createShader( class RsShader* Shader ) override;
+	bool destroyShader( class RsShader* Shader ) override;
+	bool createProgram( class RsProgram* Program ) override;
+	bool destroyProgram( class RsProgram* Program ) override;
+	bool createProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool destroyProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
+	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 
 	void flushState();
 

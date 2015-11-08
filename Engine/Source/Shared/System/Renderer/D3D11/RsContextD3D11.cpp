@@ -17,13 +17,13 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 #include "System/Renderer/RsViewport.h"
-
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -1236,10 +1236,10 @@ void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height
 
 //////////////////////////////////////////////////////////////////////////
 // dispatchCompute
-void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+void RsContextD3D11::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
 	// Bind compute shader.
-	const auto& Shaders = Program->getShaders();
+	const auto& Shaders = ProgramBinding->getProgram()->getShaders();
 	for( auto* Shader : Shaders )
 	{
 		const auto& Desc = Shader->getDesc();
@@ -1259,10 +1259,11 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsProgramBinding
 	Context_->PSSetShader( nullptr, nullptr, 0 );
 				
 	// Bind stuff.
-	RsProgramD3D11* ProgramD3D11 = Program->getHandle< RsProgramD3D11* >();
-	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
+	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
+	RsProgramD3D11* ProgramD3D11 = ProgramBinding->getProgram()->getHandle< RsProgramD3D11* >();
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
 	{
-		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
+		auto& SRVSlot = ProgramBindingDesc.ShaderResourceSlots_[ Idx ];
 		BcU32 SRVSlotIdx = ProgramD3D11->getSRVSlot( RsShaderType::COMPUTE, Idx );
 		switch( SRVSlot.Type_ )
 		{
@@ -1287,9 +1288,9 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsProgramBinding
 		}
 	}
 
-	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
 	{
-		auto& UAVSlot = Bindings.UnorderedAccessSlots_[ Idx ];
+		auto& UAVSlot = ProgramBindingDesc.UnorderedAccessSlots_[ Idx ];
 		BcU32 UAVSlotIdx = ProgramD3D11->getUAVSlot( RsShaderType::COMPUTE, Idx );
 		switch( UAVSlot.Type_ )
 		{
@@ -1319,13 +1320,13 @@ void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsProgramBinding
 
 	// Unbind stuff.
 	// TODO: Optimise.
-	for( BcU32 Idx = 0; Idx < Bindings.ShaderResourceSlots_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
 	{
 		ID3D11ShaderResourceView* ShaderResourceView = nullptr;
 		Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
 	}
 
-	for( BcU32 Idx = 0; Idx < Bindings.UnorderedAccessSlots_.size(); ++Idx )
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
 	{
 		if( Idx < 8 )
 		{
@@ -2102,6 +2103,22 @@ bool RsContextD3D11::destroyProgram(
 {
 	PSY_PROFILE_FUNCTION;
 	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgramBinding
+bool RsContextD3D11::createProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyProgramBinding
+bool RsContextD3D11::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

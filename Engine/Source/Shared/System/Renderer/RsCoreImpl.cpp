@@ -322,6 +322,7 @@ RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 		[ Context, pResource ]
 		{
 			auto RetVal = Context->createTexture( pResource );
+			BcAssert( RetVal );
 		} );
 
 	// Return resource.
@@ -341,7 +342,8 @@ RsVertexDeclaration* RsCoreImpl::createVertexDeclaration( const RsVertexDeclarat
 		RsCore::JOB_QUEUE_ID,
 		[ Context, pResource ]
 		{
-			Context->createVertexDeclaration( pResource );
+			auto RetVal = Context->createVertexDeclaration( pResource );
+			BcAssert( RetVal );
 		} );
 
 	return pResource;
@@ -372,7 +374,7 @@ RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 //////////////////////////////////////////////////////////////////////////
 // createShader
 //virtual
-RsShader* RsCoreImpl::createShader( 
+RsShaderUPtr RsCoreImpl::createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
 		const std::string& DebugName )
@@ -391,13 +393,13 @@ RsShader* RsCoreImpl::createShader(
 			}
 		} );
 
-	return pResource;
+	return RsShaderUPtr( pResource );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createProgram
 //virtual
-RsProgram* RsCoreImpl::createProgram( 
+RsProgramUPtr RsCoreImpl::createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
 		RsProgramUniformList UniformList,
@@ -426,9 +428,39 @@ RsProgram* RsCoreImpl::createProgram(
 			}
 		} );
 
-	return pResource;
+	return RsProgramUPtr( pResource );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// createProgramBinding
+//virtual
+RsProgramBindingUPtr RsCoreImpl::createProgramBinding( 
+		RsProgram* Program,
+		const RsProgramBindingDesc& ProgramBindingDesc,
+		const std::string& DebugName )
+{
+	auto Context = getContext( nullptr );
+
+	BcAssert( Program );
+
+	RsProgramBinding* pResource = new RsProgramBinding(
+		Context, 
+		Program,
+		ProgramBindingDesc );
+
+	// Call create on render thread.
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, pResource, DebugName ]
+		{
+			if( !Context->createProgramBinding( pResource ) )
+			{
+				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+			}
+		} );
+
+	return RsProgramBindingUPtr( pResource );
+}
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
 void RsCoreImpl::destroyResource( RsResource* pResource )
@@ -587,6 +619,27 @@ void RsCoreImpl::destroyResource(
 			auto Context = Program->getContext();
 			auto RetVal = Context->destroyProgram( Program );
 			delete Program;
+			BcUnusedVar( RetVal );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+		RsProgramBinding* ProgramBinding )
+{
+	BcAssert( BcIsGameThread() );
+	if( ProgramBinding == nullptr )
+	{
+		return;
+	}
+
+	ResourceDeletionList_.push_back(
+		[ ProgramBinding ]()
+		{
+			auto Context = ProgramBinding->getContext();
+			auto RetVal = Context->destroyProgramBinding( ProgramBinding );
+			delete ProgramBinding;
 			BcUnusedVar( RetVal );
 		} );
 }
@@ -785,8 +838,8 @@ void RsCoreImpl::queueFrame( RsFrame* pFrame )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// queueFrame
-BcF32 RsCoreImpl::getFrameTime() const
+// getFrameTime
+BcF64 RsCoreImpl::getFrameTime() const
 {
 	return FrameTime_;
 }

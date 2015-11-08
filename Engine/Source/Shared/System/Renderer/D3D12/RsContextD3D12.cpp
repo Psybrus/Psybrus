@@ -1266,6 +1266,22 @@ bool RsContextD3D12::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createProgramBinding
+bool RsContextD3D12::createProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyProgramBinding
+bool RsContextD3D12::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 bool RsContextD3D12::createVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )

@@ -490,7 +490,7 @@ RsProgramGL::~RsProgramGL()
 
 //////////////////////////////////////////////////////////////////////////
 // copyUniformBuffersToUniforms
-void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, class RsBuffer** Buffers )
+void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuffer* const * Buffers )
 {
 	PSY_PROFILE_FUNCTION;
 
@@ -505,7 +505,7 @@ void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, class RsBuff
 
 	for( auto& UniformEntry : UniformEntries_ )
 	{
-		RsBuffer* Buffer = Buffers[ UniformEntry.BindingPoint_ ];
+		const RsBuffer* Buffer = Buffers[ UniformEntry.BindingPoint_ ];
 		if( Buffer != nullptr )
 		{
 			const auto BufferGL = Buffer->getHandle< RsBufferGL* >();

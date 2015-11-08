@@ -49,7 +49,7 @@ public:
 	 * Copy data from uniform buffers into the uniforms.
 	 * @pre Currently bound program is this one.
 	 */
-	void copyUniformBuffersToUniforms( size_t NoofBuffers, class RsBuffer** Buffers );
+	void copyUniformBuffersToUniforms( size_t NoofBuffers, const class RsBuffer* const * Buffers );
 
 
 	GLuint getHandle() const { return Handle_; }
@@ -90,7 +90,7 @@ private:
 		size_t Size_ = 0;
 
 		// Used for redundancy checks.
-		class RsBuffer* Buffer_ = nullptr;
+		const class RsBuffer* Buffer_ = nullptr;
 		BcU32 Version_ = 0;
 	};
 

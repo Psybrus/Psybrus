@@ -231,11 +231,11 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 #endif
 			PSY_LOG( "Creating shader: %s %x", (*getName()).c_str(), pShaderHeader->PermutationFlags_ );
-			RsShader* pShader = RsCore::pImpl()->createShader(
+			RsShaderUPtr Shader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize,
 				*getName() );
-			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = pShader;
+			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = Shader.release();
 		}
 	}
 	else if( ChunkID == BcHash( "program" ) )
@@ -301,13 +301,13 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		
 			// Create program.
 			PSY_LOG( "Creating program: %s %x", (*getName()).c_str(), pProgramHeader->ProgramPermutationFlags_ );
-			RsProgram* pProgram = RsCore::pImpl()->createProgram( 
+			RsProgramUPtr Program = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
 				std::move( VertexAttributes ),
 				std::move( Uniforms ),
 				std::move( UniformBlocks ),
 				*getName() );			
-			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = pProgram;
+			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = Program.release();
 		}
 	}
 
