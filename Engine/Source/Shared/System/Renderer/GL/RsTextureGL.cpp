@@ -121,22 +121,31 @@ void RsTextureGL::loadTexture(
 		GL( ActiveTexture( GL_TEXTURE0 ) );
 		GL( BindTexture( TypeGL, Handle_ ) );
 	}
-		
-#if 0 // wtf was this code for? GLES hack?
-	if( Slice.Level_ > 0 )
-	{
-		if( Slice.Level_ > 1 )
-			return;
-		GL( GenerateMipmap( TypeGL ) );
-	}
-#endif
-
-	// Load level.
+	
 	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
 	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
 
 	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
+	
+#if defined( RENDER_USE_GLES )
+	// TODO: Fix this properly.
+	if( !FormatGL.Compressed_ )
+	{
+		if( Slice.Level_ > 0 )
+		{
+			if( Slice.Level_ > 1 )
+				return;
+				glGenerateMipmap( TypeGL );
+				if( glGetError() != 0 )
+				{
+					PSY_LOG( "ERROR: Attempting to create mipmaps for texture (%u levels), but glGenerateMipMap failed.", TextureDesc.Levels_ );
+				}
+				return;
+			}
+		}
+	}
+#endif
 
 	if( FormatGL.Compressed_ == BcFalse )
 	{

@@ -2125,7 +2125,7 @@ void RsContextGL::bindSRVs( RsProgram* Program, const RsProgramBindingDesc& Bind
 		auto& SRVSlot = Bindings.ShaderResourceSlots_[ Idx ];
 		if( SRVSlot.Resource_ )
 		{
-			auto& SRVSlotGL = ProgramGL->getSRVBindInfo( Idx );
+			const auto& SRVSlotGL = ProgramGL->getSRVBindInfo( Idx );
 			switch( SRVSlotGL.BindType_ )
 			{
 			case RsProgramBindTypeGL::NONE:
@@ -2147,6 +2147,7 @@ void RsContextGL::bindSRVs( RsProgram* Program, const RsProgramBindingDesc& Bind
 					}
 				}
 				break;
+#if !defined( RENDER_USE_GLES )	
 			case RsProgramBindTypeGL::IMAGE:
 				{
 					// TODO: Redundant state checking.
@@ -2177,6 +2178,7 @@ void RsContextGL::bindSRVs( RsProgram* Program, const RsProgramBindingDesc& Bind
 					}
 				}
 				break;
+#endif // !defined( RENDER_USE_GLES )	
 			default:
 				BcBreakpoint;
 			}
@@ -2196,12 +2198,13 @@ void RsContextGL::bindUAVs( RsProgram* Program, const RsProgramBindingDesc& Bind
 	BcAssert( (GLuint)BoundProgram ==  ProgramGL->getHandle() );
 #endif
 
+#if !defined( RENDER_USE_GLES )	
 	for( BcU32 Idx = 0; Idx < ProgramGL->getUAVBindCount(); ++Idx )
 	{
 		auto& UAVSlot = Bindings.UnorderedAccessSlots_[ Idx ];
 		if( UAVSlot.Resource_ )
 		{
-			auto& UAVSlotGL = ProgramGL->getUAVBindInfo( Idx );
+			const auto& UAVSlotGL = ProgramGL->getUAVBindInfo( Idx );
 			switch( UAVSlotGL.BindType_ )
 			{
 			case RsProgramBindTypeGL::NONE:
@@ -2243,6 +2246,7 @@ void RsContextGL::bindUAVs( RsProgram* Program, const RsProgramBindingDesc& Bind
 			}
 		}
 	}
+#endif // !defined( RENDER_USE_GLES )	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2259,10 +2263,10 @@ void RsContextGL::bindSamplerStates( RsProgram* Program, const RsProgramBindingD
 
 	for( BcU32 Idx = 0; Idx < ProgramGL->getSamplerBindCount(); ++Idx )
 	{
-		auto& SamplerState = Bindings.SamplerStates_[ Idx ];
+		const auto& SamplerState = Bindings.SamplerStates_[ Idx ];
 		if( SamplerState )
 		{
-			auto& SamplerStateSlotGL = ProgramGL->getSamplerBindInfo( Idx );
+			const auto& SamplerStateSlotGL = ProgramGL->getSamplerBindInfo( Idx );
 
 			if( Version_.SupportSamplerStates_ )
 			{
@@ -2315,11 +2319,11 @@ void RsContextGL::bindUniformBuffers( RsProgram* Program, const RsProgramBinding
 	{
 		for( BcU32 Idx = 0; Idx < ProgramGL->getUniformBufferBindCount(); ++Idx )
 		{
-			auto& UniformBuffer = Bindings.UniformBuffers_[ Idx ];
+			const auto& UniformBuffer = Bindings.UniformBuffers_[ Idx ];
 			if( UniformBuffer )
 			{
 				// TODO: Redundant state checking.
-				auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
+				const auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
 				RsBufferGL* BufferGL = UniformBuffer->getHandle< RsBufferGL* >();
 				auto& BindingInfo = ShaderStorageBufferBindingInfo_[ UniformBufferSlotGL.Slot_ ];
 				if( BindingInfo.Buffer_ != BufferGL->Handle_ )

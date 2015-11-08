@@ -59,6 +59,9 @@ class DeployAndroid( Deploy ):
 				keystore_path = os.path.join( "../../..", keystore_path )
 				if os.path.exists(keystore_path) == False:
 					raise Exception( "Unable to find keystore file." )
+		except:
+			Log.write( "WARNING: No keystore in game config." )
+			keystore_path = None
 		finally:
 			os.chdir( cwd )
 
@@ -129,8 +132,9 @@ class DeployAndroid( Deploy ):
 		Log.write( "Launching ant release..." )
 		self.launch_ant( "release" )
 
-		apk_path = os.path.join( "bin", self.game_config[ "name" ] + "-release-unsigned.apk" )
-		self.sign_build( keystore_path, apk_path )
+		if keystore_path != None:
+			apk_path = os.path.join( "bin", self.game_config[ "name" ] + "-release-unsigned.apk" )
+			self.sign_build( keystore_path, apk_path )
 
 	def install( self, _config ):
 		return
@@ -212,7 +216,8 @@ class DeployAndroid( Deploy ):
 			stringsFile.write( "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" )
 			stringsFile.write( "<resources>\n" )
 			stringsFile.write( "  <string name=\"app_name\">" + self.game_full_name + "</string>\n" )
-			stringsFile.write( "  <string name=\"app_id\">" + self.android_config["app_id"] + "</string>\n" )
+			if self.android_config.has_key("app_id"):
+				stringsFile.write( "  <string name=\"app_id\">" + self.android_config["app_id"] + "</string>\n" )
 			stringsFile.write( "</resources>\n" )
 
 	def sign_build( self, key_store_path, apk_path ):
