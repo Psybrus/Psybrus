@@ -24,14 +24,14 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 	{
 		const auto& ShaderDesc = Shader->getDesc();
 		BcU32 ShaderTypeIdx = static_cast< BcU32 >( ShaderDesc.ShaderType_ );
-		ID3D12ShaderReflection* Reflector = nullptr; 
+		ID3D11ShaderReflection* Reflector = nullptr; 
 		D3DReflect( Shader->getData(), Shader->getDataSize(),
-			IID_ID3D12ShaderReflection, (void**)&Reflector );
+			IID_ID3D11ShaderReflection, (void**)&Reflector );
 
 		// Just iterate over a big number...we'll assert if we go over.
 		for( BcU32 Idx = 0; Idx < 128; ++Idx )
 		{
-			D3D12_SHADER_INPUT_BIND_DESC BindDesc;
+			D3D11_SHADER_INPUT_BIND_DESC BindDesc;
 			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
 			{
 				// Check if it's a cbuffer or tbuffer.
@@ -47,7 +47,7 @@ RsProgramD3D11::RsProgramD3D11( class RsProgram* Parent, ID3D11Device* Device ):
 					BcU32 Size = CBSizes[ BindDesc.Name ];			
 					
 					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
-					D3D12_SHADER_BUFFER_DESC BufferDesc;
+					D3D11_SHADER_BUFFER_DESC BufferDesc;
 					ConstantBuffer->GetDesc( &BufferDesc );
 					if( Size != 0 )
 					{
