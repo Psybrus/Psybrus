@@ -15,7 +15,7 @@
 #define __RSCOMPUTEINTERFACE_H__
 
 #include "System/Renderer/RsTypes.h"
-#include "System/Renderer/RsComputeBinding.h"
+#include "System/Renderer/RsProgramBinding.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsComputeInterface
@@ -32,7 +32,7 @@ public:
 	 * @param YGroups Number of Y groups to dispatch.
 	 * @param ZGroups Number of Z groups to dispatch.
 	 */
-	virtual void dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
+	virtual void dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
 };
 
 #endif

@@ -168,4 +168,14 @@
 #  error "BUILD_CONFIG not defined." )
 #endif
 
+//////////////////////////////////////////////////////////////////////////
+// Deprecated markers.
+#if COMPILER_MSVC
+#  define PSY_DEPRECATED( _m ) \
+	__declspec(deprecated)
+#else
+#  define PSY_DEPRECATED( _m ) \
+	[[deprecated(_m)]]
+#endif
+
 #endif

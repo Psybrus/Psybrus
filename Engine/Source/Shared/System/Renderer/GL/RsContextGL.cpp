@@ -139,15 +139,11 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	VertexBuffersDirty_( BcTrue ),
 	UniformBuffersDirty_( BcTrue )
 {
-	BcMemZero( &TextureStateValues_[ 0 ], sizeof( TextureStateValues_ ) );
-	BcMemZero( &TextureStateBinds_[ 0 ], sizeof( TextureStateBinds_ ) );
 	BcMemZero( &VertexBuffers_[ 0 ], sizeof( VertexBuffers_ ) );
 	BcMemZero( &VertexBufferActiveState_[ 0 ], sizeof( VertexBufferActiveState_ ) );
 	BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
 	RenderState_ = nullptr;
 	LastRenderStateHandle_ = 0;
-
-	NoofTextureStateBinds_ = 0;
 
 	// Stats.
 	NoofDrawCalls_ = 0;
@@ -1436,13 +1432,6 @@ bool RsContextGL::destroyVertexDeclaration(
 void RsContextGL::setDefaultState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	for( BcU32 Sampler = 0; Sampler < MAX_TEXTURE_SLOTS; ++Sampler )
-	{
-		setTexture( Sampler, nullptr, BcTrue );
-	}
-
-	flushState();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1457,17 +1446,6 @@ void RsContextGL::invalidateRenderState()
 void RsContextGL::invalidateTextureState()
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	NoofTextureStateBinds_ = 0;
-	for( BcU32 Idx = 0; Idx < MAX_TEXTURE_SLOTS; ++Idx )
-	{
-		TTextureStateValue& TextureStateValue = TextureStateValues_[ Idx ];
-		
-		TextureStateValue.Dirty_ = BcTrue;
-		
-		BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
-		TextureStateBinds_[ NoofTextureStateBinds_++ ] = Idx;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1484,53 +1462,15 @@ void RsContextGL::setRenderState( RsRenderState* RenderState )
 void RsContextGL::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	if( Slot < MAX_TEXTURE_SLOTS )
-	{
-		TTextureStateValue& TextureStateValue = TextureStateValues_[ Slot ];
-		
-		const BcBool WasDirty = TextureStateValue.Dirty_;
-		
-		TextureStateValue.Dirty_ |= ( TextureStateValue.pSamplerState_ != SamplerState );
-		TextureStateValue.pSamplerState_ = SamplerState;
-	
-		// If it wasn't dirty, we need to set it.
-		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )
-		{
-			BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
-			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Slot;
-		}
-	}
+	BindingDesc_.setSamplerState( Slot, SamplerState );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setTexture
-void RsContextGL::setTexture( BcU32 Sampler, RsTexture* pTexture, BcBool Force )
+void RsContextGL::setTexture( BcU32 Slot, RsTexture* Texture, BcBool Force )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	if( Sampler < MAX_TEXTURE_SLOTS )
-	{
-		if( pTexture != nullptr )
-		{
-			BcAssertMsg( ( pTexture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE,
-				"Texture can't be bound as a shader resource. Has it been created with RsResourceBindFlags::SHADER_RESOURCE?" );
-		}
-
-		TTextureStateValue& TextureStateValue = TextureStateValues_[ Sampler ];
-		
-		const BcBool WasDirty = TextureStateValue.Dirty_;
-		
-		TextureStateValue.Dirty_ |= ( TextureStateValue.pTexture_ != pTexture ) || Force;
-		TextureStateValue.pTexture_ = pTexture;
-	
-		// If it wasn't dirty, we need to set it.
-		if( WasDirty == BcFalse && TextureStateValue.Dirty_ == BcTrue )
-		{
-			BcAssert( NoofTextureStateBinds_ < MAX_TEXTURE_SLOTS );
-			TextureStateBinds_[ NoofTextureStateBinds_++ ] = Sampler;
-		}
-	}
+	BindingDesc_.setShaderResourceView( Slot, Texture );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1646,8 +1586,6 @@ void RsContextGL::flushState()
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::flushState" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	
-	
 	// Bind render states.
 	// TODO: Check for redundant state.
 	if( RenderState_ != nullptr )
@@ -1656,90 +1594,7 @@ void RsContextGL::flushState()
 		const auto& Desc = RenderState_->getDesc();
 		setRenderStateDesc( Desc, BcFalse );
 	}	
-
-	// Bind texture states.
-	{
-		PSY_PROFILER_SECTION( TextureRoot, "Texture state" );
-		for( BcU32 TextureStateIdx = 0; TextureStateIdx < NoofTextureStateBinds_; ++TextureStateIdx )
-		{
-			BcU32 TextureStateID = TextureStateBinds_[ TextureStateIdx ];
-			TTextureStateValue& TextureStateValue = TextureStateValues_[ TextureStateID ];
-
-			if( TextureStateValue.Dirty_ && (GLint)TextureStateID < Version_.MaxTextureSlots_ )
-			{
-				RsTexture* pTexture = TextureStateValue.pTexture_;			
-				const RsSamplerState* SamplerState = TextureStateValue.pSamplerState_;
-				const RsTextureType InternalType = pTexture ? pTexture->getDesc().Type_ : RsTextureType::TEX2D;
-				const GLenum TextureType = RsUtilsGL::GetTextureType( InternalType );
-
-				GL( ActiveTexture( GL_TEXTURE0 + TextureStateID ) );
-				if( pTexture != nullptr )
-				{
-					RsTextureGL* TextureGL = pTexture->getHandle< RsTextureGL* >();
-					BcAssert( TextureGL != nullptr );
-					auto& BindingInfo = TextureBindingInfo_[ TextureStateID ];
-					if( BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Target_ != TextureType )
-					{
-						GL( BindTexture( TextureType, TextureGL->getHandle() ) );
-						BindingInfo.Texture_ = TextureGL->getHandle();
-						BindingInfo.Target_ = TextureType;
-					}
-				}
-				else
-				{
-					auto& BindingInfo = TextureBindingInfo_[ TextureStateID ];
-					GL( BindTexture( TextureType, 0 ) );
-					BindingInfo.Texture_ = 0;
-					BindingInfo.Target_ = TextureType;
-				}
-			
-
-				if( pTexture != nullptr && SamplerState != nullptr )
-				{
-#if !defined( RENDER_USE_GLES )
-					if( Version_.SupportSamplerStates_ )
-					{
-						GLuint SamplerObject = SamplerState->getHandle< GLuint >();
-						auto& BindingInfo = SamplerBindingInfo_[ TextureStateID ];
-						if( BindingInfo.Sampler_ != SamplerObject )
-						{
-							GL( BindSampler( TextureStateID, SamplerObject ) );
-							BindingInfo.Sampler_ = SamplerObject;
-						}
-					}
-					else
-#endif
-					{
-						// TODO MipLODBias_
-						// TODO MaxAnisotropy_
-						// TODO BorderColour_
-						// TODO MinLOD_
-						// TODO MaxLOD_
-						const auto& SamplerStateDesc = SamplerState->getDesc();
-						GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
-#if !defined( RENDER_USE_GLES )
-						GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
-						GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
-						GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
-#endif
-					
-					}
-				}
-
-				TextureStateValue.Dirty_ = BcFalse;
-			}
-		}
-	}
-
-	// Reset binds.
-	NoofTextureStateBinds_ = 0;
-
 	
-
 	// Bind program and primitive.
 	if( ( Program_ != nullptr &&
 		  VertexDeclaration_ != nullptr ) &&
@@ -1843,8 +1698,11 @@ void RsContextGL::flushState()
 		}
 	}
 
-	if( UniformBuffersDirty_ && Program_ )
+	if( Program_ )
 	{
+		bindSRVs( Program_, BindingDesc_ );
+		bindUAVs( Program_, BindingDesc_, MemoryBarrier_ );
+		bindSamplerStates( Program_, BindingDesc_ );
 		bindUniformBuffers( Program_, BindingDesc_ );
 	}
 
@@ -1937,7 +1795,13 @@ void RsContextGL::drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset
 	BcAssert( Program_ != nullptr );
 	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), IndexOffset, NoofIndices ) );
 
-	
+#if !defined( RENDER_USE_GLES )
+	if( MemoryBarrier_ )
+	{
+		GL( MemoryBarrier( MemoryBarrier_ ) );
+		MemoryBarrier_ = 0;
+	}
+#endif // !defined( RENDER_USE_GLES )
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1965,7 +1829,13 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 		BcBreakpoint;	
 	}
 
-	
+#if !defined( RENDER_USE_GLES )
+	if( MemoryBarrier_ )
+	{
+		GL( MemoryBarrier( MemoryBarrier_ ) );
+		MemoryBarrier_ = 0;
+	}
+#endif // !defined( RENDER_USE_GLES )	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2196,42 +2066,36 @@ void RsContextGL::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height )
 
 //////////////////////////////////////////////////////////////////////////
 // dispatchCompute
-void RsContextGL::dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+void RsContextGL::dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
 #if !defined( RENDER_USE_GLES )
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
-	// Bind stuff.
-	GLbitfield Barrier = 0;
 	bindSRVs( Program, Bindings );
-	bindUAVs( Program, Bindings, Barrier );
+	bindUAVs( Program, Bindings, MemoryBarrier_ );
 	bindSamplerStates( Program, Bindings );
 	bindUniformBuffers( Program, Bindings );
 
-	// Dispatch.
 	GL( DispatchCompute( XGroups, YGroups, ZGroups ) );
 
-	// Barrier.
-	if( Barrier )
+	if( MemoryBarrier_ )
 	{
-		GL( MemoryBarrier( Barrier ) );
+		GL( MemoryBarrier( MemoryBarrier_ ) );
+		MemoryBarrier_ = 0;
 	}
 
 	// Program dirty, need to rebind it later.
 	// Once stateless, won't be a problem.
 	ProgramDirty_ = BcTrue;
-
-	// Uniform buffers dirty, need to rebind later.
-	UniformBuffersDirty_ = BcTrue;
-
 #endif // !defined( RENDER_USE_GLES )
 }
 
 //////////////////////////////////////////////////////////////////////////
 // bindSRVs
-void RsContextGL::bindSRVs( RsProgram* Program, RsComputeBindingDesc& Bindings )
+void RsContextGL::bindSRVs( RsProgram* Program, RsProgramBindingDesc& Bindings )
 {
+	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
@@ -2260,9 +2124,6 @@ void RsContextGL::bindSRVs( RsProgram* Program, RsComputeBindingDesc& Bindings )
 						BindingInfo.Texture_ = TextureGL->getHandle();
 						BindingInfo.Target_ = TextureType;
 					}
-
-					// TODO: Properly update state.
-					TextureStateValues_[ SRVSlotGL.Slot_ ].pTexture_ = SRVSlot.Texture_;
 				}
 				break;
 			case RsProgramBindTypeGL::IMAGE:
@@ -2304,8 +2165,9 @@ void RsContextGL::bindSRVs( RsProgram* Program, RsComputeBindingDesc& Bindings )
 
 //////////////////////////////////////////////////////////////////////////
 // bindUAVs
-void RsContextGL::bindUAVs( RsProgram* Program, RsComputeBindingDesc& Bindings, GLbitfield& Barrier )
+void RsContextGL::bindUAVs( RsProgram* Program, RsProgramBindingDesc& Bindings, GLbitfield& Barrier )
 {
+	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
@@ -2318,26 +2180,6 @@ void RsContextGL::bindUAVs( RsProgram* Program, RsComputeBindingDesc& Bindings, 
 			switch( UAVSlotGL.BindType_ )
 			{
 			case RsProgramBindTypeGL::NONE:
-				break;
-			case RsProgramBindTypeGL::TEXTURE:
-				{
-					// TODO: Redundant state checking.
-					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-					const GLenum TextureType = RsUtilsGL::GetTextureType( UAVSlotGL.TextureType_ );
-					RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >();
-					auto& BindingInfo = TextureBindingInfo_[ UAVSlotGL.Slot_ ];
-					if( BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Target_ != TextureType )
-					{
-						GL( ActiveTexture( GL_TEXTURE0 + UAVSlotGL.Slot_ ) );
-						GL( BindTexture( TextureType, TextureGL->getHandle() ) );
-						BindingInfo.Texture_ = TextureGL->getHandle();
-						BindingInfo.Target_ = TextureType;
-					}
-
-					// TODO: Properly update state.
-					TextureStateValues_[ UAVSlotGL.Slot_ ].pTexture_ = UAVSlot.Texture_;
-				}
 				break;
 			case RsProgramBindTypeGL::IMAGE:
 				{
@@ -2380,8 +2222,9 @@ void RsContextGL::bindUAVs( RsProgram* Program, RsComputeBindingDesc& Bindings, 
 
 //////////////////////////////////////////////////////////////////////////
 // bindSamplerStates
-void RsContextGL::bindSamplerStates( RsProgram* Program, RsComputeBindingDesc& Bindings )
+void RsContextGL::bindSamplerStates( RsProgram* Program, RsProgramBindingDesc& Bindings )
 {
+	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 
@@ -2423,17 +2266,15 @@ void RsContextGL::bindSamplerStates( RsProgram* Program, RsComputeBindingDesc& B
 				GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 			}
-
-			// TODO: Properly update state.
-			TextureStateValues_[ SamplerStateSlotGL.Slot_ ].pSamplerState_ = SamplerState;
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // bindUniformBuffers
-void RsContextGL::bindUniformBuffers( RsProgram* Program, RsComputeBindingDesc& Bindings )
+void RsContextGL::bindUniformBuffers( RsProgram* Program, RsProgramBindingDesc& Bindings )
 {
+	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
 

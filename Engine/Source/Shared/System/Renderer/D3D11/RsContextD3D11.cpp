@@ -1236,7 +1236,7 @@ void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height
 
 //////////////////////////////////////////////////////////////////////////
 // dispatchCompute
-void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+void RsContextD3D11::dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
 	// Bind compute shader.
 	const auto& Shaders = Program->getShaders();

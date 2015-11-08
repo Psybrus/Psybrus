@@ -53,7 +53,7 @@ RsProgram::~RsProgram()
 
 ////////////////////////////////////////////////////////////////////////////////
 // findSamplerSlot
-BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
+BcU32 RsProgram::findSamplerSlot( const BcChar* Name ) const
 {
 	for( const auto& It : SamplerList_ )
 	{
@@ -68,7 +68,7 @@ BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 
 ////////////////////////////////////////////////////////////////////////////////
 // findShaderResourceSlot
-BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name )
+BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name ) const
 {
 	for( const auto& It : ShaderResourceList_ )
 	{
@@ -83,7 +83,7 @@ BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name )
 
 ////////////////////////////////////////////////////////////////////////////////
 // findUnorderedAccessSlot
-BcU32 RsProgram::findUnorderedAccessSlot( const BcChar* Name )
+BcU32 RsProgram::findUnorderedAccessSlot( const BcChar* Name ) const
 {
 	for( const auto& It : UnorderedAccessList_ )
 	{
@@ -98,7 +98,7 @@ BcU32 RsProgram::findUnorderedAccessSlot( const BcChar* Name )
 
 ////////////////////////////////////////////////////////////////////////////////
 // findUniformBufferSlot
-BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
+BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name ) const
 {
 	for( const auto& It : InternalUniformBlockList_ )
 	{
@@ -112,10 +112,35 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// findTextureSlot
-BcU32 RsProgram::findTextureSlot( const BcChar* Name )
+// getSamplerSlotName
+const char* RsProgram::getSamplerSlotName( BcU32 Slot ) const
 {
-	return findShaderResourceSlot( Name );
+	BcAssert( SamplerList_[ Slot ].Handle_ == Slot );
+	return SamplerList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getShaderResourceSlotName
+const char* RsProgram::getShaderResourceSlotName( BcU32 Slot ) const
+{
+	BcAssert( ShaderResourceList_[ Slot ].Handle_ == Slot );
+	return ShaderResourceList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getUnorderedAccessSlotName
+const char* RsProgram::getUnorderedAccessSlotName( BcU32 Slot ) const
+{
+	BcAssert( UnorderedAccessList_[ Slot ].Handle_ == Slot );
+	return UnorderedAccessList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getUniformBufferSlotName
+const char* RsProgram::getUniformBufferSlotName( BcU32 Slot ) const
+{
+	BcAssert( InternalUniformBlockList_[ Slot ].Handle_ == Slot );
+	return InternalUniformBlockList_[ Slot ].Name_.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

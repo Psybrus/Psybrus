@@ -301,7 +301,7 @@ BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
-	BcU32 Handle = pProgram_->findTextureSlot( (*TextureName).c_str() );
+	BcU32 Handle = pProgram_->findShaderResourceSlot( (*TextureName).c_str() );
 	
 	if( Handle != BcErrorCode )
 	{

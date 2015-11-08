@@ -3,11 +3,23 @@
 #include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
-// RsComputeBindingDesc
-class RsComputeBindingDesc
+// RsProgramSRVDesc
+struct RsProgramSRVDesc
+{
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramUAVDesc
+struct RsProgramUAVDesc
+{
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramBindingDesc
+class RsProgramBindingDesc
 {
 public:
-	RsComputeBindingDesc();
+	RsProgramBindingDesc();
 
 	/**
 	 * Set uniform buffer.

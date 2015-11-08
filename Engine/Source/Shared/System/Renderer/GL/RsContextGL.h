@@ -118,12 +118,12 @@ public:
 	void setViewport( const class RsViewport& Viewport ) override;
 	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
-	void dispatchCompute( class RsProgram* Program, RsComputeBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
+	void dispatchCompute( class RsProgram* Program, RsProgramBindingDesc& Bindings, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 
-	void bindSRVs( RsProgram* Program, RsComputeBindingDesc& Bindings );
-	void bindUAVs( RsProgram* Program, RsComputeBindingDesc& Bindings, GLbitfield& Barrier );
-	void bindSamplerStates( RsProgram* Program, RsComputeBindingDesc& Bindings );
-	void bindUniformBuffers( RsProgram* Program, RsComputeBindingDesc& Bindings );
+	void bindSRVs( RsProgram* Program, RsProgramBindingDesc& Bindings );
+	void bindUAVs( RsProgram* Program, RsProgramBindingDesc& Bindings, GLbitfield& Barrier );
+	void bindSamplerStates( RsProgram* Program, RsProgramBindingDesc& Bindings );
+	void bindUniformBuffers( RsProgram* Program, RsProgramBindingDesc& Bindings );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
@@ -179,16 +179,8 @@ private:
 	BcThreadId OwningThread_;
 	BcU64 FrameCount_;
 
-	struct TTextureStateValue
-	{
-		RsTexture* pTexture_;
-		RsSamplerState* pSamplerState_;
-		BcBool Dirty_;
-	};
 
 	
-	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
-
 	// State setting.
 	// TODO: Move into a seperate class.
 	class RsRenderState* RenderState_;
@@ -205,10 +197,6 @@ private:
 	RsViewport Viewport_;
 	BcBool DirtyScissor_;
 	BcS32 ScissorX_, ScissorY_, ScissorW_, ScissorH_;
-
-	// Texture binding.
-	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;
-	BcU32 NoofTextureStateBinds_;	
 
 	// VAO
 	BcU32 GlobalVAO_;
@@ -238,7 +226,8 @@ private:
 	BcBool VertexBuffersDirty_;
 
 
-	RsComputeBindingDesc BindingDesc_;
+	RsProgramBindingDesc BindingDesc_;
+	GLbitfield MemoryBarrier_ = 0;
 
 	struct TextureBindingInfo
 	{

@@ -31,13 +31,15 @@ public:
 		RsProgramUniformBlockList&& UniformBlockList );
 	virtual ~RsProgram();
 	
-	BcU32 findSamplerSlot( const BcChar* Name );
-	BcU32 findShaderResourceSlot( const BcChar* Name );
-	BcU32 findUnorderedAccessSlot( const BcChar* Name );
-	BcU32 findUniformBufferSlot( const BcChar* Name );
+	BcU32 findSamplerSlot( const BcChar* Name ) const;
+	BcU32 findShaderResourceSlot( const BcChar* Name ) const;
+	BcU32 findUnorderedAccessSlot( const BcChar* Name ) const;
+	BcU32 findUniformBufferSlot( const BcChar* Name ) const;
 
-	[[deprecated("Use findShaderResourceSlot")]] 
-	BcU32 findTextureSlot( const BcChar* Name );
+	const char* getSamplerSlotName( BcU32 Slot ) const;
+	const char* getShaderResourceSlotName( BcU32 Slot ) const;
+	const char* getUnorderedAccessSlotName( BcU32 Slot ) const;
+	const char* getUniformBufferSlotName( BcU32 Slot ) const;
 
 	const ReClass* getUniformBufferClass( BcU32 Handle );
 

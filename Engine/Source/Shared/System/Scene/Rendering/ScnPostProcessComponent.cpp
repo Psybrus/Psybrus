@@ -245,7 +245,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 				BcU32 TextureIdx = 0;
 				for( auto& InputTexture : Node.InputTextures_ )
 				{
-					BcU32 Slot = Program->findTextureSlot( InputTexture.first.c_str() );
+					BcU32 Slot = Program->findShaderResourceSlot( InputTexture.first.c_str() );
 					if( Slot != BcErrorCode )
 					{
 						Context->setTexture( Slot, InputTexture.second->getTexture() );

@@ -24,7 +24,7 @@
 #include "System/Renderer/RsFrame.h"
 
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsComputeBinding.h"
+#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsComputeInterface.h"
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsFrameBuffer.h"
