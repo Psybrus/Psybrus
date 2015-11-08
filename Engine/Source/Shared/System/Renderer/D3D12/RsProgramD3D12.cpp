@@ -41,7 +41,8 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
 
 				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER || BindDesc.Type == D3D_SIT_TBUFFER )
+				if( BindDesc.Type == D3D_SIT_CBUFFER || 
+					BindDesc.Type == D3D_SIT_TBUFFER )
 				{
 					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
 					{
@@ -75,7 +76,10 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					TextureBindings[ BindDesc.Name ] = Handle;
 				}
-				else if( BindDesc.Type == D3D_SIT_STRUCTURED || BindDesc.Type == D3D_SIT_BYTEADDRESS )
+				else if( 
+					BindDesc.Type == D3D_SIT_TEXTURE ||
+					BindDesc.Type == D3D_SIT_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_BYTEADDRESS )
 				{
 					if( BufferBindings.find( BindDesc.Name ) == BufferBindings.end() )
 					{
@@ -86,8 +90,11 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
 					BufferBindings[ BindDesc.Name ] = Handle;
 				}
-				else if( BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED || BindDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ||
-					BindDesc.Type == D3D_SIT_UAV_APPEND_STRUCTURED || BindDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED || 
+				else if( BindDesc.Type == D3D_SIT_UAV_RWTYPED ||
+					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ||
+					BindDesc.Type == D3D_SIT_UAV_APPEND_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED || 
 					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER )
 				{
 					if( BufferBindings.find( BindDesc.Name ) == BufferBindings.end() )

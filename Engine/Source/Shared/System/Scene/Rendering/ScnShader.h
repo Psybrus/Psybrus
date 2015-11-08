@@ -20,6 +20,8 @@
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
+#include <unordered_map>
+
 //////////////////////////////////////////////////////////////////////////
 // ScnShader
 typedef ReObjectRef< class ScnShader > ScnShaderRef;

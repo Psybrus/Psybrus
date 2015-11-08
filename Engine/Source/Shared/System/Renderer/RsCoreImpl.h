@@ -62,18 +62,23 @@ public:
 	RsBuffer* createBuffer( 
 		const RsBufferDesc& Desc ) override;
 	
-	RsShader* createShader( 
+	RsShaderUPtr createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
 		const std::string& DebugName ) override;
 	
-	RsProgram* createProgram( 
+	RsProgramUPtr createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
 		RsProgramUniformList UniformList,
 		RsProgramUniformBlockList UniformBlockList,
 		const std::string& DebugName ) override;
 	
+	RsProgramBindingUPtr createProgramBinding( 
+		RsProgram* Program,
+		const RsProgramBindingDesc& ProgramBindingDesc,
+		const std::string& DebugName ) override;
+
 	void destroyResource( 
 		RsResource* pResource ) override;
 	
@@ -97,6 +102,9 @@ public:
 
 	void destroyResource( 
 		RsProgram* Program ) override;
+
+	void destroyResource( 
+		RsProgramBinding* ProgramBinding ) override;
 
 	void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) override;
@@ -143,7 +151,7 @@ private:
 public:
 	RsFrame* allocateFrame( RsContext* pContext ) override;
 	void queueFrame( RsFrame* pFrame ) override;
-	BcF32 getFrameTime() const override;
+	BcF64 getFrameTime() const override;
 
 public:
 	// Platform specific interface.
@@ -158,7 +166,7 @@ protected:
 
 	std::vector< std::function< void() > > ResourceDeletionList_;
 
-	BcF32 FrameTime_;
+	BcF64 FrameTime_;
 	
 };
 

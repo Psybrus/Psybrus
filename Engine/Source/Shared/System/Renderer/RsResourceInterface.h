@@ -147,6 +147,20 @@ public:
 		class RsProgram* Program ) = 0;
 
 	/**
+	 * Create program binding.
+	 * @param ProgramBinding Program binding to create from.
+	 */
+	virtual bool createProgramBinding(
+		class RsProgramBinding* ProgramBinding ) = 0;
+
+	/**
+	 * Destroy program binding.
+	 * @param ProgramBinding Program binding to destroy.
+	 */
+	virtual bool destroyProgramBinding( 
+		class RsProgramBinding* ProgramBinding ) = 0;
+
+	/**
 	 * Create vertex declaration.
 	 * @param VertexDeclaration VertexDeclaration to create from.
 	 */

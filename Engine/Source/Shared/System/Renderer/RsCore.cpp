@@ -260,6 +260,11 @@ void RsResourceDeleters::operator()( class RsProgram* Resource )
 	RsCore::pImpl()->destroyResource( Resource );
 }
 
+void RsResourceDeleters::operator()( class RsProgramBinding* Resource )
+{
+	RsCore::pImpl()->destroyResource( Resource );
+}
+
 void RsResourceDeleters::operator()( class RsRenderState* Resource )
 {
 	RsCore::pImpl()->destroyResource( Resource );

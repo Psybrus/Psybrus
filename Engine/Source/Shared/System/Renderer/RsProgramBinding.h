@@ -1,6 +1,7 @@
 #pragma once
 
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsProgramSRVDesc
@@ -79,3 +80,21 @@ public:
 	std::array< class RsBuffer*, 32 > UniformBuffers_;
 	std::array< class RsSamplerState*, 32 > SamplerStates_;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// RsProgramBinding
+class RsProgramBinding:
+	public RsResource
+{
+public:
+	RsProgramBinding( class RsContext* pContext, class RsProgram* Program, const RsProgramBindingDesc & Desc );
+	virtual ~RsProgramBinding();
+
+	class RsProgram* getProgram() const;
+	const RsProgramBindingDesc& getDesc() const;
+
+private:
+	class RsProgram* Program_;
+	RsProgramBindingDesc Desc_;
+};
+

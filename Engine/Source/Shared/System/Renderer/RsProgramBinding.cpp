@@ -95,3 +95,33 @@ void RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* 
 		UnorderedAccessSlots_[ Slot ].Resource_ = nullptr;
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+RsProgramBinding::RsProgramBinding( RsContext* pContext, RsProgram* Program, const RsProgramBindingDesc & Desc ):
+	RsResource( pContext ),
+	Program_( Program ),
+	Desc_( Desc )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+RsProgramBinding::~RsProgramBinding()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getProgram
+RsProgram* RsProgramBinding::getProgram() const
+{
+	return Program_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getDesc
+const RsProgramBindingDesc& RsProgramBinding::getDesc() const
+{
+	return Desc_;
+}

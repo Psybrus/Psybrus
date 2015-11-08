@@ -476,6 +476,22 @@ bool RsContextNull::destroyProgram(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createProgramBinding
+bool RsContextNull::createProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	BcUnusedVar( ProgramBinding );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyProgramBinding
+bool RsContextNull::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	BcUnusedVar( ProgramBinding );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 bool RsContextNull::createVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )
