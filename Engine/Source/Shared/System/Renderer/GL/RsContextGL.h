@@ -76,6 +76,8 @@ public:
 	bool destroyProgram( class RsProgram* Program ) override;
 	bool createProgramBinding( class RsProgramBinding* ProgramBinding ) override;
 	bool destroyProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool createGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
 	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 
@@ -106,6 +108,18 @@ public:
 		BcBool EnableClearStencil ) override;
 	void drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices ) override;
 	void drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+	void drawPrimitives( 		RsGeometryBinding* GeometryBinding, 
+		RsProgramBinding* ProgramBinding, 
+		RsRenderState* RenderState,
+		RsFrameBuffer* FrameBuffer, 
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices ) override;
+	void drawIndexedPrimitives( 		RsGeometryBinding* GeometryBinding, 
+		RsProgramBinding* ProgramBinding, 
+		RsRenderState* RenderState,
+		RsFrameBuffer* FrameBuffer,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
 	void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) override;
 	void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) override;
 

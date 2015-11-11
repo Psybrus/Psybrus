@@ -1282,6 +1282,22 @@ bool RsContextD3D12::destroyProgramBinding( class RsProgramBinding* ProgramBindi
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createGeometryBinding
+bool RsContextD3D12::createGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyGeometryBinding
+bool RsContextD3D12::destroyGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 bool RsContextD3D12::createVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )

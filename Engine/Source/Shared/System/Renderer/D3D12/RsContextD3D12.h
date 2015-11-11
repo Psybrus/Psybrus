@@ -114,6 +114,8 @@ public:
 	bool destroyProgram( class RsProgram* Program ) override;
 	bool createProgramBinding( class RsProgramBinding* ProgramBinding ) override;
 	bool destroyProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool createGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
 	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 

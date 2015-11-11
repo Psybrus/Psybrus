@@ -36,7 +36,6 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 		new ReField( "NoofVertices_", &ScnDebugRenderComponent::NoofVertices_, bcRFF_IMPORTER | bcRFF_CONST ),
 
 		new ReField( "MaterialComponent_",	&ScnDebugRenderComponent::MaterialComponent_, bcRFF_TRANSIENT ),
-		new ReField( "CurrentRenderResource_", &ScnDebugRenderComponent::CurrentRenderResource_, bcRFF_TRANSIENT ),
 		new ReField( "VertexIndex_", &ScnDebugRenderComponent::VertexIndex_ ),
 	};
 		
@@ -77,11 +76,8 @@ ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices ):
 	pVertices_( nullptr ),
 	pVerticesEnd_( nullptr ),
 	pWorkingVertices_( nullptr ),
-	NoofVertices_( NoofVertices ),
-	CurrentRenderResource_( 0 )
+	NoofVertices_( NoofVertices )
 {
-	// NULL internals.
-	BcMemZero( &RenderResources_[ 0 ], sizeof( RenderResources_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -408,9 +404,6 @@ void ScnDebugRenderComponent::drawAABB( const MaAABB& AABB, const RsColour& Colo
 // render
 void ScnDebugRenderComponent::clear()
 {
-	// Set current render resource.
-	pRenderResource_ = &RenderResources_[ CurrentRenderResource_ ];
-
 	// Wait for upload to have completed so we can use vertices.
 	UploadFence_.wait();
 
@@ -436,7 +429,7 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 	{
 		UploadFence_.increment();
 		RsCore::pImpl()->updateBuffer( 
-			pRenderResource_->pVertexBuffer_, 0, VertexDataSize, 
+			VertexBuffer_.get(), 0, VertexDataSize, 
 			RsResourceUpdateFlags::ASYNC,
 			[ this, VertexDataSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -473,39 +466,43 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
 
 			// Set model parameters on material.
-			pRenderResource_->ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
-			auto* RenderResource = pRenderResource_;
+			ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
 			RsCore::pImpl()->updateBuffer( 
-				pRenderResource_->UniformBuffer_,
-				0, sizeof( pRenderResource_->ObjectUniforms_ ),
+				UniformBuffer_.get(),
+				0, sizeof( ObjectUniforms_ ),
 				RsResourceUpdateFlags::ASYNC,
-				[ RenderResource ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+				[ 
+					ObjectUniforms = ObjectUniforms_
+				]
+				( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
-					BcMemCopy( Lock.Buffer_, &RenderResource->ObjectUniforms_, sizeof( RenderResource->ObjectUniforms_ ) );					
+					BcMemCopy( Lock.Buffer_, &ObjectUniforms, sizeof( ObjectUniforms ) );					
 				} );
-			pLastMaterialComponent->setObjectUniformBlock( pRenderResource_->UniformBuffer_ );
+			pLastMaterialComponent->setObjectUniformBlock( UniformBuffer_.get() );
 
 			RenderContext.pViewComponent_->setMaterialParameters( pLastMaterialComponent );
-
-			pLastMaterialComponent->bind( RenderContext.pFrame_, Sort );
 		}
 		
 		// Add to frame.
-		auto& RenderResource = *pRenderResource_;
-		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ this, RenderResource, PrimitiveSection ]( RsContext* Context )
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = MaterialComponent_->getProgramBinding(),
+				RenderState = MaterialComponent_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				PrimitiveSection = *PrimitiveSection
+			]
+			( RsContext* Context )
 			{
-				Context->setVertexBuffer( 0, RenderResource.pVertexBuffer_, sizeof( ScnDebugRenderComponentVertex ) );
-				Context->setVertexDeclaration( VertexDeclaration_ );
-				Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
-				RenderFence_.decrement();
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					PrimitiveSection.Type_, PrimitiveSection.VertexIndex_, PrimitiveSection.NoofVertices_ );
 			} );
 	}
 	
-	// Flip the render resource.
-	CurrentRenderResource_ = 1 - CurrentRenderResource_;
-
 	// Reset vertex index.
 	VertexIndex_ = 0;
 }
@@ -531,25 +528,24 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
 			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 	
-	// Allocate render resources.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
+	// Allocate render side vertex buffer.
+	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::VERTEX,
+			RsResourceCreationFlags::STREAM,
+			NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
 
-		// Allocate render side vertex buffer.
-		RenderResource.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::VERTEX,
-				RsResourceCreationFlags::STREAM,
-				NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
-	
-		// Allocate uniform buffer object.
-		RenderResource.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::UNIFORM,
-				RsResourceCreationFlags::STREAM,
-				sizeof( ScnShaderObjectUniformBlockData ) ) );
-	}
+	RsGeometryBindingDesc GeometryBindingDesc;
+	GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnDebugRenderComponentVertex ) );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() );
+
+	// Allocate uniform buffer object.
+	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::UNIFORM,
+			RsResourceCreationFlags::STREAM,
+			sizeof( ScnShaderObjectUniformBlockData ) ) );
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
@@ -567,20 +563,6 @@ void ScnDebugRenderComponent::onDetach( ScnEntityWeakRef Parent )
 	getParentEntity()->detach( MaterialComponent_ );
 
 	UploadFence_.wait();
-	RenderFence_.wait();
-
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TRenderResource& RenderResource = RenderResources_[ Idx ];
-
-		// Allocate render side vertex buffer.
-		RsCore::pImpl()->destroyResource( RenderResource.pVertexBuffer_ );
-
-		// Allocate render side uniform buffer.
-		RsCore::pImpl()->destroyResource( RenderResource.UniformBuffer_ );
-	}
-
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
 	delete [] pWorkingVertices_;

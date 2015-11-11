@@ -110,14 +110,13 @@ protected:
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
 	SysFence UpdateFence_;
-	SysFence RenderFence_;
 
 	MaAABB AABB_;
 
 	struct TPerComponentMeshData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsBuffer* UniformBuffer_;
+		RsBufferUPtr UniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;

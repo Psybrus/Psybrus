@@ -49,7 +49,7 @@ void ScnModel::StaticRegisterClass()
 			new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA),
 			new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 			new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
+			//TODO: move support. new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
 		};
 		
 		auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
@@ -112,16 +112,18 @@ void ScnModel::create()
 			VertexDeclarationDesc.addElement( pMeshData_->VertexElements_[ Idx ] );
 		}
 		
-		RsVertexDeclaration* pVertexDeclaration = RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc );
+		RsVertexDeclarationUPtr VertexDeclaration(
+			RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc ) );
+
 		BcU32 VertexBufferSize = pMeshData->NoofVertices_ * pMeshData->VertexStride_;
-		RsBuffer* pVertexBuffer = RsCore::pImpl()->createBuffer( 
+		RsBufferUPtr VertexBuffer( RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX, 
 				RsResourceCreationFlags::STATIC,
-				VertexBufferSize ) );
+				VertexBufferSize ) ) );
 
 		RsCore::pImpl()->updateBuffer( 
-			pVertexBuffer, 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
+			VertexBuffer.get(), 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
 			RsResourceUpdateFlags::ASYNC,
 			[ pVertexBufferData, VertexBufferSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -132,15 +134,15 @@ void ScnModel::create()
 			} );
 	
 		BcU32 IndexBufferSize = pMeshData->NoofIndices_ * sizeof( BcU16 );
-		RsBuffer* pIndexBuffer = 
+		RsBufferUPtr IndexBuffer(
 			RsCore::pImpl()->createBuffer( 
 				RsBufferDesc( 
 					RsBufferType::INDEX, 
 					RsResourceCreationFlags::STATIC, 
-					IndexBufferSize ) );
+					IndexBufferSize ) ) );
 
 		RsCore::pImpl()->updateBuffer( 
-			pIndexBuffer, 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
+			IndexBuffer.get(), 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
 			RsResourceUpdateFlags::ASYNC,
 			[ pIndexBufferData, IndexBufferSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -149,16 +151,22 @@ void ScnModel::create()
 				BcMemCopy( BufferLock.Buffer_, pIndexBufferData, 
 					IndexBufferSize );
 			} );
-		
+
+		RsGeometryBindingDesc GeometryBindingDesc;
+		GeometryBindingDesc.setIndexBuffer( IndexBuffer.get() ),
+		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer.get(), pMeshData->VertexStride_ );
+		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration.get() );
+		RsGeometryBindingUPtr GeometryBinding( 
+			RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() ) );
+
 		// Setup runtime structure.
-		ScnModelMeshRuntime MeshRuntime = 
-		{
-			PrimitiveIdx,
-			pVertexDeclaration,
-			pVertexBuffer,
-			pIndexBuffer,
-			nullptr
-		};
+		ScnModelMeshRuntime MeshRuntime;
+		MeshRuntime.MeshDataIndex_ = PrimitiveIdx;
+		MeshRuntime.VertexDeclaration_ = std::move( VertexDeclaration );
+		MeshRuntime.VertexBuffer_ = std::move( VertexBuffer );
+		MeshRuntime.IndexBuffer_ = std::move( IndexBuffer );
+		MeshRuntime.GeometryBinding_ = std::move( GeometryBinding );
+		MeshRuntime.MaterialRef_ = nullptr;
 		
 		// Get resource.
 		auto Resource = getPackage()->getCrossRefResource( pMeshData->MaterialRef_ );
@@ -166,7 +174,7 @@ void ScnModel::create()
 		BcAssertMsg( MeshRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
 
 		// Push into array.
-		MeshRuntimes_.push_back( MeshRuntime );
+		MeshRuntimes_.emplace_back( std::move( MeshRuntime ) );
 		
 		// Advance vertex and index buffers.
 		pVertexBufferData += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
@@ -182,18 +190,6 @@ void ScnModel::create()
 //virtual
 void ScnModel::destroy()
 {
-	// Destroy internal data.
-	for( BcU32 Idx = 0; Idx < MeshRuntimes_.size(); ++Idx )
-	{
-		ScnModelMeshRuntime& MeshRuntime( MeshRuntimes_[ Idx ] );
-
-		RsCore::pImpl()->destroyResource( MeshRuntime.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( MeshRuntime.pIndexBuffer_ );
-		RsCore::pImpl()->destroyResource( MeshRuntime.pVertexDeclaration_ );
-		
-		MeshRuntime.MaterialRef_ = nullptr;
-	}
-
 	MeshRuntimes_.clear();
 }
 
@@ -292,7 +288,7 @@ void ScnModelComponent::StaticRegisterClass()
 		new ReField( "UpdateFence_", &ScnModelComponent::UpdateFence_, bcRFF_TRANSIENT ),
 		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
 		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
-		new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
+		// TODO: move support. new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
 	};
 
 	using namespace std::placeholders;
@@ -454,7 +450,7 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 	{
 		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
 		{
-			MaterialComponents.push_back( PerComponentMeshDataList_[ Idx ].MaterialComponentRef_ );
+			MaterialComponents.emplace_back( PerComponentMeshDataList_[ Idx ].MaterialComponentRef_ );
 		}
 	}
 
@@ -625,7 +621,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		if( pNodeMeshData->IsSkinned_ )
 		{
 			RsCore::pImpl()->updateBuffer( 
-				PerComponentMeshData.UniformBuffer_,
+				PerComponentMeshData.UniformBuffer_.get(),
 				0, sizeof( ScnShaderBoneUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -648,7 +644,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		else
 		{
 			RsCore::pImpl()->updateBuffer( 
-				PerComponentMeshData.UniformBuffer_,
+				PerComponentMeshData.UniformBuffer_.get(),
 				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -735,7 +731,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 		}
 
 		//
-		PerComponentMeshDataList_.push_back( ComponentData );
+		PerComponentMeshDataList_.emplace_back( std::move( ComponentData ) );
 	}
 
 	// Update nodes.
@@ -751,7 +747,6 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	// Wait for update, upload + render to complete.
 	UpdateFence_.wait();
 	UploadFence_.wait();
-	RenderFence_.wait();
 
 	// Detach material components from parent.
 	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
@@ -761,11 +756,7 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 		PerComponentMeshData.MaterialComponentRef_ = nullptr;
 	}
 
-	// Destroy resources.
-	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
-	{
-		RsCore::pImpl()->destroyResource( PerComponentMeshDataList_[ Idx ].UniformBuffer_ );
-	}
+	PerComponentMeshDataList_.clear();
 	
 	// Delete duplicated node data.
 	delete [] pNodeTransformData_;
@@ -811,11 +802,11 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 		// Set skinning parameters.
 		if( pMeshData->IsSkinned_ )
 		{
-			PerComponentMeshData.MaterialComponentRef_->setBoneUniformBlock( PerComponentMeshData.UniformBuffer_ );
+			PerComponentMeshData.MaterialComponentRef_->setBoneUniformBlock( PerComponentMeshData.UniformBuffer_.get() );
 		}
 		else
 		{
-			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_ );
+			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_.get() );
 		}
 
 #if 0
@@ -824,21 +815,28 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 #endif		
 		// Set material components for view.
 		RenderContext.pViewComponent_->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
-			
-		// Bind material.
-		PerComponentMeshData.MaterialComponentRef_->bind( RenderContext.pFrame_, Sort );
 		
 		// Render primitive.
-		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ this, pMeshData, pMeshRuntime, Offset ]( RsContext* Context )
+			[
+				GeometryBinding = pMeshRuntime->GeometryBinding_.get(),
+				DrawProgramBinding = PerComponentMeshData.MaterialComponentRef_->getProgramBinding(),
+				RenderState = PerComponentMeshData.MaterialComponentRef_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				PrimitiveType = pMeshData->Type_,
+				NoofIndices = pMeshData->NoofIndices_,
+				Offset
+			]
+			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				Context->setIndexBuffer( pMeshRuntime->pIndexBuffer_ );
-				Context->setVertexBuffer( 0, pMeshRuntime->pVertexBuffer_, pMeshData->VertexStride_ );
-				Context->setVertexDeclaration( pMeshRuntime->pVertexDeclaration_ );
-				Context->drawIndexedPrimitives( pMeshData->Type_, Offset, pMeshData->NoofIndices_, 0 );
-				RenderFence_.decrement();
+				Context->drawIndexedPrimitives(
+					GeometryBinding,
+					DrawProgramBinding, 
+					RenderState, 
+					FrameBuffer, 
+					PrimitiveType, 
+					Offset, NoofIndices, 0 );
 			} );
 	}
 }

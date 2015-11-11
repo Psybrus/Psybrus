@@ -24,15 +24,17 @@
 #include "System/Renderer/RsFrame.h"
 
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsComputeInterface.h"
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsFrameBuffer.h"
+#include "System/Renderer/RsGeometryBinding.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsTexture.h"
+#include "System/Renderer/RsUniquePointers.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,34 +42,6 @@
 class RsTexture;
 class RsFrame;
 class RsRenderTarget;
-
-//////////////////////////////////////////////////////////////////////////
-// Resource deletion.
-class RsResourceDeleters
-{
-public:
-	void operator()( class RsBuffer* Resource );
-	void operator()( class RsContext* Resource );
-	void operator()( class RsFrameBuffer* Resource );
-	void operator()( class RsProgram* Resource );
-	void operator()( class RsProgramBinding* Resource );
-	void operator()( class RsRenderState* Resource );
-	void operator()( class RsSamplerState* Resource );
-	void operator()( class RsShader* Resource );
-	void operator()( class RsTexture* Resource );
-	void operator()( class RsVertexDeclaration* Resource );
-};
-
-typedef std::unique_ptr< class RsBuffer, RsResourceDeleters > RsBufferUPtr;
-typedef std::unique_ptr< class RsContext, RsResourceDeleters > RsContextUPtr;
-typedef std::unique_ptr< class RsFrameBuffer, RsResourceDeleters > RsFrameBufferUPtr;
-typedef std::unique_ptr< class RsProgram, RsResourceDeleters > RsProgramUPtr;
-typedef std::unique_ptr< class RsProgramBinding, RsResourceDeleters > RsProgramBindingUPtr;
-typedef std::unique_ptr< class RsRenderState, RsResourceDeleters > RsRenderStateUPtr;
-typedef std::unique_ptr< class RsSamplerState, RsResourceDeleters > RsSamplerStateUPtr;
-typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;
-typedef std::unique_ptr< class RsTexture, RsResourceDeleters > RsTextureUPtr;
-typedef std::unique_ptr< class RsVertexDeclaration, RsResourceDeleters > RsVertexDeclarationUPtr;
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsCore
@@ -133,21 +107,21 @@ public:
 	 *	@param Desc descriptor.
 	 *	@param pData Texture data.
 	 */
-	virtual RsTexture* createTexture( 
+	virtual RsTextureUPtr createTexture( 
 		const RsTextureDesc& Desc ) = 0;
 
 	/**
 	 *	Create a vertex declaration.
 	 *	@param Desc Descriptor object.
 	 */
-	virtual RsVertexDeclaration* createVertexDeclaration( 
+	virtual RsVertexDeclarationUPtr createVertexDeclaration( 
 		const RsVertexDeclarationDesc& Desc ) = 0;
 
 	/*
 	 * Create a buffer.
 	 * @param Desc Buffer descriptor
 	 */
-	virtual RsBuffer* createBuffer( 
+	virtual RsBufferUPtr createBuffer( 
 		const RsBufferDesc& Desc ) = 0;
 	
 	/**
@@ -187,6 +161,16 @@ public:
 		RsProgram* Program,
 		const RsProgramBindingDesc& ProgramBindingDesc,
 		const std::string& DebugName ) = 0;
+
+	/**
+	 * Create geometry binding.
+	 * @param GeometryBindingDesc Geometry binding descriptor.
+	 * @param DebugName Name used for debugging creation.
+	 */
+	virtual RsGeometryBindingUPtr createGeometryBinding( 
+		const RsGeometryBindingDesc& GeometryBindingDesc,
+		const std::string& DebugName ) = 0;
+
 	/**
 	 * Update resource. Work done on render thread.
 	 * @param pResource Resource to update.
@@ -216,6 +200,8 @@ public:
 		RsProgram* Program ) = 0;
 	virtual void destroyResource( 
 		RsProgramBinding* ProgramBinding ) = 0;
+	virtual void destroyResource( 
+		RsGeometryBinding* GeometryBinding ) = 0;
 	virtual void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) = 0;
 

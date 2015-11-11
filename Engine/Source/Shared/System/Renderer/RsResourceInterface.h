@@ -161,6 +161,20 @@ public:
 		class RsProgramBinding* ProgramBinding ) = 0;
 
 	/**
+	 * Create geometry binding.
+	 * @param GeometryBinding GeometryBinding to create from.
+	 */
+	virtual bool createGeometryBinding( 
+		class RsGeometryBinding* GeometryBinding ) = 0;
+
+	/**
+	 * Create geometry binding.
+	 * @param GeometryBinding GeometryBinding to create from.
+	 */
+	virtual bool destroyGeometryBinding( 
+		class RsGeometryBinding* GeometryBinding ) = 0;
+
+	/**
 	 * Create vertex declaration.
 	 * @param VertexDeclaration VertexDeclaration to create from.
 	 */

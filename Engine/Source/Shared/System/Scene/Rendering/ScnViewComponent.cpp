@@ -140,7 +140,7 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	OsCore::pImpl()->unsubscribeAll( this );
-	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
+	ViewUniformBuffer_.reset();
 
 	ScnCore::pImpl()->removeCallback( this );
 
@@ -152,7 +152,7 @@ void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 // setMaterialParameters
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponent* MaterialComponent ) const
 {
-	MaterialComponent->setViewUniformBlock( ViewUniformBuffer_ );
+	MaterialComponent->setViewUniformBlock( ViewUniformBuffer_.get() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -290,7 +290,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 
 	// Upload uniforms.
 	RsCore::pImpl()->updateBuffer( 
-		ViewUniformBuffer_,
+		ViewUniformBuffer_.get(),
 		0, sizeof( ViewUniformBlock_ ),
 		RsResourceUpdateFlags::ASYNC,
 		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )

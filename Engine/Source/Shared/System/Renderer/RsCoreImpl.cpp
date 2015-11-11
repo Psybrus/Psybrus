@@ -251,17 +251,17 @@ RsRenderStateUPtr RsCoreImpl::createRenderState(
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
-	RsRenderState* pResource = new RsRenderState( Context, Desc );
+	RsRenderStateUPtr Resource( new RsRenderState( Context, Desc ) );
 
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, Resource = Resource.get() ]
 		{
-			Context->createRenderState( pResource );
+			Context->createRenderState( Resource );
 		} );
 
 	// Return resource.
-	return RsRenderStateUPtr( pResource );
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -272,17 +272,17 @@ RsSamplerStateUPtr RsCoreImpl::createSamplerState(
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
-	RsSamplerState* pResource = new RsSamplerState( Context, Desc );
+	RsSamplerStateUPtr Resource( new RsSamplerState( Context, Desc ) );
 
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, Resource = Resource.get() ]
 		{
-			Context->createSamplerState( pResource );
+			Context->createSamplerState( Resource );
 		} );
 	
 	// Return resource.
-	return RsSamplerStateUPtr( pResource );
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -293,82 +293,82 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
-	RsFrameBuffer* pResource = new RsFrameBuffer( Context, Desc );
+	RsFrameBufferUPtr Resource( new RsFrameBuffer( Context, Desc ) );
 
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, Resource = Resource.get() ]
 		{
-			Context->createFrameBuffer( pResource );
+			Context->createFrameBuffer( Resource );
 		} );
 	
 	// Return resource.
-	return RsFrameBufferUPtr( pResource );
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
-RsTexture* RsCoreImpl::createTexture( const RsTextureDesc& Desc )
+RsTextureUPtr RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
-	RsTexture* pResource = new RsTexture( Context, Desc );
+	RsTextureUPtr Resource( new RsTexture( Context, Desc ) ); 
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, Resource = Resource.get() ]
 		{
-			auto RetVal = Context->createTexture( pResource );
+			auto RetVal = Context->createTexture( Resource );
 			BcAssert( RetVal );
 		} );
 
 	// Return resource.
-	return pResource;
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 //virtual
-RsVertexDeclaration* RsCoreImpl::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
+RsVertexDeclarationUPtr RsCoreImpl::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
 {
 	auto Context = getContext( nullptr );
-	RsVertexDeclaration* pResource = new RsVertexDeclaration( Context, Desc );
+	RsVertexDeclarationUPtr Resource( new RsVertexDeclaration( Context, Desc ) );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, Resource = Resource.get() ]
 		{
-			auto RetVal = Context->createVertexDeclaration( pResource );
+			auto RetVal = Context->createVertexDeclaration( Resource );
 			BcAssert( RetVal );
 		} );
 
-	return pResource;
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // createBuffer
 //virtual 
-RsBuffer* RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
+RsBufferUPtr RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
-	RsBuffer* pResource = new RsBuffer( Context, Desc );
+	RsBufferUPtr Resource( new RsBuffer( Context, Desc ) );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource ]
+		[ Context, Resource = Resource.get() ]
 		{
-			Context->createBuffer( pResource );
+			Context->createBuffer( Resource );
 		} );
 	
 	// Return resource.
-	return pResource;
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -380,20 +380,20 @@ RsShaderUPtr RsCoreImpl::createShader(
 		const std::string& DebugName )
 {
 	auto Context = getContext( nullptr );
-	RsShader* pResource = new RsShader( Context, Desc, pShaderData, ShaderDataSize );
+	RsShaderUPtr Resource( new RsShader( Context, Desc, pShaderData, ShaderDataSize ) );
 	
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob( 
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource, DebugName ]
+		[ Context, Resource = Resource.get(), DebugName ]
 		{
-			if( !Context->createShader( pResource ) )
+			if( !Context->createShader( Resource ) )
 			{
 				PSY_LOG( "Failed shader creation: %s", DebugName.c_str() );
 			}
 		} );
 
-	return RsShaderUPtr( pResource );
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -410,25 +410,25 @@ RsProgramUPtr RsCoreImpl::createProgram(
 
 	BcAssert( Shaders.size() > 0 );
 
-	RsProgram* pResource = new RsProgram(
+	RsProgramUPtr Resource( new RsProgram(
 		Context, 
 		std::move( Shaders ), 
 		std::move( VertexAttributes ),
 		std::move( UniformList ),
-		std::move( UniformBlockList ) );
+		std::move( UniformBlockList ) ) );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource, DebugName ]
+		[ Context, Resource = Resource.get(), DebugName ]
 		{
-			if( !Context->createProgram( pResource ) )
+			if( !Context->createProgram( Resource ) )
 			{
 				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
 			}
 		} );
 
-	return RsProgramUPtr( pResource );
+	return Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -443,24 +443,52 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 
 	BcAssert( Program );
 
-	RsProgramBinding* pResource = new RsProgramBinding(
+	RsProgramBindingUPtr Resource( new RsProgramBinding(
 		Context, 
 		Program,
-		ProgramBindingDesc );
+		ProgramBindingDesc ) );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, pResource, DebugName ]
+		[ Context, Resource = Resource.get(), DebugName ]
 		{
-			if( !Context->createProgramBinding( pResource ) )
+			if( !Context->createProgramBinding( Resource ) )
 			{
 				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
 			}
 		} );
 
-	return RsProgramBindingUPtr( pResource );
+	return Resource;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// createGeometryBinding
+//virtual
+RsGeometryBindingUPtr RsCoreImpl::createGeometryBinding( 
+		const RsGeometryBindingDesc& GeometryBindingDesc,
+		const std::string& DebugName )
+{
+	auto Context = getContext( nullptr );
+
+	RsGeometryBindingUPtr Resource( new RsGeometryBinding(
+		Context, 
+		GeometryBindingDesc ) );
+
+	// Call create on render thread.
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, Resource = Resource.get(), DebugName ]
+		{
+			if( !Context->createGeometryBinding( Resource ) )
+			{
+				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+			}
+		} );
+
+	return Resource;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
 void RsCoreImpl::destroyResource( RsResource* pResource )
@@ -640,6 +668,27 @@ void RsCoreImpl::destroyResource(
 			auto Context = ProgramBinding->getContext();
 			auto RetVal = Context->destroyProgramBinding( ProgramBinding );
 			delete ProgramBinding;
+			BcUnusedVar( RetVal );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( 
+		RsGeometryBinding* GeometryBinding )
+{
+	BcAssert( BcIsGameThread() );
+	if( GeometryBinding == nullptr )
+	{
+		return;
+	}
+
+	ResourceDeletionList_.push_back(
+		[ GeometryBinding ]()
+		{
+			auto Context = GeometryBinding->getContext();
+			auto RetVal = Context->destroyGeometryBinding( GeometryBinding );
+			delete GeometryBinding;
 			BcUnusedVar( RetVal );
 		} );
 }

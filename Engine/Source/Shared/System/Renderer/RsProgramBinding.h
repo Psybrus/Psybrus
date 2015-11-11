@@ -17,7 +17,7 @@ struct RsProgramUAVDesc
 
 //////////////////////////////////////////////////////////////////////////
 // RsProgramBindingDesc
-class RsProgramBindingDesc
+struct RsProgramBindingDesc
 {
 public:
 	RsProgramBindingDesc();

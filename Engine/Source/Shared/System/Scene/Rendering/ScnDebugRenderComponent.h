@@ -40,7 +40,7 @@ struct ScnDebugRenderComponentPrimitiveSection
 	BcU32 VertexIndex_;
 	BcU32 NoofVertices_;
 	BcU32 Layer_;
-	ScnMaterialComponentRef	MaterialComponent_;
+	ScnMaterialComponent* MaterialComponent_;
 };
 
 class ScnDebugRenderComponentPrimitiveSectionCompare
@@ -167,17 +167,11 @@ protected:
 protected:
 	static ScnDebugRenderComponent* pImpl_;
 
-	RsVertexDeclaration* VertexDeclaration_;
-	struct TRenderResource
-	{
-		RsBuffer* UniformBuffer_;
-		RsBuffer* pVertexBuffer_;
-		ScnShaderObjectUniformBlockData	ObjectUniforms_;
-	};
-
-	BcU32 CurrentRenderResource_;
-	TRenderResource RenderResources_[ 2 ];
-	TRenderResource* pRenderResource_;
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
+	RsBufferUPtr UniformBuffer_;
+	ScnShaderObjectUniformBlockData	ObjectUniforms_;
 
 	// Submission data.
 	ScnDebugRenderComponentVertex* pWorkingVertices_;
@@ -186,7 +180,6 @@ protected:
 	BcU32 NoofVertices_;
 	BcU32 VertexIndex_;
 	SysFence UploadFence_;
-	SysFence RenderFence_;
 	
 	// Materials.
 	ScnMaterialRef Material_;

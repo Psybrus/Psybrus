@@ -19,6 +19,7 @@
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
+#include "System/Renderer/RsGeometryBinding.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsRenderState.h"
@@ -1429,6 +1430,22 @@ bool RsContextGL::destroyProgramBinding( class RsProgramBinding* ProgramBinding 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createGeometryBinding
+bool RsContextGL::createGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyGeometryBinding
+bool RsContextGL::destroyGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 bool RsContextGL::createVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )
@@ -1844,6 +1861,89 @@ void RsContextGL::drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 Inde
 	else
 	{
 		BcBreakpoint;	
+	}
+
+#if !defined( RENDER_USE_GLES )
+	if( MemoryBarrier_ )
+	{
+		GL( MemoryBarrier( MemoryBarrier_ ) );
+		MemoryBarrier_ = 0;
+	}
+#endif // !defined( RENDER_USE_GLES )	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawPrimitives
+void RsContextGL::drawPrimitives( 
+		class RsGeometryBinding* GeometryBinding, 
+		class RsProgramBinding* ProgramBinding, 
+		class RsRenderState* RenderState,
+		class RsFrameBuffer* FrameBuffer,
+		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
+{
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
+	++NoofDrawCalls_;
+
+	setVertexBuffer( 0, GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_, 
+		GeometryBinding->getDesc().VertexBuffers_[ 0 ].Stride_ );
+	setVertexDeclaration( GeometryBinding->getDesc().VertexDeclaration_ );
+	setProgram( ProgramBinding->getProgram() );
+	setRenderState( RenderState );
+	setFrameBuffer( FrameBuffer );
+	BindingDesc_ = ProgramBinding->getDesc();
+	flushState();
+
+	BcAssert( Program_ != nullptr );
+	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), IndexOffset, NoofIndices ) );
+
+#if !defined( RENDER_USE_GLES )
+	if( MemoryBarrier_ )
+	{
+		GL( MemoryBarrier( MemoryBarrier_ ) );
+		MemoryBarrier_ = 0;
+	}
+#endif // !defined( RENDER_USE_GLES )
+}
+
+//////////////////////////////////////////////////////////////////////////
+// drawIndexedPrimitives
+void RsContextGL::drawIndexedPrimitives( 
+		class RsGeometryBinding* GeometryBinding, 
+		class RsProgramBinding* ProgramBinding, 
+		class RsRenderState* RenderState,
+		class RsFrameBuffer* FrameBuffer,
+		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+{
+	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
+	++NoofDrawCalls_;
+
+	// HACK.
+	setIndexBuffer( GeometryBinding->getDesc().IndexBuffer_ );
+	setVertexBuffer( 0, GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_, 
+		GeometryBinding->getDesc().VertexBuffers_[ 0 ].Stride_ );
+	setVertexDeclaration( GeometryBinding->getDesc().VertexDeclaration_ );
+	setProgram( ProgramBinding->getProgram() );
+	setRenderState( RenderState );
+	setFrameBuffer( FrameBuffer );
+	BindingDesc_ = ProgramBinding->getDesc();
+	flushState();
+
+	BcAssert( Program_ != nullptr );
+	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= IndexBuffer_->getDesc().SizeBytes_ );
+
+	if( VertexOffset == 0 )
+	{
+		GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ) ) );
+	}
+#if !defined( RENDER_USE_GLES )
+	else if( Version_.SupportDrawElementsBaseVertex_ )
+	{
+		GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, GL_UNSIGNED_SHORT, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset ) );
+	}
+#endif
+	else
+	{
+		BcBreakpoint;
 	}
 
 #if !defined( RENDER_USE_GLES )

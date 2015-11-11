@@ -1211,11 +1211,11 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 		MaterialComponent_->setTexture( Sampler, Font_->Texture_ );
 	}
 
-	UniformBuffer_.reset( RsCore::pImpl()->createBuffer( 
+	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( FontUniformData_ ) ) ) );
+			sizeof( FontUniformData_ ) ) );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "ScnFontUniformBlockData" );
 	if( UniformBlock != BcErrorCode )
 	{

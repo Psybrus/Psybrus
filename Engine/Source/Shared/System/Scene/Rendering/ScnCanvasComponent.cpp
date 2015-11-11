@@ -595,7 +595,7 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 	{
 		UploadFence_.increment();
 		RsCore::pImpl()->updateBuffer( 
-			RenderResource_.pVertexBuffer_, 0, VertexDataSize, 
+			VertexBuffer_.get(), 0, VertexDataSize, 
 			RsResourceUpdateFlags::ASYNC,
 			[ this, VertexDataSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -638,9 +638,17 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 		}
 		
 		// Add to frame.
-		RenderFence_.increment();
+		UploadFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ this, PrimitiveSection ]( RsContext* Context )
+			[
+				this,
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = pLastMaterialComponent->getProgramBinding(),
+				RenderState = MaterialComponent_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				PrimitiveSection 
+			]
+			( RsContext* Context )
 			{
 				if( PrimitiveSection->RenderFunc_ != nullptr )
 				{
@@ -649,13 +657,16 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 
 				if( PrimitiveSection->Type_ != RsTopologyType::INVALID )
 				{
-					Context->setVertexBuffer( 0, RenderResource_.pVertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
-					Context->setVertexDeclaration( VertexDeclaration_ );
-					Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
 				}
 
 				PrimitiveSection->~ScnCanvasComponentPrimitiveSection();
-				RenderFence_.decrement();
+				UploadFence_.decrement();
 			} );
 	}
 	
@@ -678,11 +689,16 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
 
 	// Allocate render resources.
-	RenderResource_.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
 			RsBufferType::VERTEX,
 			RsResourceCreationFlags::STREAM,
 			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
+
+	RsGeometryBindingDesc GeometryBindingDesc;
+	GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnCanvasComponentVertex ) );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() );
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
@@ -696,13 +712,6 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	UploadFence_.wait();
-	RenderFence_.wait();
-
-	// Allocate render side vertex buffer.
-	RsCore::pImpl()->destroyResource( RenderResource_.pVertexBuffer_ );
-
-	// Destroy vertex declaration.
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
 	delete [] pWorkingVertices_;

@@ -92,17 +92,12 @@ private:
 	static void updateParticles( const ScnComponentList& Components );
 
 private:
-	struct TVertexBuffer
-	{
-		RsBuffer* pVertexBuffer_;
-		RsBuffer* UniformBuffer_;
-		ScnShaderObjectUniformBlockData	ObjectUniforms_;
-	};
-
 	// Graphics data.
-	RsVertexDeclaration* VertexDeclaration_;
-	TVertexBuffer VertexBuffers_[ 2 ];
-	BcU32 CurrentVertexBuffer_;
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsBufferUPtr UniformBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
+	ScnShaderObjectUniformBlockData	ObjectUniforms_;
 
 	// Particle data.
 	ScnParticle* pParticleBuffer_;
@@ -126,9 +121,8 @@ private:
 	// AABB
 	MaAABB AABB_;
 
-	// Fences for uploading + render.
+	// Fences for render.
 	SysFence UploadFence_;
-	SysFence RenderFence_;
 };
 
 #endif

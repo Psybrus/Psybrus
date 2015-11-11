@@ -53,13 +53,13 @@ public:
 	RsFrameBufferUPtr createFrameBuffer( 
 		const RsFrameBufferDesc& Desc ) override;
 
-	RsTexture* createTexture( 
+	RsTextureUPtr createTexture( 
 		const RsTextureDesc& Desc ) override;
 
-	RsVertexDeclaration* createVertexDeclaration( 
+	RsVertexDeclarationUPtr createVertexDeclaration( 
 		const RsVertexDeclarationDesc& Desc ) override;
 	
-	RsBuffer* createBuffer( 
+	RsBufferUPtr createBuffer( 
 		const RsBufferDesc& Desc ) override;
 	
 	RsShaderUPtr createShader( 
@@ -78,6 +78,11 @@ public:
 		RsProgram* Program,
 		const RsProgramBindingDesc& ProgramBindingDesc,
 		const std::string& DebugName ) override;
+
+	RsGeometryBindingUPtr createGeometryBinding( 
+		const RsGeometryBindingDesc& GeometryBindingDesc,
+		const std::string& DebugName ) override;
+
 
 	void destroyResource( 
 		RsResource* pResource ) override;
@@ -105,6 +110,9 @@ public:
 
 	void destroyResource( 
 		RsProgramBinding* ProgramBinding ) override;
+
+	void destroyResource( 
+		RsGeometryBinding* GeometryBinding ) override;
 
 	void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) override;

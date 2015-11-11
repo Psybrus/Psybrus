@@ -66,7 +66,7 @@ protected:
 	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 protected:
-	RsTexture* pTexture_;
+	RsTextureUPtr Texture_;
 	
 	ScnTextureHeader Header_;
 	void* pTextureData_;

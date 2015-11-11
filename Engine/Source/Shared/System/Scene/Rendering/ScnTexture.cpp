@@ -33,7 +33,6 @@ void ScnTexture::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pTexture_", &ScnTexture::pTexture_, bcRFF_TRANSIENT ),
 		new ReField( "Header_", &ScnTexture::Header_, bcRFF_POD ),
 		new ReField( "Width_", &ScnTexture::Width_ ),
 		new ReField( "Height_", &ScnTexture::Height_ ),
@@ -73,7 +72,6 @@ void ScnTexture::StaticRegisterClass()
 // Ctor
 ScnTexture::ScnTexture()
 {
-	pTexture_ = nullptr;
 	pTextureData_ = nullptr;
 	Width_ = 0;
 	Height_ = 0;
@@ -93,19 +91,18 @@ ScnTexture::~ScnTexture()
 //static
 ScnTexture* ScnTexture::New( const RsTextureDesc& Desc )
 {
-	auto InTexture = RsCore::pImpl()->createTexture( Desc );
 	auto Texture = new ScnTexture();
-	Texture->pTexture_ = InTexture;
+	Texture->Texture_ = RsCore::pImpl()->createTexture( Desc );
 	Texture->pTextureData_ = nullptr;
-	Texture->Width_ = InTexture->getDesc().Width_;
-	Texture->Height_ = InTexture->getDesc().Height_;
-	Texture->Depth_ = InTexture->getDesc().Depth_;
-	Texture->Header_.Levels_ = InTexture->getDesc().Levels_;
-	Texture->Header_.Type_ = InTexture->getDesc().Type_;
-	Texture->Header_.Format_ = InTexture->getDesc().Format_;
+	Texture->Width_ = Texture->Texture_->getDesc().Width_;
+	Texture->Height_ = Texture->Texture_->getDesc().Height_;
+	Texture->Depth_ = Texture->Texture_->getDesc().Depth_;
+	Texture->Header_.Levels_ = Texture->Texture_->getDesc().Levels_;
+	Texture->Header_.Type_ = Texture->Texture_->getDesc().Type_;
+	Texture->Header_.Format_ = Texture->Texture_->getDesc().Format_;
 	Texture->Header_.Editable_ = BcFalse;
-	Texture->Header_.RenderTarget_ = ( InTexture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE;
-	Texture->Header_.DepthStencilTarget_ = ( InTexture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE;
+	Texture->Header_.RenderTarget_ = ( Texture->Texture_->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE;
+	Texture->Header_.DepthStencilTarget_ = ( Texture->Texture_->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE;
 	Texture->markCreate();
 	return Texture;
 }
@@ -116,7 +113,6 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc )
 ScnTexture* ScnTexture::New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format )
 {
 	auto Texture = new ScnTexture();
-	Texture->pTexture_ = nullptr;
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = 0;
@@ -137,7 +133,6 @@ ScnTexture* ScnTexture::New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format
 ScnTexture* ScnTexture::New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format )
 {
 	auto Texture = new ScnTexture();
-	Texture->pTexture_ = nullptr;
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = Height;
@@ -158,7 +153,6 @@ ScnTexture* ScnTexture::New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextur
 ScnTexture* ScnTexture::New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format )
 {
 	auto Texture = new ScnTexture();
-	Texture->pTexture_ = nullptr;
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = Height;
@@ -179,7 +173,6 @@ ScnTexture* ScnTexture::New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Lev
 ScnTexture* ScnTexture::NewCube( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format )
 {
 	auto Texture = new ScnTexture();
-	Texture->pTexture_ = nullptr;
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = Height;
@@ -211,7 +204,7 @@ void ScnTexture::create()
 			} );
 	}
 
-	if( pTexture_ == nullptr )
+	if( Texture_ == nullptr )
 	{
 		recreate();
 	}
@@ -225,15 +218,14 @@ void ScnTexture::destroy()
 {
 	OsCore::pImpl()->unsubscribeAll( this );
 
-	RsCore::pImpl()->destroyResource( pTexture_ );
-	pTexture_ = nullptr;
+	Texture_.reset();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getTexture
 RsTexture* ScnTexture::getTexture()
 {
-	return pTexture_;
+	return Texture_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -347,16 +339,12 @@ void ScnTexture::recreate()
 	}
 
 	// Free old.
-	if( pTexture_ != nullptr )
-	{
-		RsCore::pImpl()->destroyResource( pTexture_ );
-		pTexture_ = nullptr;
-	}
+	Texture_.reset();
 
 	BcU32 SkipMips = 0;
 
 	// Create new.
-	pTexture_ = RsCore::pImpl()->createTexture( 
+	Texture_ = RsCore::pImpl()->createTexture( 
 		RsTextureDesc( 
 			Header_.Type_, 
 			CreationFlags,
@@ -392,10 +380,10 @@ void ScnTexture::recreate()
 
 			if( LevelIdx >= SkipMips )
 			{
-				auto Slice = pTexture_->getSlice( LevelIdx - SkipMips );
+				auto Slice = Texture_->getSlice( LevelIdx - SkipMips );
 
 				RsCore::pImpl()->updateTexture( 
-					pTexture_,
+					Texture_.get(),
 					Slice,
 					RsResourceUpdateFlags::ASYNC,
 					[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo ]( RsTexture* Texture, const RsTextureLock& Lock )

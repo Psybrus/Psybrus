@@ -96,7 +96,7 @@ private:
 
 	// Uniform block data.
 	ScnShaderViewUniformBlockData ViewUniformBlock_;
-	RsBuffer* ViewUniformBuffer_;
+	RsBufferUPtr ViewUniformBuffer_;
 
 	// Used for culling.
 	// TODO: Move into BcFrustum, or perhaps a BcConvexHull?

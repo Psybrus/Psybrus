@@ -108,12 +108,26 @@ public:
 	void setViewUniformBlock( RsBuffer* UniformBuffer );
 	void setBoneUniformBlock( RsBuffer* UniformBuffer );
 	void setObjectUniformBlock( RsBuffer* UniformBuffer );
+
+	/**
+	 * Get program binding.
+	 * Will create a new program binding if it needs to.
+	 * @return Program binding that represents this material component.
+	 */
+	RsProgramBinding* getProgramBinding();
+	
+	/**
+	 * Get render state.
+	 * Will create a new render state object if it needs to.
+	 * @return Render state from this material component.
+	 */
+	RsRenderState* getRenderState();
 	
 	ScnTextureRef getTexture( BcU32 Idx );
 	ScnTextureRef getTexture( const BcName& TextureName );
 	ScnMaterialRef getMaterial();
 	
-	void bind( class RsFrame* pFrame, class RsRenderSort& Sort );
+	void bind( class RsFrame* pFrame, class RsRenderSort& Sort, BcBool Stateless = BcFalse );
 
 public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
@@ -151,6 +165,8 @@ private:
 	ScnMaterialRef Material_;
 	ScnShaderPermutationFlags PermutationFlags_;
 	RsProgram* pProgram_;
+	RsProgramBindingDesc ProgramBindingDesc_;
+	RsProgramBindingUPtr ProgramBinding_;
 
 	TTextureBindingList TextureBindingList_;
 	TUniformBlockBindingList UniformBlockBindingList_;
@@ -159,6 +175,7 @@ private:
 	BcU32 ViewUniformBlockIndex_;
 	BcU32 BoneUniformBlockIndex_;
 	BcU32 ObjectUniformBlockIndex_;
+
 };
 
 #endif

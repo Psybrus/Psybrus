@@ -118,12 +118,36 @@ public:
 	/**
 	 * Draw primitives.
 	 */
+	PSY_DEPRECATED( "Please use the stateless version of this function." )
 	virtual void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices ) = 0;
 
 	/**
 	 * Draw indexed primitives.
 	 */
+	PSY_DEPRECATED( "Please use the stateless version of this function." )
 	virtual void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) = 0;
+
+	/**
+	 * Draw primitives.
+	 */
+	virtual void drawPrimitives( 
+		class RsGeometryBinding* GeometryBinding, 
+		class RsProgramBinding* ProgramBinding, 
+		class RsRenderState* RenderState,
+		class RsFrameBuffer* FrameBuffer,
+		RsTopologyType PrimitiveType, 
+		BcU32 IndexOffset, BcU32 NoofIndices ) { BcBreakpoint; };
+
+	/**
+	 * Draw indexed primitives.
+	 */
+	virtual void drawIndexedPrimitives( 
+		class RsGeometryBinding* GeometryBinding, 
+		class RsProgramBinding* ProgramBinding, 
+		class RsRenderState* RenderState,
+		class RsFrameBuffer* FrameBuffer,
+		RsTopologyType PrimitiveType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) { BcBreakpoint; };
 
 	/**
 	 * Copy framebuffer render target to texture.

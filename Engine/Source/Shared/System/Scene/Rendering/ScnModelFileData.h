@@ -15,6 +15,7 @@
 #define __SCNMODELFILEDATA__
 
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsUniquePointers.h"
 #include "System/Scene/Rendering/ScnMaterial.h" // TODO: Get rid of this reference.
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,11 +76,12 @@ struct ScnModelMeshData
 // ScnModelMeshRuntime
 struct ScnModelMeshRuntime
 {
-	BcU32 MeshDataIndex_;
-	class RsVertexDeclaration* pVertexDeclaration_;
-	class RsBuffer* pVertexBuffer_;
-	class RsBuffer* pIndexBuffer_;
-	ScnMaterialRef MaterialRef_; // TODO: Don't use ref, just use pointer.
+	BcU32 MeshDataIndex_ = BcErrorCode;
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsBufferUPtr IndexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
+	ScnMaterialRef MaterialRef_ = nullptr; // TODO: Don't use ref, just use pointer.
 };
 
 //////////////////////////////////////////////////////////////////////////

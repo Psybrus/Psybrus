@@ -245,14 +245,11 @@ protected:
 	}
 	
 protected:
-	RsVertexDeclaration* VertexDeclaration_;
-	struct TRenderResource
-	{
-		RsBuffer* pVertexBuffer_;
-	};
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
 
 	BcBool HaveVertexBufferLock_;
-	TRenderResource RenderResource_;
 
 	// Submission data.
 	ScnCanvasComponentVertex* pWorkingVertices_;
@@ -261,7 +258,6 @@ protected:
 	BcSize NoofVertices_;
 	BcSize VertexIndex_;
 	SysFence UploadFence_;
-	SysFence RenderFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef MaterialComponent_;

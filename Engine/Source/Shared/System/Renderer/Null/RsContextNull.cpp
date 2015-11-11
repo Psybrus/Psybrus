@@ -492,6 +492,22 @@ bool RsContextNull::destroyProgramBinding( class RsProgramBinding* ProgramBindin
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createGeometryBinding
+bool RsContextNull::createGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	BcUnusedVar( GeometryBinding );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyGeometryBinding
+bool RsContextNull::destroyGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	BcUnusedVar( GeometryBinding );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 bool RsContextNull::createVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )

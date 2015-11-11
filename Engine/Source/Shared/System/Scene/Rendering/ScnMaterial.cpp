@@ -336,6 +336,10 @@ void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 	if( Slot < TextureBindingList_.size() )
 	{
 		auto& TexBinding( TextureBindingList_[ Slot ] );
+		if( TexBinding.Texture_ != Texture )
+		{
+			ProgramBinding_.reset();
+		}
 		TexBinding.Texture_ = Texture;
 	}
 	else
@@ -359,6 +363,10 @@ void ScnMaterialComponent::setSamplerState( BcU32 Slot, RsSamplerState* Sampler 
 	if( Slot < TextureBindingList_.size() )
 	{
 		auto& TexBinding( TextureBindingList_[ Slot ] );
+		if( TexBinding.Sampler_ != Sampler )
+		{
+			ProgramBinding_.reset();
+		}
 		TexBinding.Sampler_ = Sampler;
 	}
 	else
@@ -414,6 +422,11 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer
 	}
 
 	auto& UniformBlockBinding = UniformBlockBindingList_[ Index ];
+	// If the binding changes, reset program binding.
+	if( UniformBlockBinding.UniformBuffer_ != UniformBuffer )
+	{
+		ProgramBinding_.reset();
+	}
 	UniformBlockBinding.UniformBuffer_ = UniformBuffer;
 }
 
@@ -443,6 +456,33 @@ void ScnMaterialComponent::setBoneUniformBlock( RsBuffer* UniformBuffer )
 void ScnMaterialComponent::setObjectUniformBlock( RsBuffer* UniformBuffer )
 {
 	setUniformBlock( ObjectUniformBlockIndex_, UniformBuffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getProgramBinding
+RsProgramBinding* ScnMaterialComponent::getProgramBinding()
+{
+	if( ProgramBinding_ == nullptr )
+	{
+		for( auto& TextureBinding : TextureBindingList_ )
+		{
+			ProgramBindingDesc_.setShaderResourceView( TextureBinding.Handle_, TextureBinding.Texture_->getTexture() );
+			ProgramBindingDesc_.setSamplerState( TextureBinding.Handle_, TextureBinding.Sampler_ );
+		}
+		for( auto& UniformBlockBinding : UniformBlockBindingList_ )
+		{
+			ProgramBindingDesc_.setUniformBuffer( UniformBlockBinding.Index_, UniformBlockBinding.UniformBuffer_ );
+		}
+		ProgramBinding_ = RsCore::pImpl()->createProgramBinding( pProgram_, ProgramBindingDesc_, getFullName() );
+	}
+	return ProgramBinding_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderState
+RsRenderState* ScnMaterialComponent::getRenderState()
+{
+	return Material_->RenderState_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -496,7 +536,7 @@ struct ScnMaterialComponentRenderData
 	ScnMaterialComponent* pMaterial_;
 };
 
-void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
+void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort, BcBool Stateless )
 {
 	BcAssertMsg( isAttached(), "Material \"%s\" needs to be attached to an entity!", (*getName()).c_str() );
 
@@ -556,33 +596,36 @@ void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
 
 	// Add node to frame.
 	pFrame->queueRenderNode( Sort,
-		[ this, Data ]( RsContext* Context )
+		[ Data, Stateless ]( RsContext* Context )
 		{
-			// Iterate over textures and bind.
-			for( BcU32 Idx = 0; Idx < Data.NoofTextures_; ++Idx )
-			{
-				RsTexture* pTexture = Data.ppTextures_[ Idx ];
-				RsSamplerState* pSamplerState = Data.ppSamplerStates_[ Idx ];
-				Context->setTexture( Data.TextureHandles_[ Idx ], pTexture );
-				Context->setSamplerState( Data.TextureHandles_[ Idx ], pSamplerState );
-			}
-			
-			// Set uniform blocks.
-			for( BcU32 Idx = 0; Idx < Data.NoofUniformBlocks_; ++Idx )
-			{
-				BcU32 Index = Data.pUniformBlockIndices_[ Idx ];
-				RsBuffer* pUniformBuffer = Data.ppUniformBuffers_[ Idx ];
-				if( pUniformBuffer )
-				{
-					Context->setUniformBuffer( Index, pUniformBuffer );
-				}
-			}
-
 			// Setup state.
 			Context->setRenderState( Data.RenderState_ );
 
-			// Set program.
-			Context->setProgram( Data.pProgram_ );
+			if( Stateless == BcFalse )
+			{
+				// Set program.
+				Context->setProgram( Data.pProgram_ );
+
+				// Iterate over textures and bind.
+				for( BcU32 Idx = 0; Idx < Data.NoofTextures_; ++Idx )
+				{
+					RsTexture* pTexture = Data.ppTextures_[ Idx ];
+					RsSamplerState* pSamplerState = Data.ppSamplerStates_[ Idx ];
+					Context->setTexture( Data.TextureHandles_[ Idx ], pTexture );
+					Context->setSamplerState( Data.TextureHandles_[ Idx ], pSamplerState );
+				}
+			
+				// Set uniform blocks.
+				for( BcU32 Idx = 0; Idx < Data.NoofUniformBlocks_; ++Idx )
+				{
+					BcU32 Index = Data.pUniformBlockIndices_[ Idx ];
+					RsBuffer* pUniformBuffer = Data.ppUniformBuffers_[ Idx ];
+					if( pUniformBuffer )
+					{
+						Context->setUniformBuffer( Index, pUniformBuffer );
+					}
+				}
+			}
 		} );
 }
 
