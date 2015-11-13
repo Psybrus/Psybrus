@@ -27,7 +27,7 @@ public:
 	 * Clear.
 	 */
 	virtual void clear( 
-		RsFrameBuffer* FrameBuffer,
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
@@ -37,10 +37,10 @@ public:
 	 * Draw primitives.
 	 */
 	virtual void drawPrimitives( 
-		class RsGeometryBinding* GeometryBinding, 
-		class RsProgramBinding* ProgramBinding, 
-		class RsRenderState* RenderState,
-		class RsFrameBuffer* FrameBuffer,
+		const class RsGeometryBinding* GeometryBinding, 
+		const class RsProgramBinding* ProgramBinding, 
+		const class RsRenderState* RenderState,
+		const class RsFrameBuffer* FrameBuffer,
 		const struct RsViewport* Viewport,
 		const struct RsScissorRect* ScissorRect,
 		RsTopologyType PrimitiveType, 
@@ -50,10 +50,10 @@ public:
 	 * Draw indexed primitives.
 	 */
 	virtual void drawIndexedPrimitives( 
-		class RsGeometryBinding* GeometryBinding, 
-		class RsProgramBinding* ProgramBinding, 
-		class RsRenderState* RenderState,
-		class RsFrameBuffer* FrameBuffer,
+		const class RsGeometryBinding* GeometryBinding, 
+		const class RsProgramBinding* ProgramBinding, 
+		const class RsRenderState* RenderState,
+		const class RsFrameBuffer* FrameBuffer,
 		const struct RsViewport* Viewport,
 		const struct RsScissorRect* ScissorRect,
 		RsTopologyType PrimitiveType, 

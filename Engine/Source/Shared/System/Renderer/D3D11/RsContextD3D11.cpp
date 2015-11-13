@@ -1146,7 +1146,7 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 //////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D11::clear( 
-	RsFrameBuffer* FrameBuffer,
+	const RsFrameBuffer* FrameBuffer,
 	const RsColour& Colour,
 	BcBool EnableClearColour,
 	BcBool EnableClearDepth,
@@ -1180,12 +1180,12 @@ void RsContextD3D11::clear(
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
 void RsContextD3D11::drawPrimitives( 
-	RsGeometryBinding* GeometryBinding, 
-	RsProgramBinding* ProgramBinding, 
-	RsRenderState* RenderState,
-	RsFrameBuffer* FrameBuffer, 
-	const struct RsViewport* Viewport,
-	const struct RsScissorRect* ScissorRect,
+	const RsGeometryBinding* GeometryBinding, 
+	const RsProgramBinding* ProgramBinding, 
+	const RsRenderState* RenderState,
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport,
+	const RsScissorRect* ScissorRect,
 	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	PSY_PROFILE_FUNCTION;
@@ -1201,12 +1201,12 @@ void RsContextD3D11::drawPrimitives(
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
 void RsContextD3D11::drawIndexedPrimitives( 
-	RsGeometryBinding* GeometryBinding, 
-	RsProgramBinding* ProgramBinding, 
-	RsRenderState* RenderState,
-	RsFrameBuffer* FrameBuffer, 
-	const struct RsViewport* Viewport,
-	const struct RsScissorRect* ScissorRect,
+	const RsGeometryBinding* GeometryBinding, 
+	const RsProgramBinding* ProgramBinding, 
+	const RsRenderState* RenderState,
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport,
+	const RsScissorRect* ScissorRect,
 	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	PSY_PROFILE_FUNCTION;

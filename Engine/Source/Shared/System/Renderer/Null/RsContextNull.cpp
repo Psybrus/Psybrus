@@ -142,7 +142,7 @@ void RsContextNull::destroy()
 //////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextNull::clear( 
-	RsFrameBuffer* FrameBuffer, 
+	const RsFrameBuffer* FrameBuffer, 
 	const RsColour& Colour,
 	BcBool EnableClearColour,
 	BcBool EnableClearDepth,
@@ -158,12 +158,12 @@ void RsContextNull::clear(
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
 void RsContextNull::drawPrimitives(
-	RsGeometryBinding* GeometryBinding, 
-	RsProgramBinding* ProgramBinding, 
-	RsRenderState* RenderState,
-	RsFrameBuffer* FrameBuffer, 
-	const struct RsViewport* Viewport,
-	const struct RsScissorRect* ScissorRect,
+	const RsGeometryBinding* GeometryBinding, 
+	const RsProgramBinding* ProgramBinding, 
+	const RsRenderState* RenderState,
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport,
+	const RsScissorRect* ScissorRect,
 	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -175,12 +175,12 @@ void RsContextNull::drawPrimitives(
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
 void RsContextNull::drawIndexedPrimitives( 
-	RsGeometryBinding* GeometryBinding, 
-	RsProgramBinding* ProgramBinding, 
-	RsRenderState* RenderState,
-	RsFrameBuffer* FrameBuffer, 
-	const struct RsViewport* Viewport,
-	const struct RsScissorRect* ScissorRect,
+	const RsGeometryBinding* GeometryBinding, 
+	const RsProgramBinding* ProgramBinding, 
+	const RsRenderState* RenderState,
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport,
+	const RsScissorRect* ScissorRect,
 	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );

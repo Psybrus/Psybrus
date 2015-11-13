@@ -41,27 +41,27 @@ public:
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc );
 
 	void clear( 
-		RsFrameBuffer* FrameBuffer,
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
 		BcBool EnableClearStencil ) override;
 	void drawPrimitives( 
-		RsGeometryBinding* GeometryBinding, 
-		RsProgramBinding* ProgramBinding, 
-		RsRenderState* RenderState,
-		RsFrameBuffer* FrameBuffer, 
-		const struct RsViewport* Viewport,
-		const struct RsScissorRect* ScissorRect,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
 		BcU32 IndexOffset, BcU32 NoofIndices ) override;
 	void drawIndexedPrimitives( 
-		RsGeometryBinding* GeometryBinding, 
-		RsProgramBinding* ProgramBinding, 
-		RsRenderState* RenderState,
-		RsFrameBuffer* FrameBuffer,
-		const struct RsViewport* Viewport,
-		const struct RsScissorRect* ScissorRect,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
 		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
 

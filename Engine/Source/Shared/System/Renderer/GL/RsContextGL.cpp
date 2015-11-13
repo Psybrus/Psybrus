@@ -1424,7 +1424,7 @@ bool RsContextGL::destroyVertexDeclaration( class RsVertexDeclaration* VertexDec
 //////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextGL::clear( 
-	RsFrameBuffer* FrameBuffer,
+	const RsFrameBuffer* FrameBuffer,
 	const RsColour& Colour,
 	BcBool EnableClearColour,
 	BcBool EnableClearDepth,
@@ -1466,12 +1466,12 @@ void RsContextGL::clear(
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
 void RsContextGL::drawPrimitives( 
-		class RsGeometryBinding* GeometryBinding, 
-		class RsProgramBinding* ProgramBinding, 
-		class RsRenderState* RenderState,
-		class RsFrameBuffer* FrameBuffer,
-		const struct RsViewport* Viewport,
-		const struct RsScissorRect* ScissorRect,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
@@ -1499,12 +1499,12 @@ void RsContextGL::drawPrimitives(
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
 void RsContextGL::drawIndexedPrimitives( 
-		class RsGeometryBinding* GeometryBinding, 
-		class RsProgramBinding* ProgramBinding, 
-		class RsRenderState* RenderState,
-		class RsFrameBuffer* FrameBuffer,
-		const struct RsViewport* Viewport,
-		const struct RsScissorRect* ScissorRect,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
