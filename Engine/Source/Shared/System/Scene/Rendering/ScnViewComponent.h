@@ -54,11 +54,11 @@ public:
 	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
 	MaVec2d getScreenPosition( const MaVec3d& WorldPosition ) const;
 	BcU32 getDepth( const MaVec3d& WorldPos ) const;
-	const RsViewport& getViewport() const;
 
 	BcBool intersect( const MaAABB& AABB ) const;
 
 	RsFrameBuffer* getFrameBuffer() const;
+	const RsViewport& getViewport() const;
 
 	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	

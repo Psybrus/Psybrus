@@ -702,4 +702,24 @@ struct RsScreenshot
 
 typedef std::function< BcBool( const RsScreenshot& ) > RsScreenshotFunc;
 
+//////////////////////////////////////////////////////////////////////////
+// RsScissorRect
+struct RsScissorRect
+{
+	RsScissorRect()
+	{}
+
+	RsScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ):
+		X_( X ),
+		Y_( Y ),
+		Width_( Width ),
+		Height_( Height )
+	{}
+
+	BcS32 X_ = 0;
+	BcS32 Y_ = 0;
+	BcS32 Width_ = 0;
+	BcS32 Height_ = 0;
+};
+
 #endif

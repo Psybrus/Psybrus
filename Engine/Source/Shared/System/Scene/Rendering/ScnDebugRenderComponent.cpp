@@ -490,6 +490,7 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 				ProgramBinding = MaterialComponent_->getProgramBinding(),
 				RenderState = MaterialComponent_->getRenderState(),
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveSection = *PrimitiveSection
 			]
 			( RsContext* Context )
@@ -499,6 +500,8 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 					ProgramBinding,
 					RenderState,
 					FrameBuffer,
+					&Viewport,
+					nullptr,
 					PrimitiveSection.Type_, PrimitiveSection.VertexIndex_, PrimitiveSection.NoofVertices_ );
 			} );
 	}

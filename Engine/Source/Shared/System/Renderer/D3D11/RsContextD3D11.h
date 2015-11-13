@@ -61,17 +61,34 @@ public:
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
-	void clear(
+
+	void clear( 
+		RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
-		BcBool EnableClearStencil );
+		BcBool EnableClearStencil ) override;
+	void drawPrimitives( 
+		RsGeometryBinding* GeometryBinding, 
+		RsProgramBinding* ProgramBinding, 
+		RsRenderState* RenderState,
+		RsFrameBuffer* FrameBuffer, 
+		const struct RsViewport* Viewport,
+		const struct RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices ) override;
+	void drawIndexedPrimitives( 
+		RsGeometryBinding* GeometryBinding, 
+		RsProgramBinding* ProgramBinding, 
+		RsRenderState* RenderState,
+		RsFrameBuffer* FrameBuffer,
+		const struct RsViewport* Viewport,
+		const struct RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
 
-	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
-
-	void setViewport( const class RsViewport& Viewport ) override;
-	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
+	void setViewport( const struct RsViewport& Viewport );
+	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height );
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 

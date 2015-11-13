@@ -119,12 +119,6 @@ void RsContextNull::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setViewport
-void RsContextNull::setViewport( const class RsViewport& )
-{
-}
-
-//////////////////////////////////////////////////////////////////////////
 // create
 void RsContextNull::create()
 {
@@ -146,110 +140,9 @@ void RsContextNull::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setDefaultState
-void RsContextNull::setDefaultState()
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// invalidateRenderState
-void RsContextNull::invalidateRenderState()
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// invalidateTextureState
-void RsContextNull::invalidateTextureState()
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextNull::setRenderState( RsRenderState* RenderState )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSamplerState
-void RsContextNull::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSamplerState
-void RsContextNull::setSamplerState( BcU32 Handle, const RsTextureParams& Params, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void RsContextNull::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setProgram
-void RsContextNull::setProgram( class RsProgram* Program )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setIndexBuffer
-void RsContextNull::setIndexBuffer( class RsBuffer* IndexBuffer )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setVertexBuffer
-void RsContextNull::setVertexBuffer( 
-	BcU32 StreamIdx, 
-	class RsBuffer* VertexBuffer,
-	BcU32 Stride )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( StreamIdx );
-	BcUnusedVar( VertexBuffer );
-	BcUnusedVar( Stride );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setUniformBuffer
-void RsContextNull::setUniformBuffer( 
-	BcU32 Handle, 
-	class RsBuffer* UniformBuffer )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Handle );
-	BcUnusedVar( UniformBuffer );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setVertexDeclaration
-void RsContextNull::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( VertexDeclaration );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setFrameBuffer
-void RsContextNull::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextNull::clear( 
+	RsFrameBuffer* FrameBuffer, 
 	const RsColour& Colour,
 	BcBool EnableClearColour,
 	BcBool EnableClearDepth,
@@ -264,7 +157,14 @@ void RsContextNull::clear(
 
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
-void RsContextNull::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
+void RsContextNull::drawPrimitives(
+	RsGeometryBinding* GeometryBinding, 
+	RsProgramBinding* ProgramBinding, 
+	RsRenderState* RenderState,
+	RsFrameBuffer* FrameBuffer, 
+	const struct RsViewport* Viewport,
+	const struct RsScissorRect* ScissorRect,
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcUnusedVar( PrimitiveType );
@@ -274,7 +174,14 @@ void RsContextNull::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOff
 
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
-void RsContextNull::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+void RsContextNull::drawIndexedPrimitives( 
+	RsGeometryBinding* GeometryBinding, 
+	RsProgramBinding* ProgramBinding, 
+	RsRenderState* RenderState,
+	RsFrameBuffer* FrameBuffer, 
+	const struct RsViewport* Viewport,
+	const struct RsScissorRect* ScissorRect,
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcUnusedVar( PrimitiveType );
@@ -521,11 +428,4 @@ bool RsContextNull::destroyVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration  )
 {
 	return true;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// flushState
-//virtual
-void RsContextNull::flushState()
-{
 }

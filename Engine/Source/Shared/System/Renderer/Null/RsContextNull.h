@@ -39,34 +39,31 @@ public:
 	void beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc );
-	void setViewport( const class RsViewport& Viewport );
 
-	void setDefaultState();
-	void invalidateRenderState();
-	void invalidateTextureState();
-	void setRenderState( class RsRenderState* RenderState );
-	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
-	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
-	void setProgram( class RsProgram* Program );
-	void setIndexBuffer( class RsBuffer* IndexBuffer );
-	void setVertexBuffer( 
-		BcU32 StreamIdx, 
-		class RsBuffer* VertexBuffer,
-		BcU32 Stride );
-	void setUniformBuffer( 
-		BcU32 Handle, 
-		class RsBuffer* UniformBuffer );
-	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
-	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
-	void clear(
+	void clear( 
+		RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
-		BcBool EnableClearStencil );
-
-	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+		BcBool EnableClearStencil ) override;
+	void drawPrimitives( 
+		RsGeometryBinding* GeometryBinding, 
+		RsProgramBinding* ProgramBinding, 
+		RsRenderState* RenderState,
+		RsFrameBuffer* FrameBuffer, 
+		const struct RsViewport* Viewport,
+		const struct RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices ) override;
+	void drawIndexedPrimitives( 
+		RsGeometryBinding* GeometryBinding, 
+		RsProgramBinding* ProgramBinding, 
+		RsRenderState* RenderState,
+		RsFrameBuffer* FrameBuffer,
+		const struct RsViewport* Viewport,
+		const struct RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
 
 	bool createRenderState(
 		RsRenderState* RenderState ) override;

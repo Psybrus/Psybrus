@@ -823,6 +823,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 				DrawProgramBinding = PerComponentMeshData.MaterialComponentRef_->getProgramBinding(),
 				RenderState = PerComponentMeshData.MaterialComponentRef_->getRenderState(),
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveType = pMeshData->Type_,
 				NoofIndices = pMeshData->NoofIndices_,
 				Offset
@@ -835,6 +836,8 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 					DrawProgramBinding, 
 					RenderState, 
 					FrameBuffer, 
+					&Viewport,
+					nullptr,
 					PrimitiveType, 
 					Offset, NoofIndices, 0 );
 			} );

@@ -202,14 +202,6 @@ BcU32 ScnViewComponent::getDepth( const MaVec3d& WorldPos ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getViewport
-const RsViewport& ScnViewComponent::getViewport() const
-{
-	return Viewport_;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 // intersect
 BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 {
@@ -234,6 +226,13 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 {
 	return FrameBuffer_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewport
+const RsViewport& ScnViewComponent::getViewport() const
+{
+	return Viewport_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -353,9 +352,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		[ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
-			Context->setFrameBuffer( FrameBuffer );
-			Context->setViewport( Viewport );
-			Context->clear( ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
+			Context->clear( FrameBuffer, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
 		} );
 }
 

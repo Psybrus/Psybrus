@@ -195,7 +195,11 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 	Sort.Pass_ = RS_SORT_PASS_POSTPROCESS;
 	RenderFence_.increment();
 	RenderContext.pFrame_->queueRenderNode( Sort,
-		[ this, InputFrameBuffer ]( RsContext* Context )
+		[ 
+			this, 
+			InputFrameBuffer
+		]
+	( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );
 
@@ -261,6 +265,8 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 					ProgramBinding.get(),
 					RenderState.get(),
 					FrameBuffer.get(),
+					nullptr,
+					nullptr,
 					RsTopologyType::TRIANGLE_STRIP, 0, 4 );
 			}
 

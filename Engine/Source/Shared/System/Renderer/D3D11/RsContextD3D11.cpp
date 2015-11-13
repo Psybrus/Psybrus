@@ -1146,6 +1146,7 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 //////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D11::clear( 
+	RsFrameBuffer* FrameBuffer,
 	const RsColour& Colour,
 	BcBool EnableClearColour,
 	BcBool EnableClearDepth,
@@ -1178,7 +1179,14 @@ void RsContextD3D11::clear(
 
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
-void RsContextD3D11::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
+void RsContextD3D11::drawPrimitives( 
+	RsGeometryBinding* GeometryBinding, 
+	RsProgramBinding* ProgramBinding, 
+	RsRenderState* RenderState,
+	RsFrameBuffer* FrameBuffer, 
+	const struct RsViewport* Viewport,
+	const struct RsScissorRect* ScissorRect,
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -1192,7 +1200,14 @@ void RsContextD3D11::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
-void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+void RsContextD3D11::drawIndexedPrimitives( 
+	RsGeometryBinding* GeometryBinding, 
+	RsProgramBinding* ProgramBinding, 
+	RsRenderState* RenderState,
+	RsFrameBuffer* FrameBuffer, 
+	const struct RsViewport* Viewport,
+	const struct RsScissorRect* ScissorRect,
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -1207,7 +1222,7 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-void RsContextD3D11::setViewport( const class RsViewport& Viewport )
+void RsContextD3D11::setViewport( const struct RsViewport& Viewport )
 {
 	PSY_PROFILE_FUNCTION;
 	D3D11_VIEWPORT D3DViewport;

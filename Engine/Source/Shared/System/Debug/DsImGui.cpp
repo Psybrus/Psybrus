@@ -220,13 +220,6 @@ namespace
 				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
 				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
 
-				Context->setFrameBuffer( nullptr );
-				Context->setViewport( Viewport );
-				Context->setVertexDeclaration( VertexDeclaration_.get() );
-				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
-				Context->setIndexBuffer( IndexBuffer_.get() );
-				Context->setRenderState( RenderState_.get() );
-
  				BcU32 IndexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
 				{
@@ -241,7 +234,7 @@ namespace
 						}
 						else
 						{
-							Context->setScissorRect(
+							RsScissorRect ScissorRect(
 								(BcS32)Cmd->ClipRect.x, 
 								(BcS32)Cmd->ClipRect.y, 
 								(BcS32)( Cmd->ClipRect.z - Cmd->ClipRect.x ), 
@@ -280,7 +273,9 @@ namespace
 								GeometryBinding_.get(),
 								ProgramBinding_.get(),
 								RenderState_.get(),
-								nullptr,						// TODO: get frame buffer object.
+								nullptr,
+								&Viewport,
+								&ScissorRect,
 								RsTopologyType::TRIANGLE_LIST,
 								IndexOffset,
 								Cmd->ElemCount,
@@ -289,7 +284,6 @@ namespace
 						IndexOffset += Cmd->ElemCount;
 					}
 				}
-				Context->setViewport( Viewport );
 				RenderThreadFence_.decrement();
 			} );
 	}

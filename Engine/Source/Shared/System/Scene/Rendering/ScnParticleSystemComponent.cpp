@@ -308,6 +308,7 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 				ProgramBinding = MaterialComponent_->getProgramBinding(),
 				RenderState = MaterialComponent_->getRenderState(),
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
 				NoofParticlesToRender 
 			]
 			( RsContext* Context )
@@ -317,6 +318,8 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 					ProgramBinding,
 					RenderState,
 					FrameBuffer,
+					&Viewport,
+					nullptr,
 					RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
 			} );
 	}
