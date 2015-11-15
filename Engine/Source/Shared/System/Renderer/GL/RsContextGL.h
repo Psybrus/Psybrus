@@ -95,7 +95,7 @@ public:
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 IndexOffset, BcU32 NoofIndices ) override;
+		BcU32 VertexOffset, BcU32 NoofVertices ) override;
 	void drawIndexedPrimitives( 
 		const RsGeometryBinding* GeometryBinding, 
 		const RsProgramBinding* ProgramBinding, 
@@ -226,10 +226,7 @@ private:
 	std::array< BufferBindingInfo, 32 > UniformBufferBindingInfo_;
 	std::array< SamplerBindingInfo, 32 > SamplerBindingInfo_;
 
-	BcBool UniformBuffersDirty_;
-
 	BcU32 NoofDrawCalls_;
-	BcU32 NoofRenderStateFlushes_;
 	BcU32 NoofRenderStates_;
 	BcU32 NoofSamplerStates_;
 	BcU32 NoofBuffers_;
@@ -238,5 +235,4 @@ private:
 	BcU32 NoofPrograms_;
 
 	GLuint TransferFBOs_[ 2 ];
-
 };

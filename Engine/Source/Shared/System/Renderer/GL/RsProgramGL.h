@@ -34,7 +34,7 @@ struct RsProgramBindInfoGL
 
 	RsProgramBindTypeGL BindType_ = RsProgramBindTypeGL::NONE;
 	RsTextureType TextureType_ = RsTextureType::UNKNOWN;
-	BcU32 Slot_ = -1;
+	BcU32 Slot_ = BcErrorCode;
 };
 
 //////////////////////////////////////////////////////////////////////////

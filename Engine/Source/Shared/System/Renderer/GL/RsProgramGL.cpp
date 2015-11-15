@@ -512,18 +512,18 @@ void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuff
 			BcAssert( BufferGL );
 
 			// Check if we have buffer data.
-			if( BufferGL->BufferData_ != nullptr )
+			if( BufferGL->getBufferData() != nullptr )
 			{
 				// Check version, if equal, then don't update uniform.
 				if( UniformEntry.Buffer_ != Buffer ||
-					UniformEntry.Version_ != BufferGL->Version_ )
+					UniformEntry.Version_ != BufferGL->getVersion() )
 				{
 					// Update buffer & version.
 					UniformEntry.Buffer_ = Buffer;
-					UniformEntry.Version_ = BufferGL->Version_;
+					UniformEntry.Version_ = BufferGL->getVersion();
 
 					// Setup uniforms.
-					const auto* UniformData = BufferGL->BufferData_.get() + UniformEntry.Offset_;
+					const auto* UniformData = BufferGL->getBufferData() + UniformEntry.Offset_;
 					auto* CachedUniformData = CachedUniforms_.get() + UniformEntry.CachedOffset_;
 
 					// Check if value has changed.

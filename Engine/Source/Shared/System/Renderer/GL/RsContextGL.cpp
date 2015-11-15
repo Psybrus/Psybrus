@@ -123,8 +123,7 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 	ScreenshotFunc_(),
 	OwningThread_( BcErrorCode ),
 	FrameCount_( 0 ),
-	GlobalVAO_( 0 ),
-	UniformBuffersDirty_( BcTrue )
+	GlobalVAO_( 0 )
 {
 	BcMemZero( &VertexBufferActiveState_[ 0 ], sizeof( VertexBufferActiveState_ ) );
 	BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
@@ -132,7 +131,6 @@ RsContextGL::RsContextGL( OsClient* pClient, RsContextGL* pParent ):
 
 	// Stats.
 	NoofDrawCalls_ = 0;
-	NoofRenderStateFlushes_ = 0;
 	NoofRenderStates_ = 0;
 	NoofSamplerStates_ = 0;
 	NoofBuffers_ = 0;
@@ -272,10 +270,7 @@ void RsContextGL::endFrame()
 
 	GL( Flush() );		
 
-	//PSY_LOG( "Draw calls: %u\n", NoofDrawCalls_ );
-	//PSY_LOG( "Render state flushes: %u\n", NoofRenderStateFlushes_ );
 	NoofDrawCalls_ = 0;
-	NoofRenderStateFlushes_ = 0;
 
 	auto ScreenshotFunc = std::move( ScreenshotFunc_ );
 	if( ScreenshotFunc != nullptr )
@@ -1077,7 +1072,7 @@ bool RsContextGL::updateBuffer(
 	BcAssert( BufferGL );
 
 	// If buffer is backed in main memory, use its own buffer for staging.
-	BcU8* BufferData = BufferGL->BufferData_.get();
+	BcU8* BufferData = BufferGL->getBufferData();
 	std::unique_ptr< BcU8[] > LocalBufferData;
 	if( BufferData == nullptr )
 	{
@@ -1093,13 +1088,14 @@ bool RsContextGL::updateBuffer(
 	UpdateFunc( Buffer, Lock );
 
 	// If the buffer has a handle, upload to GPU now.
-	if( BufferGL->Handle_ != 0 )
+	GLuint HandleGL = BufferGL->getHandle();
+	if( HandleGL != 0 )
 	{
 		// Get buffer type for GL.
 		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.BindFlags_ );
 
 		// Bind buffer.
-		GL( BindBuffer( TypeGL, BufferGL->Handle_ ) );
+		GL( BindBuffer( TypeGL, HandleGL ) );
 
 		// Get usage flags for GL.
 		GLuint UsageFlagsGL = 0;
@@ -1129,7 +1125,7 @@ bool RsContextGL::updateBuffer(
 	}
 
 	// Increment version.
-	BufferGL->Version_++;
+	BufferGL->incVersion();
 	return true;
 }
 
@@ -1472,7 +1468,7 @@ void RsContextGL::drawPrimitives(
 		const RsFrameBuffer* FrameBuffer,
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
-		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices )
+		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices )
 {
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
 	++NoofDrawCalls_;
@@ -1485,7 +1481,7 @@ void RsContextGL::drawPrimitives(
 	bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
 	bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
 
-	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), IndexOffset, NoofIndices ) );
+	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
 
 #if !defined( RENDER_USE_GLES )
 	if( MemoryBarrier_ )
@@ -1789,7 +1785,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 			BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
 			auto VertexBufferGL = VertexBuffer->getHandle< RsBufferGL* >();
 			BcAssert( VertexBufferGL );
-			GLuint VertexHandle = VertexBufferGL->Handle_;
+			GLuint VertexHandle = VertexBufferGL->getHandle();
 			if( BoundVertexHandle != VertexHandle )
 			{
 				GL( BindBuffer( GL_ARRAY_BUFFER, VertexHandle ) );
@@ -1833,7 +1829,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 
 	// Bind indices.
 	auto IndexBufferGL = Desc.IndexBuffer_ ? Desc.IndexBuffer_->getHandle< RsBufferGL* >() : nullptr;
-	GLuint IndicesHandle = IndexBufferGL != nullptr ? IndexBufferGL->Handle_ : 0;
+	GLuint IndicesHandle = IndexBufferGL != nullptr ? IndexBufferGL->getHandle() : 0;
 	GL( BindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle ) );
 }
 
@@ -2195,11 +2191,11 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 					BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 					RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >();
 					auto& BindingInfo = ShaderStorageBufferBindingInfo_[ SRVSlotGL.Slot_ ];
-					if( BindingInfo.Buffer_ != BufferGL->Handle_ )
+					if( BindingInfo.Buffer_ != BufferGL->getHandle() )
 					{
-						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, SRVSlotGL.Slot_, BufferGL->Handle_ ) );
+						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, SRVSlotGL.Slot_, BufferGL->getHandle() ) );
 						BindingInfo.Resource_ = SRVSlot.Resource_;
-						BindingInfo.Buffer_ = BufferGL->Handle_;
+						BindingInfo.Buffer_ = BufferGL->getHandle();
 						// TODO: Other params...
 					}
 				}
@@ -2259,11 +2255,11 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
 					RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
 					auto& BindingInfo = ShaderStorageBufferBindingInfo_[ UAVSlotGL.Slot_ ];
-					if( BindingInfo.Buffer_ != BufferGL->Handle_ )
+					if( BindingInfo.Buffer_ != BufferGL->getHandle() )
 					{
-						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, UAVSlotGL.Slot_, BufferGL->Handle_ ) );
+						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, UAVSlotGL.Slot_, BufferGL->getHandle() ) );
 						BindingInfo.Resource_ = UAVSlot.Resource_;
-						BindingInfo.Buffer_ = BufferGL->Handle_;
+						BindingInfo.Buffer_ = BufferGL->getHandle();
 						// TODO: Other params...
 					}
 					Barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
@@ -2355,11 +2351,11 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 				const auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
 				RsBufferGL* BufferGL = UniformBuffer->getHandle< RsBufferGL* >();
 				auto& BindingInfo = ShaderStorageBufferBindingInfo_[ UniformBufferSlotGL.Slot_ ];
-				if( BindingInfo.Buffer_ != BufferGL->Handle_ )
+				if( BindingInfo.Buffer_ != BufferGL->getHandle() )
 				{
-					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Slot_, BufferGL->Handle_, 0, UniformBuffer->getDesc().SizeBytes_ ) );
+					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Slot_, BufferGL->getHandle(), 0, UniformBuffer->getDesc().SizeBytes_ ) );
 					BindingInfo.Resource_ = UniformBuffer;
-					BindingInfo.Buffer_ = BufferGL->Handle_;
+					BindingInfo.Buffer_ = BufferGL->getHandle();
 					// TODO: Other params...
 				}
 			}
