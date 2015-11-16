@@ -14,9 +14,10 @@
 #ifndef __RsCoreImpl_H__
 #define __RsCoreImpl_H__
 
-#include <mutex>
-
 #include "System/Renderer/RsCore.h"
+
+#include <mutex>
+#include <unordered_set>
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -174,8 +175,15 @@ protected:
 
 	std::vector< std::function< void() > > ResourceDeletionList_;
 
+#if PSY_DEBUG
+	std::unordered_set< RsFrameBuffer* > AliveFrameBuffers_;
+	std::unordered_set< RsProgram* > AlivePrograms_;
+	std::unordered_set< RsGeometryBinding* > AliveGeometryBindings_;
+	std::unordered_set< RsProgramBinding* > AliveProgramBindings_;
+
+#endif
+
 	BcF64 FrameTime_;
-	
 };
 
 #endif

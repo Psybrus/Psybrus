@@ -159,8 +159,7 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 	// All our child components want to detach.
 	while( Components_.size() > 0 )
 	{
-		ScnComponentRef Component( *Components_.begin() );
-		detach( Component );
+		detach( Components_.back() );
 	}
 
 	Super::onDetach( Parent );
@@ -188,17 +187,18 @@ void ScnEntity::attach( ScnComponent* Component )
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
-	BcAssertMsg( Component->isFlagSet( scnCF_ATTACHED ) | Component->isFlagSet( scnCF_PENDING_ATTACH ), 
-		"Entity pending operations already." );
-	BcAssert( Component->getName() != BcName::INVALID );
-	ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
-	if( It != Components_.end() )
+	if( Component->isFlagSet( scnCF_ATTACHED ) || Component->isFlagSet( scnCF_PENDING_ATTACH ) )
 	{
-		Components_.erase( It );	
+		BcAssert( Component->getName() != BcName::INVALID );
+		ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
+		if( It != Components_.end() )
+		{
+			Components_.erase( It );	
+		}
+		BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
+		Component->setFlag( scnCF_PENDING_DETACH );
+		ScnCore::pImpl()->queueComponentForDetach( Component );
 	}
-	BcAssertMsg( Component != nullptr, "Trying to detach a null component!" );
-	Component->setFlag( scnCF_PENDING_DETACH );
-	ScnCore::pImpl()->queueComponentForDetach( Component );
 }
 
 //////////////////////////////////////////////////////////////////////////

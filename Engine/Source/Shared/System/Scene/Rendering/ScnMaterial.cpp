@@ -554,5 +554,7 @@ void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	ProgramBinding_.reset();
+
 	Super::onDetach( Parent );
 }

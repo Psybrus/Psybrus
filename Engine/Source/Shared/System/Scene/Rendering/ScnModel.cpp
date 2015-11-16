@@ -748,14 +748,6 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 	UpdateFence_.wait();
 	UploadFence_.wait();
 
-	// Detach material components from parent.
-	for( BcU32 Idx = 0 ; Idx < PerComponentMeshDataList_.size(); ++Idx )
-	{
-		auto& PerComponentMeshData( PerComponentMeshDataList_[ Idx ] );
-		Parent->detach( PerComponentMeshData.MaterialComponentRef_ );
-		PerComponentMeshData.MaterialComponentRef_ = nullptr;
-	}
-
 	PerComponentMeshDataList_.clear();
 	
 	// Delete duplicated node data.

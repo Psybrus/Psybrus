@@ -301,8 +301,11 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 		{
 			Context->createFrameBuffer( Resource );
 		} );
+
+#if PSY_DEBUG
+	AliveFrameBuffers_.insert( Resource.get() );
+#endif
 	
-	// Return resource.
 	return Resource;
 }
 
@@ -325,7 +328,6 @@ RsTextureUPtr RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 			BcAssert( RetVal );
 		} );
 
-	// Return resource.
 	return Resource;
 }
 
@@ -367,7 +369,6 @@ RsBufferUPtr RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 			Context->createBuffer( Resource );
 		} );
 	
-	// Return resource.
 	return Resource;
 }
 
@@ -428,6 +429,10 @@ RsProgramUPtr RsCoreImpl::createProgram(
 			}
 		} );
 
+#if PSY_DEBUG
+	AlivePrograms_.insert( Resource.get() );
+#endif
+
 	return Resource;
 }
 
@@ -458,7 +463,9 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
 			}
 		} );
-
+#if PSY_DEBUG
+	AliveProgramBindings_.insert( Resource.get() );
+#endif
 	return Resource;
 }
 
@@ -485,7 +492,9 @@ RsGeometryBindingUPtr RsCoreImpl::createGeometryBinding(
 				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
 			}
 		} );
-
+#if PSY_DEBUG
+	AliveGeometryBindings_.insert( Resource.get() );
+#endif
 	return Resource;
 }
 
@@ -513,8 +522,7 @@ void RsCoreImpl::destroyResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-	RsRenderState* RenderState )
+void RsCoreImpl::destroyResource( RsRenderState* RenderState )
 {
 	BcAssert( BcIsGameThread() );
 	if( RenderState == nullptr )
@@ -532,14 +540,24 @@ void RsCoreImpl::destroyResource(
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-	RsSamplerState* SamplerState )
+void RsCoreImpl::destroyResource( RsSamplerState* SamplerState )
 {
 	BcAssert( BcIsGameThread() );
 	if( SamplerState == nullptr )
 	{
 		return;
 	}
+
+#if PSY_DEBUG
+	for( const auto* ProgramBinding : AliveProgramBindings_ )
+	{
+		const auto& Desc = ProgramBinding->getDesc();
+		for( const auto& BindingSamplerState : Desc.SamplerStates_ )
+		{
+			BcAssertMsg( BindingSamplerState != SamplerState, "RsSamplerState is currently being used in a RsProgramBinding." );
+		}
+	}
+#endif
 
 	ResourceDeletionList_.push_back(
 		[ SamplerState ]()
@@ -558,6 +576,36 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 	{
 		return;
 	}
+
+#if PSY_DEBUG
+	for( const auto* GeometryBinding : AliveGeometryBindings_ )
+	{
+		const auto& Desc = GeometryBinding->getDesc();
+		for( const auto& VertexBufferBinding : Desc.VertexBuffers_ )
+		{
+			BcAssertMsg( VertexBufferBinding.Buffer_ != Buffer, "RsBuffer is currently being used in a RsGeometryBinding." );
+		}
+	}
+
+	for( const auto* ProgramBinding : AliveProgramBindings_ )
+	{
+		const auto& Desc = ProgramBinding->getDesc();
+		for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
+		{
+			BcAssertMsg( SRVSlot.Buffer_ != Buffer, "RsBuffer is currently being used in a RsProgramBinding as a SRV." );
+		}
+
+		for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
+		{
+			BcAssertMsg( UAVSlot.Buffer_ != Buffer, "RsBuffer is currently being used in a RsProgramBinding as a UAV." );
+		}
+
+		for( const auto& UniformBuffer : Desc.UniformBuffers_ )
+		{
+			BcAssertMsg( UniformBuffer != Buffer, "RsBuffer is currently being used in a RsProgramBinding as a uniform buffer." );
+		}
+	}
+#endif
 
 	ResourceDeletionList_.push_back(
 		[ Buffer ]()
@@ -578,6 +626,32 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 	{
 		return;
 	}
+
+#if PSY_DEBUG
+	for( const auto* FrameBuffer : AliveFrameBuffers_ )
+	{
+		const auto& Desc = FrameBuffer->getDesc();
+		for( const auto& RTTexture : Desc.RenderTargets_ )
+		{
+			BcAssertMsg( RTTexture != Texture, "RsTexture is currently being used in a RsFrameBuffer." );
+		}
+		BcAssertMsg( Desc.DepthStencilTarget_ != Texture, "RsTexture is currently being used in a RsFrameBuffer." );
+	}
+
+	for( const auto* ProgramBinding : AliveProgramBindings_ )
+	{
+		const auto& Desc = ProgramBinding->getDesc();
+		for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
+		{
+			BcAssertMsg( SRVSlot.Texture_ != Texture, "RsTexture is currently being used in a RsProgramBinding as a SRV." );
+		}
+
+		for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
+		{
+			BcAssertMsg( UAVSlot.Texture_ != Texture, "RsTexture is currently being used in a RsProgramBinding as a UAV." );
+		}
+	}
+#endif
 
 	ResourceDeletionList_.push_back(
 		[ Texture ]()
@@ -607,18 +681,32 @@ void RsCoreImpl::destroyResource( RsFrameBuffer* FrameBuffer )
 			delete FrameBuffer;
 			BcUnusedVar( RetVal );
 		} );
+
+#if PSY_DEBUG
+	AliveFrameBuffers_.erase( FrameBuffer );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-		RsShader* Shader )
+void RsCoreImpl::destroyResource( RsShader* Shader )
 {
 	BcAssert( BcIsGameThread() );
 	if( Shader == nullptr )
 	{
 		return;
 	}
+
+#if PSY_DEBUG
+	for( const auto* Program : AlivePrograms_ )
+	{
+		const auto& ProgramShaders = Program->getShaders();
+		for( const auto& ProgramShader : ProgramShaders )
+		{
+			BcAssertMsg( ProgramShader != Shader, "RsShadwer is currently being used in a RsProgram." );
+		}
+	}
+#endif
 
 	ResourceDeletionList_.push_back(
 		[ Shader ]()
@@ -632,14 +720,20 @@ void RsCoreImpl::destroyResource(
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-		RsProgram* Program )
+void RsCoreImpl::destroyResource( RsProgram* Program )
 {
 	BcAssert( BcIsGameThread() );
 	if( Program == nullptr )
 	{
 		return;
 	}
+
+#if PSY_DEBUG
+	for( const auto* ProgramBinding : AliveProgramBindings_ )
+	{
+		BcAssertMsg( ProgramBinding->getProgram() != Program, "RsProgram is currently being used in a RsProgramBinding." );
+	}
+#endif
 
 	ResourceDeletionList_.push_back(
 		[ Program ]()
@@ -649,12 +743,15 @@ void RsCoreImpl::destroyResource(
 			delete Program;
 			BcUnusedVar( RetVal );
 		} );
+
+#if PSY_DEBUG
+	AlivePrograms_.erase( Program );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-		RsProgramBinding* ProgramBinding )
+void RsCoreImpl::destroyResource( RsProgramBinding* ProgramBinding )
 {
 	BcAssert( BcIsGameThread() );
 	if( ProgramBinding == nullptr )
@@ -670,12 +767,14 @@ void RsCoreImpl::destroyResource(
 			delete ProgramBinding;
 			BcUnusedVar( RetVal );
 		} );
+#if PSY_DEBUG
+	AliveProgramBindings_.erase( ProgramBinding );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-		RsGeometryBinding* GeometryBinding )
+void RsCoreImpl::destroyResource( RsGeometryBinding* GeometryBinding )
 {
 	BcAssert( BcIsGameThread() );
 	if( GeometryBinding == nullptr )
@@ -691,18 +790,28 @@ void RsCoreImpl::destroyResource(
 			delete GeometryBinding;
 			BcUnusedVar( RetVal );
 		} );
+#if PSY_DEBUG
+	AliveGeometryBindings_.erase( GeometryBinding );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResource
-void RsCoreImpl::destroyResource( 
-		RsVertexDeclaration* VertexDeclaration )
+void RsCoreImpl::destroyResource( RsVertexDeclaration* VertexDeclaration )
 {
 	BcAssert( BcIsGameThread() );
 	if( VertexDeclaration == nullptr )
 	{
 		return;
 	}
+
+#if PSY_DEBUG
+	for( const auto* GeometryBinding : AliveGeometryBindings_ )
+	{
+		const auto& Desc = GeometryBinding->getDesc();
+		BcAssertMsg( Desc.VertexDeclaration_ != VertexDeclaration, "RsVertexDeclaration is currently being used in an RsGeometryBinding." );
+	}
+#endif
 
 	ResourceDeletionList_.push_back(
 		[ VertexDeclaration ]()
