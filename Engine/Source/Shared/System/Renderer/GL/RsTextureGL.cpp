@@ -1,4 +1,5 @@
 #include "System/Renderer/GL/RsTextureGL.h"
+#include "System/Renderer/GL/RsContextGL.h"
 #include "System/Renderer/GL/RsUtilsGL.h"
 #include "System/Renderer/RsTexture.h"
 
@@ -9,7 +10,9 @@
 RsTextureGL::RsTextureGL( RsTexture* Parent ):
 	Parent_( Parent )
 {
+	Parent_->setHandle( this );
 	const auto& TextureDesc = Parent_->getDesc();
+	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 	
 	// Get buffer type for GL.
 	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
@@ -34,8 +37,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent ):
 	GL( GenTextures( 1, &Handle_ ) );
 
 	// Bind texture.
-	GL( ActiveTexture( GL_TEXTURE0 ) );
-	GL( BindTexture( TypeGL, Handle_ ) );
+	ContextGL->bindTexture( 0, Parent_ );
 		
 #if !defined( RENDER_USE_GLES )
 	// Set max levels.
@@ -66,7 +68,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent ):
 			auto TextureSlice = Parent_->getSlice( LevelIdx );
 
 			// Load slice.
-			loadTexture( TextureSlice, BcFalse, 0, nullptr );
+			loadTexture( TextureSlice, 0, nullptr );
 			// TODO: Error checking on loadTexture.
 
 			// Down a power of two.
@@ -84,7 +86,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent ):
 				auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
 
 				// Load slice.
-				loadTexture( TextureSlice, BcFalse, 0, nullptr );
+				loadTexture( TextureSlice, 0, nullptr );
 				// TODO: Error checking on loadTexture.
 
 				// Down a power of two.
@@ -106,21 +108,16 @@ RsTextureGL::~RsTextureGL()
 // loadTexture
 void RsTextureGL::loadTexture(
 		const RsTextureSlice& Slice,
-		BcBool Bind, 
 		BcU32 DataSize,
 		void* Data )
 {
 	const auto& TextureDesc = Parent_->getDesc();
+	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 
 	// Get buffer type for GL.
 	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
 
-	// Bind.
-	if( Bind )
-	{
-		GL( ActiveTexture( GL_TEXTURE0 ) );
-		GL( BindTexture( TypeGL, Handle_ ) );
-	}
+	ContextGL->bindTexture( 0, Parent_ );
 	
 	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );

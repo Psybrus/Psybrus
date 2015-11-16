@@ -12,7 +12,6 @@ public:
 
 	void loadTexture( 
 		const struct RsTextureSlice& Slice,
-		BcBool Bind, 
 		BcU32 DataSize,
 		void* Data );
 

@@ -50,7 +50,6 @@ public:
 	const RsGeometryBindingDesc& getDesc() const;
 
 private:
-	class RsProgram* Program_;
 	RsGeometryBindingDesc Desc_;
 };
 

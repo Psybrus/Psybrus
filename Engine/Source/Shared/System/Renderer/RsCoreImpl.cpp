@@ -318,6 +318,14 @@ RsTextureUPtr RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 
 	auto Context = getContext( nullptr );
 	RsTextureUPtr Resource( new RsTexture( Context, Desc ) ); 
+	const auto& Features = Context->getFeatures();
+
+	// Check if format is supported one.
+	if( !Features.TextureFormat_[ (int)Desc.Format_ ] )
+	{
+		PSY_LOG( "ERROR: No support for %u format.", Desc.Format_ );
+		return nullptr;
+	}
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(

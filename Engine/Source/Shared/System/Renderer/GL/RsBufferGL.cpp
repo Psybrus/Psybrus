@@ -1,4 +1,5 @@
 #include "System/Renderer/GL/RsBufferGL.h"
+#include "System/Renderer/GL/RsContextGL.h"
 #include "System/Renderer/GL/RsUtilsGL.h"
 #include "System/Renderer/RsBuffer.h"
 
@@ -7,7 +8,9 @@
 RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 	Parent_( Parent )
 {
+	Parent_->setHandle( this );
 	const auto& BufferDesc = Parent_->getDesc();
+	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 
 	BcAssert( BufferDesc.SizeBytes_ > 0 );
 
@@ -36,7 +39,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 	// may need to be implemented as regular uniforms in GL (GL ES especially so).
 	// Buffers with DYNAMIC or STREAM want to avoid allocation on the upload.
 	// Later this should be replaced with a ring buffer.
-	const bool IsUniformBuffer = ( Parent_->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE;
+	const bool IsUniformBuffer = ( BufferDesc.BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE;
 	const bool BufferInMainMemory = IsUniformBuffer ||
 		( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE ||
 		( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE;
@@ -56,7 +59,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 		// Attempt to update it.
 		if( Handle_ != 0 )
 		{
-			GL( BindBuffer( TypeGL, Handle_ ) );
+			ContextGL->bindBuffer( TypeGL, Parent_ );
 			GL( BufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL ) );
 		}
 	}
@@ -66,6 +69,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 // Dtor
 RsBufferGL::~RsBufferGL()
 {
+	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 	if( Handle_ != 0 )
 	{
 		GL( DeleteBuffers( 1, &Handle_ ) );

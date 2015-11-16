@@ -117,6 +117,10 @@ public:
 	void bindUAVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings, GLbitfield& Barrier );
 	void bindSamplerStates( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
 	void bindUniformBuffers( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
+	void bindTexture( BcU32 Slot, const RsTexture* Texture );
+	void bindVertexBuffer( const RsBuffer* Buffer );
+	void bindIndexBuffer( const RsBuffer* Buffer );
+	void bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer );
 	void unbindResource( const RsResource* Resource );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
@@ -220,11 +224,19 @@ private:
 		GLuint Sampler_ = 0;
 	};
 
+	struct ProgramBindingInfo
+	{
+		const RsProgram* Program_ = nullptr;
+		GLuint Handle_ = 0;
+	};
+
 	std::array< TextureBindingInfo, 32 > TextureBindingInfo_;
 	std::array< ImageBindingInfo, 32 > ImageBindingInfo_;
 	std::array< BufferBindingInfo, 32 > ShaderStorageBufferBindingInfo_;
 	std::array< BufferBindingInfo, 32 > UniformBufferBindingInfo_;
 	std::array< SamplerBindingInfo, 32 > SamplerBindingInfo_;
+	BufferBindingInfo VertexBufferBindingInfo_;
+	BufferBindingInfo IndexBufferBindingInfo_;
 
 	BcU32 NoofDrawCalls_;
 	BcU32 NoofRenderStates_;

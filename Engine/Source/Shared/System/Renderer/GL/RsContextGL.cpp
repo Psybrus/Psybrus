@@ -1027,7 +1027,6 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 
 	// Create buffer impl.
 	auto BufferGL = new RsBufferGL( Buffer, Version_ );
-	Buffer->setHandle( BufferGL );
 
 	++NoofBuffers_;
 
@@ -1095,7 +1094,7 @@ bool RsContextGL::updateBuffer(
 		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.BindFlags_ );
 
 		// Bind buffer.
-		GL( BindBuffer( TypeGL, HandleGL ) );
+		bindBuffer( TypeGL, Buffer );
 
 		// Get usage flags for GL.
 		GLuint UsageFlagsGL = 0;
@@ -1137,22 +1136,9 @@ bool RsContextGL::createTexture( class RsTexture* Texture )
 
 	const auto& TextureDesc = Texture->getDesc();
 
-	// Check if format is supported one.
-	if( !Version_.Features_.TextureFormat_[ (int)TextureDesc.Format_ ] )
-	{
-		PSY_LOG( "ERROR: No support for %u format.", TextureDesc.Format_ );
-		return false;
-	}
-
 	// Create GL texture.
 	RsTextureGL* TextureGL = new RsTextureGL( Texture );
-	Texture->setHandle( TextureGL );
 	
-	// HACK: Reset binding.
-	auto& BindingInfo = TextureBindingInfo_[ 0 ];
-	BindingInfo.Texture_ = 0;
-	BindingInfo.Target_ = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
-
 	++NoofTextures_;
 	return true;
 }
@@ -1221,14 +1207,7 @@ bool RsContextGL::updateTexture(
 		UpdateFunc( Texture, Lock );
 
 		// Load slice.
-		TextureGL->loadTexture( Slice, BcTrue, DataSize, &Data[ 0 ] );
-
-		// HACK: Clear binding.
-		auto& BindingInfo = TextureBindingInfo_[ 0 ];
-		BindingInfo.Texture_ = 0;
-		BindingInfo.Target_ = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
-
-		// TODO: Error checking on loadTexture.
+		TextureGL->loadTexture( Slice, DataSize, &Data[ 0 ] );
 
 		return true;
 	}
@@ -1480,7 +1459,7 @@ void RsContextGL::drawPrimitives(
 	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
 	bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
 	bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-
+ 
 	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
 
 #if !defined( RENDER_USE_GLES )
@@ -1545,6 +1524,8 @@ void RsContextGL::drawIndexedPrimitives(
 // copyFrameBufferRenderTargetToTexture
 void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture )
 {
+	PSY_PROFILE_FUNCTION;
+
 #if !defined( RENDER_USE_GLES )
 	// Copying the back buffer.
 	if( FrameBuffer == nullptr )
@@ -1577,8 +1558,7 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 	if( DestTextureGL->getHandle() != 0 )
 	{
 		// Bind texture.
-		GL( ActiveTexture( GL_TEXTURE0 ) );
-		GL( BindTexture( TypeGL, DestTextureGL->getHandle() ) );
+		bindTexture( 0, Texture );
 		GL( CopyTexImage2D( 
 			TypeGL, 
 			0, 
@@ -1589,7 +1569,6 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 			TextureDesc.Height_,
 			0 ) );
 		
-		GL( BindTexture( TypeGL, 0 ) );
 		auto& BindingInfo = TextureBindingInfo_[ 0 ];
 		BindingInfo.Texture_ = 0;
 		BindingInfo.Target_ = TypeGL;
@@ -1605,6 +1584,8 @@ void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuff
 // copyTextureToFrameBufferRenderTarget
 void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx )
 {
+	PSY_PROFILE_FUNCTION;
+
 #if !defined( RENDER_USE_GLES )
 	// Copying the back buffer.
 	if( FrameBuffer == nullptr )
@@ -1667,6 +1648,8 @@ void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFr
 // dispatchCompute
 void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
+	PSY_PROFILE_FUNCTION;
+
 #if !defined( RENDER_USE_GLES )
 	RsProgramGL* ProgramGL = ProgramBinding->getProgram()->getHandle< RsProgramGL* >();
 	GL( UseProgram( ProgramGL->getHandle() ) );
@@ -1690,6 +1673,8 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 // bindFrameBuffer
 void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
 {
+	PSY_PROFILE_FUNCTION;
+
 	if( FrameBuffer )
 	{
 		GLint Handle = FrameBuffer->getHandle< GLint >();
@@ -1738,6 +1723,8 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 // bindGeometry
 void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding )
 {
+	PSY_PROFILE_FUNCTION;
+
 	const auto& Desc = GeometryBinding->getDesc();
 
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
@@ -1750,6 +1737,9 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 
 	// Cached vertex handle for binding.
 	GLuint BoundVertexHandle = 0;
+
+	// Reset next state + disable all vertex attribs.
+	BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
 
 	// Bind up all elements to attributes.
 	BcU32 BoundElements = 0;
@@ -1788,7 +1778,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 			GLuint VertexHandle = VertexBufferGL->getHandle();
 			if( BoundVertexHandle != VertexHandle )
 			{
-				GL( BindBuffer( GL_ARRAY_BUFFER, VertexHandle ) );
+				bindVertexBuffer( VertexBuffer );
 				BoundVertexHandle = VertexHandle;
 			}
 
@@ -1804,7 +1794,10 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 				RsUtilsGL::GetVertexDataNormalised( FoundElement->DataType_ ),
 				VertexStride,
 				(GLvoid*)CalcOffset ) );
-
+			if(CalcOffset == 40)
+			{
+				int a = 0; ++a;
+			}
 			++BoundElements;
 		}
 	}
@@ -1828,15 +1821,15 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 	}
 
 	// Bind indices.
-	auto IndexBufferGL = Desc.IndexBuffer_ ? Desc.IndexBuffer_->getHandle< RsBufferGL* >() : nullptr;
-	GLuint IndicesHandle = IndexBufferGL != nullptr ? IndexBufferGL->getHandle() : 0;
-	GL( BindBuffer( GL_ELEMENT_ARRAY_BUFFER, IndicesHandle ) );
+	bindIndexBuffer( Desc.IndexBuffer_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // bindRenderStateDesc
 void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
 {
+	PSY_PROFILE_FUNCTION;
+
 #if !defined( RENDER_USE_GLES )
 	if( Version_.Features_.SeparateBlendState_ )
 	{
@@ -2153,18 +2146,7 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 				{
 					// TODO: Redundant state checking.
 					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-					const GLenum TextureType = RsUtilsGL::GetTextureType( SRVSlotGL.TextureType_ );
-					RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >();
-					auto& BindingInfo = TextureBindingInfo_[ SRVSlotGL.Slot_ ];
-					if( BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Target_ != TextureType )
-					{
-						GL( ActiveTexture( GL_TEXTURE0 + SRVSlotGL.Slot_ ) );
-						GL( BindTexture( TextureType, TextureGL->getHandle() ) );
-						BindingInfo.Resource_ = SRVSlot.Resource_;
-						BindingInfo.Texture_ = TextureGL->getHandle();
-						BindingInfo.Target_ = TextureType;
-					}
+					bindTexture( SRVSlotGL.Slot_, SRVSlot.Texture_ );
 				}
 				break;
 #if !defined( RENDER_USE_GLES )	
@@ -2173,15 +2155,26 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 					// TODO: Redundant state checking.
 					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 					RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >();
+					const auto Format = RsUtilsGL::GetImageFormat( SRVSlot.Texture_->getDesc().Format_ );
 					auto& BindingInfo = ImageBindingInfo_[ SRVSlotGL.Slot_ ];
-					if( BindingInfo.Texture_ != TextureGL->getHandle() )
+					if( BindingInfo.Resource_ != SRVSlot.Resource_ ||
+						BindingInfo.Texture_ != TextureGL->getHandle() ||
+						BindingInfo.Level_ != 0 ||
+						BindingInfo.Layered_ != GL_FALSE ||
+						BindingInfo.Layer_ != 0 ||
+						BindingInfo.Access_ != GL_READ_ONLY ||
+						BindingInfo.Format_ != Format )
 					{
 						GL( BindImageTexture( SRVSlotGL.Slot_, TextureGL->getHandle(),
 							0, GL_FALSE, 0, GL_READ_ONLY,
-							RsUtilsGL::GetImageFormat( SRVSlot.Texture_->getDesc().Format_ ) ) );
+							Format ) );
 						BindingInfo.Resource_ = SRVSlot.Resource_;
 						BindingInfo.Texture_ = TextureGL->getHandle();
-						// TODO: Other params...
+						BindingInfo.Level_ = 0;
+						BindingInfo.Layered_ = GL_FALSE;
+						BindingInfo.Layer_ = 0;
+						BindingInfo.Access_ = GL_READ_ONLY;
+						BindingInfo.Format_ = Format;
 					}
 				};
 				break;
@@ -2191,12 +2184,16 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 					BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 					RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >();
 					auto& BindingInfo = ShaderStorageBufferBindingInfo_[ SRVSlotGL.Slot_ ];
-					if( BindingInfo.Buffer_ != BufferGL->getHandle() )
+					if( BindingInfo.Resource_ != SRVSlot.Resource_ ||
+						BindingInfo.Buffer_ != BufferGL->getHandle() ||
+						BindingInfo.Offset_ != 0 ||
+						BindingInfo.Size_ != SRVSlot.Buffer_->getDesc().SizeBytes_ )
 					{
 						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, SRVSlotGL.Slot_, BufferGL->getHandle() ) );
 						BindingInfo.Resource_ = SRVSlot.Resource_;
 						BindingInfo.Buffer_ = BufferGL->getHandle();
-						// TODO: Other params...
+						BindingInfo.Offset_ = 0;
+						BindingInfo.Size_ = SRVSlot.Buffer_->getDesc().SizeBytes_;
 					}
 				}
 				break;
@@ -2236,14 +2233,26 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					// TODO: Redundant state checking.
 					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 					RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
+					const auto Format = RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ );
 					auto& BindingInfo = ImageBindingInfo_[ UAVSlotGL.Slot_ ];
-					if( BindingInfo.Texture_ != TextureGL->getHandle() )
+					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||
+						BindingInfo.Texture_ != TextureGL->getHandle() ||
+						BindingInfo.Level_ != 0 ||
+						BindingInfo.Layered_ != GL_FALSE ||
+						BindingInfo.Layer_ != 0 ||
+						BindingInfo.Access_ != GL_READ_WRITE||
+						BindingInfo.Format_ != Format )
 					{
 						GL( BindImageTexture( UAVSlotGL.Slot_, TextureGL->getHandle(),
-							0, GL_FALSE, 0, GL_READ_ONLY,
-							RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ ) ) );
+							0, GL_FALSE, 0, GL_READ_WRITE,
+							Format ) );
 						BindingInfo.Resource_ = UAVSlot.Resource_;
 						BindingInfo.Texture_ = TextureGL->getHandle();
+						BindingInfo.Level_ = 0;
+						BindingInfo.Layered_ = GL_FALSE;
+						BindingInfo.Layer_ = 0;
+						BindingInfo.Access_ = GL_READ_WRITE;
+						BindingInfo.Format_ = Format;
 						// TODO: Other params...
 					}
 					Barrier |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
@@ -2255,12 +2264,16 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
 					RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
 					auto& BindingInfo = ShaderStorageBufferBindingInfo_[ UAVSlotGL.Slot_ ];
-					if( BindingInfo.Buffer_ != BufferGL->getHandle() )
+					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||
+						BindingInfo.Buffer_ != BufferGL->getHandle() ||
+						BindingInfo.Offset_ != 0 ||
+						BindingInfo.Size_ != UAVSlot.Buffer_->getDesc().SizeBytes_ )
 					{
 						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, UAVSlotGL.Slot_, BufferGL->getHandle() ) );
 						BindingInfo.Resource_ = UAVSlot.Resource_;
 						BindingInfo.Buffer_ = BufferGL->getHandle();
-						// TODO: Other params...
+						BindingInfo.Offset_ = 0;
+						BindingInfo.Size_ = UAVSlot.Buffer_->getDesc().SizeBytes_;
 					}
 					Barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
 				}
@@ -2350,19 +2363,118 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 				// TODO: Redundant state checking.
 				const auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
 				RsBufferGL* BufferGL = UniformBuffer->getHandle< RsBufferGL* >();
-				auto& BindingInfo = ShaderStorageBufferBindingInfo_[ UniformBufferSlotGL.Slot_ ];
-				if( BindingInfo.Buffer_ != BufferGL->getHandle() )
+				auto& BindingInfo = UniformBufferBindingInfo_[ UniformBufferSlotGL.Slot_ ];
+				if( BindingInfo.Resource_ != UniformBuffer ||
+					BindingInfo.Buffer_ != BufferGL->getHandle() ||
+					BindingInfo.Offset_ != 0 ||
+					BindingInfo.Size_ != UniformBuffer->getDesc().SizeBytes_ )
 				{
 					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Slot_, BufferGL->getHandle(), 0, UniformBuffer->getDesc().SizeBytes_ ) );
 					BindingInfo.Resource_ = UniformBuffer;
 					BindingInfo.Buffer_ = BufferGL->getHandle();
-					// TODO: Other params...
+					BindingInfo.Offset_ = 0;
+					BindingInfo.Size_ = UniformBuffer->getDesc().SizeBytes_;
 				}
 			}
 		}
 	}
 
 	ProgramGL->copyUniformBuffersToUniforms( Bindings.UniformBuffers_.size(), Bindings.UniformBuffers_.data() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bindTexture
+void RsContextGL::bindTexture( BcU32 Slot, const RsTexture* Texture )
+{
+	const GLenum TextureType = RsUtilsGL::GetTextureType( Texture->getDesc().Type_ );
+	const RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
+	auto& BindingInfo = TextureBindingInfo_[ Slot ];
+	if( BindingInfo.Resource_ != Texture ||
+		BindingInfo.Texture_ != TextureGL->getHandle() ||
+		BindingInfo.Target_ != TextureType )
+	{
+		GL( ActiveTexture( GL_TEXTURE0 + Slot ) );
+		GL( BindTexture( TextureType, TextureGL->getHandle() ) );
+		BindingInfo.Resource_ = Texture;
+		BindingInfo.Texture_ = TextureGL->getHandle();
+		BindingInfo.Target_ = TextureType;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bindVertexBuffer
+void RsContextGL::bindVertexBuffer( const RsBuffer* Buffer )
+{
+	RsBufferGL* BufferGL = Buffer ? Buffer->getHandle< RsBufferGL* >() : nullptr;
+	auto Handle = BufferGL ? BufferGL->getHandle() : 0;
+	if( VertexBufferBindingInfo_.Resource_ != Buffer ||
+		VertexBufferBindingInfo_.Buffer_ != Handle ||
+		VertexBufferBindingInfo_.Offset_ != 0 ||
+		VertexBufferBindingInfo_.Size_ != BcErrorCode )
+	{
+		GL( BindBuffer( GL_ARRAY_BUFFER, Handle ) );
+		VertexBufferBindingInfo_.Resource_ = Buffer;
+		VertexBufferBindingInfo_.Buffer_ = Handle;
+		VertexBufferBindingInfo_.Offset_ = 0;
+		VertexBufferBindingInfo_.Size_ = BcErrorCode;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bindIndexBuffer
+void RsContextGL::bindIndexBuffer( const RsBuffer* Buffer )
+{
+	RsBufferGL* BufferGL = Buffer ? Buffer->getHandle< RsBufferGL* >() : nullptr;
+	auto Handle = BufferGL ? BufferGL->getHandle() : 0;
+	if( IndexBufferBindingInfo_.Resource_ != Buffer ||
+		IndexBufferBindingInfo_.Buffer_ != Handle ||
+		IndexBufferBindingInfo_.Offset_ != 0 ||
+		IndexBufferBindingInfo_.Size_ != BcErrorCode )
+	{
+		GL( BindBuffer( GL_ELEMENT_ARRAY_BUFFER, Handle ) );
+		IndexBufferBindingInfo_.Resource_ = Buffer;
+		IndexBufferBindingInfo_.Buffer_ = Handle;
+		IndexBufferBindingInfo_.Offset_ = 0;
+		IndexBufferBindingInfo_.Size_ = BcErrorCode;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bindBuffer
+void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer )
+{
+	switch( BindTypeGL )
+	{
+	case GL_ARRAY_BUFFER:
+		{
+			bindVertexBuffer( Buffer );
+		}
+		break;
+	case GL_ELEMENT_ARRAY_BUFFER:
+		{
+			bindIndexBuffer( Buffer );
+		}
+		break;
+	case GL_UNIFORM_BUFFER:
+		{
+			RsBufferGL* BufferGL = Buffer ? Buffer->getHandle< RsBufferGL* >() : 0;
+			GLuint Handle = BufferGL ? BufferGL->getHandle() : 0;
+			if( UniformBufferBindingInfo_[0].Resource_ != Buffer ||
+				UniformBufferBindingInfo_[0].Buffer_ != Handle ||
+				UniformBufferBindingInfo_[0].Offset_ != 0 ||
+				UniformBufferBindingInfo_[0].Size_ != BcErrorCode )
+			{
+				GL( BindBuffer( GL_UNIFORM_BUFFER, Handle ) );
+				UniformBufferBindingInfo_[0].Resource_ = Buffer;
+				UniformBufferBindingInfo_[0].Buffer_ = Handle;
+				UniformBufferBindingInfo_[0].Offset_ = 0;
+				UniformBufferBindingInfo_[0].Size_ = BcErrorCode;
+			}
+		}
+		break;
+	default:
+		BcBreakpoint;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2407,6 +2519,16 @@ void RsContextGL::unbindResource( const RsResource* Resource )
 		{
 			BindingInfo = SamplerBindingInfo();
 		}
+	}
+
+	if( IndexBufferBindingInfo_.Resource_ == Resource )
+	{
+		bindIndexBuffer( nullptr );
+	}
+
+	if( VertexBufferBindingInfo_.Resource_ == Resource )
+	{
+		bindVertexBuffer( nullptr );
 	}
 }
 
