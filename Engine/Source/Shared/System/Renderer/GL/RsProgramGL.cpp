@@ -1,5 +1,6 @@
 #include "System/Renderer/GL/RsProgramGL.h"
 #include "System/Renderer/GL/RsBufferGL.h"
+#include "System/Renderer/GL/RsContextGL.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsShader.h"
@@ -13,7 +14,9 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	Parent_( Parent ),
 	Version_( Version )
 {
+	Parent_->setHandle( this );
 	const auto& Shaders = Parent_->getShaders();
+	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 
 	// Some checks to ensure validity.
 	BcAssert( Shaders.size() > 0 );	
@@ -85,6 +88,9 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		BcBreakpoint;
 		return;
 	}
+
+	// Use program.
+	ContextGL->bindProgram( Parent_ );
 	
 	// Attempt to find uniform names, and uniform buffers for ES2.
 	GLint ActiveUniforms = 0;
@@ -204,9 +210,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::TEXTURE, TextureType, SamplerSlot ) );
 
 				// Set sampler uniform to correct slot.
-				GL( UseProgram( Handle_ ) );
 				GL( Uniform1i( UniformLocation, SamplerSlot ) );
-				GL( UseProgram( 0 ) );
 			}
 			else if ( IsImage )
 			{
@@ -219,9 +223,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, NoofImages_ ) );
 
 				// Set sampler uniform to correct slot.
-				GL( UseProgram( Handle_ ) );
 				GL( Uniform1i( UniformLocation, NoofImages_++ ) );
-				GL( UseProgram( 0 ) );
 			}
 			else
 			{

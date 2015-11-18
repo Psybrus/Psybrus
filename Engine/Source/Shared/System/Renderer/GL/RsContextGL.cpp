@@ -669,7 +669,7 @@ void RsContextGL::create()
 	// Initialises redundant state caching.
 	RsRenderStateDesc RenderStateDesc = BoundRenderStateDesc_;
 	bindRenderStateDesc( RenderStateDesc, BcTrue );
-
+	BoundRenderStateHash_ = 0;
 	// Ensure all buffers are cleared to black first.
 	const BcU32 Width = pClient_->getWidth();
 	const BcU32 Height = pClient_->getHeight();
@@ -1322,7 +1322,6 @@ bool RsContextGL::createProgram( RsProgram* Program )
 
 	// Set handle.
 	RsProgramGL* ProgramGL = new RsProgramGL( Program, Version_ );
-	Program->setHandle( ProgramGL );
 
 	++NoofPrograms_;
 
@@ -1416,6 +1415,7 @@ void RsContextGL::clear(
 	{
 		GL( Disable( GL_SCISSOR_TEST ) );
 		BoundRasteriserState.ScissorEnable_ = BcFalse;
+		BoundRenderStateHash_ = 0;
 	}
 
 	// TODO: Look into this? It causes an invalid operation.
@@ -1430,6 +1430,7 @@ void RsContextGL::clear(
 	{
 		GL( DepthMask( GL_TRUE ) );
 		BoundDepthStencilState.DepthWriteEnable_ = BcTrue;
+		BoundRenderStateHash_ = 0;
 	}
 	GL( Clear( 
 		( EnableClearColour ? GL_COLOR_BUFFER_BIT : 0 ) | 
@@ -1452,14 +1453,24 @@ void RsContextGL::drawPrimitives(
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
 	++NoofDrawCalls_;
 
+	bindProgram( ProgramBinding->getProgram() );
 	bindGeometry( ProgramBinding->getProgram(), GeometryBinding );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
-	bindRenderStateDesc( RenderState->getDesc(), BcFalse );
-	bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
+	{
+		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
+		BoundRenderStateHash_ = RenderState->getHandle< BcU64 >();
+	}
+	if( BoundProgramBinding_ != ProgramBinding )
+	{
+		BoundProgramBinding_ = ProgramBinding;
+		bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	}
+	// TODO: Add memory barrier to the binding object.
 	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
-	bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-	bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
- 
+
 	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
 
 #if !defined( RENDER_USE_GLES )
@@ -1485,13 +1496,23 @@ void RsContextGL::drawIndexedPrimitives(
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
 	++NoofDrawCalls_;
 
+	bindProgram( ProgramBinding->getProgram() );
 	bindGeometry( ProgramBinding->getProgram(), GeometryBinding );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
-	bindRenderStateDesc( RenderState->getDesc(), BcFalse );
-	bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
+	{
+		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
+		BoundRenderStateHash_ = RenderState->getHandle< BcU64 >();
+	}
+	if( BoundProgramBinding_ != ProgramBinding )
+	{
+		BoundProgramBinding_ = ProgramBinding;
+		bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	}
+	// TODO: Add memory barrier to the binding object.
 	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
-	bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-	bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
 
 	BcAssert( GeometryBinding->getDesc().IndexBuffer_ );
 	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= GeometryBinding->getDesc().IndexBuffer_->getDesc().SizeBytes_ );
@@ -1651,13 +1672,16 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 	PSY_PROFILE_FUNCTION;
 
 #if !defined( RENDER_USE_GLES )
-	RsProgramGL* ProgramGL = ProgramBinding->getProgram()->getHandle< RsProgramGL* >();
-	GL( UseProgram( ProgramGL->getHandle() ) );
-
-	bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	bindProgram( ProgramBinding->getProgram() );
+	if( BoundProgramBinding_ != ProgramBinding )
+	{
+		BoundProgramBinding_ = ProgramBinding;
+		bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+	}
+	// TODO: Add memory barrier to the binding object.
 	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
-	bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-	bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
 
 	GL( DispatchCompute( XGroups, YGroups, ZGroups ) );
 
@@ -1720,108 +1744,118 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 }
 
 //////////////////////////////////////////////////////////////////////////
+// bindProgram
+void RsContextGL::bindProgram( const RsProgram* Program )
+{
+	PSY_PROFILE_FUNCTION;
+
+	if( BoundProgram_ != Program )
+	{
+		BoundProgram_ = Program;
+		RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+		GL( UseProgram( ProgramGL->getHandle() ) );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bindGeometry
 void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding )
 {
 	PSY_PROFILE_FUNCTION;
 
-	const auto& Desc = GeometryBinding->getDesc();
-
-	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-
-	const auto& ProgramVertexAttributeList = Program->getVertexAttributeList();
-	const auto& VertexDeclarationDesc = Desc.VertexDeclaration_->getDesc();
-	const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
-
-	GL( UseProgram( ProgramGL->getHandle() ) );
-
-	// Cached vertex handle for binding.
-	GLuint BoundVertexHandle = 0;
-
-	// Reset next state + disable all vertex attribs.
-	BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
-
-	// Bind up all elements to attributes.
-	BcU32 BoundElements = 0;
-	for( const auto& Attribute : ProgramVertexAttributeList )
+	if( BoundGeometryBinding_ != GeometryBinding )
 	{
-		auto FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
-			[ &Attribute ]( const RsVertexElement& Element )
-			{
-				return ( Element.Usage_ == Attribute.Usage_ &&
-					Element.UsageIdx_ == Attribute.UsageIdx_ );
-			} );
+		BoundGeometryBinding_ = GeometryBinding;
+		const auto& Desc = GeometryBinding->getDesc();
 
-		// Force to an element with zero offset if we can't find a valid one.
-		// TODO: Find a better approach.
-		if( FoundElement == PrimitiveVertexElementList.end() )
+		const auto& ProgramVertexAttributeList = Program->getVertexAttributeList();
+		const auto& VertexDeclarationDesc = Desc.VertexDeclaration_->getDesc();
+		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
+
+		// Cached vertex handle for binding.
+		GLuint BoundVertexHandle = 0;
+
+		// Reset next state + disable all vertex attribs.
+		BcMemZero( &VertexBufferActiveNextState_[ 0 ], sizeof( VertexBufferActiveNextState_ ) );
+
+		// Bind up all elements to attributes.
+		BcU32 BoundElements = 0;
+		for( const auto& Attribute : ProgramVertexAttributeList )
 		{
-			FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
-				[]( const RsVertexElement& Element )
+			auto FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+				[ &Attribute ]( const RsVertexElement& Element )
 				{
-					return Element.Offset_ == 0;
+					return ( Element.Usage_ == Attribute.Usage_ &&
+						Element.UsageIdx_ == Attribute.UsageIdx_ );
 				} );
-		}
 
-		// Found an element we can bind to.
-		if( FoundElement != PrimitiveVertexElementList.end() )
-		{
-			auto VertexBufferBinding = Desc.VertexBuffers_[ FoundElement->StreamIdx_ ];
-			auto VertexBuffer = VertexBufferBinding.Buffer_;
-			auto VertexStride = VertexBufferBinding.Stride_;
+			// Force to an element with zero offset if we can't find a valid one.
+			// TODO: Find a better approach.
+			if( FoundElement == PrimitiveVertexElementList.end() )
+			{
+				FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+					[]( const RsVertexElement& Element )
+					{
+						return Element.Offset_ == 0;
+					} );
+			}
+
+			// Found an element we can bind to.
+			if( FoundElement != PrimitiveVertexElementList.end() )
+			{
+				auto VertexBufferBinding = Desc.VertexBuffers_[ FoundElement->StreamIdx_ ];
+				auto VertexBuffer = VertexBufferBinding.Buffer_;
+				auto VertexStride = VertexBufferBinding.Stride_;
 			
-			// Bind up new vertex buffer if we need to.
-			BcAssertMsg( FoundElement->StreamIdx_ < Desc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
-			BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
-			auto VertexBufferGL = VertexBuffer->getHandle< RsBufferGL* >();
-			BcAssert( VertexBufferGL );
-			GLuint VertexHandle = VertexBufferGL->getHandle();
-			if( BoundVertexHandle != VertexHandle )
-			{
-				bindVertexBuffer( VertexBuffer );
-				BoundVertexHandle = VertexHandle;
+				// Bind up new vertex buffer if we need to.
+				BcAssertMsg( FoundElement->StreamIdx_ < Desc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
+				auto VertexBufferGL = VertexBuffer->getHandle< RsBufferGL* >();
+				BcAssert( VertexBufferGL );
+				GLuint VertexHandle = VertexBufferGL->getHandle();
+				if( BoundVertexHandle != VertexHandle )
+				{
+					bindVertexBuffer( VertexBuffer );
+					BoundVertexHandle = VertexHandle;
+				}
+
+				// Enable array.
+				VertexBufferActiveNextState_[ Attribute.Channel_ ] = true;
+
+				// Bind.
+				BcU64 CalcOffset = FoundElement->Offset_;
+
+				GL( VertexAttribPointer( Attribute.Channel_, 
+					FoundElement->Components_,
+					RsUtilsGL::GetVertexDataType( FoundElement->DataType_ ),
+					RsUtilsGL::GetVertexDataNormalised( FoundElement->DataType_ ),
+					VertexStride,
+					(GLvoid*)CalcOffset ) );
+				++BoundElements;
 			}
-
-			// Enable array.
-			VertexBufferActiveNextState_[ Attribute.Channel_ ] = true;
-
-			// Bind.
-			BcU64 CalcOffset = FoundElement->Offset_;
-
-			GL( VertexAttribPointer( Attribute.Channel_, 
-				FoundElement->Components_,
-				RsUtilsGL::GetVertexDataType( FoundElement->DataType_ ),
-				RsUtilsGL::GetVertexDataNormalised( FoundElement->DataType_ ),
-				VertexStride,
-				(GLvoid*)CalcOffset ) );
-			if(CalcOffset == 40)
-			{
-				int a = 0; ++a;
-			}
-			++BoundElements;
 		}
-	}
-	BcAssert( ProgramVertexAttributeList.size() == BoundElements );
+		BcAssert( ProgramVertexAttributeList.size() == BoundElements );
 
-	// Enable/disable states.
-	for( BcU32 Idx = 0; Idx < MAX_VERTEX_STREAMS; ++Idx )
-	{
-		if( VertexBufferActiveState_[ Idx ] != VertexBufferActiveNextState_[ Idx ] )
+		// Enable/disable states.
+		for( BcU32 Idx = 0; Idx < MAX_VERTEX_STREAMS; ++Idx )
 		{
-			VertexBufferActiveState_[ Idx ] = VertexBufferActiveNextState_[ Idx ];
-			if( VertexBufferActiveState_[ Idx ] )
+			if( VertexBufferActiveState_[ Idx ] != VertexBufferActiveNextState_[ Idx ] )
 			{
-				GL( EnableVertexAttribArray( Idx ) );
-			}
-			else
-			{
-				GL( DisableVertexAttribArray( Idx ) );
+				VertexBufferActiveState_[ Idx ] = VertexBufferActiveNextState_[ Idx ];
+				if( VertexBufferActiveState_[ Idx ] )
+				{
+					GL( EnableVertexAttribArray( Idx ) );
+				}
+				else
+				{
+					GL( DisableVertexAttribArray( Idx ) );
+				}
 			}
 		}
-	}
 
-	// Bind indices.
-	bindIndexBuffer( Desc.IndexBuffer_ );
+		// Bind indices.
+		bindIndexBuffer( Desc.IndexBuffer_ );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

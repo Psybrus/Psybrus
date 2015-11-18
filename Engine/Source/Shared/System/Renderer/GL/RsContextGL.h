@@ -110,6 +110,7 @@ public:
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 
+	void bindProgram( const RsProgram* Program );
 	void bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding );
 	void bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect );
 	void bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force );
@@ -229,6 +230,11 @@ private:
 		const RsProgram* Program_ = nullptr;
 		GLuint Handle_ = 0;
 	};
+
+	const RsProgram* BoundProgram_ = nullptr;
+	const RsProgramBinding* BoundProgramBinding_ = nullptr;
+	const RsGeometryBinding* BoundGeometryBinding_ = nullptr;
+	BcU64 BoundRenderStateHash_ = 0;
 
 	std::array< TextureBindingInfo, 32 > TextureBindingInfo_;
 	std::array< ImageBindingInfo, 32 > ImageBindingInfo_;
