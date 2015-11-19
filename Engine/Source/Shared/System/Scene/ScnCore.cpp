@@ -298,6 +298,24 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
 	BcAssert( Entity->getName().isValid() );
+#if 1
+	// Recurse entity and detach every component reverse order & top->bottom.
+	Entity->visitHierarchy( ScnComponentVisitType::TOP_DOWN, Entity,
+		[ this ]( ScnComponent* Component, ScnEntity* Parent )
+		{
+			if( Component->isTypeOf< ScnEntity >() )
+			{
+				// Remove components.
+				ScnEntity* Entity = static_cast< ScnEntity* >( Component );
+
+				for( size_t Idx = Entity->getNoofComponents(); Idx > 0; --Idx )
+				{
+					auto EntityComponent = Entity->getComponent( Idx - 1 );
+					Entity->detach( EntityComponent );
+				}
+			}
+		});
+
 	if( Entity->getParentEntity() == nullptr )
 	{
 		Entity->setFlag( scnCF_PENDING_DETACH );
@@ -307,6 +325,18 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 	{
 		Entity->getParentEntity()->detach( Entity );
 	}
+
+#else
+	if( Entity->getParentEntity() == nullptr )
+	{
+		Entity->setFlag( scnCF_PENDING_DETACH );
+		queueComponentForDetach( ScnComponentRef( Entity ) );
+	}
+	else
+	{
+		Entity->getParentEntity()->detach( Entity );
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -332,7 +362,7 @@ void ScnCore::removeAllEntities()
 {
 	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
 	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
-	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
+	for( auto It( ComponentList.rbegin() ); It != ComponentList.rend(); ++It )
 	{
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );

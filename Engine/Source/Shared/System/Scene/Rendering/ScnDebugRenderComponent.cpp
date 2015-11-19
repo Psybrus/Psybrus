@@ -529,26 +529,29 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 
 		RsVertexDeclarationDesc( 2 )
 			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
-			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ),
+		getFullName().c_str() );
 	
 	// Allocate render side vertex buffer.
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
 			RsBufferType::VERTEX,
 			RsResourceCreationFlags::STREAM,
-			NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ) );
+			NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ),
+		getFullName().c_str() );
 
 	RsGeometryBindingDesc GeometryBindingDesc;
 	GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
 	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnDebugRenderComponentVertex ) );
-	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 
 	// Allocate uniform buffer object.
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( ScnShaderObjectUniformBlockData ) ) );
+			sizeof( ScnShaderObjectUniformBlockData ) ),
+		getFullName().c_str() );
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];

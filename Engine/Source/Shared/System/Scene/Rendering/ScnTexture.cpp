@@ -92,7 +92,7 @@ ScnTexture::~ScnTexture()
 ScnTexture* ScnTexture::New( const RsTextureDesc& Desc )
 {
 	auto Texture = new ScnTexture();
-	Texture->Texture_ = RsCore::pImpl()->createTexture( Desc );
+	Texture->Texture_ = RsCore::pImpl()->createTexture( Desc, "ScnTexture::New" );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Texture_->getDesc().Width_;
 	Texture->Height_ = Texture->Texture_->getDesc().Height_;
@@ -353,7 +353,8 @@ void ScnTexture::recreate()
 			Header_.Levels_ - SkipMips,
 			Width_ >> SkipMips,
 			Height_ >> SkipMips,
-			Depth_ ) );
+			Depth_ ),
+		getFullName().c_str() );
 
 	// Upload texture data.
 	if( pTextureData_ != nullptr )

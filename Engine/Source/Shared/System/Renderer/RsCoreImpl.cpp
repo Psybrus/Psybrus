@@ -246,18 +246,23 @@ void RsCoreImpl::destroyContext( OsClient* pClient )
 //////////////////////////////////////////////////////////////////////////
 // createRenderState
 RsRenderStateUPtr RsCoreImpl::createRenderState( 
-	const RsRenderStateDesc& Desc )
+		const RsRenderStateDesc& Desc, 
+		const BcChar* DebugName )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
 	RsRenderStateUPtr Resource( new RsRenderState( Context, Desc ) );
+	Resource->setDebugName( DebugName );
 
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			Context->createRenderState( Resource );
+			if( !Context->createRenderState( Resource ) )
+			{
+				PSY_LOG( "Failed RsRenderState creation: %s", Resource->getDebugName() );
+			}
 		} );
 
 	// Return resource.
@@ -267,18 +272,23 @@ RsRenderStateUPtr RsCoreImpl::createRenderState(
 //////////////////////////////////////////////////////////////////////////
 // createSamplerState
 RsSamplerStateUPtr RsCoreImpl::createSamplerState( 
-	const RsSamplerStateDesc& Desc )
+		const RsSamplerStateDesc& Desc, 
+		const BcChar* DebugName )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
 	RsSamplerStateUPtr Resource( new RsSamplerState( Context, Desc ) );
+	Resource->setDebugName( DebugName );
 
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			Context->createSamplerState( Resource );
+			if( !Context->createSamplerState( Resource ) )
+			{
+				PSY_LOG( "Failed RsSamplerState creation: %s", Resource->getDebugName() );
+			}
 		} );
 	
 	// Return resource.
@@ -288,21 +298,27 @@ RsSamplerStateUPtr RsCoreImpl::createSamplerState(
 //////////////////////////////////////////////////////////////////////////
 // createFrameBuffer
 RsFrameBufferUPtr RsCoreImpl::createFrameBuffer( 
-	const RsFrameBufferDesc& Desc )
+		const RsFrameBufferDesc& Desc, 
+		const BcChar* DebugName )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
 	RsFrameBufferUPtr Resource( new RsFrameBuffer( Context, Desc ) );
+	Resource->setDebugName( DebugName );
 
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			Context->createFrameBuffer( Resource );
+			if( !Context->createFrameBuffer( Resource ) )
+			{
+				PSY_LOG( "Failed RsFrameBuffer creation: %s", Resource->getDebugName() );
+			}
 		} );
 
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveFrameBuffers_.insert( Resource.get() );
 #endif
 	
@@ -312,12 +328,13 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 //////////////////////////////////////////////////////////////////////////
 // createTexture
 //virtual 
-RsTextureUPtr RsCoreImpl::createTexture( const RsTextureDesc& Desc )
+RsTextureUPtr RsCoreImpl::createTexture( 
+		const RsTextureDesc& Desc, 
+	const BcChar* DebugName )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
-	RsTextureUPtr Resource( new RsTexture( Context, Desc ) ); 
 	const auto& Features = Context->getFeatures();
 
 	// Check if format is supported one.
@@ -327,13 +344,18 @@ RsTextureUPtr RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 		return nullptr;
 	}
 
+	RsTextureUPtr Resource( new RsTexture( Context, Desc ) ); 
+	Resource->setDebugName( DebugName );
+
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			auto RetVal = Context->createTexture( Resource );
-			BcAssert( RetVal );
+			if( !Context->createTexture( Resource ) )
+			{
+				PSY_LOG( "Failed RsTexture creation: %s", Resource->getDebugName() );
+			}
 		} );
 
 	return Resource;
@@ -342,18 +364,23 @@ RsTextureUPtr RsCoreImpl::createTexture( const RsTextureDesc& Desc )
 //////////////////////////////////////////////////////////////////////////
 // createVertexDeclaration
 //virtual
-RsVertexDeclarationUPtr RsCoreImpl::createVertexDeclaration( const RsVertexDeclarationDesc& Desc )
+RsVertexDeclarationUPtr RsCoreImpl::createVertexDeclaration( 
+		const RsVertexDeclarationDesc& Desc, 
+		const BcChar* DebugName )
 {
 	auto Context = getContext( nullptr );
 	RsVertexDeclarationUPtr Resource( new RsVertexDeclaration( Context, Desc ) );
+	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			auto RetVal = Context->createVertexDeclaration( Resource );
-			BcAssert( RetVal );
+			if( !Context->createVertexDeclaration( Resource ) )
+			{
+				PSY_LOG( "Failed RsVertexDeclaration creation: %s", Resource->getDebugName() );
+			}
 		} );
 
 	return Resource;
@@ -362,19 +389,25 @@ RsVertexDeclarationUPtr RsCoreImpl::createVertexDeclaration( const RsVertexDecla
 //////////////////////////////////////////////////////////////////////////
 // createBuffer
 //virtual 
-RsBufferUPtr RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
+RsBufferUPtr RsCoreImpl::createBuffer( 
+		const RsBufferDesc& Desc, 
+		const BcChar* DebugName )
 {
 	BcAssert( BcIsGameThread() );
 
 	auto Context = getContext( nullptr );
 	RsBufferUPtr Resource( new RsBuffer( Context, Desc ) );
+	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			Context->createBuffer( Resource );
+			if( !Context->createBuffer( Resource ) )
+			{
+				PSY_LOG( "Failed RsBuffer creation: %s", Resource->getDebugName() );
+			}
 		} );
 	
 	return Resource;
@@ -386,19 +419,20 @@ RsBufferUPtr RsCoreImpl::createBuffer( const RsBufferDesc& Desc )
 RsShaderUPtr RsCoreImpl::createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
-		const std::string& DebugName )
+		const BcChar* DebugName )
 {
 	auto Context = getContext( nullptr );
 	RsShaderUPtr Resource( new RsShader( Context, Desc, pShaderData, ShaderDataSize ) );
+	Resource->setDebugName( DebugName );
 	
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob( 
 		RsCore::JOB_QUEUE_ID,
-		[ Context, Resource = Resource.get(), DebugName ]
+		[ Context, Resource = Resource.get() ]
 		{
 			if( !Context->createShader( Resource ) )
 			{
-				PSY_LOG( "Failed shader creation: %s", DebugName.c_str() );
+				PSY_LOG( "Failed RsShader creation: %s", Resource->getDebugName() );
 			}
 		} );
 
@@ -413,7 +447,7 @@ RsProgramUPtr RsCoreImpl::createProgram(
 		RsProgramVertexAttributeList VertexAttributes,
 		RsProgramUniformList UniformList,
 		RsProgramUniformBlockList UniformBlockList,
-		const std::string& DebugName )
+		const BcChar* DebugName )
 {
 	auto Context = getContext( nullptr );
 
@@ -425,19 +459,21 @@ RsProgramUPtr RsCoreImpl::createProgram(
 		std::move( VertexAttributes ),
 		std::move( UniformList ),
 		std::move( UniformBlockList ) ) );
+	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, Resource = Resource.get(), DebugName ]
+		[ Context, Resource = Resource.get() ]
 		{
 			if( !Context->createProgram( Resource ) )
 			{
-				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+				PSY_LOG( "Failed RsProgram creation: %s", Resource->getDebugName() );
 			}
 		} );
 
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AlivePrograms_.insert( Resource.get() );
 #endif
 
@@ -450,7 +486,7 @@ RsProgramUPtr RsCoreImpl::createProgram(
 RsProgramBindingUPtr RsCoreImpl::createProgramBinding( 
 		RsProgram* Program,
 		const RsProgramBindingDesc& ProgramBindingDesc,
-		const std::string& DebugName )
+		const BcChar* DebugName )
 {
 	auto Context = getContext( nullptr );
 
@@ -460,18 +496,21 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 		Context, 
 		Program,
 		ProgramBindingDesc ) );
+	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, Resource = Resource.get(), DebugName ]
+		[ Context, Resource = Resource.get() ]
 		{
 			if( !Context->createProgramBinding( Resource ) )
 			{
-				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+				PSY_LOG( "Failed RsProgramBinding creation: %s", Resource->getDebugName() );
 			}
 		} );
-#if PSY_DEBUG
+
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveProgramBindings_.insert( Resource.get() );
 #endif
 	return Resource;
@@ -482,25 +521,28 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 //virtual
 RsGeometryBindingUPtr RsCoreImpl::createGeometryBinding( 
 		const RsGeometryBindingDesc& GeometryBindingDesc,
-		const std::string& DebugName )
+		const BcChar* DebugName )
 {
 	auto Context = getContext( nullptr );
 
 	RsGeometryBindingUPtr Resource( new RsGeometryBinding(
 		Context, 
 		GeometryBindingDesc ) );
+	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, Resource = Resource.get(), DebugName ]
+		[ Context, Resource = Resource.get() ]
 		{
 			if( !Context->createGeometryBinding( Resource ) )
 			{
-				PSY_LOG( "Failed program creation: %s", DebugName.c_str() );
+				PSY_LOG( "Failed RsGeometryBinding creation: %s", Resource->getDebugName() );
 			}
 		} );
-#if PSY_DEBUG
+
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveGeometryBindings_.insert( Resource.get() );
 #endif
 	return Resource;
@@ -556,20 +598,24 @@ void RsCoreImpl::destroyResource( RsSamplerState* SamplerState )
 		return;
 	}
 
-#if PSY_DEBUG
-	for( const auto* ProgramBinding : AliveProgramBindings_ )
-	{
-		const auto& Desc = ProgramBinding->getDesc();
-		for( const auto& BindingSamplerState : Desc.SamplerStates_ )
-		{
-			BcAssertMsg( BindingSamplerState != SamplerState, "RsSamplerState is currently being used in a RsProgramBinding." );
-		}
-	}
-#endif
 
 	ResourceDeletionList_.push_back(
-		[ SamplerState ]()
+		[ this, SamplerState ]()
 		{
+#if !PSY_PRODUCTION
+			std::lock_guard< std::mutex > Lock( AliveLock_ );
+			for( const auto* ProgramBinding : AliveProgramBindings_ )
+			{
+				const auto& Desc = ProgramBinding->getDesc();
+				for( const auto& BindingSamplerState : Desc.SamplerStates_ )
+				{
+					BcAssertMsg( BindingSamplerState != SamplerState, "RsSamplerState %s is currently being used in RsProgramBinding %s.",
+						SamplerState->getDebugName(),
+						ProgramBinding->getDebugName() );
+				}
+			}
+#endif
+
 			SamplerState->getContext()->destroySamplerState( SamplerState );
 			delete SamplerState;
 		} );
@@ -585,39 +631,47 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 		return;
 	}
 
-#if PSY_DEBUG
-	for( const auto* GeometryBinding : AliveGeometryBindings_ )
-	{
-		const auto& Desc = GeometryBinding->getDesc();
-		for( const auto& VertexBufferBinding : Desc.VertexBuffers_ )
-		{
-			BcAssertMsg( VertexBufferBinding.Buffer_ != Buffer, "RsBuffer is currently being used in a RsGeometryBinding." );
-		}
-	}
-
-	for( const auto* ProgramBinding : AliveProgramBindings_ )
-	{
-		const auto& Desc = ProgramBinding->getDesc();
-		for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
-		{
-			BcAssertMsg( SRVSlot.Buffer_ != Buffer, "RsBuffer is currently being used in a RsProgramBinding as a SRV." );
-		}
-
-		for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
-		{
-			BcAssertMsg( UAVSlot.Buffer_ != Buffer, "RsBuffer is currently being used in a RsProgramBinding as a UAV." );
-		}
-
-		for( const auto& UniformBuffer : Desc.UniformBuffers_ )
-		{
-			BcAssertMsg( UniformBuffer != Buffer, "RsBuffer is currently being used in a RsProgramBinding as a uniform buffer." );
-		}
-	}
-#endif
-
 	ResourceDeletionList_.push_back(
-		[ Buffer ]()
+		[ this, Buffer ]()
 		{
+#if !PSY_PRODUCTION
+			std::lock_guard< std::mutex > Lock( AliveLock_ );
+			for( const auto* GeometryBinding : AliveGeometryBindings_ )
+			{
+				const auto& Desc = GeometryBinding->getDesc();
+				for( const auto& VertexBufferBinding : Desc.VertexBuffers_ )
+				{
+					BcAssertMsg( VertexBufferBinding.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsGeometryBinding %s.", 
+						Buffer->getDebugName(),
+						GeometryBinding->getDebugName() );
+				}
+			}
+
+			for( const auto* ProgramBinding : AliveProgramBindings_ )
+			{
+				const auto& Desc = ProgramBinding->getDesc();
+				for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
+				{
+					BcAssertMsg( SRVSlot.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a SRV.", 
+						Buffer->getDebugName(),
+						ProgramBinding->getDebugName() );
+				}
+
+				for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
+				{
+					BcAssertMsg( UAVSlot.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a UAV.", 
+						Buffer->getDebugName(),
+						ProgramBinding->getDebugName() );
+				}
+
+				for( const auto& UniformBuffer : Desc.UniformBuffers_ )
+				{
+					BcAssertMsg( UniformBuffer != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a uniform buffer.", 
+						Buffer->getDebugName(),
+						ProgramBinding->getDebugName() );
+				}
+			}
+#endif
 			auto Context = Buffer->getContext();
 			auto RetVal = Context->destroyBuffer( Buffer );
 			delete Buffer;
@@ -635,39 +689,48 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 		return;
 	}
 
-#if PSY_DEBUG
-	for( const auto* FrameBuffer : AliveFrameBuffers_ )
-	{
-		const auto& Desc = FrameBuffer->getDesc();
-		for( const auto& RTTexture : Desc.RenderTargets_ )
+	ResourceDeletionList_.push_back(
+		[ this, Texture ]()
 		{
-			BcAssertMsg( RTTexture != Texture, "RsTexture is currently being used in a RsFrameBuffer." );
-		}
-		BcAssertMsg( Desc.DepthStencilTarget_ != Texture, "RsTexture is currently being used in a RsFrameBuffer." );
-	}
+#if !PSY_PRODUCTION
+			std::lock_guard< std::mutex > Lock( AliveLock_ );
+			for( const auto* FrameBuffer : AliveFrameBuffers_ )
+			{
+				const auto& Desc = FrameBuffer->getDesc();
+				for( const auto& RTTexture : Desc.RenderTargets_ )
+				{
+					BcAssertMsg( RTTexture != Texture, "RsTexture %s is currently being used in RsFrameBuffer %s.", 
+						Texture->getDebugName(),
+						FrameBuffer->getDebugName() );
+				}
+				BcAssertMsg( Desc.DepthStencilTarget_ != Texture, "RsTexture %s is currently being used in RsFrameBuffer %s.", 
+					Texture->getDebugName(),
+					FrameBuffer->getDebugName() );
+			}
 
-	for( const auto* ProgramBinding : AliveProgramBindings_ )
-	{
-		const auto& Desc = ProgramBinding->getDesc();
-		for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
-		{
-			BcAssertMsg( SRVSlot.Texture_ != Texture, "RsTexture is currently being used in a RsProgramBinding as a SRV." );
-		}
+			for( const auto* ProgramBinding : AliveProgramBindings_ )
+			{
+				const auto& Desc = ProgramBinding->getDesc();
+				for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
+				{
+					BcAssertMsg( SRVSlot.Texture_ != Texture, "RsTexture is currently being used in RsProgramBinding %s as a SRV.", 
+						Texture->getDebugName(),
+						ProgramBinding->getDebugName() );
+				}
 
-		for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
-		{
-			BcAssertMsg( UAVSlot.Texture_ != Texture, "RsTexture is currently being used in a RsProgramBinding as a UAV." );
-		}
-	}
+				for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
+				{
+					BcAssertMsg( UAVSlot.Texture_ != Texture, "RsTexture is currently being used in RsProgramBinding %s as a UAV.", 
+						Texture->getDebugName(),
+						ProgramBinding->getDebugName() );
+				}
+			}
 #endif
 
-	ResourceDeletionList_.push_back(
-		[ Texture ]()
-		{
 			auto Context = Texture->getContext();
-			auto RetVal = Context->destroyTexture( Texture );
-			delete Texture;
-			BcUnusedVar( RetVal );
+				auto RetVal = Context->destroyTexture( Texture );
+				delete Texture;
+				BcUnusedVar( RetVal );
 		} );
 }
 
@@ -690,7 +753,8 @@ void RsCoreImpl::destroyResource( RsFrameBuffer* FrameBuffer )
 			BcUnusedVar( RetVal );
 		} );
 
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveFrameBuffers_.erase( FrameBuffer );
 #endif
 }
@@ -705,20 +769,22 @@ void RsCoreImpl::destroyResource( RsShader* Shader )
 		return;
 	}
 
-#if PSY_DEBUG
-	for( const auto* Program : AlivePrograms_ )
-	{
-		const auto& ProgramShaders = Program->getShaders();
-		for( const auto& ProgramShader : ProgramShaders )
-		{
-			BcAssertMsg( ProgramShader != Shader, "RsShadwer is currently being used in a RsProgram." );
-		}
-	}
-#endif
-
 	ResourceDeletionList_.push_back(
-		[ Shader ]()
+		[ this, Shader ]()
 		{
+#if !PSY_PRODUCTION
+			std::lock_guard< std::mutex > Lock( AliveLock_ );
+			for( const auto* Program : AlivePrograms_ )
+			{
+				const auto& ProgramShaders = Program->getShaders();
+				for( const auto& ProgramShader : ProgramShaders )
+				{
+					BcAssertMsg( ProgramShader != Shader, "RsShader %s is currently being used in RsProgram %s.", 
+						Shader->getDebugName(),
+						Program->getDebugName() );
+				}
+			}
+#endif
 			auto Context = Shader->getContext();
 			auto RetVal = Context->destroyShader( Shader );
 			delete Shader;
@@ -736,23 +802,24 @@ void RsCoreImpl::destroyResource( RsProgram* Program )
 		return;
 	}
 
-#if PSY_DEBUG
-	for( const auto* ProgramBinding : AliveProgramBindings_ )
-	{
-		BcAssertMsg( ProgramBinding->getProgram() != Program, "RsProgram is currently being used in a RsProgramBinding." );
-	}
-#endif
-
 	ResourceDeletionList_.push_back(
-		[ Program ]()
+		[ this, Program ]()
 		{
+#if !PSY_PRODUCTION
+			std::lock_guard< std::mutex > Lock( AliveLock_ );
+			for( const auto* ProgramBinding : AliveProgramBindings_ )
+			{
+				BcAssertMsg( ProgramBinding->getProgram() != Program, "RsProgram is currently being used in RsProgramBinding %s.", ProgramBinding->getDebugName() );
+			}
+#endif
 			auto Context = Program->getContext();
 			auto RetVal = Context->destroyProgram( Program );
 			delete Program;
 			BcUnusedVar( RetVal );
 		} );
 
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AlivePrograms_.erase( Program );
 #endif
 }
@@ -775,7 +842,9 @@ void RsCoreImpl::destroyResource( RsProgramBinding* ProgramBinding )
 			delete ProgramBinding;
 			BcUnusedVar( RetVal );
 		} );
-#if PSY_DEBUG
+
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveProgramBindings_.erase( ProgramBinding );
 #endif
 }
@@ -798,7 +867,9 @@ void RsCoreImpl::destroyResource( RsGeometryBinding* GeometryBinding )
 			delete GeometryBinding;
 			BcUnusedVar( RetVal );
 		} );
-#if PSY_DEBUG
+
+#if !PSY_PRODUCTION
+	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveGeometryBindings_.erase( GeometryBinding );
 #endif
 }
@@ -813,17 +884,18 @@ void RsCoreImpl::destroyResource( RsVertexDeclaration* VertexDeclaration )
 		return;
 	}
 
-#if PSY_DEBUG
-	for( const auto* GeometryBinding : AliveGeometryBindings_ )
-	{
-		const auto& Desc = GeometryBinding->getDesc();
-		BcAssertMsg( Desc.VertexDeclaration_ != VertexDeclaration, "RsVertexDeclaration is currently being used in an RsGeometryBinding." );
-	}
-#endif
-
 	ResourceDeletionList_.push_back(
-		[ VertexDeclaration ]()
+		[ this, VertexDeclaration ]()
 		{
+#if !PSY_PRODUCTION
+			std::lock_guard< std::mutex > Lock( AliveLock_ );
+			for( const auto* GeometryBinding : AliveGeometryBindings_ )
+			{
+				const auto& Desc = GeometryBinding->getDesc();
+				BcAssertMsg( Desc.VertexDeclaration_ != VertexDeclaration, "RsVertexDeclaration is currently being used in RsGeometryBinding %s.", GeometryBinding->getDebugName() );
+			}
+#endif
+	
 			auto Context = VertexDeclaration->getContext();
 			auto RetVal = Context->destroyVertexDeclaration( VertexDeclaration );
 			delete VertexDeclaration;

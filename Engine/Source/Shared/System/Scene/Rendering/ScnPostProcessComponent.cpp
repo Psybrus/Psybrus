@@ -292,7 +292,8 @@ void ScnPostProcessComponent::recreateResources()
 		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 2 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ScnPostProcessVertex*)0)->Position_),  4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
-				.addElement( RsVertexElement( 0, (size_t)(&((ScnPostProcessVertex*)0)->UV_), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) ) );
+				.addElement( RsVertexElement( 0, (size_t)(&((ScnPostProcessVertex*)0)->UV_), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) ),
+			getFullName().c_str() );
 	}
 
 	if( VertexBuffer_ == nullptr )
@@ -302,7 +303,8 @@ void ScnPostProcessComponent::recreateResources()
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
 				RsResourceCreationFlags::STREAM, 
-				VertexBufferSize ) );
+				VertexBufferSize ),
+			getFullName().c_str() );
 
 		const auto& Features = RsCore::pImpl()->getContext( 0 )->getFeatures();
 		const auto RTOrigin = Features.RTOrigin_;
@@ -345,7 +347,7 @@ void ScnPostProcessComponent::recreateResources()
 		RsGeometryBindingDesc GeometryBindingDesc;
 		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
 		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnPostProcessVertex ) );
-		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() );
+		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 	}
 
 	const ScnShaderPermutationFlags Permutation = 
@@ -367,7 +369,7 @@ void ScnPostProcessComponent::recreateResources()
 		for( auto& SamplerSlot : Node.InputSamplers_ )
 		{
 			BcU32 Slot = Program->findSamplerSlot( SamplerSlot.first.c_str() );
-			RsSamplerStateUPtr SamplerState( RsCore::pImpl()->createSamplerState( SamplerSlot.second ) );
+			RsSamplerStateUPtr SamplerState( RsCore::pImpl()->createSamplerState( SamplerSlot.second, getFullName().c_str() ) );
 			ProgramBindingDesc.setSamplerState( Slot, SamplerState.get() );
 			SamplerStates_.emplace_back( std::move( SamplerState ) );
 		}
@@ -413,7 +415,7 @@ void ScnPostProcessComponent::recreateResources()
 			auto& BlockData = Uniforms.Data_;
 			auto BufferDesc = RsBufferDesc( 
 				RsBufferType::UNIFORM, RsResourceCreationFlags::DYNAMIC, BlockData.getDataSize() );
-			RsBufferUPtr Buffer( RsCore::pImpl()->createBuffer( BufferDesc ) );
+			RsBufferUPtr Buffer( RsCore::pImpl()->createBuffer( BufferDesc, getFullName().c_str() ) );
 			ProgramBindingDesc.setUniformBuffer( Slot, Buffer.get() );
 			Uniforms.Buffer_ = Buffer.get();
 			UniformBuffers_.emplace_back( std::move( Buffer ) );
@@ -431,9 +433,9 @@ void ScnPostProcessComponent::recreateResources()
 			}
 		}
 
-		FrameBuffers_.push_back( RsCore::pImpl()->createFrameBuffer( Desc ) );		
-		RenderStates_.push_back( RsCore::pImpl()->createRenderState( Node.RenderState_ ) );	
+		FrameBuffers_.push_back( RsCore::pImpl()->createFrameBuffer( Desc, getFullName().c_str() ) );	
+		RenderStates_.push_back( RsCore::pImpl()->createRenderState( Node.RenderState_, getFullName().c_str() ) );	
 
-		ProgramBindings_.emplace_back( RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName() ) );
+		ProgramBindings_.emplace_back( RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() ) );
 	}
 }

@@ -431,19 +431,22 @@ namespace Psybrus
 			RsVertexDeclarationDesc( 3 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->pos),  2, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->uv), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
-				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ) );
+				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ),
+			"DsImGui" );
 
 		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
 				RsResourceCreationFlags::STREAM, 
-				65536 * VertexDeclaration_->getDesc().getMinimumStride() ) );
+				65536 * VertexDeclaration_->getDesc().getMinimumStride() ),
+			"DsImGui" );
 
 		IndexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::INDEX,
 				RsResourceCreationFlags::STREAM, 
-				128 * 1024 * sizeof( BcU16 ) ) );
+				128 * 1024 * sizeof( BcU16 ) ),
+			"DsImGui" );
 
 		RsGeometryBindingDesc GeometryBindingDesc;
 		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
@@ -455,13 +458,14 @@ namespace Psybrus
 			RsBufferDesc(
 				RsBufferType::UNIFORM,
 				RsResourceCreationFlags::STREAM,
-				sizeof( UniformBlock_ ) ) );
+				sizeof( UniformBlock_ ) ),
+			"DsImGui" );
 
 		auto SamplerStateDesc = RsSamplerStateDesc();
 		SamplerStateDesc.AddressU_ = RsTextureSamplingMode::CLAMP;
 		SamplerStateDesc.AddressV_ = RsTextureSamplingMode::CLAMP;
 		SamplerStateDesc.AddressW_ = RsTextureSamplingMode::CLAMP;
-		FontSampler_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc );
+		FontSampler_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, "DsImGui" );
 		unsigned char* Pixels = nullptr;
 		int Width, Height;
 		ImGuiIO& IO = ImGui::GetIO();
@@ -477,7 +481,8 @@ namespace Psybrus
 				1,
 				Width, 
 				Height,
-				1 ) );
+				1 ),
+			"DsImGui" );
 
 		RsTextureSlice Slice = { 0, RsTextureFace::NONE };
 		RsCore::pImpl()->updateTexture( FontTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
@@ -500,7 +505,8 @@ namespace Psybrus
 				1,
 				1, 
 				1,
-				1 ) );
+				1 ),
+			"DsImGui" );
 
 		RsCore::pImpl()->updateTexture( WhiteTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
 			[ Pixels ]( class RsTexture* Texture, const RsTextureLock& Lock )
@@ -508,7 +514,6 @@ namespace Psybrus
 				BcU32* Texel = reinterpret_cast< BcU32* >( Lock.Buffer_ );
 				*Texel = 0xffffffff;
 			} );
-
 
 		auto RenderStateDesc = RsRenderStateDesc();
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].Enable_ = BcTrue;
@@ -523,7 +528,7 @@ namespace Psybrus
 		RenderStateDesc.DepthStencilState_.DepthWriteEnable_ = BcFalse;
 		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcTrue;
 		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
-		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc );
+		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, "DsImGui" );
 
 		IO.Fonts->TexID = FontTexture_.get();
 

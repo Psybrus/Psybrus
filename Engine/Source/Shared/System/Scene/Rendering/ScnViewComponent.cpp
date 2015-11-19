@@ -117,7 +117,8 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( ViewUniformBlock_ ) ) );
+			sizeof( ViewUniformBlock_ ) ),
+		getFullName().c_str() );
 
 	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
 		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
@@ -392,7 +393,7 @@ void ScnViewComponent::recreateFrameBuffer()
 			FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
 		}
 
-		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
+		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc, getFullName().c_str() );
 	}
 }
 

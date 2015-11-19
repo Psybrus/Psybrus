@@ -156,12 +156,6 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 	pEventProxy_ = nullptr;
 #endif
 
-	// All our child components want to detach.
-	while( Components_.size() > 0 )
-	{
-		detach( Components_.back() );
-	}
-
 	Super::onDetach( Parent );
 }
 

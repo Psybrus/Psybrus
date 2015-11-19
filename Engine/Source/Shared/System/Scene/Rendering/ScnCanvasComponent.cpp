@@ -689,19 +689,21 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 		RsVertexDeclarationDesc( 3 )
 			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
 			.addElement( RsVertexElement( 0, 16,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ),
+		getFullName().c_str() );
 
 	// Allocate render resources.
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
 			RsBufferType::VERTEX,
 			RsResourceCreationFlags::STREAM,
-			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
+			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ),
+		getFullName().c_str() );
 
 	RsGeometryBindingDesc GeometryBindingDesc;
 	GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
 	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnCanvasComponentVertex ) );
-	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];

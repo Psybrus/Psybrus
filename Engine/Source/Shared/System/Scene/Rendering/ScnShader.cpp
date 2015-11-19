@@ -79,6 +79,11 @@ void ScnShader::create()
 //virtual
 void ScnShader::destroy()
 {
+	for( auto& ProgramEntry : ProgramMap_ )
+	{
+		RsCore::pImpl()->destroyResource( ProgramEntry.second );
+	}
+
 	for( auto& ShaderMapping : ShaderMappings_ )
 	{
 		for( auto& ShaderEntry : ShaderMapping.Shaders_ )
@@ -87,11 +92,6 @@ void ScnShader::destroy()
 		}
 
 		ShaderMapping.Shaders_.clear();
-	}
-
-	for( auto& ProgramEntry : ProgramMap_ )
-	{
-		RsCore::pImpl()->destroyResource( ProgramEntry.second );
 	}
 
 	ProgramMap_.clear();
@@ -234,7 +234,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			RsShaderUPtr Shader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize,
-				*getName() );
+				getFullName().c_str() );
 			ShaderMappings_[ (BcU32)pShaderHeader->ShaderType_ ].Shaders_[ pShaderHeader->ShaderHash_ ] = Shader.release();
 		}
 	}
@@ -306,7 +306,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				std::move( VertexAttributes ),
 				std::move( Uniforms ),
 				std::move( UniformBlocks ),
-				*getName() );			
+				getFullName().c_str() );			
 			ProgramMap_[ pProgramHeader->ProgramPermutationFlags_ ] = Program.release();
 		}
 	}

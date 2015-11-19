@@ -113,14 +113,16 @@ void ScnModel::create()
 		}
 		
 		RsVertexDeclarationUPtr VertexDeclaration(
-			RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc ) );
+			RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc,
+				getFullName().c_str() ) );
 
 		BcU32 VertexBufferSize = pMeshData->NoofVertices_ * pMeshData->VertexStride_;
 		RsBufferUPtr VertexBuffer( RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX, 
 				RsResourceCreationFlags::STATIC,
-				VertexBufferSize ) ) );
+				VertexBufferSize ),
+			getFullName().c_str() ) );
 
 		RsCore::pImpl()->updateBuffer( 
 			VertexBuffer.get(), 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
@@ -139,7 +141,8 @@ void ScnModel::create()
 				RsBufferDesc( 
 					RsBufferType::INDEX, 
 					RsResourceCreationFlags::STATIC, 
-					IndexBufferSize ) ) );
+					IndexBufferSize ),
+				getFullName().c_str() ) );
 
 		RsCore::pImpl()->updateBuffer( 
 			IndexBuffer.get(), 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
@@ -157,7 +160,7 @@ void ScnModel::create()
 		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer.get(), pMeshData->VertexStride_ );
 		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration.get() );
 		RsGeometryBindingUPtr GeometryBinding( 
-			RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName() ) );
+			RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() ) );
 
 		// Setup runtime structure.
 		ScnModelMeshRuntime MeshRuntime;
@@ -718,7 +721,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 					RsBufferDesc( 
 						RsBufferType::UNIFORM,
 						RsResourceCreationFlags::STREAM,
-						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
+						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ), getFullName().c_str() ) : nullptr;
 		}
 		else
 		{
@@ -727,7 +730,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 					RsBufferDesc( 
 						RsBufferType::UNIFORM,
 						RsResourceCreationFlags::STREAM,
-						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ) ) : nullptr;
+						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ), getFullName().c_str() ) : nullptr;
 		}
 
 		//

@@ -84,72 +84,84 @@ public:
 	/**
 	 *	Create a render state.
 	 *	@param Desc descriptor.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsRenderStateUPtr createRenderState( 
-		const RsRenderStateDesc& Desc ) = 0;
+		const RsRenderStateDesc& Desc, 
+		const BcChar* DebugName ) = 0;
 
 	/**
 	 *	Create a sampler state.
 	 *	@param Desc descriptor.
+	 * @param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsSamplerStateUPtr createSamplerState( 
-		const RsSamplerStateDesc& Desc ) = 0;
+		const RsSamplerStateDesc& Desc, 
+		const BcChar* DebugName ) = 0;
 
 	/**
-	 * Create frame buffer.
-	 * @param Desc descriptor.
+	 *	Create frame buffer.
+	 *	@param Desc descriptor.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsFrameBufferUPtr createFrameBuffer( 
-		const RsFrameBufferDesc& Desc ) = 0;
+		const RsFrameBufferDesc& Desc, 
+		const BcChar* DebugName ) = 0;
 
 	/**
 	 *	Create a texture.
 	 *	@param Desc descriptor.
 	 *	@param pData Texture data.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsTextureUPtr createTexture( 
-		const RsTextureDesc& Desc ) = 0;
+		const RsTextureDesc& Desc, 
+		const BcChar* DebugName ) = 0;
 
 	/**
 	 *	Create a vertex declaration.
 	 *	@param Desc Descriptor object.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsVertexDeclarationUPtr createVertexDeclaration( 
-		const RsVertexDeclarationDesc& Desc ) = 0;
+		const RsVertexDeclarationDesc& Desc, 
+		const BcChar* DebugName ) = 0;
 
 	/*
-	 * Create a buffer.
-	 * @param Desc Buffer descriptor
+	 *	Create a buffer.
+	 *	@param Desc Buffer descriptor
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsBufferUPtr createBuffer( 
-		const RsBufferDesc& Desc ) = 0;
+		const RsBufferDesc& Desc, 
+		const BcChar* DebugName ) = 0;
 	
 	/**
-	 * Create shader.
-	 * @param Desc Shader descriptor.
-	 * @param pShaderData Shader data.
-	 * @param ShaderDataSize Shader data size.
-	 * @param DebugName Name used for debugging creation.
+	 *	Create shader.
+	 *	@param Desc Shader descriptor.
+	 *	@param pShaderData Shader data.
+	 *	@param ShaderDataSize Shader data size.
+		@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsShaderUPtr createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
-		const std::string& DebugName ) = 0;
+		const BcChar* DebugName ) = 0;
 
 	/**
-	 * Create program.
-	 * @param Shaders Array of shaders to use for program.
-	 * @param VertexAttributes Vertex attributes for program.
-	 * @param UniformList Uniforms for program.
-	 * @param UniformBlockList Uniform blocks for program.
-	 * @param DebugName Name used for debugging creation.
+	 *	Create program.
+	 *	@param Shaders Array of shaders to use for program.
+	 *	@param VertexAttributes Vertex attributes for program.
+	 *	@param UniformList Uniforms for program.
+	 *	@param UniformBlockList Uniform blocks for program.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsProgramUPtr createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
 		RsProgramUniformList UniformList,
 		RsProgramUniformBlockList UniformBlockList,
-		const std::string& DebugName ) = 0;
+		const BcChar* DebugName ) = 0;
 
 	/**
 	 * Create program binding.
@@ -160,27 +172,28 @@ public:
 	virtual RsProgramBindingUPtr createProgramBinding( 
 		RsProgram* Program,
 		const RsProgramBindingDesc& ProgramBindingDesc,
-		const std::string& DebugName ) = 0;
+		const BcChar* DebugName ) = 0;
 
 	/**
-	 * Create geometry binding.
-	 * @param GeometryBindingDesc Geometry binding descriptor.
-	 * @param DebugName Name used for debugging creation.
+	 *	Create geometry binding.
+	 *	@param GeometryBindingDesc Geometry binding descriptor.
+	 *	@param DebugName Name used for debugging creation.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsGeometryBindingUPtr createGeometryBinding( 
 		const RsGeometryBindingDesc& GeometryBindingDesc,
-		const std::string& DebugName ) = 0;
+		const BcChar* DebugName ) = 0;
 
 	/**
-	 * Update resource. Work done on render thread.
-	 * @param pResource Resource to update.
+	 *	Update resource. Work done on render thread.
+	 *	@param pResource Resource to update.
 	 */
 	virtual void updateResource( 
 		RsResource* pResource ) = 0;
 
 	/**
-	 * Destroy resource. Work done on render thread.
-	 * @param pResource Resource to destroy.
+	 *	Destroy resource. Work done on render thread.
+	 *	@param pResource Resource to destroy.
 	 */
 	virtual void destroyResource( 
 		RsResource* pResource ) = 0;
@@ -209,12 +222,12 @@ public:
 	// New interfaces.
 	
 	/**
-	 * Update buffer.
-	 * @param Buffer Pointer to buffer.
-	 * @param Offset Offset in vertex buffer in bytes.
-	 * @param Size Size to update in bytes. If 0, whole size of buffer is assumed.
-	 * @param Flags Resource update flags.
-	 * @param UpdateFunc Function to call for update.
+	 *	Update buffer.
+	 *	@param Buffer Pointer to buffer.
+	 *	@param Offset Offset in vertex buffer in bytes.
+	 *	@param Size Size to update in bytes. If 0, whole size of buffer is assumed.
+	 *	@param Flags Resource update flags.
+	 *	@param UpdateFunc Function to call for update.
 	 */
 	virtual bool updateBuffer( 
 		class RsBuffer* Buffer,
@@ -224,7 +237,7 @@ public:
 		RsBufferUpdateFunc UpdateFunc ) = 0;
 
 	/**
-	 * Update texture.
+	 *	Update texture.
 	 */
 	virtual bool updateTexture( 
 		class RsTexture* Texture,
@@ -233,23 +246,23 @@ public:
 		RsTextureUpdateFunc UpdateFunc ) = 0;	
 public:
 	/**
-	*	Allocate a frame for rendering.
-	*	GAME FUCTION: Called to get a frame prior to queuing up render objects.
-	*	@param pContext Rendering context to allocate frame for use with.
-	*/
-	virtual RsFrame*			allocateFrame( RsContext* pContext ) = 0;
+	 *	Allocate a frame for rendering.
+	 *	GAME FUCTION: Called to get a frame prior to queuing up render objects.
+	 *	@param pContext Rendering context to allocate frame for use with.
+	 */
+	virtual RsFrame* allocateFrame( RsContext* pContext ) = 0;
 
 	/**
-	*	Queue a frame for rendering.\n
-	*	GAME FUNCTION: Called from game thread to queue frame to be rendered.
-	*/
-	virtual void				queueFrame( RsFrame* pFrame ) = 0;
+	 *	Queue a frame for rendering.\n
+	 *	GAME FUNCTION: Called from game thread to queue frame to be rendered.
+	 */
+	virtual void queueFrame( RsFrame* pFrame ) = 0;
 
 	/**
-	*	Get frame time.
-	*	Time spent on last frame.
-	*/
-	virtual BcF64				getFrameTime() const = 0;
+	 *	Get frame time.
+	 *	Time spent on last frame.
+	 */
+	virtual BcF64 getFrameTime() const = 0;
 };
 
 #endif

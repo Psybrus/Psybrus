@@ -46,43 +46,44 @@ public:
 	void destroyContext( OsClient* pClient ) override;
 
 	RsRenderStateUPtr createRenderState( 
-		const RsRenderStateDesc& Desc ) override;
+		const RsRenderStateDesc& Desc, const BcChar* DebugName ) override;
 
 	RsSamplerStateUPtr createSamplerState( 
-		const RsSamplerStateDesc& Desc ) override;
+		const RsSamplerStateDesc& Desc, const BcChar* DebugName ) override;
 
 	RsFrameBufferUPtr createFrameBuffer( 
-		const RsFrameBufferDesc& Desc ) override;
+		const RsFrameBufferDesc& Desc, const BcChar* DebugName ) override;
 
 	RsTextureUPtr createTexture( 
-		const RsTextureDesc& Desc ) override;
+		const RsTextureDesc& Desc, const BcChar* DebugName ) override;
 
 	RsVertexDeclarationUPtr createVertexDeclaration( 
-		const RsVertexDeclarationDesc& Desc ) override;
+		const RsVertexDeclarationDesc& Desc, const BcChar* DebugName ) override;
 	
 	RsBufferUPtr createBuffer( 
-		const RsBufferDesc& Desc ) override;
+		const RsBufferDesc& Desc,
+		const BcChar* DebugName ) override;
 	
 	RsShaderUPtr createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
-		const std::string& DebugName ) override;
+		const BcChar* DebugName ) override;
 	
 	RsProgramUPtr createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
 		RsProgramUniformList UniformList,
 		RsProgramUniformBlockList UniformBlockList,
-		const std::string& DebugName ) override;
+		const BcChar* DebugName ) override;
 	
 	RsProgramBindingUPtr createProgramBinding( 
 		RsProgram* Program,
 		const RsProgramBindingDesc& ProgramBindingDesc,
-		const std::string& DebugName ) override;
+		const BcChar* DebugName ) override;
 
 	RsGeometryBindingUPtr createGeometryBinding( 
 		const RsGeometryBindingDesc& GeometryBindingDesc,
-		const std::string& DebugName ) override;
+		const BcChar* DebugName ) override;
 
 
 	void destroyResource( 
@@ -175,7 +176,8 @@ protected:
 
 	std::vector< std::function< void() > > ResourceDeletionList_;
 
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
+	std::mutex AliveLock_;
 	std::unordered_set< RsFrameBuffer* > AliveFrameBuffers_;
 	std::unordered_set< RsProgram* > AlivePrograms_;
 	std::unordered_set< RsGeometryBinding* > AliveGeometryBindings_;

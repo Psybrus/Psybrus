@@ -78,13 +78,13 @@ void ScnMaterial::create()
 	}
 	
 	// Create render state.
-	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_ );
+	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_, getFullName().c_str() );
 
 	// Create sampler states.
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 	{
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_ );
+		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_, getFullName().c_str() );
 		SamplerStateMap_[ pTextureHeader->SamplerName_ ] = std::move( SamplerState );
 	}
 
@@ -473,7 +473,7 @@ RsProgramBinding* ScnMaterialComponent::getProgramBinding()
 		{
 			ProgramBindingDesc_.setUniformBuffer( UniformBlockBinding.Index_, UniformBlockBinding.UniformBuffer_ );
 		}
-		ProgramBinding_ = RsCore::pImpl()->createProgramBinding( pProgram_, ProgramBindingDesc_, getFullName() );
+		ProgramBinding_ = RsCore::pImpl()->createProgramBinding( pProgram_, ProgramBindingDesc_, getFullName().c_str() );
 	}
 	return ProgramBinding_.get();
 }

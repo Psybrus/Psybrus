@@ -42,13 +42,25 @@ public:
 	/**
 	 * Get context resource belongs to.
 	 */
-	class RsContext*				getContext();
+	class RsContext* getContext();
+
+	/**
+	 * Set debug name.
+	 */
+	void setDebugName( const BcChar* DebugName );
+
+	/**
+	 * Get debug name.
+	 */
+	const BcChar* getDebugName() const;
 
 private:
 	friend class RsCoreImpl;
 
-	class RsContext*				pContext_;		///!< Owning/parent context.
-	std::atomic< int >				Refs_;			///!< Refs.
+	class RsContext* pContext_;		///!< Owning/parent context.
+#if PSY_DEBUG
+	std::string DebugName_;
+#endif
 };
 
 #endif

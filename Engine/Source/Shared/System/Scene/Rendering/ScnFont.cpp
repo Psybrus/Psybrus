@@ -1215,7 +1215,8 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( FontUniformData_ ) ) );
+			sizeof( FontUniformData_ ) ),
+		getFullName().c_str() );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "ScnFontUniformBlockData" );
 	if( UniformBlock != BcErrorCode )
 	{
