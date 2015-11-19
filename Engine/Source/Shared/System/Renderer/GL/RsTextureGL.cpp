@@ -132,14 +132,15 @@ void RsTextureGL::loadTexture(
 		if( Slice.Level_ > 0 )
 		{
 			if( Slice.Level_ > 1 )
-				return;
-				glGenerateMipmap( TypeGL );
-				if( glGetError() != 0 )
-				{
-					PSY_LOG( "ERROR: Attempting to create mipmaps for texture (%u levels), but glGenerateMipMap failed.", TextureDesc.Levels_ );
-				}
+			{
 				return;
 			}
+			glGenerateMipmap( TypeGL );
+			if( glGetError() != 0 )
+			{
+				PSY_LOG( "ERROR: Attempting to create mipmaps for texture (%u levels), but glGenerateMipMap failed.", TextureDesc.Levels_ );
+			}
+			return;
 		}
 	}
 #endif

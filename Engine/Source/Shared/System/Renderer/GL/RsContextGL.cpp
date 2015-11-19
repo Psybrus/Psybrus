@@ -1415,7 +1415,7 @@ void RsContextGL::clear(
 	{
 		GL( Disable( GL_SCISSOR_TEST ) );
 		BoundRasteriserState.ScissorEnable_ = BcFalse;
-		BoundRenderStateHash_ = 0;
+		BoundRenderStateHash_ = 0; // TODO: Use actual hash.
 	}
 
 	// TODO: Look into this? It causes an invalid operation.
@@ -1430,7 +1430,7 @@ void RsContextGL::clear(
 	{
 		GL( DepthMask( GL_TRUE ) );
 		BoundDepthStencilState.DepthWriteEnable_ = BcTrue;
-		BoundRenderStateHash_ = 0;
+		BoundRenderStateHash_ = 0; // TODO: Use actual hash.
 	}
 	GL( Clear( 
 		( EnableClearColour ? GL_COLOR_BUFFER_BIT : 0 ) | 
@@ -2339,6 +2339,7 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 		{
 			const auto& SamplerStateSlotGL = ProgramGL->getSamplerBindInfo( Idx );
 
+#if !defined( RENDER_USE_GLES )
 			if( Version_.SupportSamplerStates_ )
 			{
 				// TODO: Redundant state checking.
@@ -2352,6 +2353,7 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 				}
 			}
 			else
+#endif // !defined( RENDER_USE_GLES )
 			{
 				// TODO: Redundant state checking on currently bound texture.
 
@@ -2387,6 +2389,7 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 	BcAssert( (GLuint)BoundProgram ==  ProgramGL->getHandle() );
 #endif
 
+#if !defined( RENDER_USE_GLES )
 	if( Version_.SupportUniformBuffers_ )
 	{
 		for( BcU32 Idx = 0; Idx < ProgramGL->getUniformBufferBindCount(); ++Idx )
@@ -2412,6 +2415,7 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 			}
 		}
 	}
+#endif // !defined( RENDER_USE_GLES )
 
 	ProgramGL->copyUniformBuffersToUniforms( Bindings.UniformBuffers_.size(), Bindings.UniformBuffers_.data() );
 }
