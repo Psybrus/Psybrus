@@ -1026,7 +1026,7 @@ bool RsContextGL::createBuffer( RsBuffer* Buffer )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Create buffer impl.
-	auto BufferGL = new RsBufferGL( Buffer, Version_ );
+	new RsBufferGL( Buffer, Version_ );
 
 	++NoofBuffers_;
 
@@ -1134,10 +1134,8 @@ bool RsContextGL::createTexture( class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	const auto& TextureDesc = Texture->getDesc();
-
 	// Create GL texture.
-	RsTextureGL* TextureGL = new RsTextureGL( Texture );
+	new RsTextureGL( Texture );
 	
 	++NoofTextures_;
 	return true;
@@ -1321,7 +1319,7 @@ bool RsContextGL::createProgram( RsProgram* Program )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Set handle.
-	RsProgramGL* ProgramGL = new RsProgramGL( Program, Version_ );
+	new RsProgramGL( Program, Version_ );
 
 	++NoofPrograms_;
 
@@ -1456,8 +1454,16 @@ void RsContextGL::drawPrimitives(
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
 	const auto* Program = ProgramBinding->getProgram();
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-
 	bindProgram( Program );
+	if( BoundProgramBinding_ != ProgramBinding )
+	{
+		bindSRVs( Program, ProgramBindingDesc );
+		bindSamplerStates( Program, ProgramBindingDesc );
+		bindUniformBuffers( Program, ProgramBindingDesc );
+		BoundProgramBinding_ = ProgramBinding;
+	}
+	// TODO: Add memory barrier to the binding object.
+	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 	bindGeometry( Program, GeometryBinding );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
@@ -1466,15 +1472,6 @@ void RsContextGL::drawPrimitives(
 		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
 		BoundRenderStateHash_ = RenderState->getHandle< BcU64 >();
 	}
-	if( BoundProgramBinding_ != ProgramBinding )
-	{
-		BoundProgramBinding_ = ProgramBinding;
-		bindSRVs( Program, ProgramBindingDesc );
-		bindSamplerStates( Program, ProgramBindingDesc );
-		bindUniformBuffers( Program, ProgramBindingDesc );
-	}
-	// TODO: Add memory barrier to the binding object.
-	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
 	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
 
@@ -1504,8 +1501,16 @@ void RsContextGL::drawIndexedPrimitives(
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
 	const auto* Program = ProgramBinding->getProgram();
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
-
 	bindProgram( Program );
+	if( BoundProgramBinding_ != ProgramBinding )
+	{
+		bindSRVs( Program, ProgramBindingDesc );
+		bindSamplerStates( Program, ProgramBindingDesc );
+		bindUniformBuffers( Program, ProgramBindingDesc );
+		BoundProgramBinding_ = ProgramBinding;
+	}
+	// TODO: Add memory barrier to the binding object.
+	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 	bindGeometry( Program, GeometryBinding );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
@@ -1514,15 +1519,6 @@ void RsContextGL::drawIndexedPrimitives(
 		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
 		BoundRenderStateHash_ = RenderState->getHandle< BcU64 >();
 	}
-	if( BoundProgramBinding_ != ProgramBinding )
-	{
-		BoundProgramBinding_ = ProgramBinding;
-		bindSRVs( Program, ProgramBindingDesc );
-		bindSamplerStates( Program, ProgramBindingDesc );
-		bindUniformBuffers( Program, ProgramBindingDesc );
-	}
-	// TODO: Add memory barrier to the binding object.
-	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
 	BcAssert( GeometryBinding->getDesc().IndexBuffer_ );
 	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= GeometryBinding->getDesc().IndexBuffer_->getDesc().SizeBytes_ );
@@ -1715,15 +1711,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 {
 	PSY_PROFILE_FUNCTION;
 
-	if( FrameBuffer )
-	{
-		GLint Handle = FrameBuffer->getHandle< GLint >();
-		GL( BindFramebuffer( GL_FRAMEBUFFER, Handle ) );
-	}
-	else
-	{
-		GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
-	}
 	// Determine frame buffer width + height.
 	auto FBWidth = Width_;
 	auto FBHeight = Height_;
@@ -1734,29 +1721,52 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 		FBWidth = RT->getDesc().Width_;
 		FBHeight = RT->getDesc().Height_;
 	}
+	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
+	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
 
 	BcAssert( FBWidth > 0 );
 	BcAssert( FBHeight > 0 );
 
+	if( BoundFrameBuffer_ != FrameBuffer )
+	{
+		if( FrameBuffer )
+		{
+			GLint Handle = FrameBuffer->getHandle< GLint >();
+			GL( BindFramebuffer( GL_FRAMEBUFFER, Handle ) );
+		}
+		else
+		{
+			GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
+		}
+		BoundViewport_  = FullViewport;
+		BoundScissorRect_ = FullScissorRect;
+	}
+
 	// Setup viewport if null.
-	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	Viewport = Viewport != nullptr ? Viewport : &FullViewport;
 
 	// Setup scissor rect if null.
-	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
 	ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
 
-	const auto VX = Viewport->x();
-	const auto VY = FBHeight - Viewport->height();
-	const auto VW = Viewport->width() - Viewport->x();
-	const auto VH = Viewport->height() - Viewport->y();
-	GL( Viewport( VX, VY, VW, VH ) );
+	if( BoundViewport_ != *Viewport )
+	{
+		const auto VX = Viewport->x();
+		const auto VY = FBHeight - Viewport->height();
+		const auto VW = Viewport->width() - Viewport->x();
+		const auto VH = Viewport->height() - Viewport->y();
+		GL( Viewport( VX, VY, VW, VH ) );
+		BoundViewport_ = *Viewport;
+	}
 
-	const auto SX = ScissorRect->X_;
-	const auto SY = FBHeight - ( ScissorRect->Height_ + ScissorRect->Y_ );
-	const auto SW = ScissorRect->Width_;
-	const auto SH = ScissorRect->Height_;
-	GL( Scissor( SX, SY, SW, SH ) );
+	if( BoundScissorRect_ != *ScissorRect )
+	{
+		const auto SX = ScissorRect->X_;
+		const auto SY = FBHeight - ( ScissorRect->Height_ + ScissorRect->Y_ );
+		const auto SW = ScissorRect->Width_;
+		const auto SH = ScissorRect->Height_;
+		GL( Scissor( SX, SY, SW, SH ) );
+		BoundScissorRect_ = *ScissorRect;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1768,6 +1778,8 @@ void RsContextGL::bindProgram( const RsProgram* Program )
 	if( BoundProgram_ != Program )
 	{
 		BoundProgram_ = Program;
+		BoundProgramBinding_ = nullptr;
+		BoundGeometryBinding_ = nullptr;
 		RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 		GL( UseProgram( ProgramGL->getHandle() ) );
 	}
@@ -2243,7 +2255,7 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 						BindingInfo.Resource_ = SRVSlot.Resource_;
 						BindingInfo.Buffer_ = BufferGL->getHandle();
 						BindingInfo.Offset_ = 0;
-						BindingInfo.Size_ = SRVSlot.Buffer_->getDesc().SizeBytes_;
+						BindingInfo.Size_ = (GLsizei)SRVSlot.Buffer_->getDesc().SizeBytes_;
 					}
 				}
 				break;
@@ -2317,13 +2329,13 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||
 						BindingInfo.Buffer_ != BufferGL->getHandle() ||
 						BindingInfo.Offset_ != 0 ||
-						BindingInfo.Size_ != UAVSlot.Buffer_->getDesc().SizeBytes_ )
+						BindingInfo.Size_ != (GLsizei)UAVSlot.Buffer_->getDesc().SizeBytes_ )
 					{
 						GL( BindBufferBase( GL_SHADER_STORAGE_BUFFER, UAVSlotGL.Slot_, BufferGL->getHandle() ) );
 						BindingInfo.Resource_ = UAVSlot.Resource_;
 						BindingInfo.Buffer_ = BufferGL->getHandle();
 						BindingInfo.Offset_ = 0;
-						BindingInfo.Size_ = UAVSlot.Buffer_->getDesc().SizeBytes_;
+						BindingInfo.Size_ = (GLsizei)UAVSlot.Buffer_->getDesc().SizeBytes_;
 					}
 					Barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
 				}
@@ -2422,13 +2434,13 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 				if( BindingInfo.Resource_ != UniformBuffer ||
 					BindingInfo.Buffer_ != BufferGL->getHandle() ||
 					BindingInfo.Offset_ != 0 ||
-					BindingInfo.Size_ != UniformBuffer->getDesc().SizeBytes_ )
+					BindingInfo.Size_ != (GLsizei)UniformBuffer->getDesc().SizeBytes_ )
 				{
 					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Slot_, BufferGL->getHandle(), 0, UniformBuffer->getDesc().SizeBytes_ ) );
 					BindingInfo.Resource_ = UniformBuffer;
 					BindingInfo.Buffer_ = BufferGL->getHandle();
 					BindingInfo.Offset_ = 0;
-					BindingInfo.Size_ = UniformBuffer->getDesc().SizeBytes_;
+					BindingInfo.Size_ = (GLsizei)UniformBuffer->getDesc().SizeBytes_;
 				}
 			}
 		}
@@ -2452,6 +2464,12 @@ void RsContextGL::bindTexture( BcU32 Slot, const RsTexture* Texture )
 		BindingInfo.Resource_ = Texture;
 		BindingInfo.Texture_ = TextureGL->getHandle();
 		BindingInfo.Target_ = TextureType;
+	}
+
+	// Binding of slot 0 textures mean we potentially need to rebind program bindings.
+	if( Slot == 0 )
+	{
+		BoundProgramBinding_ = nullptr;
 	}
 }
 
@@ -2524,6 +2542,9 @@ void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer )
 				UniformBufferBindingInfo_[0].Offset_ = 0;
 				UniformBufferBindingInfo_[0].Size_ = BcErrorCode;
 			}
+
+			// Binding of uniform buffers mean we potentially need to rebind program bindings.
+			BoundProgramBinding_ = nullptr;
 		}
 		break;
 	default:

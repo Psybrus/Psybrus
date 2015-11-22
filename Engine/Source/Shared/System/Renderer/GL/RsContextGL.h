@@ -231,6 +231,10 @@ private:
 		GLuint Handle_ = 0;
 	};
 
+	const RsFrameBuffer* BoundFrameBuffer_ = nullptr;
+	RsViewport BoundViewport_ = RsViewport();
+	RsScissorRect BoundScissorRect_ = RsScissorRect();
+
 	const RsProgram* BoundProgram_ = nullptr;
 	const RsProgramBinding* BoundProgramBinding_ = nullptr;
 	const RsGeometryBinding* BoundGeometryBinding_ = nullptr;

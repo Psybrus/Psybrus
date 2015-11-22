@@ -617,9 +617,6 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 	//       to the scene. Will not sort by transparency or anything either.
 	//std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasComponentPrimitiveSectionCompare() );
 	
-	// Cache last material instance.
-	ScnMaterialComponent* pLastMaterialComponent = NULL;
-	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
 		// Copy primitive sections in.
@@ -627,24 +624,14 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 		BcMemZero( PrimitiveSection, sizeof( ScnCanvasComponentPrimitiveSection ) );
 		*PrimitiveSection = PrimitiveSectionList_[ Idx ];
 		
-		// Bind material.
-		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
-		//       if need be. If using multiple canvases we could potentially lose a material bind.
-		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
-		{
-			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
-			RenderContext.pViewComponent_->setMaterialParameters( pLastMaterialComponent );
-			pLastMaterialComponent->bind( RenderContext.pFrame_, Sort );
-		}
-		
 		// Add to frame.
 		UploadFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[
 				this,
 				GeometryBinding = GeometryBinding_.get(),
-				ProgramBinding = pLastMaterialComponent->getProgramBinding(),
-				RenderState = MaterialComponent_->getRenderState(),
+				ProgramBinding = PrimitiveSection->MaterialComponent_->getProgramBinding(),
+				RenderState = PrimitiveSection->MaterialComponent_->getRenderState(),
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveSection 

@@ -716,6 +716,22 @@ struct RsScissorRect
 		Height_( Height )
 	{}
 
+	bool operator == ( const RsScissorRect& B ) const
+	{
+		return  X_ == B.X_ &&
+			Y_ == B.Y_ &&
+			Width_ == B.Width_ &&
+			Height_ == B.Height_;
+	}
+
+	bool operator != ( const RsScissorRect& B ) const
+	{
+		return  X_ != B.X_ ||
+			Y_ != B.Y_ ||
+			Width_ != B.Width_ ||
+			Height_ != B.Height_;
+	}
+
 	BcS32 X_ = 0;
 	BcS32 Y_ = 0;
 	BcS32 Width_ = 0;
