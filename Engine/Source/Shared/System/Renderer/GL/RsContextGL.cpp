@@ -1453,8 +1453,13 @@ void RsContextGL::drawPrimitives(
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
 	++NoofDrawCalls_;
 
-	bindProgram( ProgramBinding->getProgram() );
-	bindGeometry( ProgramBinding->getProgram(), GeometryBinding );
+	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
+	const auto* Program = ProgramBinding->getProgram();
+	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+
+	bindProgram( Program );
+	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
+	bindGeometry( Program, GeometryBinding );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
@@ -1464,12 +1469,12 @@ void RsContextGL::drawPrimitives(
 	if( BoundProgramBinding_ != ProgramBinding )
 	{
 		BoundProgramBinding_ = ProgramBinding;
-		bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-		bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-		bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindSRVs( Program, ProgramBindingDesc );
+		bindSamplerStates( Program, ProgramBindingDesc );
+		bindUniformBuffers( Program, ProgramBindingDesc );
 	}
 	// TODO: Add memory barrier to the binding object.
-	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
+	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
 	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
 
@@ -1496,8 +1501,13 @@ void RsContextGL::drawIndexedPrimitives(
 	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
 	++NoofDrawCalls_;
 
-	bindProgram( ProgramBinding->getProgram() );
-	bindGeometry( ProgramBinding->getProgram(), GeometryBinding );
+	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
+	const auto* Program = ProgramBinding->getProgram();
+	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+
+	bindProgram( Program );
+	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
+	bindGeometry( Program, GeometryBinding );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
@@ -1507,12 +1517,12 @@ void RsContextGL::drawIndexedPrimitives(
 	if( BoundProgramBinding_ != ProgramBinding )
 	{
 		BoundProgramBinding_ = ProgramBinding;
-		bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-		bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-		bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindSRVs( Program, ProgramBindingDesc );
+		bindSamplerStates( Program, ProgramBindingDesc );
+		bindUniformBuffers( Program, ProgramBindingDesc );
 	}
 	// TODO: Add memory barrier to the binding object.
-	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
+	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
 	BcAssert( GeometryBinding->getDesc().IndexBuffer_ );
 	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= GeometryBinding->getDesc().IndexBuffer_->getDesc().SizeBytes_ );
@@ -1672,13 +1682,19 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 	PSY_PROFILE_FUNCTION;
 
 #if !defined( RENDER_USE_GLES )
-	bindProgram( ProgramBinding->getProgram() );
+
+	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
+	const auto* Program = ProgramBinding->getProgram();
+	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+
+	bindProgram( Program );
+	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 	if( BoundProgramBinding_ != ProgramBinding )
 	{
 		BoundProgramBinding_ = ProgramBinding;
-		bindSRVs( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-		bindSamplerStates( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
-		bindUniformBuffers( ProgramBinding->getProgram(), ProgramBinding->getDesc() );
+		bindSRVs( Program, ProgramBindingDesc );
+		bindSamplerStates( Program, ProgramBindingDesc );
+		bindUniformBuffers( Program, ProgramBindingDesc );
 	}
 	// TODO: Add memory barrier to the binding object.
 	bindUAVs( ProgramBinding->getProgram(), ProgramBinding->getDesc(), MemoryBarrier_ );
@@ -2369,9 +2385,11 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 				GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
+#if !defined( RENDER_USE_GLES )
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
 				GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
+#endif // !defined( RENDER_USE_GLES )
 			}
 		}
 	}
@@ -2416,8 +2434,6 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 		}
 	}
 #endif // !defined( RENDER_USE_GLES )
-
-	ProgramGL->copyUniformBuffersToUniforms( Bindings.UniformBuffers_.size(), Bindings.UniformBuffers_.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////
