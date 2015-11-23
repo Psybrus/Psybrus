@@ -1533,11 +1533,10 @@ void RsContextGL::drawIndexedPrimitives(
 	// TODO: Add memory barrier to the binding object.
 	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
-	BcAssert( GeometryBinding->getDesc().IndexBuffer_.Buffer_ );
-	BcAssert( ( IndexOffset * sizeof( BcU16 ) ) + NoofIndices <= GeometryBinding->getDesc().IndexBuffer_.Buffer_->getDesc().SizeBytes_ );
+	const auto GeometryBindingDesc = GeometryBinding->getDesc();
 
 	GLenum IndexFormat = GL_UNSIGNED_SHORT;
-	switch( GeometryBinding->getDesc().IndexBuffer_.Stride_ )
+	switch( GeometryBindingDesc.IndexBuffer_.Stride_ )
 	{
 	case 1:
 		IndexFormat = GL_UNSIGNED_BYTE;
@@ -1552,14 +1551,22 @@ void RsContextGL::drawIndexedPrimitives(
 		BcAssertMsg( BcFalse, "Invalid index buffer stride specified: %u", GeometryBinding->getDesc().IndexBuffer_.Stride_ );
 	}
 
+	// Convert offset to bytes.
+	IndexOffset *= GeometryBindingDesc.IndexBuffer_.Stride_;
+	// Add byte offset from binding.
+	IndexOffset += GeometryBindingDesc.IndexBuffer_.Offset_;
+
+	BcAssert( GeometryBinding->getDesc().IndexBuffer_.Buffer_ );
+	BcAssert( ( IndexOffset + ( NoofIndices * GeometryBindingDesc.IndexBuffer_.Stride_ ) ) <= GeometryBindingDesc.IndexBuffer_.Buffer_->getDesc().SizeBytes_ );
+
 	if( VertexOffset == 0 )
 	{
-		GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset * sizeof( BcU16 ) ) ) );
+		GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ) ) );
 	}
 #if !defined( RENDER_USE_GLES )
 	else if( Version_.SupportDrawElementsBaseVertex_ )
 	{
-		GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset * sizeof( BcU16 ) ), VertexOffset ) );
+		GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), VertexOffset ) );
 	}
 #endif
 	else
@@ -1917,7 +1924,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 		}
 
 		// Bind indices.
-		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, Desc.IndexBuffer_.Buffer_, Desc.IndexBuffer_.Offset_ );
+		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, Desc.IndexBuffer_.Buffer_, 0 );
 	}
 }
 
@@ -2516,12 +2523,14 @@ void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 O
 	{
 	case GL_ARRAY_BUFFER:
 		{
-			bindBufferInternal( VertexBufferBindingInfo_, GL_ARRAY_BUFFER, Buffer, Offset );
+			BcAssert( Offset == 0 );
+			bindBufferInternal( VertexBufferBindingInfo_, GL_ARRAY_BUFFER, Buffer, 0 );
 		}
 		break;
 	case GL_ELEMENT_ARRAY_BUFFER:
 		{
-			bindBufferInternal( IndexBufferBindingInfo_, GL_ELEMENT_ARRAY_BUFFER, Buffer, Offset );
+			BcAssert( Offset == 0 );
+			bindBufferInternal( IndexBufferBindingInfo_, GL_ELEMENT_ARRAY_BUFFER, Buffer, 0 );
 		}
 		break;
 	case GL_UNIFORM_BUFFER:
