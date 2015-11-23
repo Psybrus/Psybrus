@@ -17,17 +17,20 @@ void RsGeometryBindingDesc::setVertexDeclaration( class RsVertexDeclaration* Ver
 
 //////////////////////////////////////////////////////////////////////////
 // setVertexBuffer
-void RsGeometryBindingDesc::setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, BcU32 Stride )
+void RsGeometryBindingDesc::setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, BcU32 Stride, BcU32 Offset )
 {
 	VertexBuffers_[ Idx ].Buffer_ = Buffer;
 	VertexBuffers_[ Idx ].Stride_ = Stride;
+	VertexBuffers_[ Idx ].Offset_ = Offset;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setIndexBuffer
-void RsGeometryBindingDesc::setIndexBuffer( class RsBuffer* Buffer )
+void RsGeometryBindingDesc::setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex, BcU32 Offset )
 {
-	IndexBuffer_ = Buffer;
+	IndexBuffer_.Buffer_ = Buffer;
+	IndexBuffer_.Stride_ = BytesPerIndex;
+	IndexBuffer_.Offset_ = Offset;
 }
 
 //////////////////////////////////////////////////////////////////////////

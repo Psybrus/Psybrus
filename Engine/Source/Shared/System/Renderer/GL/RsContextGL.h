@@ -19,6 +19,45 @@ class RsContextGL:
 	public RsContext
 {
 public:
+	struct TextureBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Texture_ = 0;
+		GLenum Target_ = 0;
+	};
+
+	struct ImageBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Texture_ = 0;
+		GLint Level_ = 0;
+		GLboolean Layered_ = 0;
+		GLint Layer_ = 0;
+		GLenum Access_ = 0;
+		GLenum Format_ = 0;
+	};
+
+	struct BufferBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Buffer_ = 0;
+		GLintptr Offset_ = 0;
+		GLsizei Size_ = 0;
+	};
+
+	struct SamplerBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Sampler_ = 0;
+	};
+
+	struct ProgramBindingInfo
+	{
+		const RsProgram* Program_ = nullptr;
+		GLuint Handle_ = 0;
+	};
+
+public:
 	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
 	
@@ -111,7 +150,7 @@ public:
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 
 	void bindProgram( const RsProgram* Program );
-	void bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding );
+	void bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding, BcU32 VertexOffset );
 	void bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect );
 	void bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force );
 	void bindSRVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
@@ -119,9 +158,8 @@ public:
 	void bindSamplerStates( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
 	void bindUniformBuffers( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
 	void bindTexture( BcU32 Slot, const RsTexture* Texture );
-	void bindVertexBuffer( const RsBuffer* Buffer );
-	void bindIndexBuffer( const RsBuffer* Buffer );
-	void bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer );
+	void bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset );
+	void bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset );
 	void unbindResource( const RsResource* Resource );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
@@ -193,44 +231,6 @@ private:
 
 	GLbitfield MemoryBarrier_ = 0;
 
-	struct TextureBindingInfo
-	{
-		const RsResource* Resource_ = nullptr;
-		GLuint Texture_ = 0;
-		GLenum Target_ = 0;
-	};
-
-	struct ImageBindingInfo
-	{
-		const RsResource* Resource_ = nullptr;
-		GLuint Texture_ = 0;
-		GLint Level_ = 0;
-		GLboolean Layered_ = 0;
-		GLint Layer_ = 0;
-		GLenum Access_ = 0;
-		GLenum Format_ = 0;
-	};
-
-	struct BufferBindingInfo
-	{
-		const RsResource* Resource_ = nullptr;
-		GLuint Buffer_ = 0;
-		GLintptr Offset_ = 0;
-		GLsizei Size_ = 0;
-	};
-
-	struct SamplerBindingInfo
-	{
-		const RsResource* Resource_ = nullptr;
-		GLuint Sampler_ = 0;
-	};
-
-	struct ProgramBindingInfo
-	{
-		const RsProgram* Program_ = nullptr;
-		GLuint Handle_ = 0;
-	};
-
 	const RsFrameBuffer* BoundFrameBuffer_ = nullptr;
 	RsViewport BoundViewport_ = RsViewport();
 	RsScissorRect BoundScissorRect_ = RsScissorRect();
@@ -238,6 +238,7 @@ private:
 	const RsProgram* BoundProgram_ = nullptr;
 	const RsProgramBinding* BoundProgramBinding_ = nullptr;
 	const RsGeometryBinding* BoundGeometryBinding_ = nullptr;
+	BcU32 BoundVertexOffset_ = 0;
 	BcU64 BoundRenderStateHash_ = 0;
 
 	std::array< TextureBindingInfo, 32 > TextureBindingInfo_;

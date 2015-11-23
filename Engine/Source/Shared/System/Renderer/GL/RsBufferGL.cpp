@@ -59,7 +59,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 		// Attempt to update it.
 		if( Handle_ != 0 )
 		{
-			ContextGL->bindBuffer( TypeGL, Parent_ );
+			ContextGL->bindBuffer( TypeGL, Parent_, 0 );
 			GL( BufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL ) );
 		}
 	}
@@ -69,7 +69,6 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 // Dtor
 RsBufferGL::~RsBufferGL()
 {
-	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 	if( Handle_ != 0 )
 	{
 		GL( DeleteBuffers( 1, &Handle_ ) );
