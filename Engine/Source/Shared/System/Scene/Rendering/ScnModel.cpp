@@ -98,7 +98,61 @@ void ScnModel::create()
 	
 	BcU8* pVertexBufferData = pVertexBufferData_;
 	BcU8* pIndexBufferData = pIndexBufferData_;
-	
+
+	size_t VertexBufferSize = 0;
+	size_t IndexBufferSize = 0;
+	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
+	{
+		ScnModelMeshData* pMeshData = &pMeshData_[ PrimitiveIdx ];
+		VertexBufferSize += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
+		IndexBufferSize += pMeshData->NoofIndices_ * sizeof( BcU16 );
+	}
+
+	// Create large VB + IBs.
+	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::VERTEX, 
+			RsResourceCreationFlags::STATIC,
+			VertexBufferSize ),
+		getFullName().c_str() );
+
+	RsCore::pImpl()->updateBuffer( 
+		VertexBuffer_.get(), 0, VertexBufferSize, 
+		RsResourceUpdateFlags::ASYNC,
+		[ pVertexBufferData, VertexBufferSize ]
+		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+		{
+			BcAssert( Buffer->getDesc().SizeBytes_ == VertexBufferSize );
+			BcMemCopy( BufferLock.Buffer_, pVertexBufferData, 
+				VertexBufferSize );
+		} );
+
+	IndexBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc( 
+				RsBufferType::INDEX, 
+				RsResourceCreationFlags::STATIC, 
+				IndexBufferSize ),
+			getFullName().c_str() );
+
+	RsCore::pImpl()->updateBuffer( 
+		IndexBuffer_.get(), 0, IndexBufferSize, 
+		RsResourceUpdateFlags::ASYNC,
+		[ pIndexBufferData, IndexBufferSize ]
+		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+		{
+			BcAssert( Buffer->getDesc().SizeBytes_ == IndexBufferSize );
+			BcMemCopy( BufferLock.Buffer_, pIndexBufferData, 
+				IndexBufferSize );
+		} );
+
+	size_t VertexBufferOffset = 0;
+	size_t IndexBufferOffset = 0;
+	size_t BindVertexBufferBase = 0;
+	size_t BindIndexBufferBase = 0;
+
+	RsVertexDeclaration* PrevVertexDeclaration = nullptr;
+	RsVertexDeclaration* VertexDeclaration = nullptr;
+	RsGeometryBinding* GeometryBinding = nullptr;
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
 		ScnModelMeshData* pMeshData = &pMeshData_[ PrimitiveIdx ];
@@ -111,64 +165,53 @@ void ScnModel::create()
 		{
 			VertexDeclarationDesc.addElement( pMeshData_->VertexElements_[ Idx ] );
 		}
-		
-		RsVertexDeclarationUPtr VertexDeclaration(
-			RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc,
-				getFullName().c_str() ) );
 
-		BcU32 VertexBufferSize = pMeshData->NoofVertices_ * pMeshData->VertexStride_;
-		RsBufferUPtr VertexBuffer( RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::VERTEX, 
-				RsResourceCreationFlags::STATIC,
-				VertexBufferSize ),
-			getFullName().c_str() ) );
-
-		RsCore::pImpl()->updateBuffer( 
-			VertexBuffer.get(), 0, pMeshData->NoofVertices_ * pMeshData->VertexStride_, 
-			RsResourceUpdateFlags::ASYNC,
-			[ pVertexBufferData, VertexBufferSize ]
-			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+		// Find or create vertex declaration.
+		{
+			for( const auto& CurrVertexDecl : VertexDeclarations_ )
 			{
-				BcAssert( Buffer->getDesc().SizeBytes_ == VertexBufferSize );
-				BcMemCopy( BufferLock.Buffer_, pVertexBufferData, 
-					VertexBufferSize );
-			} );
-	
-		BcU32 IndexBufferSize = pMeshData->NoofIndices_ * sizeof( BcU16 );
-		RsBufferUPtr IndexBuffer(
-			RsCore::pImpl()->createBuffer( 
-				RsBufferDesc( 
-					RsBufferType::INDEX, 
-					RsResourceCreationFlags::STATIC, 
-					IndexBufferSize ),
-				getFullName().c_str() ) );
-
-		RsCore::pImpl()->updateBuffer( 
-			IndexBuffer.get(), 0, pMeshData->NoofIndices_ * sizeof( BcU16 ), 
-			RsResourceUpdateFlags::ASYNC,
-			[ pIndexBufferData, IndexBufferSize ]
-			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+				if( CurrVertexDecl->getDesc().getHash() == VertexDeclarationDesc.getHash() )
+				{
+					VertexDeclaration = CurrVertexDecl.get();
+					break;
+				}
+			}		
+			if( VertexDeclaration == nullptr )
 			{
-				BcAssert( Buffer->getDesc().SizeBytes_ == IndexBufferSize );
-				BcMemCopy( BufferLock.Buffer_, pIndexBufferData, 
-					IndexBufferSize );
-			} );
+				RsVertexDeclarationUPtr NewVertexDeclaration(
+					RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc,
+						getFullName().c_str() ) );
+				VertexDeclaration = NewVertexDeclaration.get();
+				VertexDeclarations_.emplace_back( std::move( NewVertexDeclaration ) );
+			}
+		}
 
-		RsGeometryBindingDesc GeometryBindingDesc;
-		GeometryBindingDesc.setIndexBuffer( IndexBuffer.get() ),
-		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer.get(), pMeshData->VertexStride_ );
-		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration.get() );
-		RsGeometryBindingUPtr GeometryBinding( 
-			RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() ) );
+		// Create geometry binding if need be.
+		if( VertexDeclaration != PrevVertexDeclaration )
+		{
+			PrevVertexDeclaration = VertexDeclaration;
+
+			RsGeometryBindingDesc GeometryBindingDesc;
+			GeometryBindingDesc.setIndexBuffer( IndexBuffer_.get(), 2, BindIndexBufferBase );
+			GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), pMeshData->VertexStride_, BindVertexBufferBase );
+			GeometryBindingDesc.setVertexDeclaration( VertexDeclaration );
+			RsGeometryBindingUPtr NewGeometryBinding( 
+				RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() ) );
+			GeometryBinding = NewGeometryBinding.get();
+			GeometryBindings_.emplace_back( std::move( NewGeometryBinding ) );
+
+			VertexBufferOffset = 0;
+			IndexBufferOffset = 0;
+		}
+
+		BcAssert( GeometryBinding );
 
 		// Setup runtime structure.
 		ScnModelMeshRuntime MeshRuntime;
 		MeshRuntime.MeshDataIndex_ = PrimitiveIdx;
-		MeshRuntime.VertexDeclaration_ = std::move( VertexDeclaration );
-		MeshRuntime.VertexBuffer_ = std::move( VertexBuffer );
-		MeshRuntime.IndexBuffer_ = std::move( IndexBuffer );
-		MeshRuntime.GeometryBinding_ = std::move( GeometryBinding );
+		MeshRuntime.GeometryBinding_ = GeometryBinding;
+		MeshRuntime.VertexBufferOffset_ = VertexBufferOffset;
+		MeshRuntime.IndexBufferOffset_ = IndexBufferOffset;
 		MeshRuntime.MaterialRef_ = nullptr;
 		
 		// Get resource.
@@ -179,9 +222,11 @@ void ScnModel::create()
 		// Push into array.
 		MeshRuntimes_.emplace_back( std::move( MeshRuntime ) );
 		
-		// Advance vertex and index buffers.
-		pVertexBufferData += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
-		pIndexBufferData += pMeshData->NoofIndices_ * sizeof( BcU16 );
+		// Advance vertex and index buffer bases
+		VertexBufferOffset += pMeshData->NoofVertices_;
+		IndexBufferOffset += pMeshData->NoofIndices_;
+		BindVertexBufferBase += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
+		BindIndexBufferBase += pMeshData->NoofIndices_ * sizeof( BcU16 );
 	}
 
 	// Mark as ready.
@@ -814,14 +859,15 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 		// Render primitive.
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[
-				GeometryBinding = pMeshRuntime->GeometryBinding_.get(),
+				GeometryBinding = pMeshRuntime->GeometryBinding_,
 				DrawProgramBinding = PerComponentMeshData.MaterialComponentRef_->getProgramBinding(),
 				RenderState = PerComponentMeshData.MaterialComponentRef_->getRenderState(),
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveType = pMeshData->Type_,
 				NoofIndices = pMeshData->NoofIndices_,
-				Offset
+				IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
+				VertexBufferOffset = pMeshRuntime->VertexBufferOffset_
 			]
 			( RsContext* Context )
 			{
@@ -833,8 +879,8 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer, 
 					&Viewport,
 					nullptr,
-					PrimitiveType, 
-					Offset, NoofIndices, 0 );
+					PrimitiveType,
+					IndexBuffereOffset, NoofIndices, VertexBufferOffset );
 			} );
 	}
 }

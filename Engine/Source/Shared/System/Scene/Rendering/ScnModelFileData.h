@@ -77,10 +77,9 @@ struct ScnModelMeshData
 struct ScnModelMeshRuntime
 {
 	BcU32 MeshDataIndex_ = BcErrorCode;
-	RsVertexDeclarationUPtr VertexDeclaration_;
-	RsBufferUPtr VertexBuffer_;
-	RsBufferUPtr IndexBuffer_;
-	RsGeometryBindingUPtr GeometryBinding_;
+	RsGeometryBinding* GeometryBinding_ = nullptr;
+	size_t VertexBufferOffset_ = 0;
+	size_t IndexBufferOffset_ = 0;
 	ScnMaterialRef MaterialRef_ = nullptr; // TODO: Don't use ref, just use pointer.
 };
 
