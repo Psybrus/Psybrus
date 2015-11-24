@@ -201,6 +201,20 @@ BcU32 RsContextGL::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getBackBufferRT
+class RsTexture* RsContextGL::getBackBufferRT() const
+{
+	return BackBufferRT_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBackBufferDS
+class RsTexture* RsContextGL::getBackBufferDS() const
+{
+	return BackBufferDS_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // beginFrame
 void RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 {
@@ -254,6 +268,26 @@ void RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 	}
 
 #endif
+
+	if( Width_ != Width || Height_ != Height )
+	{
+		// Update dimensions.
+		BackBufferRTDesc_.Width_ = Width;
+		BackBufferRTDesc_.Height_ = Height;
+		BackBufferDSDesc_.Width_ = Width;
+		BackBufferDSDesc_.Height_ = Height;
+
+		// Recreate textures in place.
+		auto BackBufferRTInternal = BackBufferRT_->getHandle< BcU64 >();
+		BackBufferRT_->~RsTexture();
+		BackBufferRT_ = new ( BackBufferRT_ ) RsTexture( this, BackBufferRTDesc_ );
+		BackBufferRT_->setHandle( BackBufferRTInternal );
+
+		auto BackBufferDSInternal = BackBufferDS_->getHandle< BcU64 >();
+		BackBufferDS_->~RsTexture();
+		BackBufferDS_ = new ( BackBufferDS_ ) RsTexture( this, BackBufferDSDesc_ );
+		BackBufferDS_->setHandle( BackBufferDSInternal );
+	}
 
 	Width_ = Width;
 	Height_ = Height;
@@ -401,6 +435,9 @@ void RsContextGL::create()
 		0,												// Reserved
 		0, 0, 0											// Layer Masks Ignored
 	};
+
+	auto RTFormat = RsTextureFormat::R8G8B8A8;
+	auto DSFormat = RsTextureFormat::D24S8;
 	
 	GLuint PixelFormat = 0;
 	if ( !(PixelFormat = ::ChoosePixelFormat( WindowDC_, &pfd ) ) )
@@ -472,6 +509,9 @@ void RsContextGL::create()
 	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
+	auto RTFormat = RsTextureFormat::R8G8B8A8;
+	auto DSFormat = RsTextureFormat::D24S8;
+
 	BcAssert( pParent_ == nullptr );
 	SDL_Window* Window = reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() );
 	bool Success = false;
@@ -514,6 +554,9 @@ void RsContextGL::create()
 		EGL_STENCIL_SIZE, 8,
 		EGL_NONE
 	};
+
+	auto RTFormat = RsTextureFormat::R8G8B8A8;
+	auto DSFormat = RsTextureFormat::D16;
 
 	const EGLint EGContextAttribs[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 2,
@@ -657,8 +700,7 @@ void RsContextGL::create()
 		BcAssert( glGenVertexArrays != nullptr );
 		BcAssert( glBindVertexArray != nullptr );
 		GL( GenVertexArrays( 1, &GlobalVAO_ ) );
-		GL( BindVertexArray( GlobalVAO_ ) );
-		
+		GL( BindVertexArray( GlobalVAO_ ) );		
 	}
 
 	// Create transfer FBO.
@@ -670,15 +712,36 @@ void RsContextGL::create()
 	RsRenderStateDesc RenderStateDesc = BoundRenderStateDesc_;
 	bindRenderStateDesc( RenderStateDesc, BcTrue );
 	BoundRenderStateHash_ = 0;
+
+	// Setup BB RT + DS.
+	BackBufferRTDesc_ = RsTextureDesc( RsTextureType::TEX2D,
+		RsResourceCreationFlags::STATIC,
+		RsResourceBindFlags::RENDER_TARGET,
+		RTFormat,
+		1, 1, 1, 1 );
+	BackBufferRT_ = new RsTexture( this, BackBufferRTDesc_ );
+	new RsTextureGL( BackBufferRT_, RsTextureGL::ResourceType::BACKBUFFER_RT );
+	++NoofTextures_;
+
+	BackBufferDSDesc_ = RsTextureDesc( RsTextureType::TEX2D,
+		RsResourceCreationFlags::STATIC,
+		RsResourceBindFlags::DEPTH_STENCIL,
+		DSFormat,
+		1, 1, 1, 1 );
+	BackBufferDS_ = new RsTexture( this, BackBufferDSDesc_ );
+	new RsTextureGL( BackBufferDS_, RsTextureGL::ResourceType::BACKBUFFER_DS );
+	++NoofTextures_;
+
 	// Ensure all buffers are cleared to black first.
 	const BcU32 Width = pClient_->getWidth();
 	const BcU32 Height = pClient_->getHeight();
 	for( BcU32 Idx = 0; Idx < 3; ++Idx )
 	{
 		beginFrame( Width, Height );
-		clear( nullptr, RsColour( 0.0f, 0.0f, 0.0f, 0.0f ), BcTrue, BcTrue, BcTrue );
+		GL( Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ) );
 		endFrame();
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -702,6 +765,9 @@ void RsContextGL::destroy()
 	GL( BindVertexArray( 0 ) );
 	GL( DeleteVertexArrays( 1, &GlobalVAO_ ) );
 #endif
+
+	destroyTexture( BackBufferRT_ );
+	destroyTexture( BackBufferDS_ );
 
 #if PLATFORM_WINDOWS
 	// Destroy rendering context.
@@ -925,6 +991,24 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	const auto& Desc = FrameBuffer->getDesc();
 	BcAssertMsg( Desc.RenderTargets_.size() < GL_MAX_COLOR_ATTACHMENTS, "Too many targets" );
 
+	// Check if it's the backbuffer we're trying to create.
+	if( Desc.RenderTargets_[ 0 ] == BackBufferRT_ || Desc.DepthStencilTarget_ == BackBufferDS_ ) 
+	{
+		if( Desc.RenderTargets_[ 0 ] != BackBufferRT_ || Desc.DepthStencilTarget_ != BackBufferDS_ )
+		{
+			return false;
+		}
+		for( size_t Idx = 1; Idx < Desc.RenderTargets_.size(); ++Idx )
+		{
+			if( Desc.RenderTargets_[ Idx ] != nullptr )
+			{
+				return false;
+			}
+		}
+		FrameBuffer->setHandle( 0 );
+		return true;
+	}
+
 	// Generate FBO.
 	GLuint Handle;
 	GL( GenFramebuffers( 1, &Handle ) );
@@ -1138,7 +1222,7 @@ bool RsContextGL::createTexture( class RsTexture* Texture )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	// Create GL texture.
-	new RsTextureGL( Texture );
+	new RsTextureGL( Texture, RsTextureGL::ResourceType::TEXTURE );
 	
 	++NoofTextures_;
 	return true;
@@ -1748,17 +1832,14 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
 {
 	PSY_PROFILE_FUNCTION;
+	BcAssert( FrameBuffer );
 
 	// Determine frame buffer width + height.
-	auto FBWidth = Width_;
-	auto FBHeight = Height_;
-	if( FrameBuffer != nullptr )
-	{
-		auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
-		BcAssert( RT );
-		FBWidth = RT->getDesc().Width_;
-		FBHeight = RT->getDesc().Height_;
-	}
+	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
+	BcAssert( RT );
+	auto FBWidth = RT->getDesc().Width_;
+	auto FBHeight = RT->getDesc().Height_;
+
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
 
@@ -1767,15 +1848,8 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 
 	if( BoundFrameBuffer_ != FrameBuffer )
 	{
-		if( FrameBuffer )
-		{
-			GLint Handle = FrameBuffer->getHandle< GLint >();
-			GL( BindFramebuffer( GL_FRAMEBUFFER, Handle ) );
-		}
-		else
-		{
-			GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );
-		}
+		GLint Handle = FrameBuffer->getHandle< GLint >();
+		GL( BindFramebuffer( GL_FRAMEBUFFER, Handle ) );
 		BoundFrameBuffer_ = FrameBuffer;
 		BoundViewport_  = RsViewport();
 		BoundScissorRect_ = RsScissorRect( -1, -1, -1, -1 );

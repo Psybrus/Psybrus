@@ -85,11 +85,13 @@ public:
 
 	/**
 	 * Copy framebuffer render target to texture.
+	 * TODO: Deprecate this. Replace with proper texture->texture transfer.
 	 */
 	virtual void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) { BcBreakpoint; };
 
 	/**
 	 * Copy texture to framebuffer render target.
+	 * TODO: Deprecate this. Replace with proper texture->texture transfer.
 	 */
 	virtual void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) { BcBreakpoint; };
 };

@@ -7,83 +7,68 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsTexture* Parent ):
-	Parent_( Parent )
+RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
+	Parent_( Parent ),
+	ResourceType_( ResourceType )
 {
 	Parent_->setHandle( this );
-	const auto& TextureDesc = Parent_->getDesc();
-	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
+	if( ResourceType_ == ResourceType::TEXTURE )
+	{
+		const auto& TextureDesc = Parent_->getDesc();
+		auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 	
-	// Get buffer type for GL.
-	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
+		// Get buffer type for GL.
+		auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
 
-	// Get usage flags for GL.
-	GLuint UsageFlagsGL = 0;
+		// Get usage flags for GL.
+		GLuint UsageFlagsGL = 0;
 	
-	// Data update frequencies.
-	if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_STATIC_DRAW;
-	}
-	else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_DYNAMIC_DRAW;
-	}
-	else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
-	{
-		UsageFlagsGL |= GL_STREAM_DRAW;
-	}
-
-	GL( GenTextures( 1, &Handle_ ) );
-
-	// Bind texture.
-	ContextGL->bindTexture( 0, Parent_ );
-		
-#if !defined( RENDER_USE_GLES )
-	// Set max levels.
-	GL( TexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 ) );
-		
-
-	// Set compare mode to none.
-	if( TextureDesc.Format_ == RsTextureFormat::D16 ||
-		TextureDesc.Format_ == RsTextureFormat::D24 ||
-		TextureDesc.Format_ == RsTextureFormat::D32 ||
-		TextureDesc.Format_ == RsTextureFormat::D24S8 )
-	{
-		GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
-			
-		GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
-			
-	}
-#endif
-
-	// Instantiate levels.
-	BcU32 Width = TextureDesc.Width_;
-	BcU32 Height = TextureDesc.Height_;
-	BcU32 Depth = TextureDesc.Depth_;
-	if( TextureDesc.Type_ != RsTextureType::TEXCUBE )
-	{
-		for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+		// Data update frequencies.
+		if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE )
 		{
-			auto TextureSlice = Parent_->getSlice( LevelIdx );
-
-			// Load slice.
-			loadTexture( TextureSlice, 0, nullptr );
-			// TODO: Error checking on loadTexture.
-
-			// Down a power of two.
-			Width = BcMax( 1, Width >> 1 );
-			Height = BcMax( 1, Height >> 1 );
-			Depth = BcMax( 1, Depth >> 1 );
+			UsageFlagsGL |= GL_STATIC_DRAW;
 		}
-	}
-	else
-	{
-		for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+		else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
 		{
-			for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
+			UsageFlagsGL |= GL_DYNAMIC_DRAW;
+		}
+		else if( ( TextureDesc.CreationFlags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
+		{
+			UsageFlagsGL |= GL_STREAM_DRAW;
+		}
+
+		GL( GenTextures( 1, &Handle_ ) );
+
+		// Bind texture.
+		ContextGL->bindTexture( 0, Parent_ );
+		
+	#if !defined( RENDER_USE_GLES )
+		// Set max levels.
+		GL( TexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 ) );
+		
+
+		// Set compare mode to none.
+		if( TextureDesc.Format_ == RsTextureFormat::D16 ||
+			TextureDesc.Format_ == RsTextureFormat::D24 ||
+			TextureDesc.Format_ == RsTextureFormat::D32 ||
+			TextureDesc.Format_ == RsTextureFormat::D24S8 )
+		{
+			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
+			
+			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
+			
+		}
+	#endif
+
+		// Instantiate levels.
+		BcU32 Width = TextureDesc.Width_;
+		BcU32 Height = TextureDesc.Height_;
+		BcU32 Depth = TextureDesc.Depth_;
+		if( TextureDesc.Type_ != RsTextureType::TEXCUBE )
+		{
+			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
 			{
-				auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
+				auto TextureSlice = Parent_->getSlice( LevelIdx );
 
 				// Load slice.
 				loadTexture( TextureSlice, 0, nullptr );
@@ -92,6 +77,25 @@ RsTextureGL::RsTextureGL( RsTexture* Parent ):
 				// Down a power of two.
 				Width = BcMax( 1, Width >> 1 );
 				Height = BcMax( 1, Height >> 1 );
+				Depth = BcMax( 1, Depth >> 1 );
+			}
+		}
+		else
+		{
+			for( BcU32 LevelIdx = 0; LevelIdx < TextureDesc.Levels_; ++LevelIdx )
+			{
+				for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
+				{
+					auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
+
+					// Load slice.
+					loadTexture( TextureSlice, 0, nullptr );
+					// TODO: Error checking on loadTexture.
+
+					// Down a power of two.
+					Width = BcMax( 1, Width >> 1 );
+					Height = BcMax( 1, Height >> 1 );
+				}
 			}
 		}
 	}
@@ -111,6 +115,7 @@ void RsTextureGL::loadTexture(
 		BcU32 DataSize,
 		void* Data )
 {
+	BcAssert( ResourceType_ == ResourceType::TEXTURE );
 	const auto& TextureDesc = Parent_->getDesc();
 	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 

@@ -713,14 +713,14 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 				const auto& Desc = ProgramBinding->getDesc();
 				for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
 				{
-					BcAssertMsg( SRVSlot.Texture_ != Texture, "RsTexture is currently being used in RsProgramBinding %s as a SRV.", 
+					BcAssertMsg( SRVSlot.Texture_ != Texture, "RsTexture %s is currently being used in RsProgramBinding %s as a SRV.", 
 						Texture->getDebugName(),
 						ProgramBinding->getDebugName() );
 				}
 
 				for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
 				{
-					BcAssertMsg( UAVSlot.Texture_ != Texture, "RsTexture is currently being used in RsProgramBinding %s as a UAV.", 
+					BcAssertMsg( UAVSlot.Texture_ != Texture, "RsTexture %s is currently being used in RsProgramBinding %s as a UAV.", 
 						Texture->getDebugName(),
 						ProgramBinding->getDebugName() );
 				}

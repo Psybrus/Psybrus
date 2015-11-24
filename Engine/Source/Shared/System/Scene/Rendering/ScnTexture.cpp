@@ -243,6 +243,13 @@ BcU32 ScnTexture::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isClientDependent
+bool ScnTexture::isClientDependent() const
+{
+	return Header_.Width_ <= 0 || Header_.Height_ <= 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getRect
 //virtual
 const ScnRect& ScnTexture::getRect( BcU32 Idx ) const

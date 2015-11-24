@@ -52,6 +52,11 @@ public:
 	
 	BcU32 getWidth() const;
 	BcU32 getHeight() const;
+
+	/**
+	 * Is texture dependent on client size? I.e. will it change on resize?
+	 */
+	bool isClientDependent() const; 
 	
 	virtual const ScnRect& getRect( BcU32 Idx ) const;
 	virtual BcU32 noofRects() const;

@@ -579,6 +579,20 @@ BcU32 RsContextD3D11::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getBackBufferRT
+class RsTexture* RsContextD3D11::getBackBufferRT() const
+{
+	return BackBufferRT_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getBackBufferDS
+class RsTexture* RsContextD3D11::getBackBufferDS() const
+{
+	return BackBufferDS_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // beginFrame
 void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 {

@@ -7,7 +7,15 @@
 class RsTextureGL
 {
 public:
-	RsTextureGL( class RsTexture* Parent );
+	enum class ResourceType
+	{
+		TEXTURE,
+		BACKBUFFER_RT,
+		BACKBUFFER_DS
+	};
+
+public:
+	RsTextureGL( class RsTexture* Parent, ResourceType ResourceType );
 	~RsTextureGL();
 
 	void loadTexture( 
@@ -15,9 +23,11 @@ public:
 		BcU32 DataSize,
 		void* Data );
 
+	ResourceType getResourceType() const { return ResourceType_; }
 	GLuint getHandle() const { return Handle_; }
 
 private:
 	class RsTexture* Parent_ = nullptr;
+	ResourceType ResourceType_ = ResourceType::TEXTURE;
 	GLuint Handle_ = 0;
 };

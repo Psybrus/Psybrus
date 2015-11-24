@@ -14,6 +14,7 @@
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Content/CsCore.h"
+#include "System/Os/OsCore.h"
 
 #include "System/Renderer/RsRenderNode.h"
 
@@ -464,10 +465,26 @@ RsProgramBinding* ScnMaterialComponent::getProgramBinding()
 {
 	if( ProgramBinding_ == nullptr )
 	{
+		OsCore::pImpl()->unsubscribeAll( this );
+
+		bool HaveSubscribed = false;
 		for( auto& TextureBinding : TextureBindingList_ )
 		{
 			ProgramBindingDesc_.setShaderResourceView( TextureBinding.Handle_, TextureBinding.Texture_->getTexture() );
 			ProgramBindingDesc_.setSamplerState( TextureBinding.Handle_, TextureBinding.Sampler_ );
+
+			// If a texture is client dependent then we need to recreate the binding
+			// when one of these textures has been resized.
+			if( !HaveSubscribed && TextureBinding.Texture_->isClientDependent() )
+			{
+				HaveSubscribed = true;
+				OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+					[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+					{
+						ProgramBinding_.reset();
+						return evtRET_PASS;
+					} );
+			}
 		}
 		for( auto& UniformBlockBinding : UniformBlockBindingList_ )
 		{

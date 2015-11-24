@@ -359,6 +359,7 @@ void ScnPostProcessComponent::recreateResources()
 	// Create framebuffers, render states, and uniform buffers for nodes.
 	FrameBuffers_.clear();
 	RenderStates_.clear();
+	ProgramBindings_.clear();
 	for( auto& Node : Nodes_ )
 	{
 		RsFrameBufferDesc Desc( 8 );
@@ -433,8 +434,8 @@ void ScnPostProcessComponent::recreateResources()
 			}
 		}
 
-		FrameBuffers_.push_back( RsCore::pImpl()->createFrameBuffer( Desc, getFullName().c_str() ) );	
-		RenderStates_.push_back( RsCore::pImpl()->createRenderState( Node.RenderState_, getFullName().c_str() ) );	
+		FrameBuffers_.emplace_back( RsCore::pImpl()->createFrameBuffer( Desc, getFullName().c_str() ) );	
+		RenderStates_.emplace_back( RsCore::pImpl()->createRenderState( Node.RenderState_, getFullName().c_str() ) );	
 
 		ProgramBindings_.emplace_back( RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() ) );
 	}

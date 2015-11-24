@@ -585,6 +585,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			Event.pClient_ = this;
 			Event.Width_ = getWidth();
 			Event.Height_ = getHeight();
+			OsCore::pImpl()->publish( osEVT_CLIENT_RESIZE, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_CLIENT_RESIZE, Event );
 		}
 		break;
