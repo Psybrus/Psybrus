@@ -716,7 +716,7 @@ void RsContextGL::create()
 	// Setup BB RT + DS.
 	BackBufferRTDesc_ = RsTextureDesc( RsTextureType::TEX2D,
 		RsResourceCreationFlags::STATIC,
-		RsResourceBindFlags::RENDER_TARGET,
+		RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::PRESENT,
 		RTFormat,
 		1, 1, 1, 1 );
 	BackBufferRT_ = new RsTexture( this, BackBufferRTDesc_ );
@@ -1668,128 +1668,179 @@ void RsContextGL::drawIndexedPrimitives(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// copyFrameBufferRenderTargetToTexture
-void RsContextGL::copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture )
+// copyTexture
+void RsContextGL::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture )
 {
 	PSY_PROFILE_FUNCTION;
 
 #if !defined( RENDER_USE_GLES )
-	// Copying the back buffer.
-	if( FrameBuffer == nullptr )
-	{
-		BcAssert( Idx == 0 );
-	}
-	else
-	{
-		BcAssert( FrameBuffer->getDesc().RenderTargets_[ Idx ] != nullptr );
-	}
 
-	// Bind framebuffer.
-	if( FrameBuffer != nullptr )
+	const auto& SourceTextureDesc = SourceTexture->getDesc();
+	const auto& DestTextureDesc = DestTexture->getDesc();
+	const RsTextureGL* SourceTextureGL = SourceTexture->getHandle< const RsTextureGL* >();
+	const RsTextureGL* DestTextureGL = DestTexture->getHandle< const RsTextureGL* >();
+
+	BcAssert( SourceTextureDesc.Type_ == RsTextureType::TEX2D );
+	BcAssert( DestTextureDesc.Type_ == RsTextureType::TEX2D );
+	BcAssert( SourceTextureDesc.Width_ == DestTextureDesc.Width_ );
+	BcAssert( SourceTextureDesc.Height_ == DestTextureDesc.Height_ );
+	BcAssert( SourceTextureDesc.Levels_ == DestTextureDesc.Levels_ );
+	BcAssert( SourceTextureDesc.Format_ == DestTextureDesc.Format_ );
+
+	// Type of copy.
+	const bool TexToTexCopy = 
+		SourceTextureGL->getResourceType() == RsTextureGL::ResourceType::TEXTURE &&
+		DestTextureGL->getResourceType() == RsTextureGL::ResourceType::TEXTURE;
+	const bool BBToTexCopy = 
+		SourceTextureGL->getResourceType() == RsTextureGL::ResourceType::BACKBUFFER_RT &&
+		DestTextureGL->getResourceType() == RsTextureGL::ResourceType::TEXTURE;
+	const bool TexToBBCopy = 
+		SourceTextureGL->getResourceType() == RsTextureGL::ResourceType::TEXTURE &&
+		DestTextureGL->getResourceType() == RsTextureGL::ResourceType::BACKBUFFER_RT;
+
+	// Texture to texture copy.
+	if( TexToTexCopy )
 	{
-		GL( BindFramebuffer( GL_FRAMEBUFFER, FrameBuffer->getHandle< GLint >() ) );
+		bool UseFallback = false;
+		if( Version_.SupportCopyImageSubData_ )
+		{
+			for( BcU32 Idx = 0; Idx < SourceTextureDesc.Levels_; ++Idx )
+			{
+				const auto Width = SourceTextureDesc.Width_ >> Idx;
+				const auto Height = SourceTextureDesc.Height_ >> Idx;
+				GL( CopyImageSubData( 
+					SourceTextureGL->getHandle(), 
+					GL_TEXTURE_2D,
+					Idx,
+					0, 0, 0,
+					DestTextureGL->getHandle(),
+					GL_TEXTURE_2D,
+					Idx,
+					0, 0, 0,
+					Width, Height, 1 ) );
+			}
+		}
+		else if( Version_.SupportBlitFrameBuffer_ )
+		{
+			for( BcU32 Idx = 0; Idx < SourceTextureDesc.Levels_; ++Idx )
+			{
+				// Setup read + draw framebuffers.
+				GL( BindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] ) );
+				GL( FramebufferTexture2D( 
+					GL_READ_FRAMEBUFFER,
+					GL_COLOR_ATTACHMENT0,
+					GL_TEXTURE_2D,
+					SourceTextureGL->getHandle(),
+					Idx ) );
+				GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, TransferFBOs_[ 1 ] ) );
+				GL( FramebufferTexture2D( 
+					GL_DRAW_FRAMEBUFFER,
+					GL_COLOR_ATTACHMENT0,
+					GL_TEXTURE_2D,
+					DestTextureGL->getHandle(),
+					Idx ) );
+				auto ReadStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
+				auto DrawStatus = GL( CheckFramebufferStatus( GL_DRAW_FRAMEBUFFER ) );
+				if( ReadStatus == GL_FRAMEBUFFER_COMPLETE && DrawStatus == GL_FRAMEBUFFER_COMPLETE )
+				{
+					const auto Width = SourceTextureDesc.Width_ >> Idx;
+					const auto Height = SourceTextureDesc.Height_ >> Idx;
+					GL( BlitFramebuffer( 
+						0, 0, Width, Height,
+						0, 0, Width, Height,
+						GL_COLOR_BUFFER_BIT, GL_NEAREST ) );
+				}
+				else
+				{
+					// Fallback to PBO if required.
+					BcAssert( Idx == 0 );
+					UseFallback = true;
+					break;
+				}
+			}
+
+			// Reset affected bindings.
+			BoundFrameBuffer_ = nullptr;
+		}
+		else
+		{
+			UseFallback = true;
+		}
+
+		if( UseFallback )
+		{
+			BcAssertMsg( BcFalse, "No fallback for Tex->Tex transfer implemented." );
+		}
 	}
-	else
+	else if( BBToTexCopy )
 	{
-		GL( BindFramebuffer( GL_FRAMEBUFFER, 0 ) );	
-	}
+		// Setup read buffer as BB.
+		GL( BindFramebuffer( GL_READ_FRAMEBUFFER, 0 ) );
+		GL( ReadBuffer( GL_BACK ) );
 
-	// Set read buffer
-	GL( ReadBuffer( GL_COLOR_ATTACHMENT0 + Idx ) );
+		// Bind up destination texture.
+		auto DestTypeGL = RsUtilsGL::GetTextureType( DestTextureDesc.Type_ );
+		const auto& FormatGL = RsUtilsGL::GetTextureFormat( DestTextureDesc.Format_ );
+		bindTexture( 0, DestTexture );
 
-	const auto& TextureDesc = Texture->getDesc();
-	auto TypeGL = RsUtilsGL::GetTextureType( TextureDesc.Type_ );
-	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
-
-	RsTextureGL* DestTextureGL = Texture->getHandle< RsTextureGL* >();
-	if( DestTextureGL->getHandle() != 0 )
-	{
-		// Bind texture.
-		bindTexture( 0, Texture );
+		// Copy tex image.
 		GL( CopyTexImage2D( 
-			TypeGL, 
+			DestTypeGL, 
 			0, 
 			FormatGL.InternalFormat_,
 			0,
 			0,
-			TextureDesc.Width_,
-			TextureDesc.Height_,
+			DestTextureDesc.Width_,
+			DestTextureDesc.Height_,
 			0 ) );
-		
-		auto& BindingInfo = TextureBindingInfo_[ 0 ];
-		BindingInfo.Texture_ = 0;
-		BindingInfo.Target_ = TypeGL;
+
+		// Reset affected bindings.
+		BoundFrameBuffer_ = nullptr;
+		BoundProgramBinding_ = nullptr;
 	}
-	else
+	else if( TexToBBCopy )
 	{
-		BcBreakpoint;
+		bool UseFallback = false;
+		if( Version_.SupportBlitFrameBuffer_ )
+		{
+			GL( BindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] ) );
+			GL( FramebufferTexture2D( 
+				GL_READ_FRAMEBUFFER,
+				GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				SourceTextureGL->getHandle(),
+				0 ) );
+			auto DrawStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
+			BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
+			GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
+
+			// Set buffers.
+			GL( ReadBuffer( GL_COLOR_ATTACHMENT0 ) );
+			GL( DrawBuffer( GL_BACK ) );
+
+			// Perform blit.
+			const auto Width = SourceTextureDesc.Width_;
+			const auto Height = SourceTextureDesc.Height_;
+			GL( BlitFramebuffer( 
+				0, 0, Width, Height,
+				0, 0, Width, Height,
+				GL_COLOR_BUFFER_BIT, GL_NEAREST ) );
+			GL( BindFramebuffer( GL_READ_FRAMEBUFFER, 0 ) );
+
+			// Reset affected bindings.
+			BoundFrameBuffer_ = nullptr;
+		}
+		else
+		{
+			UseFallback = true;
+		}
+
+		if( UseFallback )
+		{
+			BcAssertMsg( BcFalse, "No fallback for Tex->Tex transfer implemented." );
+		}
+
 	}
-#endif // !defined( RENDER_USE_GLES )
-}
-
-//////////////////////////////////////////////////////////////////////////
-// copyTextureToFrameBufferRenderTarget
-void RsContextGL::copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx )
-{
-	PSY_PROFILE_FUNCTION;
-
-#if !defined( RENDER_USE_GLES )
-	// Copying the back buffer.
-	if( FrameBuffer == nullptr )
-	{
-		BcAssert( Idx == 0 );
-	}
-	else
-	{
-		BcAssert( FrameBuffer->getDesc().RenderTargets_[ Idx ] != nullptr );
-	}
-
-	const auto& TextureDesc = Texture->getDesc();
-
-	RsTextureGL* SrcTextureGL = Texture->getHandle< RsTextureGL* >();
-
-	GL( BindFramebuffer( GL_READ_FRAMEBUFFER, TransferFBOs_[ 0 ] ) );
-	GL( FramebufferTexture2D( 
-		GL_READ_FRAMEBUFFER,
-		GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D,
-		SrcTextureGL->getHandle(),
-		0 ) );
-	auto ReadStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
-	BcAssertMsg( ReadStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
-
-	if( FrameBuffer != nullptr )
-	{
-		RsTextureGL* DestTextureGL = 
-			FrameBuffer->getDesc().RenderTargets_[ Idx ]->getHandle< RsTextureGL* >();
-		GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, TransferFBOs_[ 1 ] ) );
-		GL( FramebufferTexture2D( 
-			GL_DRAW_FRAMEBUFFER,
-			GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_2D,
-			DestTextureGL->getHandle(),
-			0 ) );
-		auto DrawStatus = GL( CheckFramebufferStatus( GL_DRAW_FRAMEBUFFER ) );
-		BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
-	}
-	else
-	{
-		GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
-	}
-
-	auto Width = TextureDesc.Width_;
-	auto Height = TextureDesc.Height_;
-
-	GL( BlitFramebuffer( 
-		0, 0, Width, Height,
-		0, 0, Width, Height,
-		GL_COLOR_BUFFER_BIT, GL_NEAREST ) );
-
-	GL( BindFramebuffer( GL_READ_FRAMEBUFFER, 0 ) );
-	GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
-	BoundFrameBuffer_ = nullptr;
-	BoundViewport_  = RsViewport();
-	BoundScissorRect_ = RsScissorRect( -1, -1, -1, -1 );
 #endif // !defined( RENDER_USE_GLES )
 }
 

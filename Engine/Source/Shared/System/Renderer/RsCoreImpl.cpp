@@ -307,15 +307,18 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 	RsFrameBufferUPtr Resource( new RsFrameBuffer( Context, Desc ) );
 	Resource->setDebugName( DebugName );
 
+	SysFence Fence( 1 );
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, Resource = Resource.get() ]
+		[ Context, Resource = Resource.get(), &Fence ]
 		{
 			if( !Context->createFrameBuffer( Resource ) )
 			{
 				PSY_LOG( "Failed RsFrameBuffer creation: %s", Resource->getDebugName() );
 			}
+			Fence.decrement();
 		} );
+	Fence.wait();
 
 #if !PSY_PRODUCTION
 	std::lock_guard< std::mutex > Lock( AliveLock_ );

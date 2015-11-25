@@ -147,8 +147,7 @@ public:
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
 		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
-	void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) override;
-	void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) override;
+	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 

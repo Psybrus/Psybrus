@@ -71,7 +71,9 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
 				auto TextureSlice = Parent_->getSlice( LevelIdx );
 
 				// Load slice.
-				loadTexture( TextureSlice, 0, nullptr );
+				loadTexture( TextureSlice, 
+					RsTextureFormatSize( TextureDesc.Format_, Width, Height, Depth, 1 ), 
+					nullptr );
 				// TODO: Error checking on loadTexture.
 
 				// Down a power of two.
@@ -216,16 +218,9 @@ void RsTextureGL::loadTexture(
 		default:
 			BcBreakpoint;
 		}
-
 	}
 	else
 	{
-		// TODO: More intrusive checking of format.
-		if( DataSize == 0 || Data == nullptr )
-		{
-			return;
-		}
-
 		switch( TextureDesc.Type_ )
 		{
 #if !defined( RENDER_USE_GLES )

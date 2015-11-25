@@ -16,6 +16,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
+#include "System/SysKernel.h"
 
 #include "Base/BcMath.h"
 
@@ -24,6 +25,8 @@
 #endif
 
 #include "System/Debug/DsImGuiFieldEditor.h"
+
+#define DO_TEXTURE_COPY_TEST ( 0 )
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -363,6 +366,22 @@ void ScnTexture::recreate()
 			Depth_ ),
 		getFullName().c_str() );
 
+#if DO_TEXTURE_COPY_TEST
+	auto StagingTexture = RsCore::pImpl()->createTexture( 
+		RsTextureDesc( 
+			Header_.Type_, 
+			RsResourceCreationFlags::STREAM,
+			RsResourceBindFlags::NONE,
+			Header_.Format_,
+			Header_.Levels_ - SkipMips,
+			Width_ >> SkipMips,
+			Height_ >> SkipMips,
+			Depth_ ),
+		getFullName().c_str() );
+#else
+	auto& StagingTexture = Texture_;
+#endif
+
 	// Upload texture data.
 	if( pTextureData_ != nullptr )
 	{
@@ -388,10 +407,10 @@ void ScnTexture::recreate()
 
 			if( LevelIdx >= SkipMips )
 			{
-				auto Slice = Texture_->getSlice( LevelIdx - SkipMips );
+				auto Slice = StagingTexture->getSlice( LevelIdx - SkipMips );
 
 				RsCore::pImpl()->updateTexture( 
-					Texture_.get(),
+					StagingTexture.get(),
 					Slice,
 					RsResourceUpdateFlags::ASYNC,
 					[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo ]( RsTexture* Texture, const RsTextureLock& Lock )
@@ -416,6 +435,23 @@ void ScnTexture::recreate()
 			// Advance texture data.
 			TextureData += SliceSize;
 		}
+
+#if DO_TEXTURE_COPY_TEST
+		// Perform copy texture.
+		SysKernel::pImpl()->pushFunctionJob( 
+			RsCore::JOB_QUEUE_ID,
+			[ 
+				SourceTexture = StagingTexture.get(),
+				DestTexture = Texture_.get()
+			]
+			()
+			{
+				auto Context = SourceTexture->getContext();
+				Context->copyTexture(
+					SourceTexture,
+					DestTexture );
+			} );
+#endif
 	}
 }
 

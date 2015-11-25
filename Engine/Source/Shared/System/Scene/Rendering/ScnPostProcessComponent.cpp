@@ -199,10 +199,9 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 			this, 
 			InputFrameBuffer
 		]
-	( RsContext* Context )
+		( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );
-
 
 			auto InputTexture = Input_ != nullptr ? Input_->getTexture() : nullptr;
 			auto OutputTexture = Output_ != nullptr ? Output_->getTexture() : nullptr;
@@ -211,7 +210,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 			// TODO: Determine if this step is required base on nodes.
 			if( InputTexture != nullptr )
 			{
-				Context->copyFrameBufferRenderTargetToTexture( InputFrameBuffer, 0, InputTexture );
+				Context->copyTexture( InputFrameBuffer->getDesc().RenderTargets_[ 0 ], InputTexture );
 			}
 
 			ScnShaderPermutationFlags Permutation = 
@@ -274,7 +273,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 			// TODO: Determine if this step is required based on nodes.
 			if( OutputTexture != nullptr )
 			{
-				Context->copyTextureToFrameBufferRenderTarget( OutputTexture, InputFrameBuffer, 0 );
+				Context->copyTexture( OutputTexture, InputFrameBuffer->getDesc().RenderTargets_[ 0 ] );
 			}
 
 			RenderFence_.decrement();
@@ -434,7 +433,14 @@ void ScnPostProcessComponent::recreateResources()
 			}
 		}
 
-		FrameBuffers_.emplace_back( RsCore::pImpl()->createFrameBuffer( Desc, getFullName().c_str() ) );	
+		if( Desc.RenderTargets_[ 0 ] == nullptr )
+		{
+			FrameBuffers_.emplace_back( nullptr );	
+		}
+		else
+		{
+			FrameBuffers_.emplace_back( RsCore::pImpl()->createFrameBuffer( Desc, getFullName().c_str() ) );	
+		}
 		RenderStates_.emplace_back( RsCore::pImpl()->createRenderState( Node.RenderState_, getFullName().c_str() ) );	
 
 		ProgramBindings_.emplace_back( RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() ) );

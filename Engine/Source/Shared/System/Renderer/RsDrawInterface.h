@@ -84,16 +84,17 @@ public:
 		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) { BcBreakpoint; };
 
 	/**
-	 * Copy framebuffer render target to texture.
-	 * TODO: Deprecate this. Replace with proper texture->texture transfer.
+	 * Copy texture to another texture.
+	 * @param SourceTexture Texture to copy from.
+	 * @param DestTexture Texture to copy to.
+	 * @pre @a SourceTexture must be a TEX2D (Support for 1D, 3D, CUBE to be added later).
+	 * @pre @a DestTexture must be a TEX2D (Support for 1D, 3D, CUBE to be added later).
+	 * @pre @a SourceTexture width must match @a DestTexture width.
+	 * @pre @a SourceTexture height must match @a DestTexture height.
+	 * @pre @a SourceTexture levels must match @a DestTexture levels.
+	 * @pre @a SourceTexture format must match @a DestTexture format.
 	 */
-	virtual void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) { BcBreakpoint; };
-
-	/**
-	 * Copy texture to framebuffer render target.
-	 * TODO: Deprecate this. Replace with proper texture->texture transfer.
-	 */
-	virtual void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) { BcBreakpoint; };
+	virtual void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) { BcBreakpoint; };
 };
 
 #endif

@@ -28,17 +28,19 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	Minor_( Minor ),
 	Type_( Type ),
 	MaxCodeType_( MaxCodeType ),
-	SupportPolygonMode_( BcFalse ),
-	SupportVAOs_( BcFalse ),
-	SupportSamplerStates_( BcFalse ),
-	SupportUniformBuffers_( BcFalse ),
-	SupportImageLoadStore_( BcFalse ),
-	SupportShaderStorageBufferObjects_( BcFalse ),
-	SupportProgramInterfaceQuery_( BcFalse ),
-	SupportGeometryShaders_( BcFalse ),
-	SupportTesselationShaders_( BcFalse ),
-	SupportComputeShaders_( BcFalse ),
-	SupportDrawElementsBaseVertex_( BcFalse )
+	SupportPolygonMode_( false ),
+	SupportVAOs_( false ),
+	SupportSamplerStates_( false ),
+	SupportUniformBuffers_( false ),
+	SupportImageLoadStore_( false ),
+	SupportShaderStorageBufferObjects_( false ),
+	SupportProgramInterfaceQuery_( false ),
+	SupportGeometryShaders_( false ),
+	SupportTesselationShaders_( false ),
+	SupportComputeShaders_( false ),
+	SupportDrawElementsBaseVertex_( false ),
+	SupportBlitFrameBuffer_( false ),
+	SupportCopyImageSubData_( false )
 {
 
 }
@@ -115,60 +117,68 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
 			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 
-			Features_.MRT_= BcTrue;
-			Features_.DepthTextures_ = BcTrue;
-			Features_.NPOTTextures_ = BcTrue;
-			Features_.AnisotropicFiltering_ = BcTrue;
-			Features_.AntialiasedLines_ = BcTrue;
+			Features_.MRT_= true;
+			Features_.DepthTextures_ = true;
+			Features_.NPOTTextures_ = true;
+			Features_.AnisotropicFiltering_ = true;
+			Features_.AntialiasedLines_ = true;
 
-			SupportPolygonMode_ = BcTrue;
-			SupportVAOs_ = BcTrue;
+			SupportPolygonMode_ = true;
+			SupportVAOs_ = true;
 		}
 
 		// 3.1
 		if( Major_ >= 3 &&
 			Minor_ >= 1 )
 		{
-			SupportUniformBuffers_ = BcTrue;
-			SupportGeometryShaders_ = BcTrue;
+			SupportUniformBuffers_ = true;
+			SupportGeometryShaders_ = true;
 		}
 
 		// 3.2
 		if( Major_ >= 3 &&
 			Minor_ >= 2 )
 		{
-			SupportDrawElementsBaseVertex_ = BcTrue;
+			SupportDrawElementsBaseVertex_ = true;
 		}
 
 		// 3.3
 		if( Major_ >= 3 &&
 			Minor_ >= 3 )
 		{
-			SupportSamplerStates_ = BcTrue;
+			SupportSamplerStates_ = true;
+			SupportBlitFrameBuffer_ = true;
 		}
 
 		// 4.0
 		if( Major_ >= 4 &&
 			Minor_ >= 0 )
 		{
-			Features_.SeparateBlendState_ = BcTrue;
-			SupportTesselationShaders_ = BcTrue;
+			Features_.SeparateBlendState_ = true;
+			SupportTesselationShaders_ = true;
+		}
+
+		// 4.1
+		if( Major_ >= 4 &&
+			Minor_ >= 1 )
+		{
 		}
 
 		// 4.2
 		if( Major_ >= 4 &&
 			Minor_ >= 2 )
 		{
-			SupportImageLoadStore_ = BcTrue;
+			SupportImageLoadStore_ = true;
 		}
 
 		// 4.3
 		if( Major_ >= 4 &&
 			Minor_ >= 3 )
 		{
-			SupportComputeShaders_ = BcTrue;
-			SupportShaderStorageBufferObjects_ = BcTrue;
-			SupportProgramInterfaceQuery_ = BcTrue;
+			SupportComputeShaders_ = true;
+			SupportShaderStorageBufferObjects_ = true;
+			SupportProgramInterfaceQuery_ = true;
+			SupportCopyImageSubData_ = true;
 		}
 
 		break;
