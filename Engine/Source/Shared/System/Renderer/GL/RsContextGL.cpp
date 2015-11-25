@@ -1769,7 +1769,10 @@ void RsContextGL::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture 
 
 		if( UseFallback )
 		{
-			BcAssertMsg( BcFalse, "No fallback for Tex->Tex transfer implemented." );
+			BcAssertMsg( BcFalse, "No fallback for Tex->Tex transfer implemented. %s",
+				"Unable to transfer from RsTexture %s to RsTexture %s.",
+				SourceTexture->getDebugName(),
+				DestTexture->getDebugName() );
 		}
 	}
 	else if( BBToTexCopy )
@@ -1811,21 +1814,27 @@ void RsContextGL::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture 
 				SourceTextureGL->getHandle(),
 				0 ) );
 			auto DrawStatus = GL( CheckFramebufferStatus( GL_READ_FRAMEBUFFER ) );
-			BcAssertMsg( DrawStatus == GL_FRAMEBUFFER_COMPLETE, "Framebuffer not complete" );
-			GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
+			if( DrawStatus == GL_FRAMEBUFFER_COMPLETE )
+			{
+				GL( BindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
 
-			// Set buffers.
-			GL( ReadBuffer( GL_COLOR_ATTACHMENT0 ) );
-			GL( DrawBuffer( GL_BACK ) );
+				// Set buffers.
+				GL( ReadBuffer( GL_COLOR_ATTACHMENT0 ) );
+				GL( DrawBuffer( GL_BACK ) );
 
-			// Perform blit.
-			const auto Width = SourceTextureDesc.Width_;
-			const auto Height = SourceTextureDesc.Height_;
-			GL( BlitFramebuffer( 
-				0, 0, Width, Height,
-				0, 0, Width, Height,
-				GL_COLOR_BUFFER_BIT, GL_NEAREST ) );
-			GL( BindFramebuffer( GL_READ_FRAMEBUFFER, 0 ) );
+				// Perform blit.
+				const auto Width = SourceTextureDesc.Width_;
+				const auto Height = SourceTextureDesc.Height_;
+				GL( BlitFramebuffer( 
+					0, 0, Width, Height,
+					0, 0, Width, Height,
+					GL_COLOR_BUFFER_BIT, GL_NEAREST ) );
+				GL( BindFramebuffer( GL_READ_FRAMEBUFFER, 0 ) );
+			}
+			else
+			{
+				UseFallback = true;
+			}
 
 			// Reset affected bindings.
 			BoundFrameBuffer_ = nullptr;
@@ -1837,9 +1846,17 @@ void RsContextGL::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture 
 
 		if( UseFallback )
 		{
-			BcAssertMsg( BcFalse, "No fallback for Tex->Tex transfer implemented." );
+			BcAssertMsg( BcFalse, "No fallback for Tex->BB transfer implemented. %s",
+				"Unable to transfer from RsTexture %s to RsTexture %s.",
+				SourceTexture->getDebugName(),
+				DestTexture->getDebugName() );
 		}
-
+	}
+	else
+	{
+		BcAssertMsg( BcFalse, "Unable to transfer from RsTexture %s to RsTexture %s.",
+			SourceTexture->getDebugName(),
+			DestTexture->getDebugName() );
 	}
 #endif // !defined( RENDER_USE_GLES )
 }
