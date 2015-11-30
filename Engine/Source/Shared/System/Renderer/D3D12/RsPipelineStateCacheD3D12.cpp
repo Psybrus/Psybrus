@@ -51,6 +51,22 @@ bool RsGraphicsPipelineStateDescD3D12::operator == ( const RsGraphicsPipelineSta
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+RsComputePipelineStateDescD3D12::RsComputePipelineStateDescD3D12():
+	Program_( nullptr )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// operator == 
+bool RsComputePipelineStateDescD3D12::operator == ( const RsComputePipelineStateDescD3D12& Other ) const
+{
+	return 
+		Program_ == Other.Program_;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // RsGraphicsPipelineStateDescD3D12 hash
 namespace std 
 {
@@ -64,6 +80,15 @@ namespace std
 		Hash = BcHash::GenerateCRC32( Hash, &PSD.Program_, sizeof( PSD.Program_ ) );
 		Hash = BcHash::GenerateCRC32( Hash, &PSD.RenderState_, sizeof( PSD.RenderState_ ) );
 		Hash = BcHash::GenerateCRC32( Hash, &PSD.FrameBufferFormatDesc_, sizeof( PSD.FrameBufferFormatDesc_ ) );
+		return Hash;
+	}
+
+	size_t hash< RsComputePipelineStateDescD3D12 >::operator()( 
+			const RsComputePipelineStateDescD3D12 & PSD ) const
+	{
+		PSY_PROFILE_FUNCTION;
+		BcU32 Hash = 0;
+		Hash = BcHash::GenerateCRC32( Hash, &PSD.Program_, sizeof( PSD.Program_ ) );
 		return Hash;
 	}
 }
@@ -255,6 +280,51 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	// Add to map & return.
 	GraphicsPSMap_.insert( std::make_pair( GraphicsPSDesc, GraphicsPS ) );
 	return GraphicsPS.Get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPipelineState
+ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState( 
+		const RsComputePipelineStateDescD3D12& ComputePSDesc,
+		ID3D12RootSignature* RootSignature )
+{
+	PSY_PROFILE_FUNCTION;
+	auto FoundIt = ComputePSMap_.find( ComputePSDesc );
+	if( FoundIt != ComputePSMap_.end() )
+	{
+		return FoundIt->second.Get();
+	}
+
+	if( ComputePSDesc.Program_ == nullptr )
+	{
+		return nullptr;
+	}
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC PSODesc = {};
+	BcMemZero( &PSODesc, sizeof( PSODesc ) );
+
+	const auto & Shaders = ComputePSDesc.Program_->getShaders();
+	BcAssertMsg( Shaders.size() == 1, 
+		"RsProgram %s does not have 1 single shader in it.",
+		ComputePSDesc.Program_->getDebugName() );
+	BcAssertMsg( Shaders[ 0 ]->getDesc().ShaderType_ == RsShaderType::COMPUTE,
+		"RsProgram %s contains RsShader %s which is not COMPUTE.",
+		ComputePSDesc.Program_->getDebugName(),
+		Shaders[ 0 ]->getDebugName() );
+
+	PSODesc.CS.pShaderBytecode = Shaders[ 0 ]->getData();
+	PSODesc.CS.BytecodeLength= Shaders[ 0 ]->getDataSize();
+	PSODesc.pRootSignature = RootSignature;
+
+	// Construct a new compute pipeline state.
+	ComPtr< ID3D12PipelineState > ComputePS;
+
+	HRESULT RetVal = Device_->CreateComputePipelineState( &PSODesc, IID_PPV_ARGS( ComputePS.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+		
+	// Add to map & return.
+	ComputePSMap_.insert( std::make_pair( ComputePSDesc, ComputePS ) );
+	return ComputePS.Get();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -41,11 +41,11 @@ public:
 
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
+	class RsTexture* getBackBufferRT() const override;
+	class RsTexture* getBackBufferDS() const override;
 	void beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
-	void setViewport( const class RsViewport& Viewport ) override;
-	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
 
 	void setDefaultState();
 	void invalidateRenderState();
@@ -62,16 +62,48 @@ public:
 	void setUniformBuffer( 
 		BcU32 Handle, 
 		class RsBuffer* UniformBuffer );
-	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
-	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
-	void clear(
+
+	void clear( 
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
-		BcBool EnableClearStencil );
+		BcBool EnableClearStencil ) override;
+	void drawPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 VertexOffset, BcU32 NoofVertices ) override;
+	void drawIndexedPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
-	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+	void bindFrameBuffer( 
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport, 
+		const RsScissorRect* ScissorRect );
+	void bindInputAssembler( 
+		RsTopologyType TopologyType, 
+		const RsGeometryBinding* GeometryBinding );
+	void bindPSO( 
+		RsTopologyType TopologyType,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgram* Program,
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer );
+	void bindDescriptorHeap(
+		const RsProgramBinding* ProgramBinding );
 
 	bool createRenderState(
 		RsRenderState* RenderState ) override;
@@ -127,9 +159,14 @@ public:
 	void flushCommandList( std::function< void() > PostExecute );
 
 	/**
-	 * Create default root signature.
+	 * Create graphics root signature.
 	 */
-	void createDefaultRootSignature();
+	void createGraphicsRootSignature();
+
+	/**
+	 * Create compute root signature.
+	 */
+	void createComputeRootSignature();
 
 	/**
 	 * Create default pipeline state.
@@ -243,23 +280,20 @@ private:
 	BcU32 CurrentSwapBuffer_;
 	
 	/// Graphics pipeline state management.
-	ComPtr< ID3D12RootSignature > DefaultRootSignature_;
+	ComPtr< ID3D12RootSignature > GraphicsRootSignature_;
+	ComPtr< ID3D12RootSignature > ComputeRootSignature_;
 	ComPtr< ID3D12PipelineState > DefaultPSO_;
 	std::unique_ptr< RsPipelineStateCacheD3D12 > PSOCache_;
 	RsGraphicsPipelineStateDescD3D12 GraphicsPSODesc_;
-	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > Viewports_;
-	std::array< D3D12_RECT, MAX_RENDER_TARGETS > ScissorRects_;
-	class RsFrameBuffer* FrameBuffer_;
+
+	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > BoundViewports_ = {};
+	std::array< D3D12_RECT, MAX_RENDER_TARGETS > BoundScissorRects_ = {};
+	const class RsFrameBuffer* BoundFrameBuffer_ = nullptr;
 
 	// Buffer views.
-	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > VertexBufferViews_;
-	D3D12_INDEX_BUFFER_VIEW IndexBufferView_;
+	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > BoundVertexBufferViews_;
+	D3D12_INDEX_BUFFER_VIEW BoundIndexBufferView_;
 	
-	// Descriptor heaps.
-	std::unique_ptr< RsDescriptorHeapCacheD3D12 > DHCache_;
-	RsDescriptorHeapSamplerStateDescArrayD3D12 SamplerStateDescs_;
-	RsDescriptorHeapShaderResourceDescArrayD3D12 ShaderResourceDescs_;
-
 	/// Backbuffer.
 	std::vector< class RsFrameBuffer* > BackBufferFB_; // TODO: Need multiple.
 	std::vector< class RsTexture* > BackBufferRT_;	// TODO: Need multiple.

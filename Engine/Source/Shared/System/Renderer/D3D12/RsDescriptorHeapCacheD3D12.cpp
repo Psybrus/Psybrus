@@ -101,7 +101,7 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getSamplersDescriptorHeap( con
 	D3D12_DESCRIPTOR_HEAP_DESC D3DDHDesc;
 	BcMemZero( &D3DDHDesc, sizeof( D3DDHDesc ) );
 	D3DDHDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-	D3DDHDesc.NumDescriptors = static_cast< UINT >( DHDescs.size() * RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS );
+	D3DDHDesc.NumDescriptors = static_cast< UINT >( DHDescs.size() * RsDescriptorHeapConstantsD3D12::MAX_SAMPLERS );
 	D3DDHDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( DH.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
@@ -112,7 +112,7 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getSamplersDescriptorHeap( con
 	for( INT ShaderIdx = 0; ShaderIdx < DHDescs.size(); ++ShaderIdx )
 	{
 		const auto& DHDesc = DHDescs[ ShaderIdx ];
-		CD3DX12_CPU_DESCRIPTOR_HANDLE ShaderDHHandle( BaseDHHandle, ShaderIdx, DescriptorSize * RsDescriptorHeapSamplerStateDescD3D12::MAX_SAMPLERS );
+		CD3DX12_CPU_DESCRIPTOR_HANDLE ShaderDHHandle( BaseDHHandle, ShaderIdx, DescriptorSize * RsDescriptorHeapConstantsD3D12::MAX_SAMPLERS );
 
 		for( INT SlotIdx = 0; SlotIdx < DHDesc.SamplerStates_.size(); ++SlotIdx )
 		{
@@ -145,7 +145,7 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getShaderResourceDescriptorHea
 	D3D12_DESCRIPTOR_HEAP_DESC D3DDHDesc;
 	BcMemZero( &D3DDHDesc, sizeof( D3DDHDesc ) );
 	D3DDHDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	D3DDHDesc.NumDescriptors = static_cast< UINT >( DHDescs.size() * RsDescriptorHeapShaderResourceDescD3D12::MAX_RESOURCES );
+	D3DDHDesc.NumDescriptors = static_cast< UINT >( DHDescs.size() * RsDescriptorHeapConstantsD3D12::MAX_RESOURCES );
 	D3DDHDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( DH.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
@@ -156,14 +156,14 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getShaderResourceDescriptorHea
 	for( INT ShaderIdx = 0; ShaderIdx < DHDescs.size(); ++ShaderIdx )
 	{
 		const auto& DHDesc = DHDescs[ ShaderIdx ];
-		CD3DX12_CPU_DESCRIPTOR_HANDLE ShaderDHHandle( BaseDHHandle, ShaderIdx, DescriptorSize * RsDescriptorHeapShaderResourceDescD3D12::MAX_RESOURCES );
+		CD3DX12_CPU_DESCRIPTOR_HANDLE ShaderDHHandle( BaseDHHandle, ShaderIdx, DescriptorSize * RsDescriptorHeapConstantsD3D12::MAX_RESOURCES );
 
 		for( INT SlotIdx = 0; SlotIdx < DHDesc.Textures_.size(); ++SlotIdx )
 		{
 			auto Texture = DHDesc.Textures_[ SlotIdx ];
 			if( Texture != nullptr )
 			{
-				CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapShaderResourceDescD3D12::SRV_START + SlotIdx, DescriptorSize );
+				CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapConstantsD3D12::SRV_START + SlotIdx, DescriptorSize );
 				auto Resource = Texture->getHandle< RsResourceD3D12* >();
 				auto D3DResource = Resource->getInternalResource().Get();
 				const auto SRVDesc = getDefaultSRVDesc( Texture );
@@ -176,7 +176,7 @@ ID3D12DescriptorHeap* RsDescriptorHeapCacheD3D12::getShaderResourceDescriptorHea
 			auto Buffer = DHDesc.Buffers_[ SlotIdx ];
 			if( Buffer != nullptr )
 			{
-				CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapShaderResourceDescD3D12::CBV_START + SlotIdx, DescriptorSize );
+				CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapConstantsD3D12::CBV_START + SlotIdx, DescriptorSize );
 				const auto CBVDesc = getDefaultCBVDesc( Buffer );
 				Device_->CreateConstantBufferView( &CBVDesc, SlotDHHandle );
 			}
@@ -302,7 +302,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultSRVDesc( c
 
 //////////////////////////////////////////////////////////////////////////
 // getDefaultCBVDesc
-D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( class RsBuffer* Buffer )
+D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( class RsBuffer* Buffer, size_t Offset )
 {
 	PSY_PROFILE_FUNCTION;
 	D3D12_CONSTANT_BUFFER_VIEW_DESC OutDesc;
@@ -311,7 +311,7 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC RsDescriptorHeapCacheD3D12::getDefaultCBVDesc( c
 	const auto& BufferDesc = Buffer->getDesc();
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
 	auto D3DResource = Resource->getInternalResource().Get();
-	OutDesc.BufferLocation = D3DResource->GetGPUVirtualAddress();
+	OutDesc.BufferLocation = D3DResource->GetGPUVirtualAddress() + Offset;
 	OutDesc.SizeInBytes = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ) );
 	return OutDesc;
 }

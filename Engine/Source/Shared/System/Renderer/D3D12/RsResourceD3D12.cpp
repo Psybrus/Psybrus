@@ -12,12 +12,18 @@
 RsResourceD3D12::RsResourceD3D12( 
 		ID3D12Resource* Resource, 
 		D3D12_RESOURCE_STATES Usage, 
-		D3D12_RESOURCE_STATES InitialUsage ):
+		D3D12_RESOURCE_STATES InitialUsage,
+	const char* DebugName ):
 	Resource_( Resource ),
 	Usage_( Usage ),
 	CurrentUsage_( InitialUsage )
 {
 	BcAssert( ( Usage_ & CurrentUsage_ ) != 0 || CurrentUsage_ == D3D12_RESOURCE_STATE_COMMON );
+
+#if !PSY_PRODUCTION
+	BcAssert( DebugName != nullptr );
+	Resource->SetPrivateData( WKPDID_D3DDebugObjectName, BcStrLength( DebugName ), DebugName );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

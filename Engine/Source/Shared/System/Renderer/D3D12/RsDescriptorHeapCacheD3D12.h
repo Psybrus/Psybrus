@@ -6,14 +6,24 @@
 #include <unordered_map>
 
 //////////////////////////////////////////////////////////////////////////
+// RsDescriptorHeapConstantsD3D12
+struct RsDescriptorHeapConstantsD3D12
+{
+	static const size_t MAX_SAMPLERS = 8;
+	static const size_t MAX_SRVS = 8;
+	static const size_t MAX_CBVS = 8;
+	static const size_t MAX_RESOURCES = MAX_SRVS + MAX_CBVS;
+	static const size_t SRV_START = 0;
+	static const size_t CBV_START = SRV_START + MAX_SRVS;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsDescriptorHeapSamplerStateDescD3D12
 struct RsDescriptorHeapSamplerStateDescD3D12
 {
-	static const size_t MAX_SAMPLERS = 16;
-
 	RsDescriptorHeapSamplerStateDescD3D12();
 	bool operator == ( const RsDescriptorHeapSamplerStateDescD3D12& Other ) const;
-	std::array< class RsSamplerState*, MAX_SAMPLERS > SamplerStates_;
+	std::array< class RsSamplerState*, RsDescriptorHeapConstantsD3D12::MAX_SAMPLERS > SamplerStates_;
 };
 
 using RsDescriptorHeapSamplerStateDescArrayD3D12 = std::array< RsDescriptorHeapSamplerStateDescD3D12, (size_t)RsShaderType::MAX >;
@@ -22,16 +32,10 @@ using RsDescriptorHeapSamplerStateDescArrayD3D12 = std::array< RsDescriptorHeapS
 // RsDescriptorHeapShaderResourceDescD3D12
 struct RsDescriptorHeapShaderResourceDescD3D12
 {
-	static const size_t MAX_SRVS = 16;
-	static const size_t MAX_CBVS = 8;
-	static const size_t MAX_RESOURCES = MAX_SRVS + MAX_CBVS;
-	static const size_t SRV_START = 0;
-	static const size_t CBV_START = SRV_START + MAX_SRVS;
-
 	RsDescriptorHeapShaderResourceDescD3D12();
 	bool operator == ( const RsDescriptorHeapShaderResourceDescD3D12& Other ) const;
-	std::array< class RsTexture*, MAX_SRVS > Textures_;
-	std::array< class RsBuffer*, MAX_CBVS > Buffers_;
+	std::array< class RsTexture*, RsDescriptorHeapConstantsD3D12::MAX_SRVS > Textures_;
+	std::array< class RsBuffer*, RsDescriptorHeapConstantsD3D12::MAX_CBVS > Buffers_;
 };
 
 using RsDescriptorHeapShaderResourceDescArrayD3D12 = std::array< RsDescriptorHeapShaderResourceDescD3D12, (size_t)RsShaderType::MAX >;
@@ -99,7 +103,7 @@ public:
 	/**
 	 * Get default shader resource view.
 	 */
-	D3D12_CONSTANT_BUFFER_VIEW_DESC getDefaultCBVDesc( class RsBuffer* Buffer );
+	D3D12_CONSTANT_BUFFER_VIEW_DESC getDefaultCBVDesc( class RsBuffer* Buffer, size_t Offset = 0 );
 
 	/**
 	 * Destroy samplers.

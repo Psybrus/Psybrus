@@ -8,7 +8,7 @@
 class RsResourceD3D12
 {
 public:
-	RsResourceD3D12( ID3D12Resource* Resource, D3D12_RESOURCE_STATES Usage, D3D12_RESOURCE_STATES InitialUsage );
+	RsResourceD3D12( ID3D12Resource* Resource, D3D12_RESOURCE_STATES Usage, D3D12_RESOURCE_STATES InitialUsage, const char* DebugName );
 	~RsResourceD3D12();
 
 	/**
