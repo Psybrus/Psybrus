@@ -247,6 +247,9 @@ void RsContextD3D12::endFrame()
 		BackBufferResource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_PRESENT );
 	}
 
+	// Destroy resources.
+	destroyResources();
+
 	// Flush command list (also waits for completion).
 	flushCommandList( 
 		[ this ]()
@@ -460,8 +463,7 @@ void RsContextD3D12::create()
 	createDefaultPSO();
 
 	// Create command list data.
-	// TODO: Use more than 1. For now this is so we don't need to fence/flush to handle resource deletion.
-	createCommandListData( 1 );
+	createCommandListData( 8 );
 
 	// Flush command list.
 	flushCommandList( nullptr );
@@ -640,27 +642,32 @@ void RsContextD3D12::bindFrameBuffer(
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
 
+	auto LastFrameBuffer = BoundFrameBuffer_;
+
 	// Bind framebuffer.
 	auto FrameBufferD3D12 = FrameBuffer->getHandle< RsFrameBufferD3D12* >();
-	FrameBufferD3D12->setRenderTargets( CommandList );
-
-	// Transition last to read.
-	auto LastFrameBuffer = BoundFrameBuffer_;
-	BoundFrameBuffer_ = FrameBuffer;
-	if( LastFrameBuffer != nullptr && LastFrameBuffer != BoundFrameBuffer_ )
+	if( BoundFrameBuffer_ != FrameBuffer )
 	{
-		auto D3DFrameBuffer = LastFrameBuffer->getHandle< RsFrameBufferD3D12* >();
-		D3DFrameBuffer->transitionToRead( CommandList );
+		BoundFrameBuffer_ = FrameBuffer;
+		FrameBufferD3D12->setRenderTargets( CommandList );
+
+		// Transition last to read.
+		if( LastFrameBuffer != nullptr && LastFrameBuffer != BoundFrameBuffer_ )
+		{
+			auto D3DFrameBuffer = LastFrameBuffer->getHandle< RsFrameBufferD3D12* >();
+			D3DFrameBuffer->transitionToRead( CommandList );
+		}
 	}
 
-	// Setup viewport + scissor rect.
+	// Setup viewport if null.
+	Viewport = Viewport != nullptr ? Viewport : &FullViewport;
+
+	// Setup scissor rect if null.
+	ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
+
+	if( BoundViewport_ != *Viewport )
 	{
-		// Setup viewport if null.
-		Viewport = Viewport != nullptr ? Viewport : &FullViewport;
-
-		// Setup scissor rect if null.
-		ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
-
+		BoundViewport_ = *Viewport;
 		D3D12_VIEWPORT D3DViewport;
 		D3DViewport.Width = (FLOAT)Viewport->width();
 		D3DViewport.Height = (FLOAT)Viewport->height();
@@ -670,7 +677,12 @@ void RsContextD3D12::bindFrameBuffer(
 		D3DViewport.MaxDepth = 1.0f;
 
 		BoundViewports_.fill( D3DViewport );
+		CommandList->RSSetViewports( static_cast< UINT >( BoundViewports_.size() ), BoundViewports_.data() );
+	}
 
+	if( BoundScissorRect_ != *ScissorRect )
+	{
+		BoundScissorRect_ = *ScissorRect;
 		D3D12_RECT D3DScissorRect;
 		D3DScissorRect.left = ScissorRect->X_;
 		D3DScissorRect.top = ScissorRect->Y_;
@@ -678,7 +690,6 @@ void RsContextD3D12::bindFrameBuffer(
 		D3DScissorRect.bottom = ScissorRect->Y_ + ScissorRect->Height_;
 		BoundScissorRects_.fill( D3DScissorRect );
 
-		CommandList->RSSetViewports( static_cast< UINT >( BoundViewports_.size() ), BoundViewports_.data() );
 		CommandList->RSSetScissorRects( static_cast< UINT >( BoundScissorRects_.size() ), BoundScissorRects_.data() );
 	}
 }
@@ -767,47 +778,64 @@ void RsContextD3D12::bindGraphicsPSO(
 {
 	auto CommandList = getCurrentCommandList();
 
+	auto FrameBufferD3D12 = FrameBuffer->getHandle< const RsFrameBufferD3D12* >();
+
 	// Set graphics PSO params.
-	GraphicsPSODesc_.Topology_ = TopologyType;
-	GraphicsPSODesc_.VertexDeclaration_ = GeometryBinding->getDesc().VertexDeclaration_;
-	GraphicsPSODesc_.Program_ = Program;
-	GraphicsPSODesc_.RenderState_ = RenderState;
-
-	// Setup the formats for the pipeline state object.
-	// TODO: Pregenerate the structure + hash and store in the framebuffer object.
-	const auto FrameBufferDesc = FrameBuffer->getDesc();
-	GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
-	GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_.fill( RsTextureFormat::UNKNOWN );
-	for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
+	if( BoundGeometryBinding_ != GeometryBinding ||
+		BoundFrameBufferFormatHash_ != FrameBufferD3D12->getFormatHash() ||
+		BoundProgram_ != Program ||
+		GraphicsPSODesc_.Topology_ != TopologyType ||
+		GraphicsPSODesc_.RenderState_ != RenderState )
 	{
-		auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
-		if( RenderTarget != nullptr )
+		BoundProgram_ = Program;
+		BoundGeometryBinding_ = GeometryBinding;
+
+		// Setup graphics PSO.
+		GraphicsPSODesc_.Topology_ = TopologyType;
+		GraphicsPSODesc_.VertexDeclaration_ = GeometryBinding->getDesc().VertexDeclaration_;
+		GraphicsPSODesc_.Program_ = Program;
+		GraphicsPSODesc_.RenderState_ = RenderState;
+
+		// Setup the formats for the pipeline state object.
+		// TODO: Pregenerate the structure + hash and store in the framebuffer object.
+		if( BoundFrameBufferFormatHash_ != FrameBufferD3D12->getFormatHash() )
 		{
-			const auto& RenderTargetDesc =  RenderTarget->getDesc();
-			GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
+			BoundFrameBufferFormatHash_ = FrameBufferD3D12->getFormatHash();
+			const auto FrameBufferDesc = FrameBuffer->getDesc();
+			GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
+			GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_.fill( RsTextureFormat::UNKNOWN );
+			for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
+			{
+				auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
+				if( RenderTarget != nullptr )
+				{
+					const auto& RenderTargetDesc =  RenderTarget->getDesc();
+					GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
+				}
+			}
+
+			if( FrameBufferDesc.DepthStencilTarget_ != nullptr )
+			{
+				auto DepthStencil = FrameBufferDesc.DepthStencilTarget_;
+				const auto& DepthStencilDesc = DepthStencil->getDesc();
+				GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = DepthStencilDesc.Format_;
+			}
+			else
+			{
+				GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::UNKNOWN;
+			}
 		}
-	}
 
-	if( FrameBufferDesc.DepthStencilTarget_ != nullptr )
-	{
-		auto DepthStencil = FrameBufferDesc.DepthStencilTarget_;
-		const auto& DepthStencilDesc = DepthStencil->getDesc();
-		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = DepthStencilDesc.Format_;
-	}
-	else
-	{
-		GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::UNKNOWN;
-	}
+		// Get current pipeline state.
+		ID3D12PipelineState* GraphicsPS = nullptr;
+		GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_, GraphicsRootSignature_.Get() );
+		BcAssert( GraphicsPS );
 
-	// Get current pipeline state.
-	ID3D12PipelineState* GraphicsPS = nullptr;
-	GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_, GraphicsRootSignature_.Get() );
-	BcAssert( GraphicsPS );
-
-	// Reset command list if we need to, otherwise just set new pipeline state.
-	if( GraphicsPS != nullptr )
-	{
-		CommandList->SetPipelineState( GraphicsPS );
+		// Reset command list if we need to, otherwise just set new pipeline state.
+		if( GraphicsPS != nullptr )
+		{
+			CommandList->SetPipelineState( GraphicsPS );
+		}
 	}
 }
 
@@ -818,18 +846,23 @@ void RsContextD3D12::bindComputePSO(
 {
 	auto CommandList = getCurrentCommandList();
 
-	// Set compute PSO params.
-	ComputePSODesc_.Program_ = Program;
-
-	// Get current pipeline state.
-	ID3D12PipelineState* ComputePS = nullptr;
-	ComputePS = PSOCache_->getPipelineState( ComputePSODesc_, ComputeRootSignature_.Get() );
-	BcAssert( ComputePS );
-
-	// Reset command list if we need to, otherwise just set new pipeline state.
-	if( ComputePS != nullptr )
+	if( BoundProgram_ != Program )
 	{
-		CommandList->SetPipelineState( ComputePS );
+		BoundProgram_ = Program;
+
+		// Set compute PSO params.
+		ComputePSODesc_.Program_ = Program;
+
+		// Get current pipeline state.
+		ID3D12PipelineState* ComputePS = nullptr;
+		ComputePS = PSOCache_->getPipelineState( ComputePSODesc_, ComputeRootSignature_.Get() );
+		BcAssert( ComputePS );
+
+		// Reset command list if we need to, otherwise just set new pipeline state.
+		if( ComputePS != nullptr )
+		{
+			CommandList->SetPipelineState( ComputePS );
+		}
 	}
 }
 
@@ -1395,7 +1428,7 @@ bool RsContextD3D12::destroyProgram(
 // createProgramBinding
 bool RsContextD3D12::createProgramBinding( class RsProgramBinding* ProgramBinding )
 {
-	PSY_PROFILE_FUNCTION;
+	BcAssert( CurrentCommandListData_ >= 0 );
 	new RsProgramBindingD3D12( ProgramBinding, Device_.Get() );
 	return true;
 }
@@ -1404,7 +1437,8 @@ bool RsContextD3D12::createProgramBinding( class RsProgramBinding* ProgramBindin
 // destroyProgramBinding
 bool RsContextD3D12::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
 {
-	PSY_PROFILE_FUNCTION;
+	BcAssert( CurrentCommandListData_ >= 0 );
+
 	return true;
 }
 
@@ -1412,7 +1446,7 @@ bool RsContextD3D12::destroyProgramBinding( class RsProgramBinding* ProgramBindi
 // createGeometryBinding
 bool RsContextD3D12::createGeometryBinding( class RsGeometryBinding* GeometryBinding )
 {
-	PSY_PROFILE_FUNCTION;
+	BcAssert( CurrentCommandListData_ >= 0 );
 	return true;
 }
 
@@ -1420,7 +1454,7 @@ bool RsContextD3D12::createGeometryBinding( class RsGeometryBinding* GeometryBin
 // destroyGeometryBinding
 bool RsContextD3D12::destroyGeometryBinding( class RsGeometryBinding* GeometryBinding )
 {
-	PSY_PROFILE_FUNCTION;
+	BcAssert( CurrentCommandListData_ >= 0 );
 	return true;
 }
 
@@ -1437,6 +1471,8 @@ bool RsContextD3D12::createVertexDeclaration(
 bool RsContextD3D12::destroyVertexDeclaration(
 	class RsVertexDeclaration* VertexDeclaration )
 {
+	BcAssert( CurrentCommandListData_ >= 0 );
+
 	PSOCache_->destroyResources(
 		[ this, VertexDeclaration ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
 		{
@@ -1448,6 +1484,19 @@ bool RsContextD3D12::destroyVertexDeclaration(
 		GraphicsPSODesc_.VertexDeclaration_ = nullptr;
 	}
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResources
+void RsContextD3D12::destroyResources()
+{
+	// Close current list and execute.
+	if( CurrentCommandListData_ >= 0 )
+	{
+		auto& CommandListData = CommandListDatas_[ CurrentCommandListData_ ];
+
+		// TODO.
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -70,7 +70,7 @@ RsSamplerStateDesc::RsSamplerStateDesc():
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsSamplerState::RsSamplerState( class RsContext* pContext, const RsSamplerStateDesc& Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::SAMPLER_STATE, pContext ),
 	Desc_( Desc )
 {
 

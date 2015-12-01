@@ -19,6 +19,8 @@
 #include "System/Renderer/D3D12/RsPipelineStateCacheD3D12.h"
 #include "System/Renderer/D3D12/RsLinearHeapAllocatorD3D12.h"
 
+#include "System/Renderer/RsViewport.h"
+
 #include "Base/BcMisc.h"
 
 #include <unordered_map>
@@ -139,6 +141,11 @@ public:
 	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 
 	/**
+	 * Delete resources for current frame.
+	 */
+	void destroyResources();
+
+	/**
 	 * Flush out command list, and call a function post execute.
 	 */
 	void flushCommandList( std::function< void() > PostExecute );
@@ -242,6 +249,9 @@ private:
 		/// Graphics command list.
 		ComPtr< ID3D12GraphicsCommandList > CommandList_;
 
+		/// Resources to destroy.
+		std::vector< RsResource* > ResourcesToDestroy_; 
+
 		// Memory management.
 		// TODO: To save memory overall, perhaps have one global one which is reset on frame 0?
 		std::unique_ptr< class RsLinearHeapAllocatorD3D12 > UploadAllocator_;
@@ -272,9 +282,15 @@ private:
 	RsGraphicsPipelineStateDescD3D12 GraphicsPSODesc_;
 	RsComputePipelineStateDescD3D12 ComputePSODesc_;
 
+	const RsProgram* BoundProgram_ = nullptr;
+	const RsGeometryBinding* BoundGeometryBinding_ = nullptr;
+	BcU32 BoundFrameBufferFormatHash_ = 0;
+
+	const class RsFrameBuffer* BoundFrameBuffer_ = nullptr;
+	RsViewport BoundViewport_ = RsViewport();
+	RsScissorRect BoundScissorRect_ = RsScissorRect();
 	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > BoundViewports_ = {};
 	std::array< D3D12_RECT, MAX_RENDER_TARGETS > BoundScissorRects_ = {};
-	const class RsFrameBuffer* BoundFrameBuffer_ = nullptr;
 
 	// Buffer views.
 	std::array< D3D12_VERTEX_BUFFER_VIEW, MAX_VERTEX_STREAMS > BoundVertexBufferViews_;

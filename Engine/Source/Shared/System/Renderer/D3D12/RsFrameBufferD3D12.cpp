@@ -67,6 +67,7 @@ void RsFrameBufferD3D12::setupRTVs()
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE ThisDescriptorHandle( RTVDescriptorHandle, Idx, DescriptorSize );
 		auto RTTexture = ParentDesc.RenderTargets_[ Idx ];
+		auto Format = RsTextureFormat::UNKNOWN;
 		if( RTTexture != nullptr )
 		{
 			const auto& RTTextureDesc = RTTexture->getDesc();
@@ -74,7 +75,6 @@ void RsFrameBufferD3D12::setupRTVs()
 			BcAssert( RTResource );
 			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
 			BcMemZero( &RTVDesc, sizeof( RTVDesc ) );
-
 			switch( RTTextureDesc.Type_ )
 			{
 			case RsTextureType::TEX2D:
@@ -90,7 +90,11 @@ void RsFrameBufferD3D12::setupRTVs()
 				break;
 			}	
 			Device_->CreateRenderTargetView( RTResource->getInternalResource().Get(), &RTVDesc, ThisDescriptorHandle );
+			Format = RTTextureDesc.Format_;
 		}
+
+		// Append hash.
+		FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &Format, sizeof( Format ) );
 	}
 }
 
@@ -100,6 +104,7 @@ void RsFrameBufferD3D12::setupDSV()
 {
 	const auto& ParentDesc = Parent_->getDesc();
 	auto DSTexture = ParentDesc.DepthStencilTarget_;
+	auto Format = RsTextureFormat::UNKNOWN;
 	if( DSTexture != nullptr )
 	{
 		auto DSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();
@@ -124,7 +129,12 @@ void RsFrameBufferD3D12::setupDSV()
 			break;
 		}
 		Device_->CreateDepthStencilView( DSResource->getInternalResource().Get(), &DSVDesc, DSVDescriptorHandle );
-	}		
+
+		Format = DSTextureDesc.Format_;
+	}
+
+	// Append hash.
+	FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &Format, sizeof( Format ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -40,7 +40,7 @@ RsShader::RsShader(
 	const RsShaderDesc& Desc,
 	void* Data,
 	BcU32 DataSize ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::SHADER, pContext ),
 	Desc_( Desc ),
 	Data_( Data ),
 	DataSize_( DataSize )

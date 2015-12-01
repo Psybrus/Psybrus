@@ -31,13 +31,35 @@ struct RsResourceDataInputDesc
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// RsResourceType
+enum class RsResourceType
+{
+	BUFFER,
+	CONTEXT,
+	FRAMEBUFFER,
+	GEOMETRY_BINDING,
+	RENDER_STATE,
+	SAMPLER_STATE,
+	SHADER,
+	TEXTURE,
+	PROGRAM,
+	PROGRAM_BINDING,
+	VERTEX_DECLARATION,
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // RsResource
 class RsResource:
 	public SysResource
 {
 public:
-	RsResource( class RsContext* pContext );
+	RsResource( RsResourceType ResourceType, class RsContext* pContext );
 	virtual ~RsResource();
+
+	/**
+	 * Gt resource type.
+	 */
+	RsResourceType getResourceType() const { return ResourceType_; }
 
 	/**
 	 * Get context resource belongs to.
@@ -57,6 +79,7 @@ public:
 private:
 	friend class RsCoreImpl;
 
+	RsResourceType ResourceType_;
 	class RsContext* pContext_;		///!< Owning/parent context.
 #if PSY_DEBUG
 	std::string DebugName_;

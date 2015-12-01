@@ -45,7 +45,7 @@ public:
 
 public:
 	RsContext( RsContext* pParentContext ):
-		RsResource( pParentContext )
+		RsResource( RsResourceType::CONTEXT, pParentContext )
 	{}
 	virtual ~RsContext();
 

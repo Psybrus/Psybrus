@@ -56,7 +56,7 @@ RsBufferDesc::RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFla
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsBuffer::RsBuffer( class RsContext* pContext, const RsBufferDesc& BufferDesc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::BUFFER, pContext ),
 	BufferDesc_( BufferDesc )
 {
 

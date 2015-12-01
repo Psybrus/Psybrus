@@ -22,7 +22,7 @@ RsProgram::RsProgram(
 		RsProgramVertexAttributeList&& VertexAttributes,
 		RsProgramUniformList&& UniformList,
 		RsProgramUniformBlockList&& UniformBlockList ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::PROGRAM, pContext ),
 	Shaders_( std::move( Shaders ) ),
 	AttributeList_( std::move( VertexAttributes ) ),
 	UniformList_( std::move( UniformList ) ),

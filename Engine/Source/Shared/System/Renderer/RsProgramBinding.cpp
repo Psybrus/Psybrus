@@ -99,7 +99,7 @@ void RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgramBinding::RsProgramBinding( RsContext* pContext, RsProgram* Program, const RsProgramBindingDesc & Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::PROGRAM_BINDING, pContext ),
 	Program_( Program ),
 	Desc_( Desc )
 {

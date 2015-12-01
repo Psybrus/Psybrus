@@ -123,7 +123,7 @@ BcU32 RsVertexDeclarationDesc::getMinimumStride() const
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsVertexDeclaration::RsVertexDeclaration( class RsContext* pContext, const RsVertexDeclarationDesc& Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::VERTEX_DECLARATION, pContext ),
 	Desc_( Desc )
 {
 	InputLayoutHash_ = BcHash::GenerateCRC32( 0, &Desc_.Elements_[ 0 ], sizeof( RsVertexElement ) * Desc_.Elements_.size() );

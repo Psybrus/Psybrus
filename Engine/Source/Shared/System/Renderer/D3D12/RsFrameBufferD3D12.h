@@ -32,11 +32,17 @@ public:
 	 * Transition render targets to read usage.
 	 */
 	void transitionToRead( ID3D12GraphicsCommandList* CommandList );
+
+	/**
+	 * Get format hash.
+	 */
+	BcU32 getFormatHash() const { return FormatHash_; }
 	
 private:
-	class RsFrameBuffer* Parent_;
+	class RsFrameBuffer* Parent_ = nullptr;
 	ComPtr< ID3D12Device > Device_;
-	BcU32 NumRTVs_;
+	BcU32 NumRTVs_ = 0;
 	ComPtr< ID3D12DescriptorHeap > RTV_;
 	ComPtr< ID3D12DescriptorHeap > DSV_;
+	BcU32 FormatHash_ = 0;
 };

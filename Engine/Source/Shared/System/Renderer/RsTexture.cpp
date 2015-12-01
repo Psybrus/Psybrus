@@ -107,7 +107,7 @@ RsTextureDesc::RsTextureDesc(
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsTexture::RsTexture( RsContext* pContext, const RsTextureDesc& Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::TEXTURE, pContext ),
 	Desc_( Desc )
 {
 

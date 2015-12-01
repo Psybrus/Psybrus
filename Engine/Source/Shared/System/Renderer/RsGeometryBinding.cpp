@@ -36,7 +36,7 @@ void RsGeometryBindingDesc::setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesP
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsGeometryBinding::RsGeometryBinding( RsContext* pContext, const RsGeometryBindingDesc & Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::GEOMETRY_BINDING, pContext ),
 	Desc_( Desc )
 {
 }

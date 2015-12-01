@@ -280,7 +280,7 @@ RsRenderStateDesc::RsRenderStateDesc(
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsRenderState::RsRenderState( class RsContext* pContext, const RsRenderStateDesc& Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::RENDER_STATE, pContext ),
 	Desc_( Desc )
 {
 
