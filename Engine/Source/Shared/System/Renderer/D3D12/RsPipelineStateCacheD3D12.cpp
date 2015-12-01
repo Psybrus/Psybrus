@@ -176,6 +176,9 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	PSODesc.InputLayout.NumElements = static_cast< UINT >( ElementDescs.size() );
 	PSODesc.InputLayout.pInputElementDescs = ElementDescs.data();
 
+	BcAssertMsg( GraphicsPSDesc.Program_->isGraphics(),
+		"RsProgram %s is not for graphics.",
+		GraphicsPSDesc.Program_->getDebugName() );
 	const auto & Shaders = GraphicsPSDesc.Program_->getShaders();
 	for( const auto * Shader : Shaders )
 	{
@@ -303,14 +306,10 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	D3D12_COMPUTE_PIPELINE_STATE_DESC PSODesc = {};
 	BcMemZero( &PSODesc, sizeof( PSODesc ) );
 
-	const auto & Shaders = ComputePSDesc.Program_->getShaders();
-	BcAssertMsg( Shaders.size() == 1, 
-		"RsProgram %s does not have 1 single shader in it.",
+	BcAssertMsg( ComputePSDesc.Program_->isCompute(),
+		"RsProgram %s is not for compute.",
 		ComputePSDesc.Program_->getDebugName() );
-	BcAssertMsg( Shaders[ 0 ]->getDesc().ShaderType_ == RsShaderType::COMPUTE,
-		"RsProgram %s contains RsShader %s which is not COMPUTE.",
-		ComputePSDesc.Program_->getDebugName(),
-		Shaders[ 0 ]->getDebugName() );
+	const auto & Shaders = ComputePSDesc.Program_->getShaders();
 
 	PSODesc.CS.pShaderBytecode = Shaders[ 0 ]->getData();
 	PSODesc.CS.BytecodeLength= Shaders[ 0 ]->getDataSize();

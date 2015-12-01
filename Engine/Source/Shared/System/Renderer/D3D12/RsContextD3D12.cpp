@@ -230,9 +230,6 @@ void RsContextD3D12::beginFrame( BcU32 Width, BcU32 Height )
 
 	// Grab current swap buffer index.
 	CurrentSwapBuffer_ = SwapChain_->GetCurrentBackBufferIndex();
-
-	// Bind up default states.
-	setDefaultState();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -367,6 +364,7 @@ void RsContextD3D12::create()
 	Features_.Texture2D_ = true;
 	Features_.Texture3D_ = true;
 	Features_.TextureCube_ = true;
+	Features_.ComputeShaders_ = true;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
@@ -518,95 +516,6 @@ void RsContextD3D12::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setDefaultState
-void RsContextD3D12::setDefaultState()
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// invalidateRenderState
-void RsContextD3D12::invalidateRenderState()
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// invalidateTextureState
-void RsContextD3D12::invalidateTextureState()
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextD3D12::setRenderState( RsRenderState* RenderState )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	GraphicsPSODesc_.RenderState_ = RenderState;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setSamplerState
-void RsContextD3D12::setSamplerState( BcU32 Handle, class RsSamplerState* SamplerState )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-#if 0	
-	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * RsProgramD3D12::BitsPerShader ) ) & RsProgramD3D12::MaxBindPoints;
-
-		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
-		{
-			SamplerStateDescs_[ Idx ].SamplerStates_[ SlotIdx ] = SamplerState;
-		}
-	}
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setTexture
-void RsContextD3D12::setTexture( BcU32 Handle, RsTexture* Texture, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	
-#if 0
-	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * RsProgramD3D12::BitsPerShader ) ) & RsProgramD3D12::MaxBindPoints;
-
-		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
-		{
-			ShaderResourceDescs_[ Idx ].Textures_[ SlotIdx ] = Texture;
-		}
-	}
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setUniformBuffer
-void RsContextD3D12::setUniformBuffer( 
-	BcU32 Handle, 
-	class RsBuffer* UniformBuffer )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-#if 0
-	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * RsProgramD3D12::BitsPerShader ) ) & RsProgramD3D12::MaxBindPoints;
-
-		if( SlotIdx != RsProgramD3D12::MaxBindPoints )
-		{
-			ShaderResourceDescs_[ Idx ].Buffers_[ SlotIdx ] = UniformBuffer;
-		}
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D12::clear( 
 	const RsFrameBuffer* FrameBuffer,
@@ -650,7 +559,7 @@ void RsContextD3D12::drawPrimitives(
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	bindInputAssembler( TopologyType, GeometryBinding );
-	bindPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
+	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
 	bindDescriptorHeap( ProgramBinding );
 
 	auto CommandList = getCurrentCommandList();
@@ -674,7 +583,7 @@ void RsContextD3D12::drawIndexedPrimitives(
 	
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	bindInputAssembler( TopologyType, GeometryBinding );
-	bindPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
+	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
 	bindDescriptorHeap( ProgramBinding );
 	
 	auto CommandList = getCurrentCommandList();
@@ -687,6 +596,20 @@ void RsContextD3D12::copyTexture( RsTexture* SourceTexture, RsTexture* DestTextu
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcBreakpoint;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// dispatchCompute
+void RsContextD3D12::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+{
+	PSY_PROFILE_FUNCTION;
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	
+	bindComputePSO( ProgramBinding->getProgram() );
+	bindDescriptorHeap( ProgramBinding );
+	
+	auto CommandList = getCurrentCommandList();
+	CommandList->Dispatch( XGroups, YGroups, ZGroups );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -834,8 +757,8 @@ void RsContextD3D12::bindInputAssembler(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// bindPSO
-void RsContextD3D12::bindPSO( 
+// bindGraphicsPSO
+void RsContextD3D12::bindGraphicsPSO( 
 		RsTopologyType TopologyType,
 		const RsGeometryBinding* GeometryBinding, 
 		const RsProgram* Program,
@@ -889,6 +812,28 @@ void RsContextD3D12::bindPSO(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// bindComputePSO
+void RsContextD3D12::bindComputePSO( 
+		const RsProgram* Program )
+{
+	auto CommandList = getCurrentCommandList();
+
+	// Set compute PSO params.
+	ComputePSODesc_.Program_ = Program;
+
+	// Get current pipeline state.
+	ID3D12PipelineState* ComputePS = nullptr;
+	ComputePS = PSOCache_->getPipelineState( ComputePSODesc_, ComputeRootSignature_.Get() );
+	BcAssert( ComputePS );
+
+	// Reset command list if we need to, otherwise just set new pipeline state.
+	if( ComputePS != nullptr )
+	{
+		CommandList->SetPipelineState( ComputePS );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bindDescriptorHeap
 void RsContextD3D12::bindDescriptorHeap(
 		const RsProgramBinding* ProgramBinding )
@@ -898,6 +843,44 @@ void RsContextD3D12::bindDescriptorHeap(
 	// Get descriptor sets from program binding.
 	auto ProgramBindingD3D12 = ProgramBinding->getHandle< const RsProgramBindingD3D12* >();
 
+	// Perform resource transitions for all resources in program binding.
+	ProgramBindingD3D12->resourceBarrierTransition( CommandList );
+
+	// Assert resource usage.
+#if PSY_DEBUG
+	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
+	for( const auto& ShaderResourceDesc : ProgramBindingDesc.ShaderResourceSlots_ )
+	{
+		if( ShaderResourceDesc.Resource_ != nullptr )
+		{
+			auto Resource = ShaderResourceDesc.Resource_->getHandle< RsResourceD3D12* >();
+			// TODO: Assert is currently a little too conservative.
+			BcAssert( 
+				( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ) != 0 ) ||
+				( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ) != 0 ) );
+		}
+	}
+
+	for( const auto* UniformBuffer : ProgramBindingDesc.UniformBuffers_ )
+	{
+		if( UniformBuffer != nullptr )
+		{
+			auto Resource = UniformBuffer->getHandle< RsResourceD3D12* >();
+			BcAssert( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) != 0 );
+		}
+	} 
+
+	for( const auto& UnorderedAccessDesc : ProgramBindingDesc.UnorderedAccessSlots_ )
+	{
+		if( UnorderedAccessDesc.Resource_ != nullptr )
+		{
+			auto Resource = UnorderedAccessDesc.Resource_->getHandle< RsResourceD3D12* >();
+			BcAssert( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_UNORDERED_ACCESS ) != 0 );
+		}
+	}
+#endif
+
+	// Bind heaps.
 	std::array< ID3D12DescriptorHeap*, 2 > DescriptorHeaps;
 	DescriptorHeaps[ 0 ] = ProgramBindingD3D12->getSamplerDescriptorHeap();
 	DescriptorHeaps[ 1 ] = ProgramBindingD3D12->getShaderResourceDescriptorHeap();
@@ -911,25 +894,52 @@ void RsContextD3D12::bindDescriptorHeap(
 	auto ShaderResourceDescriptorSize = Device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	UINT RootDescirptorIdx = 0;
-	for( INT ShaderIdx = 0; ShaderIdx < 5; ++ShaderIdx )
+	auto Program = ProgramBinding->getProgram();
+	if( Program->isGraphics() )
+	{
+		for( INT ShaderIdx = 0; ShaderIdx < 5; ++ShaderIdx )
+		{
+			// Samplers.
+			CommandList->SetGraphicsRootDescriptorTable( 
+				RootDescirptorIdx++, BaseSamplerDHHandle );
+			BaseSamplerDHHandle.Offset( RsDescriptorHeapConstantsD3D12::MAX_SAMPLERS, SamplerDescriptorSize );
+
+			// Shader resource views.
+			CommandList->SetGraphicsRootDescriptorTable( 
+				RootDescirptorIdx++, BaseShaderResourceDHHandle );
+			BaseShaderResourceDHHandle.Offset( RsDescriptorHeapConstantsD3D12::MAX_SRVS, ShaderResourceDescriptorSize );
+
+			// Constant buffer views.
+			CommandList->SetGraphicsRootDescriptorTable( 
+				RootDescirptorIdx++, BaseShaderResourceDHHandle );
+			BaseShaderResourceDHHandle.Offset( RsDescriptorHeapConstantsD3D12::MAX_CBVS, ShaderResourceDescriptorSize );
+		}
+
+		// Unordered access views.
+		CommandList->SetGraphicsRootDescriptorTable( 
+			RootDescirptorIdx++, BaseShaderResourceDHHandle );
+	}
+	else if( Program->isCompute() )
 	{
 		// Samplers.
-		CommandList->SetGraphicsRootDescriptorTable( 
+		CommandList->SetComputeRootDescriptorTable( 
 			RootDescirptorIdx++, BaseSamplerDHHandle );
 		BaseSamplerDHHandle.Offset( RsDescriptorHeapConstantsD3D12::MAX_SAMPLERS, SamplerDescriptorSize );
 
 		// Shader resource views.
-		CommandList->SetGraphicsRootDescriptorTable( 
+		CommandList->SetComputeRootDescriptorTable( 
 			RootDescirptorIdx++, BaseShaderResourceDHHandle );
 		BaseShaderResourceDHHandle.Offset( RsDescriptorHeapConstantsD3D12::MAX_SRVS, ShaderResourceDescriptorSize );
 
 		// Constant buffer views.
-		CommandList->SetGraphicsRootDescriptorTable( 
+		CommandList->SetComputeRootDescriptorTable( 
 			RootDescirptorIdx++, BaseShaderResourceDHHandle );
 		BaseShaderResourceDHHandle.Offset( RsDescriptorHeapConstantsD3D12::MAX_CBVS, ShaderResourceDescriptorSize );
-	}
 
-	// TODO: UAVs.
+		// Unordered access views.
+		CommandList->SetComputeRootDescriptorTable( 
+			RootDescirptorIdx++, BaseShaderResourceDHHandle );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1439,45 +1449,6 @@ bool RsContextD3D12::destroyVertexDeclaration(
 	}
 	return true;
 }
-	
-//////////////////////////////////////////////////////////////////////////
-// flushState
-//virtual
-void RsContextD3D12::flushState()
-{
-	PSY_PROFILE_FUNCTION;
-	auto CommandList = getCurrentCommandList();
-
-	// Assert resource usage.
-#if 0 && PSY_DEBUG
-	BcU32 ShaderType = 0;
-	for( const auto& ShaderResourceDesc : ShaderResourceDescs_ )
-	{
-		for( auto* Texture : ShaderResourceDesc.Textures_ )
-		{
-			if( Texture != nullptr )
-			{
-				auto Resource = Texture->getHandle< RsResourceD3D12* >();
-				BcAssert( 
-					( static_cast< RsShaderType >( ShaderType ) == RsShaderType::PIXEL && 
-						( Resource->resourceUsage() & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ) != 0 ) ||
-					( static_cast< RsShaderType >( ShaderType ) != RsShaderType::PIXEL && 
-						( Resource->resourceUsage() & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ) != 0 ) );
-			}
-		}
-
-		for( auto* Buffer : ShaderResourceDesc.Buffers_ )
-		{
-			if( Buffer != nullptr )
-			{
-				auto Resource = Buffer->getHandle< RsResourceD3D12* >();
-				BcAssert( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) != 0 );
-			}
-		}
-		++ShaderType;
-	} 
-#endif
-}
 
 //////////////////////////////////////////////////////////////////////////
 // flushCommandList
@@ -1618,7 +1589,12 @@ void RsContextD3D12::createComputeRootSignature()
 	RootSignatureDesc.Init(
 		static_cast< UINT >( Parameters.size() ), Parameters.data(), 
 		0, nullptr, 
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT );
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_VERTEX_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS
+		);
 	RetVal = D3D12SerializeRootSignature( &RootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, OutBlob.GetAddressOf(), ErrorBlob.GetAddressOf() );
 	if( FAILED( RetVal ) )
 	{

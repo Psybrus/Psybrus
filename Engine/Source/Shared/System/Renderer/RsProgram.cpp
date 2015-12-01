@@ -180,6 +180,20 @@ BcU32 RsProgram::getInputLayoutHash() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// isGraphics
+bool RsProgram::isGraphics() const
+{
+	return !isCompute();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// isCompute
+bool RsProgram::isCompute() const
+{
+	return Shaders_[ 0 ]->getDesc().ShaderType_ == RsShaderType::COMPUTE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // addSamplerSlot
 void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle )
 {

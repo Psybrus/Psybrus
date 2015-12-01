@@ -47,6 +47,9 @@ public:
 	const RsProgramVertexAttributeList& getVertexAttributeList() const;
 	BcU32 getInputLayoutHash() const;
 
+	bool isGraphics() const;
+	bool isCompute() const;
+
 public:
 	// Used internally by the renderer to patch reflection information
 	// into the program.

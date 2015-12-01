@@ -1,5 +1,4 @@
 #include "System/Renderer/D3D12/RsProgramBindingD3D12.h"
-#include "System/Renderer/D3D12/RsDescriptorHeapCacheD3D12.h"
 #include "System/Renderer/D3D12/RsProgramD3D12.h"
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
 #include "System/Renderer/D3D12/RsUtilsD3D12.h"
@@ -20,9 +19,10 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 {
 	Parent->setHandle( this );
 	const auto& Desc = Parent->getDesc();
-	RsProgramD3D12* ProgramD3D12 = Parent->getProgram()->getHandle< RsProgramD3D12* >();
+	RsProgram* Program = Parent->getProgram();
+	RsProgramD3D12* ProgramD3D12 = Program->getHandle< RsProgramD3D12* >();
 
-	const BcU32 DESCRIPTOR_STAGES = (BcU32)RsShaderType::MAX;
+	const INT DESCRIPTOR_STAGES = Program->isGraphics() ? 5 : 1;
 
 	// Create sampler descriptor heap.
 	{
@@ -39,7 +39,7 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 
 		for( INT StageIdx = 0; StageIdx < DESCRIPTOR_STAGES; ++StageIdx )
 		{
-			auto ShaderType = static_cast< RsShaderType >( StageIdx );
+			auto ShaderType = Program->isGraphics() ? static_cast< RsShaderType >( StageIdx ) : RsShaderType::COMPUTE;
 			for( BcU32 Idx = 0; Idx < Desc.SamplerStates_.size(); ++Idx )
 			{
 				auto& Sampler = Desc.SamplerStates_[ Idx ];
@@ -60,7 +60,10 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 		D3D12_DESCRIPTOR_HEAP_DESC D3DDHDesc;
 		BcMemZero( &D3DDHDesc, sizeof( D3DDHDesc ) );
 		D3DDHDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		D3DDHDesc.NumDescriptors = static_cast< UINT >( DESCRIPTOR_STAGES * RsDescriptorHeapConstantsD3D12::MAX_RESOURCES );
+		D3DDHDesc.NumDescriptors = 
+			static_cast< UINT >( DESCRIPTOR_STAGES * RsDescriptorHeapConstantsD3D12::MAX_SRVS ) +
+			static_cast< UINT >( DESCRIPTOR_STAGES * RsDescriptorHeapConstantsD3D12::MAX_CBVS ) +
+			static_cast< UINT >( RsDescriptorHeapConstantsD3D12::MAX_UAVS );
 		D3DDHDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( ShaderResourceDescriptorHeap_.GetAddressOf() ) );
 		BcAssert( SUCCEEDED( RetVal ) );
@@ -70,7 +73,7 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 
 		for( INT StageIdx = 0; StageIdx < DESCRIPTOR_STAGES; ++StageIdx )
 		{
-			auto ShaderType = static_cast< RsShaderType >( StageIdx );
+			auto ShaderType = Program->isGraphics() ? static_cast< RsShaderType >( StageIdx ) : RsShaderType::COMPUTE;
 			CD3DX12_CPU_DESCRIPTOR_HANDLE ShaderDHHandle( BaseDHHandle, StageIdx, DescriptorSize * RsDescriptorHeapConstantsD3D12::MAX_RESOURCES );
 
 			for( INT Idx = 0; Idx < Desc.ShaderResourceSlots_.size(); ++Idx )
@@ -79,6 +82,7 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 				BcU32 SRVSlotIdx = ProgramD3D12->getSRVSlot( ShaderType, Idx );
 				if( SRVSlot.Resource_ != nullptr && SRVSlotIdx != BcErrorCode )
 				{
+					BcAssert( SRVSlotIdx < RsDescriptorHeapConstantsD3D12::MAX_SRVS );
 					CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapConstantsD3D12::SRV_START + SRVSlotIdx, DescriptorSize );
 					switch( SRVSlot.Type_ )
 					{
@@ -95,6 +99,8 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 							auto SRVResource = SRVSlot.Resource_->getHandle< RsResourceD3D12* >();
 							auto D3DResource = SRVResource->getInternalResource().Get();
 							Device_->CreateShaderResourceView( D3DResource, &SRVDesc, SlotDHHandle );
+
+							ResourceStateTransitions_.emplace_back( std::make_pair( SRVResource, D3D12_RESOURCE_STATE_GENERIC_READ ) );
 							break;
 						}
 						default:
@@ -109,9 +115,46 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 				BcU32 UniformBufferSlotIdx = ProgramD3D12->getCBSlot( ShaderType, Idx );
 				if( UniformBuffer != nullptr && UniformBufferSlotIdx != BcErrorCode )
 				{
+					BcAssert( UniformBufferSlotIdx < RsDescriptorHeapConstantsD3D12::MAX_CBVS );
 					CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapConstantsD3D12::CBV_START + UniformBufferSlotIdx, DescriptorSize );
+					auto CBVResource = UniformBuffer->getHandle< RsResourceD3D12* >();
 					auto CBVDesc = getDefaultCBVDesc( UniformBuffer, 0 );
 					Device_->CreateConstantBufferView( &CBVDesc, SlotDHHandle );
+					ResourceStateTransitions_.emplace_back( std::make_pair( CBVResource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) );
+				}
+			}
+
+			for( INT Idx = 0; Idx < Desc.UnorderedAccessSlots_.size(); ++Idx )
+			{
+				auto& UAVSlot = Desc.UnorderedAccessSlots_[ Idx ];
+				BcU32 UAVSlotIdx = ProgramD3D12->getUAVSlot( ShaderType, Idx );
+				if( UAVSlot.Resource_ != nullptr && UAVSlotIdx != BcErrorCode )
+				{
+					BcAssert( UAVSlotIdx < RsDescriptorHeapConstantsD3D12::MAX_UAVS );
+					CD3DX12_CPU_DESCRIPTOR_HANDLE UAVBaseDHHandle( BaseDHHandle, DESCRIPTOR_STAGES, DescriptorSize * RsDescriptorHeapConstantsD3D12::MAX_RESOURCES );
+					CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( UAVBaseDHHandle, UAVSlotIdx, DescriptorSize );
+					auto UAVResource = UAVSlot.Resource_->getHandle< RsResourceD3D12* >();
+					auto D3DResource = UAVResource->getInternalResource().Get();
+					ResourceStateTransitions_.emplace_back( std::make_pair( UAVResource, D3D12_RESOURCE_STATE_UNORDERED_ACCESS ) );
+					switch( UAVSlot.Type_ )
+					{
+						case RsUnorderedAccessType::INVALID:
+							break;
+						case RsUnorderedAccessType::BUFFER:
+						{
+							auto UAVDesc = getDefaultUAVDesc( UAVSlot.Buffer_ );
+							Device_->CreateUnorderedAccessView( D3DResource, nullptr, &UAVDesc, SlotDHHandle );
+							break;
+						}
+						case RsUnorderedAccessType::TEXTURE:
+						{
+							auto UAVDesc = getDefaultUAVDesc( UAVSlot.Texture_ );
+							Device_->CreateUnorderedAccessView( D3DResource, nullptr, &UAVDesc, SlotDHHandle );
+							break;
+						}
+						default:
+							BcBreakpoint;
+					}
 				}
 			}
 		}
@@ -122,6 +165,16 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 // Dto
 RsProgramBindingD3D12::~RsProgramBindingD3D12()
 {
+}
+
+//////////////////////////////////////////////////////////////////////////
+// resourceBarrierTransition
+void RsProgramBindingD3D12::resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList ) const
+{
+	for( auto StatePair : ResourceStateTransitions_ )
+	{
+		StatePair.first->resourceBarrierTransition( CommandList, StatePair.second );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -250,3 +303,68 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC RsProgramBindingD3D12::getDefaultCBVDesc( class 
 	OutDesc.SizeInBytes = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ) );
 	return OutDesc;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// getDefaultUAVDesc
+D3D12_UNORDERED_ACCESS_VIEW_DESC RsProgramBindingD3D12::getDefaultUAVDesc( class RsBuffer* Buffer )
+{
+	D3D12_UNORDERED_ACCESS_VIEW_DESC OutDesc;
+	BcMemZero( &OutDesc, sizeof( OutDesc ) );
+
+	const auto& BufferDesc = Buffer->getDesc();
+	OutDesc.Format = 
+		( BufferDesc.StructureStride_ == 0 ? 
+			DXGI_FORMAT_R32_TYPELESS : 
+			DXGI_FORMAT_UNKNOWN );
+	OutDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+	OutDesc.Buffer.FirstElement = 0;
+	OutDesc.Buffer.NumElements = static_cast< UINT >( ( BufferDesc.SizeBytes_ ) / 
+		( BufferDesc.StructureStride_ == 0 ? 
+			4 : 
+			BufferDesc.StructureStride_ ) );
+	OutDesc.Buffer.CounterOffsetInBytes = 0;
+	OutDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+	return OutDesc;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getDefaultUAVDesc
+D3D12_UNORDERED_ACCESS_VIEW_DESC RsProgramBindingD3D12::getDefaultUAVDesc( class RsTexture* Texture )
+{
+	D3D12_UNORDERED_ACCESS_VIEW_DESC OutDesc;
+	BcMemZero( &OutDesc, sizeof( OutDesc ) );
+
+	const auto& TextureDesc = Texture->getDesc();
+
+	OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).UAVFormat_;
+
+	switch( TextureDesc.Type_ )
+	{
+		case RsTextureType::TEX1D:
+			{
+				OutDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+				OutDesc.Texture1D.MipSlice = 0;
+			}
+			break;
+
+		case RsTextureType::TEX2D:
+			{
+				OutDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+				OutDesc.Texture2D.MipSlice = 0;
+				OutDesc.Texture2D.PlaneSlice = 0;
+			}
+			break;
+
+		case RsTextureType::TEX3D:
+			{
+				OutDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+				OutDesc.Texture3D.MipSlice = 0;
+				OutDesc.Texture3D.FirstWSlice = 0;
+				OutDesc.Texture3D.WSize = 0;
+			}
+			break;
+	}
+
+	return OutDesc;
+}
+

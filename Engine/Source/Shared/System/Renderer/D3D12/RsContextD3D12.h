@@ -17,7 +17,6 @@
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/D3D12/RsD3D12.h"
 #include "System/Renderer/D3D12/RsPipelineStateCacheD3D12.h"
-#include "System/Renderer/D3D12/RsDescriptorHeapCacheD3D12.h"
 #include "System/Renderer/D3D12/RsLinearHeapAllocatorD3D12.h"
 
 #include "Base/BcMisc.h"
@@ -47,22 +46,6 @@ public:
 	void endFrame() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
-	void setDefaultState();
-	void invalidateRenderState();
-	void invalidateTextureState();
-	void setRenderState( class RsRenderState* RenderState );
-	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
-	void setProgram( class RsProgram* Program );
-	void setIndexBuffer( class RsBuffer* IndexBuffer );
-	void setVertexBuffer( 
-		BcU32 StreamIdx, 
-		class RsBuffer* VertexBuffer,
-		BcU32 Stride );
-	void setUniformBuffer( 
-		BcU32 Handle, 
-		class RsBuffer* UniformBuffer );
-
 	void clear( 
 		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
@@ -89,6 +72,8 @@ public:
 		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
 	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
+	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups );
+
 	void bindFrameBuffer( 
 		const RsFrameBuffer* FrameBuffer, 
 		const RsViewport* Viewport, 
@@ -96,12 +81,14 @@ public:
 	void bindInputAssembler( 
 		RsTopologyType TopologyType, 
 		const RsGeometryBinding* GeometryBinding );
-	void bindPSO( 
+	void bindGraphicsPSO( 
 		RsTopologyType TopologyType,
 		const RsGeometryBinding* GeometryBinding, 
 		const RsProgram* Program,
 		const RsRenderState* RenderState,
 		const RsFrameBuffer* FrameBuffer );
+	void bindComputePSO( 
+		const RsProgram* Program );
 	void bindDescriptorHeap(
 		const RsProgramBinding* ProgramBinding );
 
@@ -150,8 +137,6 @@ public:
 	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
 	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
-
-	void flushState();
 
 	/**
 	 * Flush out command list, and call a function post execute.
@@ -285,6 +270,7 @@ private:
 	ComPtr< ID3D12PipelineState > DefaultPSO_;
 	std::unique_ptr< RsPipelineStateCacheD3D12 > PSOCache_;
 	RsGraphicsPipelineStateDescD3D12 GraphicsPSODesc_;
+	RsComputePipelineStateDescD3D12 ComputePSODesc_;
 
 	std::array< D3D12_VIEWPORT, MAX_RENDER_TARGETS > BoundViewports_ = {};
 	std::array< D3D12_RECT, MAX_RENDER_TARGETS > BoundScissorRects_ = {};
