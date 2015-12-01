@@ -687,6 +687,7 @@ namespace Psybrus
 		FontSampler_.reset();
 		FontTexture_.reset();
 		WhiteTexture_.reset();
+		FrameBuffer_.reset();
 	}
 } // end Psybrus
 } // end ImGui
