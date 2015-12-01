@@ -8,7 +8,7 @@
 class RsResourceD3D12
 {
 public:
-	RsResourceD3D12( ID3D12Resource* Resource, D3D12_RESOURCE_STATES Usage, D3D12_RESOURCE_STATES InitialUsage, const char* DebugName );
+	RsResourceD3D12( class RsResource* Parent, ID3D12Resource* Resource, D3D12_RESOURCE_STATES Usage, D3D12_RESOURCE_STATES InitialUsage, const char* DebugName );
 	~RsResourceD3D12();
 
 	/**
@@ -35,11 +35,19 @@ public:
 	D3D12_RESOURCE_STATES resourceUsage() const;
 
 	/**
+	 * Gather objects we own.
+	 */
+	void gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList );
+
+	/**
 	 * TODO: Move to utils.
 	 */
 	static D3D12_RESOURCE_STATES GetResourceUsage( RsResourceBindFlags BindFlags );
 
 private:
+	/// Parent resource.
+	class RsResource* Parent_ = nullptr;
+
 	/// Internal D3D12 resource.
 	ComPtr< ID3D12Resource > Resource_;
 

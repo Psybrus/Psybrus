@@ -28,6 +28,11 @@ public:
 
 	void resourceBarrierTransition( ID3D12GraphicsCommandList* CommandList ) const;
 
+	/**
+	 * Gather objects we own.
+	 */
+	void gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList );
+
 private:
 	D3D12_SAMPLER_DESC getSamplerDesc( class RsSamplerState* SamplerState );
 	D3D12_SHADER_RESOURCE_VIEW_DESC getDefaultSRVDesc( class RsTexture* Texture );

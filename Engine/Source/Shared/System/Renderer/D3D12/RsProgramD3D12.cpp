@@ -8,6 +8,8 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	Parent_( Parent ),
 	Device_( Device )
 {
+	Parent->setHandle( this );
+
 	// TODO: Look up also by type, size, and flags. Not just name.
 	// TODO: Do this work offline.
 	typedef std::map< std::string, SlotMapping > ResourceHandleMapping;
@@ -162,6 +164,7 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 // Dtor
 RsProgramD3D12::~RsProgramD3D12()
 {
+	Parent_->setHandle( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////

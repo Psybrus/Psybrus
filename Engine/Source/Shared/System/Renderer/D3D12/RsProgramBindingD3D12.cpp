@@ -165,6 +165,7 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 // Dto
 RsProgramBindingD3D12::~RsProgramBindingD3D12()
 {
+	Parent_->setHandle( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -175,6 +176,14 @@ void RsProgramBindingD3D12::resourceBarrierTransition( ID3D12GraphicsCommandList
 	{
 		StatePair.first->resourceBarrierTransition( CommandList, StatePair.second );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gatherOwnedObjects
+void RsProgramBindingD3D12::gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList )
+{
+	OutList.emplace_back( SamplerDescriptorHeap_ );
+	OutList.emplace_back( ShaderResourceDescriptorHeap_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

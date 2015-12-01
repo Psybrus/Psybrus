@@ -10,14 +10,17 @@
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsResourceD3D12::RsResourceD3D12( 
+		RsResource* Parent,
 		ID3D12Resource* Resource, 
 		D3D12_RESOURCE_STATES Usage, 
 		D3D12_RESOURCE_STATES InitialUsage,
 	const char* DebugName ):
+	Parent_( Parent ),
 	Resource_( Resource ),
 	Usage_( Usage ),
 	CurrentUsage_( InitialUsage )
 {
+	Parent->setHandle( this );
 	BcAssert( ( Usage_ & CurrentUsage_ ) != 0 || CurrentUsage_ == D3D12_RESOURCE_STATE_COMMON );
 
 #if !PSY_PRODUCTION
@@ -30,6 +33,7 @@ RsResourceD3D12::RsResourceD3D12(
 // Dtor
 RsResourceD3D12::~RsResourceD3D12()
 {
+	Parent_->setHandle( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,4 +77,11 @@ D3D12_RESOURCE_STATES RsResourceD3D12::resourceBarrierTransition( ID3D12Graphics
 D3D12_RESOURCE_STATES RsResourceD3D12::resourceUsage() const
 {
 	return CurrentUsage_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gatherOwnedObjects
+void RsResourceD3D12::gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList )
+{
+	OutList.emplace_back( Resource_ );
 }

@@ -995,7 +995,7 @@ bool RsContextD3D12::destroyRenderState(
 		[ this, RenderState ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
 		{
 			return PSODesc.RenderState_ == RenderState;
-		} );
+		}, getDelayedDestroyList() );
 
 	if( GraphicsPSODesc_.RenderState_ == RenderState )
 	{
@@ -1028,7 +1028,7 @@ bool RsContextD3D12::destroySamplerState(
 bool RsContextD3D12::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	FrameBuffer->setHandle( new RsFrameBufferD3D12( FrameBuffer, Device_.Get() ) );
+	new RsFrameBufferD3D12( FrameBuffer, Device_.Get() );
 	return true;
 }
 
@@ -1044,8 +1044,8 @@ bool RsContextD3D12::destroyFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	}
 
 	auto FrameBufferInternal = FrameBuffer->getHandle< RsFrameBufferD3D12* >();
+	FrameBufferInternal->gatherOwnedObjects( getDelayedDestroyList() );
 	delete FrameBufferInternal;
-	FrameBuffer->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -1132,11 +1132,12 @@ bool RsContextD3D12::createBuffer(
 		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 
-	Buffer->setHandle( new RsResourceD3D12( 
+	new RsResourceD3D12( 
+		Buffer,
 		D3DResource.Get(), 
 		static_cast< D3D12_RESOURCE_STATES >( ResourceUsage | D3D12_RESOURCE_STATE_COPY_DEST ), 
 		ResourceUsage,
-		Buffer->getDebugName() ) );
+		Buffer->getDebugName() );
 	return true;
 }
 
@@ -1148,9 +1149,8 @@ bool RsContextD3D12::destroyBuffer(
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
-
+	Resource->gatherOwnedObjects( getDelayedDestroyList() );
 	delete Resource;
-	Buffer->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -1299,11 +1299,12 @@ bool RsContextD3D12::createTexture(
 		IID_PPV_ARGS( D3DResource.GetAddressOf() ) );
  	BcAssert( SUCCEEDED( RetVal ) );
 
-	Texture->setHandle( new RsResourceD3D12( 
+	new RsResourceD3D12( 
+		Texture,
 		D3DResource.Get(), 
 		RsUtilsD3D12::GetResourceUsage( TextureDesc.BindFlags_ ),
 		static_cast< D3D12_RESOURCE_STATES >( InitialUsage ),
-		Texture->getDebugName() ) );
+		Texture->getDebugName() );
 	return true;
 }
 
@@ -1314,9 +1315,8 @@ bool RsContextD3D12::destroyTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto Resource = Texture->getHandle< RsResourceD3D12* >();
-
+	Resource->gatherOwnedObjects( getDelayedDestroyList() );
 	delete Resource;
-	Texture->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -1397,10 +1397,9 @@ bool RsContextD3D12::destroyShader(
 bool RsContextD3D12::createProgram(
 	class RsProgram* Program )
 {
-	Program->setHandle( new RsProgramD3D12( Program, Device_.Get() ) );
+	new RsProgramD3D12( Program, Device_.Get() );
 	return true;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // destroyProgram
@@ -1411,7 +1410,7 @@ bool RsContextD3D12::destroyProgram(
 		[ this, Program ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
 		{
 			return PSODesc.Program_ == Program;
-		} );
+		}, getDelayedDestroyList() );
 
 	if( GraphicsPSODesc_.Program_ == Program )
 	{
@@ -1420,7 +1419,6 @@ bool RsContextD3D12::destroyProgram(
 
 	auto ProgramD3D12 = Program->getHandle< RsProgramD3D12* >();
 	delete ProgramD3D12;
-	Program->setHandle< BcU64 >( 0 );
 	return true;
 }
 
@@ -1438,7 +1436,9 @@ bool RsContextD3D12::createProgramBinding( class RsProgramBinding* ProgramBindin
 bool RsContextD3D12::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
 {
 	BcAssert( CurrentCommandListData_ >= 0 );
-
+	auto Internal = ProgramBinding->getHandle< RsProgramBindingD3D12* >();
+	Internal->gatherOwnedObjects( getDelayedDestroyList() );
+	delete Internal;
 	return true;
 }
 
@@ -1477,7 +1477,7 @@ bool RsContextD3D12::destroyVertexDeclaration(
 		[ this, VertexDeclaration ]( const RsGraphicsPipelineStateDescD3D12& PSODesc, ID3D12PipelineState* PSO )->bool
 		{
 			return PSODesc.VertexDeclaration_ == VertexDeclaration;
-		} );
+		}, getDelayedDestroyList() );
 
 	if( GraphicsPSODesc_.VertexDeclaration_ == VertexDeclaration )
 	{
@@ -1490,12 +1490,13 @@ bool RsContextD3D12::destroyVertexDeclaration(
 // destroyResources
 void RsContextD3D12::destroyResources()
 {
-	// Close current list and execute.
 	if( CurrentCommandListData_ >= 0 )
 	{
 		auto& CommandListData = CommandListDatas_[ CurrentCommandListData_ ];
-
-		// TODO.
+		if( CommandListData.ObjectsToDestroy_.size() > 0 )
+		{
+			CommandListData.ObjectsToDestroy_.clear();
+		}
 	}
 }
 
@@ -1805,12 +1806,13 @@ void RsContextD3D12::recreateBackBuffers( BcU32 Width, BcU32 Height )
 			auto RetVal = SwapChain_->GetBuffer( Idx, IID_PPV_ARGS( BackBufferResource.GetAddressOf() ));
 			BcAssert( SUCCEEDED( RetVal ) );
 		
-			auto BackBufferRTResource = new RsResourceD3D12( BackBufferResource.Get(), 
+			new RsResourceD3D12( 
+				BackBufferRT_[ Idx ],
+				BackBufferResource.Get(), 
 				RsUtilsD3D12::GetResourceUsage( Desc.BindFlags_ ),
 				D3D12_RESOURCE_STATE_PRESENT,
 				BackBufferRT_[ Idx ]->getDebugName() );
-			BackBufferRT_[ Idx ]->setHandle( BackBufferRTResource );
-
+			
 			RsFrameBufferDesc FBDesc = RsFrameBufferDesc( 1 ).setRenderTarget( 0, BackBufferRT_[ Idx ] );
 
 			FBDesc.setDepthStencilTarget( BackBufferDS_ );
@@ -1838,4 +1840,12 @@ ID3D12GraphicsCommandList* RsContextD3D12::getCurrentCommandList()
 RsLinearHeapAllocatorD3D12* RsContextD3D12::getCurrentUploadAllocator()
 {
 	return CommandListDatas_[ CurrentCommandListData_ ].UploadAllocator_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getDelayedDestroyList
+std::vector< ComPtr< ID3D12Object > >& RsContextD3D12::getDelayedDestroyList()
+{
+	size_t Index = ( CurrentCommandListData_ + ( CommandListDatas_.size() - 1 ) ) % CommandListDatas_.size();
+	return CommandListDatas_[ Index ].ObjectsToDestroy_;
 }

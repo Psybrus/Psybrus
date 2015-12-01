@@ -185,6 +185,11 @@ public:
 	 */
 	class RsLinearHeapAllocatorD3D12* getCurrentUploadAllocator();
 
+	/**
+	 * Get delayed destroy list.
+	 */
+	std::vector< ComPtr< ID3D12Object > >& getDelayedDestroyList();
+
 
 protected:
 	virtual void create();
@@ -249,8 +254,8 @@ private:
 		/// Graphics command list.
 		ComPtr< ID3D12GraphicsCommandList > CommandList_;
 
-		/// Resources to destroy.
-		std::vector< RsResource* > ResourcesToDestroy_; 
+		/// Objects to destroy after command list execution.
+		std::vector< ComPtr< ID3D12Object > > ObjectsToDestroy_; 
 
 		// Memory management.
 		// TODO: To save memory overall, perhaps have one global one which is reset on frame 0?

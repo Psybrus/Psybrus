@@ -11,6 +11,7 @@ RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Devic
 	Device_( Device ),
 	NumRTVs_( 0 )
 {
+	Parent->setHandle( this );
 	createRTVDescriptorHeap();
 	createDSVDescriptorHeap();
 	setupRTVs();
@@ -21,6 +22,7 @@ RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Devic
 // Dtor
 RsFrameBufferD3D12::~RsFrameBufferD3D12()
 {
+	Parent_->setHandle( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -238,4 +240,12 @@ void RsFrameBufferD3D12::transitionToRead( ID3D12GraphicsCommandList* CommandLis
 			Resource->resourceBarrierTransition( CommandList, Usage );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gatherOwnedObjects
+void RsFrameBufferD3D12::gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList )
+{
+	OutList.emplace_back( RTV_ );
+	OutList.emplace_back( DSV_ );
 }

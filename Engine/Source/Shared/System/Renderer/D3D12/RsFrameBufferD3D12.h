@@ -34,6 +34,11 @@ public:
 	void transitionToRead( ID3D12GraphicsCommandList* CommandList );
 
 	/**
+	 * Gather objects we own.
+	 */
+	void gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList );
+
+	/**
 	 * Get format hash.
 	 */
 	BcU32 getFormatHash() const { return FormatHash_; }

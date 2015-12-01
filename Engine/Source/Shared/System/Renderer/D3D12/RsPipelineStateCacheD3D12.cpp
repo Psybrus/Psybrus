@@ -328,7 +328,7 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 
 //////////////////////////////////////////////////////////////////////////
 // destroyResources
-void RsPipelineStateCacheD3D12::destroyResources( ShouldDestroyFunc DestroyFunc )
+void RsPipelineStateCacheD3D12::destroyResources( ShouldDestroyFunc DestroyFunc, std::vector< ComPtr< ID3D12Object > >& OutList )
 {
 	PSY_PROFILE_FUNCTION;
 	for( auto It = GraphicsPSMap_.begin(); It != GraphicsPSMap_.end(); )
@@ -336,6 +336,7 @@ void RsPipelineStateCacheD3D12::destroyResources( ShouldDestroyFunc DestroyFunc 
 		auto ShouldDestroy = DestroyFunc( It->first, It->second.Get() );
 		if( ShouldDestroy )
 		{
+			OutList.emplace_back( It->second );
 			It = GraphicsPSMap_.erase( It );
 		}
 		else

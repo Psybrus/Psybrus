@@ -85,8 +85,8 @@ public:
 	 * Call @a DestroyFunc for every value stored, if true is returned then destroy resource, otherwise leave alone.
 	 */
 	using ShouldDestroyFunc = std::function< bool( const RsGraphicsPipelineStateDescD3D12&, ID3D12PipelineState* ) >;
-	void destroyResources( ShouldDestroyFunc DestroyFunc );
-		
+	void destroyResources( ShouldDestroyFunc DestroyFunc, std::vector< ComPtr< ID3D12Object > >& OutList );
+
 private:
 	using GraphicsPSMap = std::unordered_map< RsGraphicsPipelineStateDescD3D12, ComPtr< ID3D12PipelineState > >;
 	using ComputePSMap = std::unordered_map< RsComputePipelineStateDescD3D12, ComPtr< ID3D12PipelineState > >;
