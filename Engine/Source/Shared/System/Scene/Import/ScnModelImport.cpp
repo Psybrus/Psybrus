@@ -116,6 +116,26 @@ static BcU32 gVertexDataSize[] =
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
+REFLECTION_DEFINE_BASIC( ScnModelVertexFormat );
+
+void ScnModelVertexFormat::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Position_", &ScnModelVertexFormat::Position_, bcRFF_IMPORTER ),
+		new ReField( "Normal_", &ScnModelVertexFormat::Normal_, bcRFF_IMPORTER ),
+		new ReField( "Tangent_", &ScnModelVertexFormat::Tangent_, bcRFF_IMPORTER ),
+		new ReField( "Colour_", &ScnModelVertexFormat::Colour_, bcRFF_IMPORTER ),
+		new ReField( "BlendWeights_", &ScnModelVertexFormat::BlendWeights_, bcRFF_IMPORTER ),
+		new ReField( "TexCoord0_", &ScnModelVertexFormat::TexCoord0_, bcRFF_IMPORTER ),
+		new ReField( "TexCoord1_", &ScnModelVertexFormat::TexCoord1_, bcRFF_IMPORTER ),
+		new ReField( "TexCoord2_", &ScnModelVertexFormat::TexCoord2_, bcRFF_IMPORTER ),
+		new ReField( "TexCoord3_", &ScnModelVertexFormat::TexCoord3_, bcRFF_IMPORTER ),
+	};
+		
+	ReRegisterClass< ScnModelVertexFormat >( Fields );
+}
+
 REFLECTION_DEFINE_DERIVED( ScnModelImport )
 	
 void ScnModelImport::StaticRegisterClass()
@@ -124,6 +144,7 @@ void ScnModelImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnModelImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Materials_", &ScnModelImport::Materials_, bcRFF_IMPORTER ),
+		new ReField( "VertexFormat_", &ScnModelImport::VertexFormat_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnModelImport, Super >( Fields );
@@ -389,27 +410,27 @@ void ScnModelImport::serialiseMesh(
 		RsVertexDeclarationDesc VertexDeclarationDesc = RsVertexDeclarationDesc();
 		VertexDeclarationDesc.addElement( RsVertexElement( 
 			0, VertexDeclarationDesc.getMinimumStride(), 
-			4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) );
+			4, VertexFormat_.Position_, RsVertexUsage::POSITION, 0 ) );
 
 		if( Mesh->HasNormals() )
 		{
 			VertexDeclarationDesc.addElement( RsVertexElement(
 				0, VertexDeclarationDesc.getMinimumStride(), 
-				4, RsVertexDataType::FLOAT32, RsVertexUsage::NORMAL, 0 ) );
+				4, VertexFormat_.Normal_, RsVertexUsage::NORMAL, 0 ) );
 		}
 
 		if( Mesh->HasTangentsAndBitangents() )
 		{
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(), 
-				4, RsVertexDataType::FLOAT32, RsVertexUsage::TANGENT, 0 ) );
+				4, VertexFormat_.Tangent_, RsVertexUsage::TANGENT, 0 ) );
 		}
 
 		if( Mesh->HasTextureCoords( 0 ) )
 		{
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(), 
-				2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) );
+				2, VertexFormat_.TexCoord0_, RsVertexUsage::TEXCOORD, 0 ) );
 		}
 
 		// Always export channel 0 to save on shader permutations.
@@ -417,7 +438,7 @@ void ScnModelImport::serialiseMesh(
 		//if( Mesh->HasVertexColors( 0 ) )
 		{
 			VertexDeclarationDesc.addElement( RsVertexElement( 
-				0, VertexDeclarationDesc.getMinimumStride(), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) );
+				0, VertexDeclarationDesc.getMinimumStride(), 4, VertexFormat_.Colour_, RsVertexUsage::COLOUR, 0 ) );
 		}
 		
 		// Add bones to vertex declaration if they exist.
@@ -427,10 +448,10 @@ void ScnModelImport::serialiseMesh(
 
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(),
-				4, RsVertexDataType::FLOAT32, RsVertexUsage::BLENDINDICES, 0 ) );
+				4, VertexFormat_.BlendIndices_, RsVertexUsage::BLENDINDICES, 0 ) );
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(),
-				4, RsVertexDataType::FLOAT32, RsVertexUsage::BLENDWEIGHTS, 0 ) );
+				4, VertexFormat_.BlendWeights_, RsVertexUsage::BLENDWEIGHTS, 0 ) );
 		}
 
 		VertexDeclarations_.push_back( VertexDeclarationDesc );
@@ -616,150 +637,134 @@ void ScnModelImport::serialiseVertices(
 			case RsVertexUsage::POSITION:
 				{
 					BcAssert( VertexElement.Components_ == 4 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = Position.x;
-						*OutVal++ = Position.y;
-						*OutVal++ = Position.z;
-						*OutVal++ = 1.0f;
-					}
+					BcF32 Input[] = { Position.x, Position.y, Position.z, 1.0f };
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, 4, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::NORMAL:
 				{
 					BcAssert( VertexElement.Components_ == 4 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-
-					aiVector3D Normal = 
-						Mesh->mNormals != nullptr ? 
-						Mesh->mNormals[ VertexIdx ] : 
-						aiVector3D( 0.0f, 0.0f, 0.0f );
+					BcF32 Input[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					if( Mesh->mNormals != nullptr )
 					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = Normal.x;
-						*OutVal++ = Normal.y;
-						*OutVal++ = Normal.z;
-						*OutVal++ = 0.0f;
+						Input[ 0 ] = Mesh->mNormals[ VertexIdx ].x;
+						Input[ 1 ] = Mesh->mNormals[ VertexIdx ].y;
+						Input[ 2 ] = Mesh->mNormals[ VertexIdx ].z;
 					}
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, 4, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::TANGENT:
 				{
 					BcAssert( VertexElement.Components_ == 4 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-
-					aiVector3D Tangent = 
-						Mesh->mTangents != nullptr ? 
-						Mesh->mTangents[ VertexIdx ] : 
-						aiVector3D( 0.0f, 0.0f, 0.0f );
+					BcF32 Input[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					if( Mesh->mTangents != nullptr )
 					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = Tangent.x;
-						*OutVal++ = Tangent.y;
-						*OutVal++ = Tangent.z;
-						*OutVal++ = 0.0f;
+						Input[ 0 ] = Mesh->mTangents[ VertexIdx ].x;
+						Input[ 1 ] = Mesh->mTangents[ VertexIdx ].y;
+						Input[ 2 ] = Mesh->mTangents[ VertexIdx ].z;
 					}
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, 4, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::BINORMAL:
 				{
 					BcAssert( VertexElement.Components_ == 3 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-
-					aiVector3D Bitangent = 
-						Mesh->mBitangents != nullptr ? 
-						Mesh->mBitangents[ VertexIdx ] : 
-						aiVector3D( 0.0f, 0.0f, 0.0f );
+					BcF32 Input[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					if( Mesh->mBitangents != nullptr )
 					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = Bitangent.x;
-						*OutVal++ = Bitangent.y;
-						*OutVal++ = Bitangent.z;
-						*OutVal++ = 0.0f;
+						Input[ 0 ] = Mesh->mBitangents[ VertexIdx ].x;
+						Input[ 1 ] = Mesh->mBitangents[ VertexIdx ].y;
+						Input[ 2 ] = Mesh->mBitangents[ VertexIdx ].z;
 					}
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, 4, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::TEXCOORD:
 				{
 					BcAssert( VertexElement.UsageIdx_ < AI_MAX_NUMBER_OF_TEXTURECOORDS );
 					BcAssert( VertexElement.Components_ == Mesh->mNumUVComponents[ VertexElement.UsageIdx_ ] );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-
-					aiVector3D Texcoord = 
-						Mesh->mTextureCoords[ VertexElement.UsageIdx_ ] != nullptr ? 
-						Mesh->mTextureCoords[ VertexElement.UsageIdx_ ][ VertexIdx ] : 
-						aiVector3D( 0.0f, 0.0f, 0.0f );
+					BcF32 Input[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					if( Mesh->mTextureCoords[ VertexElement.UsageIdx_ ] != nullptr )
 					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						for( BcU32 ComponentIdx = 0; ComponentIdx < VertexElement.Components_; ++ComponentIdx )
-						{
-							if( ComponentIdx == 1 )
-							{
-								*OutVal++ = 1.0f - Texcoord[ ComponentIdx ];
-							}
-							else
-							{
-								*OutVal++ = Texcoord[ ComponentIdx ];
-							}
-						}
+						Input[ 0 ] = Mesh->mTextureCoords[ VertexElement.UsageIdx_ ][ VertexIdx ].x;
+						Input[ 1 ] = Mesh->mTextureCoords[ VertexElement.UsageIdx_ ][ VertexIdx ].y;
+						Input[ 2 ] = Mesh->mTextureCoords[ VertexElement.UsageIdx_ ][ VertexIdx ].z;
 					}
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, VertexElement.Components_, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::COLOUR:
 				{
 					BcAssert( VertexElement.UsageIdx_ < AI_MAX_NUMBER_OF_COLOR_SETS );
 					BcAssert( VertexElement.Components_ == 4 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::UBYTE_NORM );
-					aiColor4D Colour = aiColor4D( 1.0f, 1.0f, 1.0f, 1.0f );
-				
-					if( Mesh->HasVertexColors( VertexElement.UsageIdx_ ) )
+					BcF32 Input[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+					if( Mesh->mColors[ VertexElement.UsageIdx_ ] != nullptr )
 					{
-						Colour = Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ];
+						Input[ 0 ] = Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ].r;
+						Input[ 1 ] = Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ].g;
+						Input[ 2 ] = Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ].b;
+						Input[ 3 ] = Mesh->mColors[ VertexElement.UsageIdx_ ][ VertexIdx ].a;
 					}
-
-					{
-						BcU32* OutVal = reinterpret_cast< BcU32* >( &VertexData[ VertexElement.Offset_ ] );
-						*OutVal++ = RsColour( Colour.r, Colour.g, Colour.b, Colour.a ).asABGR();
-					}
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, VertexElement.Components_, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::BLENDINDICES:
 				{
 					BcAssert( VertexElement.Components_ == 4 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						MaVec4d BlendIndicesVec = BlendIndices[ VertexIdx ];
 
-						*OutVal++ = (BcF32)BlendIndicesVec.x();
-						*OutVal++ = (BcF32)BlendIndicesVec.y();
-						*OutVal++ = (BcF32)BlendIndicesVec.z();
-						*OutVal++ = (BcF32)BlendIndicesVec.w();
-					}
+					BcF32 Input[] = { 
+						BlendIndices[ VertexIdx ].x(),
+						BlendIndices[ VertexIdx ].y(),
+						BlendIndices[ VertexIdx ].z(),
+						BlendIndices[ VertexIdx ].w()
+					};
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, 4, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 			case RsVertexUsage::BLENDWEIGHTS:
 				{
 					BcAssert( VertexElement.Components_ == 4 );
-					BcAssert( VertexElement.DataType_ == RsVertexDataType::FLOAT32 );
-					{
-						BcF32* OutVal = reinterpret_cast< BcF32* >( &VertexData[ VertexElement.Offset_ ] );
-						MaVec4d BlendWeightsVec = BlendWeights[ VertexIdx ];
-						const BcF32 TotalWeight = 
-							BlendWeightsVec.x() + BlendWeightsVec.y() +
-							BlendWeightsVec.z() + BlendWeightsVec.w();
-						const BcF32 Epsilon = 0.5f;
-						// TODO: Make error.
-						BcAssertMsg( TotalWeight > Epsilon, 
-							"Total weight too low to safely renormalise: %f\n", TotalWeight );
-
-						BlendWeightsVec /= TotalWeight;
-						*OutVal++ = (BcF32)BlendWeightsVec.x();
-						*OutVal++ = (BcF32)BlendWeightsVec.y();
-						*OutVal++ = (BcF32)BlendWeightsVec.z();
-						*OutVal++ = (BcF32)BlendWeightsVec.w();
-					}
+					BcF32 Input[] = { 
+						BlendWeights[ VertexIdx ].x(),
+						BlendWeights[ VertexIdx ].y(),
+						BlendWeights[ VertexIdx ].z(),
+						BlendWeights[ VertexIdx ].w()
+					};
+					const BcF32 TotalWeight = Input[0] + Input[1] + Input[2] + Input[3];
+					const BcF32 Epsilon = 0.5f;
+					// TODO: Make error.
+					BcAssertMsg( TotalWeight > Epsilon, 
+						"Total weight too low to safely renormalise: %f\n", TotalWeight );
+					Input[0] /= TotalWeight;
+					Input[1] /= TotalWeight;
+					Input[2] /= TotalWeight;
+					Input[3] /= TotalWeight;
+					BcU32 OutSize = 0;
+					RsFloatToVertexDataType( 
+						Input, 4, VertexElement.DataType_, 
+						&VertexData[ VertexElement.Offset_ ], OutSize );
 				}
 				break;
 
@@ -768,7 +773,7 @@ void ScnModelImport::serialiseVertices(
 			};
 		}
 
-		VertexDataStream_.push( &VertexData[0], VertexData.size() );
+		VertexDataStream_.push( VertexData.data(), VertexData.size() );
 	}
 #endif
 }

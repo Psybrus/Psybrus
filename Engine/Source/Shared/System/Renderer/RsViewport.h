@@ -20,7 +20,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // RsViewport
-class RsViewport
+struct RsViewport
 {
 public:
 	RsViewport();
@@ -28,6 +28,9 @@ public:
 
 	//
 	void viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, BcF32 ZNear = 1.0f, BcF32 ZFar = 1024.0f );
+
+	bool operator == ( const RsViewport& B ) const;
+	bool operator != ( const RsViewport& B ) const;
 
 public:
 	BcU32 x() const;
@@ -68,6 +71,26 @@ inline void RsViewport::viewport( BcU32 X, BcU32 Y, BcU32 Width, BcU32 Height, B
 	Right_ = ( X + Width ) - 1;
 	ZNear_ = ZNear;
 	ZFar_ = ZFar;
+}
+
+inline bool RsViewport::operator == ( const RsViewport& B ) const
+{
+	return  Top_ == B.Top_ &&
+		Bottom_ == B.Bottom_ &&
+		Left_ == B.Left_ &&
+		Right_ == B.Right_ &&
+		ZNear_ == B.ZNear_ &&
+		ZFar_ == B.ZFar_;
+}
+
+inline bool RsViewport::operator != ( const RsViewport& B ) const
+{
+	return  Top_ != B.Top_ ||
+		Bottom_ != B.Bottom_ ||
+		Left_ != B.Left_ ||
+		Right_ != B.Right_ ||
+		ZNear_ != B.ZNear_ ||
+		ZFar_ != B.ZFar_;
 }
 
 inline BcU32 RsViewport::x() const

@@ -36,8 +36,8 @@ public:
 	const ScnTileMapTile* getTile( BcU32 LayerIdx, BcS32 X, BcS32 Y ) const;
 
 private:
-	virtual void fileReady();
-	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 private:
 	friend class ScnTileMapComponent;

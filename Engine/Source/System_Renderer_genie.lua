@@ -10,7 +10,6 @@ PsyProjectEngineLib( "System_Renderer" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
-      "../../External/SDL2/include/",
       BOOST_INCLUDE_PATH,
     }
 
@@ -59,6 +58,7 @@ PsyProjectEngineLib( "System_Renderer" )
       }
       includedirs {
           "./Platforms/OSX/",
+          "/usr/local/Cellar/sdl2/2.0.3/include" 
       }
 
   configuration "android-*"

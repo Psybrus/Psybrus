@@ -34,14 +34,14 @@ public:
 	ScnPhysicsMesh();
 	virtual ~ScnPhysicsMesh();
 	
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 
 	class btCollisionShape* createCollisionShape();
 
 protected:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 protected:
 	ScnPhysicsMeshHeader Header_;

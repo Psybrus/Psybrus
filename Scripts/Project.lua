@@ -482,7 +482,7 @@ function PsyProjectGameLib( _name )
 
 	configuration "windows-*"
 		prebuildcommands {
-			"C:\\Python27\\python.exe ../../Psybrus/reflection_parse.py " .. solution().name
+			"python.exe ../../Psybrus/reflection_parse.py " .. solution().name
 		}
 
 	-- Terminate project.
@@ -563,8 +563,8 @@ function PsyProjectExternalLib( _name, _lang )
 		flags { "Optimize" }
 
 	-- External librarys should be built with no WinRT language extensions.
-	configuration "winphone-*"
-		flags { "NoWinRTExtensions" }
+	--configuration "winphone-*"
+	--	flags { "NoWinRTExtensions" }
 
 	-- Add STATICLIB define for libraries.
 	configuration "*"

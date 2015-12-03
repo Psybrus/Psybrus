@@ -69,17 +69,22 @@ public:
 	virtual ~ScnParticleSystemComponent();
 
 public:
-	virtual void initialise();
+	void initialise() override;
 
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 
-	virtual void render( ScnRenderContext & RenderContext );
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void render( ScnRenderContext & RenderContext ) override;
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	ScnMaterialComponentRef getMaterialComponent();
 
 	BcBool allocParticle( ScnParticle*& pParticle );
+
+	/**
+	 * Set transform if not local space.
+	 */
+	void setTransform( MaMat4d Transform ){ Transform_ = Transform; }
 
 private:
 	void updateParticle( ScnParticle& Particle, BcF32 Tick );
@@ -87,17 +92,12 @@ private:
 	static void updateParticles( const ScnComponentList& Components );
 
 private:
-	struct TVertexBuffer
-	{
-		RsBuffer* pVertexBuffer_;
-		RsBuffer* UniformBuffer_;
-		ScnShaderObjectUniformBlockData	ObjectUniforms_;
-	};
-
 	// Graphics data.
-	RsVertexDeclaration* VertexDeclaration_;
-	TVertexBuffer VertexBuffers_[ 2 ];
-	BcU32 CurrentVertexBuffer_;
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsBufferUPtr UniformBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
+	ScnShaderObjectUniformBlockData	ObjectUniforms_;
 
 	// Particle data.
 	ScnParticle* pParticleBuffer_;
@@ -115,12 +115,14 @@ private:
 	// UV bounds.
 	std::vector< MaVec4d > UVBounds_;
 
+	// Transform.
+	MaMat4d Transform_;
+
 	// AABB
 	MaAABB AABB_;
 
-	// Fences for uploading + render.
+	// Fences for render.
 	SysFence UploadFence_;
-	SysFence RenderFence_;
 };
 
 #endif

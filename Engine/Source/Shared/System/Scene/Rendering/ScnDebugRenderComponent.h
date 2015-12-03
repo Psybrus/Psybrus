@@ -40,7 +40,7 @@ struct ScnDebugRenderComponentPrimitiveSection
 	BcU32 VertexIndex_;
 	BcU32 NoofVertices_;
 	BcU32 Layer_;
-	ScnMaterialComponentRef	MaterialComponent_;
+	ScnMaterialComponent* MaterialComponent_;
 };
 
 class ScnDebugRenderComponentPrimitiveSectionCompare
@@ -66,7 +66,7 @@ public:
 	ScnDebugRenderComponent( BcU32 NoofVertices );
 	virtual ~ScnDebugRenderComponent();
 	
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 	
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -149,9 +149,9 @@ public:
 	void clear();
 
 private:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-	virtual void render( ScnRenderContext & RenderContext );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 
 	static void clearAll( const ScnComponentList& Components );
 
@@ -167,17 +167,11 @@ protected:
 protected:
 	static ScnDebugRenderComponent* pImpl_;
 
-	RsVertexDeclaration* VertexDeclaration_;
-	struct TRenderResource
-	{
-		RsBuffer* UniformBuffer_;
-		RsBuffer* pVertexBuffer_;
-		ScnShaderObjectUniformBlockData	ObjectUniforms_;
-	};
-
-	BcU32 CurrentRenderResource_;
-	TRenderResource RenderResources_[ 2 ];
-	TRenderResource* pRenderResource_;
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
+	RsBufferUPtr UniformBuffer_;
+	ScnShaderObjectUniformBlockData	ObjectUniforms_;
 
 	// Submission data.
 	ScnDebugRenderComponentVertex* pWorkingVertices_;
@@ -186,7 +180,6 @@ protected:
 	BcU32 NoofVertices_;
 	BcU32 VertexIndex_;
 	SysFence UploadFence_;
-	SysFence RenderFence_;
 	
 	// Materials.
 	ScnMaterialRef Material_;

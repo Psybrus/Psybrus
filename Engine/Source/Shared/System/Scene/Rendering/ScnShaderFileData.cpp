@@ -25,7 +25,8 @@ void ScnShaderViewUniformBlockData::StaticRegisterClass()
 		new ReField( "ProjectionTransform_", &ScnShaderViewUniformBlockData::ProjectionTransform_ ),
 		new ReField( "InverseViewTransform_", &ScnShaderViewUniformBlockData::InverseViewTransform_ ),
 		new ReField( "ViewTransform_", &ScnShaderViewUniformBlockData::ViewTransform_ ),
-		new ReField( "ClipTransform_", &ScnShaderViewUniformBlockData::ClipTransform_ )
+		new ReField( "ClipTransform_", &ScnShaderViewUniformBlockData::ClipTransform_ ),
+		new ReField( "ViewTime_", &ScnShaderViewUniformBlockData::ViewTime_ ),
 	};
 		
 	ReRegisterClass< ScnShaderViewUniformBlockData >( Fields );

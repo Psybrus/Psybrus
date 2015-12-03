@@ -198,9 +198,20 @@ BcBool ScnTextureImport::import(
 		// Load all source images.
 		ImgImageList ImageList = loadImages( Source_ );
 		
+		if( ImageList.size() == 0 )
+		{
+			return BcFalse;
+		}
+
 		// If a tile atlas, reconstruct the image list.
 		if( TileAtlas_ )
 		{
+			if( getResourceType() != "ScnTextureAtlas" )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Need to set resource type to ScnTextureAtlas." );
+				return BcFalse;
+
+			}
 			ImgImageList NewImageList;
 			for( BcU32 Idx = 0; Idx < ImageList.size(); ++Idx )
 			{
@@ -439,7 +450,17 @@ ImgImageList ScnTextureImport::loadImages( std::vector< std::string > Sources )
 		CsResourceImporter::addDependency( FileName.c_str() );
 
 		// Load image.
-		Images.push_back( Img::load( FileName.c_str() ) );
+		auto Image = Img::load( FileName.c_str() );
+		if( Image == nullptr )
+		{
+			BcChar Error[ 4096 ] = { 0 };
+			BcSPrintf( Error, sizeof( Error ) - 1, "Unable to load texture \"%s\"", FileName.c_str() );
+			CsResourceImporter::addMessage( CsMessageCategory::ERROR, Error );
+		}
+		else
+		{
+			Images.push_back( std::move( Image ) );
+		}
 	}
 
 	return Images;

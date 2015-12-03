@@ -1,0 +1,15 @@
+draw pipeline state (graphics PSO d3d12)
+- vertex declaration
+- program
+- renderstate
+- framebuffer formats
+
+
+compute pipeline state (compute PSO d3d12)
+- program
+
+
+geometry binding (maps vaguely to VAO)
+- vertex declaration
+- vertex buffers
+- index buffers

@@ -50,7 +50,7 @@ RsFrameBufferDesc& RsFrameBufferDesc::setDepthStencilTarget( RsTexture* Texture 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsFrameBuffer::RsFrameBuffer( RsContext* pContext, const RsFrameBufferDesc& Desc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::FRAMEBUFFER, pContext ),
 	Desc_( Desc )
 {
 

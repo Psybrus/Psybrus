@@ -34,6 +34,20 @@ ScnComponentProcessor::ScnComponentProcessor( ScnComponentProcessFuncEntryInitia
 }
 
 //////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnComponentProcessor::initialise()
+{
+
+}
+	
+//////////////////////////////////////////////////////////////////////////
+// shutdown
+void ScnComponentProcessor::shutdown()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getProcessFuncs
 //virtual
 const ScnComponentProcessFuncEntryList& ScnComponentProcessor::getProcessFuncs()

@@ -12,6 +12,7 @@ struct RsTextureFormatD3D12
 	DXGI_FORMAT RTVFormat_;
 	DXGI_FORMAT DSVFormat_;
 	DXGI_FORMAT SRVFormat_;
+	DXGI_FORMAT UAVFormat_;
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -26,12 +26,20 @@ public:
 	RsProgram( 
 		class RsContext* pContext, 
 		std::vector< class RsShader* >&& Shaders,
-		RsProgramVertexAttributeList&& VertexAttributes );
+		RsProgramVertexAttributeList&& VertexAttributes,
+		RsProgramUniformList&& UniformList,
+		RsProgramUniformBlockList&& UniformBlockList );
 	virtual ~RsProgram();
 	
-	BcU32 findSamplerSlot( const BcChar* Name );
-	BcU32 findTextureSlot( const BcChar* Name );
-	BcU32 findUniformBufferSlot( const BcChar* Name );
+	BcU32 findSamplerSlot( const BcChar* Name ) const;
+	BcU32 findShaderResourceSlot( const BcChar* Name ) const;
+	BcU32 findUnorderedAccessSlot( const BcChar* Name ) const;
+	BcU32 findUniformBufferSlot( const BcChar* Name ) const;
+
+	const char* getSamplerSlotName( BcU32 Slot ) const;
+	const char* getShaderResourceSlotName( BcU32 Slot ) const;
+	const char* getUnorderedAccessSlotName( BcU32 Slot ) const;
+	const char* getUniformBufferSlotName( BcU32 Slot ) const;
 
 	const ReClass* getUniformBufferClass( BcU32 Handle );
 
@@ -39,11 +47,15 @@ public:
 	const RsProgramVertexAttributeList& getVertexAttributeList() const;
 	BcU32 getInputLayoutHash() const;
 
+	bool isGraphics() const;
+	bool isCompute() const;
+
 public:
 	// Used internally by the renderer to patch reflection information
 	// into the program.
 	void addSamplerSlot( std::string Name, BcU32 Handle );
-	void addTextureSlot( std::string Name, BcU32 Handle );
+	void addShaderResource( std::string Name, RsShaderResourceType Type, BcU32 Handle );
+	void addUnorderedAccess( std::string Name, RsUnorderedAccessType Type, BcU32 Handle );
 	void addUniformBufferSlot( std::string Name, BcU32 Handle, const ReClass* Class );
 
 private:
@@ -53,9 +65,17 @@ private:
 		BcU32 Handle_;
 	};
 
-	struct TTexture
+	struct TShaderResource
 	{
 		std::string Name_;
+		RsShaderResourceType Type_;
+		BcU32 Handle_;
+	};
+
+	struct TUnorderedAccess
+	{
+		std::string Name_;
+		RsUnorderedAccessType Type_;
 		BcU32 Handle_;
 	};
 
@@ -67,23 +87,21 @@ private:
 	};
 
 	typedef std::vector< TSampler > TSamplerList;
-	typedef TSamplerList::iterator TSamplerListIterator;
-	typedef TSamplerList::const_iterator TSamplerListConstIterator;
 	TSamplerList SamplerList_;
 
-	typedef std::vector< TTexture > TTextureList;
-	typedef TTextureList::iterator TTextureListIterator;
-	typedef TTextureList::const_iterator TTextureListConstIterator;
-	TTextureList TextureList_;
+	typedef std::vector< TShaderResource > TShaderResourceList;
+	TShaderResourceList ShaderResourceList_;
+
+	typedef std::vector< TUnorderedAccess > TUnorderedAccessList;
+	TUnorderedAccessList UnorderedAccessList_;
 
 	typedef std::vector< TUniformBlock > TUniformBlockList;
-	typedef TUniformBlockList::iterator TUniformBlockListIterator;
-	typedef TUniformBlockList::const_iterator TUniformBlockListConstIterator;
-	TUniformBlockList UniformBlockList_;
+	TUniformBlockList InternalUniformBlockList_;
 	
 	std::vector< class RsShader* > Shaders_;
 	RsProgramVertexAttributeList AttributeList_;
-
+	RsProgramUniformList UniformList_;
+	RsProgramUniformBlockList UniformBlockList_;
 	BcU32 InputLayoutHash_;
 };
 

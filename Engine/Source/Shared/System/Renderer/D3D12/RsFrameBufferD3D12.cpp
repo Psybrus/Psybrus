@@ -11,6 +11,7 @@ RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Devic
 	Device_( Device ),
 	NumRTVs_( 0 )
 {
+	Parent->setHandle( this );
 	createRTVDescriptorHeap();
 	createDSVDescriptorHeap();
 	setupRTVs();
@@ -21,6 +22,7 @@ RsFrameBufferD3D12::RsFrameBufferD3D12( class RsFrameBuffer* Parent, ID3D12Devic
 // Dtor
 RsFrameBufferD3D12::~RsFrameBufferD3D12()
 {
+	Parent_->setHandle( 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,6 +69,7 @@ void RsFrameBufferD3D12::setupRTVs()
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE ThisDescriptorHandle( RTVDescriptorHandle, Idx, DescriptorSize );
 		auto RTTexture = ParentDesc.RenderTargets_[ Idx ];
+		auto Format = RsTextureFormat::UNKNOWN;
 		if( RTTexture != nullptr )
 		{
 			const auto& RTTextureDesc = RTTexture->getDesc();
@@ -74,7 +77,6 @@ void RsFrameBufferD3D12::setupRTVs()
 			BcAssert( RTResource );
 			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
 			BcMemZero( &RTVDesc, sizeof( RTVDesc ) );
-
 			switch( RTTextureDesc.Type_ )
 			{
 			case RsTextureType::TEX2D:
@@ -90,7 +92,11 @@ void RsFrameBufferD3D12::setupRTVs()
 				break;
 			}	
 			Device_->CreateRenderTargetView( RTResource->getInternalResource().Get(), &RTVDesc, ThisDescriptorHandle );
+			Format = RTTextureDesc.Format_;
 		}
+
+		// Append hash.
+		FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &Format, sizeof( Format ) );
 	}
 }
 
@@ -100,6 +106,7 @@ void RsFrameBufferD3D12::setupDSV()
 {
 	const auto& ParentDesc = Parent_->getDesc();
 	auto DSTexture = ParentDesc.DepthStencilTarget_;
+	auto Format = RsTextureFormat::UNKNOWN;
 	if( DSTexture != nullptr )
 	{
 		auto DSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();
@@ -124,7 +131,12 @@ void RsFrameBufferD3D12::setupDSV()
 			break;
 		}
 		Device_->CreateDepthStencilView( DSResource->getInternalResource().Get(), &DSVDesc, DSVDescriptorHandle );
-	}		
+
+		Format = DSTextureDesc.Format_;
+	}
+
+	// Append hash.
+	FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &Format, sizeof( Format ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -172,6 +184,7 @@ void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandLis
 		if( RenderTarget != nullptr )
 		{
 			auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+			BcAssert( Resource );
 			Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET );
 		}
 	}
@@ -228,4 +241,12 @@ void RsFrameBufferD3D12::transitionToRead( ID3D12GraphicsCommandList* CommandLis
 			Resource->resourceBarrierTransition( CommandList, Usage );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// gatherOwnedObjects
+void RsFrameBufferD3D12::gatherOwnedObjects( std::vector< ComPtr< ID3D12Object > >& OutList )
+{
+	OutList.emplace_back( RTV_ );
+	OutList.emplace_back( DSV_ );
 }

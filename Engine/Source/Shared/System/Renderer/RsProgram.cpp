@@ -17,12 +17,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Ctor
 RsProgram::RsProgram( 
-	class RsContext* pContext, 
-	std::vector< RsShader* >&& Shaders, 
-	RsProgramVertexAttributeList&& VertexAttributes ):
-	RsResource( pContext ),
+		class RsContext* pContext, 
+		std::vector< RsShader* >&& Shaders, 
+		RsProgramVertexAttributeList&& VertexAttributes,
+		RsProgramUniformList&& UniformList,
+		RsProgramUniformBlockList&& UniformBlockList ):
+	RsResource( RsResourceType::PROGRAM, pContext ),
 	Shaders_( std::move( Shaders ) ),
-	AttributeList_( std::move( VertexAttributes ) )
+	AttributeList_( std::move( VertexAttributes ) ),
+	UniformList_( std::move( UniformList ) ),
+	UniformBlockList_( std::move( UniformBlockList ) )
 {
 	// Find vertex shader.
 	BcU64 HashCalc = 0;
@@ -36,7 +40,7 @@ RsProgram::RsProgram(
 
 	// Hash input layout + vertex shader.
 	InputLayoutHash_ = BcHash::GenerateCRC32( 0, &HashCalc, sizeof( HashCalc ) );
-	InputLayoutHash_ = BcHash::GenerateCRC32( InputLayoutHash_, &AttributeList_[ 0 ], sizeof( RsProgramVertexAttribute ) * AttributeList_.size() );
+	InputLayoutHash_ = BcHash::GenerateCRC32( InputLayoutHash_, AttributeList_.data(), sizeof( RsProgramVertexAttribute ) * AttributeList_.size() );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +53,7 @@ RsProgram::~RsProgram()
 
 ////////////////////////////////////////////////////////////////////////////////
 // findSamplerSlot
-BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
+BcU32 RsProgram::findSamplerSlot( const BcChar* Name ) const
 {
 	for( const auto& It : SamplerList_ )
 	{
@@ -63,10 +67,25 @@ BcU32 RsProgram::findSamplerSlot( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// findTextureSlot
-BcU32 RsProgram::findTextureSlot( const BcChar* Name )
+// findShaderResourceSlot
+BcU32 RsProgram::findShaderResourceSlot( const BcChar* Name ) const
 {
-	for( const auto& It : TextureList_ )
+	for( const auto& It : ShaderResourceList_ )
+	{
+		if( It.Name_ == Name )
+		{
+			return It.Handle_;
+		}
+	}
+
+	return BcErrorCode;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// findUnorderedAccessSlot
+BcU32 RsProgram::findUnorderedAccessSlot( const BcChar* Name ) const
+{
+	for( const auto& It : UnorderedAccessList_ )
 	{
 		if( It.Name_ == Name )
 		{
@@ -79,9 +98,9 @@ BcU32 RsProgram::findTextureSlot( const BcChar* Name )
 
 ////////////////////////////////////////////////////////////////////////////////
 // findUniformBufferSlot
-BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
+BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name ) const
 {
-	for( const auto& It : UniformBlockList_ )
+	for( const auto& It : InternalUniformBlockList_ )
 	{
 		if( It.Name_ == Name )
 		{
@@ -93,10 +112,42 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// getSamplerSlotName
+const char* RsProgram::getSamplerSlotName( BcU32 Slot ) const
+{
+	BcAssert( SamplerList_[ Slot ].Handle_ == Slot );
+	return SamplerList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getShaderResourceSlotName
+const char* RsProgram::getShaderResourceSlotName( BcU32 Slot ) const
+{
+	BcAssert( ShaderResourceList_[ Slot ].Handle_ == Slot );
+	return ShaderResourceList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getUnorderedAccessSlotName
+const char* RsProgram::getUnorderedAccessSlotName( BcU32 Slot ) const
+{
+	BcAssert( UnorderedAccessList_[ Slot ].Handle_ == Slot );
+	return UnorderedAccessList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getUniformBufferSlotName
+const char* RsProgram::getUniformBufferSlotName( BcU32 Slot ) const
+{
+	BcAssert( InternalUniformBlockList_[ Slot ].Handle_ == Slot );
+	return InternalUniformBlockList_[ Slot ].Name_.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // getUniformBufferClass
 const ReClass* RsProgram::getUniformBufferClass( BcU32 Handle )
 {
-	for( const auto& It : UniformBlockList_ )
+	for( const auto& It : InternalUniformBlockList_ )
 	{
 		if( It.Handle_ == Handle )
 		{
@@ -129,6 +180,20 @@ BcU32 RsProgram::getInputLayoutHash() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// isGraphics
+bool RsProgram::isGraphics() const
+{
+	return !isCompute();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// isCompute
+bool RsProgram::isCompute() const
+{
+	return Shaders_[ 0 ]->getDesc().ShaderType_ == RsShaderType::COMPUTE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // addSamplerSlot
 void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle )
 {
@@ -142,16 +207,31 @@ void RsProgram::addSamplerSlot( std::string Name, BcU32 Handle )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addTextureSlot
-void RsProgram::addTextureSlot( std::string Name, BcU32 Handle )
+// addShaderResource
+void RsProgram::addShaderResource( std::string Name, RsShaderResourceType Type, BcU32 Handle )
 {
 	// If parameter is valid, add it.
-	TTexture Texture = 
+	TShaderResource ShaderResource = 
 	{
 		std::move( Name ),
+		Type,
 		Handle,
 	};
-	TextureList_.push_back( std::move( Texture ) );
+	ShaderResourceList_.push_back( std::move( ShaderResource ) );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// addUnorderedAccess
+void RsProgram::addUnorderedAccess( std::string Name, RsUnorderedAccessType Type, BcU32 Handle )
+{
+	// If parameter is valid, add it.
+	TUnorderedAccess UnorderedAccess = 
+	{
+		std::move( Name ),
+		Type,
+		Handle,
+	};
+	UnorderedAccessList_.push_back( std::move( UnorderedAccess ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -168,5 +248,5 @@ void RsProgram::addUniformBufferSlot( std::string Name, BcU32 Handle, const ReCl
 		Class
 	};
 
-	UniformBlockList_.push_back( std::move( Block ) );
+	InternalUniformBlockList_.push_back( std::move( Block ) );
 }

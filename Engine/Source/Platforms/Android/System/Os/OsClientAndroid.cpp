@@ -60,6 +60,9 @@ OsClientAndroid::OsClientAndroid( android_app* App ):
 	KeyCodeMap_[ AKEYCODE_NUMPAD_DOT ] = OsEventInputKeyboard::KEYCODE_DECIMAL;
 	KeyCodeMap_[ AKEYCODE_NUMPAD_DIVIDE ] = OsEventInputKeyboard::KEYCODE_DIVIDE;
 
+	KeyCodeMap_[ AKEYCODE_VOLUME_UP ] = OsEventInputKeyboard::KEYCODE_VOLUME_UP;
+	KeyCodeMap_[ AKEYCODE_VOLUME_DOWN ] = OsEventInputKeyboard::KEYCODE_VOLUME_DOWN;
+
 	KeyCodeMap_[ AKEYCODE_F1 ] = OsEventInputKeyboard::KEYCODE_F1;
 	KeyCodeMap_[ AKEYCODE_F2 ] = OsEventInputKeyboard::KEYCODE_F2;
 	KeyCodeMap_[ AKEYCODE_F3 ] = OsEventInputKeyboard::KEYCODE_F3;
@@ -258,6 +261,36 @@ BcBool OsClientAndroid::handleInput( struct AInputEvent* Event )
 
 	switch( Type )
 	{
+	case AINPUT_EVENT_TYPE_KEY:
+		{
+			auto Action = AKeyEvent_getAction( Event );
+			auto KeyCode = AKeyEvent_getKeyCode( Event );
+			OsEventInputKeyboard KeyEvent;
+
+			KeyEvent.KeyCode_ = static_cast< BcU16 >( KeyCode );
+			KeyEvent.ScanCode_ = KeyEvent.KeyCode_;
+			KeyEvent.AsciiCode_ = 0;
+
+			// Get key code, or pass through virtual.
+			TKeyCodeMapIterator It( KeyCodeMap_.find( KeyEvent.KeyCode_ ) );
+			if( It != KeyCodeMap_.end() )
+			{
+				KeyEvent.KeyCode_ = (*It).second;
+			}
+			
+			if( Action == AKEY_EVENT_ACTION_DOWN )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_KEYDOWN, KeyEvent ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_KEYDOWN, KeyEvent );
+			}
+			else if( Action == AKEY_EVENT_ACTION_UP )
+			{
+				OsCore::pImpl()->publish( osEVT_INPUT_KEYUP, KeyEvent ); // TODO: REMOVE OLD!
+				EvtPublisher::publish( osEVT_INPUT_KEYUP, KeyEvent );
+			}
+		}
+		break;
+
 	case AINPUT_EVENT_TYPE_MOTION:
 		{
 			auto Action = AMotionEvent_getAction( Event );

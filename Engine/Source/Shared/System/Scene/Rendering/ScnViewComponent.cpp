@@ -30,6 +30,8 @@
 
 #include "System/Debug/DsImGui.h"
 
+#include "System/SysKernel.h"
+
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
@@ -115,7 +117,8 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( ViewUniformBlock_ ) ) );
+			sizeof( ViewUniformBlock_ ) ),
+		getFullName().c_str() );
 
 	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
 		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
@@ -125,6 +128,8 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 		} );
 
 	ScnCore::pImpl()->addCallback( this );
+
+	memset( &ViewUniformBlock_, 0, sizeof( ViewUniformBlock_ ) );
 
 	recreateFrameBuffer();
 	Super::onAttach( Parent );
@@ -136,7 +141,7 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	OsCore::pImpl()->unsubscribeAll( this );
-	RsCore::pImpl()->destroyResource( ViewUniformBuffer_ );
+	ViewUniformBuffer_.reset();
 
 	ScnCore::pImpl()->removeCallback( this );
 
@@ -148,7 +153,7 @@ void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 // setMaterialParameters
 void ScnViewComponent::setMaterialParameters( ScnMaterialComponent* MaterialComponent ) const
 {
-	MaterialComponent->setViewUniformBlock( ViewUniformBuffer_ );
+	MaterialComponent->setViewUniformBlock( ViewUniformBuffer_.get() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,14 +203,6 @@ BcU32 ScnViewComponent::getDepth( const MaVec3d& WorldPos ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getViewport
-const RsViewport& ScnViewComponent::getViewport() const
-{
-	return Viewport_;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 // intersect
 BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 {
@@ -230,6 +227,13 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
 {
 	return FrameBuffer_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewport
+const RsViewport& ScnViewComponent::getViewport() const
+{
+	return Viewport_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -280,9 +284,13 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	// Clip transform.
 	ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
 
+	// Time.
+	BcF32 Time = SysKernel::pImpl()->getFrameTime();
+	ViewUniformBlock_.ViewTime_ += MaVec4d( Time, Time * 0.5f, Time * 0.25f, Time * 0.125f );
+
 	// Upload uniforms.
 	RsCore::pImpl()->updateBuffer( 
-		ViewUniformBuffer_,
+		ViewUniformBuffer_.get(),
 		0, sizeof( ViewUniformBlock_ ),
 		RsResourceUpdateFlags::ASYNC,
 		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -345,9 +353,7 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		[ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
 		{
 			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
-			Context->setFrameBuffer( FrameBuffer );
-			Context->setViewport( Viewport );
-			Context->clear( ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
+			Context->clear( FrameBuffer, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
 		} );
 }
 
@@ -387,7 +393,7 @@ void ScnViewComponent::recreateFrameBuffer()
 			FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );
 		}
 
-		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc );
+		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc, getFullName().c_str() );
 	}
 }
 

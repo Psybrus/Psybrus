@@ -8,25 +8,27 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	Parent_( Parent ),
 	Device_( Device )
 {
+	Parent->setHandle( this );
+
 	// TODO: Look up also by type, size, and flags. Not just name.
 	// TODO: Do this work offline.
-	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
+	typedef std::map< std::string, SlotMapping > ResourceHandleMapping;
+	typedef std::map< std::string, BcU32 > ResourceSizeMapping;
 	ResourceHandleMapping SamplerBindings;
-	ResourceHandleMapping TextureBindings;
-	ResourceHandleMapping ConstantBufferBindings;
-	ResourceHandleMapping ConstantBufferSizes;
+	ResourceHandleMapping SRVBindings;
+	ResourceHandleMapping UAVBindings;
+	ResourceHandleMapping CBBindings;
+	ResourceSizeMapping CBSizes;
 
 	// Iterate over shaders and setup handles for all constant
 	// buffers and shader resources.
 	for( auto* Shader : Parent_->getShaders() )
 	{
 		const auto& ShaderDesc = Shader->getDesc();
+		BcU32 ShaderTypeIdx = static_cast< BcU32 >( ShaderDesc.ShaderType_ );
 		ID3D12ShaderReflection* Reflector = nullptr; 
 		D3DReflect( Shader->getData(), Shader->getDataSize(),
 			IID_ID3D12ShaderReflection, (void**)&Reflector );
-
-		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
-		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
 
 		// Just iterate over a big number...we'll assert if we go over.
 		for( BcU32 Idx = 0; Idx < 128; ++Idx )
@@ -34,22 +36,17 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 			D3D12_SHADER_INPUT_BIND_DESC BindDesc;
 			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
 			{
-				// Validate.
-				BcAssert( 
-					BindDesc.BindPoint < MaxBindPoints && 
-					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
-
 				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER ||
+				if( BindDesc.Type == D3D_SIT_CBUFFER || 
 					BindDesc.Type == D3D_SIT_TBUFFER )
 				{
-					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
+					if( CBBindings.find( BindDesc.Name ) == CBBindings.end() )
 					{
-						ConstantBufferBindings[ BindDesc.Name ] = BcErrorCode;
+						CBBindings[ BindDesc.Name ] = SlotMapping();
 					}
 
-					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
-					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
+					SlotMapping& SlotMapping = CBBindings[ BindDesc.Name ];
+					BcU32 Size = CBSizes[ BindDesc.Name ];			
 					
 					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
 					D3D12_SHADER_BUFFER_DESC BufferDesc;
@@ -59,68 +56,107 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 						BcAssert( BufferDesc.Size == Size );
 					}
 
-
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
+					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
 					Size = BufferDesc.Size;
-					ConstantBufferBindings[ BindDesc.Name ] = Handle;
-					ConstantBufferSizes[ BindDesc.Name ] = Size;
+					CBSizes[ BindDesc.Name ] = Size;
 				}
-				else if( BindDesc.Type == D3D_SIT_TEXTURE )
+				else if( 
+					BindDesc.Type == D3D_SIT_TEXTURE ||
+					BindDesc.Type == D3D_SIT_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_BYTEADDRESS )
 				{
-					if( TextureBindings.find( BindDesc.Name ) == TextureBindings.end() )
+					if( SRVBindings.find( BindDesc.Name ) == SRVBindings.end() )
 					{
-						TextureBindings[ BindDesc.Name ] = BcErrorCode;
+						SRVBindings[ BindDesc.Name ] = SlotMapping();
 					}
 
-					BcU32 Handle = TextureBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					TextureBindings[ BindDesc.Name ] = Handle;
+					SlotMapping& SlotMapping = SRVBindings[ BindDesc.Name ];
+					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
+				}
+				else if( BindDesc.Type == D3D_SIT_UAV_RWTYPED ||
+					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS ||
+					BindDesc.Type == D3D_SIT_UAV_APPEND_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_CONSUME_STRUCTURED || 
+					BindDesc.Type == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER )
+				{
+					if( UAVBindings.find( BindDesc.Name ) == UAVBindings.end() )
+					{
+						UAVBindings[ BindDesc.Name ] = SlotMapping();
+					}
+
+					SlotMapping& SlotMapping = UAVBindings[ BindDesc.Name ];
+					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
 				}
 				else if( BindDesc.Type == D3D_SIT_SAMPLER )
 				{
 					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
 					{
-						SamplerBindings[ BindDesc.Name ] = BcErrorCode;
+						SamplerBindings[ BindDesc.Name ] = SlotMapping();
 					}
 
-					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					SamplerBindings[ BindDesc.Name ] = Handle;
+					SlotMapping& SlotMapping = SamplerBindings[ BindDesc.Name ];
+					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
 				}
 				else
 				{
-					// TOOD.
+					BcBreakpoint;
 				}
 			}
 		}
 	}
 
-	// Add all constant buffer bindings
-	for( const auto& ConstantBuffer : ConstantBufferBindings )
-	{
-		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
-		auto Class = ReManager::GetClass( ConstantBuffer.first );
-		BcAssert( Class->getSize() == Size );
-		Parent_->addUniformBufferSlot( 
-			ConstantBuffer.first,
-			ConstantBuffer.second,
-			Class );
-	}
-
 	// Add all sampler bindings
+	BcU32 SamplerIdx = 0;
 	for( const auto& Sampler : SamplerBindings )
 	{
+		// TEMPORARY HACK.
+		std::string SamplerName = Sampler.first;
+		if( SamplerName[0] == 's' )
+		{
+			SamplerName[0] = 'a';
+		}
+
 		Parent_->addSamplerSlot( 
-			Sampler.first,
-			Sampler.second );
+			SamplerName,
+			SamplerIdx );
+		SamplerSlots_[ SamplerIdx++ ] = Sampler.second;
 	}
 
-	// Add all texture bindings
-	for( const auto& Texture : TextureBindings )
+	// Add all SRV bindings
+	BcU32 SRVIdx = 0;
+	for( const auto& SRV : SRVBindings )
 	{
-		Parent_->addTextureSlot( 
-			Texture.first,
-			Texture.second );
+		Parent_->addShaderResource( 
+			SRV.first,
+			RsShaderResourceType::TEXTURE,
+			SRVIdx );
+		SRVSlots_[ SRVIdx++ ] = SRV.second;
+	}
+
+	// Add all UAV bindings
+	BcU32 UAVIdx = 0;
+	for( const auto& UAV : UAVBindings )
+	{
+		Parent_->addUnorderedAccess( 
+			UAV.first,
+			RsUnorderedAccessType::BUFFER,
+			UAVIdx );
+		UAVSlots_[ UAVIdx++ ] = UAV.second;
+	}
+
+	// Add all cb bindings
+	BcU32 CBIdx = 0;
+	for( const auto& CB : CBBindings )
+	{
+		auto Size = CBSizes[ CB.first ];
+		auto Class = ReManager::GetClass( CB.first );
+		BcAssert( Class->getSize() == Size );
+		Parent_->addUniformBufferSlot(
+			CB.first,
+			CBIdx,
+			Class );
+		CBSlots_[ CBIdx++ ] = CB.second;
 	}
 }
 
@@ -128,5 +164,33 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 // Dtor
 RsProgramD3D12::~RsProgramD3D12()
 {
+	Parent_->setHandle( 0 );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// getSamplerSlot
+BcU32 RsProgramD3D12::getSamplerSlot( RsShaderType Type, BcU32 Idx )
+{
+	return SamplerSlots_[ Idx ].ShaderSlot[ (BcU32)Type ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSRVSlot
+BcU32 RsProgramD3D12::getSRVSlot( RsShaderType Type, BcU32 Idx )
+{
+	return SRVSlots_[ Idx ].ShaderSlot[ (BcU32)Type ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getUAVSlot
+BcU32 RsProgramD3D12::getUAVSlot( RsShaderType Type, BcU32 Idx )
+{
+	return UAVSlots_[ Idx ].ShaderSlot[ (BcU32)Type ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCBSlot
+BcU32 RsProgramD3D12::getCBSlot( RsShaderType Type, BcU32 Idx )
+{
+	return CBSlots_[ Idx ].ShaderSlot[ (BcU32)Type ];
+}

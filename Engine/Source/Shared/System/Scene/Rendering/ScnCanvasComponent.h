@@ -57,7 +57,27 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// ScnCanvasComponent
+/** @class ScnCanvasComponent
+ *
+ * Format in package:
+ {
+   "type" : "ScnCanvasComponent",
+   // Number of vertices to allocate for canvas.
+   "noofvertices" : int
+   // Clear canvas automatically at the beginning of each frame.
+   "clear" : true|false,
+   // If true, will use coords you specify w/o multiplying by client size.
+   "absolutecoords" : true|false,
+   // Left coordinate in canvas.
+   "left" : float,
+   // Right coordinate in canvas.
+   "right" : float,
+   // Top coordinate in canvas.
+   "top" : float,
+   // Bottom coordinate in canvas.
+   "bottom" : float	
+ }
+ */
 class ScnCanvasComponent:
 	public ScnRenderableComponent
 {
@@ -68,7 +88,7 @@ public:
 	ScnCanvasComponent( BcU32 NoofVertices );
 	virtual ~ScnCanvasComponent();
 
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 
 	/**
 	 * Set material component.
@@ -208,9 +228,9 @@ public:
 	void clear();
 	
 public:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-	virtual void render( ScnRenderContext & RenderContext );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 
 	static void clearAll( const ScnComponentList& Components );
 	static void endAll( const ScnComponentList& Components );
@@ -225,14 +245,11 @@ protected:
 	}
 	
 protected:
-	RsVertexDeclaration* VertexDeclaration_;
-	struct TRenderResource
-	{
-		RsBuffer* pVertexBuffer_;
-	};
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
 
 	BcBool HaveVertexBufferLock_;
-	TRenderResource RenderResource_;
 
 	// Submission data.
 	ScnCanvasComponentVertex* pWorkingVertices_;
@@ -241,7 +258,6 @@ protected:
 	BcSize NoofVertices_;
 	BcSize VertexIndex_;
 	SysFence UploadFence_;
-	SysFence RenderFence_;
 	
 	// Materials.
 	ScnMaterialComponentRef MaterialComponent_;
@@ -262,6 +278,7 @@ protected:
 
 	// Automatic clear and setup.
 	BcBool Clear_;
+	BcBool AbsoluteCoords_ = BcFalse;
 	BcF32 Left_;
 	BcF32 Right_;
 	BcF32 Top_;

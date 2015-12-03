@@ -24,92 +24,15 @@ public:
 	virtual ~RsDrawInterface(){};
 
 	/**
-	 * Set default state.
-	 */
-	virtual void setDefaultState() = 0;
-	
-	/**
-	 * Invalidate render state.
-	 */
-	virtual void invalidateRenderState() = 0;
-	
-	/**
-	 * Invalidate texture state.
-	 */
-	virtual void invalidateTextureState() = 0;
-
-	/**
-	 * Set render state.
-	 */
-	virtual void setRenderState( RsRenderState* RenderState ) = 0;
-	
-	/**
-	 * Set sampler state.
-	 */
-	virtual void setSamplerState( BcU32 Slot, RsSamplerState* SamplerState ) = 0;
-	
-	/**
-	 * Set texture.
-	 */
-	virtual void setTexture( BcU32 Slot, class RsTexture* pTexture, BcBool Force = BcFalse ) = 0;
-
-	/**
-	 * Set program.
-	 */
-	virtual void setProgram( class RsProgram* Program ) = 0;
-
-	/**
-	 * Set index buffer.
-	 */
-	virtual void setIndexBuffer( class RsBuffer* IndexBuffer ) = 0;
-
-	/**
-	 * Set vertex buffer.
-	 */
-	virtual void setVertexBuffer( 
-		BcU32 StreamIdx, 
-		class RsBuffer* VertexBuffer,
-		BcU32 Stride ) = 0;
-
-	/**
-	 * Set uniform buffer.
-	 * @param SlotIdx Slot for uniform buffer to be bound.
-	 * @param UniformBuffer Uniform buffer to be bound.
-	 */
-	virtual void setUniformBuffer( 
-		BcU32 SlotIdx, 
-		class RsBuffer* UniformBuffer ) = 0;
-
-	/**
-	 * Set vertex declaration.
-	 */
-	virtual void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) = 0;
-
-	/**
-	 * Set frame buffer.
-	 * @post Frame buffer is set to specified one, or backbuffer if nullptr.
-	 * @post Viewport will be set to size of frame buffer.
-	 * @post Scissor rect will be set to size of frame buffer.
-	 */
-	virtual void setFrameBuffer( class RsFrameBuffer* FrameBuffer ) = 0;
-
-	/**
-	 * Set viewport.
-	 * @pre Viewport is no larger than the currently bound frame buffer.
-	 * @post Viewport will be set to specified one.
-	 * @post Scissor rect will be set to size of viewport.
-	 */
-	virtual void setViewport( const class RsViewport& Viewport ) = 0;
-
-	/**
-	 * Set scissor rect.
-	 */
-	virtual void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) { BcBreakpoint; };
-
-	/**
 	 * Clear.
+	 * @param FrameBuffer Frame buffer we wish to render to. nullptr for backbuffer.
+	 * @param Colour Colour to clear to.
+	 * @param EnableClearColour Should we clear colour target?
+	 * @param EnableClearDepth Should we clear depth target?
+	 * @param EnableClearStencil Should we clear stencil target?
 	 */
 	virtual void clear( 
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
@@ -117,23 +40,61 @@ public:
 	
 	/**
 	 * Draw primitives.
+	 * @param GeometryBinding Geometry to bind for draw.
+	 * @param ProgramBinding Program + resource to bind for draw.
+	 * @param RenderState Render state to draw with.
+	 * @param FrameBufer Frame buffer we wish to render to. nullptr for backbuffer.
+	 * @param Viewport Viewport to render to. nullptr for full @a FrameBuffer.
+	 * @param ScissorRect Scissor rect to set. nullptr for full @a Viewport.
+	 * @param PrimitiveType Type of primitive to draw.
+	 * @param VertexOffset How many vertices to start rendering in from.
+	 * @param NoofVertices How many vertices to draw.
 	 */
-	virtual void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices ) = 0;
+	virtual void drawPrimitives( 
+		const class RsGeometryBinding* GeometryBinding, 
+		const class RsProgramBinding* ProgramBinding, 
+		const class RsRenderState* RenderState,
+		const class RsFrameBuffer* FrameBuffer,
+		const struct RsViewport* Viewport,
+		const struct RsScissorRect* ScissorRect,
+		RsTopologyType PrimitiveType, 
+		BcU32 VertexOffset, BcU32 NoofVertices ) { BcBreakpoint; };
 
 	/**
 	 * Draw indexed primitives.
+	 * @param GeometryBinding Geometry to bind for draw.
+	 * @param ProgramBinding Program + resource to bind for draw.
+	 * @param RenderState Render state to draw with.
+	 * @param FrameBufer Frame buffer we wish to render to. nullptr for backbuffer.
+	 * @param Viewport Viewport to render to. nullptr for full @a FrameBuffer.
+	 * @param ScissorRect Scissor rect to set. nullptr for full @a Viewport.
+	 * @param PrimitiveType Type of primitive to draw.
+	 * @param IndexOffset How many indices to start rendering in from.
+	 * @param NoofIndices How many indices to draw.
+	 * @param VertexOffset Base vertex offset to index from.
 	 */
-	virtual void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) = 0;
+	virtual void drawIndexedPrimitives( 
+		const class RsGeometryBinding* GeometryBinding, 
+		const class RsProgramBinding* ProgramBinding, 
+		const class RsRenderState* RenderState,
+		const class RsFrameBuffer* FrameBuffer,
+		const struct RsViewport* Viewport,
+		const struct RsScissorRect* ScissorRect,
+		RsTopologyType PrimitiveType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) { BcBreakpoint; };
 
 	/**
-	 * Copy framebuffer render target to texture.
+	 * Copy texture to another texture.
+	 * @param SourceTexture Texture to copy from.
+	 * @param DestTexture Texture to copy to.
+	 * @pre @a SourceTexture must be a TEX2D (Support for 1D, 3D, CUBE to be added later).
+	 * @pre @a DestTexture must be a TEX2D (Support for 1D, 3D, CUBE to be added later).
+	 * @pre @a SourceTexture width must match @a DestTexture width.
+	 * @pre @a SourceTexture height must match @a DestTexture height.
+	 * @pre @a SourceTexture levels must match @a DestTexture levels.
+	 * @pre @a SourceTexture format must match @a DestTexture format.
 	 */
-	virtual void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) { BcBreakpoint; };
-
-	/**
-	 * Copy texture to framebuffer render target.
-	 */
-	virtual void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) { BcBreakpoint; };
+	virtual void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) { BcBreakpoint; };
 };
 
 #endif

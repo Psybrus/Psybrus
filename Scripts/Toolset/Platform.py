@@ -45,6 +45,10 @@ class Platform():
 					new_importers.append( importer + ".exe" )
 				importers = new_importers
 
+			prefix = ""
+			if system() == "Darwin" or system() == "Linux":
+				prefix = "./"
+
 			found_importer = None
 			if len(importers) == 0:
 				raise Exception( "No importers built. Please build one for your host OS." )
@@ -55,7 +59,7 @@ class Platform():
 					break
 
 			if found_importer != None:
-				importer_command = found_importer + " -c " + os.path.join( "..", self.import_config )
+				importer_command = os.path.join( prefix, found_importer ) + " -c " + os.path.join( "..", self.import_config )
 				print "Launching: " + importer_command
 				try:
 					env = copy.deepcopy( os.environ )

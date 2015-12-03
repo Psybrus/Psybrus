@@ -145,8 +145,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( 
-		const Json::Value& Object );
+	BcBool import( const Json::Value& Object ) override;
 
 	void addDependency( const BcChar* Dependency );
 
@@ -218,6 +217,7 @@ private:
 	std::map< RsShaderCodeType, std::string > Sources_;
 	std::map< RsShaderCodeType, std::string > SourcesFileData_;
 	std::map< std::string, std::string > Defines_;
+	BcBool UsePermutations_;
 
 	//
 	std::vector< RsShaderCodeType > OutputCodeTypes_;
@@ -229,7 +229,9 @@ private:
 	std::mutex BuildingMutex_;
 	std::map< BcU32, ScnShaderBuiltData > BuiltShaderData_;
 	std::vector< ScnShaderProgramHeader > BuiltProgramData_;
-	std::vector< std::vector< RsProgramVertexAttribute > > BuiltVertexAttributes_;
+	std::vector< RsProgramVertexAttributeList > BuiltVertexAttributes_;
+	std::vector< RsProgramUniformList > BuiltUniforms_;
+	std::vector< RsProgramUniformBlockList > BuiltUniformBlocks_;
 
 	std::atomic< BcU32 > GotErrorBuilding_;
 	std::atomic< BcU32 > PendingPermutations_;

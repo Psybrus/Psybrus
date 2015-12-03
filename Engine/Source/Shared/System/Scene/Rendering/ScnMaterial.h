@@ -55,14 +55,14 @@ public:
 	ScnMaterial();
 	virtual ~ScnMaterial();
 	
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 
 	ScnTextureRef getTexture( BcName Name );
 
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 private:
 	friend class ScnMaterialComponent;
@@ -71,10 +71,10 @@ private:
 	
 	ScnShaderRef Shader_;
 	ScnTextureMap TextureMap_;
+	std::map< BcName, RsSamplerStateUPtr > SamplerStateMap_;
 
 	const RsRenderStateDesc* RenderStateDesc_;
 	RsRenderStateUPtr RenderState_;
-	std::vector< RsSamplerStateUPtr > SamplerStates_;
 
 };
 
@@ -97,6 +97,8 @@ public:
 	BcU32 findTextureSlot( const BcName& TextureName );	
 	void setTexture( const BcName& TextureName, ScnTextureRef Texture );
 	void setTexture( BcU32 Slot, ScnTextureRef Texture );
+	void setSamplerState( const BcName& TextureName, RsSamplerState* Sampler );
+	void setSamplerState( BcU32 Slot, RsSamplerState* Sampler );
 
 	BcU32 findUniformBlock( const BcName& UniformBlockName );	
 	void setUniformBlock( const BcName& UniformBlockName, RsBuffer* UniformBuffer );
@@ -106,16 +108,30 @@ public:
 	void setViewUniformBlock( RsBuffer* UniformBuffer );
 	void setBoneUniformBlock( RsBuffer* UniformBuffer );
 	void setObjectUniformBlock( RsBuffer* UniformBuffer );
+
+	/**
+	 * Get program binding.
+	 * Will create a new program binding if it needs to.
+	 * @return Program binding that represents this material component.
+	 */
+	RsProgramBinding* getProgramBinding();
+	
+	/**
+	 * Get render state.
+	 * Will create a new render state object if it needs to.
+	 * @return Render state from this material component.
+	 */
+	RsRenderState* getRenderState();
 	
 	ScnTextureRef getTexture( BcU32 Idx );
 	ScnTextureRef getTexture( const BcName& TextureName );
 	ScnMaterialRef getMaterial();
 	
-	void bind( class RsFrame* pFrame, class RsRenderSort& Sort );
+	void bind( class RsFrame* pFrame, class RsRenderSort& Sort, BcBool Stateless = BcFalse );
 
 public:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 private:
 	friend class ScnMaterial;	
@@ -127,6 +143,7 @@ private:
 
 		BcU32 Handle_;
 		ScnTexture* Texture_;
+		RsSamplerState* Sampler_;
 	};
 	
 	struct TUniformBlockBinding
@@ -148,6 +165,8 @@ private:
 	ScnMaterialRef Material_;
 	ScnShaderPermutationFlags PermutationFlags_;
 	RsProgram* pProgram_;
+	RsProgramBindingDesc ProgramBindingDesc_;
+	RsProgramBindingUPtr ProgramBinding_;
 
 	TTextureBindingList TextureBindingList_;
 	TUniformBlockBindingList UniformBlockBindingList_;
@@ -156,6 +175,7 @@ private:
 	BcU32 ViewUniformBlockIndex_;
 	BcU32 BoneUniformBlockIndex_;
 	BcU32 ObjectUniformBlockIndex_;
+
 };
 
 #endif

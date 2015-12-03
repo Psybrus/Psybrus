@@ -261,7 +261,7 @@ void ScnFontDrawParams::StaticRegisterClass()
 	ReEnumConstant* ScnFontAlignmentEnumConstants[] = 
 	{
 		new ReEnumConstant( "LEFT", ScnFontAlignment::LEFT ),
-		new ReEnumConstant( "RIGHT", ScnFontAlignment::LEFT ),
+		new ReEnumConstant( "RIGHT", ScnFontAlignment::RIGHT ),
 		new ReEnumConstant( "VCENTRE", ScnFontAlignment::VCENTRE ),
 		new ReEnumConstant( "TOP", ScnFontAlignment::TOP ),
 		new ReEnumConstant( "BOTTOM", ScnFontAlignment::BOTTOM ),
@@ -628,7 +628,7 @@ ScnFontComponent::ScnFontComponent():
 	Material_( nullptr ),
 	MaterialComponent_( nullptr ),
 	ClippingEnabled_( BcFalse ),
-	UniformBuffer_( nullptr )
+	UniformBuffer_()
 {
 }
 
@@ -639,7 +639,7 @@ ScnFontComponent::ScnFontComponent( ScnFontRef Font, ScnMaterialRef Material ):
 	Material_( Material ),
 	MaterialComponent_( nullptr ),
 	ClippingEnabled_( BcFalse ),
-	UniformBuffer_( nullptr )
+	UniformBuffer_()
 {
 }
 
@@ -713,10 +713,10 @@ MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Pos
 	// Add custom render command to canvas to update the uniform buffer correctly.
 	Canvas->setMaterialComponent( MaterialComponent_ );
 	Canvas->addCustomRender(
-		[ this, FontUniformData ]( RsContext* Context )
+		[ FontUniformData = FontUniformData_, UniformBuffer = UniformBuffer_.get() ]( RsContext* Context )
 		{
 			Context->updateBuffer( 
-				UniformBuffer_,
+				UniformBuffer,
 				0, sizeof( FontUniformData ),
 				RsResourceUpdateFlags::NONE,
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -889,22 +889,19 @@ MaVec2d ScnFontComponent::drawText(
 	FontUniformData_.TextColour_ = DrawParams.getTextColour();
 	FontUniformData_.BorderColour_ = DrawParams.getBorderColour();
 	FontUniformData_.ShadowColour_ = DrawParams.getShadowColour();
-	ScnFontUniformBlockData FontUniformData = FontUniformData_;
 
 	// Add custom render command to canvas to update the uniform buffer correctly.
-	UploadFence_.increment();
 	Canvas->setMaterialComponent( MaterialComponent_ );
 	Canvas->addCustomRender(
-		[ this, FontUniformData ]( RsContext* Context )
+		[ FontUniformData = FontUniformData_, UniformBuffer = UniformBuffer_.get() ]( RsContext* Context )
 		{
 			Context->updateBuffer( 
-				UniformBuffer_,
+				UniformBuffer,
 				0, sizeof( FontUniformData ),
 				RsResourceUpdateFlags::NONE,
 				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 				{
 					BcMemCopy( Lock.Buffer_, &FontUniformData, sizeof( FontUniformData ) );
-					UploadFence_.decrement();
 				} );
 		},
 		DrawParams.getLayer() );
@@ -1218,11 +1215,12 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 		RsBufferDesc(
 			RsBufferType::UNIFORM,
 			RsResourceCreationFlags::STREAM,
-			sizeof( FontUniformData_ ) ) );
+			sizeof( FontUniformData_ ) ),
+		getFullName().c_str() );
 	auto UniformBlock = MaterialComponent_->findUniformBlock( "ScnFontUniformBlockData" );
 	if( UniformBlock != BcErrorCode )
 	{
-		MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_ );
+		MaterialComponent_->setUniformBlock( UniformBlock, UniformBuffer_.get() );
 	}
 
 	//
@@ -1234,14 +1232,12 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnFontComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	UploadFence_.wait();
-
 	// Detach material from our parent.
 	Parent->detach( MaterialComponent_ );
 
 	MaterialComponent_ = nullptr;
 	
-	RsCore::pImpl()->destroyResource( UniformBuffer_ );
+	UniformBuffer_.reset();
 
 	//
 	ScnComponent::onDetach( Parent );

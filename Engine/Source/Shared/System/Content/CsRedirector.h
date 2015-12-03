@@ -32,8 +32,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import(
-		const Json::Value& );
+	BcBool import( const Json::Value& ) override;
 
 private:
 	CsCrossRefId Target_;
@@ -56,8 +55,8 @@ public:
 	CsResource* getResource();
 
 private:
-	virtual void fileReady();
-	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 
 private:

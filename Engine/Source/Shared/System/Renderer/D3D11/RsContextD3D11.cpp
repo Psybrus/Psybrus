@@ -12,10 +12,12 @@
 **************************************************************************/
 
 #include "System/Renderer/D3D11/RsContextD3D11.h"
+#include "System/Renderer/D3D11/RsProgramD3D11.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
@@ -40,19 +42,76 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Type conversion.
-static const D3D11_BIND_FLAG gBufferType[] =
+static BcU32 GetBindFlags( RsResourceBindFlags Flags )
 {
-	(D3D11_BIND_FLAG)0,			// RsBufferType::UNKNOWN
-	D3D11_BIND_VERTEX_BUFFER,	// RsBufferType::VERTEX
-	D3D11_BIND_INDEX_BUFFER,	// RsBufferType::INDEX
-	D3D11_BIND_CONSTANT_BUFFER,	// RsBufferType::UNIFORM
-	D3D11_BIND_UNORDERED_ACCESS,// RsBufferType::UNORDERED_ACCESS
-	(D3D11_BIND_FLAG)0,			// RsBufferType::DRAW_INDIRECT
-	D3D11_BIND_STREAM_OUTPUT,	// RsBufferType::STREAM_OUT
-};
+	BcU32 RetVal = 0;
+	if( ( Flags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_VERTEX_BUFFER;
+	}
+	if( ( Flags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_INDEX_BUFFER;
+	}
+	if( ( Flags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_CONSTANT_BUFFER;
+	}
+	if( ( Flags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_UNORDERED_ACCESS;
+	}
+	if( ( Flags & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_SHADER_RESOURCE;
+	}
+	if( ( Flags & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_STREAM_OUTPUT;
+	}
+	if( ( Flags & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_RENDER_TARGET;
+	}
+	if( ( Flags & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
+	{
+		RetVal |= D3D11_BIND_DEPTH_STENCIL;
+	}
+	return RetVal;
+}
 
 // Texture formats
 static const DXGI_FORMAT gTextureFormats[] =
+{
+	DXGI_FORMAT_UNKNOWN,
+
+	// Colour.
+	DXGI_FORMAT_R8_TYPELESS,			// RsTextureFormat::R8,
+	DXGI_FORMAT_R8G8_TYPELESS,			// RsTextureFormat::R8G8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
+	DXGI_FORMAT_R8G8B8A8_TYPELESS,		// RsTextureFormat::R8G8B8A8,
+	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
+	DXGI_FORMAT_R16G16_TYPELESS,		// RsTextureFormat::R16FG16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
+	DXGI_FORMAT_R16G16B16A16_TYPELESS,	// RsTextureFormat::R16FG16FB16FA16F,
+	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::R32F,
+	DXGI_FORMAT_R32G32_TYPELESS,		// RsTextureFormat::R32FG32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
+	DXGI_FORMAT_R32G32B32A32_TYPELESS,	// RsTextureFormat::R32FG32FB32FA32F,
+	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
+	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
+
+	// Depth.
+	DXGI_FORMAT_R16_TYPELESS,			// RsTextureFormat::D16,
+	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,
+	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32,
+	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24S8,
+};
+
+// RTV formats
+static const DXGI_FORMAT gRTVFormats[] =
 {
 	DXGI_FORMAT_UNKNOWN,
 
@@ -79,7 +138,6 @@ static const DXGI_FORMAT gTextureFormats[] =
 	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24,
 	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32,
 	DXGI_FORMAT_R24G8_TYPELESS,			// RsTextureFormat::D24S8,
-	DXGI_FORMAT_R32_TYPELESS,			// RsTextureFormat::D32F,
 };
 
 // Depth stencil view formats.
@@ -109,7 +167,6 @@ static const DXGI_FORMAT gDSVFormats[] =
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24,
 	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
 	DXGI_FORMAT_D24_UNORM_S8_UINT,		// RsTextureFormat::D24S8,
-	DXGI_FORMAT_D32_FLOAT,				// RsTextureFormat::D32F,
 };
 
 // Shader resource view formats.
@@ -137,9 +194,37 @@ static const DXGI_FORMAT gSRVFormats[] =
 	// Depth.
 	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
 	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
-	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::D32,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32,
 	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24S8,
-	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32F,
+};
+
+// Shader resource view formats.
+static const DXGI_FORMAT gUAVFormats[] = 
+{
+	DXGI_FORMAT_UNKNOWN,
+
+	// Colour.
+	DXGI_FORMAT_R8_UINT,				// RsTextureFormat::R8,
+	DXGI_FORMAT_R8G8_UINT,				// RsTextureFormat::R8G8,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R8G8B8,
+	DXGI_FORMAT_R8G8B8A8_UINT,			// RsTextureFormat::R8G8B8A8,
+	DXGI_FORMAT_R16_FLOAT,				// RsTextureFormat::R16F,
+	DXGI_FORMAT_R16G16_FLOAT,			// RsTextureFormat::R16FG16F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R16FG16FB16F,
+	DXGI_FORMAT_R16G16B16A16_FLOAT,		// RsTextureFormat::R16FG16FB16FA16F,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::R32F,
+	DXGI_FORMAT_R32G32_FLOAT,			// RsTextureFormat::R32FG32F,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::R32FG32FB32F,
+	DXGI_FORMAT_R32G32B32A32_FLOAT,		// RsTextureFormat::R32FG32FB32FA32F,
+	DXGI_FORMAT_BC1_UNORM,				// RsTextureFormat::DXT1,
+	DXGI_FORMAT_BC2_UNORM,				// RsTextureFormat::DXT3,
+	DXGI_FORMAT_BC3_UNORM,				// RsTextureFormat::DXT5,
+	DXGI_FORMAT_UNKNOWN,				// RsTextureFormat::ETC1,
+	// Depth.
+	DXGI_FORMAT_R16_UNORM,				// RsTextureFormat::D16,
+	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24,
+	DXGI_FORMAT_R32_FLOAT,				// RsTextureFormat::D32,
+	DXGI_FORMAT_R24_UNORM_X8_TYPELESS,	// RsTextureFormat::D24S8,
 };
 
 static const D3D11_PRIMITIVE_TOPOLOGY gTopologyType[] =
@@ -494,8 +579,15 @@ BcU32 RsContextD3D11::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getBackBuffer
+class RsFrameBuffer* RsContextD3D11::getBackBuffer() const
+{
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // beginFrame
-void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
+RsFrameBuffer* RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 {
 	BcAssert( InsideBeginEnd_ == 0 );
 	++InsideBeginEnd_;
@@ -537,6 +629,8 @@ void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 		BackBuffer_->GetDesc( &BackBufferDesc );
 		BackBufferRTResourceIdx_ = addD3DResource( 
 			BackBuffer_,
+			BackBufferDesc.Format,
+			BackBufferDesc.Format,
 			BackBufferDesc.Format,
 			BackBufferDesc.Format,
 			BackBufferDesc.Format );
@@ -585,8 +679,10 @@ void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 		BackBufferDS_->setHandle( addD3DResource( 
 			D3DTexture,
 			gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+			gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 			gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-			gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+			gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+			gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 		BackBufferDSResourceIdx_ = BackBufferDS_->getHandle< BcU32 >();
 
 		RenderTargetViews_.fill( nullptr );
@@ -598,6 +694,7 @@ void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 
 	setDefaultState();
 	setFrameBuffer( nullptr );
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -652,7 +749,7 @@ void RsContextD3D11::create()
 	FeatureLevel_ = D3D_FEATURE_LEVEL_11_1;
 #if PLATFORM_WINDOWS
 	HRESULT Result = D3D11CreateDeviceAndSwapChain( 
-		Adapter_,
+		Adapter_.Get(),
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
 		CreateDeviceFlags,
@@ -697,6 +794,9 @@ void RsContextD3D11::create()
 	Features_.Texture2D_ = true;
 	Features_.Texture3D_ = true;
 	Features_.TextureCube_ = true;
+
+	// Compute shader support.
+	Features_.ComputeShaders_ = FeatureLevel_ >= D3D_FEATURE_LEVEL_11_0;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
@@ -871,41 +971,17 @@ void RsContextD3D11::setSamplerState( BcU32 Handle, class RsSamplerState* Sample
 	auto D3DSamplerState = SamplerStateCache_[ SamplerState->getHandle< BcU32 >() ];
 	
 	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	if( Handle != BcErrorCode )
 	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
+		auto& SamplerStateSlot = D3DSamplerStates_[ Handle ];
+		if( D3DSamplerState.Sampler_ != SamplerStateSlot.Sampler_ )
 		{
-			auto& SamplerStateSlot = D3DSamplerStates_[ Idx ][ SlotIdx ];
-			if( D3DSamplerState.Sampler_ != SamplerStateSlot.Sampler_ )
-			{
-				TexturesDirty_ = BcTrue;
-				SamplerStateSlot.Dirty_ = BcTrue;
-			}
-			SamplerStateSlot.Sampler_ = SamplerStateSlot.Sampler_;
+			TexturesDirty_ = BcTrue;
+			SamplerStateSlot.Dirty_ = BcTrue;
 		}
+		SamplerStateSlot.Sampler_ = D3DSamplerState.Sampler_;
+		SamplerStateSlot.Dirty_ = BcTrue;
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderState
-void RsContextD3D11::setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force )
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcBreakpoint;
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderState
-BcS32 RsContextD3D11::getRenderState( RsRenderStateType State ) const
-{
-	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-
-	//PSY_LOG( "WARNING: RsContextD3D11::getRenderState unimplemented\n" );
-
-	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -933,21 +1009,16 @@ void RsContextD3D11::setTexture( BcU32 Handle, RsTexture* pTexture, BcBool Force
 		pTexture ? getD3DShaderResourceView( pTexture->getHandle< BcU32 >() ) : nullptr;
 
 	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	if( Handle != BcErrorCode )
 	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
+		if( pTexture != Textures_[ Handle ] )
 		{
-			if( pTexture != Textures_[ Idx ][ SlotIdx ] )
-			{
-				TexturesDirty_ = BcTrue;
-			}
-			auto& ShaderResourceViewSlot = D3DShaderResourceViews_[ Idx ][ SlotIdx ];
-			Textures_[ Idx ][ SlotIdx ] = pTexture;
-			ShaderResourceViewSlot.Dirty_ = ShaderResourceViewSlot.SRV_ != ShaderResourceView;
-			ShaderResourceViewSlot.SRV_ = ShaderResourceView;
+			TexturesDirty_ = BcTrue;
 		}
+		auto& ShaderResourceViewSlot = D3DShaderResourceViews_[ Handle ];
+		Textures_[ Handle ] = pTexture;
+		ShaderResourceViewSlot.Dirty_ = BcTrue; //ShaderResourceViewSlot.SRV_ != ShaderResourceView;
+		ShaderResourceViewSlot.SRV_ = ShaderResourceView;
 	}
 }
 
@@ -997,22 +1068,18 @@ void RsContextD3D11::setUniformBuffer(
 	BcAssert( UniformBuffer != nullptr );
 
 	// Bind for each shader based on specified handle.
-	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	if( Handle != BcErrorCode )
 	{
-		BcU32 SlotIdx = ( Handle >> ( Idx * BitsPerShader ) ) & MaxBindPoints;
-
-		if( SlotIdx != MaxBindPoints )
+		if( UniformBuffers_[ Handle ] != UniformBuffer )
 		{
-			if( UniformBuffers_[ Idx ][ SlotIdx ] != UniformBuffer )
-			{
-				UniformBuffersDirty_ = BcTrue;
-			}
-			UniformBuffers_[ Idx ][ SlotIdx ] = UniformBuffer;
-			auto D3DConstantBuffer = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
-			auto& D3DConstantBufferSlot = D3DConstantBuffers_[ Idx ][ SlotIdx ];
-			D3DConstantBufferSlot.Dirty_ = D3DConstantBuffer != D3DConstantBufferSlot.Buffer_;
-			D3DConstantBufferSlot.Buffer_ = D3DConstantBuffer;
+			UniformBuffersDirty_ = BcTrue;
 		}
+
+		UniformBuffers_[ Handle ] = UniformBuffer;
+		auto D3DConstantBuffer = getD3DBuffer( UniformBuffer->getHandle< BcU32 >() );
+		auto& D3DConstantBufferSlot = D3DConstantBuffers_[ Handle ];
+		D3DConstantBufferSlot.Dirty_ = BcTrue;//D3DConstantBuffer != D3DConstantBufferSlot.Buffer_;
+		D3DConstantBufferSlot.Buffer_ = D3DConstantBuffer;
 	}
 }
 
@@ -1087,6 +1154,7 @@ void RsContextD3D11::setFrameBuffer( class RsFrameBuffer* FrameBuffer )
 //////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D11::clear( 
+	const RsFrameBuffer* FrameBuffer,
 	const RsColour& Colour,
 	BcBool EnableClearColour,
 	BcBool EnableClearDepth,
@@ -1119,7 +1187,14 @@ void RsContextD3D11::clear(
 
 //////////////////////////////////////////////////////////////////////////
 // drawPrimitives
-void RsContextD3D11::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
+void RsContextD3D11::drawPrimitives( 
+	const RsGeometryBinding* GeometryBinding, 
+	const RsProgramBinding* ProgramBinding, 
+	const RsRenderState* RenderState,
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport,
+	const RsScissorRect* ScissorRect,
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -1133,7 +1208,14 @@ void RsContextD3D11::drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOf
 
 //////////////////////////////////////////////////////////////////////////
 // drawIndexedPrimitives
-void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+void RsContextD3D11::drawIndexedPrimitives( 
+	const RsGeometryBinding* GeometryBinding, 
+	const RsProgramBinding* ProgramBinding, 
+	const RsRenderState* RenderState,
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport,
+	const RsScissorRect* ScissorRect,
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -1148,7 +1230,7 @@ void RsContextD3D11::drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 
 
 //////////////////////////////////////////////////////////////////////////
 // setViewport
-void RsContextD3D11::setViewport( const class RsViewport& Viewport )
+void RsContextD3D11::setViewport( const struct RsViewport& Viewport )
 {
 	PSY_PROFILE_FUNCTION;
 	D3D11_VIEWPORT D3DViewport;
@@ -1176,6 +1258,115 @@ void RsContextD3D11::setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height
 }
 
 //////////////////////////////////////////////////////////////////////////
+// dispatchCompute
+void RsContextD3D11::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+{
+	// Bind compute shader.
+	const auto& Shaders = ProgramBinding->getProgram()->getShaders();
+	for( auto* Shader : Shaders )
+	{
+		const auto& Desc = Shader->getDesc();
+		switch( Desc.ShaderType_ )
+		{
+		case RsShaderType::COMPUTE:
+			Context_->CSSetShader( Shader->getHandle< ID3D11ComputeShader* >(), nullptr, 0 );
+			break;
+		default:
+			break;
+		}
+	}
+	Context_->VSSetShader( nullptr, nullptr, 0 );
+	Context_->HSSetShader( nullptr, nullptr, 0 );
+	Context_->DSSetShader( nullptr, nullptr, 0 );
+	Context_->GSSetShader( nullptr, nullptr, 0 );
+	Context_->PSSetShader( nullptr, nullptr, 0 );
+				
+	// Bind stuff.
+	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
+	RsProgramD3D11* ProgramD3D11 = ProgramBinding->getProgram()->getHandle< RsProgramD3D11* >();
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
+	{
+		auto& SRVSlot = ProgramBindingDesc.ShaderResourceSlots_[ Idx ];
+		BcU32 SRVSlotIdx = ProgramD3D11->getSRVSlot( RsShaderType::COMPUTE, Idx );
+		switch( SRVSlot.Type_ )
+		{
+			case RsShaderResourceType::INVALID:
+				break;
+			case RsShaderResourceType::BUFFER:
+			{
+				ID3D11ShaderResourceView* ShaderResourceView = 
+					SRVSlot.Buffer_ ? getD3DShaderResourceView( SRVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetShaderResources( SRVSlotIdx, 1, &ShaderResourceView );
+				break;
+			}
+			case RsShaderResourceType::TEXTURE:
+			{
+				ID3D11ShaderResourceView* ShaderResourceView = 
+					SRVSlot.Texture_ ? getD3DShaderResourceView( SRVSlot.Texture_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetShaderResources( SRVSlotIdx, 1, &ShaderResourceView );
+				break;
+			}
+			default:
+				BcBreakpoint;
+		}
+	}
+
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
+	{
+		auto& UAVSlot = ProgramBindingDesc.UnorderedAccessSlots_[ Idx ];
+		BcU32 UAVSlotIdx = ProgramD3D11->getUAVSlot( RsShaderType::COMPUTE, Idx );
+		switch( UAVSlot.Type_ )
+		{
+			case RsUnorderedAccessType::INVALID:
+				break;
+			case RsUnorderedAccessType::BUFFER:
+			{
+				ID3D11UnorderedAccessView* UnorderedAccessView = 
+					UAVSlot.Buffer_ ? getD3DUnorderedAccessView( UAVSlot.Buffer_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetUnorderedAccessViews( UAVSlotIdx, 1, &UnorderedAccessView, nullptr );
+				break;
+			}
+			case RsUnorderedAccessType::TEXTURE:
+			{
+				ID3D11UnorderedAccessView* UnorderedAccessView = 
+					UAVSlot.Texture_ ? getD3DUnorderedAccessView( UAVSlot.Texture_->getHandle< BcU32 >() ) : nullptr;
+				Context_->CSSetUnorderedAccessViews( UAVSlotIdx, 1, &UnorderedAccessView, nullptr );
+				break;
+			}
+			default:
+				BcBreakpoint;
+		}
+	}
+
+	// Dispatch.
+	Context_->Dispatch( XGroups, YGroups, ZGroups );
+
+	// Unbind stuff.
+	// TODO: Optimise.
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
+	{
+		ID3D11ShaderResourceView* ShaderResourceView = nullptr;
+		Context_->CSSetShaderResources( Idx, 1, &ShaderResourceView );
+	}
+
+	for( BcU32 Idx = 0; Idx < ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
+	{
+		if( Idx < 8 )
+		{
+			ID3D11UnorderedAccessView* UnorderedAccessView = nullptr;
+			Context_->CSSetUnorderedAccessViews( Idx, 1, &UnorderedAccessView, nullptr );
+		}
+	}
+
+	// Program dirty, need to rebind it later.
+	// Once stateless, won't be a problem.
+	ProgramDirty_ = BcTrue;
+
+	// Uniform buffers dirty, need to rebind later.
+	UniformBuffersDirty_ = BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createRenderState
 bool RsContextD3D11::createRenderState(
 	RsRenderState* RenderState )
@@ -1185,9 +1376,9 @@ bool RsContextD3D11::createRenderState(
 
 	const auto& Desc = RenderState->getDesc();
 
-	CD3D11_BLEND_DESC Blend;
-	CD3D11_RASTERIZER_DESC Rasterizer;
-	CD3D11_DEPTH_STENCIL_DESC DepthStencil;
+	CD3D11_BLEND_DESC Blend( D3D11_DEFAULT );
+	CD3D11_RASTERIZER_DESC Rasterizer( D3D11_DEFAULT );
+	CD3D11_DEPTH_STENCIL_DESC DepthStencil( D3D11_DEFAULT );
 
 	// Blend state.
 	Blend.AlphaToCoverageEnable = FALSE;
@@ -1209,6 +1400,7 @@ bool RsContextD3D11::createRenderState(
 	auto SrcRasterizerState = Desc.RasteriserState_;
 	Rasterizer.FillMode = gFillMode[ (size_t)SrcRasterizerState.FillMode_ ];
 	Rasterizer.CullMode = gCullMode[ (size_t)SrcRasterizerState.CullMode_ ];
+	Rasterizer.FrontCounterClockwise = FALSE;
 	Rasterizer.DepthBias = (INT)SrcRasterizerState.DepthBias_;
 	Rasterizer.SlopeScaledDepthBias = SrcRasterizerState.SlopeScaledDepthBias_;
 	Rasterizer.DepthClipEnable = SrcRasterizerState.DepthClipEnable_ ? TRUE : FALSE;
@@ -1321,7 +1513,7 @@ bool RsContextD3D11::createSamplerState(
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-	CD3D11_SAMPLER_DESC SamplerStateDesc;
+	CD3D11_SAMPLER_DESC SamplerStateDesc( D3D11_DEFAULT );
 
 	auto Desc = SamplerState->getDesc();
 
@@ -1434,22 +1626,49 @@ bool RsContextD3D11::createBuffer(
 	D3D11_BUFFER_DESC Desc;
 	Desc.Usage = D3D11_USAGE_DEFAULT;			// TODO.
 	Desc.ByteWidth = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 16 ) );
-	Desc.BindFlags = gBufferType[ (BcU32)BufferDesc.Type_ ];
-	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	Desc.BindFlags = GetBindFlags( BufferDesc.BindFlags_ );
+	Desc.CPUAccessFlags = 0;
 	Desc.MiscFlags = 0;
-	Desc.StructureByteStride = 0;
+	Desc.StructureByteStride = BufferDesc.StructureStride_;
 	
+	// Dynamic? Setup CPU_WRITE + DYNAMIC.
 	if( ( BufferDesc.Flags_ & RsResourceCreationFlags::DYNAMIC ) != RsResourceCreationFlags::NONE )
 	{
+		Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		Desc.Usage = D3D11_USAGE_DYNAMIC;
 	}
+	// Stream? Setup CPU_WRITE + DYNAMIC.
 	else if( ( BufferDesc.Flags_ & RsResourceCreationFlags::STREAM ) != RsResourceCreationFlags::NONE )
 	{
+		Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		Desc.Usage = D3D11_USAGE_DYNAMIC;
 	}
 
-	// TODO: Use default, immutable, or staging.
-	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	// If unordered access, allow raw views, and setup if a structured buffer or not.
+	if( ( BufferDesc.BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		if( BufferDesc.StructureStride_ > 0 )
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		}
+		else
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+		}
+	}
+
+	// If shader resource, allow raw views, and setup if a structured buffer or not.
+	if( ( BufferDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+	{
+		if( BufferDesc.StructureStride_ > 0 )
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		}
+		else
+		{
+			Desc.MiscFlags |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+		}
+	}
 
 	// Generate buffers.
 	ID3D11Buffer* D3DBuffer = nullptr; 
@@ -1459,6 +1678,8 @@ bool RsContextD3D11::createBuffer(
 	{
 		Buffer->setHandle( addD3DResource( 
 			D3DBuffer,
+			DXGI_FORMAT_UNKNOWN,
+			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN ) );
@@ -1494,15 +1715,33 @@ bool RsContextD3D11::updateBuffer(
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+	const auto& BufferDesc = Buffer->getDesc();
 	ID3D11Buffer* D3DBuffer = getD3DBuffer( Buffer->getHandle< BcU32 >() ); 
-
+	ComPtr<ID3D11Buffer> StagingD3DBuffer( D3DBuffer );
 	if( D3DBuffer != nullptr )
 	{
-		D3D11_MAP MapType = 
-			D3D11_MAP_WRITE_DISCARD;		// TODO: Select more optimal map type.
+		bool RequireStaging = ( BufferDesc.Flags_ & RsResourceCreationFlags::STATIC ) != RsResourceCreationFlags::NONE;
+		if( RequireStaging )
+		{
+			D3D11_BUFFER_DESC StagingDesc;
+			StagingDesc.Usage = D3D11_USAGE_STAGING;
+			StagingDesc.ByteWidth = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 16 ) );
+			StagingDesc.BindFlags = 0;
+			StagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			StagingDesc.MiscFlags = 0;
+			StagingDesc.StructureByteStride = 0;
+			HRESULT Result = Device_->CreateBuffer( &StagingDesc, nullptr, StagingD3DBuffer.ReleaseAndGetAddressOf() );
+			if( FAILED( Result ) )
+			{
+				BcBreakpoint;
+				return false;
+			}
+		}
+
+		D3D11_MAP MapType = RequireStaging ? D3D11_MAP_WRITE : D3D11_MAP_WRITE_DISCARD;
 		BcAssert( Offset == 0 );
 		D3D11_MAPPED_SUBRESOURCE SubRes = { nullptr, 0, 0 };
-		HRESULT RetVal = Context_->Map( D3DBuffer, 0, MapType, 0, &SubRes );
+		HRESULT RetVal = Context_->Map( StagingD3DBuffer.Get(), 0, MapType, 0, &SubRes );
 		if( SUCCEEDED( RetVal ) )
 		{
 			RsBufferLock Lock = 
@@ -1510,11 +1749,19 @@ bool RsContextD3D11::updateBuffer(
 				(BcU8*)SubRes.pData + Offset
 			};
 			UpdateFunc( Buffer, Lock );
-			Context_->Unmap( D3DBuffer, 0 );
-			return true;
+			Context_->Unmap( StagingD3DBuffer.Get(), 0 );
 		}
-		BcBreakpoint;
-		
+		else
+		{
+			BcBreakpoint;
+		}
+
+		if( RequireStaging )
+		{
+			Context_->CopyResource( D3DBuffer, StagingD3DBuffer.Get() );
+		}
+
+		return true;
 	}
 
 	return false;
@@ -1531,16 +1778,6 @@ bool RsContextD3D11::createTexture(
 	//
 	const auto& TextureDesc = Texture->getDesc();
 
-	BcAssert( (UINT)RsResourceBindFlags::VERTEX_BUFFER == D3D11_BIND_VERTEX_BUFFER );
-	BcAssert( (UINT)RsResourceBindFlags::INDEX_BUFFER == D3D11_BIND_INDEX_BUFFER );
-	BcAssert( (UINT)RsResourceBindFlags::UNIFORM_BUFFER == D3D11_BIND_CONSTANT_BUFFER );
-	BcAssert( (UINT)RsResourceBindFlags::SHADER_RESOURCE == D3D11_BIND_SHADER_RESOURCE );
-	BcAssert( (UINT)RsResourceBindFlags::STREAM_OUTPUT == D3D11_BIND_STREAM_OUTPUT );
-	BcAssert( (UINT)RsResourceBindFlags::RENDER_TARGET == D3D11_BIND_RENDER_TARGET );
-	BcAssert( (UINT)RsResourceBindFlags::DEPTH_STENCIL == D3D11_BIND_DEPTH_STENCIL );
-	BcAssert( (UINT)RsResourceBindFlags::UNORDERED_ACCESS == D3D11_BIND_UNORDERED_ACCESS );
-	UINT BindFlagsD3D = (UINT)TextureDesc.BindFlags_;
-
 	// Buffer desc.
 	switch( TextureDesc.Type_ )
 	{
@@ -1552,7 +1789,7 @@ bool RsContextD3D11::createTexture(
 			Desc.ArraySize = 1;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1563,8 +1800,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1580,7 +1819,7 @@ bool RsContextD3D11::createTexture(
 			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1591,8 +1830,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1606,7 +1847,7 @@ bool RsContextD3D11::createTexture(
 			Desc.MipLevels = TextureDesc.Levels_;
 			Desc.Format = gTextureFormats[ (BcU32)TextureDesc.Format_ ];
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = 0;
 
@@ -1617,8 +1858,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ] ) );
 			return true;
 		}
 		break;
@@ -1634,7 +1877,7 @@ bool RsContextD3D11::createTexture(
 			Desc.SampleDesc.Count = 1;
 			Desc.SampleDesc.Quality = 0;
 			Desc.Usage = D3D11_USAGE_DEFAULT;
-			Desc.BindFlags = BindFlagsD3D;
+			Desc.BindFlags = GetBindFlags( TextureDesc.BindFlags_ );
 			Desc.CPUAccessFlags = 0;
 			Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
@@ -1645,8 +1888,10 @@ bool RsContextD3D11::createTexture(
 			Texture->setHandle( addD3DResource( 
 				D3DTexture,
 				gTextureFormats[ (BcU32)TextureDesc.Format_ ],
+				gRTVFormats[ (BcU32)TextureDesc.Format_ ],
 				gDSVFormats[ (BcU32)TextureDesc.Format_ ],
-				gSRVFormats[ (BcU32)TextureDesc.Format_ ] ) );
+				gSRVFormats[ (BcU32)TextureDesc.Format_ ],
+				gUAVFormats[ (BcU32)TextureDesc.Format_ ]) );
 			return true;
 		}
 		break;
@@ -1869,122 +2114,7 @@ bool RsContextD3D11::createProgram(
 	class RsProgram* Program )
 {
 	PSY_PROFILE_FUNCTION;
-
-	// TODO: Look up also by type, size, and flags. Not just name.
-	// TODO: Do this work offline.
-	typedef std::map< std::string, BcU32 > ResourceHandleMapping;
-	ResourceHandleMapping SamplerBindings;
-	ResourceHandleMapping TextureBindings;
-	ResourceHandleMapping ConstantBufferBindings;
-	ResourceHandleMapping ConstantBufferSizes;
-
-	// Iterate over shaders and setup handles for all constant
-	// buffers and shader resources.
-	for( auto* Shader : Program->getShaders() )
-	{
-		const auto& ShaderDesc = Shader->getDesc();
-		ID3D11ShaderReflection* Reflector = nullptr; 
-		D3DReflect( Shader->getData(), Shader->getDataSize(),
-			IID_ID3D11ShaderReflection, (void**)&Reflector );
-
-		const BcU32 ShiftAmount = ( (BcU32)ShaderDesc.ShaderType_ * BitsPerShader );
-		const BcU32 MaskOff = ~( MaxBindPoints << ShiftAmount );
-
-		// Just iterate over a big number...we'll assert if we go over.
-		for( BcU32 Idx = 0; Idx < 128; ++Idx )
-		{
-			D3D11_SHADER_INPUT_BIND_DESC BindDesc;
-			if( SUCCEEDED( Reflector->GetResourceBindingDesc( Idx, &BindDesc ) ) )
-			{
-				// Validate.
-				BcAssert( 
-					BindDesc.BindPoint < MaxBindPoints && 
-					( BindDesc.BindPoint + BindDesc.BindCount ) <= MaxBindPoints );
-
-				// Check if it's a cbuffer or tbuffer.
-				if( BindDesc.Type == D3D_SIT_CBUFFER ||
-					BindDesc.Type == D3D_SIT_TBUFFER )
-				{
-					if( ConstantBufferBindings.find( BindDesc.Name ) == ConstantBufferBindings.end() )
-					{
-						ConstantBufferBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = ConstantBufferBindings[ BindDesc.Name ];
-					BcU32 Size = ConstantBufferSizes[ BindDesc.Name ];			
-					
-					auto ConstantBuffer = Reflector->GetConstantBufferByName( BindDesc.Name );
-					D3D11_SHADER_BUFFER_DESC BufferDesc;
-					ConstantBuffer->GetDesc( &BufferDesc );
-					if( Size != 0 )
-					{
-						BcAssert( BufferDesc.Size == Size );
-					}
-
-
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					Size = BufferDesc.Size;
-					ConstantBufferBindings[ BindDesc.Name ] = Handle;
-					ConstantBufferSizes[ BindDesc.Name ] = Size;
-				}
-				else if( BindDesc.Type == D3D_SIT_TEXTURE )
-				{
-					if( TextureBindings.find( BindDesc.Name ) == TextureBindings.end() )
-					{
-						TextureBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = TextureBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					TextureBindings[ BindDesc.Name ] = Handle;
-				}
-				else if( BindDesc.Type == D3D_SIT_SAMPLER )
-				{
-					if( SamplerBindings.find( BindDesc.Name ) == SamplerBindings.end() )
-					{
-						SamplerBindings[ BindDesc.Name ] = BcErrorCode;
-					}
-
-					BcU32 Handle = SamplerBindings[ BindDesc.Name ];
-					Handle = ( Handle & MaskOff ) | ( BindDesc.BindPoint << ShiftAmount );
-					SamplerBindings[ BindDesc.Name ] = Handle;
-				}
-				else
-				{
-					// TOOD.
-				}
-			}
-		}
-	}
-
-	// Add all constant buffer bindings
-	for( const auto& ConstantBuffer : ConstantBufferBindings )
-	{
-		auto Size = ConstantBufferSizes[ ConstantBuffer.first ];
-		auto Class = ReManager::GetClass( ConstantBuffer.first );
-		BcAssert( Class->getSize() == Size );
-		Program->addUniformBufferSlot( 
-			ConstantBuffer.first,
-			ConstantBuffer.second,
-			Class );
-	}
-
-	// Add all sampler bindings
-	for( const auto& Sampler : SamplerBindings )
-	{
-		Program->addSamplerSlot( 
-			Sampler.first,
-			Sampler.second );
-	}
-
-	// Add all texture bindings
-	for( const auto& Texture : TextureBindings )
-	{
-		Program->addTextureSlot( 
-			Texture.first,
-			Texture.second );
-	}
-
+	Program->setHandle( new RsProgramD3D11( Program, Device_.Get() ) );
 	return true;
 }
 
@@ -1996,6 +2126,38 @@ bool RsContextD3D11::destroyProgram(
 {
 	PSY_PROFILE_FUNCTION;
 	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgramBinding
+bool RsContextD3D11::createProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyProgramBinding
+bool RsContextD3D11::destroyProgramBinding( class RsProgramBinding* ProgramBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createGeometryBinding
+bool RsContextD3D11::createGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyGeometryBinding
+bool RsContextD3D11::destroyGeometryBinding( class RsGeometryBinding* GeometryBinding )
+{
+	PSY_PROFILE_FUNCTION;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2136,21 +2298,26 @@ void RsContextD3D11::flushState()
 	if( UniformBuffersDirty_ )
 	{
 		PSY_PROFILER_SECTION( ShaderRoot, "Uniforms" );
+		RsProgramD3D11* ProgramD3D11 = Program_->getHandle< RsProgramD3D11* >();
 		const auto& Shaders = Program_->getShaders();
 		for( auto* Shader : Shaders )
 		{
 			const auto& Desc = Shader->getDesc();
 			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
-			for( BcU32 Idx = 0; Idx < D3DConstantBuffers_[ ShaderTypeIdx ].size(); ++Idx )
+			for( BcU32 Idx = 0; Idx < D3DConstantBuffers_.size(); ++Idx )
 			{
-				auto& D3DConstantBufferSlot = D3DConstantBuffers_[ ShaderTypeIdx ][ Idx ];
-				if( D3DConstantBufferSlot.Dirty_ )
+				BcU32 Slot = ProgramD3D11->getCBSlot( Desc.ShaderType_, Idx );
+				if( Slot != BcErrorCode )
 				{
-					(Context_->*ConstSetters[ ShaderTypeIdx ])( 
-						Idx,
-						1,							
-						&D3DConstantBufferSlot.Buffer_ );
-					D3DConstantBufferSlot.Dirty_ = BcFalse;
+					auto& D3DConstantBufferSlot = D3DConstantBuffers_[ Idx ];
+					if( D3DConstantBufferSlot.Dirty_ )
+					{
+						((Context_.Get())->*ConstSetters[ ShaderTypeIdx ])( 
+							Slot,
+							1,							
+							&D3DConstantBufferSlot.Buffer_ );
+						D3DConstantBufferSlot.Dirty_ = BcFalse;
+					}
 				}
 			}
 		}
@@ -2161,31 +2328,40 @@ void RsContextD3D11::flushState()
 	if( TexturesDirty_ )
 	{
 		PSY_PROFILER_SECTION( ShaderRoot, "Shader resources + samplers" );
+		RsProgramD3D11* ProgramD3D11 = Program_->getHandle< RsProgramD3D11* >();
 		const auto& Shaders = Program_->getShaders();
-
 		for( auto* Shader : Shaders )
 		{
 			const auto& Desc = Shader->getDesc();
 			BcU32 ShaderTypeIdx = (BcU32)Desc.ShaderType_;
-			for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_[ ShaderTypeIdx ].size(); ++Idx )
+			for( BcU32 Idx = 0; Idx < D3DShaderResourceViews_.size(); ++Idx )
 			{
-				auto& D3DShaderResourceViewSlot = D3DShaderResourceViews_[ ShaderTypeIdx ][ Idx ];
-				auto& D3DSamplerStateSlot = D3DSamplerStates_[ ShaderTypeIdx ][ Idx ];
-				if( D3DShaderResourceViewSlot.Dirty_ )
+				BcU32 SRVSlot = ProgramD3D11->getSRVSlot( Desc.ShaderType_, Idx );
+				if( SRVSlot != BcErrorCode )
 				{
-					(Context_->*SRVSetters[ ShaderTypeIdx ])( 
-						Idx,
-						1,							
-						&D3DShaderResourceViewSlot.SRV_ );
-					D3DShaderResourceViewSlot.Dirty_ = BcFalse;
+					auto& D3DShaderResourceViewSlot = D3DShaderResourceViews_[ Idx ];
+					if( D3DShaderResourceViewSlot.Dirty_ )
+					{
+						((Context_.Get())->*SRVSetters[ ShaderTypeIdx ])( 
+							SRVSlot,
+							1,							
+							&D3DShaderResourceViewSlot.SRV_ );
+						D3DShaderResourceViewSlot.Dirty_ = BcFalse;
+					}
 				}
-				if( D3DSamplerStateSlot.Dirty_ )
+
+				BcU32 SamplerSlot = SRVSlot; // TODO: ProgramD3D11->getSamplerSlot( Desc.ShaderType_, Idx );
+				if( SamplerSlot != BcErrorCode )
 				{
-					(Context_->*SamplerSetters[ ShaderTypeIdx ])( 
-						Idx,
-						1,
-						&D3DSamplerStateSlot.Sampler_ );
-					D3DSamplerStateSlot.Dirty_ = BcFalse;
+					auto& D3DSamplerStateSlot = D3DSamplerStates_[ Idx ];
+					if( D3DSamplerStateSlot.Dirty_ )
+					{
+						((Context_.Get())->*SamplerSetters[ ShaderTypeIdx ])( 
+							SRVSlot,
+							1,
+							&D3DSamplerStateSlot.Sampler_ );
+						D3DSamplerStateSlot.Dirty_ = BcFalse;
+					}
 				}
 			}
 		}
@@ -2315,8 +2491,10 @@ void RsContextD3D11::flushState()
 size_t RsContextD3D11::addD3DResource( 
 		ID3D11Resource* D3DResource,
 		DXGI_FORMAT ResourceFormat,
+		DXGI_FORMAT RTVFormat,
 		DXGI_FORMAT DSVFormat,
-		DXGI_FORMAT SRVFormat )
+		DXGI_FORMAT SRVFormat,
+		DXGI_FORMAT UAVFormat )
 {
 	ResourceViewCacheEntry Entry = {};
 
@@ -2334,8 +2512,10 @@ size_t RsContextD3D11::addD3DResource(
 	// Setup entry.
 	Entry.Resource_ = D3DResource;
 	Entry.ResourceFormat_ = ResourceFormat;
+	Entry.RTVFormat_ = RTVFormat;
 	Entry.DSVFormat_ = DSVFormat;
 	Entry.SRVFormat_ = SRVFormat;
+	Entry.UAVFormat_ = UAVFormat;
 	
 	// Store in cache.
 	ResourceViewCache_[ EntryIdx ] = Entry;
@@ -2453,6 +2633,18 @@ ID3D11ShaderResourceView* RsContextD3D11::getD3DShaderResourceView( size_t Resou
 
 		switch( ResDim )
 		{
+		case D3D11_RESOURCE_DIMENSION_BUFFER:
+			{
+				D3D11_BUFFER_DESC BufferDesc;
+				Entry.BufferResource_->GetDesc( &BufferDesc );
+				Desc.Format = DXGI_FORMAT_R32_TYPELESS;
+				Desc.ViewDimension = D3D_SRV_DIMENSION_BUFFEREX;
+				Desc.BufferEx.FirstElement = 0;
+				Desc.BufferEx.NumElements = BufferDesc.ByteWidth / 4;
+				Desc.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
+			}
+			break;
+
 		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
 			{
 				D3D11_TEXTURE1D_DESC TexDesc;
@@ -2520,8 +2712,78 @@ ID3D11UnorderedAccessView* RsContextD3D11::getD3DUnorderedAccessView( size_t Res
 	auto& Entry = ResourceViewCache_[ ResourceIdx ];
 	if( Entry.UnorderedAccessView_ == nullptr )
 	{
+		//
+		D3D11_RESOURCE_DIMENSION ResDim;
+		Entry.Resource_->GetType( &ResDim );
+		
 		// Create unordered access view.
-		BcBreakpoint;
+		D3D11_UNORDERED_ACCESS_VIEW_DESC Desc;
+
+		switch( ResDim )
+		{
+		case D3D11_RESOURCE_DIMENSION_BUFFER:
+			{
+				D3D11_BUFFER_DESC BufferDesc;
+				Entry.BufferResource_->GetDesc( &BufferDesc );
+				Desc.Format = 
+					( BufferDesc.StructureByteStride == 0 ? 
+						DXGI_FORMAT_R32_TYPELESS : 
+						DXGI_FORMAT_UNKNOWN );
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+				Desc.Buffer.FirstElement = 0;
+				Desc.Buffer.NumElements = BufferDesc.ByteWidth / 
+					( BufferDesc.StructureByteStride == 0 ? 
+						4 : 
+						BufferDesc.StructureByteStride );
+				Desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
+			}
+			break;
+
+		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+			{
+				D3D11_TEXTURE1D_DESC TexDesc;
+				Entry.Texture1DResource_->GetDesc( &TexDesc );
+				Desc.Format = Entry.UAVFormat_;
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
+				Desc.Texture1D.MipSlice = 0;
+			}
+			break;
+
+		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+			{
+				D3D11_TEXTURE2D_DESC TexDesc;
+				Entry.Texture2DResource_->GetDesc( &TexDesc );
+				Desc.Format = Entry.UAVFormat_;
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+				Desc.Texture2D.MipSlice = 0;
+			}
+			break;
+
+		case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+			{
+				D3D11_TEXTURE3D_DESC TexDesc;
+				Entry.Texture3DResource_->GetDesc( &TexDesc );
+				Desc.Format = Entry.UAVFormat_;
+				Desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+				Desc.Texture3D.MipSlice = 0;
+				Desc.Texture3D.FirstWSlice = 0;
+				Desc.Texture3D.WSize = 0;
+			}
+			break;
+
+		default:
+			BcBreakpoint;
+			return nullptr;
+			break;
+		}
+
+		// Create unordered access view.
+		HRESULT Result = Device_->CreateUnorderedAccessView( 
+			Entry.Resource_,
+			&Desc,
+			&Entry.UnorderedAccessView_ );
+ 		BcAssert( SUCCEEDED( Result ) );
+		BcUnusedVar( Result );
 	}
 
 	return Entry.UnorderedAccessView_;
@@ -2548,7 +2810,7 @@ ID3D11RenderTargetView* RsContextD3D11::getD3DRenderTargetView( size_t ResourceI
 			{
 				D3D11_TEXTURE2D_DESC TexDesc;
 				Entry.Texture2DResource_->GetDesc( &TexDesc );
-				Desc.Format = TexDesc.Format;
+				Desc.Format = Entry.RTVFormat_;
 				Desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 				Desc.Texture2D.MipSlice = 0;
 			}

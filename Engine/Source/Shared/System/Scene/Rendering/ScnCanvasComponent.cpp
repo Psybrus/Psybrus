@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/Scene/Rendering/ScnCanvasComponent.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Os/OsCore.h"
@@ -29,6 +30,7 @@ void ScnCanvasComponent::StaticRegisterClass()
 	{
 		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_, bcRFF_IMPORTER | bcRFF_CONST ),
 		new ReField( "Clear_", &ScnCanvasComponent::Clear_, bcRFF_IMPORTER ),
+		new ReField( "AbsoluteCoords_", &ScnCanvasComponent::AbsoluteCoords_, bcRFF_IMPORTER ),
 		new ReField( "Left_", &ScnCanvasComponent::Left_, bcRFF_IMPORTER ),
 		new ReField( "Right_", &ScnCanvasComponent::Right_, bcRFF_IMPORTER ),
 		new ReField( "Top_", &ScnCanvasComponent::Top_, bcRFF_IMPORTER ),
@@ -170,8 +172,12 @@ void ScnCanvasComponent::setViewMatrix( const MaMat4d& View )
 // getRect
 const ScnRect& ScnCanvasComponent::getRect( BcU32 Idx ) const
 {
-	static ScnRect EMPTY;
-	return DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( Idx ) : EMPTY;
+	static ScnRect Rect = 
+	{
+		0.0f, 0.0f,
+		1.0f, 1.0f
+	};
+	return DiffuseTexture_.isValid() ? DiffuseTexture_->getRect( Idx ) : Rect;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -589,7 +595,7 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 	{
 		UploadFence_.increment();
 		RsCore::pImpl()->updateBuffer( 
-			RenderResource_.pVertexBuffer_, 0, VertexDataSize, 
+			VertexBuffer_.get(), 0, VertexDataSize, 
 			RsResourceUpdateFlags::ASYNC,
 			[ this, VertexDataSize ]
 			( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -611,9 +617,6 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 	//       to the scene. Will not sort by transparency or anything either.
 	//std::stable_sort( PrimitiveSectionList_.begin(), PrimitiveSectionList_.end(), ScnCanvasComponentPrimitiveSectionCompare() );
 	
-	// Cache last material instance.
-	ScnMaterialComponent* pLastMaterialComponent = NULL;
-	
 	for( BcU32 Idx = 0; Idx < PrimitiveSectionList_.size(); ++Idx )
 	{
 		// Copy primitive sections in.
@@ -621,19 +624,19 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 		BcMemZero( PrimitiveSection, sizeof( ScnCanvasComponentPrimitiveSection ) );
 		*PrimitiveSection = PrimitiveSectionList_[ Idx ];
 		
-		// Bind material.
-		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
-		//       if need be. If using multiple canvases we could potentially lose a material bind.
-		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
-		{
-			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
-			pLastMaterialComponent->bind( RenderContext.pFrame_, Sort );
-		}
-		
 		// Add to frame.
-		RenderFence_.increment();
+		UploadFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ this, PrimitiveSection ]( RsContext* Context )
+			[
+				this,
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = PrimitiveSection->MaterialComponent_->getProgramBinding(),
+				RenderState = PrimitiveSection->MaterialComponent_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
+				PrimitiveSection 
+			]
+			( RsContext* Context )
 			{
 				if( PrimitiveSection->RenderFunc_ != nullptr )
 				{
@@ -642,13 +645,18 @@ void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
 
 				if( PrimitiveSection->Type_ != RsTopologyType::INVALID )
 				{
-					Context->setVertexBuffer( 0, RenderResource_.pVertexBuffer_, sizeof( ScnCanvasComponentVertex ) );
-					Context->setVertexDeclaration( VertexDeclaration_ );
-					Context->drawPrimitives( PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						&Viewport,
+						nullptr,
+						PrimitiveSection->Type_, PrimitiveSection->VertexIndex_, PrimitiveSection->NoofVertices_ );
 				}
 
 				PrimitiveSection->~ScnCanvasComponentPrimitiveSection();
-				RenderFence_.decrement();
+				UploadFence_.decrement();
 			} );
 	}
 	
@@ -668,14 +676,21 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 		RsVertexDeclarationDesc( 3 )
 			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,		0 ) )
 			.addElement( RsVertexElement( 0, 16,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,		0 ) )
-			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ) );
+			.addElement( RsVertexElement( 0, 24,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ),
+		getFullName().c_str() );
 
 	// Allocate render resources.
-	RenderResource_.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
+	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
 			RsBufferType::VERTEX,
 			RsResourceCreationFlags::STREAM,
-			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ) );
+			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ),
+		getFullName().c_str() );
+
+	RsGeometryBindingDesc GeometryBindingDesc;
+	GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnCanvasComponentVertex ) );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
@@ -689,13 +704,6 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnCanvasComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	UploadFence_.wait();
-	RenderFence_.wait();
-
-	// Allocate render side vertex buffer.
-	RsCore::pImpl()->destroyResource( RenderResource_.pVertexBuffer_ );
-
-	// Destroy vertex declaration.
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 
 	// Delete working data.
 	delete [] pWorkingVertices_;
@@ -721,12 +729,15 @@ void ScnCanvasComponent::clearAll( const ScnComponentList& Components )
 			// Just use default client size.
 			auto Client = OsCore::pImpl()->getClient( 0 );
 
+			const BcF32 Width = CanvasComponent->AbsoluteCoords_ ? 1.0f : Client->getWidth();
+			const BcF32 Height = CanvasComponent->AbsoluteCoords_ ? 1.0f : Client->getHeight();
+
 			MaMat4d Projection;
 			Projection.orthoProjection(
-				CanvasComponent->Left_ * Client->getWidth() * 0.5f,
-				CanvasComponent->Right_ * Client->getWidth() * 0.5f,
-				CanvasComponent->Top_ * Client->getHeight() * 0.5f,
-				CanvasComponent->Bottom_ * Client->getHeight() * 0.5f,
+				CanvasComponent->Left_ * Width,
+				CanvasComponent->Right_ * Width,
+				CanvasComponent->Bottom_ * Height,
+				CanvasComponent->Top_ * Height,
 				-1.0f, 
 				1.0f );
 

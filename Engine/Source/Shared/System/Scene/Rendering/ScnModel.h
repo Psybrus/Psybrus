@@ -40,12 +40,12 @@ public:
 	ScnModel();
 	virtual ~ScnModel();
 
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 	
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 protected:
 	friend class ScnModelComponent;
@@ -58,8 +58,12 @@ protected:
 	BcU8* pIndexBufferData_;
 	RsVertexElement* pVertexElements_;
 	ScnModelMeshData* pMeshData_;
-	
 	ScnModelMeshRuntimeList MeshRuntimes_;
+
+	RsBufferUPtr VertexBuffer_;
+	RsBufferUPtr IndexBuffer_;
+	std::vector< RsVertexDeclarationUPtr > VertexDeclarations_;
+	std::vector< RsGeometryBindingUPtr > GeometryBindings_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,7 +79,7 @@ public:
 
 	void initialise() override;
 
-	virtual MaAABB getAABB() const;
+	MaAABB getAABB() const override;
 
 	BcU32 findNodeIndexByName( const BcName& Name ) const;
 	const BcName& findNodeNameByIndex( BcU32 NodeIdx ) const;
@@ -93,9 +97,9 @@ public:
 	static void updateModels( const ScnComponentList& Components );
 	void updateModel( BcF32 Tick );
 	void updateNodes( MaMat4d RootMatrix );
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
-	void render( ScnRenderContext & RenderContext );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
+	void render( ScnRenderContext & RenderContext ) override;
 	
 protected:
 	ScnModelRef Model_;
@@ -110,14 +114,13 @@ protected:
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
 	SysFence UpdateFence_;
-	SysFence RenderFence_;
 
 	MaAABB AABB_;
 
 	struct TPerComponentMeshData
 	{
 		ScnMaterialComponentRef MaterialComponentRef_;
-		RsBuffer* UniformBuffer_;
+		RsBufferUPtr UniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;

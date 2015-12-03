@@ -104,6 +104,17 @@ end
 
 -- Add system libraries
 function PsyAddSystemLibs()
+if _OPTIONS["with-vk"] then
+      VK_SDK_PATH = os.getenv("VK_SDK_PATH")
+      libdirs {
+          VK_SDK_PATH .. "/Source/lib"
+      }
+
+      links {
+          "vulkan.0"
+      }
+end
+
 	configuration "windows-*"
 		links {
 			"user32",
@@ -140,6 +151,9 @@ function PsyAddSystemLibs()
 			"SDL2",
 			"pthread",
 			"dl"
+		}
+		libdirs {
+			"/usr/local/Cellar/sdl2/2.0.3/lib"
 		}
 end
 

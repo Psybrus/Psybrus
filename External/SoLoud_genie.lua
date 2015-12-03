@@ -56,9 +56,14 @@ local portmidi_root  = "./portmidi"
 local dxsdk_root     = os.getenv("DXSDK_DIR") and os.getenv("DXSDK_DIR") or "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)"
 local portaudio_root = "./portaudio"
 local openal_root    = "./openal"
-local opensles_root    = "/Users/Neilo/android-ndk-r10e/platforms/arch-arm/usr"
+local android_ndk    = os.getenv("ANDROID_NDK") or ""
+local opensles_root    = android_ndk .. "/platforms/arch-arm/usr"
 
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --
+
+if _OPTIONS[ "toolchain" ] == "osx-clang" then
+	sdl_root = "/usr/local/Cellar/sdl2/2.0.3"	
+end
 
 local sdl_include       = sdl_root .. "/include"      
 local sdl_lib           = sdl_root .. "/lib"

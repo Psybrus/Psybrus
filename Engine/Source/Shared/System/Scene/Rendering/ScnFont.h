@@ -54,12 +54,12 @@ public:
 	ScnFont();
 	virtual ~ScnFont();
 
-	virtual void create();
-	virtual void destroy();
+	void create() override;
+	void destroy() override;
 		
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 	
 private:
 	friend class ScnFontComponent;
@@ -287,8 +287,8 @@ public:
 
 
 public:
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 private:
 	friend class ScnFont;
@@ -301,9 +301,8 @@ private:
 	MaVec2d ClipMin_;
 	MaVec2d ClipMax_;
 
-	RsBuffer* UniformBuffer_;
+	RsBufferUPtr UniformBuffer_;
 	ScnFontUniformBlockData FontUniformData_;
-	SysFence UploadFence_;
 };
 
 #endif

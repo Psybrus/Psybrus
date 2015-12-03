@@ -67,7 +67,7 @@ void ReClassSerialiser_BinaryDataType::destroy( void* Object ) const
 
 //////////////////////////////////////////////////////////////////////////
 // getBinaryDataSize
-size_t ReClassSerialiser_BinaryDataType::getBinaryDataSize( void* pMemory ) const
+size_t ReClassSerialiser_BinaryDataType::getBinaryDataSize( const void* pMemory ) const
 {
 	const BcBinaryData* pBinaryData( reinterpret_cast< const BcBinaryData* >( pMemory ) );
 	return sizeof( BcU64 ) + pBinaryData->getDataSize();

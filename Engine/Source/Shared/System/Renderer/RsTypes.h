@@ -168,47 +168,6 @@ enum class RsStencilOp : BcU32
 	INVALID = BcErrorCode
 };
 
-
-//////////////////////////////////////////////////////////////////////////
-// Colour Format (RT)
-enum class RsColourFormat : BcU32
-{
-	NONE = 0,
-	A2R10G10B10,
-	A8R8G8B8,
-	X8R8G8B8,
-	A1R5G5B5,
-	X1R5G5B5,
-	R5G6B5,
-	R16F,
-	G16R16F,
-	A16B16G16R16F,
-	R32F,
-	G32R32F,
-	A32B32G32R32F,
-	
-	MAX,
-	INVALID = BcErrorCode
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Depth Stencil Format (RT)
-enum class RsDepthStencilFormat : BcU32
-{
-	NONE = 0,
-	D16,
-	D32,
-	D15S1,
-	D24S8,
-	D24X8,
-	D24X4S4,
-	D32F,
-	D24FS8,
-	
-	MAX,
-	INVALID = BcErrorCode
-};
-
 //////////////////////////////////////////////////////////////////////////
 // Vertex data type.
 enum class RsVertexDataType : BcU32
@@ -232,6 +191,17 @@ enum class RsVertexDataType : BcU32
 	MAX,
 	INVALID = BcErrorCode
 };
+
+/**
+ * Convert a stream of floats to output vertex data format.
+ * @param InFloats Input floats.
+ * @param NoofFloats Number of floats.
+ * @param OutDataType Output data type.
+ * @param OutData Output data. Can be nullptr.
+ * @param OutDataSize Output data size in bytes.
+ * @return true for success.
+ */
+bool RsFloatToVertexDataType( BcF32* InFloats, BcU32 NoofFloats, RsVertexDataType OutDataType, void* OutData, BcU32& OutDataSize );
 
 //////////////////////////////////////////////////////////////////////////
 // Vertex data type.
@@ -285,7 +255,6 @@ enum class RsTextureFormat : BcU32
 	D24,
 	D32,
 	D24S8,
-	D32F,
 	
 	MAX,
 	INVALID = BcErrorCode
@@ -394,32 +363,6 @@ struct RsTextureParams
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Render state
-enum class RsRenderStateType : BcU32
-{
-	DEPTH_WRITE_ENABLE = 0,		///!< Depth write enable/disable. true or false.
-	DEPTH_TEST_ENABLE,				///!< Depth test enable/disable. true or false.
-	DEPTH_TEST_COMPARE,			///!< Depth test compare. RsCompareMode
-	STENCIL_WRITE_MASK,			///!< Stencil write mask.
-	STENCIL_TEST_ENABLE,			///!< Stencil test enable.
-	STENCIL_TEST_FUNC_COMPARE,		///!< Stencil test compare.
-	STENCIL_TEST_FUNC_REF,			///!< Stencil test reference value.
-	STENCIL_TEST_FUNC_MASK,		///!< Stencil test mask.
-	STENCIL_TEST_OP_SFAIL,			///!< Stencil test fail operation.
-	STENCIL_TEST_OP_DPFAIL,		///!< Stencil test passes, but depth fails operation.
-	STENCIL_TEST_OP_DPPASS,		///!< Stencil test and depth pass operation.
-	COLOR_WRITE_MASK_0,			///!< Color write mask, RT 0. Bits 0-3, RGBA
-	COLOR_WRITE_MASK_1,			///!< Color write mask, RT 1. Bits 0-3, RGBA
-	COLOR_WRITE_MASK_2,			///!< Color write mask, RT 2. Bits 0-3, RGBA
-	COLOR_WRITE_MASK_3,			///!< Color write mask, RT 3. Bits 0-3, RGBA
-	BLEND_MODE,					///!< Blend mode (simple). eRsBlendMode.
-	FILL_MODE,					///!< Fill mode. RsFillMode.
-	
-	MAX,
-	INVALID = BcErrorCode
-};
-
-//////////////////////////////////////////////////////////////////////////
 // Primitive Types.
 enum class RsTopologyType : BcU32
 {
@@ -463,16 +406,33 @@ enum class RsShaderDataType : BcU32
 	INVALID = BcErrorCode
 };
 
+enum class RsShaderResourceType : BcU32
+{
+	BUFFER = 0,
+	TEXTURE,
+	
+	MAX,
+	INVALID = BcErrorCode
+};
+
+enum class RsUnorderedAccessType : BcU32
+{
+	BUFFER = 0,
+	TEXTURE,
+	
+	MAX,
+	INVALID = BcErrorCode
+};
+
 //////////////////////////////////////////////////////////////////////////
 // RsShaderBackendType
 enum class RsShaderBackendType : BcU32
 {
 	GLSL,
 	GLSL_ES,
-	D3D9,
 	D3D11,
 	D3D12,
-	MANTLE,
+	SPIRV,
 
 	MAX,
 	INVALID = BcErrorCode
@@ -498,9 +458,6 @@ enum class RsShaderCodeType : BcU32
 	GLSL_ES_300,	// GL ES 3.0+
 	GLSL_ES_310,	// GL ES 3.0+
 
-	// D3D9
-	D3D9_3_0,
-	
 	// D3D11
 	D3D11_4_0_LEVEL_9_1,
 	D3D11_4_0_LEVEL_9_2,
@@ -512,7 +469,8 @@ enum class RsShaderCodeType : BcU32
 
 	// D3D12
 
-	// Mantle
+	// SPIR-V
+	SPIRV,
 
 	//
 	MAX,
@@ -556,8 +514,8 @@ RsShaderCodeType RsConvertCodeTypeToBackendCodeType( RsShaderCodeType CodeType, 
 BcBool RsIsLowerCodeTypeCompatibleWithHigher( RsShaderCodeType LowerCodeType, RsShaderCodeType HigherCodeType );
 
 //////////////////////////////////////////////////////////////////////////
-// RsShaderParameterType
-enum class RsShaderParameterType : BcU32
+// RsProgramUniformType
+enum class RsProgramUniformType : BcU32
 {
 	FLOAT = 0,
 	FLOAT_VEC2,
@@ -580,6 +538,7 @@ enum class RsShaderParameterType : BcU32
 	SAMPLER_CUBE,
 	SAMPLER_1D_SHADOW,
 	SAMPLER_2D_SHADOW,
+	TEXTURE,
 	
 	MAX,
 	INVALID = BcErrorCode,
@@ -595,6 +554,34 @@ struct RsProgramVertexAttribute
 };
 
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramUniform
+struct RsProgramUniform
+{
+	/// Name of uniform.
+	BcChar							Name_[ 64 ];
+	/// Offset of uniform.
+	BcU32							Offset_;
+	/// Type of uniform.
+	RsProgramUniformType			Type_;
+	/// Index of uniform block.
+	BcU32							UniformBlockIndex_;
+};
+
+typedef std::vector< RsProgramUniform > RsProgramUniformList;
+
+//////////////////////////////////////////////////////////////////////////
+// RsProgramUniformBlock
+struct RsProgramUniformBlock
+{
+	/// Name of uniforms block.
+	BcChar							Name_[ 64 ];
+	/// Size of uniform block in bytes.
+	BcU32							Size_;
+};
+
+typedef std::vector< RsProgramUniformBlock > RsProgramUniformBlockList;
 
 //////////////////////////////////////////////////////////////////////////
 // Resource stuff
@@ -627,7 +614,8 @@ enum class RsResourceBindFlags : BcU32
 	RENDER_TARGET		= 0x00000020,
 	DEPTH_STENCIL		= 0x00000040,
 	UNORDERED_ACCESS	= 0x00000080,
-	PRESENT				= 0x00000100
+	PRESENT				= 0x00000100,
+	TRANSIENT			= 0x00000200
 };
 
 inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )
@@ -713,5 +701,41 @@ struct RsScreenshot
 };
 
 typedef std::function< BcBool( const RsScreenshot& ) > RsScreenshotFunc;
+
+//////////////////////////////////////////////////////////////////////////
+// RsScissorRect
+struct RsScissorRect
+{
+	RsScissorRect()
+	{}
+
+	RsScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ):
+		X_( X ),
+		Y_( Y ),
+		Width_( Width ),
+		Height_( Height )
+	{}
+
+	bool operator == ( const RsScissorRect& B ) const
+	{
+		return  X_ == B.X_ &&
+			Y_ == B.Y_ &&
+			Width_ == B.Width_ &&
+			Height_ == B.Height_;
+	}
+
+	bool operator != ( const RsScissorRect& B ) const
+	{
+		return  X_ != B.X_ ||
+			Y_ != B.Y_ ||
+			Width_ != B.Width_ ||
+			Height_ != B.Height_;
+	}
+
+	BcS32 X_ = 0;
+	BcS32 Y_ = 0;
+	BcS32 Width_ = 0;
+	BcS32 Height_ = 0;
+};
 
 #endif

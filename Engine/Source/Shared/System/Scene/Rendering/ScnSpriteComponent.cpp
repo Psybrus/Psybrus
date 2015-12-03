@@ -53,11 +53,14 @@ void ScnSpriteComponent::StaticRegisterClass()
 		new ReField( "Colour_", &ScnSpriteComponent::Colour_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "Index_", &ScnSpriteComponent::Index_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "Layer_", &ScnSpriteComponent::Layer_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
-		new ReField( "Center_", &ScnSpriteComponent::Center_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
+		new ReField( "Centre_", &ScnSpriteComponent::Centre_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
 		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
 		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "Animation_", &ScnSpriteComponent::Animation_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
 		new ReField( "Animations_", &ScnSpriteComponent::Animations_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+
+		// Deprecated fields.
+		new ReField( "Center_", &ScnSpriteComponent::Centre_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT | bcRFF_DEPRECATED ),
 
 		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, bcRFF_TRANSIENT ),
 		new ReField( "Canvas_", &ScnSpriteComponent::Canvas_, bcRFF_TRANSIENT ),
@@ -85,7 +88,7 @@ ScnSpriteComponent::ScnSpriteComponent()
 	Colour_ = RsColour::WHITE;
 	Index_ = 0;
 	Layer_ = 0;
-	Center_ = BcFalse;
+	Centre_ = BcFalse;
 	IsScreenSpace_ = BcFalse;
 	Rotation_ = 0.0f;
 
@@ -208,6 +211,13 @@ void ScnSpriteComponent::setSpriteIndex( BcU32 Index )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getSpriteIndex
+BcU32 ScnSpriteComponent::getSpriteIndex() const
+{
+	return Index_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // updateAnimation
 void ScnSpriteComponent::updateAnimation( BcF32 Tick )
 {
@@ -265,7 +275,7 @@ void ScnSpriteComponent::draw()
 
 		// Draw sprite at the correct transform position.
 		Canvas_->setMaterialComponent( Material_ );
-		if( Center_ )
+		if( Centre_ )
 		{
 			Canvas_->drawSpriteCentered( Position_, Size_, Index_, Colour_, Layer_ );
 		}
@@ -294,7 +304,7 @@ void ScnSpriteComponent::draw()
 
 		// Draw sprite at the correct transform position.
 		Canvas_->setMaterialComponent( Material_ );
-		if( Center_ )
+		if( Centre_ )
 		{
 			Canvas_->drawSpriteCentered( MaVec2d(), Size_, Index_, Colour_, Layer_ );
 		}

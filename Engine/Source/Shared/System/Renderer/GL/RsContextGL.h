@@ -1,24 +1,12 @@
-/**************************************************************************
-*
-* File:		RsContextGL.h
-* Author: 	Neil Richardson 
-* Ver/Date:	
-* Description:
-*		
-*		
-*
-*
-* 
-**************************************************************************/
-
-#ifndef __RSCONTEXTGL_H__
-#define __RSCONTEXTGL_H__
+#pragma once
 
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/GL/RsGL.h"
 
 #include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsRenderState.h"
+#include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsViewport.h"
 
 #include "Base/BcMisc.h"
@@ -28,70 +16,49 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// RsBufferImplGL
-struct RsBufferImplGL
-{
-	~RsBufferImplGL()
-	{
-		BcAssert( BufferData_ == nullptr );
-	}
-
-	GLuint Handle_ = 0;
-	BcU8* BufferData_ = nullptr;
-	BcU32 Version_ = 0;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// RsTextureImplGL
-struct RsTextureImplGL
-{
-	~RsTextureImplGL()
-	{
-	}
-
-	GLuint Handle_ = 0;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// RsProgramImplGL
-struct RsProgramImplGL
-{
-	struct UniformEntry
-	{
-		enum class Type
-		{
-			UNKNOWN,
-			UNIFORM_1IV,
-			UNIFORM_1FV,
-			UNIFORM_2FV,
-			UNIFORM_3FV,
-			UNIFORM_4FV,
-			UNIFORM_MATRIX_4FV,
-		};
-
-		BcU32 BindingPoint_ = 0;
-		Type Type_ = RsProgramImplGL::UniformEntry::Type::UNKNOWN;
-		GLint Loc_ = 0;
-		GLsizei Count_ = 0;
-		size_t Offset_ = 0;
-		size_t CachedOffset_ = 0;
-		size_t Size_ = 0;
-
-		// Used for redundancy checks.
-		RsBuffer* Buffer_ = nullptr;
-		BcU32 Version_ = 0;
-	};
-
-	GLuint Handle_ = 0;
-	std::vector< UniformEntry > UniformEntries_;
-	std::unique_ptr< BcU8[] > CachedUniforms_;
-};
-
-//////////////////////////////////////////////////////////////////////////
 // RsContextGL
 class RsContextGL:
 	public RsContext
 {
+public:
+	struct TextureBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Texture_ = 0;
+		GLenum Target_ = 0;
+	};
+
+	struct ImageBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Texture_ = 0;
+		GLint Level_ = 0;
+		GLboolean Layered_ = 0;
+		GLint Layer_ = 0;
+		GLenum Access_ = 0;
+		GLenum Format_ = 0;
+	};
+
+	struct BufferBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Buffer_ = 0;
+		GLintptr Offset_ = 0;
+		GLsizei Size_ = 0;
+	};
+
+	struct SamplerBindingInfo
+	{
+		const RsResource* Resource_ = nullptr;
+		GLuint Sampler_ = 0;
+	};
+
+	struct ProgramBindingInfo
+	{
+		const RsProgram* Program_ = nullptr;
+		GLuint Handle_ = 0;
+	};
+
 public:
 	RsContextGL( OsClient* pClient, RsContextGL* pParent );
 	virtual ~RsContextGL();
@@ -104,110 +71,102 @@ public:
 
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	class RsFrameBuffer* getBackBuffer() const override;
+	class RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
 	bool createRenderState(
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 	bool destroyRenderState(
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 
 	bool createSamplerState(
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 	bool destroySamplerState(
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 
 	bool createFrameBuffer( 
-		RsFrameBuffer* FrameBuffer );
+		RsFrameBuffer* FrameBuffer ) override;
 	bool destroyFrameBuffer( 
-		RsFrameBuffer* FrameBuffer );
+		RsFrameBuffer* FrameBuffer ) override;
 
 	bool createBuffer( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	bool destroyBuffer( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	bool updateBuffer( 
 		RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
 		RsResourceUpdateFlags Flags,
-		RsBufferUpdateFunc UpdateFunc );
+		RsBufferUpdateFunc UpdateFunc ) override;
 
 	bool createTexture( 
-		class RsTexture* Texture );
+		class RsTexture* Texture ) override;
 	bool destroyTexture( 
-		class RsTexture* Texture );
+		class RsTexture* Texture ) override;
 	bool updateTexture( 
 		class RsTexture* Texture,
 		const struct RsTextureSlice& Slice,
 		RsResourceUpdateFlags Flags,
-		RsTextureUpdateFunc UpdateFunc );
+		RsTextureUpdateFunc UpdateFunc ) override;
 
-	bool createShader(
-		class RsShader* Shader );
-	bool destroyShader(
-		class RsShader* Shader );
-
-	bool createProgram(
-		class RsProgram* Program );
-	bool destroyProgram(
-		class RsProgram* Program );
-
-	bool createVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration ) override;
-	bool destroyVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration  ) override;
-
-	void setDefaultState();
-	void invalidateRenderState();
-	void invalidateTextureState();
-	void setRenderState( class RsRenderState* RenderState );
-	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setTexture( BcU32 Slot, class RsTexture* pTexture, BcBool Force = BcFalse );
-	void setProgram( class RsProgram* Program );
-	void setIndexBuffer( class RsBuffer* IndexBuffer );
-	void setVertexBuffer( 
-		BcU32 StreamIdx, 
-		class RsBuffer* VertexBuffer,
-		BcU32 Stride );
-	void setUniformBuffer( 
-		BcU32 SlotIdx, 
-		class RsBuffer* UniformBuffer );
-	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
-	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
+	bool createShader( class RsShader* Shader ) override;
+	bool destroyShader( class RsShader* Shader ) override;
+	bool createProgram( class RsProgram* Program ) override;
+	bool destroyProgram( class RsProgram* Program ) override;
+	bool createProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool destroyProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool createGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
+	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 	
-	void flushState();
-
 	void clear( 
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
 		BcBool EnableClearStencil ) override;
-	void drawPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices ) override;
-	void drawIndexedPrimitives( RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
-	void copyFrameBufferRenderTargetToTexture( RsFrameBuffer* FrameBuffer, BcU32 Idx, RsTexture* Texture ) override;
-	void copyTextureToFrameBufferRenderTarget( RsTexture* Texture, RsFrameBuffer* FrameBuffer, BcU32 Idx ) override;
+	void drawPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 VertexOffset, BcU32 NoofVertices ) override;
+	void drawIndexedPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
-	void setViewport( const class RsViewport& Viewport ) override;
-	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
+	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
+
+	void bindProgram( const RsProgram* Program );
+	void bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding, BcU32 VertexOffset );
+	void bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect );
+	void bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force );
+	void bindSRVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
+	void bindUAVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings, GLbitfield& Barrier );
+	void bindSamplerStates( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
+	void bindUniformBuffers( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
+	void bindTexture( BcU32 Slot, const RsTexture* Texture );
+	void bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset );
+	void bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset );
+	void unbindResource( const RsResource* Resource );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;
 
 private:
-	void bindStencilFunc();
-	void bindStencilOp();
-	void bindBlendMode( RsBlendingMode BlendMode );
-	void bindScissor();
-
-	void loadTexture( 
-		RsTexture* Texture, 
-		const RsTextureSlice& Slice,
-		BcBool Bind, 
-		BcU32 DataSize,
-		void* Data );
-
-	void setRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force );
 
 protected:
 	virtual void create();
@@ -258,74 +217,41 @@ private:
 	BcThreadId OwningThread_;
 	BcU64 FrameCount_;
 
-	struct TTextureStateValue
-	{
-		RsTexture* pTexture_;
-		RsSamplerState* pSamplerState_;
-		BcBool Dirty_;
-	};
 
-	enum
-	{
-		NOOF_RENDERSTATES = (BcU32)RsRenderStateType::MAX,
-	};
 	
-	std::array< TTextureStateValue, MAX_TEXTURE_SLOTS > TextureStateValues_;
-
 	// State setting.
 	// TODO: Move into a seperate class.
 	class RsRenderState* RenderState_;
-	BcU64 LastRenderStateHandle_;
 	RsRenderStateDesc BoundRenderStateDesc_;
 	std::map< BcU64, RsRenderStateDesc > RenderStateMap_;
-
-	// Frame buffer.
-	BcBool FrameBufferDirty_;
-	class RsFrameBuffer* FrameBuffer_;
-	
-	// Viewport.
-	BcBool DirtyViewport_;
-	RsViewport Viewport_;
-	BcBool DirtyScissor_;
-	BcS32 ScissorX_, ScissorY_, ScissorW_, ScissorH_;
-
-	// Texture binding.
-	std::array< BcU32, MAX_TEXTURE_SLOTS > TextureStateBinds_;
-	BcU32 NoofTextureStateBinds_;	
 
 	// VAO
 	BcU32 GlobalVAO_;
 
-	//
-	RsVertexDeclaration* VertexDeclaration_;
-	RsProgram* Program_;
-	BcBool ProgramDirty_;
-
-	RsBuffer* IndexBuffer_;
-	BcBool IndexBufferDirty_;
-
-	struct VertexBufferBinding
-	{
-		RsBuffer* Buffer_;
-		BcU32 Stride_;
-	};
-
-	struct UniformBufferBinding
-	{
-		RsBuffer* Buffer_;
-		BcBool Dirty_;
-	};
-
-	std::array< VertexBufferBinding, MAX_VERTEX_STREAMS > VertexBuffers_;
 	std::array< bool, MAX_VERTEX_STREAMS > VertexBufferActiveState_;
 	std::array< bool, MAX_VERTEX_STREAMS > VertexBufferActiveNextState_;
-	BcBool VertexBuffersDirty_;
 
-	std::array< UniformBufferBinding, MAX_UNIFORM_SLOTS > UniformBuffers_;
-	BcBool UniformBuffersDirty_;
+	GLbitfield MemoryBarrier_ = 0;
+
+	const RsFrameBuffer* BoundFrameBuffer_ = nullptr;
+	RsViewport BoundViewport_ = RsViewport();
+	RsScissorRect BoundScissorRect_ = RsScissorRect();
+
+	const RsProgram* BoundProgram_ = nullptr;
+	const RsProgramBinding* BoundProgramBinding_ = nullptr;
+	const RsGeometryBinding* BoundGeometryBinding_ = nullptr;
+	BcU32 BoundVertexOffset_ = 0;
+	BcU64 BoundRenderStateHash_ = 0;
+
+	std::array< TextureBindingInfo, 32 > TextureBindingInfo_;
+	std::array< ImageBindingInfo, 32 > ImageBindingInfo_;
+	std::array< BufferBindingInfo, 32 > ShaderStorageBufferBindingInfo_;
+	std::array< BufferBindingInfo, 32 > UniformBufferBindingInfo_;
+	std::array< SamplerBindingInfo, 32 > SamplerBindingInfo_;
+	BufferBindingInfo VertexBufferBindingInfo_;
+	BufferBindingInfo IndexBufferBindingInfo_;
 
 	BcU32 NoofDrawCalls_;
-	BcU32 NoofRenderStateFlushes_;
 	BcU32 NoofRenderStates_;
 	BcU32 NoofSamplerStates_;
 	BcU32 NoofBuffers_;
@@ -333,9 +259,11 @@ private:
 	BcU32 NoofShaders_;
 	BcU32 NoofPrograms_;
 
-	GLuint TransferFBOs_[ 2 ];
-
+	RsTextureDesc BackBufferRTDesc_;
+	RsTextureDesc BackBufferDSDesc_;
+	RsTexture* BackBufferRT_ = nullptr;
+	RsTexture* BackBufferDS_ = nullptr;
+	RsFrameBufferDesc BackBufferFBDesc_ = RsFrameBufferDesc( 1 );
+	RsFrameBuffer* BackBufferFB_;
+	GLuint TransferFBOs_[ 2 ] = { 0, 0 };
 };
-
-
-#endif

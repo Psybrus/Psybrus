@@ -6,6 +6,10 @@ class Deploy():
 		# Run importer for platform.
 		self.platform.run_import()
 
+		# Generate build.
+		self.platform.build_tool.generate()
+		self.platform.build_tool.build( _config )
+
 	def install( self, _config ):
 		print "install unimplemented!"
 

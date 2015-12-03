@@ -40,5 +40,8 @@
 #undef max
 #define max max
 
+#undef ABSOLUTE
+#undef RELATIVE
+
 #endif
 

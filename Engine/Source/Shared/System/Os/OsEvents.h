@@ -187,7 +187,9 @@ struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 		KEYCODE_LMENU,
 		KEYCODE_RMENU,
 		KEYCODE_PLAY,
-		KEYCODE_ZOOM
+		KEYCODE_ZOOM,
+		KEYCODE_VOLUME_UP,
+		KEYCODE_VOLUME_DOWN
 	};
 
 	BcU32			KeyCode_;			///!< Key code.

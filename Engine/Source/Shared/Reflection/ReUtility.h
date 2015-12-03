@@ -40,6 +40,7 @@ enum ReFieldFlags
 	bcRFF_BASIS =					0x00004000,		// Field is of a basis object.
 	bcRFF_DEBUG_EDIT =				0x00008000,		// Allows for the flag to be read and written to by the DsCore post commands
 	bcRFF_OWNER =					0x00010000,		// This field is the owner of a reference.
+	bcRFF_DEPRECATED =				0x00020000,		// This field is deprecated.
 	
 	// Field.
 	bcRFF_FIELD =					0x80000000,		// Marks as valid field. Mostly as a dummy bit field to zero comparison.

@@ -76,11 +76,13 @@ protected:
 	std::vector< ScnPostProcessNode > Nodes_;
 	std::vector< RsFrameBufferUPtr > FrameBuffers_;
 	std::vector< RsRenderStateUPtr > RenderStates_;
-	std::map< std::string, RsSamplerStateUPtr > SamplerStates_;
+	std::vector< RsSamplerStateUPtr > SamplerStates_;
+	std::vector< RsBufferUPtr > UniformBuffers_;
+	std::vector< RsProgramBindingUPtr > ProgramBindings_;
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	RsBufferUPtr VertexBuffer_;
-	std::vector< RsBufferUPtr > UniformBuffers_;
-
+	RsGeometryBindingUPtr GeometryBinding_;
+	
 	SysFence RenderFence_;
 };
 

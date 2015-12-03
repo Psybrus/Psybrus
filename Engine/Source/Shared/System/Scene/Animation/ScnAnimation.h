@@ -54,8 +54,8 @@ private:
 		ScnAnimationNodeFileData* TargetNodesFileData ) const;
 
 private:
-	void fileReady();
-	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileReady() override;
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 private:
 	ScnAnimationHeader Header_;

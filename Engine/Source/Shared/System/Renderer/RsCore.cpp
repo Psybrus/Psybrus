@@ -127,27 +127,25 @@ void RsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< RsTextureSamplingMode >( RsTextureSamplingModeEnumConstants );
 
-	ReEnumConstant* RsRenderStateTypeEnumConstants[] = 
+	ReEnumConstant* RsVertexDataTypeEnumConstants[] = 
 	{
-		new ReEnumConstant( "DEPTH_WRITE_ENABLE", (BcU32)RsRenderStateType::DEPTH_WRITE_ENABLE ),
-		new ReEnumConstant( "DEPTH_TEST_ENABLE", (BcU32)RsRenderStateType::DEPTH_TEST_ENABLE ),
-		new ReEnumConstant( "DEPTH_TEST_COMPARE", (BcU32)RsRenderStateType::DEPTH_TEST_COMPARE ),
-		new ReEnumConstant( "STENCIL_WRITE_MASK", (BcU32)RsRenderStateType::STENCIL_WRITE_MASK ),
-		new ReEnumConstant( "STENCIL_TEST_ENABLE", (BcU32)RsRenderStateType::STENCIL_TEST_ENABLE ),
-		new ReEnumConstant( "STENCIL_TEST_FUNC_COMPARE", (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_COMPARE ),
-		new ReEnumConstant( "STENCIL_TEST_FUNC_REF", (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_REF ),
-		new ReEnumConstant( "STENCIL_TEST_FUNC_MASK", (BcU32)RsRenderStateType::STENCIL_TEST_FUNC_MASK ),
-		new ReEnumConstant( "STENCIL_TEST_OP_SFAIL", (BcU32)RsRenderStateType::STENCIL_TEST_OP_SFAIL ),
-		new ReEnumConstant( "STENCIL_TEST_OP_DPFAIL", (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPFAIL ),
-		new ReEnumConstant( "STENCIL_TEST_OP_DPPASS", (BcU32)RsRenderStateType::STENCIL_TEST_OP_DPPASS ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_0", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_0 ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_1", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_1 ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_2", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_2 ),
-		new ReEnumConstant( "COLOR_WRITE_MASK_3", (BcU32)RsRenderStateType::COLOR_WRITE_MASK_3 ),
-		new ReEnumConstant( "BLEND_MODE", (BcU32)RsRenderStateType::BLEND_MODE ),
-		new ReEnumConstant( "FILL_MODE", (BcU32)RsRenderStateType::FILL_MODE ),
+		new ReEnumConstant( "FLOAT32", (BcU32)RsVertexDataType::FLOAT32 ),
+		new ReEnumConstant( "FLOAT16", (BcU32)RsVertexDataType::FLOAT16 ),
+		new ReEnumConstant( "FIXED", (BcU32)RsVertexDataType::FIXED ),
+		new ReEnumConstant( "BYTE", (BcU32)RsVertexDataType::BYTE ),
+		new ReEnumConstant( "BYTE_NORM", (BcU32)RsVertexDataType::BYTE_NORM ),
+		new ReEnumConstant( "UBYTE_NORM", (BcU32)RsVertexDataType::UBYTE_NORM ),
+		new ReEnumConstant( "SHORT", (BcU32)RsVertexDataType::SHORT ),
+		new ReEnumConstant( "SHORT_NORM", (BcU32)RsVertexDataType::SHORT_NORM ),
+		new ReEnumConstant( "USHORT", (BcU32)RsVertexDataType::USHORT ),
+		new ReEnumConstant( "USHORT_NORM", (BcU32)RsVertexDataType::USHORT_NORM ),
+		new ReEnumConstant( "INT", (BcU32)RsVertexDataType::INT ),
+		new ReEnumConstant( "INT_NORM", (BcU32)RsVertexDataType::INT_NORM ),
+		new ReEnumConstant( "UINT", (BcU32)RsVertexDataType::UINT ),
+		new ReEnumConstant( "UINT_NORM", (BcU32)RsVertexDataType::UINT_NORM ),
+		new ReEnumConstant( "INVALID", (BcU32)RsVertexDataType::INVALID ),
 	};
-	ReRegisterEnum< RsRenderStateType >( RsRenderStateTypeEnumConstants );
+	ReRegisterEnum< RsVertexDataType >( RsVertexDataTypeEnumConstants );
 
 	ReEnumConstant* RsTextureFormatEnumConstants[] = 
 	{
@@ -171,7 +169,6 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "D24", (BcU32)RsTextureFormat::D24 ),
 		new ReEnumConstant( "D32", (BcU32)RsTextureFormat::D32 ),
 		new ReEnumConstant( "D24S8", (BcU32)RsTextureFormat::D24S8 ),
-		new ReEnumConstant( "D32F", (BcU32)RsTextureFormat::D32F ),
 		new ReEnumConstant( "INVALID", (BcU32)RsTextureFormat::INVALID ),
 	};
 	ReRegisterEnum< RsTextureFormat >( RsTextureFormatEnumConstants );
@@ -191,10 +188,9 @@ void RsCore::StaticRegisterClass()
 	{
 		new ReEnumConstant( "GLSL", (BcU32)RsShaderBackendType::GLSL ),
 		new ReEnumConstant( "GLSL_ES", (BcU32)RsShaderBackendType::GLSL_ES ),
-		new ReEnumConstant( "D3D9", (BcU32)RsShaderBackendType::D3D9 ),
 		new ReEnumConstant( "D3D11", (BcU32)RsShaderBackendType::D3D11 ),
 		new ReEnumConstant( "D3D12", (BcU32)RsShaderBackendType::D3D12 ),
-		new ReEnumConstant( "MANTLE", (BcU32)RsShaderBackendType::MANTLE ),
+		new ReEnumConstant( "SPIRV", (BcU32)RsShaderBackendType::SPIRV ),
 	};
 	ReRegisterEnum< RsShaderBackendType >( RsShaderBackendTypeEnumConstants );
 
@@ -212,14 +208,14 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "GLSL_ES_100", (BcU32)RsShaderCodeType::GLSL_ES_100 ),
 		new ReEnumConstant( "GLSL_ES_300", (BcU32)RsShaderCodeType::GLSL_ES_300 ),
 		new ReEnumConstant( "GLSL_ES_310", (BcU32)RsShaderCodeType::GLSL_ES_310 ),
-		new ReEnumConstant( "D3D9_3_0", (BcU32)RsShaderCodeType::D3D9_3_0 ),
-		new ReEnumConstant( "D3D11_4_0_LEVEL_9_1", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ),
+				new ReEnumConstant( "D3D11_4_0_LEVEL_9_1", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_2", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_2 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_3", (BcU32)RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ),
 		new ReEnumConstant( "D3D11_4_0", (BcU32)RsShaderCodeType::D3D11_4_0 ),
 		new ReEnumConstant( "D3D11_4_1", (BcU32)RsShaderCodeType::D3D11_4_1 ),
 		new ReEnumConstant( "D3D11_5_0", (BcU32)RsShaderCodeType::D3D11_5_0 ),
 		new ReEnumConstant( "D3D11_5_1", (BcU32)RsShaderCodeType::D3D11_5_1 ),
+		new ReEnumConstant( "SPIRV", (BcU32)RsShaderCodeType::SPIRV ),
 	};
 	ReRegisterEnum< RsShaderCodeType >( RsShaderCodeTypeEnumConstants );
 
@@ -239,53 +235,4 @@ void RsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< RsTextureType >( RsTextureTypeEnumConstants );
 
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// Resource deletion.
-void RsResourceDeleters::operator()( class RsBuffer* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsContext* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsFrameBuffer* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsProgram* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsRenderState* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsSamplerState* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsShader* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-void RsResourceDeleters::operator()( class RsTexture* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
-}
-
-
-void RsResourceDeleters::operator()( class RsVertexDeclaration* Resource )
-{
-	RsCore::pImpl()->destroyResource( Resource );
 }

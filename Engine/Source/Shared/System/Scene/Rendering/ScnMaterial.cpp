@@ -14,6 +14,7 @@
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Content/CsCore.h"
+#include "System/Os/OsCore.h"
 
 #include "System/Renderer/RsRenderNode.h"
 
@@ -48,7 +49,8 @@ void ScnMaterial::StaticRegisterClass()
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnMaterial::ScnMaterial():
-	pHeader_( nullptr )
+	pHeader_( nullptr ),
+	RenderStateDesc_( nullptr )
 {
 
 }
@@ -77,15 +79,14 @@ void ScnMaterial::create()
 	}
 	
 	// Create render state.
-	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_ );
+	RenderState_ = RsCore::pImpl()->createRenderState( *RenderStateDesc_, getFullName().c_str() );
 
 	// Create sampler states.
-	SamplerStates_.reserve( pHeader_->NoofTextures_ );
 	for( BcU32 Idx = 0; Idx < pHeader_->NoofTextures_; ++Idx )
 	{
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
-		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_ );
-		SamplerStates_.emplace_back( std::move( SamplerState ) );
+		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_, getFullName().c_str() );
+		SamplerStateMap_[ pTextureHeader->SamplerName_ ] = std::move( SamplerState );
 	}
 
 	// Mark as ready.
@@ -98,7 +99,7 @@ void ScnMaterial::create()
 void ScnMaterial::destroy()
 {
 	RenderState_.reset();
-	SamplerStates_.clear();
+	SamplerStateMap_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,12 +245,18 @@ void ScnMaterialComponent::initialise()
 	PermutationFlags_ = PermutationFlags_ | ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::PASS_MAIN;
 	if( Material_ && pProgram_ == nullptr )
 	{
+		BcAssertMsg( Material_->isReady(), 
+			"Material is not ready for use. Possible cause is trying to use a material with a component from within the same package. "
+			"Known issue, can be worked around by moving the material $(ScnMaterial:%s.%s) into another package to allow "
+			"it to be fully loaded. This will hopefully be fixed by #118.  "
+			"Another possible cause is due to not using the bcRFF_SHALLOW_COPY flag on an imported member field. ",
+			(*Material_->getPackageName()).c_str(), (*Material_->getName()).c_str() );
 		pProgram_ = Material_->Shader_->getProgram( PermutationFlags_ );
 		BcAssert( pProgram_ != nullptr );
 		
 		// Build a binding list for textures.
-		ScnTextureMap& TextureMap( Material_->TextureMap_ );
-		for( ScnTextureMapConstIterator Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
+		auto& TextureMap( Material_->TextureMap_ );
+		for( auto Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
 		{
 			const BcName& SamplerName = (*Iter).first;
 			ScnTextureRef Texture = (*Iter).second;
@@ -258,6 +265,20 @@ void ScnMaterialComponent::initialise()
 			if( SamplerIdx != BcErrorCode )
 			{
 				setTexture( SamplerIdx, Texture );
+			}
+		}
+
+		// Build a binding list for samplera.
+		auto& SamplerMap( Material_->SamplerStateMap_ );
+		for( auto Iter( SamplerMap.begin() ); Iter != SamplerMap.end(); ++Iter )
+		{
+			const BcName& SamplerName = (*Iter).first;
+			RsSamplerState* Sampler = (*Iter).second.get();
+
+			BcU32 SamplerIdx = findTextureSlot( SamplerName );
+			if( SamplerIdx != BcErrorCode )
+			{
+				setSamplerState( SamplerIdx, Sampler );
 			}
 		}
 
@@ -281,7 +302,7 @@ BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 {
 	// TODO: Improve this, also store parameter info in parent material to
 	//       save memory and move look ups to it's own creation.
-	BcU32 Handle = pProgram_->findTextureSlot( (*TextureName).c_str() );
+	BcU32 Handle = pProgram_->findShaderResourceSlot( (*TextureName).c_str() );
 	
 	if( Handle != BcErrorCode )
 	{
@@ -299,7 +320,8 @@ BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 		TTextureBinding Binding;
 		Binding.Handle_ = Handle;
 		Binding.Texture_ = nullptr;
-		
+		Binding.Sampler_ = nullptr;
+
 		TextureBindingList_.push_back( Binding );
 		return (BcU32)TextureBindingList_.size() - 1;
 	}
@@ -315,6 +337,10 @@ void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 	if( Slot < TextureBindingList_.size() )
 	{
 		auto& TexBinding( TextureBindingList_[ Slot ] );
+		if( TexBinding.Texture_ != Texture )
+		{
+			ProgramBinding_.reset();
+		}
 		TexBinding.Texture_ = Texture;
 	}
 	else
@@ -328,6 +354,33 @@ void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 void ScnMaterialComponent::setTexture( const BcName& TextureName, ScnTextureRef Texture )
 {
 	setTexture( findTextureSlot( TextureName ), Texture );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSamplerState
+void ScnMaterialComponent::setSamplerState( BcU32 Slot, RsSamplerState* Sampler )
+{
+	// Find the texture slot to put this in.
+	if( Slot < TextureBindingList_.size() )
+	{
+		auto& TexBinding( TextureBindingList_[ Slot ] );
+		if( TexBinding.Sampler_ != Sampler )
+		{
+			ProgramBinding_.reset();
+		}
+		TexBinding.Sampler_ = Sampler;
+	}
+	else
+	{
+		PSY_LOG( "ERROR: Unable to set sampler state for slot %x\n", Slot );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setSamplerState
+void ScnMaterialComponent::setSamplerState( const BcName& TextureName, RsSamplerState* Sampler )
+{
+	setSamplerState( findTextureSlot( TextureName ), Sampler );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -370,6 +423,11 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Index, RsBuffer* UniformBuffer
 	}
 
 	auto& UniformBlockBinding = UniformBlockBindingList_[ Index ];
+	// If the binding changes, reset program binding.
+	if( UniformBlockBinding.UniformBuffer_ != UniformBuffer )
+	{
+		ProgramBinding_.reset();
+	}
 	UniformBlockBinding.UniformBuffer_ = UniformBuffer;
 }
 
@@ -399,6 +457,49 @@ void ScnMaterialComponent::setBoneUniformBlock( RsBuffer* UniformBuffer )
 void ScnMaterialComponent::setObjectUniformBlock( RsBuffer* UniformBuffer )
 {
 	setUniformBlock( ObjectUniformBlockIndex_, UniformBuffer );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getProgramBinding
+RsProgramBinding* ScnMaterialComponent::getProgramBinding()
+{
+	if( ProgramBinding_ == nullptr )
+	{
+		OsCore::pImpl()->unsubscribeAll( this );
+
+		bool HaveSubscribed = false;
+		for( auto& TextureBinding : TextureBindingList_ )
+		{
+			ProgramBindingDesc_.setShaderResourceView( TextureBinding.Handle_, TextureBinding.Texture_->getTexture() );
+			ProgramBindingDesc_.setSamplerState( TextureBinding.Handle_, TextureBinding.Sampler_ );
+
+			// If a texture is client dependent then we need to recreate the binding
+			// when one of these textures has been resized.
+			if( !HaveSubscribed && TextureBinding.Texture_->isClientDependent() )
+			{
+				HaveSubscribed = true;
+				OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+					[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+					{
+						ProgramBinding_.reset();
+						return evtRET_PASS;
+					} );
+			}
+		}
+		for( auto& UniformBlockBinding : UniformBlockBindingList_ )
+		{
+			ProgramBindingDesc_.setUniformBuffer( UniformBlockBinding.Index_, UniformBlockBinding.UniformBuffer_ );
+		}
+		ProgramBinding_ = RsCore::pImpl()->createProgramBinding( pProgram_, ProgramBindingDesc_, getFullName().c_str() );
+	}
+	return ProgramBinding_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderState
+RsRenderState* ScnMaterialComponent::getRenderState()
+{
+	return Material_->RenderState_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -452,94 +553,9 @@ struct ScnMaterialComponentRenderData
 	ScnMaterialComponent* pMaterial_;
 };
 
-void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort )
+void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort, BcBool Stateless )
 {
 	BcAssertMsg( isAttached(), "Material \"%s\" needs to be attached to an entity!", (*getName()).c_str() );
-
-	// Setup sort value with material specifics.
-	//ScnMaterial* pMaterial_ = Material_;
-	//Sort.MaterialID_ = BcU64( ( BcU32( pMaterial_ ) & 0xffff ) ^ ( BcU32( pMaterial_ ) >> 4 ) & 0xffff );			// revisit once canvas is fixed!
-	Sort.Blend_ = 0; //StateBuffer_[ (BcU32)RsRenderStateType::BLEND_MODE ];
-	
-	ScnMaterialComponentRenderData Data;
-	Data.pMaterial_ = this;
-		
-	// Setup texture binding block.
-	Data.NoofTextures_ = (BcU32)TextureBindingList_.size();
-	Data.TextureHandles_ = (BcU32*)pFrame->allocMem( sizeof( BcU32 ) * Data.NoofTextures_ );
-	Data.ppTextures_ = (RsTexture**)pFrame->allocMem( sizeof( RsTexture* ) * Data.NoofTextures_ );
-	Data.ppSamplerStates_ = (RsSamplerState**)pFrame->allocMem( sizeof( RsSamplerState* ) * Data.NoofTextures_ );
-	
-	for( BcU32 Idx = 0; Idx < Data.NoofTextures_; ++Idx )
-	{
-		auto& Binding = TextureBindingList_[ Idx ];
-		RsTexture*& Texture = Data.ppTextures_[ Idx ];
-		RsSamplerState*& SamplerState = Data.ppSamplerStates_[ Idx ];
-		
-		// Sampler handles.
-		Data.TextureHandles_[ Idx ] = Binding.Handle_;
-
-		// Set texture to bind.
-		if( Binding.Texture_ != nullptr )
-		{
-			Texture = Binding.Texture_->getTexture();
-		}
-		else
-		{
-			Texture = nullptr;
-		}
-
-		// Set sampler state.
-		SamplerState = Material_->SamplerStates_[ Idx ].get();
-	}
-
-	// Setup uniform blocks.
-	Data.NoofUniformBlocks_ = (BcU32)UniformBlockBindingList_.size();
-	Data.pUniformBlockIndices_ = (BcU32*)pFrame->allocMem( sizeof( BcU32* ) * Data.NoofUniformBlocks_ );
-	Data.ppUniformBuffers_ = (RsBuffer**)pFrame->allocMem( sizeof( RsBuffer* ) * Data.NoofUniformBlocks_ );
-
-	for( BcU32 Idx = 0; Idx < UniformBlockBindingList_.size(); ++Idx )
-	{
-		Data.pUniformBlockIndices_[ Idx ] = UniformBlockBindingList_[ Idx ].Index_;
-		Data.ppUniformBuffers_[ Idx ] = UniformBlockBindingList_[ Idx ].UniformBuffer_;
-	}
-	
-	// Setup state buffer.
-	Data.RenderState_ = Material_->RenderState_.get();
-	
-	// Setup program.
-	Data.pProgram_ = pProgram_;
-
-	// Add node to frame.
-	pFrame->queueRenderNode( Sort,
-		[ this, Data ]( RsContext* Context )
-		{
-			// Iterate over textures and bind.
-			for( BcU32 Idx = 0; Idx < Data.NoofTextures_; ++Idx )
-			{
-				RsTexture* pTexture = Data.ppTextures_[ Idx ];
-				RsSamplerState* pSamplerState = Data.ppSamplerStates_[ Idx ];
-				Context->setTexture( Data.TextureHandles_[ Idx ], pTexture );
-				Context->setSamplerState( Data.TextureHandles_[ Idx ], pSamplerState );
-			}
-			
-			// Set uniform blocks.
-			for( BcU32 Idx = 0; Idx < Data.NoofUniformBlocks_; ++Idx )
-			{
-				BcU32 Index = Data.pUniformBlockIndices_[ Idx ];
-				RsBuffer* pUniformBuffer = Data.ppUniformBuffers_[ Idx ];
-				if( pUniformBuffer )
-				{
-					Context->setUniformBuffer( Index, pUniformBuffer );
-				}
-			}
-
-			// Setup state.
-			Context->setRenderState( Data.RenderState_ );
-
-			// Set program.
-			Context->setProgram( Data.pProgram_ );
-		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -555,5 +571,7 @@ void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnMaterialComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	ProgramBinding_.reset();
+
 	Super::onDetach( Parent );
 }

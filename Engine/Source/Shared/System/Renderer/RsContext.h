@@ -19,6 +19,7 @@
 #include "System/Renderer/RsResource.h"
 #include "System/Renderer/RsResourceInterface.h"
 #include "System/Renderer/RsDrawInterface.h"
+#include "System/Renderer/RsComputeInterface.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -29,7 +30,8 @@ class OsClient;
 class RsContext:
 	public RsResource,
 	public RsResourceInterface,
-	public RsDrawInterface
+	public RsDrawInterface,
+	public RsComputeInterface
 {
 public:
 	enum
@@ -43,7 +45,7 @@ public:
 
 public:
 	RsContext( RsContext* pParentContext ):
-		RsResource( pParentContext )
+		RsResource( RsResourceType::CONTEXT, pParentContext )
 	{}
 	virtual ~RsContext();
 
@@ -86,10 +88,16 @@ public:
 	virtual BcU32 getHeight() const = 0;
 
 	/**
+	 * Get back buffer frame buffer.
+	 */
+	virtual class RsFrameBuffer* getBackBuffer() const = 0;
+
+	/**
 	 *	Begin frame.
 	 *	Will resize or setup backbuffer, depending on what is appropriate.
+	 *	@return Backbuffer.
 	 */
-	virtual void beginFrame( BcU32 Width, BcU32 Height ) = 0;
+	virtual RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) = 0;
 	
 	/**
 	 * End frame.

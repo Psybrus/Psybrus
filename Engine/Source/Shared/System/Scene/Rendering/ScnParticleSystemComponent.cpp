@@ -37,8 +37,7 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 		new ReField( "Material_", &ScnParticleSystemComponent::Material_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 
 		new ReField( "VertexDeclaration_", &ScnParticleSystemComponent::VertexDeclaration_, bcRFF_TRANSIENT ),
-		new ReField( "VertexBuffers_", &ScnParticleSystemComponent::VertexBuffers_, bcRFF_TRANSIENT ),
-		new ReField( "CurrentVertexBuffer_", &ScnParticleSystemComponent::CurrentVertexBuffer_, bcRFF_TRANSIENT ),
+		new ReField( "ObjectUniforms_", &ScnParticleSystemComponent::ObjectUniforms_, bcRFF_TRANSIENT ),
 		new ReField( "pParticleBuffer_", &ScnParticleSystemComponent::pParticleBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "PotentialFreeParticle_", &ScnParticleSystemComponent::PotentialFreeParticle_, bcRFF_TRANSIENT ),
 		new ReField( "MaterialComponent_", &ScnParticleSystemComponent::MaterialComponent_, bcRFF_TRANSIENT ),
@@ -62,7 +61,6 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 // Ctor
 ScnParticleSystemComponent::ScnParticleSystemComponent():
 	VertexDeclaration_( nullptr ),
-	CurrentVertexBuffer_( 0 ),
 	pParticleBuffer_( nullptr ),
 	NoofParticles_( 0 ),
 	PotentialFreeParticle_( 0 ),
@@ -71,7 +69,7 @@ ScnParticleSystemComponent::ScnParticleSystemComponent():
 	WorldTransformParam_( 0 ),
 	IsLocalSpace_( BcFalse )
 {
-	BcMemZero( &VertexBuffers_, sizeof( VertexBuffers_ ) );
+	BcMemZero( &ObjectUniforms_, sizeof( ObjectUniforms_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -122,10 +120,6 @@ MaAABB ScnParticleSystemComponent::getAABB() const
 //virtual
 void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 {
-	// Grab vertex buffer and flip for next frame to use.
-	TVertexBuffer& VertexBuffer = VertexBuffers_[ CurrentVertexBuffer_ ];
-	CurrentVertexBuffer_ = 1 - CurrentVertexBuffer_;
-
 	// Calculate lock size.
 	BcU32 NoofParticlesToRender = 0;
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
@@ -143,7 +137,7 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 	{
 		UploadFence_.increment();
 		RsCore::pImpl()->updateBuffer( 
-			VertexBuffer.pVertexBuffer_,
+			VertexBuffer_.get(),
 			0,
 			NoofParticlesToRender * sizeof( ScnParticleVertex ) * 6,
 			RsResourceUpdateFlags::ASYNC,
@@ -275,23 +269,24 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 	// Update uniform buffer.
 	if( IsLocalSpace_ )
 	{
-		VertexBuffer.ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+		ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
 	}
 	else
 	{
-		VertexBuffer.ObjectUniforms_.WorldTransform_ = MaMat4d();
+		ObjectUniforms_.WorldTransform_ = Transform_;
 	}
 
 	// Upload uniforms.
-	UploadFence_.increment();
 	RsCore::pImpl()->updateBuffer( 
-		VertexBuffer.UniformBuffer_,
-		0, sizeof( VertexBuffer.ObjectUniforms_ ),
+		UniformBuffer_.get(),
+		0, sizeof( ObjectUniforms_ ),
 		RsResourceUpdateFlags::ASYNC,
-		[ this, VertexBuffer ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		[
+			ObjectUniforms = ObjectUniforms_ 
+		]
+		( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
-			BcMemCopy( Lock.Buffer_, &VertexBuffer.ObjectUniforms_, sizeof( VertexBuffer.ObjectUniforms_ ) );
-			UploadFence_.decrement();
+			BcMemCopy( Lock.Buffer_, &ObjectUniforms, sizeof( ObjectUniforms ) );
 		} );
 
 	// Draw particles last.
@@ -303,18 +298,29 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 		// Set material parameters for view.
 		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
 
-		// Bind material component.
-		MaterialComponent_->bind( RenderContext.pFrame_, Sort );
+		// Set ubo.
+		MaterialComponent_->setObjectUniformBlock( UniformBuffer_.get() );
 
 		// Add to frame.
-		RenderFence_.increment();
 		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ this, VertexBuffer, NoofParticlesToRender ]( RsContext* Context )
+			[
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = MaterialComponent_->getProgramBinding(),
+				RenderState = MaterialComponent_->getRenderState(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport(),
+				NoofParticlesToRender 
+			]
+			( RsContext* Context )
 			{
-				Context->setVertexBuffer( 0, VertexBuffer.pVertexBuffer_, sizeof( ScnParticleVertex ) );
-				Context->setVertexDeclaration( VertexDeclaration_ );
-				Context->drawPrimitives( RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
-				RenderFence_.decrement();
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					&Viewport,
+					nullptr,
+					RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
 			} );
 	}
 }
@@ -340,24 +346,28 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 			.addElement( RsVertexElement( 0, 0,				4,		RsVertexDataType::FLOAT32,		RsVertexUsage::POSITION,	0 ) )
 			.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::FLOAT32,		RsVertexUsage::TANGENT,		0 ) )
 			.addElement( RsVertexElement( 0, 32,			2,		RsVertexDataType::FLOAT32,		RsVertexUsage::TEXCOORD,	0 ) )
-			.addElement( RsVertexElement( 0, 40,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ) );
+			.addElement( RsVertexElement( 0, 40,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,		0 ) ),
+		getFullName().c_str() );
 
-	// Allocate vertex buffers.
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		VertexBuffer.pVertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::VERTEX, 
-				RsResourceCreationFlags::STREAM, 
-				NoofVertices * sizeof( ScnParticleVertex ) ) );
+	// Allocate vertex buffer.
+	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::VERTEX, 
+			RsResourceCreationFlags::STREAM, 
+			NoofVertices * sizeof( ScnParticleVertex ) ),
+		getFullName().c_str() );
 
-		VertexBuffer.UniformBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBufferType::UNIFORM,
-				RsResourceCreationFlags::STREAM,
-				sizeof( VertexBuffer.ObjectUniforms_ ) ) );
-	}
+	RsGeometryBindingDesc GeometryBindingDesc;
+	GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+	GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ScnParticleVertex ) );
+	GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
+
+	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
+		RsBufferDesc( 
+			RsBufferType::UNIFORM,
+			RsResourceCreationFlags::STREAM,
+			sizeof( ObjectUniforms_ ) ),
+		getFullName().c_str() );
 
 	// Allocate particles.
 	pParticleBuffer_ = new ScnParticle[ NoofParticles_ ];
@@ -372,20 +382,10 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	UploadFence_.wait();
-	RenderFence_.wait();
 
 	Parent->detach( MaterialComponent_ );
 
 	MaterialComponent_ = nullptr;
-
-	for( BcU32 Idx = 0; Idx < 2; ++Idx )
-	{
-		TVertexBuffer& VertexBuffer = VertexBuffers_[ Idx ];
-		RsCore::pImpl()->destroyResource( VertexBuffer.pVertexBuffer_ );
-		RsCore::pImpl()->destroyResource( VertexBuffer.UniformBuffer_ );
-	}
-
-	RsCore::pImpl()->destroyResource( VertexDeclaration_ );
 	
 	delete [] pParticleBuffer_;
 
@@ -403,8 +403,6 @@ ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
 // allocParticle
 BcBool ScnParticleSystemComponent::allocParticle( ScnParticle*& pParticle )
 {
-	UploadFence_.wait();
-
 	// TODO: Perhaps a free list of indices? Reordering of dead particles?
 	//       Either way I want the update to be cache friendly.
 	for( BcU32 Idx = 0; Idx < NoofParticles_; ++Idx )
@@ -474,9 +472,6 @@ void ScnParticleSystemComponent::updateParticles( const ScnComponentList& Compon
 	{
 		BcAssert( Component->isTypeOf< ScnParticleSystemComponent >() );
 		auto* ParticleSystemComponent = static_cast< ScnParticleSystemComponent* >( Component.get() );
-
-		// Wait for upload to have completed.
-		ParticleSystemComponent->UploadFence_.wait();
 
 		// TODO: Iterate over every "affector" at a time, rather than by particle.
 		// - See "updateParticle".

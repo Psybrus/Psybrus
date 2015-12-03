@@ -15,27 +15,48 @@
 
 //////////////////////////////////////////////////////////////////////////
 // RsBufferDesc
-RsBufferDesc::RsBufferDesc():
-	Type_( RsBufferType::UNKNOWN ),
-	SizeBytes_( 0 )
+RsBufferDesc::RsBufferDesc()
 {
-
 }
 
 //////////////////////////////////////////////////////////////////////////
 // RsBufferDesc
 RsBufferDesc::RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, size_t SizeBytes ):
-	Type_( Type ),
+	BindFlags_( RsResourceBindFlags::NONE ),
 	Flags_( Flags ),
-	SizeBytes_( SizeBytes )
+	SizeBytes_( SizeBytes ),
+	StructureStride_( 0 )
 {
+	switch( Type )
+	{
+	case RsBufferType::INDEX:
+		BindFlags_ = RsResourceBindFlags::INDEX_BUFFER;
+		break;
+	case RsBufferType::VERTEX:
+		BindFlags_ = RsResourceBindFlags::VERTEX_BUFFER;
+		break;
+	case RsBufferType::UNIFORM:
+		BindFlags_ = RsResourceBindFlags::UNIFORM_BUFFER;
+		break;
+	default:
+		BcBreakpoint;
+	}
+}
 
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+RsBufferDesc::RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride ):
+	BindFlags_( BindFlags ),
+	Flags_( Flags ),
+	SizeBytes_( SizeBytes ),
+	StructureStride_( StructureStride )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 RsBuffer::RsBuffer( class RsContext* pContext, const RsBufferDesc& BufferDesc ):
-	RsResource( pContext ),
+	RsResource( RsResourceType::BUFFER, pContext ),
 	BufferDesc_( BufferDesc )
 {
 
@@ -47,7 +68,7 @@ RsBuffer::RsBuffer( class RsContext* pContext, const RsBufferDesc& BufferDesc ):
 RsBuffer::~RsBuffer()
 {
 #if PSY_DEBUG
-	BufferDesc_.Type_ = RsBufferType::UNKNOWN;
+	BufferDesc_ = RsBufferDesc();
 	BufferDesc_.SizeBytes_ = BcErrorCode;
 #endif
 }

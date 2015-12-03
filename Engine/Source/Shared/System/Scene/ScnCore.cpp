@@ -86,6 +86,9 @@ void ScnCore::open()
 			auto* Attr = Class->getAttribute< ScnComponentProcessor >();
 			if( Attr != nullptr )
 			{
+				// Initialise.
+				Attr->initialise();
+
 				// Get process funcs.
 				auto ProcessFuncs = Attr->getProcessFuncs();
 
@@ -265,6 +268,16 @@ void ScnCore::close()
 
 	ComponentLists_.clear();
 
+	// Shutdown all component processors.
+	for( auto ClassPair : ComponentClassIndexMap_ )
+	{
+		auto* Attr = ClassPair.first->getAttribute< ScnComponentProcessor >();
+		if( Attr != nullptr )
+		{
+			Attr->shutdown();
+		}
+	}
+
 	// Destroy spacial tree.
 	delete pSpatialTree_;
 	pSpatialTree_ = nullptr;
@@ -285,6 +298,24 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
 	BcAssert( Entity->getName().isValid() );
+#if 1
+	// Recurse entity and detach every component reverse order & top->bottom.
+	Entity->visitHierarchy( ScnComponentVisitType::TOP_DOWN, Entity,
+		[ this ]( ScnComponent* Component, ScnEntity* Parent )
+		{
+			if( Component->isTypeOf< ScnEntity >() )
+			{
+				// Remove components.
+				ScnEntity* Entity = static_cast< ScnEntity* >( Component );
+
+				for( size_t Idx = Entity->getNoofComponents(); Idx > 0; --Idx )
+				{
+					auto EntityComponent = Entity->getComponent( Idx - 1 );
+					Entity->detach( EntityComponent );
+				}
+			}
+		});
+
 	if( Entity->getParentEntity() == nullptr )
 	{
 		Entity->setFlag( scnCF_PENDING_DETACH );
@@ -294,6 +325,18 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 	{
 		Entity->getParentEntity()->detach( Entity );
 	}
+
+#else
+	if( Entity->getParentEntity() == nullptr )
+	{
+		Entity->setFlag( scnCF_PENDING_DETACH );
+		queueComponentForDetach( ScnComponentRef( Entity ) );
+	}
+	else
+	{
+		Entity->getParentEntity()->detach( Entity );
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -319,7 +362,7 @@ void ScnCore::removeAllEntities()
 {
 	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
 	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
-	for( ScnComponentListIterator It( ComponentList.begin() ); It != ComponentList.end(); ++It )
+	for( auto It( ComponentList.rbegin() ); It != ComponentList.rend(); ++It )
 	{
 		ScnComponentRef Component( *It );
 		ScnEntityRef Entity( Component );
@@ -338,23 +381,25 @@ ScnEntityRef ScnCore::createEntity( const BcName& Package, const BcName& Name, c
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
 
+	// Possibly consider this restriction. Unless the CsCore::requestResource call doesn't guarentee order 
+	// (i.e. aliased resources won't be found before the original named one) then we shouldn't need it.
+#if 0 
+
+	// Check name does not already exist.
+	BcAssertMsg( InstanceName == BcName::INVALID || CsCore::pImpl()->requestResource( Package, InstanceName, TemplateEntity ) == BcFalse, 
+		"Entity named %s.%s already exists. Unique name please. Try BcName::getUnique() on name, or BcName::INVALID to automatically assign.", (*Package).c_str(), (*InstanceName).c_str() );
+#endif
+
 	// Request template entity.
 	if( CsCore::pImpl()->requestResource( Package, Name, TemplateEntity ) )
 	{
-		BcName UniqueName = Name.getUnique();
 		CsPackage* pPackage = CsCore::pImpl()->findPackage( Package );
 		BcUnusedVar( pPackage );
-#if 0
-		Entity = new ScnEntity( TemplateEntity );
-		Entity->setName( Name );
-		Entity->setOwner( pPackage );
-#else
-		Entity = ReConstructObject( 
+		Entity = ReConstructObject(
 			TemplateEntity->getClass(),
-			*Name,
+			InstanceName == BcName::INVALID ? *Name.getUnique() : *InstanceName,
 			TemplateEntity->getPackage(),
 			TemplateEntity );
-#endif
 	}
 
 	BcAssertMsg( Entity != nullptr, "ScnCore: Can't create entity \"%s\" from \"%s.%s:%s\"", (*InstanceName).c_str(), (*Package).c_str(), (*Name).c_str(), "ScnEntity" );
@@ -597,6 +642,12 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	// Create entity.
 	ScnEntity* Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
 
+	if( Entity == nullptr )
+	{
+		PSY_LOG( "ERROR: Failed to spawn entity %s.%s.",
+			(*Params.Package_).c_str(), 
+			(*Params.Name_).c_str() );
+	}
 	// Set it's transform.
 	Entity->setLocalMatrix( Params.Transform_ );
 
@@ -612,14 +663,16 @@ ScnEntity* ScnCore::internalSpawnEntity(
 		Params.Parent_,
 		[ this, &Params ]( ScnComponent* Component, ScnEntity* Parent )
 		{
+			BcAssert( Component->getBasis() );
+			PSY_LOG( "Component \"%s\" has package \"%s\"", 
+				(*Component->getName()).c_str(),
+				(*Component->getPackage()->getName()).c_str() );
 			if( Parent != nullptr )
 			{
-				Component->setOwner( Parent );
+				PSY_LOG( "Component's parent \"%s\" has package \"%s\"", 
+					(*Parent->getName()).c_str(),
+					(*Parent->getPackage()->getName()).c_str() );
 			}
-
-			PSY_LOG( "Component \"%s\" has owner \"%s\"", 
-				(*Component->getName()).c_str(),
-				(*Component->getRootOwner()->getName()).c_str() );
 			
 			Component->initialise();
 			Component->postInitialise();

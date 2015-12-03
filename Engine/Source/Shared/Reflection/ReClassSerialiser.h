@@ -15,12 +15,12 @@ public:
     ReClassSerialiser( BcName Name );
     virtual ~ReClassSerialiser();
 
-	virtual size_t getBinaryDataSize( const void* pInstance ) const;
-	virtual BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const;
-	virtual BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const;
-	virtual BcBool serialiseToString( const void* pInstance, std::string& OutString ) const;
-	virtual BcBool serialiseFromString( void* pInstance, const std::string& InString ) const;
-	virtual BcBool copy( void* pDst, void* pSrc ) const;
+	size_t getBinaryDataSize( const void* pInstance ) const override;
+	BcBool serialiseToBinary( const void* pInstance, BcBinaryData::Stream& Serialiser ) const override;
+	BcBool serialiseFromBinary( void* pInstance, const BcBinaryData::Stream& Serialiser ) const override;
+	BcBool serialiseToString( const void* pInstance, std::string& OutString ) const override;
+	BcBool serialiseFromString( void* pInstance, const std::string& InString ) const override;
+	BcBool copy( void* pDst, void* pSrc ) const override;
 
 protected:
 	ReClass*							Class_;

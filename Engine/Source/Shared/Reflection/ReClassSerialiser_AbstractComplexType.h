@@ -13,39 +13,39 @@ public:
     ReClassSerialiser_AbstractComplexType( BcName Name ): ReClassSerialiser( Name ) {}
     virtual ~ReClassSerialiser_AbstractComplexType() {}
 
-	virtual void construct( void* ) const
+	void construct( void* ) const override
 	{
 		BcBreakpoint;
 	}
 
-	virtual void constructNoInit( void* ) const
+	void constructNoInit( void* ) const override
 	{
 		BcBreakpoint;
 	}
 
-	virtual void destruct( void* ) const
+	void destruct( void* ) const override
 	{
 		BcBreakpoint;
 	}
 
-	virtual void* create() const
-	{
-		BcBreakpoint;
-		return nullptr;
-	}
-
-	virtual void* createNoInit() const
+	void* create() const override
 	{
 		BcBreakpoint;
 		return nullptr;
 	}
 
-	virtual void destroy( void* ) const
+	void* createNoInit() const override
+	{
+		BcBreakpoint;
+		return nullptr;
+	}
+
+	void destroy( void* ) const override
 	{
 		BcBreakpoint;
 	}
 
-	virtual BcBool copy( void* pDst, void* pSrc ) const
+	BcBool copy( void* pDst, void* pSrc ) const override
 	{
 		return false;
 	}

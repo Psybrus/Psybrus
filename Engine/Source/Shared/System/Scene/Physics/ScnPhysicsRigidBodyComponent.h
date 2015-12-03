@@ -50,8 +50,8 @@ public:
 
 	MaQuat getRotation() const;
 
-	void onAttach( ScnEntityWeakRef Parent );
-	void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	class btRigidBody* getRigidBody();
 

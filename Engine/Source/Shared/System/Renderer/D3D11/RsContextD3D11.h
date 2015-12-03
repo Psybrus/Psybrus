@@ -39,7 +39,8 @@ public:
 
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	class RsFrameBuffer* getBackBuffer() const override;
+	class RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
@@ -48,8 +49,6 @@ public:
 	void invalidateTextureState();
 	void setRenderState( class RsRenderState* RenderState );
 	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32 getRenderState( RsRenderStateType State ) const;
 	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
 	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
 	void setProgram( class RsProgram* Program );
@@ -63,67 +62,82 @@ public:
 		class RsBuffer* UniformBuffer );
 	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
-	void clear(
+
+	void clear( 
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
-		BcBool EnableClearStencil );
+		BcBool EnableClearStencil ) override;
+	void drawPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices ) override;
+	void drawIndexedPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
 
-	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+	void setViewport( const struct RsViewport& Viewport );
+	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height );
 
-	void setViewport( const class RsViewport& Viewport ) override;
-	void setScissorRect( BcS32 X, BcS32 Y, BcS32 Width, BcS32 Height ) override;
+	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
 
 	bool createRenderState(
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 	bool destroyRenderState(
-		RsRenderState* RenderState );
+		RsRenderState* RenderState ) override;
 	bool createSamplerState(
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 	bool destroySamplerState(
-		RsSamplerState* SamplerState );
+		RsSamplerState* SamplerState ) override;
 
 	bool createFrameBuffer( 
-		class RsFrameBuffer* FrameBuffer );
+		class RsFrameBuffer* FrameBuffer ) override;
 	bool destroyFrameBuffer( 
-		class RsFrameBuffer* FrameBuffer );
+		class RsFrameBuffer* FrameBuffer ) override;
 
 	bool createBuffer( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	bool destroyBuffer( 
-		RsBuffer* Buffer );
+		RsBuffer* Buffer ) override;
 	bool updateBuffer( 
 		RsBuffer* Buffer,
 		BcSize Offset,
 		BcSize Size,
 		RsResourceUpdateFlags Flags,
-		RsBufferUpdateFunc UpdateFunc );
+		RsBufferUpdateFunc UpdateFunc ) override;
 
 	bool createTexture( 
-		class RsTexture* Texture );
+		class RsTexture* Texture ) override;
 	bool destroyTexture( 
-		class RsTexture* Texture );
+		class RsTexture* Texture ) override;
 	bool updateTexture( 
 		class RsTexture* Texture,
 		const struct RsTextureSlice& Slice,
 		RsResourceUpdateFlags Flags,
-		RsTextureUpdateFunc UpdateFunc );
+		RsTextureUpdateFunc UpdateFunc ) override;
 
-	bool createShader(
-		class RsShader* Shader );
-	bool destroyShader(
-		class RsShader* Shader );
-
-	bool createProgram(
-		class RsProgram* Program );
-	bool destroyProgram(
-		class RsProgram* Program );
-	
-	bool createVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration ) override;
-	bool destroyVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration  ) override;
+	bool createShader ( class RsShader* Shader ) override;
+	bool destroyShader(	class RsShader* Shader ) override;
+	bool createProgram(	class RsProgram* Program ) override;
+	bool destroyProgram( class RsProgram* Program ) override;
+	bool createProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool destroyProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool createGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
+	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration  ) override;
 
 	void flushState();
 
@@ -142,10 +156,10 @@ private:
 	BcU32 Height_;
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc_;
-	BcComRef< IDXGIAdapter > Adapter_;
-	BcComRef< IDXGISwapChain > SwapChain_;
-	BcComRef< ID3D11Device > Device_;
-	BcComRef< ID3D11DeviceContext > Context_;
+	ComPtr< IDXGIAdapter > Adapter_;
+	ComPtr< IDXGISwapChain > SwapChain_;
+	ComPtr< ID3D11Device > Device_;
+	ComPtr< ID3D11DeviceContext > Context_;
 	D3D_FEATURE_LEVEL FeatureLevel_;
 
 	RsFeatures Features_;
@@ -172,9 +186,11 @@ private:
 		};
 
 		DXGI_FORMAT ResourceFormat_;
+		DXGI_FORMAT RTVFormat_;
 		DXGI_FORMAT DSVFormat_;
 		DXGI_FORMAT SRVFormat_;
-
+		DXGI_FORMAT UAVFormat_;
+		
 		ID3D11ShaderResourceView* ShaderResourceView_;
 		ID3D11UnorderedAccessView* UnorderedAccessView_;
 		ID3D11RenderTargetView* RenderTargetView_;
@@ -187,8 +203,10 @@ private:
 	size_t addD3DResource( 
 		ID3D11Resource* D3DResource, 
 		DXGI_FORMAT ResourceFormat,
+		DXGI_FORMAT RTVFormat,
 		DXGI_FORMAT DSVFormat,
-		DXGI_FORMAT SRVFormat );
+		DXGI_FORMAT SRVFormat,
+		DXGI_FORMAT UAVFormat );
 	void delD3DResource( size_t ResourceIdx );
 	ID3D11Resource* getD3DResource( size_t ResourceIdx );
 	ID3D11Buffer* getD3DBuffer( size_t ResourceIdx );
@@ -219,13 +237,11 @@ private:
 
 	typedef std::array< RsBuffer*, MAX_UNIFORM_SLOTS > UniformBufferSlots;
 	typedef std::array< D3DConstantBufferSlot, MAX_UNIFORM_SLOTS > D3DConstantBufferSlots;
-	typedef std::array< UniformBufferSlots, (size_t)RsShaderType::MAX > UniformBuffers;
-	typedef std::array< D3DConstantBufferSlots, (size_t)RsShaderType::MAX > D3DConstantBuffers;
 	
-	UniformBuffers UniformBuffers_;
+	UniformBufferSlots UniformBuffers_;
 	BcBool UniformBuffersDirty_;
 
-	D3DConstantBuffers D3DConstantBuffers_;
+	D3DConstantBufferSlots D3DConstantBuffers_;
 	// Shader resources.
 	typedef std::array< RsTexture*, MAX_TEXTURE_SLOTS > TextureSlots;
 
@@ -235,8 +251,6 @@ private:
 		BcBool Dirty_;
 	};
 	typedef std::array< D3DShaderResourceViewSlot, MAX_TEXTURE_SLOTS > D3DShaderResourceViewSlots;
-	typedef std::array< TextureSlots, (size_t)RsShaderType::MAX > Textures;
-	typedef std::array< D3DShaderResourceViewSlots, (size_t)RsShaderType::MAX > D3DShaderResourceViews;
 
 	struct D3DSamplerStateSlot
 	{
@@ -244,12 +258,11 @@ private:
 		BcBool Dirty_;
 	};
 	typedef std::array< D3DSamplerStateSlot, MAX_TEXTURE_SLOTS > D3DSamplerStateSlots;
-	typedef std::array< D3DSamplerStateSlots, (size_t)RsShaderType::MAX > D3DSamplerStates;
 
-	Textures Textures_;
+	TextureSlots Textures_;
 	BcBool TexturesDirty_;
-	D3DShaderResourceViews D3DShaderResourceViews_;
-	D3DSamplerStates D3DSamplerStates_;
+	D3DShaderResourceViewSlots D3DShaderResourceViews_;
+	D3DSamplerStateSlots D3DSamplerStates_;
 
 	// Input layout, program, topology.
 	BcBool InputLayoutDirty_;

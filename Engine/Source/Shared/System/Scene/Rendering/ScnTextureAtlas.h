@@ -35,11 +35,11 @@ public:
 	ScnTextureAtlas();
 	virtual ~ScnTextureAtlas();
 
-	virtual const ScnRect& getRect( BcU32 Idx ) const;
-	virtual BcU32 noofRects() const;
+	const ScnRect& getRect( BcU32 Idx ) const override;
+	BcU32 noofRects() const override;
 
 protected:
-	virtual void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData );
+	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;
 
 protected:
 	struct ScnTextureAtlasHeader

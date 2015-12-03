@@ -52,25 +52,32 @@ ImVec4::operator MaCPUVec4d() const
 // Private.
 namespace 
 {
-	/// Render state.
-	RsRenderStateUPtr RenderState_;
-	/// Font sampler.
-	RsSamplerStateUPtr FontSampler_;
-	/// Font texture.
-	RsTextureUPtr FontTexture_;
 	/// Vertex declarartion.
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	/// Vertex buffer used by internal implementation.
 	RsBufferUPtr VertexBuffer_;
 	/// Index buffer used by internal implementation.
 	RsBufferUPtr IndexBuffer_;
+	/// Geometry binding.
+	RsGeometryBindingUPtr GeometryBinding_;
+	/// Font sampler.
+	RsSamplerStateUPtr FontSampler_;
+	/// Font texture.
+	RsTextureUPtr FontTexture_;
+	/// White texture.
+	RsTextureUPtr WhiteTexture_;
 	/// Uniform buffer.
 	RsBufferUPtr UniformBuffer_;
+	/// Program binding.
+	RsProgram* Program_ = nullptr;
+	/// Program binding desc.
+	RsProgramBindingDesc ProgramBindingDesc_;
+	/// Program binding for default.
+	RsProgramBindingUPtr ProgramBinding_;
+	/// Render state.
+	RsRenderStateUPtr RenderState_;
 	/// Uniform block.
 	ScnShaderViewUniformBlockData UniformBlock_;
-	/// Programs.
-	RsProgram* DefaultProgram_ = nullptr;
-	RsProgram* TexturedProgram_ = nullptr;
 	/// Imgui package.
 	CsPackage* Package_ = nullptr;
 	/// Fence for synchronisation.
@@ -153,6 +160,7 @@ namespace
 		DrawFrame_->queueRenderNode( Sort,
 			[ CachedDrawData, Width, Height ]( RsContext* Context )
 			{
+				RsFrameBuffer* BackBuffer = Context->getBackBuffer();
 				RsViewport Viewport( 0, 0, Width, Height );
 
 				// Update constant buffr.
@@ -208,16 +216,10 @@ namespace
 						}
 					} );
 
-				const BcU32 DefaultUniformBufferSlot = DefaultProgram_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-				const BcU32 TexturedUniformBufferSlot = TexturedProgram_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-				const BcU32 TexturedTextureSlot = TexturedProgram_->findTextureSlot( "aDiffuseTex" );
 
-				Context->setFrameBuffer( nullptr );
-				Context->setViewport( Viewport );
-				Context->setVertexDeclaration( VertexDeclaration_.get() );
-				Context->setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
-				Context->setIndexBuffer( IndexBuffer_.get() );
-				Context->setRenderState( RenderState_.get() );
+				const BcU32 UniformBufferSlot = Program_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
+				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
 
  				BcU32 IndexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
@@ -233,24 +235,48 @@ namespace
 						}
 						else
 						{
-							Context->setScissorRect(
+							RsScissorRect ScissorRect(
 								(BcS32)Cmd->ClipRect.x, 
 								(BcS32)Cmd->ClipRect.y, 
 								(BcS32)( Cmd->ClipRect.z - Cmd->ClipRect.x ), 
 								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
+
+							// Regenerate program binding if we need to.
 							if( Cmd->TextureId != nullptr )
 							{
-								Context->setProgram( TexturedProgram_ );
-								Context->setUniformBuffer( TexturedUniformBufferSlot, UniformBuffer_.get() );
-								Context->setTexture( TexturedTextureSlot, (RsTexture*)Cmd->TextureId );
-								Context->setSamplerState( TexturedTextureSlot, FontSampler_.get() );
+								if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
+								{
+									ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
+									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+									ProgramBinding_.reset();
+								}
 							}
 							else
 							{
-								Context->setProgram( DefaultProgram_ );
-								Context->setUniformBuffer( DefaultUniformBufferSlot, UniformBuffer_.get() );
+								if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != WhiteTexture_.get() )
+								{
+									ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
+									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+									ProgramBinding_.reset();
+								}
 							}
+
+							if( ProgramBinding_ == nullptr )
+							{
+								// Not typical recommended usage as it subverts RsCore.
+								ProgramBinding_.reset( new RsProgramBinding( Context, Program_, ProgramBindingDesc_ ) );
+								Context->createProgramBinding( ProgramBinding_.get() );
+							}
+
 							Context->drawIndexedPrimitives( 
+								GeometryBinding_.get(),
+								ProgramBinding_.get(),
+								RenderState_.get(),
+								BackBuffer,
+								&Viewport,
+								&ScissorRect,
 								RsTopologyType::TRIANGLE_LIST,
 								IndexOffset,
 								Cmd->ElemCount,
@@ -259,7 +285,6 @@ namespace
 						IndexOffset += Cmd->ElemCount;
 					}
 				}
-				Context->setViewport( Viewport );
 				RenderThreadFence_.decrement();
 			} );
 	}
@@ -403,29 +428,93 @@ namespace Psybrus
 	bool Init()
 	{
 		PSY_LOGSCOPEDCATEGORY( "ImGui" );
-		VertexDeclaration_.reset( RsCore::pImpl()->createVertexDeclaration(
+		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 3 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->pos),  2, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->uv), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
-				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ) ) );
+				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ),
+			"DsImGui" );
 
-		VertexBuffer_.reset( RsCore::pImpl()->createBuffer( 
+		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::VERTEX,
 				RsResourceCreationFlags::STREAM, 
-				65536 * VertexDeclaration_->getDesc().getMinimumStride() ) ) );
+				65536 * VertexDeclaration_->getDesc().getMinimumStride() ),
+			"DsImGui" );
 
-		IndexBuffer_.reset( RsCore::pImpl()->createBuffer( 
+		IndexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
 				RsBufferType::INDEX,
 				RsResourceCreationFlags::STREAM, 
-				65536 * sizeof( BcU16 ) ) ) );
+				128 * 1024 * sizeof( BcU16 ) ),
+			"DsImGui" );
 
-		UniformBuffer_.reset( RsCore::pImpl()->createBuffer(
+		RsGeometryBindingDesc GeometryBindingDesc;
+		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
+		GeometryBindingDesc.setIndexBuffer( IndexBuffer_.get() );
+		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "DsImGui" );
+
+		UniformBuffer_ = RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
 				RsBufferType::UNIFORM,
 				RsResourceCreationFlags::STREAM,
-				sizeof( UniformBlock_ ) ) ) );
+				sizeof( UniformBlock_ ) ),
+			"DsImGui" );
+
+		auto SamplerStateDesc = RsSamplerStateDesc();
+		SamplerStateDesc.AddressU_ = RsTextureSamplingMode::CLAMP;
+		SamplerStateDesc.AddressV_ = RsTextureSamplingMode::CLAMP;
+		SamplerStateDesc.AddressW_ = RsTextureSamplingMode::CLAMP;
+		FontSampler_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, "DsImGui" );
+		unsigned char* Pixels = nullptr;
+		int Width, Height;
+		ImGuiIO& IO = ImGui::GetIO();
+		IO.Fonts->GetTexDataAsRGBA32( &Pixels, &Width, &Height );
+
+		PSY_LOG( "Creating texture %ux%u", Width, Height );
+		FontTexture_ = RsCore::pImpl()->createTexture(
+			RsTextureDesc( 
+				RsTextureType::TEX2D,
+				RsResourceCreationFlags::STATIC,
+				RsResourceBindFlags::SHADER_RESOURCE,
+				RsTextureFormat::R8G8B8A8,
+				1,
+				Width, 
+				Height,
+				1 ),
+			"DsImGui" );
+
+		RsTextureSlice Slice = { 0, RsTextureFace::NONE };
+		RsCore::pImpl()->updateTexture( FontTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
+			[ Pixels, Width, Height ]( class RsTexture*, const RsTextureLock& Lock )
+			{
+				const BcU32 SourcePitch = Width * 4;
+				for( BcU32 Row = 0; Row < Height; ++Row )
+				{
+					BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
+					memcpy( DestData, Pixels + ( SourcePitch * Row ), SourcePitch );
+				}
+			} );
+
+		WhiteTexture_ = RsCore::pImpl()->createTexture(
+			RsTextureDesc( 
+				RsTextureType::TEX2D,
+				RsResourceCreationFlags::STATIC,
+				RsResourceBindFlags::SHADER_RESOURCE,
+				RsTextureFormat::R8G8B8A8,
+				1,
+				1, 
+				1,
+				1 ),
+			"DsImGui" );
+
+		RsCore::pImpl()->updateTexture( WhiteTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
+			[ Pixels ]( class RsTexture* Texture, const RsTextureLock& Lock )
+			{
+				BcU32* Texel = reinterpret_cast< BcU32* >( Lock.Buffer_ );
+				*Texel = 0xffffffff;
+			} );
 
 		auto RenderStateDesc = RsRenderStateDesc();
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].Enable_ = BcTrue;
@@ -440,41 +529,7 @@ namespace Psybrus
 		RenderStateDesc.DepthStencilState_.DepthWriteEnable_ = BcFalse;
 		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcTrue;
 		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
-		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc );
-
-		auto SamplerStateDesc = RsSamplerStateDesc();
-		SamplerStateDesc.AddressU_ = RsTextureSamplingMode::CLAMP;
-		SamplerStateDesc.AddressV_ = RsTextureSamplingMode::CLAMP;
-		SamplerStateDesc.AddressW_ = RsTextureSamplingMode::CLAMP;
-		FontSampler_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc );
-		unsigned char* Pixels = nullptr;
-		int Width, Height;
-		ImGuiIO& IO = ImGui::GetIO();
-		IO.Fonts->GetTexDataAsRGBA32( &Pixels, &Width, &Height );
-
-		PSY_LOG( "Creating texture %ux%u", Width, Height );
-		FontTexture_.reset( RsCore::pImpl()->createTexture(
-			RsTextureDesc( 
-				RsTextureType::TEX2D,
-				RsResourceCreationFlags::STATIC,
-				RsResourceBindFlags::SHADER_RESOURCE,
-				RsTextureFormat::R8G8B8A8,
-				1,
-				Width, 
-				Height,
-				1 ) ) );
-
-		RsTextureSlice Slice = { 0, RsTextureFace::NONE };
-		RsCore::pImpl()->updateTexture( FontTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
-			[ Pixels, Width, Height ]( class RsTexture*, const RsTextureLock& Lock )
-			{
-				const BcU32 SourcePitch = Width * 4;
-				for( BcU32 Row = 0; Row < Height; ++Row )
-				{
-					BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
-					memcpy( DestData, Pixels + ( SourcePitch * Row ), SourcePitch );
-				}
-			} );
+		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, "DsImGui" );
 
 		IO.Fonts->TexID = FontTexture_.get();
 
@@ -517,13 +572,9 @@ namespace Psybrus
 			[]( CsPackage* Package, BcU32 )
 			{
 				BcAssert( Package == Package_ );
-				ScnShaderRef Default;
 				ScnShaderRef Textured;
 				CsCore::pImpl()->requestResource( 
-					"imgui", "default_shader", Default );
-				CsCore::pImpl()->requestResource( 
 					"imgui", "textured_shader", Textured );
-				BcAssert( Default );
 				BcAssert( Textured );
 				ScnShaderPermutationFlags Permutation = 
 					ScnShaderPermutationFlags::RENDER_FORWARD |
@@ -531,10 +582,11 @@ namespace Psybrus
 					ScnShaderPermutationFlags::MESH_STATIC_2D |
 					ScnShaderPermutationFlags::LIGHTING_NONE;
 
-				DefaultProgram_ = Default->getProgram( Permutation );
-				TexturedProgram_ = Textured->getProgram( Permutation );
-				BcAssert( DefaultProgram_ );
-				BcAssert( TexturedProgram_ );
+				Program_ = Textured->getProgram( Permutation );
+
+
+
+				BcAssert( Program_ );
 			}, 0 );
 		return true;
 	}
@@ -590,7 +642,7 @@ namespace Psybrus
 	void Render( RsContext* Context, RsFrame* Frame )
 	{
 		PSY_LOGSCOPEDCATEGORY( "ImGui" );
-		if( DefaultProgram_ != nullptr && TexturedProgram_ != nullptr )
+		if( Program_ != nullptr )
 		{
 			RenderThreadFence_.wait();
 			ScopedDraw ScopedDraw( Context, Frame );
@@ -618,6 +670,8 @@ namespace Psybrus
 		Package_ = nullptr;
 		BcAssert( DrawContext_ == nullptr );
 		BcAssert( DrawFrame_ == nullptr );
+		GeometryBinding_.reset();
+		ProgramBinding_.reset();
 		VertexDeclaration_.reset();
 		VertexBuffer_.reset();
 		IndexBuffer_.reset();
@@ -625,6 +679,7 @@ namespace Psybrus
 		RenderState_.reset();
 		FontSampler_.reset();
 		FontTexture_.reset();
+		WhiteTexture_.reset();
 	}
 } // end Psybrus
 } // end ImGui

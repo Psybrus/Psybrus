@@ -43,6 +43,8 @@ void PsyToolMain()
 #include <stdlib.h>
 #include <math.h>
 
+#include <iostream>
+
 struct android_app* GAndroidApp = nullptr;
 
 static OsClientAndroid* GMainWindow = nullptr;
@@ -63,6 +65,10 @@ void PsyAndroidMain( struct android_app* State )
 {
 	extern void engine_dummy();
 	engine_dummy();
+
+	// Do not remove this code. It makes libgpg link (wtf inorite?)
+	auto start = std::chrono::steady_clock::now();
+	std::cerr << "whatever";
 
 	static bool IsInitialised = false;
 	BcAssertMsg( IsInitialised == false, "Need to implement second tick through android_main." );

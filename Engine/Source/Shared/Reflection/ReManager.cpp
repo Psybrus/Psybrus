@@ -162,15 +162,6 @@ void ReManager::Init()
 	GetClass( "class BcName" )->setType< BcName >( new ReClassSerialiser_NameType( "class BcName" ) );
 	GetClass( "class BcBinaryData" )->setType< BcBinaryData >( new ReClassSerialiser_BinaryDataType( "class BcBinaryData" ) );
 
-	ReAttribute::StaticRegisterClass();
-	ReAttributable::StaticRegisterClass();
-	RePrimitive::StaticRegisterClass();
-	ReClass::StaticRegisterClass();
-	ReEnum::StaticRegisterClass();
-	ReEnumConstant::StaticRegisterClass();
-	ReField::StaticRegisterClass();
-	ReObject::StaticRegisterClass();
-
 	IsInitialised_ = true;
 }
 

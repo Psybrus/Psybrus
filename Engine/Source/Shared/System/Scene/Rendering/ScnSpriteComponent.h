@@ -42,8 +42,8 @@ public:
 	ScnSpriteComponent();
 	virtual ~ScnSpriteComponent();
 	
-	virtual void onAttach( ScnEntityWeakRef Parent );
-	virtual void onDetach( ScnEntityWeakRef Parent );
+	void onAttach( ScnEntityWeakRef Parent ) override;
+	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	const MaVec2d& getPosition() const;
 	void setPosition( const MaVec2d& Position );
@@ -61,6 +61,7 @@ public:
 	void setMaterial( ScnMaterialComponentRef Material );
 
 	void setSpriteIndex( BcU32 Index );
+	BcU32 getSpriteIndex() const;
 
 private:
 	void updateAnimation( BcF32 Tick );
@@ -78,7 +79,7 @@ private:
 	RsColour Colour_;
 	BcS32 Index_;
 	BcU32 Layer_;
-	BcBool Center_;
+	BcBool Centre_;
 	BcBool IsScreenSpace_;
 	BcF32 Rotation_;
 

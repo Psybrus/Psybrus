@@ -35,9 +35,9 @@ RsResourceDataInputDesc::RsResourceDataInputDesc( void* pData, BcU32 DataSize, B
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResource
-RsResource::RsResource( class RsContext* pContext ):
-	pContext_( pContext ),
-	Refs_( 0 )
+RsResource::RsResource( RsResourceType ResourceType, class RsContext* pContext ):
+	ResourceType_( ResourceType ),
+	pContext_( pContext )
 {
 	
 }
@@ -55,4 +55,24 @@ RsResource::~RsResource()
 class RsContext* RsResource::getContext()
 {
 	return pContext_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setDebugName
+void RsResource::setDebugName( const BcChar* DebugName )
+{
+#if PSY_DEBUG
+	DebugName_ = DebugName ? DebugName : "(No Debug Name)";
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getDebugName
+const BcChar* RsResource::getDebugName() const
+{
+#if PSY_DEBUG
+	return DebugName_.c_str();
+#else
+	return "(No Debug Name)";
+#endif
 }

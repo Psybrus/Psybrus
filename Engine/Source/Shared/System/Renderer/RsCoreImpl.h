@@ -14,9 +14,10 @@
 #ifndef __RsCoreImpl_H__
 #define __RsCoreImpl_H__
 
-#include <mutex>
-
 #include "System/Renderer/RsCore.h"
+
+#include <mutex>
+#include <unordered_set>
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations
@@ -45,33 +46,46 @@ public:
 	void destroyContext( OsClient* pClient ) override;
 
 	RsRenderStateUPtr createRenderState( 
-		const RsRenderStateDesc& Desc ) override;
+		const RsRenderStateDesc& Desc, const BcChar* DebugName ) override;
 
 	RsSamplerStateUPtr createSamplerState( 
-		const RsSamplerStateDesc& Desc ) override;
+		const RsSamplerStateDesc& Desc, const BcChar* DebugName ) override;
 
 	RsFrameBufferUPtr createFrameBuffer( 
-		const RsFrameBufferDesc& Desc ) override;
+		const RsFrameBufferDesc& Desc, const BcChar* DebugName ) override;
 
-	RsTexture* createTexture( 
-		const RsTextureDesc& Desc ) override;
+	RsTextureUPtr createTexture( 
+		const RsTextureDesc& Desc, const BcChar* DebugName ) override;
 
-	RsVertexDeclaration* createVertexDeclaration( 
-		const RsVertexDeclarationDesc& Desc ) override;
+	RsVertexDeclarationUPtr createVertexDeclaration( 
+		const RsVertexDeclarationDesc& Desc, const BcChar* DebugName ) override;
 	
-	RsBuffer* createBuffer( 
-		const RsBufferDesc& Desc ) override;
+	RsBufferUPtr createBuffer( 
+		const RsBufferDesc& Desc,
+		const BcChar* DebugName ) override;
 	
-	RsShader* createShader( 
+	RsShaderUPtr createShader( 
 		const RsShaderDesc& Desc, 
 		void* pShaderData, BcU32 ShaderDataSize,
-		const std::string& DebugName ) override;
+		const BcChar* DebugName ) override;
 	
-	RsProgram* createProgram( 
+	RsProgramUPtr createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
-		const std::string& DebugName ) override;
+		RsProgramUniformList UniformList,
+		RsProgramUniformBlockList UniformBlockList,
+		const BcChar* DebugName ) override;
 	
+	RsProgramBindingUPtr createProgramBinding( 
+		RsProgram* Program,
+		const RsProgramBindingDesc& ProgramBindingDesc,
+		const BcChar* DebugName ) override;
+
+	RsGeometryBindingUPtr createGeometryBinding( 
+		const RsGeometryBindingDesc& GeometryBindingDesc,
+		const BcChar* DebugName ) override;
+
+
 	void destroyResource( 
 		RsResource* pResource ) override;
 	
@@ -88,10 +102,19 @@ public:
 		RsTexture* Texture ) override;
 	
 	void destroyResource( 
+		RsFrameBuffer* FrameBuffer ) override;
+
+	void destroyResource( 
 		RsShader* Shader ) override;
 
 	void destroyResource( 
 		RsProgram* Program ) override;
+
+	void destroyResource( 
+		RsProgramBinding* ProgramBinding ) override;
+
+	void destroyResource( 
+		RsGeometryBinding* GeometryBinding ) override;
 
 	void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) override;
@@ -138,7 +161,7 @@ private:
 public:
 	RsFrame* allocateFrame( RsContext* pContext ) override;
 	void queueFrame( RsFrame* pFrame ) override;
-	BcF32 getFrameTime() const override;
+	BcF64 getFrameTime() const override;
 
 public:
 	// Platform specific interface.
@@ -153,8 +176,16 @@ protected:
 
 	std::vector< std::function< void() > > ResourceDeletionList_;
 
-	BcF32 FrameTime_;
-	
+#if !PSY_PRODUCTION
+	std::mutex AliveLock_;
+	std::unordered_set< RsFrameBuffer* > AliveFrameBuffers_;
+	std::unordered_set< RsProgram* > AlivePrograms_;
+	std::unordered_set< RsGeometryBinding* > AliveGeometryBindings_;
+	std::unordered_set< RsProgramBinding* > AliveProgramBindings_;
+
+#endif
+
+	BcF64 FrameTime_;
 };
 
 #endif
