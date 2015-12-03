@@ -579,22 +579,15 @@ BcU32 RsContextD3D11::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getBackBufferRT
-class RsTexture* RsContextD3D11::getBackBufferRT() const
+// getBackBuffer
+class RsFrameBuffer* RsContextD3D11::getBackBuffer() const
 {
-	return BackBufferRT_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getBackBufferDS
-class RsTexture* RsContextD3D11::getBackBufferDS() const
-{
-	return BackBufferDS_;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // beginFrame
-void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
+RsFrameBuffer* RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 {
 	BcAssert( InsideBeginEnd_ == 0 );
 	++InsideBeginEnd_;
@@ -701,6 +694,7 @@ void RsContextD3D11::beginFrame( BcU32 Width, BcU32 Height )
 
 	setDefaultState();
 	setFrameBuffer( nullptr );
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

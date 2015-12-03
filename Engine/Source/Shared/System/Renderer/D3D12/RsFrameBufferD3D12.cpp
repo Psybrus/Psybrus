@@ -184,6 +184,7 @@ void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandLis
 		if( RenderTarget != nullptr )
 		{
 			auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+			BcAssert( Resource );
 			Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET );
 		}
 	}

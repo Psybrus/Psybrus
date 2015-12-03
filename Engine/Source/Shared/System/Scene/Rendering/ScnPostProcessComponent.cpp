@@ -206,11 +206,17 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 			auto InputTexture = Input_ != nullptr ? Input_->getTexture() : nullptr;
 			auto OutputTexture = Output_ != nullptr ? Output_->getTexture() : nullptr;
 
+			RsFrameBuffer* FrameBuffer = InputFrameBuffer;
+			if( FrameBuffer == nullptr )
+			{
+				FrameBuffer = Context->getBackBuffer();
+			}
+
 			// Copy FB into usable texture.
 			// TODO: Determine if this step is required base on nodes.
 			if( InputTexture != nullptr )
 			{
-				Context->copyTexture( InputFrameBuffer->getDesc().RenderTargets_[ 0 ], InputTexture );
+				Context->copyTexture( FrameBuffer->getDesc().RenderTargets_[ 0 ], InputTexture );
 			}
 
 			ScnShaderPermutationFlags Permutation = 
@@ -273,7 +279,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 			// TODO: Determine if this step is required based on nodes.
 			if( OutputTexture != nullptr )
 			{
-				Context->copyTexture( OutputTexture, InputFrameBuffer->getDesc().RenderTargets_[ 0 ] );
+				Context->copyTexture( OutputTexture, FrameBuffer->getDesc().RenderTargets_[ 0 ] );
 			}
 
 			RenderFence_.decrement();

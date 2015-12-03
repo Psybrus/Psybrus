@@ -4,6 +4,7 @@
 #include "System/Renderer/GL/RsGL.h"
 
 #include "System/Renderer/RsBuffer.h"
+#include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsTexture.h"
 #include "System/Renderer/RsViewport.h"
@@ -70,9 +71,8 @@ public:
 
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	class RsTexture* getBackBufferRT() const override;
-	class RsTexture* getBackBufferDS() const override;
-	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	class RsFrameBuffer* getBackBuffer() const override;
+	class RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
@@ -263,5 +263,7 @@ private:
 	RsTextureDesc BackBufferDSDesc_;
 	RsTexture* BackBufferRT_ = nullptr;
 	RsTexture* BackBufferDS_ = nullptr;
+	RsFrameBufferDesc BackBufferFBDesc_ = RsFrameBufferDesc( 1 );
+	RsFrameBuffer* BackBufferFB_;
 	GLuint TransferFBOs_[ 2 ] = { 0, 0 };
 };

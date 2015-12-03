@@ -201,22 +201,16 @@ BcU32 RsContextGL::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getBackBufferRT
-class RsTexture* RsContextGL::getBackBufferRT() const
+// getBackBuffer
+class RsFrameBuffer* RsContextGL::getBackBuffer() const
 {
-	return BackBufferRT_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getBackBufferDS
-class RsTexture* RsContextGL::getBackBufferDS() const
-{
-	return BackBufferDS_;
+	BcAssert( InsideBeginEnd_ == 1 );
+	return BackBufferFB_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // beginFrame
-void RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
+RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 {
 	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -287,10 +281,17 @@ void RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 		BackBufferDS_->~RsTexture();
 		BackBufferDS_ = new ( BackBufferDS_ ) RsTexture( this, BackBufferDSDesc_ );
 		BackBufferDS_->setHandle( BackBufferDSInternal );
+
+		auto BackBufferFBInternal = BackBufferFB_->getHandle< BcU64 >();
+		BackBufferFB_->~RsFrameBuffer();
+		BackBufferFB_ = new ( BackBufferFB_ ) RsFrameBuffer( this, BackBufferFBDesc_ );
+		BackBufferFB_->setHandle( BackBufferFBInternal );
 	}
 
 	Width_ = Width;
 	Height_ = Height;
+
+	return BackBufferFB_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -732,6 +733,11 @@ void RsContextGL::create()
 	new RsTextureGL( BackBufferDS_, RsTextureGL::ResourceType::BACKBUFFER_DS );
 	++NoofTextures_;
 
+	BackBufferFBDesc_.setRenderTarget( 0, BackBufferRT_ );
+	BackBufferFBDesc_.setDepthStencilTarget( BackBufferDS_ );
+	BackBufferFB_ = new RsFrameBuffer( this, BackBufferFBDesc_ );
+	BackBufferFB_->setHandle( 0 );
+
 	// Ensure all buffers are cleared to black first.
 	const BcU32 Width = pClient_->getWidth();
 	const BcU32 Height = pClient_->getHeight();
@@ -766,6 +772,7 @@ void RsContextGL::destroy()
 	GL( DeleteVertexArrays( 1, &GlobalVAO_ ) );
 #endif
 
+	destroyFrameBuffer( BackBufferFB_ );
 	destroyTexture( BackBufferRT_ );
 	destroyTexture( BackBufferDS_ );
 
@@ -1900,7 +1907,12 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
 {
 	PSY_PROFILE_FUNCTION;
-	BcAssert( FrameBuffer );
+
+	// Null signifies backbuffer.
+	if( FrameBuffer == nullptr )
+	{
+		FrameBuffer = getBackBuffer();
+	}
 
 	// Determine frame buffer width + height.
 	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];

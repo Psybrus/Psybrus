@@ -395,14 +395,6 @@ void ScnViewComponent::recreateFrameBuffer()
 
 		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc, getFullName().c_str() );
 	}
-	else
-	{
-		RsContext* Context = RsCore::pImpl()->getContext( nullptr );
-		RsFrameBufferDesc FrameBufferDesc( 1 );
-		FrameBufferDesc.setRenderTarget( 0, Context->getBackBufferRT() );
-		FrameBufferDesc.setDepthStencilTarget( Context->getBackBufferDS() );
-		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc, getFullName().c_str() );
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

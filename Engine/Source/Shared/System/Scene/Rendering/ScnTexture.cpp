@@ -75,6 +75,7 @@ void ScnTexture::StaticRegisterClass()
 // Ctor
 ScnTexture::ScnTexture()
 {
+	memset( &Header_, 0, sizeof( Header_ ) );
 	pTextureData_ = nullptr;
 	Width_ = 0;
 	Height_ = 0;

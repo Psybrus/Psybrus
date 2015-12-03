@@ -862,7 +862,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 				GeometryBinding = pMeshRuntime->GeometryBinding_,
 				DrawProgramBinding = PerComponentMeshData.MaterialComponentRef_->getProgramBinding(),
 				RenderState = PerComponentMeshData.MaterialComponentRef_->getRenderState(),
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer() ,
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveType = pMeshData->Type_,
 				NoofIndices = pMeshData->NoofIndices_,

@@ -99,25 +99,19 @@ BcU32 RsContextNull::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getBackBufferRT
-class RsTexture* RsContextNull::getBackBufferRT() const
-{
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getBackBufferDS
-class RsTexture* RsContextNull::getBackBufferDS() const
+// getBackBuffer
+class RsFrameBuffer* RsContextNull::getBackBuffer() const
 {
 	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // beginFrame
-void RsContextNull::beginFrame( BcU32 Width, BcU32 Height )
+RsFrameBuffer* RsContextNull::beginFrame( BcU32 Width, BcU32 Height )
 {
 	Width_ = Width;
 	Height_ = Height;
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////

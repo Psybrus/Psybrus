@@ -88,20 +88,16 @@ public:
 	virtual BcU32 getHeight() const = 0;
 
 	/**
-	 * Get back buffer render target.
+	 * Get back buffer frame buffer.
 	 */
-	virtual class RsTexture* getBackBufferRT() const = 0;
-
-	/**
-	 * Get back buffer depth stencil.
-	 */
-	virtual class RsTexture* getBackBufferDS() const = 0;
+	virtual class RsFrameBuffer* getBackBuffer() const = 0;
 
 	/**
 	 *	Begin frame.
 	 *	Will resize or setup backbuffer, depending on what is appropriate.
+	 *	@return Backbuffer.
 	 */
-	virtual void beginFrame( BcU32 Width, BcU32 Height ) = 0;
+	virtual RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) = 0;
 	
 	/**
 	 * End frame.

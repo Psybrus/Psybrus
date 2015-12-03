@@ -52,8 +52,6 @@ ImVec4::operator MaCPUVec4d() const
 // Private.
 namespace 
 {
-	/// Frame buffer.
-	RsFrameBufferUPtr FrameBuffer_;
 	/// Vertex declarartion.
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	/// Vertex buffer used by internal implementation.
@@ -162,6 +160,7 @@ namespace
 		DrawFrame_->queueRenderNode( Sort,
 			[ CachedDrawData, Width, Height ]( RsContext* Context )
 			{
+				RsFrameBuffer* BackBuffer = Context->getBackBuffer();
 				RsViewport Viewport( 0, 0, Width, Height );
 
 				// Update constant buffr.
@@ -275,7 +274,7 @@ namespace
 								GeometryBinding_.get(),
 								ProgramBinding_.get(),
 								RenderState_.get(),
-								FrameBuffer_.get(),
+								BackBuffer,
 								&Viewport,
 								&ScissorRect,
 								RsTopologyType::TRIANGLE_LIST,
@@ -429,12 +428,6 @@ namespace Psybrus
 	bool Init()
 	{
 		PSY_LOGSCOPEDCATEGORY( "ImGui" );
-		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( 
-			RsFrameBufferDesc( 1 )
-				.setRenderTarget( 0, RsCore::pImpl()->getContext( nullptr )->getBackBufferRT() )
-				.setDepthStencilTarget( RsCore::pImpl()->getContext( nullptr )->getBackBufferDS() ),
-			"DsImGui" );
-
 		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 3 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->pos),  2, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
@@ -687,7 +680,6 @@ namespace Psybrus
 		FontSampler_.reset();
 		FontTexture_.reset();
 		WhiteTexture_.reset();
-		FrameBuffer_.reset();
 	}
 } // end Psybrus
 } // end ImGui

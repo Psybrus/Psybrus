@@ -200,26 +200,16 @@ BcU32 RsContextD3D12::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getBackBufferRT
-class RsTexture* RsContextD3D12::getBackBufferRT() const
+// getBackBuffer
+RsFrameBuffer* RsContextD3D12::getBackBuffer() const
 {
-	if( BackBufferRT_.size() > 0 )
-	{
-		return BackBufferRT_[ CurrentSwapBuffer_ ];
-	}
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getBackBufferDS
-class RsTexture* RsContextD3D12::getBackBufferDS() const
-{
-	return BackBufferDS_;
+	BcAssert( InsideBeginEnd_ == 1 );
+	return BackBufferFB_[ CurrentSwapBuffer_ ];
 }
 
 //////////////////////////////////////////////////////////////////////////
 // beginFrame
-void RsContextD3D12::beginFrame( BcU32 Width, BcU32 Height )
+RsFrameBuffer* RsContextD3D12::beginFrame( BcU32 Width, BcU32 Height )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssert( InsideBeginEnd_ == 0 );
@@ -230,6 +220,8 @@ void RsContextD3D12::beginFrame( BcU32 Width, BcU32 Height )
 
 	// Grab current swap buffer index.
 	CurrentSwapBuffer_ = SwapChain_->GetCurrentBackBufferIndex();
+
+	return BackBufferFB_[ CurrentSwapBuffer_ ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -520,24 +512,20 @@ void RsContextD3D12::destroy()
 //////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextD3D12::clear( 
-	const RsFrameBuffer* FrameBuffer,
-	const RsColour& Colour,
-	BcBool EnableClearColour,
-	BcBool EnableClearDepth,
-	BcBool EnableClearStencil )
+		const RsFrameBuffer* FrameBuffer,
+		const RsColour& Colour,
+		BcBool EnableClearColour,
+		BcBool EnableClearDepth,
+		BcBool EnableClearStencil )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	auto CommandList = getCurrentCommandList();
 
-	// HACK
-	for( auto RT : BackBufferRT_ )
+	// Null signifies backbuffer.
+	if( FrameBuffer == nullptr )
 	{
-		if( FrameBuffer->getDesc().RenderTargets_[ 0 ] == RT )
-		{
-			FrameBuffer = BackBufferFB_[ CurrentSwapBuffer_ ];
-			break;
-		}
+		FrameBuffer = getBackBuffer();
 	}
 
 	RsFrameBufferD3D12* FrameBufferD3D12 = FrameBuffer->getHandle< RsFrameBufferD3D12* >();
@@ -558,6 +546,12 @@ void RsContextD3D12::drawPrimitives(
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	// Null signifies backbuffer.
+	if( FrameBuffer == nullptr )
+	{
+		FrameBuffer = getBackBuffer();
+	}
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	bindInputAssembler( TopologyType, GeometryBinding );
@@ -583,6 +577,12 @@ void RsContextD3D12::drawIndexedPrimitives(
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	
+	// Null signifies backbuffer.
+	if( FrameBuffer == nullptr )
+	{
+		FrameBuffer = getBackBuffer();
+	}
+
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	bindInputAssembler( TopologyType, GeometryBinding );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
@@ -622,16 +622,6 @@ void RsContextD3D12::bindFrameBuffer(
 		const RsScissorRect* ScissorRect )
 {
 	auto CommandList = getCurrentCommandList();
-
-	// HACK
-	for( auto RT : BackBufferRT_ )
-	{
-		if( FrameBuffer->getDesc().RenderTargets_[ 0 ] == RT )
-		{
-			FrameBuffer = BackBufferFB_[ CurrentSwapBuffer_ ];
-			break;
-		}
-	}
 
 	// Determine frame buffer width + height.
 	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
