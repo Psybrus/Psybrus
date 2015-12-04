@@ -242,27 +242,29 @@ namespace
 								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
 
 							// Regenerate program binding if we need to.
-							if( Cmd->TextureId != nullptr )
+							if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 							{
-								if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
+								if( Cmd->TextureId != nullptr )
 								{
-									ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
-									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-									ProgramBinding_.reset();
+									if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
+									{
+										ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
+										ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+										ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+										ProgramBinding_.reset();
+									}
+								}
+								else
+								{
+									if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != WhiteTexture_.get() )
+									{
+										ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
+										ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+										ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+										ProgramBinding_.reset();
+									}
 								}
 							}
-							else
-							{
-								if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != WhiteTexture_.get() )
-								{
-									ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
-									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-									ProgramBinding_.reset();
-								}
-							}
-
 							if( ProgramBinding_ == nullptr )
 							{
 								// Not typical recommended usage as it subverts RsCore.

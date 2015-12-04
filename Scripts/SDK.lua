@@ -111,7 +111,7 @@ if _OPTIONS["with-vk"] then
       }
 
       links {
-          "vulkan.0"
+          "vulkan-0"
       }
 end
 

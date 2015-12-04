@@ -36,39 +36,38 @@ public:
 
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
-	void beginFrame( BcU32 Width, BcU32 Height ) override;
+	class RsFrameBuffer* getBackBuffer() const override;
+	RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) override;
 	void endFrame() override;
-	void takeScreenshot( RsScreenshotFunc ScreenshotFunc );
-	void setViewport( const class RsViewport& Viewport );
+	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
-	void setDefaultState();
-	void invalidateRenderState();
-	void invalidateTextureState();
-	void setRenderState( class RsRenderState* RenderState );
-	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
-	void setRenderState( RsRenderStateType State, BcS32 Value, BcBool Force = BcFalse );
-	BcS32 getRenderState( RsRenderStateType State ) const;
-	void setSamplerState( BcU32 SlotIdx, const RsTextureParams& Params, BcBool Force = BcFalse );
-	void setTexture( BcU32 SlotIdx, class RsTexture* pTexture, BcBool Force = BcFalse );
-	void setProgram( class RsProgram* Program );
-	void setIndexBuffer( class RsBuffer* IndexBuffer );
-	void setVertexBuffer( 
-		BcU32 StreamIdx, 
-		class RsBuffer* VertexBuffer,
-		BcU32 Stride );
-	void setUniformBuffer( 
-		BcU32 Handle, 
-		class RsBuffer* UniformBuffer );
-	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
-	void setFrameBuffer( class RsFrameBuffer* FrameBuffer );
-	void clear(
+	void clear( 
+		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
 		BcBool EnableClearColour,
 		BcBool EnableClearDepth,
-		BcBool EnableClearStencil );
+		BcBool EnableClearStencil ) override;
+	void drawPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 VertexOffset, BcU32 NoofVertices ) override;
+	void drawIndexedPrimitives( 
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgramBinding* ProgramBinding, 
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer,
+		const RsViewport* Viewport,
+		const RsScissorRect* ScissorRect,
+		RsTopologyType TopologyType, 
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
-	void drawPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices );
-	void drawIndexedPrimitives( RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset );
+	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups );
 
 	bool createRenderState(
 		RsRenderState* RenderState );
@@ -105,20 +104,17 @@ public:
 		RsResourceUpdateFlags Flags,
 		RsTextureUpdateFunc UpdateFunc );
 
-	bool createShader(
-		class RsShader* Shader );
-	bool destroyShader(
-		class RsShader* Shader );
+	bool createShader( class RsShader* Shader );
+	bool destroyShader( class RsShader* Shader );
 
-	bool createProgram(
-		class RsProgram* Program );
-	bool destroyProgram(
-		class RsProgram* Program );
-	
-	bool createVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration ) override;
-	bool destroyVertexDeclaration(
-		class RsVertexDeclaration* VertexDeclaration  ) override;
+	bool createProgram( class RsProgram* Program );
+	bool destroyProgram( class RsProgram* Program );
+	bool createProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool destroyProgramBinding( class RsProgramBinding* ProgramBinding ) override;
+	bool createGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
+	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
+	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration  ) override;
 
 	void flushState();
 
@@ -129,12 +125,73 @@ protected:
 	virtual void destroy();	
 
 private:
-	RsContextVK* pParent_;
-	OsClient* pClient_;
-	BcU32 Width_;
-	BcU32 Height_;
-	BcThreadId OwningThread_;
+	RsContextVK* pParent_ = nullptr;
+	OsClient* pClient_ = nullptr;
+	BcU32 Width_ = 0;
+	BcU32 Height_ = 0;
+	BcThreadId OwningThread_ = 0;
 	RsFeatures Features_;
+
+	// Instance info.
+	std::vector< VkLayerProperties > InstanceLayers_;
+	std::vector< VkExtensionProperties > InstanceExtensions_;
+	std::vector< VkLayerProperties > DeviceLayers_;
+	std::vector< VkExtensionProperties > DeviceExtensions_;
+	VkInstance Instance_ = 0;
+	std::vector< VkPhysicalDevice > PhysicalDevices_;
+	VkDevice Device_ = 0;
+	VkPhysicalDeviceProperties DeviceProps_ = {};
+	std::vector< VkQueueFamilyProperties > DeviceQueueProps_;
+
+	// KHR.
+	PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR_ = nullptr;
+	PFN_vkGetSurfacePropertiesKHR fpGetSurfacePropertiesKHR_ = nullptr;
+	PFN_vkGetSurfaceFormatsKHR fpGetSurfaceFormatsKHR_ = nullptr;
+	PFN_vkGetSurfacePresentModesKHR fpGetSurfacePresentModesKHR_ = nullptr;
+	PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR_ = nullptr;
+	PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR_ = nullptr;
+	PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR_ = nullptr;
+	PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR_ = nullptr;
+	PFN_vkQueuePresentKHR fpQueuePresentKHR_ = nullptr;
+	VkSurfaceDescriptionWindowKHR WindowSurfaceDesc_ = {};
+
+	// Debug
+	PFN_vkDbgCreateMsgCallback fpCreateMsgCallback_ = nullptr;
+	PFN_vkDbgDestroyMsgCallback fpDestroyMsgCallback_ = nullptr;
+	PFN_vkDbgMsgCallback fpBreakCallback_ = nullptr;
+	VkDbgMsgCallback DebugCallback_ = 0;
+
+	// Queues.
+	VkQueue GraphicsQueue_ = nullptr;
+
+	// Formats.
+	std::vector< VkSurfaceFormatKHR > SurfaceFormats_;
+
+	// Command pool & buffer.
+	VkCmdPoolCreateInfo CommandPoolCreateInfo_ = {};
+	VkCmdPool CommandPool_ = 0;
+	VkCmdBufferCreateInfo CommandBufferCreateInfo_ = {};
+
+
+	VkCmdBuffer CommandBuffer_ = 0;
+
+	// Swap chain
+	VkSwapchainCreateInfoKHR SwapChainCreateInfo_ = {};
+	VkSwapchainKHR SwapChain_ = 0;
+	std::vector< VkImage > SwapChainImages_;
+
+	std::vector< class RsTexture* > SwapChainTextures_;
+	RsTexture* DepthStencilTexture_;
+
+	// Frame buffers.
+	std::vector< class RsFrameBuffer* > FrameBuffers_ = {};
+	uint32_t CurrentFrameBuffer_ = 0;
+
+	// Internal utilities.
+	std::unique_ptr< class RsAllocatorVK > Allocator_;
+
+	// Inside frame?
+	bool InsideBeginEndFrame_ = false;
 };
 
 #endif
