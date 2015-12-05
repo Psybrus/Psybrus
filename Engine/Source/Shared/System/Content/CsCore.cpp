@@ -76,7 +76,7 @@ void CsCore::close()
 			break;
 		}
 	}
-	while( PackageList_.size() > 0 );
+	while( PackageList_.size() > 0 || UnloadingPackageList_.size() > 0 );
 
 	if( Resources_.size() > 0 )
 	{
@@ -108,24 +108,32 @@ void CsCore::freeUnreferencedPackages()
 {
 	std::lock_guard< std::recursive_mutex > Lock( ContainerLock_ );
 
-	// Search for existing package and move to unreferenced list.
+	// Search for existing package and move to unloading list.
 	for( TPackageListIterator It( PackageList_.begin() ); It != PackageList_.end();  )
 	{
 		CsPackage* pPackage = (*It);
 		if( pPackage->hasUnreferencedResources() )
 		{
-			pPackage->releaseUnreferencedResources();
+			UnloadingPackageList_.emplace_back( pPackage );
+			It = PackageList_.erase( It );
+		}
+		else
+		{
+			++It;
+		}
+	}
 
-			// If we've got no valid resources we can move to unreferenced list to destroy.
-			if( pPackage->haveAnyValidResources() == BcFalse )
-			{
-				UnreferencedPackageList_.push_back( pPackage );
-				It = PackageList_.erase( It );
-			}
-			else
-			{
-				++It;
-			}
+	// Work on unloading packages.
+	for( TPackageListIterator It( UnloadingPackageList_.begin() ); It != UnloadingPackageList_.end();  )
+	{
+		CsPackage* pPackage = (*It);
+		pPackage->releaseUnreferencedResources();
+
+		// If we've got no valid resources we can move to unreferenced list to destroy.
+		if( pPackage->haveAnyValidResources() == BcFalse )
+		{
+			UnreferencedPackageList_.push_back( pPackage );
+			It = UnloadingPackageList_.erase( It );
 		}
 		else
 		{
@@ -226,10 +234,19 @@ ReObjectRef< CsResource > CsCore::getResource( const BcChar* pFullName )
 CsPackage* CsCore::requestPackage( const BcName& Package )
 {
 	CsPackage* pPackage = findPackage( Package );
-	if( pPackage != NULL )
+	if( pPackage != NULL && !pPackage->isUnloading() )
 	{
 		return pPackage;
 	}
+
+	BcAssert( pPackage == nullptr || pPackage->isUnloading() );
+	if( pPackage != nullptr )
+	{
+		PSY_LOG( "WARNING: Requesting package \"%s\", but it is currently unloading."
+			"This is inefficient as it means reloading it against.",
+			(*Package).c_str() );
+	}
+
 
 	// Check for a packed package.
 	BcPath PackedPackage( *CsPaths::PACKED_CONTENT + "/" + *Package + ".pak" );

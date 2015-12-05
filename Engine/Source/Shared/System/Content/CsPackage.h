@@ -42,9 +42,19 @@ public:
 	BcBool							isReady() const;
 
 	/**
+	 * Are we loading?
+	 */
+	BcBool							isLoading() const;
+
+	/**
 	 * Are we loaded?
 	 */
 	BcBool							isLoaded() const;
+
+	/**
+	 * Are we unloading?
+	 */
+	BcBool							isUnloading() const;
 
 	/**
 	 * Do we have any unreferenced resources?
@@ -83,13 +93,15 @@ public:
 
 	/**
 	* Acquire.
+	* @return Number of references.
 	*/
-	void							acquire();
+	BcU32							acquire();
 
 	/**
 	* Release
+	* @return Numver of references.
 	*/
-	void							release();
+	BcU32							release();
 
 public:
 	/**
