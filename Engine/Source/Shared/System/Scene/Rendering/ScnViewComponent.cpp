@@ -222,6 +222,12 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 	return BcTrue;
 }
 
+
+BcBool ScnViewComponent::hasRenderTarget() const
+{
+  return (RenderTarget_ != nullptr) && (RenderTarget_.isValid());
+}
+
 //////////////////////////////////////////////////////////////////////////
 // getFrameBuffer
 RsFrameBuffer* ScnViewComponent::getFrameBuffer() const

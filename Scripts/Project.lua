@@ -60,7 +60,7 @@ function PsyProjectCommon( _name, _lang )
 
 	-- Common flags for all configurations.
 	configuration "*"
-		flags { "FloatFast", "NativeWChar", "NoEditAndContinue" }
+		flags { "FloatFast", "NativeWChar" }
 
 	configuration "windows-*"
 		flags { "StaticRuntime" }
