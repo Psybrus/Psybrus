@@ -109,6 +109,11 @@ CsPackage::~CsPackage()
 // isReady
 BcBool CsPackage::isReady() const
 {
+	if( pLoader_ == nullptr )
+	{
+		return BcFalse;
+	}
+
 	// If the data isn't ready, we aren't ready.
 	if( pLoader_->isDataReady() == BcFalse )
 	{
@@ -131,10 +136,24 @@ BcBool CsPackage::isReady() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isLoading
+BcBool CsPackage::isLoading() const
+{
+	return pLoader_ != nullptr && !isLoaded();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isLoaded
 BcBool CsPackage::isLoaded() const
 {
 	return pLoader_->isDataLoaded();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isUnloading
+BcBool CsPackage::isUnloading() const
+{
+	return pLoader_ == nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -254,14 +273,14 @@ CsResource* CsPackage::getCrossRefResource( BcU32 ID )
 
 //////////////////////////////////////////////////////////////////////////
 // acquire
-void CsPackage::acquire()
+BcU32 CsPackage::acquire()
 {
-	++RefCount_;
+	return ++RefCount_;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // release
-void CsPackage::release()
+BcU32 CsPackage::release()
 {
 	auto RefCount = --RefCount_;	
 	if( RefCount == 0 )
@@ -269,6 +288,7 @@ void CsPackage::release()
 		delete pLoader_;
 		pLoader_ = nullptr;
 	}
+	return RefCount;
 }
 
 //////////////////////////////////////////////////////////////////////////

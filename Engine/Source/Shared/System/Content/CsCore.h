@@ -163,6 +163,7 @@ protected:
 	TResourceList						Resources_;
 	
 	TPackageList						PackageList_;
+	TPackageList						UnloadingPackageList_;
 	TPackageList						UnreferencedPackageList_;
 
 	TPackageReadyCallbackList			PackageReadyCallbackList_;
