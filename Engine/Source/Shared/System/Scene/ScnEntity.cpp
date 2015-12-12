@@ -484,6 +484,7 @@ void ScnEntity::setupComponents()
 			if( getBasis() == nullptr )
 			{
 				ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
+				BcAssertMsg( Component, "A component is null in ScnEntity \"%s\". Is type valid to use as component?", getFullName().c_str() );
 				Components_.push_back( Component );
 			}
 			else
