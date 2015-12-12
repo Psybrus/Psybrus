@@ -156,6 +156,10 @@ void ScnEntity::onDetach( ScnEntityWeakRef Parent )
 	pEventProxy_ = nullptr;
 #endif
 
+  // Claire Hack to try get rid of everything
+  while (Components_.size() > 0)
+    detach(Components_.front());
+
 	Super::onDetach( Parent );
 }
 
