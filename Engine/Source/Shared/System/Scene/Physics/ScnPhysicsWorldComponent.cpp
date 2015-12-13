@@ -45,18 +45,24 @@ public:
 
 	virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
 	{
-		ScnDebugRenderComponent::pImpl()->drawLine(
-			MaVec3d( from.x(), from.y(), from.z() ),
-			MaVec3d( to.x(), to.y(), to.z() ),
-			RsColour( color.x(), color.y(), color.z(), 1.0f ) );
+		if( ScnDebugRenderComponent::pImpl() )
+		{
+			ScnDebugRenderComponent::pImpl()->drawLine(
+				MaVec3d( from.x(), from.y(), from.z() ),
+				MaVec3d( to.x(), to.y(), to.z() ),
+				RsColour( color.x(), color.y(), color.z(), 1.0f ) );
+		}
 	}
 
 	virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)
 	{
-		ScnDebugRenderComponent::pImpl()->drawLine(
-			ScnPhysicsFromBullet( PointOnB ) - ScnPhysicsFromBullet( normalOnB ),
-			ScnPhysicsFromBullet( PointOnB ) + ScnPhysicsFromBullet( normalOnB ),
-			RsColour( color.x(), color.y(), color.z(), 1.0f ) );
+		if( ScnDebugRenderComponent::pImpl() )
+		{
+			ScnDebugRenderComponent::pImpl()->drawLine(
+				ScnPhysicsFromBullet( PointOnB ) - ScnPhysicsFromBullet( normalOnB ),
+				ScnPhysicsFromBullet( PointOnB ) + ScnPhysicsFromBullet( normalOnB ),
+				RsColour( color.x(), color.y(), color.z(), 1.0f ) );
+		}
 	}
 
 	virtual void reportErrorWarning(const char* warningString)
