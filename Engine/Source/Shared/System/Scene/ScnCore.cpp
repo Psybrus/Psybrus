@@ -123,6 +123,21 @@ void ScnCore::open()
 	}
 
 #if !PSY_PRODUCTION
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
+		[ this ]( EvtID, const EvtBaseEvent& Event )
+		{
+			const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
+			if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F5 )
+			{
+				UpdateEnabled_ = !UpdateEnabled_;
+			}
+			if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F6 )
+			{
+				StepSingleUpdate_ = BcTrue;
+			}
+			return evtRET_PASS;
+		} );
+
 	DsCore::pImpl()->registerPanel(
 		"Scene Hierarchy", [ this ]( BcU32 )->void
 		{
@@ -161,13 +176,13 @@ void ScnCore::open()
 			{
 				// TODO: Move these to into a control panel of some kind.
 				bool UpdateEnabled = !!UpdateEnabled_;
-				if( ImGui::Checkbox( "Enable update", &UpdateEnabled ) )
+				if( ImGui::Checkbox( "Enable update (F5)", &UpdateEnabled ) )
 				{
 					UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
 				}
 
 				bool StepSingleUpdate = !!StepSingleUpdate_;
-				if( ImGui::Button( "Step single update" ) )
+				if( ImGui::Button( "Step single update (F6)" ) )
 				{
 					StepSingleUpdate_ = BcTrue;
 				}
@@ -294,6 +309,8 @@ void ScnCore::close()
 {
 	removeAllEntities();
 	processPendingComponents();
+
+	OsCore::pImpl()->unsubscribeAll( this );
 
 	ComponentLists_.clear();
 
