@@ -194,13 +194,19 @@ MaVec3d ScnPhysicsRigidBodyComponent::getPosition() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setTransform
-void ScnPhysicsRigidBodyComponent::setTransform(const MaMat4d& newTransform)
+// getRotation
+MaQuat ScnPhysicsRigidBodyComponent::getRotation() const
 {
-  auto trans = ScnPhysicsToBullet(newTransform);
-  RigidBody_->setCenterOfMassTransform(trans);
+	return ScnPhysicsFromBullet( RigidBody_->getCenterOfMassTransform().getRotation() );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// setTransform
+void ScnPhysicsRigidBodyComponent::setTransform( const MaMat4d& NewTransform )
+{
+	auto Trans = ScnPhysicsToBullet( NewTransform );
+	RigidBody_->setCenterOfMassTransform( Trans );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // onAttach
