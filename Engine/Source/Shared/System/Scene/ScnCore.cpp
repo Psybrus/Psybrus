@@ -27,6 +27,7 @@
 #include "System/Debug/DsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
@@ -48,6 +49,8 @@ SYS_CREATOR( ScnCore );
 ScnCore::ScnCore()
 {
 	pSpatialTree_ = NULL;
+	UpdateEnabled_ = BcTrue;
+	StepSingleUpdate_ = BcFalse;
 	EntitySpawnID_ = 0;
 }
 
@@ -156,6 +159,19 @@ void ScnCore::open()
 			static bool ShowOpened = true;
 			if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
 			{
+				// TODO: Move these to into a control panel of some kind.
+				bool UpdateEnabled = !!UpdateEnabled_;
+				if( ImGui::Checkbox( "Enable update", &UpdateEnabled ) )
+				{
+					UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
+				}
+
+				bool StepSingleUpdate = !!StepSingleUpdate_;
+				if( ImGui::Button( "Step single update" ) )
+				{
+					StepSingleUpdate_ = BcTrue;
+				}
+
 				if( ImGui::TreeNode( "Scene Hierarchy" ) )
 				{
 					BcU32 Idx = 0;
@@ -238,23 +254,36 @@ void ScnCore::update()
 {
 	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnCore::update" ) );
 
-	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
-
 	// Update scene only if we have focus.
 	if( OsCore::pImpl()->getClient( 0 )->isActive() )
 	{
+		BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+
+		auto ShouldUpdateComponents = UpdateEnabled_ || StepSingleUpdate_;
+
 		// Iterate over all component process funcs.
 		for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
 		{
-			auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
-			auto& ComponentList = ComponentLists_[ ComponentListIdx ];
-			ComponentProcessFunc.Func_( ComponentList );
+			// Always update view, but not other components.
+			// TODO: Don't referenece ScnViewComponent in here, use some debug flag later on.
+			if( ShouldUpdateComponents || ComponentProcessFunc.Class_ == ScnViewComponent::StaticGetClass() )
+			{
+				auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
+				auto& ComponentList = ComponentLists_[ ComponentListIdx ];
+				ComponentProcessFunc.Func_( ComponentList );
+			}
 		}
 
 		// Process pending components at the end of the tick.
 		// We do this because they can be immediately created,
 		// and need a create tick from CsCore next frame.
 		processPendingComponents();
+
+		if( StepSingleUpdate_ )
+		{
+			UpdateEnabled_ = BcFalse;
+			StepSingleUpdate_ = BcFalse;
+		}
 	}
 }
 

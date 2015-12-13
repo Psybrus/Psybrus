@@ -134,6 +134,11 @@ private:
 private:
 	class ScnSpatialTree* pSpatialTree_;
 
+	/// Do we perform an update?
+	BcBool UpdateEnabled_;
+	/// Should we step a single update?
+	BcBool StepSingleUpdate_;
+
 	// Pending components.
 	ScnComponentList PendingAttachComponentList_;
 	ScnComponentList PendingDetachComponentList_;
