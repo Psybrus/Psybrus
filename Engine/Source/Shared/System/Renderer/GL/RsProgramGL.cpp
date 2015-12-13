@@ -142,10 +142,6 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 					BcU32 UBSlot = UniformBufferBindInfo_.size();
 					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
 					UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
-					if( BcStrStr( Parameter.Name_, "ScnFontUniformBlockData" ) )
-					{
-						int a = 0; ++a;
-					}
 					if( Class != nullptr )
 					{
 						// Statically cache the types.
