@@ -1,5 +1,7 @@
 #include "System/Renderer/VK/RsProgramVK.h"
 #include "System/Renderer/VK/RsUtilsVK.h"
+#include "System/Renderer/GL/RsGL.h"					// TEMP: For GL types.
+#include "System/Renderer/GL/RsProgramFileDataGL.h"		// TEMP: For GL types.
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsShader.h"
 
@@ -11,44 +13,136 @@ RsProgramVK::RsProgramVK( class RsProgram* Parent, VkDevice Device ):
 {
 	Parent->setHandle( this );
 
-#if 0
-	// Sampler + SRV bindings.
-	BcU32 SamplerIdx = 0;
 	for( const auto& Parameter : Parent->getParameterList() )
 	{
-		if( Parameter.Type_ == RsProgramUniformType::SAMPLER_1D ||
-			Parameter.Type_ == RsProgramUniformType::SAMPLER_2D ||
-			Parameter.Type_ == RsProgramUniformType::SAMPLER_3D ||
-			Parameter.Type_ == RsProgramUniformType::SAMPLER_CUBE ||
-			Parameter.Type_ == RsProgramUniformType::SAMPLER_1D_SHADOW ||
-			Parameter.Type_ == RsProgramUniformType::SAMPLER_2D_SHADOW )
+		RsProgramParameterTypeValueGL InternalType;
+		InternalType.Value_ = Parameter.InternalType_;
+		switch( InternalType.Storage_ )
 		{
-			// TEMPORARY HACK.
-			std::string SamplerName = Uniform.Name_;
-			if( SamplerName[0] == 's' )
+		case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 			{
-				SamplerName[0] = 'a';
+				auto Class = ReManager::GetClass( Parameter.Name_ );
+				BcAssertMsg( Class->getSize() == (size_t)Parameter.Size_,
+					"Size mismatch in RsProgram \"%s\". Uniform block \"%s\" is of size %u, expecting %u",
+					Parent_->getDebugName(),
+					Parameter.Name_,
+					Parameter.Size_, 
+					Class->getSize() );
+
+				BcU32 UBSlot = UniformBufferBindInfo_.size();
+				Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+				UniformBufferBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::UNIFORM, InternalType.Binding_ ) );
 			}
-			Parent_->addShaderResource( 
-				SamplerName,
-				RsShaderResourceType::TEXTURE,
-				SamplerIdx );
-			Parent_->addSamplerSlot( 
-				SamplerName,
-				SamplerIdx );
-			SamplerIdx++;
+			break;
+		case RsProgramParameterStorageGL::SAMPLER:
+			{
+				RsTextureType TextureType = RsTextureType::UNKNOWN;
+				switch( InternalType.Type_ )
+				{
+				case GL_SAMPLER_1D:
+					TextureType = RsTextureType::TEX1D;
+					break;
+				case GL_SAMPLER_2D:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				case GL_SAMPLER_3D:
+					TextureType = RsTextureType::TEX3D;
+					break;
+				case GL_SAMPLER_CUBE:
+					TextureType = RsTextureType::TEXCUBE;
+					break;
+				case GL_SAMPLER_1D_SHADOW:
+					TextureType = RsTextureType::TEX1D;
+					break;
+				case GL_SAMPLER_2D_SHADOW:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				default:
+					BcAssertMsg( BcFalse, "Unsupported sampler type in program \"%s\"", 
+						Parent->getDebugName() );
+				}
+
+				BcU32 SamplerSlot = SamplerBindInfo_.size();
+				Parent_->addSamplerSlot( Parameter.Name_, SamplerSlot );
+				SamplerBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::SAMPLER, TextureType, InternalType.Binding_ ) );
+
+				BcU32 SRVSlot = SRVBindInfo_.size();
+				Parent_->addShaderResource( Parameter.Name_, RsShaderResourceType::TEXTURE, SRVSlot );
+				SRVBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::SAMPLER, TextureType, InternalType.Binding_ ) );
+			}
+			break;
+		case RsProgramParameterStorageGL::SHADER_STORAGE_BUFFER:
+			{
+				if( InternalType.ReadOnly_ )
+				{
+					BcU32 SRVSlot = SRVBindInfo_.size();
+					Parent_->addShaderResource( Parameter.Name_, RsShaderResourceType::BUFFER, SRVSlot );
+					SRVBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::BUFFER, InternalType.Binding_ ) );
+				}
+				else
+				{
+					BcU32 UAVSlot = UAVBindInfo_.size();
+					Parent_->addUnorderedAccess( Parameter.Name_, RsUnorderedAccessType::BUFFER, UAVSlot );
+					UAVBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::BUFFER, InternalType.Binding_ ) );
+				}
+			}
+			break;
+		case RsProgramParameterStorageGL::IMAGE:
+			{
+				RsTextureType TextureType = RsTextureType::UNKNOWN;
+				switch( InternalType.Type_ )
+				{
+				case GL_IMAGE_1D:
+					TextureType = RsTextureType::TEX1D;
+					break;
+				case GL_IMAGE_2D:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				case GL_IMAGE_3D:
+					TextureType = RsTextureType::TEX3D;
+					break;
+				case GL_IMAGE_2D_RECT:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				case GL_IMAGE_CUBE:
+					TextureType = RsTextureType::TEXCUBE;
+					break;
+				case GL_IMAGE_1D_ARRAY:
+					TextureType = RsTextureType::TEX1D;
+					break;
+				case GL_IMAGE_2D_ARRAY:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				case GL_IMAGE_CUBE_MAP_ARRAY:
+					TextureType = RsTextureType::TEXCUBE;
+					break;
+				case GL_IMAGE_2D_MULTISAMPLE:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+					TextureType = RsTextureType::TEX2D;
+					break;
+				default:
+					BcAssertMsg( BcFalse, "Unsupported image type in program \"%s\"", 
+						Parent->getDebugName() );
+				}
+
+				if( InternalType.ReadOnly_ )
+				{
+					BcU32 SRVSlot = SRVBindInfo_.size();
+					Parent->addShaderResource( Parameter.Name_, RsShaderResourceType::TEXTURE, SRVSlot );
+					SRVBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::IMAGE, TextureType, InternalType.Binding_ ) );
+				}
+				else
+				{
+					BcU32 UAVSlot = UAVBindInfo_.size();
+					Parent->addUnorderedAccess( Parameter.Name_, RsUnorderedAccessType::TEXTURE, UAVSlot );
+					UAVBindInfo_.emplace_back( RsProgramBindInfoVK( RsProgramBindTypeVK::IMAGE, TextureType, InternalType.Binding_ ) );
+				}
+			}
+			break;
 		}
 	}
-
-	// UB bindings.
-	BcU32 UBIdx = 0;
-	for( const auto& UniformBlock : Parent->getUniformBlockList() )
-	{
-		auto Class = ReManager::GetClass( UniformBlock.Name_ );
-		BcAssert( Class->getSize() == (size_t)UniformBlock.Size_ );
-		Parent_->addUniformBufferSlot( UniformBlock.Name_, UBIdx, Class );
-	}
-#endif
 
 	// Create shader + shader module.
 	VkShaderModuleCreateInfo ModuleCreateInfo;
@@ -72,14 +166,14 @@ RsProgramVK::RsProgramVK( class RsProgram* Parent, VkDevice Device ):
 		ModuleCreateInfo.pCode = InShader->getData();
 		ModuleCreateInfo.flags = 0;
 		RetVal = vkCreateShaderModule( Device_, &ModuleCreateInfo, &ShaderModule );
-		BcAssert( !RetVal );
+		BcAssert( !RetVal && ShaderModule );
 
 		ShaderCreateInfo.flags = 0;
 		ShaderCreateInfo.module = ShaderModule;
 		ShaderCreateInfo.pName = "main";
 		ShaderCreateInfo.stage = RsUtilsVK::GetShaderStage( InShader->getDesc().ShaderType_ );
 		RetVal = vkCreateShader( Device_, &ShaderCreateInfo, &Shader );
-		BcAssert( !RetVal );
+		BcAssert( !RetVal && Shader );
 
 		ShaderModules_.emplace_back( ShaderModule );
 		Shaders_.emplace_back( Shader );

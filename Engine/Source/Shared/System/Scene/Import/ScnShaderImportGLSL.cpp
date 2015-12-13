@@ -1307,6 +1307,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							ProgramHeaderSPIRV.ProgramPermutationFlags_, Idx );
 						glslang::OutputSpv( SpvOutput, OutFileName );
 
+#if 0
 						spv::spirvbin_t SpvRemapper;
 						SpvRemapper.remap( SpvOutput );
 						BcSPrintf( OutFileName, sizeof( OutFileName ) - 1, "%s/%s-%x-%u.remapped.spv",
@@ -1314,7 +1315,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							getResourceName().c_str(),
 							ProgramHeaderSPIRV.ProgramPermutationFlags_, Idx );
 						glslang::OutputSpv( SpvOutput, OutFileName );
-
+#endif
 						ScnShaderBuiltData BuiltShaderSPIRV;
 						BuiltShaderSPIRV.ShaderType_ = ShaderTypes[ Idx ];
 						BuiltShaderSPIRV.CodeType_ = RsShaderCodeType::SPIRV;
