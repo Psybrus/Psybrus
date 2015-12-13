@@ -56,7 +56,7 @@ public:
 	BcU32 getDepth( const MaVec3d& WorldPos ) const;
 
 	BcBool intersect( const MaAABB& AABB ) const;
-  BcBool hasRenderTarget() const;
+	BcBool hasRenderTarget() const;
 
 	RsFrameBuffer* getFrameBuffer() const;
 	const RsViewport& getViewport() const;

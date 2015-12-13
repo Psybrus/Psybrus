@@ -222,10 +222,11 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 	return BcTrue;
 }
 
-
+//////////////////////////////////////////////////////////////////////////
+// hasRenderTarget
 BcBool ScnViewComponent::hasRenderTarget() const
 {
-  return (RenderTarget_ != nullptr) && (RenderTarget_.isValid());
+	return (RenderTarget_ != nullptr) && ( RenderTarget_.isValid() );
 }
 
 //////////////////////////////////////////////////////////////////////////
