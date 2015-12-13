@@ -1,6 +1,7 @@
 #include "System/Renderer/GL/RsProgramGL.h"
 #include "System/Renderer/GL/RsBufferGL.h"
 #include "System/Renderer/GL/RsContextGL.h"
+#include "System/Renderer/GL/RsProgramFileDataGL.h"
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsShader.h"
@@ -44,7 +45,6 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	// Link program.
 	GL( LinkProgram( Handle_ ) );
 	
-
 	GLint ProgramLinked = 0;
 	GL( GetProgramiv( Handle_, GL_LINK_STATUS, &ProgramLinked ) );
 	if ( !ProgramLinked )
@@ -91,375 +91,329 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 
 	// Use program.
 	ContextGL->bindProgram( Parent_ );
-	
-	// Attempt to find uniform names, and uniform buffers for ES2.
-	GLint ActiveUniforms = 0;
-	GL( GetProgramiv( Handle_, GL_ACTIVE_UNIFORMS, &ActiveUniforms ) );
-	std::set< std::string > UniformBlockSet;
-	for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniforms; ++Idx )
-	{
-		// Uniform information.
-		GLchar UniformName[ 256 ];
-		GLsizei UniformNameLength = 0;
-		GLint Size = 0;
-		GLenum Type = GL_INVALID_VALUE;
 
-		// Get the uniform.
-		GL( GetActiveUniform( Handle_, Idx, sizeof( UniformName ), &UniformNameLength, &Size, &Type, UniformName ) );
-		
-		// Add it as a parameter.
-		if( UniformNameLength > 0 && Type != GL_INVALID_VALUE )
+	// Iterate over all parameters and setup program.
+	UniformEntry UniformEntry;
+	for( const auto& Parameter : Parent->getParameterList() )
+	{
+		RsProgramParameterTypeValueGL InternalType;
+		InternalType.Value_ = Parameter.InternalType_;
+		switch( InternalType.Storage_ )
 		{
-			GLint UniformLocation = GL( GetUniformLocation( Handle_, UniformName ) );
-
-			// Trim index off.
-			BcChar* pIndexStart = BcStrStr( UniformName, "[0]" );
-			if( pIndexStart != NULL )
+		case RsProgramParameterStorageGL::UNIFORM:
 			{
-				*pIndexStart = '\0';
+				auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
+				BcAssertMsg( Location != -1,
+					"Invalid uniform in RsProgram \"%s\". Unable to find \"%s\"",
+					Parent_->getDebugName(),
+					Parameter.Name_ );
 			}
-
-			RsProgramUniformType InternalType = RsProgramUniformType::INVALID;
-			BcBool IsSampler = BcFalse;
-			BcBool IsImage = BcFalse;
-			RsTextureType TextureType = RsTextureType::UNKNOWN;
-
-			switch( Type )
+			break;
+		case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 			{
-			case GL_SAMPLER_1D:
-				TextureType = RsTextureType::TEX1D;
-				IsSampler = BcTrue;
-				break;
-			case GL_SAMPLER_2D:
-				TextureType = RsTextureType::TEX2D;
-				IsSampler = BcTrue;
-				break;
-			case GL_SAMPLER_3D:
-				TextureType = RsTextureType::TEX3D;
-				IsSampler = BcTrue;
-				break;
-			case GL_SAMPLER_CUBE:
-				TextureType = RsTextureType::TEXCUBE;
-				IsSampler = BcTrue;
-				break;
-			case GL_SAMPLER_1D_SHADOW:
-				TextureType = RsTextureType::TEX1D;
-				IsSampler = BcTrue;
-				break;
-			case GL_SAMPLER_2D_SHADOW:
-				TextureType = RsTextureType::TEX2D;
-				IsSampler = BcTrue;
-				break;
-
-			case GL_IMAGE_1D:
-				TextureType = RsTextureType::TEX1D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_2D:
-				TextureType = RsTextureType::TEX2D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_3D:
-				TextureType = RsTextureType::TEX3D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_2D_RECT:
-				TextureType = RsTextureType::TEX2D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_CUBE:
-				TextureType = RsTextureType::TEXCUBE;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_BUFFER:
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_1D_ARRAY:
-				TextureType = RsTextureType::TEX1D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_2D_ARRAY:
-				TextureType = RsTextureType::TEX2D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_CUBE_MAP_ARRAY:
-				TextureType = RsTextureType::TEXCUBE;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_2D_MULTISAMPLE:
-				TextureType = RsTextureType::TEX2D;
-				IsImage = BcTrue;
-				break;
-			case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
-				TextureType = RsTextureType::TEX2D;
-				IsImage = BcTrue;
-				break;
-
-			default:
-				break;
-			}
-
-			if( IsSampler )
-			{
-				BcU32 SamplerSlot = SamplerBindInfo_.size();
-				Parent_->addSamplerSlot( UniformName, SamplerSlot );
-				SamplerBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SAMPLER, TextureType, SamplerSlot ) );
-
-				BcU32 SRVSlot = SRVBindInfo_.size();
-				Parent_->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, SRVSlot );
-				SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::TEXTURE, TextureType, SamplerSlot ) );
-
-				// Set sampler uniform to correct slot.
-				GL( Uniform1i( UniformLocation, SamplerSlot ) );
-			}
-			else if ( IsImage )
-			{
-				BcU32 SRVSlot = SRVBindInfo_.size();
-				Parent->addShaderResource( UniformName, RsShaderResourceType::TEXTURE, SRVSlot );
-				SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, NoofImages_ ) );
-
-				BcU32 UAVSlot = UAVBindInfo_.size();
-				Parent->addUnorderedAccess( UniformName, RsUnorderedAccessType::TEXTURE, UAVSlot );
-				UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, NoofImages_ ) );
-
-				// Set sampler uniform to correct slot.
-				GL( Uniform1i( UniformLocation, NoofImages_++ ) );
-			}
-			else
-			{
-				if( Version_.SupportUniformBuffers_ == BcFalse )
+				if( Version_.SupportUniformBuffers_ )
 				{
-					// Could be a member of a struct where we don't have uniform buffers.
-					// Check the name and work out if it is. If so, add to a map so we can add all afterwards.
-					auto VSTypePtr = BcStrStr( UniformName, "VS_" ); 
-					auto PSTypePtr = BcStrStr( UniformName, "PS_" );
-					if( VSTypePtr != nullptr ||
-						PSTypePtr != nullptr )
-					{
-						// Terminate.
-						if( VSTypePtr != nullptr )
-						{
-							VSTypePtr[ 0 ] = '\0';
-						}
-						else if( PSTypePtr != nullptr )
-						{
-							PSTypePtr[ 0 ] = '\0';
-						}
-
-						// Add to set.
-						UniformBlockSet.insert( UniformName );
-					}
-				}
-			}
-		}
-	}
-	
-	// Attempt to find uniform block names.
-	if( Version_.SupportUniformBuffers_ )
-	{
 #if !defined( RENDER_USE_GLES )
-		GLint ActiveUniformBlocks = 0;
-		GL( GetProgramiv( Handle_, GL_ACTIVE_UNIFORM_BLOCKS, &ActiveUniformBlocks ) );
+					auto Index = GL( GetUniformBlockIndex( Handle_, Parameter.Name_ ) );
+					BcAssertMsg( Index != -1,
+						"Invalid uniform block in RsProgram \"%s\". Unable to find \"%s\"",
+						Parent_->getDebugName(),
+						Parameter.Name_ );
+					if( Index != -1 )
+					{
+						auto Class = ReManager::GetClass( Parameter.Name_ );
+						BcAssertMsg( Class->getSize() == (size_t)Parameter.Size_,
+							"Size mismatch in RsProgram \"%s\". Uniform block \"%s\" is of size %u, expecting %u",
+							Parent_->getDebugName(),
+							Parameter.Name_,
+							Parameter.Size_, 
+							Class->getSize() );
 
-		for( BcU32 Idx = 0; Idx < (BcU32)ActiveUniformBlocks; ++Idx )
-		{
-			// Uniform information.
-			GLchar UniformBlockName[ 256 ] = { 0 };
-			GLsizei UniformBlockNameLength = 0;
-			GLint Size = 0;
-			GLint Binding = 0;
-
-			// Get the uniform block size.
-			GL( GetActiveUniformBlockiv( Handle_, Idx, GL_UNIFORM_BLOCK_DATA_SIZE, &Size ) );
-			GL( GetActiveUniformBlockiv( Handle_, Idx, GL_UNIFORM_BLOCK_BINDING, &Binding ) );
-			GL( GetActiveUniformBlockName( Handle_, Idx, sizeof( UniformBlockName ), &UniformBlockNameLength, UniformBlockName ) );
-
-			// Add it as a parameter.
-			if( UniformBlockNameLength > 0 )
-			{
-				auto TestIdx = GL( GetUniformBlockIndex( Handle_, UniformBlockName ) );
-				BcAssert( TestIdx == Idx );
-				BcUnusedVar( TestIdx );
-
-				auto Class = ReManager::GetClass( UniformBlockName );
-				BcAssert( Class->getSize() == (size_t)Size );
-
-				BcU32 UBSlot = UniformBufferBindInfo_.size();
-				Parent_->addUniformBufferSlot( 
-					UniformBlockName, 
-					UBSlot, 
-					Class );
-
-				UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, UBSlot ) );
-
-				GL( UniformBlockBinding( Handle_, Idx, UBSlot ) );				
-			}
-		}
+						BcU32 UBSlot = UniformBufferBindInfo_.size();
+						Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+						UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
+						GL( UniformBlockBinding( Handle_, Index, InternalType.Binding_ ) );				
+					}
 #endif // !defined( RENDER_USE_GLES )
-	}
-	else
-	{
-		// Base uniform entry.
-		UniformEntry UniformEntry;
-		BcU32 UniformHandle = 0;
-		for( auto UniformBlockName : UniformBlockSet )
-		{
-			const ReClass* Class = ReManager::GetClass( UniformBlockName );
-			Parent_->addUniformBufferSlot( 
-				UniformBlockName, 
-				UniformHandle,
-				Class );
-			
-			if( Class != nullptr )
-			{
-				// Statically cache the types.
-				static auto TypeU32 = ReManager::GetClass( "BcU32" );
-				static auto TypeS32 = ReManager::GetClass( "BcS32" );
-				static auto TypeF32 = ReManager::GetClass( "BcF32" );
-				static auto TypeVec2 = ReManager::GetClass( "MaVec2d" );
-				static auto TypeVec3 = ReManager::GetClass( "MaVec3d" );
-				static auto TypeVec4 = ReManager::GetClass( "MaVec4d" );
-				static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
-				static auto TypeColour = ReManager::GetClass( "RsColour" );			
-
-				// Iterate over all elements and grab the uniforms.
-				auto ClassName = *Class->getName();
-				auto ClassNameVS = ClassName + "VS";
-				for( auto Field : Class->getFields() )
+				}
+				else
 				{
-					auto FieldName = *Field->getName();
-					auto ValueType = Field->getType();
-					auto UniformNameVS = ClassNameVS + "_X" + FieldName;
+					const ReClass* Class = ReManager::GetClass( Parameter.Name_ );
+					BcU32 UBSlot = UniformBufferBindInfo_.size();
+					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+					UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
+					if( BcStrStr( Parameter.Name_, "ScnFontUniformBlockData" ) )
+					{
+						int a = 0; ++a;
+					}
+					if( Class != nullptr )
+					{
+						// Statically cache the types.
+						static auto TypeU32 = ReManager::GetClass( "BcU32" );
+						static auto TypeS32 = ReManager::GetClass( "BcS32" );
+						static auto TypeF32 = ReManager::GetClass( "BcF32" );
+						static auto TypeVec2 = ReManager::GetClass( "MaVec2d" );
+						static auto TypeVec3 = ReManager::GetClass( "MaVec3d" );
+						static auto TypeVec4 = ReManager::GetClass( "MaVec4d" );
+						static auto TypeMat4 = ReManager::GetClass( "MaMat4d" );			
+						static auto TypeColour = ReManager::GetClass( "RsColour" );			
 
-					UniformEntry.BindingPoint_ = UniformHandle;
-					UniformEntry.Count_ = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
-					UniformEntry.Offset_ = Field->getOffset();
+						// Iterate over all elements and grab the uniforms.
+						auto ClassName = *Class->getName();
+						auto ClassNameVS = ClassName + "VS";
+						for( auto Field : Class->getFields() )
+						{
+							auto FieldName = *Field->getName();
+							auto ValueType = Field->getType();
+							auto UniformNameVS = ClassNameVS + "_X" + FieldName;
 
-					auto UniformLocationVS = GL( GetUniformLocation( Handle_, UniformNameVS.c_str() ) );
+							UniformEntry.BindingPoint_ = InternalType.Binding_;
+							UniformEntry.Count_ = static_cast< GLsizei >( Field->getSize() / ValueType->getSize() );
+							UniformEntry.Offset_ = Field->getOffset();
+
+							auto UniformLocationVS = GL( GetUniformLocation( Handle_, UniformNameVS.c_str() ) );
 					
-					if( ValueType == TypeU32 || ValueType == TypeS32 )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_1IV;
+							if( ValueType == TypeU32 || ValueType == TypeS32 )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_1IV;
 
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( BcU32 ) * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
-						}						
-					}
-					else if( ValueType == TypeF32 )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_1FV;
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( BcU32 ) * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+							else if( ValueType == TypeF32 )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_1FV;
 
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( float ) * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( float ) * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+							else if( ValueType == TypeVec2 )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_2FV;
+
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( float ) * 2 * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+							else if( ValueType == TypeVec3 )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_3FV;
+
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( float ) * 3 * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+							else if( ValueType == TypeVec4 )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_4FV;
+
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( float ) * 4 * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+							else if( ValueType == TypeColour )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_4FV;
+
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( float ) * 4 * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+							else if( ValueType == TypeMat4 )
+							{
+								UniformEntry.Type_ = UniformEntry::Type::UNIFORM_MATRIX_4FV;
+
+								if( UniformLocationVS != -1 )
+								{
+									UniformEntry.Loc_ = UniformLocationVS;
+									UniformEntry.Size_ = sizeof( MaMat4d ) * UniformEntry.Count_;
+									UniformEntries_.push_back( UniformEntry );
+								}
+							}
+
+							UniformEntry.CachedOffset_ += UniformEntry.Size_;
 						}
 					}
-					else if( ValueType == TypeVec2 )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_2FV;
-
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( float ) * 2 * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
-						}
-					}
-					else if( ValueType == TypeVec3 )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_3FV;
-
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( float ) * 3 * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
-						}
-					}
-					else if( ValueType == TypeVec4 )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_4FV;
-
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( float ) * 4 * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
-						}
-					}
-					else if( ValueType == TypeColour )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_4FV;
-
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( float ) * 4 * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
-						}
-					}
-					else if( ValueType == TypeMat4 )
-					{
-						UniformEntry.Type_ = UniformEntry::Type::UNIFORM_MATRIX_4FV;
-
-						if( UniformLocationVS != -1 )
-						{
-							UniformEntry.Loc_ = UniformLocationVS;
-							UniformEntry.Size_ = sizeof( MaMat4d ) * UniformEntry.Count_;
-							UniformEntries_.push_back( UniformEntry );
-						}
-					}
-
-					UniformEntry.CachedOffset_ += UniformEntry.Size_;
 				}
 			}
+			break;
+		case RsProgramParameterStorageGL::SAMPLER:
+			{
+				auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
+				BcAssertMsg( Location != -1,
+					"Invalid sampler in RsProgram \"%s\". Unable to find \"%s\"",
+					Parent_->getDebugName(),
+					Parameter.Name_ );
+				if( Location != -1 )
+				{
+					RsTextureType TextureType = RsTextureType::UNKNOWN;
+					switch( InternalType.Type_ )
+					{
+					case GL_SAMPLER_1D:
+						TextureType = RsTextureType::TEX1D;
+						break;
+					case GL_SAMPLER_2D:
+						TextureType = RsTextureType::TEX2D;
+						break;
+					case GL_SAMPLER_3D:
+						TextureType = RsTextureType::TEX3D;
+						break;
+					case GL_SAMPLER_CUBE:
+						TextureType = RsTextureType::TEXCUBE;
+						break;
+					case GL_SAMPLER_1D_SHADOW:
+						TextureType = RsTextureType::TEX1D;
+						break;
+					case GL_SAMPLER_2D_SHADOW:
+						TextureType = RsTextureType::TEX2D;
+						break;
+					default:
+						BcAssertMsg( BcFalse, "Unsupported sampler type in program \"%s\"", 
+							Parent->getDebugName() );
+					}
 
-			++UniformHandle;
+					BcU32 SamplerSlot = SamplerBindInfo_.size();
+					Parent_->addSamplerSlot( Parameter.Name_, SamplerSlot );
+					SamplerBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SAMPLER, TextureType, InternalType.Binding_ ) );
+
+					BcU32 SRVSlot = SRVBindInfo_.size();
+					Parent_->addShaderResource( Parameter.Name_, RsShaderResourceType::TEXTURE, SRVSlot );
+					SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::TEXTURE, TextureType, InternalType.Binding_ ) );
+
+					GL( Uniform1i( Location, InternalType.Binding_ ) );
+				}
+			}
+			break;
+		case RsProgramParameterStorageGL::SHADER_STORAGE_BUFFER:
+			{
+#if !defined( RENDER_USE_GLES )
+				if( Version_.SupportShaderStorageBufferObjects_ )
+				{
+					BcAssert( Version_.SupportProgramInterfaceQuery_ );
+					auto Index = GL( GetProgramResourceIndex( Handle_, GL_SHADER_STORAGE_BLOCK, Parameter.Name_ ) );
+					BcAssertMsg( Index != -1,
+						"Invalid shader storage buffer in RsProgram \"%s\". Unable to find \"%s\"",
+						Parent_->getDebugName(),
+						Parameter.Name_ );
+					if( Index != -1 )
+					{
+						if( InternalType.ReadOnly_ )
+						{
+							BcU32 SRVSlot = SRVBindInfo_.size();
+							Parent_->addShaderResource( Parameter.Name_, RsShaderResourceType::BUFFER, SRVSlot );
+							SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, InternalType.Binding_ ) );
+						}
+						else
+						{
+							BcU32 UAVSlot = UAVBindInfo_.size();
+							Parent_->addUnorderedAccess( Parameter.Name_, RsUnorderedAccessType::BUFFER, UAVSlot );
+							UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, InternalType.Binding_ ) );
+						}
+						GL( ShaderStorageBlockBinding( Handle_, Index, InternalType.Binding_ ) );
+					}
+				}
+#endif // !defined( RENDER_USE_GLES )
 		}
+			break;
+		case RsProgramParameterStorageGL::IMAGE:
+			{
+#if !defined( RENDER_USE_GLES )
+				if( Version_.SupportImageLoadStore_ )
+				{
+					auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
+					BcAssertMsg( Location != -1,
+						"Invalid image in RsProgram \"%s\". Unable to find \"%s\"",
+						Parent_->getDebugName(),
+						Parameter.Name_ );
+					if( Location != -1 )
+					{
+						RsTextureType TextureType = RsTextureType::UNKNOWN;
+						switch( InternalType.Type_ )
+						{
+						case GL_IMAGE_1D:
+							TextureType = RsTextureType::TEX1D;
+							break;
+						case GL_IMAGE_2D:
+							TextureType = RsTextureType::TEX2D;
+							break;
+						case GL_IMAGE_3D:
+							TextureType = RsTextureType::TEX3D;
+							break;
+						case GL_IMAGE_2D_RECT:
+							TextureType = RsTextureType::TEX2D;
+							break;
+						case GL_IMAGE_CUBE:
+							TextureType = RsTextureType::TEXCUBE;
+							break;
+						case GL_IMAGE_1D_ARRAY:
+							TextureType = RsTextureType::TEX1D;
+							break;
+						case GL_IMAGE_2D_ARRAY:
+							TextureType = RsTextureType::TEX2D;
+							break;
+						case GL_IMAGE_CUBE_MAP_ARRAY:
+							TextureType = RsTextureType::TEXCUBE;
+							break;
+						case GL_IMAGE_2D_MULTISAMPLE:
+							TextureType = RsTextureType::TEX2D;
+							break;
+						case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+							TextureType = RsTextureType::TEX2D;
+							break;
+						default:
+							BcAssertMsg( BcFalse, "Unsupported image type in program \"%s\"", 
+								Parent->getDebugName() );
+						}
 
+						if( InternalType.ReadOnly_ )
+						{
+							BcU32 SRVSlot = SRVBindInfo_.size();
+							Parent->addShaderResource( Parameter.Name_, RsShaderResourceType::TEXTURE, SRVSlot );
+							SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, InternalType.Binding_ ) );
+						}
+						else
+						{
+							BcU32 UAVSlot = UAVBindInfo_.size();
+							Parent->addUnorderedAccess( Parameter.Name_, RsUnorderedAccessType::TEXTURE, UAVSlot );
+							UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, InternalType.Binding_ ) );
+						}
+						GL( Uniform1i( Location, InternalType.Binding_ ) );
+					}
+				}
+#endif // !defined( RENDER_USE_GLES )
+			}
+			break;
+		}
+	}
+	
+	// If we don't support uniform buffers, setup uniform cache.
+	if( !Version_.SupportUniformBuffers_ )
+	{
 		// Allocate a buffer to cache uniform values in.
 		CachedUniforms_.reset( new BcU8[ UniformEntry.CachedOffset_ ] );
 		BcMemSet( CachedUniforms_.get(), 0xff, UniformEntry.CachedOffset_ );
 	}
-
-	if( Version_.SupportProgramInterfaceQuery_ )
-	{
-#if !defined( RENDER_USE_GLES )
-		BcAssert( Version_.SupportShaderStorageBufferObjects_ );
-		GLint NumActiveShaderStorageBlocks = 0;
-		GLint NumActiveProgramInputs = 0;
-		GLint NumActiveProgramOutputs = 0;
-		GL( GetProgramInterfaceiv( Handle_, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &NumActiveShaderStorageBlocks ) );
-		GL( GetProgramInterfaceiv( Handle_, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &NumActiveProgramInputs ) );
-		GL( GetProgramInterfaceiv( Handle_, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &NumActiveProgramOutputs ) );
-
-		GLchar Name[256] = { 0 };
-		GLsizei Length = 0;
-		for( GLint Idx = 0; Idx < NumActiveShaderStorageBlocks; ++Idx )
-		{
-			GL( GetProgramResourceName( Handle_, GL_SHADER_STORAGE_BLOCK, Idx, sizeof( Name ), &Length, Name ) );
-
-			BcU32 SRVSlot = SRVBindInfo_.size();
-			Parent_->addShaderResource( Name, RsShaderResourceType::BUFFER, SRVSlot );
-			SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, NoofSSBOs_ ) );
-
-			BcU32 UAVSlot = UAVBindInfo_.size();
-			Parent_->addUnorderedAccess( Name, RsUnorderedAccessType::BUFFER, UAVSlot );
-			UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, NoofSSBOs_ ) );
-
-			GL( ShaderStorageBlockBinding( Handle_, Idx, NoofSSBOs_++ ) );
-		}
-#endif // !defined( RENDER_USE_GLES )
-	}
-
-	// Catch error.
 	
-
 	// Validate program.
 	GL( ValidateProgram( Handle_ ) );
 	GLint ProgramValidated = 0;

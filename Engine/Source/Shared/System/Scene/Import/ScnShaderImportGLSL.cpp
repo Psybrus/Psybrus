@@ -1175,12 +1175,35 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				auto Intermediate = Program->getIntermediate( static_cast< EShLanguage >( Idx ) );
 				if( Intermediate )
 				{
-					if( Idx == EShLangCompute )
-					{
-						//BcBreakpoint;
-					}
 					GLSLReflectionTraverser Traverser( *Intermediate, Reflection );
 					Traverser.traverse();
+
+					// Generate pseudo-uniform blocks from uniforms for GLES.
+					for( auto Uniform : Reflection.Uniforms_ )
+					{
+						// Could be a member of a struct where we don't have uniform buffers.
+						// Check the name and work out if it is. If so, add to a map so we can add all afterwards.
+						auto VSTypeOffset = Uniform.Name_.find( "VS_" ); 
+						auto PSTypeOffset = Uniform.Name_.find( "PS_" );
+						if( VSTypeOffset != std::string::npos || PSTypeOffset != std::string::npos )
+						{
+							// Terminate.
+							if( VSTypeOffset != std::string::npos )
+							{
+								Uniform.Name_ = Uniform.Name_.substr( 0, VSTypeOffset );
+							}
+							else if( PSTypeOffset != std::string::npos )
+							{
+								Uniform.Name_ = Uniform.Name_.substr( 0, PSTypeOffset );
+							}
+
+							// Add as uniform buffer object with the names stripped.
+							Uniform.ParameterType_.Value_ = 0;
+							Uniform.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM_BLOCK;
+							Uniform.Size_ = 0;
+							Reflection.addObject( Uniform );
+						}
+					}
 				}
 			}
 

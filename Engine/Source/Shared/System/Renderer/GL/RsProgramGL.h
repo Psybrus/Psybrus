@@ -22,20 +22,20 @@ struct RsProgramBindInfoGL
 	RsProgramBindInfoGL()
 	{}
 		
-	RsProgramBindInfoGL( RsProgramBindTypeGL BindType, BcU32 Slot ):
+	RsProgramBindInfoGL( RsProgramBindTypeGL BindType, BcU32 Binding ):
 		BindType_( BindType ),
-		Slot_( Slot )
+		Binding_( Binding )
 	{}
 
-	RsProgramBindInfoGL( RsProgramBindTypeGL BindType, RsTextureType TextureType, BcU32 Slot ):
+	RsProgramBindInfoGL( RsProgramBindTypeGL BindType, RsTextureType TextureType, BcU32 Binding ):
 		BindType_( BindType ),
 		TextureType_( TextureType ),
-		Slot_( Slot )
+		Binding_( Binding )
 	{}
 
 	RsProgramBindTypeGL BindType_ = RsProgramBindTypeGL::NONE;
 	RsTextureType TextureType_ = RsTextureType::UNKNOWN;
-	BcU32 Slot_ = BcErrorCode;
+	BcU32 Binding_ = BcErrorCode;
 };
 
 //////////////////////////////////////////////////////////////////////////
