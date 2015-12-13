@@ -13,6 +13,11 @@
 		<DisplayString>{Name_}</DisplayString> 
 	</Type>
 
+	<!-- RsResource visualiser -->
+	<Type Name="RsResource">
+		<DisplayString>{Name_}</DisplayString> 
+	</Type>
+
 	<!-- ScnComponent visualiser -->
 	<Type Name="ScnComponent">
 		<DisplayString>{Name_}</DisplayString> 
