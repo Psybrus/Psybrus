@@ -448,8 +448,7 @@ RsShaderUPtr RsCoreImpl::createShader(
 RsProgramUPtr RsCoreImpl::createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
-		RsProgramUniformList UniformList,
-		RsProgramUniformBlockList UniformBlockList,
+		RsProgramParameterList ParameterList,
 		const BcChar* DebugName )
 {
 	auto Context = getContext( nullptr );
@@ -460,8 +459,7 @@ RsProgramUPtr RsCoreImpl::createProgram(
 		Context, 
 		std::move( Shaders ), 
 		std::move( VertexAttributes ),
-		std::move( UniformList ),
-		std::move( UniformBlockList ) ) );
+		std::move( ParameterList ) ) );
 	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.

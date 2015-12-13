@@ -72,8 +72,7 @@ public:
 	RsProgramUPtr createProgram( 
 		std::vector< RsShader* > Shaders, 
 		RsProgramVertexAttributeList VertexAttributes,
-		RsProgramUniformList UniformList,
-		RsProgramUniformBlockList UniformBlockList,
+		RsProgramParameterList ParameterList,
 		const BcChar* DebugName ) override;
 	
 	RsProgramBindingUPtr createProgramBinding( 

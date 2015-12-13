@@ -14,34 +14,55 @@ RsProgramBindingDesc::RsProgramBindingDesc()
 // setUniformBuffer
 void RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer )
 {
-	if( Buffer )
+	if( Slot < UniformBuffers_.size() )
 	{
-		BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE );
+		if( Buffer )
+		{
+			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE );
+		}
+		UniformBuffers_[ Slot ] = Buffer;
 	}
-	UniformBuffers_[ Slot ] = Buffer;
+	else
+	{
+		PSY_LOG( "ERROR: setUniformBuffer being called with invalid slot." );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setSamplerState
 void RsProgramBindingDesc::setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState )
 {
-	SamplerStates_[ Slot ] = SamplerState;
+	if( Slot < SamplerStates_.size() )
+	{
+		SamplerStates_[ Slot ] = SamplerState;
+	}
+	else
+	{
+		PSY_LOG( "ERROR: setSamplerState being called with invalid slot." );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setShaderResourceView
 void RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer )
 {
-	if( Buffer )
+	if( Slot < ShaderResourceSlots_.size() )
 	{
-		BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-		ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::BUFFER;
-		ShaderResourceSlots_[ Slot ].Buffer_ = Buffer;
+		if( Buffer )
+		{
+			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::BUFFER;
+			ShaderResourceSlots_[ Slot ].Buffer_ = Buffer;
+		}
+		else
+		{
+			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::INVALID;
+			ShaderResourceSlots_[ Slot ].Resource_ = nullptr;
+		}
 	}
 	else
 	{
-		ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::INVALID;
-		ShaderResourceSlots_[ Slot ].Resource_ = nullptr;
+		PSY_LOG( "ERROR: setShaderResourceView being called with invalid slot." );
 	}
 }
 
@@ -49,16 +70,23 @@ void RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Bu
 // setShaderResourceView
 void RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* Texture )
 {
-	if( Texture )
+	if( Slot < ShaderResourceSlots_.size() )
 	{
-		BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
-		ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::TEXTURE;
-		ShaderResourceSlots_[ Slot ].Texture_ = Texture;
+		if( Texture )
+		{
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::TEXTURE;
+			ShaderResourceSlots_[ Slot ].Texture_ = Texture;
+		}
+		else
+		{
+			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::INVALID;
+			ShaderResourceSlots_[ Slot ].Resource_ = nullptr;
+		}
 	}
 	else
 	{
-		ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::INVALID;
-		ShaderResourceSlots_[ Slot ].Resource_ = nullptr;
+		PSY_LOG( "ERROR: setShaderResourceView being called with invalid slot." );
 	}
 }
 
@@ -66,16 +94,23 @@ void RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* T
 // setUnorderedAccessView
 void RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* Buffer )
 {
-	if( Buffer )
+	if( Slot < UnorderedAccessSlots_.size() )
 	{
-		BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
-		UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::BUFFER;
-		UnorderedAccessSlots_[ Slot ].Buffer_ = Buffer;
+		if( Buffer )
+		{
+			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
+			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::BUFFER;
+			UnorderedAccessSlots_[ Slot ].Buffer_ = Buffer;
+		}
+		else
+		{
+			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::INVALID;
+			UnorderedAccessSlots_[ Slot ].Resource_ = nullptr;
+		}
 	}
 	else
 	{
-		UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::INVALID;
-		UnorderedAccessSlots_[ Slot ].Resource_ = nullptr;
+		PSY_LOG( "ERROR: setUnorderedAccessView being called with invalid slot." );
 	}
 }
 
@@ -83,16 +118,23 @@ void RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* B
 // setUnorderedAccessView
 void RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture )
 {
-	if( Texture )
+	if( Slot < UnorderedAccessSlots_.size() )
 	{
-		BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
-		UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::TEXTURE;
-		UnorderedAccessSlots_[ Slot ].Texture_ = Texture;
+		if( Texture )
+		{
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
+			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::TEXTURE;
+			UnorderedAccessSlots_[ Slot ].Texture_ = Texture;
+		}
+		else
+		{
+			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::INVALID;
+			UnorderedAccessSlots_[ Slot ].Resource_ = nullptr;
+		}
 	}
 	else
 	{
-		UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::INVALID;
-		UnorderedAccessSlots_[ Slot ].Resource_ = nullptr;
+		PSY_LOG( "ERROR: setUnorderedAccessView being called with invalid slot." );
 	}
 }
 

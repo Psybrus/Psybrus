@@ -528,6 +528,10 @@ enum class RsProgramUniformType : BcU32
 	INT_VEC2,
 	INT_VEC3,
 	INT_VEC4,
+	UINT,
+	UINT_VEC2,
+	UINT_VEC3,
+	UINT_VEC4,
 	BOOL,
 	BOOL_VEC2,
 	BOOL_VEC3,
@@ -556,32 +560,31 @@ struct RsProgramVertexAttribute
 typedef std::vector< RsProgramVertexAttribute > RsProgramVertexAttributeList;
 
 //////////////////////////////////////////////////////////////////////////
-// RsProgramUniform
-struct RsProgramUniform
+// RsProgramParameterType
+enum class RsProgramParameterType : BcU32
 {
-	/// Name of uniform.
-	BcChar							Name_[ 64 ];
-	/// Offset of uniform.
-	BcU32							Offset_;
-	/// Type of uniform.
-	RsProgramUniformType			Type_;
-	/// Index of uniform block.
-	BcU32							UniformBlockIndex_;
+	UNKNOWN,
+	SAMPLER,
+	SHADER_RESOURCE,
+	UNORDERED_ACCESS,
+	UNIFORM_BLOCK,
 };
-
-typedef std::vector< RsProgramUniform > RsProgramUniformList;
 
 //////////////////////////////////////////////////////////////////////////
-// RsProgramUniformBlock
-struct RsProgramUniformBlock
+// RsProgramParameter
+struct RsProgramParameter
 {
-	/// Name of uniforms block.
-	BcChar							Name_[ 64 ];
-	/// Size of uniform block in bytes.
-	BcU32							Size_;
+	/// Name of parameter.
+	BcChar Name_[ 64 ];
+	/// Type of parameter.
+	RsProgramParameterType Type_;
+	/// Size of parameter.
+	BcU32 Size_;
+	/// Internal type of parameter.
+	BcU32 InternalType_;
 };
 
-typedef std::vector< RsProgramUniformBlock > RsProgramUniformBlockList;
+typedef std::vector< RsProgramParameter > RsProgramParameterList;
 
 //////////////////////////////////////////////////////////////////////////
 // Resource stuff

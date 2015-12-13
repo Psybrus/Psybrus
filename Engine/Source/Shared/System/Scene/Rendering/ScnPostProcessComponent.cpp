@@ -398,7 +398,7 @@ void ScnPostProcessComponent::recreateResources()
 			ProgramBindingDesc.setShaderResourceView( Slot, InputTexture.second->getTexture() );
 			// If we have a config block, set the textures dimensions.
 			// TODO: Deprecate, handle in render system.
-			if( ConfigUniformBlock )
+			if( ConfigUniformBlock && Slot != BcErrorCode )
 			{
 				const auto& Desc = InputTexture.second->getTexture()->getDesc();
 				ConfigUniformBlock->InputDimensions_[ Slot ] = 

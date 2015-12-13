@@ -310,8 +310,6 @@ void RsContextGL::endFrame()
 	auto ScreenshotFunc = std::move( ScreenshotFunc_ );
 	if( ScreenshotFunc != nullptr )
 	{
-		BcBreakpoint;
-
 		const BcU32 W = Width_;
 		const BcU32 H = Height_;
 

@@ -20,13 +20,11 @@ RsProgram::RsProgram(
 		class RsContext* pContext, 
 		std::vector< RsShader* >&& Shaders, 
 		RsProgramVertexAttributeList&& VertexAttributes,
-		RsProgramUniformList&& UniformList,
-		RsProgramUniformBlockList&& UniformBlockList ):
+		RsProgramParameterList&& ParameterList ):
 	RsResource( RsResourceType::PROGRAM, pContext ),
 	Shaders_( std::move( Shaders ) ),
 	AttributeList_( std::move( VertexAttributes ) ),
-	UniformList_( std::move( UniformList ) ),
-	UniformBlockList_( std::move( UniformBlockList ) )
+	ParameterList_( std::move( ParameterList ) )
 {
 	// Find vertex shader.
 	BcU64 HashCalc = 0;
@@ -170,6 +168,13 @@ const std::vector< class RsShader* >& RsProgram::getShaders() const
 const RsProgramVertexAttributeList& RsProgram::getVertexAttributeList() const
 {
 	return AttributeList_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// getParameterList
+const RsProgramParameterList& RsProgram::getParameterList() const
+{
+	return ParameterList_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

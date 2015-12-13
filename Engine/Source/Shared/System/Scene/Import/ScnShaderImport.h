@@ -230,8 +230,7 @@ private:
 	std::map< BcU32, ScnShaderBuiltData > BuiltShaderData_;
 	std::vector< ScnShaderProgramHeader > BuiltProgramData_;
 	std::vector< RsProgramVertexAttributeList > BuiltVertexAttributes_;
-	std::vector< RsProgramUniformList > BuiltUniforms_;
-	std::vector< RsProgramUniformBlockList > BuiltUniformBlocks_;
+	std::vector< RsProgramParameterList > BuiltParameters_;
 
 	std::atomic< BcU32 > GotErrorBuilding_;
 	std::atomic< BcU32 > PendingPermutations_;

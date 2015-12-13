@@ -61,6 +61,9 @@ void RsFrameBufferVK::createFrameBuffer()
 			ImageViews[ AttachmentIdx ] = TextureVK->getImageView();
 			BcAssert( ImageViews[ AttachmentIdx ] != 0 );
 			++AttachmentIdx;
+
+			// Append hash.
+			FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &RenderTargetDesc.Format_, sizeof( RenderTargetDesc.Format_ ) );
 		}
 	}
 
@@ -75,6 +78,9 @@ void RsFrameBufferVK::createFrameBuffer()
 		ImageViews[ AttachmentIdx ] = TextureVK->getImageView();
 		BcAssert( ImageViews[ AttachmentIdx ] != 0 );
 		++AttachmentIdx;
+
+		// Append hash.
+		FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &DepthStencilDesc.Format_, sizeof( DepthStencilDesc.Format_ ) );
 	}
 
 	VkFramebufferCreateInfo FrameBufferCreateInfo = {};

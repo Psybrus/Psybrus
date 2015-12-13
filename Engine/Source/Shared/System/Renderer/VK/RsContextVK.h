@@ -19,6 +19,8 @@
 
 #include "Base/BcMisc.h"
 
+#include <unordered_map>
+
 //////////////////////////////////////////////////////////////////////////
 // RsContextVK
 class RsContextVK:
@@ -68,6 +70,13 @@ public:
 	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups );
+
+	void bindGraphicsPSO( 
+		RsTopologyType TopologyType,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgram* Program,
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer );
 
 	bool createRenderState(
 		RsRenderState* RenderState );
@@ -123,6 +132,8 @@ protected:
 	virtual void create();
 	virtual void update();
 	virtual void destroy();	
+
+	void createDescriptorLayouts();
 
 private:
 	RsContextVK* pParent_ = nullptr;
@@ -192,6 +203,22 @@ private:
 
 	// Inside frame?
 	bool InsideBeginEndFrame_ = false;
+
+	// Descriptor layout.
+	VkDescriptorSetLayout GraphicsDescriptorSetLayout_;
+	VkPipelineLayout GraphicsPipelineLayout_;
+	VkDescriptorSetLayout ComputeDescriptorSetLayout_;
+	VkPipelineLayout ComputePipelineLayout_;
+
+	// PSO cache.
+	using PSOBindingTuple = std::tuple< 
+		RsTopologyType, 
+		const RsGeometryBinding*,
+		const RsProgram*, 
+		const RsRenderState*, 
+		const RsFrameBuffer* >;
+	std::map< PSOBindingTuple, VkPipeline > PSOCache_;
+	VkPipelineCache PipelineCache_;
 };
 
 #endif

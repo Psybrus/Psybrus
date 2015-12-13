@@ -15,8 +15,11 @@
 
 #if PSY_IMPORT_PIPELINE
 
+#include "System/Renderer/GL/RsProgramFileDataGL.h"
+
 #include "System/SysKernel.h"
 
+#include "Base/BcMath.h"
 #include "Base/BcStream.h"
 
 #define EXCLUDE_PSTDINT
@@ -24,6 +27,10 @@
 #include <ShaderLang.h>
 #include <GlslangToSpv.h>
 #include <GL/glew.h>
+#include <disassemble.h>
+#include <SPVRemapper.h>
+#include "../MachineIndependent/localintermediate.h"
+#include "../MachineIndependent/gl_types.h"
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
@@ -39,6 +46,7 @@
 #include <bitset>
 #include <regex>
 #include <sstream>
+#include <algorithm>
 
 #undef DOMAIN // This is defined somewhere in a core header.
 
@@ -180,6 +188,571 @@ namespace
 
 		return Resource;
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// GLSLReflectionTraverser
+	struct GLSLReflection
+	{
+		struct Object
+		{
+			std::string Name_ = "<INVALID>";
+			int Size_ = -1;
+			RsProgramParameterTypeValueGL ParameterType_;
+
+			bool operator < ( const Object& Other ) const
+			{
+				return 
+					std::make_tuple(  
+						ParameterType_.Storage_, /*ParameterType_.Binding_,*/
+						Name_, Size_,
+						ParameterType_.Coherent_, ParameterType_.Volatile_,
+						ParameterType_.Restrict_, ParameterType_.ReadOnly_, 
+						ParameterType_.WriteOnly_, ParameterType_.Type_ ) <
+					std::make_tuple( 
+						Other.ParameterType_.Storage_, /*Other.ParameterType_.Binding_,*/
+						Other.Name_, Other.Size_,
+						Other.ParameterType_.Coherent_, Other.ParameterType_.Volatile_,
+						Other.ParameterType_.Restrict_, Other.ParameterType_.ReadOnly_, 
+						Other.ParameterType_.WriteOnly_, Other.ParameterType_.Type_ );
+			}
+		};
+
+		/**
+		 * Add object. Puts in correct list.
+		 * @return Binding to assign back to AST (for Vulkan)
+ 		 */
+		BcU32 addObject( Object InObject )
+		{	
+			std::vector< Object >* Container = nullptr;
+			switch( InObject.ParameterType_.Storage_ )
+			{
+			case RsProgramParameterStorageGL::UNIFORM:
+				Container = &Uniforms_;
+				break;
+			case RsProgramParameterStorageGL::UNIFORM_BLOCK:
+				Container = &UniformBlocks_;
+				break;
+			case RsProgramParameterStorageGL::SAMPLER:
+				Container = &Samplers_;
+				break;
+			case RsProgramParameterStorageGL::SHADER_STORAGE_BUFFER:
+				Container = &Buffers_;
+				break;
+			case RsProgramParameterStorageGL::IMAGE:
+				Container = &Images_;
+				break;
+			default:
+				BcBreakpoint;
+				break;
+			}
+
+			auto FoundIt = std::find_if( Container->begin(), Container->end(),
+				[ &InObject ]( const Object& Object )
+				{
+					return Object.Name_ == InObject.Name_;
+				} );
+			BcU32 FoundBinding = Container->size();
+			if( FoundIt == Container->end() )
+			{
+				InObject.ParameterType_.Binding_ = FoundBinding;
+				Container->emplace_back( InObject );				
+			}
+			else
+			{
+				FoundBinding = FoundIt->ParameterType_.Binding_;
+			}
+			return FoundBinding;
+		}
+
+		std::vector< Object > UniformBlocks_;
+		std::vector< Object > Uniforms_;
+		std::vector< Object > Samplers_;
+		std::vector< Object > Buffers_;
+		std::vector< Object > Images_;
+	};
+
+	class GLSLReflectionTraverser : public glslang::TIntermTraverser
+	{
+	public:
+		GLSLReflectionTraverser( const glslang::TIntermediate& Intermediate, GLSLReflection& Reflection ):
+			Intermediate_( Intermediate ),
+			Reflection_( Reflection )
+		{
+		}
+	
+		virtual bool visitAggregate(glslang::TVisit, glslang::TIntermAggregate* Node )
+		{
+			if ( Node->getOp() == glslang::EOpFunctionCall )
+			{
+				addFunctionCall( Node );
+			}
+
+			return true; // traverse this subtree
+		}
+
+		virtual bool visitBinary( glslang::TVisit, glslang::TIntermBinary* Node )
+		{
+			switch ( Node->getOp() )
+			{
+			case glslang::EOpIndexDirect:
+			case glslang::EOpIndexIndirect:
+			case glslang::EOpIndexDirectStruct:
+				addDereferencedUniform( Node );
+			break;
+			default:
+			break;
+			}
+
+			// still need to visit everything below, which could contain sub-expressions
+			// containing different uniforms
+			return true;
+		}
+
+		virtual void visitSymbol( glslang::TIntermSymbol* Base )
+		{
+		    if( Base->getQualifier().storage == glslang::EvqUniform )
+			{
+				GLSLReflection::Object Object;
+				Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM;
+				Object.ParameterType_.Binding_ = Base->getQualifier().layoutBinding;
+				Object.ParameterType_.Coherent_ = Base->getQualifier().coherent;
+				Object.ParameterType_.Volatile_ = Base->getQualifier().volatil;
+				Object.ParameterType_.Restrict_ = Base->getQualifier().restrict;
+				Object.ParameterType_.ReadOnly_ = Base->getQualifier().readonly;
+				Object.ParameterType_.WriteOnly_ = Base->getQualifier().writeonly;
+
+				switch( Base->getBasicType() )
+				{
+				case glslang::EbtSampler:
+					{
+						auto Sampler = Base->getType().getSampler();
+						Object.ParameterType_.Type_ = mapSamplerType( Sampler );
+						Object.Name_ = Base->getName().c_str();
+						if( Sampler.image )
+						{
+							Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::IMAGE;
+							Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+						}
+						else
+						{
+							Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::SAMPLER;
+							Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+						}
+					}
+					break;
+				case glslang::EbtBlock:
+					Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM_BLOCK;
+					Object.ParameterType_.Type_ = 0;
+					Object.Name_ = Base->getType().getTypeName().c_str();
+					Object.Size_ = getBlockSize( Base->getType() );
+					Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+					break;
+				default:
+					Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM;
+					Object.ParameterType_.Type_ = mapUniformType( Base->getType() );
+					Object.Name_ = Base->getName().c_str();
+					Intermediate_.getBaseAlignment( Base->getType(), Object.Size_, true );
+					Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+					break;
+				}
+
+				int a = 0; ++a;
+			}
+		    else if( Base->getQualifier().storage == glslang::EvqBuffer )
+			{
+				GLSLReflection::Object Object;
+				Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::SHADER_STORAGE_BUFFER;
+				Object.ParameterType_.Binding_ = Base->getQualifier().layoutBinding;
+				Object.ParameterType_.Coherent_ = Base->getQualifier().coherent;
+				Object.ParameterType_.Volatile_ = Base->getQualifier().volatil;
+				Object.ParameterType_.Restrict_ = Base->getQualifier().restrict;
+				Object.ParameterType_.ReadOnly_ = Base->getQualifier().readonly;
+				Object.ParameterType_.WriteOnly_ = Base->getQualifier().writeonly;
+
+				switch( Base->getBasicType() )
+				{
+				case glslang::EbtBlock:
+					Object.ParameterType_.Type_ = 0;
+					Object.Name_ = Base->getType().getTypeName().c_str();
+					Object.Size_ = getBlockSize( Base->getType() );
+					Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+					break;
+				default:
+					BcBreakpoint;
+					break;
+				}
+
+				int a = 0; ++a;
+			}
+		}
+
+		virtual bool visitSelection( glslang::TVisit, glslang::TIntermSelection* Node )
+		{
+			glslang::TIntermConstantUnion* Constant = Node->getCondition()->getAsConstantUnion();
+			if( Constant )
+			{
+				// cull the path that is dead
+				if( Constant->getConstArray()[0].getBConst() == true && Node->getTrueBlock() )
+				{
+					Node->getTrueBlock()->traverse( this );
+				}
+				if( Constant->getConstArray()[0].getBConst() == false && Node->getFalseBlock() )
+				{
+					Node->getFalseBlock()->traverse( this );
+				}
+				return false; // don't traverse any more, we did it all above
+			}
+			else
+			{
+				return true; // traverse the whole subtree
+			}
+		}
+
+		// Lookup or calculate the offset of a block member, using the recursively
+		// defined block offset rules.
+		int getOffset( const glslang::TType& Type, int Index )
+		{
+			const glslang::TTypeList& MemberList = *Type.getStruct();
+
+			// Don't calculate offset if one is present, it could be user supplied
+			// and different than what would be calculated.  That is, this is faster,
+			// but not just an optimization.
+			if( MemberList[ Index ].type->getQualifier().hasOffset() )
+			{
+				return MemberList[ Index ].type->getQualifier().layoutOffset;
+			}
+
+			int MemberSize = 0;
+			int Offset = 0;
+			for( int MemberIdx = 0; MemberIdx <= Index; ++MemberIdx )
+			{
+				int MemberAlignment = Intermediate_.getBaseAlignment( *MemberList[ MemberIdx ].type, MemberSize, Type.getQualifier().layoutPacking == glslang::ElpStd140 );
+				Offset = BcPotRoundUp( Offset, MemberAlignment );
+				if( MemberIdx < Index )
+				{
+					Offset += MemberSize;
+				}
+			}
+
+			return Offset;
+		}
+
+		// Calculate the block data size.
+		// Block arrayness is not taken into account, each element is backed by a separate buffer.
+		int getBlockSize( const glslang::TType& BlockType )
+		{
+			const glslang::TTypeList& MemberList = *BlockType.getStruct();
+			int LastIndex = (int)MemberList.size() - 1;
+			int LastOffset = getOffset( BlockType, LastIndex );
+
+			int LastMemberSize = 0;
+			Intermediate_.getBaseAlignment( *MemberList[ LastIndex ].type, LastMemberSize, BlockType.getQualifier().layoutPacking == glslang::ElpStd140 );
+
+			return LastOffset + LastMemberSize;
+		}
+
+		// Convert sampler type into GL sampler type.
+		int mapSamplerType( const glslang::TSampler& sampler )
+		{
+			if( !sampler.image )
+			{
+				// a sampler...
+				switch( sampler.type )
+				{
+				case glslang::EbtFloat:
+					switch( (int)sampler.dim )
+					{
+					case glslang::Esd1D:
+						switch( (int)sampler.shadow )
+						{
+						case false: return sampler.arrayed ? GL_SAMPLER_1D_ARRAY : GL_SAMPLER_1D;
+						case true:  return sampler.arrayed ? GL_SAMPLER_1D_ARRAY_SHADOW : GL_SAMPLER_1D_SHADOW;
+						}
+					case glslang::Esd2D:
+						switch( (int)sampler.ms )
+						{
+						case false:
+							switch ((int)sampler.shadow)
+							{
+							case false: return sampler.arrayed ? GL_SAMPLER_2D_ARRAY : GL_SAMPLER_2D;
+							case true:  return sampler.arrayed ? GL_SAMPLER_2D_ARRAY_SHADOW : GL_SAMPLER_2D_SHADOW;
+							}
+						case true:      return sampler.arrayed ? GL_SAMPLER_2D_MULTISAMPLE_ARRAY : GL_SAMPLER_2D_MULTISAMPLE;
+						}
+					case glslang::Esd3D:
+						return GL_SAMPLER_3D;
+					case glslang::EsdCube:
+						switch( (int)sampler.shadow )
+						{
+						case false: return sampler.arrayed ? GL_SAMPLER_CUBE_MAP_ARRAY : GL_SAMPLER_CUBE;
+						case true:  return sampler.arrayed ? GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW : GL_SAMPLER_CUBE_SHADOW;
+						}
+					case glslang::EsdRect:
+						return sampler.shadow ? GL_SAMPLER_2D_RECT_SHADOW : GL_SAMPLER_2D_RECT;
+					case glslang::EsdBuffer:
+						return GL_SAMPLER_BUFFER;
+					}
+				case glslang::EbtInt:
+					switch( (int)sampler.dim )
+					{
+					case glslang::Esd1D:
+						return sampler.arrayed ? GL_INT_SAMPLER_1D_ARRAY : GL_INT_SAMPLER_1D;
+					case glslang::Esd2D:
+						switch( (int)sampler.ms )
+						{
+						case false:  return sampler.arrayed ? GL_INT_SAMPLER_2D_ARRAY : GL_INT_SAMPLER_2D;
+						case true:   return sampler.arrayed ? GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY : GL_INT_SAMPLER_2D_MULTISAMPLE;
+						}
+					case glslang::Esd3D:
+						return GL_INT_SAMPLER_3D;
+					case glslang::EsdCube:
+						return sampler.arrayed ? GL_INT_SAMPLER_CUBE_MAP_ARRAY : GL_INT_SAMPLER_CUBE;
+					case glslang::EsdRect:
+						return GL_INT_SAMPLER_2D_RECT;
+					case glslang::EsdBuffer:
+						return GL_INT_SAMPLER_BUFFER;
+					}
+				case glslang::EbtUint:
+					switch( (int)sampler.dim ) 
+					{
+					case glslang::Esd1D:
+						return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_1D_ARRAY : GL_UNSIGNED_INT_SAMPLER_1D;
+					case glslang::Esd2D:
+						switch( (int)sampler.ms )
+						{
+						case false:  return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_2D_ARRAY : GL_UNSIGNED_INT_SAMPLER_2D;
+						case true:   return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY : GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE;
+						}
+					case glslang::Esd3D:
+						return GL_UNSIGNED_INT_SAMPLER_3D;
+					case glslang::EsdCube:
+						return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY : GL_UNSIGNED_INT_SAMPLER_CUBE;
+					case glslang::EsdRect:
+						return GL_UNSIGNED_INT_SAMPLER_2D_RECT;
+					case glslang::EsdBuffer:
+						return GL_UNSIGNED_INT_SAMPLER_BUFFER;
+					}
+				default:
+					return 0;
+				}
+			}
+			else
+			{
+				// an image...
+				switch( sampler.type )
+				{
+				case glslang::EbtFloat:
+					switch( (int)sampler.dim )
+					{
+					case glslang::Esd1D:
+						return sampler.arrayed ? GL_IMAGE_1D_ARRAY : GL_IMAGE_1D;
+					case glslang::Esd2D:
+						switch( (int)sampler.ms )
+						{
+						case false:     return sampler.arrayed ? GL_IMAGE_2D_ARRAY : GL_IMAGE_2D;
+						case true:      return sampler.arrayed ? GL_IMAGE_2D_MULTISAMPLE_ARRAY : GL_IMAGE_2D_MULTISAMPLE;
+						}
+					case glslang::Esd3D:
+						return GL_IMAGE_3D;
+					case glslang::EsdCube:
+						return sampler.arrayed ? GL_IMAGE_CUBE_MAP_ARRAY : GL_IMAGE_CUBE;
+					case glslang::EsdRect:
+						return GL_IMAGE_2D_RECT;
+					case glslang::EsdBuffer:
+						return GL_IMAGE_BUFFER;
+					}
+				case glslang::EbtInt:
+					switch( (int)sampler.dim)
+					{
+					case glslang::Esd1D:
+						return sampler.arrayed ? GL_INT_IMAGE_1D_ARRAY : GL_INT_IMAGE_1D;
+					case glslang::Esd2D:
+						switch( (int)sampler.ms )
+						{
+						case false:  return sampler.arrayed ? GL_INT_IMAGE_2D_ARRAY : GL_INT_IMAGE_2D;
+						case true:   return sampler.arrayed ? GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY : GL_INT_IMAGE_2D_MULTISAMPLE;
+						}
+					case glslang::Esd3D:
+						return GL_INT_IMAGE_3D;
+					case glslang::EsdCube:
+						return sampler.arrayed ? GL_INT_IMAGE_CUBE_MAP_ARRAY : GL_INT_IMAGE_CUBE;
+					case glslang::EsdRect:
+						return GL_INT_IMAGE_2D_RECT;
+					case glslang::EsdBuffer:
+						return GL_INT_IMAGE_BUFFER;
+					}
+				case glslang::EbtUint:
+					switch( (int)sampler.dim )
+					{
+					case glslang::Esd1D:
+						return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_1D_ARRAY : GL_UNSIGNED_INT_IMAGE_1D;
+					case glslang::Esd2D:
+						switch( (int)sampler.ms )
+						{
+						case false:  return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_2D_ARRAY : GL_UNSIGNED_INT_IMAGE_2D;
+						case true:   return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY : GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE;
+						}
+					case glslang::Esd3D:
+						return GL_UNSIGNED_INT_IMAGE_3D;
+					case glslang::EsdCube:
+						return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY : GL_UNSIGNED_INT_IMAGE_CUBE;
+					case glslang::EsdRect:
+						return GL_UNSIGNED_INT_IMAGE_2D_RECT;
+					case glslang::EsdBuffer:
+						return GL_UNSIGNED_INT_IMAGE_BUFFER;
+					}
+				default:
+					return 0;
+				}
+			}
+			return 0;
+		}
+
+		// Convert uniform type into GL uniform type.
+		int mapUniformType( const glslang::TType& Type )
+		{
+			if( Type.isVector() )
+			{
+				int Offset = Type.getVectorSize() - 2;
+				switch( Type.getBasicType() )
+				{
+				case glslang::EbtFloat:      return GL_FLOAT_VEC2                  + Offset;
+				case glslang::EbtDouble:     return GL_DOUBLE_VEC2                 + Offset;
+				case glslang::EbtInt:        return GL_INT_VEC2                    + Offset;
+				case glslang::EbtUint:       return GL_UNSIGNED_INT_VEC2           + Offset;
+				case glslang::EbtBool:       return GL_BOOL_VEC2                   + Offset;
+				case glslang::EbtAtomicUint: return GL_UNSIGNED_INT_ATOMIC_COUNTER + Offset;
+				default:                     return 0;
+				}
+			}
+			if( Type.isMatrix() )
+			{
+				switch( Type.getBasicType() )
+				{
+				case glslang::EbtFloat:
+					switch( Type.getMatrixCols() )
+					{
+					case 2:
+						switch( Type.getMatrixRows() )
+						{
+						case 2:    return GL_FLOAT_MAT2;
+						case 3:    return GL_FLOAT_MAT2x3;
+						case 4:    return GL_FLOAT_MAT2x4;
+						default:   return 0;
+						}
+					case 3:
+						switch( Type.getMatrixRows() )
+						{
+						case 2:    return GL_FLOAT_MAT3x2;
+						case 3:    return GL_FLOAT_MAT3;
+						case 4:    return GL_FLOAT_MAT3x4;
+						default:   return 0;
+						}
+					case 4:
+						switch( Type.getMatrixRows() )
+						{
+						case 2:    return GL_FLOAT_MAT4x2;
+						case 3:    return GL_FLOAT_MAT4x3;
+						case 4:    return GL_FLOAT_MAT4;
+						default:   return 0;
+						}
+					}
+				case glslang::EbtDouble:
+					switch( Type.getMatrixCols() )
+					{
+					case 2:
+						switch( Type.getMatrixRows() )
+						{
+						case 2:    return GL_DOUBLE_MAT2;
+						case 3:    return GL_DOUBLE_MAT2x3;
+						case 4:    return GL_DOUBLE_MAT2x4;
+						default:   return 0;
+						}
+					case 3:
+						switch( Type.getMatrixRows() )
+						{
+						case 2:    return GL_DOUBLE_MAT3x2;
+						case 3:    return GL_DOUBLE_MAT3;
+						case 4:    return GL_DOUBLE_MAT3x4;
+						default:   return 0;
+						}
+					case 4:
+						switch( Type.getMatrixRows() )
+						{
+						case 2:    return GL_DOUBLE_MAT4x2;
+						case 3:    return GL_DOUBLE_MAT4x3;
+						case 4:    return GL_DOUBLE_MAT4;
+						default:   return 0;
+						}
+					}
+				default:
+					return 0;
+				}
+			}
+			if( Type.getVectorSize() == 1 )
+			{
+				switch( Type.getBasicType() )
+				{
+				case glslang::EbtFloat:      return GL_FLOAT;
+				case glslang::EbtDouble:     return GL_DOUBLE;
+				case glslang::EbtInt:        return GL_INT;
+				case glslang::EbtUint:       return GL_UNSIGNED_INT;
+				case glslang::EbtBool:       return GL_BOOL;
+				case glslang::EbtAtomicUint: return GL_UNSIGNED_INT_ATOMIC_COUNTER;
+				default:                     return 0;
+				}
+			}
+			return 0;
+		}
+	
+		void addFunctionCall( glslang::TIntermAggregate* Node )
+		{
+			if( std::find( FunctionStack_.begin(), FunctionStack_.end(), Node ) == FunctionStack_.end() )
+			{
+				pushFunction( Node->getName().c_str() );
+			}
+		}
+
+		void addDereferencedUniform( glslang::TIntermBinary* TopNode )
+		{
+
+		}
+
+		void pushFunction( const char* Name )
+		{
+			glslang::TIntermSequence& Globals = Intermediate_.getTreeRoot()->getAsAggregate()->getSequence();
+			for( unsigned int Idx = 0; Idx < Globals.size(); ++Idx )
+			{
+				glslang::TIntermAggregate* Candidate = Globals[ Idx ]->getAsAggregate();
+				if( Candidate && Candidate->getOp() == glslang::EOpFunction && Candidate->getName() == Name )
+				{
+					FunctionStack_.emplace_back( Candidate );
+					break;
+				}
+			}
+		}
+
+		void traverse()
+		{
+			pushFunction( "main(" );
+
+		    // process all the functions
+			while( !FunctionStack_.empty() )
+			{
+				TIntermNode* Function = FunctionStack_.back();
+				FunctionStack_.pop_back();
+				Function->traverse( this );
+			}
+		}
+
+	private:
+		const glslang::TIntermediate& Intermediate_;
+		GLSLReflection& Reflection_;
+
+		typedef std::vector< glslang::TIntermAggregate* > FunctionStack;
+		FunctionStack FunctionStack_;
+	};
+
 }
 
 #endif // PSY_IMPORT_PIPELINE
@@ -209,7 +782,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	ProgramHeaderGLSL.ShaderCodeType_ = Params.OutputCodeType_;
 
 	// Should we build SPIRV from the GLSL? Use highest GLSL version.
-	RsShaderCodeType HighestGLSLVersionForSPIRV = RsShaderCodeType::GLSL_330;
+	RsShaderCodeType HighestGLSLVersionForSPIRV = RsShaderCodeType::GLSL_430;
 	for( const auto& Source : Sources_ )
 	{
 		if( RsShaderCodeTypeToBackendType( Source.first ) == RsShaderBackendType::GLSL )
@@ -228,8 +801,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	// Vertex attributes, uniforms, and uniform blocks.
 	std::vector< std::string > VertexAttributeNames;
 	RsProgramVertexAttributeList VertexAttributes;
-	RsProgramUniformList Uniforms;
-	RsProgramUniformBlockList UniformBlocks;
+	RsProgramParameterList Parameters;
 
 	std::vector< glslang::TShader* > Shaders;
 	glslang::TProgram* Program = new glslang::TProgram();
@@ -325,6 +897,9 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				std::regex VertexAttributeExtendedPattern( 
 					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
+				std::regex VertexAttributeLayoutPattern(
+					"\\s*layout\\(location=(.*)\\)\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+
 				std::regex LineDirectivePattern(
 					"\\s*#line.*" );
 
@@ -364,6 +939,24 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 									"Error: Line in shader \"%s\" is missing semantic (in|attribute type name : semantic).",
 									Line.c_str() );
 							}
+						}
+						else if( std::regex_match( Line.c_str(), Match, VertexAttributeLayoutPattern ) )
+						{
+							const auto Location = Match.str( 1 );
+							const auto Keyword = Match.str( 2 );
+							const auto Type = Match.str( 3 );
+							const auto Name = Match.str( 4 );
+							const auto Semantic = Match.str( 5 );
+							const auto Index = Match.str( 6 );
+
+							Line = "layout(location=" + Location + ") " + Keyword + " " + Type + " " + Name + "; // " + Semantic + Index + "\n";
+							VertexAttributeNames.emplace_back( Name );
+
+							auto VertexAttr = semanticToVertexAttribute( 
+								VertexAttributes.size(),
+								Semantic,
+								std::atoi( Index.c_str() ) );
+							VertexAttributes.emplace_back( VertexAttr );
 						}
 					}
 					
@@ -575,106 +1168,90 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	{
 		if( Program->link( BuildSPIRV ? EShMsgVulkanRules : EShMsgDefault ) )
 		{
-			Program->buildReflection();
-			Program->dumpReflection();
-
-			// Uniforms + uniform blocks.
-			// NOTE: This returns buffer blocks too. Need to parse out these manually later.
-			ProgramHeaderGLSL.NoofUniforms_ = Program->getNumLiveUniformVariables();
-			ProgramHeaderGLSL.NoofUniformBlocks_ = Program->getNumLiveUniformBlocks();
-
-			for( BcU32 Idx = 0; Idx < ProgramHeaderGLSL.NoofUniforms_; ++Idx )
+			// Build reflection info for shader.
+			GLSLReflection Reflection;
+			for( int Idx = 0; Idx < EShLangCount; ++Idx )
 			{
-				const auto* Name = Program->getUniformName( Idx );
-				const BcU32 Offset = Program->getUniformBufferOffset( Idx );
-				const BcU32 Type = Program->getUniformType( Idx );
-				const BcU32 UniformBlockIndex = Program->getUniformBlockIndex( Idx );
-
-				BcAssert( BcStrLength( Name ) < sizeof( RsProgramUniform::Name_ ) );
-				RsProgramUniform Uniform;
-				BcStrCopy( Uniform.Name_, sizeof( Uniform.Name_ ), Name );
-				Uniform.Offset_ = Offset;
-				switch( Type )
+				auto Intermediate = Program->getIntermediate( static_cast< EShLanguage >( Idx ) );
+				if( Intermediate )
 				{
-				case GL_FLOAT:
-					Uniform.Type_ = RsProgramUniformType::FLOAT;
-					break;
-				case GL_FLOAT_VEC2:
-					Uniform.Type_ = RsProgramUniformType::FLOAT_VEC2;
-					break;
-				case GL_FLOAT_VEC3:
-					Uniform.Type_ = RsProgramUniformType::FLOAT_VEC3;
-					break;
-				case GL_FLOAT_VEC4:
-					Uniform.Type_ = RsProgramUniformType::FLOAT_VEC4;
-					break;
-				case GL_FLOAT_MAT2:
-					Uniform.Type_ = RsProgramUniformType::FLOAT_MAT2;
-					break;
-				case GL_FLOAT_MAT3:
-					Uniform.Type_ = RsProgramUniformType::FLOAT_MAT3;
-					break;
-				case GL_FLOAT_MAT4:
-					Uniform.Type_ = RsProgramUniformType::FLOAT_MAT4;
-					break;
-				case GL_INT:
-					Uniform.Type_ = RsProgramUniformType::INT;
-					break;
-				case GL_INT_VEC2:
-					Uniform.Type_ = RsProgramUniformType::INT_VEC2;
-					break;
-				case GL_INT_VEC3:
-					Uniform.Type_ = RsProgramUniformType::INT_VEC3;
-					break;
-				case GL_INT_VEC4:
-					Uniform.Type_ = RsProgramUniformType::INT_VEC4;
-					break;
-				case GL_BOOL:
-					Uniform.Type_ = RsProgramUniformType::BOOL;
-					break;
-				case GL_BOOL_VEC2:
-					Uniform.Type_ = RsProgramUniformType::BOOL_VEC2;
-					break;
-				case GL_BOOL_VEC3:
-					Uniform.Type_ = RsProgramUniformType::BOOL_VEC3;
-					break;
-				case GL_BOOL_VEC4:
-					Uniform.Type_ = RsProgramUniformType::BOOL_VEC4;
-					break;
-				case GL_SAMPLER_1D:
-					Uniform.Type_ = RsProgramUniformType::SAMPLER_1D;
-					break;
-				case GL_SAMPLER_2D:
-					Uniform.Type_ = RsProgramUniformType::SAMPLER_2D;
-					break;
-				case GL_SAMPLER_3D:
-					Uniform.Type_ = RsProgramUniformType::SAMPLER_3D;
-					break;
-				case GL_SAMPLER_CUBE:
-					Uniform.Type_ = RsProgramUniformType::SAMPLER_CUBE;
-					break;
-				case GL_SAMPLER_1D_SHADOW:
-					Uniform.Type_ = RsProgramUniformType::SAMPLER_1D_SHADOW;
-					break;
-				case GL_SAMPLER_2D_SHADOW:
-					Uniform.Type_ = RsProgramUniformType::SAMPLER_2D_SHADOW;
-					break;
+					if( Idx == EShLangCompute )
+					{
+						//BcBreakpoint;
+					}
+					GLSLReflectionTraverser Traverser( *Intermediate, Reflection );
+					Traverser.traverse();
 				}
-				
-				Uniform.UniformBlockIndex_ = UniformBlockIndex;
-				Uniforms.push_back( Uniform );
 			}
 
-			for( BcU32 Idx = 0; Idx < ProgramHeaderGLSL.NoofUniformBlocks_; ++Idx )
-			{
-				const auto* Name = Program->getUniformBlockName( Idx );
-				const BcU32 Size = Program->getUniformBlockSize( Idx );
+			ProgramHeaderGLSL.NoofParameters_ = 0;
+			ProgramHeaderGLSL.NoofParameters_ += Reflection.UniformBlocks_.size();
+			ProgramHeaderGLSL.NoofParameters_ += Reflection.Uniforms_.size();
+			ProgramHeaderGLSL.NoofParameters_ += Reflection.Samplers_.size();
+			ProgramHeaderGLSL.NoofParameters_ += Reflection.Buffers_.size();
+			ProgramHeaderGLSL.NoofParameters_ += Reflection.Images_.size();
 
-				BcAssert( BcStrLength( Name ) < sizeof( RsProgramUniformBlock::Name_ ) );
-				RsProgramUniformBlock UniformBlock;
-				BcStrCopy( UniformBlock.Name_, sizeof( UniformBlock.Name_ ), Name );
-				UniformBlock.Size_ = Size;
-				UniformBlocks.push_back( UniformBlock );
+			Parameters.clear();
+			Parameters.reserve( ProgramHeaderGLSL.NoofParameters_ );
+
+			for( auto Object : Reflection.UniformBlocks_ )
+			{
+				RsProgramParameter Parameter = {};
+				memset( &Parameter, 0, sizeof( Parameter ) );
+				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+				Parameter.Type_ = RsProgramParameterType::UNIFORM_BLOCK;
+				Parameter.Size_ = Object.Size_;
+				// GL specific internals.
+				Parameter.InternalType_ = Object.ParameterType_.Value_;
+				Parameters.emplace_back( Parameter );
+			}
+
+			for( auto Object : Reflection.Uniforms_ )
+			{
+				RsProgramParameter Parameter = {};
+				memset( &Parameter, 0, sizeof( Parameter ) );
+				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+				Parameter.Type_ = RsProgramParameterType::UNKNOWN;
+				Parameter.Size_ = Object.Size_;
+				// GL specific internals.
+				Parameter.InternalType_ = Object.ParameterType_.Value_;
+				Parameters.emplace_back( Parameter );
+			}
+
+			for( auto Object : Reflection.Samplers_ )
+			{
+				RsProgramParameter Parameter = {};
+				memset( &Parameter, 0, sizeof( Parameter ) );
+				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+				Parameter.Type_ = RsProgramParameterType::SAMPLER;
+				Parameter.Size_ = Object.Size_;
+				// GL specific internals.
+				Parameter.InternalType_ = Object.ParameterType_.Value_;
+				Parameters.emplace_back( Parameter );
+			}
+
+			for( auto Object : Reflection.Buffers_ )
+			{
+				RsProgramParameter Parameter = {};
+				memset( &Parameter, 0, sizeof( Parameter ) );
+				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+				Parameter.Type_ = !Object.ParameterType_.ReadOnly_ ? RsProgramParameterType::UNORDERED_ACCESS : RsProgramParameterType::SHADER_RESOURCE;
+				Parameter.Size_ = Object.Size_;
+				// GL specific internals.
+				Parameter.InternalType_ = Object.ParameterType_.Value_;
+				Parameters.emplace_back( Parameter );
+			}
+
+			for( auto Object : Reflection.Images_ )
+			{
+				RsProgramParameter Parameter = {};
+				memset( &Parameter, 0, sizeof( Parameter ) );
+				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+				Parameter.Type_ = !Object.ParameterType_.ReadOnly_ ? RsProgramParameterType::UNORDERED_ACCESS : RsProgramParameterType::SHADER_RESOURCE;
+				Parameter.Size_ = Object.Size_;
+				// GL specific internals.
+				Parameter.InternalType_ = Object.ParameterType_.Value_;
+				Parameters.emplace_back( Parameter );
 			}
 
 			// Should we build SPIR-V?
@@ -700,6 +1277,21 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						std::vector< unsigned int > SpvOutput;
 						glslang::GlslangToSpv( *Intermediate, SpvOutput );
 
+						char OutFileName[ 1024 ] = { 0 };
+						BcSPrintf( OutFileName, sizeof( OutFileName ) - 1, "%s/%s-%x-%u.spv",
+							getIntermediatePath().c_str(), 
+							getResourceName().c_str(),
+							ProgramHeaderSPIRV.ProgramPermutationFlags_, Idx );
+						glslang::OutputSpv( SpvOutput, OutFileName );
+
+						spv::spirvbin_t SpvRemapper;
+						SpvRemapper.remap( SpvOutput );
+						BcSPrintf( OutFileName, sizeof( OutFileName ) - 1, "%s/%s-%x-%u.remapped.spv",
+							getIntermediatePath().c_str(), 
+							getResourceName().c_str(),
+							ProgramHeaderSPIRV.ProgramPermutationFlags_, Idx );
+						glslang::OutputSpv( SpvOutput, OutFileName );
+
 						ScnShaderBuiltData BuiltShaderSPIRV;
 						BuiltShaderSPIRV.ShaderType_ = ShaderTypes[ Idx ];
 						BuiltShaderSPIRV.CodeType_ = RsShaderCodeType::SPIRV;
@@ -707,6 +1299,8 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						BuiltShaderSPIRV.Hash_ = generateShaderHash( BuiltShaderSPIRV );
 
 						ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)BuiltShaderSPIRV.ShaderType_ ] = BuiltShaderSPIRV.Hash_;
+
+						BuiltShaderData_[ BuiltShaderSPIRV.Hash_ ] = std::move( BuiltShaderSPIRV );
 					}
 				}
 				
@@ -744,21 +1338,18 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		{
 			BuiltVertexAttributes_.push_back( VertexAttributes );
 		}
-		if( Uniforms.size() > 0 )
+		if( Parameters.size() > 0 )
 		{
-			BuiltUniforms_.push_back( Uniforms );
-		}
-		if( UniformBlocks.size() > 0 )
-		{
-			BuiltUniformBlocks_.push_back( UniformBlocks );
+			BuiltParameters_.push_back( Parameters );
 		}
 
 		if( BuildSPIRV )
 		{
-			if( ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
-				ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 )
+			if( ( ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::VERTEX ] == 0 ||
+				  ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::PIXEL ] == 0 ) &&
+				( ProgramHeaderSPIRV.ShaderHashes_[ (BcU32)RsShaderType::COMPUTE ] == 0 ) )
 			{
-				PSY_LOG( "No vertex and pixel shaders in program." );
+				PSY_LOG( "No vertex and pixel shaders in program, or no compute." );
 				RetVal = BcFalse;
 			}
 
@@ -767,13 +1358,9 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 			{
 				BuiltVertexAttributes_.push_back( VertexAttributes );
 			}
-			if( Uniforms.size() > 0 )
+			if( Parameters.size() > 0 )
 			{
-				BuiltUniforms_.push_back( Uniforms );
-			}
-			if( UniformBlocks.size() > 0 )
-			{
-				BuiltUniformBlocks_.push_back( UniformBlocks );
+				BuiltParameters_.push_back( Parameters );
 			}
 		}
 	}

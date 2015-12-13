@@ -56,7 +56,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		GL( GetProgramInfoLog( Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog ) );
-		PSY_LOG( "RsShaderGL: Infolog:\n", pszInfoLog );
+		PSY_LOG( "RsProgramGL: Infolog:\n", pszInfoLog );
 		std::stringstream LogStream( pszInfoLog );
 		std::string LogLine;
 		while( std::getline( LogStream, LogLine, '\n' ) )

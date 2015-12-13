@@ -17,12 +17,15 @@
 #include "System/Renderer/VK/RsBufferVK.h"
 #include "System/Renderer/VK/RsCommandBufferVK.h"
 #include "System/Renderer/VK/RsFrameBufferVK.h"
+#include "System/Renderer/VK/RsProgramVK.h"
 #include "System/Renderer/VK/RsTextureVK.h"
 #include "System/Renderer/VK/RsUtilsVK.h"
 
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsFrameBuffer.h"
+#include "System/Renderer/RsGeometryBinding.h"
 #include "System/Renderer/RsProgram.h"
+#include "System/Renderer/RsProgramBinding.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
@@ -96,7 +99,11 @@ const RsFeatures& RsContextVK::getFeatures() const
 //virtual
 BcBool RsContextVK::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const
 {
-	return true;
+	if( CodeType == RsShaderCodeType::SPIRV )
+	{
+		return true;
+	}
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,7 +134,7 @@ BcU32 RsContextVK::getHeight() const
 // getBackBuffer
 RsFrameBuffer* RsContextVK::getBackBuffer() const
 {
-	return nullptr;
+	return FrameBuffers_[ CurrentFrameBuffer_ ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -799,7 +806,7 @@ void RsContextVK::create()
 		return;
 	}
 
-
+	createDescriptorLayouts();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -840,6 +847,81 @@ void RsContextVK::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createDescriptorLayouts
+void RsContextVK::createDescriptorLayouts()
+{
+	VkResult RetVal = VK_SUCCESS;
+
+	VkDescriptorSetLayoutBinding BaseLayoutBindings[4];
+	BaseLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	BaseLayoutBindings[0].arraySize = 16;
+	BaseLayoutBindings[0].stageFlags = 0;
+	BaseLayoutBindings[0].pImmutableSamplers = nullptr;
+
+	BaseLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	BaseLayoutBindings[1].arraySize = 16;
+	BaseLayoutBindings[1].stageFlags = 0;
+	BaseLayoutBindings[1].pImmutableSamplers = nullptr;
+
+	BaseLayoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	BaseLayoutBindings[2].arraySize = 16;
+	BaseLayoutBindings[2].stageFlags = 0;
+	BaseLayoutBindings[2].pImmutableSamplers = nullptr;
+
+	BaseLayoutBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	BaseLayoutBindings[3].arraySize = 16;
+	BaseLayoutBindings[3].stageFlags = 0;
+	BaseLayoutBindings[3].pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding LayoutBindings[12];
+
+	const VkShaderStageFlagBits StageBits[] = 
+	{
+		VK_SHADER_STAGE_VERTEX_BIT,
+		VK_SHADER_STAGE_FRAGMENT_BIT,
+		VK_SHADER_STAGE_TESS_CONTROL_BIT,
+		VK_SHADER_STAGE_TESS_EVALUATION_BIT,
+		VK_SHADER_STAGE_GEOMETRY_BIT
+	};
+
+	BcU32 LayoutBindingIdx = 0;
+	for( BcU32 Idx = 0; Idx < 5; ++Idx )
+	{
+		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[0];
+		LayoutBindings[ LayoutBindingIdx ].stageFlags = StageBits[ Idx ];
+		++LayoutBindingIdx;
+		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[1];
+		LayoutBindings[ LayoutBindingIdx ].stageFlags = StageBits[ Idx ];
+		++LayoutBindingIdx;
+	}
+	LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[2];
+	LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
+	++LayoutBindingIdx;
+	LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[3];
+	LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
+	++LayoutBindingIdx;
+
+	VkDescriptorSetLayoutCreateInfo DescriptorLayout;
+	DescriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	DescriptorLayout.pNext = NULL;
+	DescriptorLayout.count = LayoutBindingIdx;
+	DescriptorLayout.pBinding = LayoutBindings;
+
+	RetVal = vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, &GraphicsDescriptorSetLayout_ );
+	BcAssert( !RetVal );
+
+	VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo;
+	PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	PipelineLayoutCreateInfo.pNext = nullptr;
+	PipelineLayoutCreateInfo.descriptorSetCount = 1;
+	PipelineLayoutCreateInfo.pSetLayouts = &GraphicsDescriptorSetLayout_;
+	PipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+	PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+	RetVal = vkCreatePipelineLayout( Device_, &PipelineLayoutCreateInfo, &GraphicsPipelineLayout_ );
+	BcAssert( !RetVal );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextVK::clear( 
 	const RsFrameBuffer* FrameBuffer,
@@ -854,6 +936,8 @@ void RsContextVK::clear(
 	BcUnusedVar( EnableClearColour );
 	BcUnusedVar( EnableClearDepth );
 	BcUnusedVar( EnableClearStencil );
+
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -869,6 +953,14 @@ void RsContextVK::drawPrimitives(
 		BcU32 VertexOffset, BcU32 NoofVertices )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	// Null signifies backbuffer.
+	if( FrameBuffer == nullptr )
+	{
+		FrameBuffer = getBackBuffer();
+	}
+
+	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -884,6 +976,14 @@ void RsContextVK::drawIndexedPrimitives(
 		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	// Null signifies backbuffer.
+	if( FrameBuffer == nullptr )
+	{
+		FrameBuffer = getBackBuffer();
+	}
+
+	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding->getProgram(), RenderState, FrameBuffer );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -896,6 +996,200 @@ void RsContextVK::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture 
 // dispatchCompute
 void RsContextVK::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
 {
+}
+
+//////////////////////////////////////////////////////////////////////////
+// bindGraphicsPSO
+void RsContextVK::bindGraphicsPSO( 
+		RsTopologyType TopologyType,
+		const RsGeometryBinding* GeometryBinding, 
+		const RsProgram* Program,
+		const RsRenderState* RenderState,
+		const RsFrameBuffer* FrameBuffer )
+{
+	auto VertexDeclaration = GeometryBinding->getDesc().VertexDeclaration_;
+	auto PSOBinding = PSOBindingTuple( 
+		TopologyType,
+		GeometryBinding,
+		Program, 
+		RenderState,
+		FrameBuffer );
+	auto FoundPSO = PSOCache_.find( PSOBinding );
+	if( FoundPSO == PSOCache_.end() )
+	{
+		VkResult RetVal = VK_SUCCESS;
+		VkGraphicsPipelineCreateInfo PipelineCreateInfo;
+		VkPipelineCacheCreateInfo PipelineCache;
+		VkPipelineVertexInputStateCreateInfo VI;
+		VkPipelineInputAssemblyStateCreateInfo IA;
+		VkPipelineRasterStateCreateInfo RS;
+		VkPipelineColorBlendStateCreateInfo CB;
+		VkPipelineDepthStencilStateCreateInfo DS;
+		VkPipelineViewportStateCreateInfo VP;
+		VkPipelineMultisampleStateCreateInfo MS;
+		VkDynamicState DynamicStateEnables[ VK_DYNAMIC_STATE_NUM ];
+		VkPipelineDynamicStateCreateInfo DynamicState;
+		
+		memset( DynamicStateEnables, 0, sizeof( DynamicStateEnables ) );
+		memset( &DynamicState, 0, sizeof( DynamicState ) );
+		DynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		DynamicState.pDynamicStates = DynamicStateEnables;
+
+		memset( &PipelineCreateInfo, 0, sizeof( PipelineCreateInfo ) );
+		PipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+		PipelineCreateInfo.layout = GraphicsPipelineLayout_;
+
+		const auto& ProgramVertexAttributeList = Program->getVertexAttributeList();
+		const auto& VertexDeclarationDesc = VertexDeclaration->getDesc();
+		const auto& PrimitiveVertexElementList = VertexDeclarationDesc.Elements_;
+		const auto& GeometryBindingDesc = GeometryBinding->getDesc();
+		std::array< VkVertexInputBindingDescription, 16 > BindingDescription;
+		std::array< VkVertexInputAttributeDescription, 16 > AttributeDescription;
+
+		memset( &VI, 0, sizeof( VI ) );
+		VI.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		VI.attributeCount = VertexDeclaration->getDesc().Elements_.size();
+		VI.pVertexBindingDescriptions = BindingDescription.data();
+		VI.pVertexAttributeDescriptions = AttributeDescription.data();
+
+		// Bind up all elements to attributes.
+		BcU32 SlotIdx = 0;
+		for( const auto& Attribute : ProgramVertexAttributeList )
+		{
+			auto FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+				[ &Attribute ]( const RsVertexElement& Element )
+				{
+					return ( Element.Usage_ == Attribute.Usage_ &&
+						Element.UsageIdx_ == Attribute.UsageIdx_ );
+				} );
+
+			// Force to an element with zero offset if we can't find a valid one.
+			// TODO: Find a better approach.
+			if( FoundElement == PrimitiveVertexElementList.end() )
+			{
+				FoundElement = std::find_if( PrimitiveVertexElementList.begin(), PrimitiveVertexElementList.end(),
+					[]( const RsVertexElement& Element )
+					{
+						return Element.Offset_ == 0;
+					} );
+			}
+
+			// Found an element we can bind to.
+			if( FoundElement != PrimitiveVertexElementList.end() )
+			{
+				auto VertexBufferBinding = GeometryBindingDesc.VertexBuffers_[ FoundElement->StreamIdx_ ];
+				auto VertexBuffer = VertexBufferBinding.Buffer_;
+
+				// Bind up new vertex buffer if we need to.
+				BcAssertMsg( FoundElement->StreamIdx_ < GeometryBindingDesc.VertexBuffers_.size(), "Stream index out of bounds for primitive." );
+				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
+
+				BindingDescription[ SlotIdx ].binding = FoundElement->StreamIdx_;
+				BindingDescription[ SlotIdx ].stepRate = VK_VERTEX_INPUT_STEP_RATE_VERTEX;
+				BindingDescription[ SlotIdx ].strideInBytes = VertexBufferBinding.Stride_;
+
+				AttributeDescription[ SlotIdx ].binding = FoundElement->StreamIdx_;
+				AttributeDescription[ SlotIdx ].format = RsUtilsVK::GetVertexElementFormat( *FoundElement );
+				AttributeDescription[ SlotIdx ].location = SlotIdx;
+				AttributeDescription[ SlotIdx ].offsetInBytes = FoundElement->Offset_;
+				++SlotIdx;
+			}
+		}
+		BcAssert( ProgramVertexAttributeList.size() == SlotIdx );
+
+		memset( &IA, 0, sizeof( IA ) );
+		IA.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		IA.topology = RsUtilsVK::GetPrimitiveTopology( TopologyType );
+
+		memset( &RS, 0, sizeof( RS ) );
+		RS.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTER_STATE_CREATE_INFO;
+		RS.fillMode = VK_FILL_MODE_SOLID;
+		RS.cullMode = VK_CULL_MODE_BACK;
+		RS.frontFace = VK_FRONT_FACE_CCW;
+		RS.depthClipEnable = VK_TRUE;
+		RS.rasterizerDiscardEnable = VK_FALSE;
+		RS.depthBiasEnable = VK_FALSE;
+
+		memset ( &CB, 0, sizeof( CB ) );
+		CB.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		VkPipelineColorBlendAttachmentState AttachmentState[ 1 ];
+		memset( AttachmentState, 0, sizeof( AttachmentState ) );
+		AttachmentState[0].channelWriteMask = 0xf;
+		AttachmentState[0].blendEnable = VK_FALSE;
+		CB.attachmentCount = 1;
+		CB.pAttachments = AttachmentState;
+
+		memset( &VP, 0, sizeof( VP ) );
+		VP.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		VP.viewportCount = 1;
+		DynamicStateEnables[ DynamicState.dynamicStateCount++ ] = VK_DYNAMIC_STATE_VIEWPORT;
+		VP.scissorCount = 1;
+		DynamicStateEnables[ DynamicState.dynamicStateCount++ ] = VK_DYNAMIC_STATE_SCISSOR;
+
+		memset( &DS, 0, sizeof( DS ) );
+		DS.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		DS.depthTestEnable = VK_TRUE;
+		DS.depthWriteEnable = VK_TRUE;
+		DS.depthCompareOp = VK_COMPARE_OP_LESS_EQUAL;
+		DS.depthBoundsTestEnable = VK_FALSE;
+		DS.back.stencilFailOp = VK_STENCIL_OP_KEEP;
+		DS.back.stencilPassOp = VK_STENCIL_OP_KEEP;
+		DS.back.stencilCompareOp = VK_COMPARE_OP_ALWAYS;
+		DS.stencilTestEnable = VK_FALSE;
+		DS.front = DS.back;
+
+		memset( &MS, 0, sizeof( MS ) );
+		MS.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		MS.pSampleMask = nullptr;
+		MS.rasterSamples = 1;
+
+		VkPipelineShaderStageCreateInfo ShaderStages[ 5 ];
+		memset( ShaderStages, 0, sizeof( ShaderStages ) );
+
+		BcU32 ShaderIdx = 0;
+		auto* ProgramVK = Program->getHandle< const RsProgramVK* >();
+		PipelineCreateInfo.stageCount = Program->getShaders().size();
+		for( const auto* Shader : Program->getShaders() )
+		{
+			VkPipelineShaderStageCreateInfo ShaderStage;
+			memset( &ShaderStage, 0, sizeof( VkPipelineShaderStageCreateInfo ) );
+
+			ShaderStages[ ShaderIdx ].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			ShaderStages[ ShaderIdx ].stage  = RsUtilsVK::GetShaderStage( Shader->getDesc().ShaderType_ );
+			ShaderStages[ ShaderIdx ].shader = ProgramVK->getShaders()[ ShaderIdx ];
+			ShaderStages[ ShaderIdx ].pSpecializationInfo = nullptr;
+			
+			++ShaderIdx;
+		}
+
+		if( !PipelineCache_ )
+		{
+			memset( &PipelineCache, 0, sizeof( PipelineCache ) );
+			PipelineCache.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+
+			RetVal = vkCreatePipelineCache( Device_, &PipelineCache, &PipelineCache_);
+			BcAssert( !RetVal );
+		}
+
+		auto FrameBufferVK = FrameBuffer->getHandle< RsFrameBufferVK* >();
+
+		PipelineCreateInfo.pVertexInputState = &VI;
+		PipelineCreateInfo.pInputAssemblyState = &IA;
+		PipelineCreateInfo.pRasterState = &RS;
+		PipelineCreateInfo.pColorBlendState = &CB;
+		PipelineCreateInfo.pMultisampleState = &MS;
+		PipelineCreateInfo.pViewportState = &VP;
+		PipelineCreateInfo.pDepthStencilState = &DS;
+		PipelineCreateInfo.pStages = ShaderStages;
+		PipelineCreateInfo.renderPass = FrameBufferVK->getRenderPass();
+		PipelineCreateInfo.pDynamicState = &DynamicState;
+
+		VkPipeline Pipeline;
+		RetVal = vkCreateGraphicsPipelines( Device_, PipelineCache_, 1, &PipelineCreateInfo, &Pipeline );
+		BcAssert( !RetVal );
+
+		PSOCache_[ PSOBinding ] = Pipeline;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1111,7 +1405,8 @@ bool RsContextVK::destroyShader(
 bool RsContextVK::createProgram(
 	class RsProgram* Program )
 {
-	BcUnusedVar( Program );
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	new RsProgramVK( Program, Device_ );
 	return true;
 }
 
@@ -1121,7 +1416,10 @@ bool RsContextVK::createProgram(
 bool RsContextVK::destroyProgram(
 	class RsProgram* Program )
 {
-	BcUnusedVar( Program );
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	RsProgramVK* ProgramVK = Program->getHandle< RsProgramVK* >();
+	BcAssert( ProgramVK );
+	delete ProgramVK;
 	return true;
 }
 

@@ -156,13 +156,20 @@ BcF32 BcSigmoidRange( BcF32 T, BcF32 Min, BcF32 Max, BcF32 Scale, BcF32 Bias );
 
 //////////////////////////////////////////////////////////////////////////
 // BcPot
-BcBool BcPot( BcU32 T );
-BcBool BcPot( BcU64 T );
+template< typename _Ty >
+inline BcBool BcPot( _Ty T )
+{
+	return ( ( T & ( T - 1 ) ) == 0 ) || ( T == 1 );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // BcPotRoundUp 
-BcU32 BcPotRoundUp( BcU32 Value, BcU32 RoundUpTo );
-BcU64 BcPotRoundUp( BcU64 Value, BcU64 RoundUpTo );
+template< typename _Ty, typename _Uy >
+inline _Ty BcPotRoundUp( _Ty Value, _Uy RoundUpTo )
+{
+	BcAssert( BcPot( RoundUpTo ) == BcTrue );
+	return ( Value + ( static_cast< _Ty >( RoundUpTo ) - 1 ) ) & ~( ( static_cast< _Ty >( RoundUpTo ) - 1 ) );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // BcPotNext

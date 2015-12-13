@@ -1,6 +1,7 @@
 #pragma once
 
 #include "System/Renderer/GL/RsGL.h"
+#include "System/Renderer/GL/RsProgramFileDataGL.h"
 
 //////////////////////////////////////////////////////////////////////////
 // RsProgramBindTypeGL

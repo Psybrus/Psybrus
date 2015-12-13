@@ -355,12 +355,20 @@ BcBool ScnShaderImport::import( const Json::Value& )
 		// Export header.
 		Header.NoofShaderPermutations_ = static_cast< BcU32 >( BuiltShaderData_.size() );
 		Header.NoofProgramPermutations_ = static_cast< BcU32 >( BuiltProgramData_.size() );
-		Header.NoofShaderCodeTypes_ = static_cast< BcU32 >( OutputCodeTypes_.size() );
+
+		// Determine shader code types built.
+		std::set< RsShaderCodeType > ShaderCodeTypes;
+		for( const auto& BuiltProgramData : BuiltProgramData_ )
+		{
+			ShaderCodeTypes.insert( BuiltProgramData.ShaderCodeType_ );
+		}
+
+		Header.NoofShaderCodeTypes_ = static_cast< BcU32 >( ShaderCodeTypes.size() );
 		
 		Stream << Header;
-		for( auto OutputCodeType : OutputCodeTypes_ )
+		for( auto ShaderCodeType : ShaderCodeTypes )
 		{
-			Stream << OutputCodeType;
+			Stream << ShaderCodeType;
 		}
 
 		CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
@@ -383,8 +391,7 @@ BcBool ScnShaderImport::import( const Json::Value& )
 
 		// Export programs.
 		BcU32 VertexAttributeIdx = 0;
-		BcU32 UniformsIdx = 0;
-		BcU32 UniformBlocksIdx = 0;
+		BcU32 ParameterIdx = 0;
 		for( BcU32 Idx = 0; Idx < BuiltProgramData_.size(); ++Idx )
 		{
 			auto& ProgramData = BuiltProgramData_[ Idx ];
@@ -400,18 +407,11 @@ BcBool ScnShaderImport::import( const Json::Value& )
 				Stream.push( &VertexAttributes[ 0 ], VertexAttributes.size() * sizeof( RsProgramVertexAttribute ) );
 			}
 
-			if( ProgramData.NoofUniforms_ > 0 )
+			if( ProgramData.NoofParameters_ > 0 )
 			{
-				auto& Uniforms = BuiltUniforms_[ UniformsIdx++ ];
-				BcAssert( Uniforms.size() > 0 );
-				Stream.push( &Uniforms[ 0 ], Uniforms.size() * sizeof( RsProgramUniform ) );
-			}
-
-			if( ProgramData.NoofUniformBlocks_ > 0 )
-			{
-				auto& UniformBlocks = BuiltUniformBlocks_[ UniformBlocksIdx++ ];
-				BcAssert( UniformBlocks.size() > 0 );
-				Stream.push( &UniformBlocks[ 0 ], UniformBlocks.size() * sizeof( RsProgramUniformBlock ) );
+				auto& Parameters = BuiltParameters_[ ParameterIdx++ ];
+				BcAssert( Parameters.size() > 0 );
+				Stream.push( &Parameters[ 0 ], Parameters.size() * sizeof( RsProgramParameter ) );
 			}
 
 			CsResourceImporter::addChunk( BcHash( "program" ), Stream.pData(), Stream.dataSize() );			

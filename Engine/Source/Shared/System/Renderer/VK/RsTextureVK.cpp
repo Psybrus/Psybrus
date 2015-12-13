@@ -241,6 +241,9 @@ void RsTextureVK::createViews()
 		}
 		auto RetVal = vkCreateImageView( Device_, &ViewCreateInfo, &ImageView_ );
 		BcAssert( !RetVal );
-		BcAssert( ImageView_ );
+		if( !ImageView_ )
+		{
+			PSY_LOG( "WARNING: Unable to create view for RsTexture %s.", Parent_->getDebugName() );
+		}
 	}
 }

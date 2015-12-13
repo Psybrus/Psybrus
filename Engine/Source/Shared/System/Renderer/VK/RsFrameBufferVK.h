@@ -13,6 +13,11 @@ public:
 	VkFramebuffer getFrameBuffer() const { return FrameBuffer_; }
 	VkRenderPass getRenderPass() const { return RenderPass_; }
 
+	/**
+	 * Get format hash.
+	 */
+	BcU32 getFormatHash() const { return FormatHash_; }
+
 private:
 	void createFrameBuffer();
 	void createRenderPass();
@@ -22,5 +27,6 @@ private:
 	VkDevice Device_ = 0;
 	VkRenderPass RenderPass_ = 0;
 	VkFramebuffer FrameBuffer_ = 0;
+	BcU32 FormatHash_ = 0;
 };
 

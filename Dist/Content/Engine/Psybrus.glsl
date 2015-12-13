@@ -6,6 +6,18 @@
 #version 150
 #elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_330
 #version 330
+#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_400
+#version 400
+#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_410
+#version 410
+#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_420
+#version 420
+#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_430
+#version 430
+#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_440
+#version 440
+#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_450
+#version 450
 #elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 #version 100
 precision mediump float;
@@ -25,23 +37,32 @@ precision mediump float;
 // Input attributes.
 #define VsPosition gl_Position
 
-#if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
-#  define VS_IN( _Ty, _Name, _Semantic )		in _Ty _Name : _Semantic
-#  define VS_OUT( _Ty, _Name )					out _Ty _Name
+#if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_430 )
+#  define VS_IN( _Ty, _Name, _Semantic, _Location )		layout(location=_Location) in _Ty _Name : _Semantic
+#  define VS_OUT( _Ty, _Name, _Semantic )		layout(location=_Semantic) out _Ty _Name
 
-#  define GS_IN( _Ty, _Name )					in _Ty _Name
-#  define GS_OUT( _Ty, _Name )					out _Ty _Name
+#  define GS_IN( _Ty, _Name, _Semantic )		layout(location=_Semantic) in  _Ty _Name
+#  define GS_OUT( _Ty, _Name, _Semantic )		layout(location=_Semantic) out _Ty _Name
 
-#  define PS_IN( _Ty, _Name )					in _Ty _Name
+#  define PS_IN( _Ty, _Name, _Semantic )		layout(location=_Semantic) in _Ty _Name
+
+#elif ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
+#  define VS_IN( _Ty, _Name, _Semantic, _Location )		in _Ty _Name : _Semantic
+#  define VS_OUT( _Ty, _Name, _Semantic )		out _Ty _Name
+
+#  define GS_IN( _Ty, _Name, _Semantic )		in _Ty _Name
+#  define GS_OUT( _Ty, _Name, _Semantic )		out _Ty _Name
+
+#  define PS_IN( _Ty, _Name, _Semantic )		in _Ty _Name
 
 #else
-#  define VS_IN( _Ty, _Name, _Semantic ) 		attribute _Ty _Name : _Semantic
-#  define VS_OUT( _Ty, _Name )					varying _Ty _Name
+#  define VS_IN( _Ty, _Name, _Semantic, _Location ) 		attribute _Ty _Name : _Semantic
+#  define VS_OUT( _Ty, _Name, _Semantic )		varying _Ty _Name
 
-#  define GS_IN( _Ty, _Name )					in _Ty _Name
-#  define GS_OUT( _Ty, _Name )					out _Ty _Name
+#  define GS_IN( _Ty, _Name, _Semantic )		in _Ty _Name
+#  define GS_OUT( _Ty, _Name, _Semantic )		out _Ty _Name
 
-#  define PS_IN( _Ty, _Name )					varying _Ty _Name
+#  define PS_IN( _Ty, _Name, _Semantic )		varying _Ty _Name
 
 #endif
 

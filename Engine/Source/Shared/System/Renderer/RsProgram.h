@@ -27,8 +27,7 @@ public:
 		class RsContext* pContext, 
 		std::vector< class RsShader* >&& Shaders,
 		RsProgramVertexAttributeList&& VertexAttributes,
-		RsProgramUniformList&& UniformList,
-		RsProgramUniformBlockList&& UniformBlockList );
+		RsProgramParameterList&& ParameterList );
 	virtual ~RsProgram();
 	
 	BcU32 findSamplerSlot( const BcChar* Name ) const;
@@ -45,10 +44,13 @@ public:
 
 	const std::vector< class RsShader* >& getShaders() const;
 	const RsProgramVertexAttributeList& getVertexAttributeList() const;
+	const RsProgramParameterList& getParameterList() const;
 	BcU32 getInputLayoutHash() const;
 
 	bool isGraphics() const;
 	bool isCompute() const;
+
+
 
 public:
 	// Used internally by the renderer to patch reflection information
@@ -100,8 +102,7 @@ private:
 	
 	std::vector< class RsShader* > Shaders_;
 	RsProgramVertexAttributeList AttributeList_;
-	RsProgramUniformList UniformList_;
-	RsProgramUniformBlockList UniformBlockList_;
+	RsProgramParameterList ParameterList_;
 	BcU32 InputLayoutHash_;
 };
 

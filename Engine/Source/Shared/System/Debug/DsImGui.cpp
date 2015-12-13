@@ -242,28 +242,29 @@ namespace
 								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
 
 							// Regenerate program binding if we need to.
-							if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
+							if( Cmd->TextureId != nullptr )
 							{
-								if( Cmd->TextureId != nullptr )
+								if( TextureSlot == BcErrorCode || 
+									ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
 								{
-									if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
+									if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 									{
 										ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
 										ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-										ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-										ProgramBinding_.reset();
 									}
+									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+									ProgramBinding_.reset(); // TODO: Causes an assert to fire.
 								}
-								else
+							}
+							else
+							{
+								if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 								{
-									if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != WhiteTexture_.get() )
-									{
-										ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
-										ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-										ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-										ProgramBinding_.reset();
-									}
+									ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
+									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 								}
+								ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+								ProgramBinding_.reset(); // TODO: Causes an assert to fire.
 							}
 							if( ProgramBinding_ == nullptr )
 							{
