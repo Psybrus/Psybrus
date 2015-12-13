@@ -47,8 +47,9 @@ public:
 
 	void translate( const MaVec3d& V );
 	MaVec3d getPosition() const;
+	MaQuat getRotation() const;  
 
-	MaQuat getRotation() const;
+	void setTransform( const MaMat4d& NewTransform );
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;

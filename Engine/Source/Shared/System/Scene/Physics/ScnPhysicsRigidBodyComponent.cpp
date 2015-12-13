@@ -197,7 +197,15 @@ MaVec3d ScnPhysicsRigidBodyComponent::getPosition() const
 // getRotation
 MaQuat ScnPhysicsRigidBodyComponent::getRotation() const
 {
-	return ScnPhysicsFromBullet( RigidBody_->getOrientation() );
+	return ScnPhysicsFromBullet( RigidBody_->getCenterOfMassTransform().getRotation() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setTransform
+void ScnPhysicsRigidBodyComponent::setTransform( const MaMat4d& NewTransform )
+{
+	auto Trans = ScnPhysicsToBullet( NewTransform );
+	RigidBody_->setCenterOfMassTransform( Trans );
 }
 
 //////////////////////////////////////////////////////////////////////////

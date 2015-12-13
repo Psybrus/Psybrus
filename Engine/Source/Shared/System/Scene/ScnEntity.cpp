@@ -183,6 +183,13 @@ void ScnEntity::detach( ScnComponent* Component )
 {
 	if( Component->isFlagSet( scnCF_ATTACHED ) || Component->isFlagSet( scnCF_PENDING_ATTACH ) )
 	{
+		// If component is an entity, recurse down and detach everything first.
+		if( Component->isTypeOf< ScnEntity >() )
+		{
+			ScnEntityRef Entity = Component;
+			Entity->detachAll();
+		}
+
 		BcAssert( Component->getName() != BcName::INVALID );
 		ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
 		if( It != Components_.end() )
@@ -193,6 +200,28 @@ void ScnEntity::detach( ScnComponent* Component )
 		Component->setFlag( scnCF_PENDING_DETACH );
 		ScnCore::pImpl()->queueComponentForDetach( Component );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// detachAll
+void ScnEntity::detachAll()
+{
+	// Recurse entity and detach every component reverse order & top->bottom.
+	visitHierarchy( ScnComponentVisitType::TOP_DOWN, this,
+		[ this ]( ScnComponent* Component, ScnEntity* Parent )
+		{
+			if( Component->isTypeOf< ScnEntity >() )
+			{
+				// Remove components.
+				ScnEntity* Entity = static_cast< ScnEntity* >( Component );
+
+				for( size_t Idx = Entity->getNoofComponents(); Idx > 0; --Idx )
+				{
+					auto EntityComponent = Entity->getComponent( Idx - 1 );
+					Entity->detach( EntityComponent );
+				}
+			}
+		});
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -484,6 +513,7 @@ void ScnEntity::setupComponents()
 			if( getBasis() == nullptr )
 			{
 				ScnComponentRef Component = getPackage()->getCrossRefResource( ComponentCrossRefs[ Idx ] );
+				BcAssertMsg( Component, "A component is null in ScnEntity \"%s\". Is type valid to use as component?", getFullName().c_str() );
 				Components_.push_back( Component );
 			}
 			else

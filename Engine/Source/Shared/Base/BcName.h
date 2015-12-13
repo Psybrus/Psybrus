@@ -113,6 +113,8 @@ private:
 private:
 	static std::mutex& GetLock();
 
+	static BcNameEntryList NameEntryList_;
+
 	/**
 	 * Get string entries.
 	 */

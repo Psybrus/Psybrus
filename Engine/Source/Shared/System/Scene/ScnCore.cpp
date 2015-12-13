@@ -27,6 +27,7 @@
 #include "System/Debug/DsCore.h"
 
 #include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
@@ -48,6 +49,8 @@ SYS_CREATOR( ScnCore );
 ScnCore::ScnCore()
 {
 	pSpatialTree_ = NULL;
+	UpdateEnabled_ = BcTrue;
+	StepSingleUpdate_ = BcFalse;
 	EntitySpawnID_ = 0;
 }
 
@@ -120,6 +123,21 @@ void ScnCore::open()
 	}
 
 #if !PSY_PRODUCTION
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
+		[ this ]( EvtID, const EvtBaseEvent& Event )
+		{
+			const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
+			if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F5 )
+			{
+				UpdateEnabled_ = !UpdateEnabled_;
+			}
+			if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F6 )
+			{
+				StepSingleUpdate_ = BcTrue;
+			}
+			return evtRET_PASS;
+		} );
+
 	DsCore::pImpl()->registerPanel(
 		"Scene Hierarchy", [ this ]( BcU32 )->void
 		{
@@ -156,6 +174,19 @@ void ScnCore::open()
 			static bool ShowOpened = true;
 			if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
 			{
+				// TODO: Move these to into a control panel of some kind.
+				bool UpdateEnabled = !!UpdateEnabled_;
+				if( ImGui::Checkbox( "Enable update (F5)", &UpdateEnabled ) )
+				{
+					UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
+				}
+
+				bool StepSingleUpdate = !!StepSingleUpdate_;
+				if( ImGui::Button( "Step single update (F6)" ) )
+				{
+					StepSingleUpdate_ = BcTrue;
+				}
+
 				if( ImGui::TreeNode( "Scene Hierarchy" ) )
 				{
 					BcU32 Idx = 0;
@@ -238,23 +269,36 @@ void ScnCore::update()
 {
 	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnCore::update" ) );
 
-	BcF32 Tick = SysKernel::pImpl()->getFrameTime();
-
 	// Update scene only if we have focus.
 	if( OsCore::pImpl()->getClient( 0 )->isActive() )
 	{
+		BcF32 Tick = SysKernel::pImpl()->getFrameTime();
+
+		auto ShouldUpdateComponents = UpdateEnabled_ || StepSingleUpdate_;
+
 		// Iterate over all component process funcs.
 		for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
 		{
-			auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
-			auto& ComponentList = ComponentLists_[ ComponentListIdx ];
-			ComponentProcessFunc.Func_( ComponentList );
+			// Always update view, but not other components.
+			// TODO: Don't referenece ScnViewComponent in here, use some debug flag later on.
+			if( ShouldUpdateComponents || ComponentProcessFunc.Class_ == ScnViewComponent::StaticGetClass() )
+			{
+				auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
+				auto& ComponentList = ComponentLists_[ ComponentListIdx ];
+				ComponentProcessFunc.Func_( ComponentList );
+			}
 		}
 
 		// Process pending components at the end of the tick.
 		// We do this because they can be immediately created,
 		// and need a create tick from CsCore next frame.
 		processPendingComponents();
+
+		if( StepSingleUpdate_ )
+		{
+			UpdateEnabled_ = BcFalse;
+			StepSingleUpdate_ = BcFalse;
+		}
 	}
 }
 
@@ -265,6 +309,8 @@ void ScnCore::close()
 {
 	removeAllEntities();
 	processPendingComponents();
+
+	OsCore::pImpl()->unsubscribeAll( this );
 
 	ComponentLists_.clear();
 
@@ -298,26 +344,9 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
 	BcAssert( Entity->getName().isValid() );
-#if 1
-	// Recurse entity and detach every component reverse order & top->bottom.
-	Entity->visitHierarchy( ScnComponentVisitType::TOP_DOWN, Entity,
-		[ this ]( ScnComponent* Component, ScnEntity* Parent )
-		{
-			if( Component->isTypeOf< ScnEntity >() )
-			{
-				// Remove components.
-				ScnEntity* Entity = static_cast< ScnEntity* >( Component );
-
-				for( size_t Idx = Entity->getNoofComponents(); Idx > 0; --Idx )
-				{
-					auto EntityComponent = Entity->getComponent( Idx - 1 );
-					Entity->detach( EntityComponent );
-				}
-			}
-		});
-
 	if( Entity->getParentEntity() == nullptr )
 	{
+		Entity->detachAll();
 		Entity->setFlag( scnCF_PENDING_DETACH );
 		queueComponentForDetach( ScnComponentRef( Entity ) );
 	}
@@ -325,18 +354,6 @@ void ScnCore::removeEntity( ScnEntityRef Entity )
 	{
 		Entity->getParentEntity()->detach( Entity );
 	}
-
-#else
-	if( Entity->getParentEntity() == nullptr )
-	{
-		Entity->setFlag( scnCF_PENDING_DETACH );
-		queueComponentForDetach( ScnComponentRef( Entity ) );
-	}
-	else
-	{
-		Entity->getParentEntity()->detach( Entity );
-	}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

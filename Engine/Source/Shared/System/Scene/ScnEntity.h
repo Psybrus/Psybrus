@@ -79,6 +79,12 @@ public:
 	 * @post Component is queued for pending onDetach.
 	 */
 	void detach( ScnComponent* Component );
+
+	/**
+	 * Detach all components from this entity.
+	 * @post All components will be detached recursively.
+	 */
+	void detachAll();
 	
 	/**
 	 * Get basis entity.
