@@ -499,9 +499,15 @@ function PsyProjectGameExe( _name )
 		language "C++"
 
 	configuration "*"
-	    files { 
+		files { 
 			"../Psybrus/Engine/Targets/Game.cpp" 
 		}
+
+	-- Add natvis for VS.
+	configuration "vs2015"
+		files( "../Psybrus/Tools/VsVisualiser/Psybrus.natvis" )
+
+	configuration "*"
 end
 
 -- Setup game exe project.
@@ -517,9 +523,15 @@ function PsyProjectImporterExe( _name )
 			kind "ConsoleApp"
 			language "C++"
 
-    	files { 
-			"../Psybrus/Engine/Targets/Importer.cpp" 
-		}
+			files { 
+				"../Psybrus/Engine/Targets/Importer.cpp" 
+			}
+
+		-- Add natvis for VS.
+		configuration "vs2015"
+			files( "../Psybrus/Tools/VsVisualiser/Psybrus.natvis" )
+
+		configuration "*"
 	end
 end
 
@@ -540,6 +552,10 @@ function PsyProjectEngineLib( _name )
 	-- Add STATICLIB define for libraries.
 	configuration "*"
 		defines{ "STATICLIB" }
+
+	-- Add natvis for VS.
+	configuration "vs2015"
+		files( "../Psybrus/Tools/VsVisualiser/Psybrus.natvis" )
 
 	-- Terminate project.
 	configuration "*"

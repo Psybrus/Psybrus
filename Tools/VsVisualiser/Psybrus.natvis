@@ -3,10 +3,10 @@
 
 	<!-- BcName visualiser -->
 	<Type Name="BcName">
-		<DisplayString Condition="EntryIndex_ == 4294967295">Entry invalid.</DisplayString> 
-		<DisplayString Condition="ID_ == 4294967295">{(*pStringEntries_)._Myfirst[EntryIndex_].Value_}</DisplayString> 
-		<DisplayString Condition="ID_ != 4294967295">{(*pStringEntries_)._Myfirst[EntryIndex_].Value_}_{ID_}</DisplayString> 
-	</Type>
+    <DisplayString Condition="EntryIndex_ == 4294967295">Name: (INVALID)</DisplayString>
+    <DisplayString Condition="ID_ == 4294967295">{NameEntryList_[EntryIndex_].Value_}</DisplayString>
+    <DisplayString Condition="ID_ != 4294967295">{NameEntryList_[EntryIndex_].Value_}_{ID_}</DisplayString>
+  </Type>
 
 	<!-- CsResource visualiser -->
 	<Type Name="CsResource">
