@@ -1627,8 +1627,6 @@ void RsContextGL::drawIndexedPrimitives(
 	GLenum IndexFormat = GL_UNSIGNED_SHORT;
 	switch( GeometryBindingDesc.IndexBuffer_.Stride_ )
 	{
-	case 1:
-		IndexFormat = GL_UNSIGNED_BYTE;
 		break;
 	case 2:
 		IndexFormat = GL_UNSIGNED_SHORT;
@@ -1637,7 +1635,9 @@ void RsContextGL::drawIndexedPrimitives(
 		IndexFormat = GL_UNSIGNED_INT;
 		break;
 	default:
-		BcAssertMsg( BcFalse, "Invalid index buffer stride specified: %u", GeometryBinding->getDesc().IndexBuffer_.Stride_ );
+		BcAssertMsg( BcFalse, "RsGeometryBinding \"%s\" has invalid index stride (%u)",
+			GeometryBinding->getDebugName(),
+			GeometryBindingDesc.IndexBuffer_.Stride_ );
 	}
 
 	// Convert offset to bytes.

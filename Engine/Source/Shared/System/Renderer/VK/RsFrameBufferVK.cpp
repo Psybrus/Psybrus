@@ -127,11 +127,11 @@ void RsFrameBufferVK::createRenderPass()
 			Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 			Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			Attachment.flags = 0;
 
 			auto& ColourAttachmentReference = ColourAttachmentReferences[ Idx ];
 			ColourAttachmentReference.attachment = AttachmentIdx;
 			ColourAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
 			++AttachmentIdx;
 		}
 	}
@@ -151,6 +151,7 @@ void RsFrameBufferVK::createRenderPass()
 		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 		Attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		Attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		Attachment.flags = 0;
 
 		DepthStencilAttachmentReference.attachment = AttachmentIdx;
 		DepthStencilAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

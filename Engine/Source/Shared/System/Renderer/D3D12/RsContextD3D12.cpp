@@ -722,15 +722,16 @@ void RsContextD3D12::bindInputAssembler(
 		BoundIndexBufferView_.SizeInBytes = static_cast< UINT >( Desc.IndexBuffer_.Buffer_->getDesc().SizeBytes_ );
 		switch( Desc.IndexBuffer_.Stride_ )
 		{
-		case 1:
-			BoundIndexBufferView_.Format = DXGI_FORMAT_R8_UINT;
-			break;
 		case 2:
 			BoundIndexBufferView_.Format = DXGI_FORMAT_R16_UINT;
 			break;
 		case 4:
 			BoundIndexBufferView_.Format = DXGI_FORMAT_R32_UINT;
 			break;
+		default:
+			BcAssertMsg( BcFalse, "RsGeometryBinding \"%s\" has invalid index stride (%u)",
+				GeometryBinding->getDebugName(),
+				GeometryBinding->getDesc().IndexBuffer_.Stride_ );
 		}
 	}
 	else

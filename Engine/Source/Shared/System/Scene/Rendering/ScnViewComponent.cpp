@@ -434,6 +434,15 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 			PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
 		}
 
+#if PSY_DEBUG
+		// Clear to an ugly colour in debug.
+		pFrame->queueRenderNode( Sort,
+			[]( RsContext* Context )
+			{
+				Context->clear( nullptr, RsColour::PURPLE, BcTrue, BcTrue, BcTrue );
+			} );
+#endif
+
 		// Iterate over all view components.
 		for( auto Component : Components )
 		{

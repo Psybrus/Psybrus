@@ -257,3 +257,25 @@ VkFormat RsUtilsVK::GetVertexElementFormat( RsVertexElement Element )
 
 	return Format;
 }
+
+VkBufferUsageFlagBits RsUtilsVK::GetBufferUsageFlags( RsResourceBindFlags BindFlags )
+{
+	BcU32 Flags = 0;
+	if( ( BindFlags & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		Flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	}
+	else if( ( BindFlags & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		Flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	}
+	else if( ( BindFlags & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
+	{
+		Flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+	}
+	else if( ( BindFlags & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE )
+	{
+		Flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+	}
+	return static_cast< VkBufferUsageFlagBits >( Flags );	
+}

@@ -48,6 +48,16 @@ public:
 	const std::vector< VkShaderModule >& getShaderModules() const { return ShaderModules_; }
 	const std::vector< VkShader >& getShaders() const { return Shaders_; }
 
+	size_t getSRVBindCount() { return SRVBindInfo_.size(); };
+	size_t getUAVBindCount() { return UAVBindInfo_.size(); };
+	size_t getSamplerBindCount() { return SamplerBindInfo_.size(); };
+	size_t getUniformBufferBindCount() { return UniformBufferBindInfo_.size(); };
+
+	RsProgramBindInfoVK getSRVBindInfo( BcU32 Idx ) const { return SRVBindInfo_[ Idx ]; };
+	RsProgramBindInfoVK getUAVBindInfo( BcU32 Idx ) const { return UAVBindInfo_[ Idx ]; };
+	RsProgramBindInfoVK getSamplerBindInfo( BcU32 Idx ) const { return SamplerBindInfo_[ Idx ]; };
+	RsProgramBindInfoVK getUniformBufferBindInfo( BcU32 Idx ) const { return UniformBufferBindInfo_[ Idx ]; };
+
 private:
 	class RsProgram* Parent_;
 	VkDevice Device_;

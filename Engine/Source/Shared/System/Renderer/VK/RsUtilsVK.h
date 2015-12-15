@@ -13,6 +13,7 @@ public:
 	static VkPrimitiveTopology GetPrimitiveTopology( RsTopologyType TopologyType );
 	static VkShaderStage GetShaderStage( RsShaderType ShaderType );
 	static VkFormat GetVertexElementFormat( RsVertexElement Element );
+	static VkBufferUsageFlagBits GetBufferUsageFlags( RsResourceBindFlags BindFlags );
 };
 
 

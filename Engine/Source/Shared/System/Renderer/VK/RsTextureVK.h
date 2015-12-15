@@ -29,6 +29,7 @@ public:
 
 	VkImage getImage() const { return Image_; }
 	VkImageView getImageView() const { return ImageView_; }
+	VkImageLayout getImageLayout() const { return ImageLayout_; }
 	VkDeviceMemory getDeviceMemory() const { return DeviceMemory_; }
 
 private:
