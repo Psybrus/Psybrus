@@ -15,7 +15,7 @@
 
 	<!-- RsResource visualiser -->
 	<Type Name="RsResource">
-		<DisplayString>{Name_}</DisplayString> 
+		<DisplayString>{DebugName_}</DisplayString> 
 	</Type>
 
 	<!-- ScnComponent visualiser -->
