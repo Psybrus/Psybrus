@@ -10,8 +10,11 @@ public:
 	RsFrameBufferVK( class RsFrameBuffer* Parent, VkDevice Device );
 	~RsFrameBufferVK();
 
-	VkFramebuffer getFrameBuffer() const { return FrameBuffer_; }
-	VkRenderPass getRenderPass() const { return RenderPass_; }
+	VkFramebuffer getLoadFrameBuffer() const { return FrameBuffers_[0]; }
+	VkRenderPass getLoadRenderPass() const { return RenderPasses_[0]; }
+
+	VkFramebuffer getClearFrameBuffer() const { return FrameBuffers_[1]; }
+	VkRenderPass getClearRenderPass() const { return RenderPasses_[1]; }
 
 	/**
 	 * Get format hash.
@@ -25,8 +28,8 @@ private:
 private:
 	class RsFrameBuffer* Parent_ = nullptr;
 	VkDevice Device_ = 0;
-	VkRenderPass RenderPass_ = 0;
-	VkFramebuffer FrameBuffer_ = 0;
+	std::array< VkRenderPass, 2 > RenderPasses_;
+	std::array< VkFramebuffer, 2 > FrameBuffers_;
 	BcU32 FormatHash_ = 0;
 };
 

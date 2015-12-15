@@ -49,6 +49,11 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	CountIdx++;
 	TotalInfos += 16;
 
+	BcU32 MaxImageSampler = 0;
+	BcU32 MaxUniformBuffer = 0;
+	BcU32 MaxStorageImage = 0;
+	BcU32 MaxStorageBuffer = 0;
+
 	VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo;
 	DescriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	DescriptorPoolCreateInfo.pNext = nullptr;
@@ -82,6 +87,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 			auto BindInfo = ProgramVK->getSamplerBindInfo( Idx );
 			auto& DescInfo = DescInfos[ ImageSamplerBase + BindInfo.Binding_ ];
 			DescInfo.sampler = SamplerState->getHandle< VkSampler >();
+
+			MaxImageSampler = std::max( MaxImageSampler, BindInfo.Binding_ + 1 );
 		}
 	}
 
@@ -98,6 +105,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 			DescInfo.bufferInfo.buffer = BufferVK->getBuffer();
 			DescInfo.bufferInfo.offset = 0;
 			DescInfo.bufferInfo.range = UniformBuffer->getDesc().SizeBytes_;
+
+			MaxUniformBuffer = std::max( MaxUniformBuffer, BindInfo.Binding_ + 1 );
 		}
 	}
 
@@ -116,6 +125,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 					auto TextureVK = ShaderResource.Texture_->getHandle< const RsTextureVK* >();
 					DescInfo.imageView = TextureVK->getImageView();
 					DescInfo.imageLayout = TextureVK->getImageLayout();
+
+					MaxImageSampler = std::max( MaxImageSampler, BindInfo.Binding_ + 1 );
 				}
 				break;
 			case RsProgramBindTypeVK::IMAGE:
@@ -124,6 +135,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 					auto TextureVK = ShaderResource.Texture_->getHandle< const RsTextureVK* >();
 					DescInfo.imageView = TextureVK->getImageView();
 					DescInfo.imageLayout = TextureVK->getImageLayout();
+
+					MaxStorageImage = std::max( MaxStorageImage, BindInfo.Binding_ + 1 );
 				}
 				break;
 			case RsProgramBindTypeVK::BUFFER:
@@ -134,6 +147,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 					DescInfo.bufferInfo.buffer = BufferVK->getBuffer();
 					DescInfo.bufferInfo.offset = 0;
 					DescInfo.bufferInfo.range = ShaderResource.Buffer_->getDesc().SizeBytes_;
+
+					MaxStorageBuffer = std::max( MaxStorageBuffer, BindInfo.Binding_ + 1 );
 				}
 				break;
 			default:
@@ -159,6 +174,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 					auto TextureVK = ShaderResource.Texture_->getHandle< const RsTextureVK* >();
 					DescInfo.imageView = TextureVK->getImageView();
 					DescInfo.imageLayout = TextureVK->getImageLayout();
+
+					MaxImageSampler = std::max( MaxImageSampler, BindInfo.Binding_ + 1 );
 				}
 				break;
 			case RsProgramBindTypeVK::IMAGE:
@@ -167,6 +184,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 					auto TextureVK = ShaderResource.Texture_->getHandle< const RsTextureVK* >();
 					DescInfo.imageView = TextureVK->getImageView();
 					DescInfo.imageLayout = TextureVK->getImageLayout();
+
+					MaxStorageImage = std::max( MaxStorageImage, BindInfo.Binding_ + 1 );
 				}
 				break;
 			case RsProgramBindTypeVK::BUFFER:
@@ -177,6 +196,8 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 					DescInfo.bufferInfo.buffer = BufferVK->getBuffer();
 					DescInfo.bufferInfo.offset = 0;
 					DescInfo.bufferInfo.range = ShaderResource.Buffer_->getDesc().SizeBytes_;
+
+					MaxStorageBuffer = std::max( MaxStorageBuffer, BindInfo.Binding_ + 1 );
 				}
 				break;
 			default:
@@ -191,25 +212,29 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	memset( WriteSet.data(), 0, sizeof( WriteSet ) );
 	WriteSet[ 0 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 0 ].destSet = DescriptorSet_;
-	WriteSet[ 0 ].count = 16;
+	WriteSet[ 0 ].destBinding = 0;
+	WriteSet[ 0 ].count = MaxImageSampler;
 	WriteSet[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	WriteSet[ 0 ].pDescriptors = DescInfos.data() + ImageSamplerBase;
 
 	WriteSet[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 1 ].destSet = DescriptorSet_;
-	WriteSet[ 1 ].count = 16;
+	WriteSet[ 1 ].destBinding = 1;
+	WriteSet[ 1 ].count = MaxUniformBuffer;
 	WriteSet[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	WriteSet[ 1 ].pDescriptors = DescInfos.data() + UniformBufferBase;
 
 	WriteSet[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 2 ].destSet = DescriptorSet_;
-	WriteSet[ 2 ].count = 16;
+	WriteSet[ 2 ].destBinding = 2;
+	WriteSet[ 2 ].count = MaxStorageImage;
 	WriteSet[ 2 ].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 	WriteSet[ 2 ].pDescriptors = DescInfos.data() + StorageImageBase;
 
 	WriteSet[ 3 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 3 ].destSet = DescriptorSet_;
-	WriteSet[ 3 ].count = 16;
+	WriteSet[ 3 ].destBinding = 3;
+	WriteSet[ 3 ].count = MaxStorageBuffer;
 	WriteSet[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 	WriteSet[ 3 ].pDescriptors = DescInfos.data() + StorageBufferBase;
 

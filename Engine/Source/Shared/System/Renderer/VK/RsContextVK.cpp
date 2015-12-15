@@ -164,7 +164,7 @@ void RsContextVK::endFrame()
 	BcAssert( InsideBeginEndFrame_ );
 	InsideBeginEndFrame_ = false;
 
-	bindFrameBuffer( nullptr, nullptr, nullptr );
+	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
 
 	// End command buffer.
 	auto RetVal = vkEndCommandBuffer( CommandBuffer_ );
@@ -909,48 +909,75 @@ void RsContextVK::clear(
 	
 	const auto& Desc = FrameBuffer->getDesc();
 
-	bindFrameBuffer( FrameBuffer, nullptr, nullptr );
-
-	if( EnableClearColour )
+	if( EnableClearColour && EnableClearDepth && EnableClearStencil )
 	{
-		VkClearColorValue ClearColour;
-		ClearColour.float32[ 0 ] = Colour.r();
-		ClearColour.float32[ 1 ] = Colour.g();
-		ClearColour.float32[ 2 ] = Colour.b();
-		ClearColour.float32[ 3 ] = Colour.a();
+		BcU32 NoofClearValues = 0;
+		std::array< VkClearValue, 8 > ClearValues;
+
 		for( size_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
 		{
-			auto TextureVK = Desc.RenderTargets_[ Idx ]->getHandle< RsTextureVK* >();
-			VkRect3D ClearRange;
-			ClearRange.offset.x = 0;
-			ClearRange.offset.y = 0;
-			ClearRange.offset.z = 0;
-			ClearRange.extent.width = Desc.RenderTargets_[ Idx ]->getDesc().Width_;
-			ClearRange.extent.height = Desc.RenderTargets_[ Idx ]->getDesc().Height_;
-			ClearRange.extent.depth = Desc.RenderTargets_[ Idx ]->getDesc().Depth_;
-			vkCmdClearColorAttachment( CommandBuffer_, Idx, TextureVK->getImageLayout(), &ClearColour, 1, &ClearRange );
+			ClearValues[ NoofClearValues ].color.float32[0] = Colour.r();
+			ClearValues[ NoofClearValues ].color.float32[1] = Colour.g();
+			ClearValues[ NoofClearValues ].color.float32[2] = Colour.b();
+			ClearValues[ NoofClearValues ].color.float32[3] = Colour.a();
+			++NoofClearValues;
 		}
-	}
 
-	if( EnableClearDepth || EnableClearStencil )
-	{
-		VkImageAspectFlags AspectFlags = 
-			EnableClearDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : 0 |
-			EnableClearStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0;
-		VkClearDepthStencilValue ClearDepthStencil;
-		ClearDepthStencil.depth = 1.0f;
-		ClearDepthStencil.stencil = 0;
-		if( Desc.DepthStencilTarget_ != nullptr )
+		if( Desc.DepthStencilTarget_ )
 		{
-			auto TextureVK = Desc.DepthStencilTarget_->getHandle< RsTextureVK* >();
-			VkRect3D ClearRange;
-			ClearRange.offset.x = 0;
-			ClearRange.offset.y = 0;
-			ClearRange.offset.z = 0;
-			ClearRange.extent.width = Desc.DepthStencilTarget_->getDesc().Width_;
-			ClearRange.extent.height = Desc.DepthStencilTarget_->getDesc().Height_;
-			ClearRange.extent.depth = Desc.DepthStencilTarget_->getDesc().Depth_;
-			vkCmdClearDepthStencilAttachment( CommandBuffer_, AspectFlags, TextureVK->getImageLayout(), &ClearDepthStencil, 1, &ClearRange );
+			ClearValues[ NoofClearValues ].depthStencil.depth = 1.0f;
+			ClearValues[ NoofClearValues ].depthStencil.stencil = 0;
+			++NoofClearValues;
+		}
+
+		bindFrameBuffer( FrameBuffer, nullptr, nullptr, NoofClearValues, ClearValues.data() );
+	}
+	else
+	{
+		BcAssertMsg( BcFalse, "Code path to clear attachments needs retesting." ); 
+		bindFrameBuffer( FrameBuffer, nullptr, nullptr, 0, nullptr );
+
+		if( EnableClearColour )
+		{
+			VkClearColorValue ClearColour;
+			ClearColour.float32[ 0 ] = Colour.r();
+			ClearColour.float32[ 1 ] = Colour.g();
+			ClearColour.float32[ 2 ] = Colour.b();
+			ClearColour.float32[ 3 ] = Colour.a();
+			for( size_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
+			{
+				auto TextureVK = Desc.RenderTargets_[ Idx ]->getHandle< RsTextureVK* >();
+				VkRect3D ClearRange;
+				ClearRange.offset.x = 0;
+				ClearRange.offset.y = 0;
+				ClearRange.offset.z = 0;
+				ClearRange.extent.width = Desc.RenderTargets_[ Idx ]->getDesc().Width_;
+				ClearRange.extent.height = Desc.RenderTargets_[ Idx ]->getDesc().Height_;
+				ClearRange.extent.depth = Desc.RenderTargets_[ Idx ]->getDesc().Depth_;
+				vkCmdClearColorAttachment( CommandBuffer_, Idx, TextureVK->getImageLayout(), &ClearColour, 1, &ClearRange );
+			}
+		}
+
+		if( EnableClearDepth || EnableClearStencil )
+		{
+			VkImageAspectFlags AspectFlags = 
+				EnableClearDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : 0 |
+				EnableClearStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0;
+			VkClearDepthStencilValue ClearDepthStencil;
+			ClearDepthStencil.depth = 1.0f;
+			ClearDepthStencil.stencil = 0;
+			if( Desc.DepthStencilTarget_ != nullptr )
+			{
+				auto TextureVK = Desc.DepthStencilTarget_->getHandle< RsTextureVK* >();
+				VkRect3D ClearRange;
+				ClearRange.offset.x = 0;
+				ClearRange.offset.y = 0;
+				ClearRange.offset.z = 0;
+				ClearRange.extent.width = Desc.DepthStencilTarget_->getDesc().Width_;
+				ClearRange.extent.height = Desc.DepthStencilTarget_->getDesc().Height_;
+				ClearRange.extent.depth = Desc.DepthStencilTarget_->getDesc().Depth_;
+				vkCmdClearDepthStencilAttachment( CommandBuffer_, AspectFlags, TextureVK->getImageLayout(), &ClearDepthStencil, 1, &ClearRange );
+			}
 		}
 	}
 }
@@ -975,7 +1002,7 @@ void RsContextVK::drawPrimitives(
 		FrameBuffer = getBackBuffer();
 	}
 
-	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
+	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect, 0, nullptr );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding, RenderState, FrameBuffer );
 	vkCmdDraw( CommandBuffer_, NoofVertices, 1, VertexOffset, 0 );
 }
@@ -1000,7 +1027,7 @@ void RsContextVK::drawIndexedPrimitives(
 		FrameBuffer = getBackBuffer();
 	}
 
-	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
+	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect, 0, nullptr );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding, RenderState, FrameBuffer );
 	vkCmdDrawIndexed( CommandBuffer_, NoofIndices, 1, IndexOffset, VertexOffset, 0 );
 }
@@ -1019,9 +1046,12 @@ void RsContextVK::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 
 //////////////////////////////////////////////////////////////////////////
 // bindFrameBuffer
-void RsContextVK::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
+void RsContextVK::bindFrameBuffer( 
+	const RsFrameBuffer* FrameBuffer, 
+	const RsViewport* Viewport, const RsScissorRect* ScissorRect, 
+	BcU32 NoofClearValues, const VkClearValue* ClearValues )
 {
-	if( FrameBuffer != BoundFrameBuffer_ )
+	if( FrameBuffer != BoundFrameBuffer_ || NoofClearValues > 0 )
 	{
 		// End pass from old frame buffer.
 		if( BoundFrameBuffer_ != nullptr )
@@ -1029,37 +1059,29 @@ void RsContextVK::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 			vkCmdEndRenderPass( CommandBuffer_ );
 		}
 
-		// Assign new.
+		// Assign new bound framebuffer.
 		BoundFrameBuffer_ = FrameBuffer;
 
 		// If we have bound, begin new pass.
 		if( BoundFrameBuffer_ )
 		{
+
 			// Set render pass for frame buffer.
 			RsFrameBuffer* FrameBuffer = FrameBuffers_[ CurrentFrameBuffer_ ];
 			RsFrameBufferVK* FrameBufferVK = FrameBuffer->getHandle< RsFrameBufferVK* >();
-			
-#if 0
-			VkClearValue ClearValues[2];
-			ClearValues[0].color.float32[0] = 1.0f;
-			ClearValues[0].color.float32[1] = 0.0f;
-			ClearValues[0].color.float32[2] = 1.0f;
-			ClearValues[0].color.float32[3] = 1.0f;
-			ClearValues[1].depthStencil.depth = 1.0f;
-			ClearValues[1].depthStencil.stencil = 0;
-#endif
+			BoundRenderPass_ = NoofClearValues > 0 ? FrameBufferVK->getClearRenderPass() : FrameBufferVK->getLoadRenderPass();
 
 			VkRenderPassBeginInfo BeginInfo = {};
 			BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			BeginInfo.pNext = nullptr;
-			BeginInfo.renderPass = FrameBufferVK->getRenderPass();
-			BeginInfo.framebuffer = FrameBufferVK->getFrameBuffer();
+			BeginInfo.renderPass = BoundRenderPass_;
+			BeginInfo.framebuffer = NoofClearValues > 0 ? FrameBufferVK->getClearFrameBuffer() : FrameBufferVK->getLoadFrameBuffer();
 			BeginInfo.renderArea.offset.x = 0;
 			BeginInfo.renderArea.offset.y = 0;
 			BeginInfo.renderArea.extent.width = FrameBuffer->getDesc().RenderTargets_[ 0 ]->getDesc().Width_;
 			BeginInfo.renderArea.extent.height = FrameBuffer->getDesc().RenderTargets_[ 0 ]->getDesc().Height_;
-			BeginInfo.clearValueCount = 0;
-			BeginInfo.pClearValues = nullptr;
+			BeginInfo.clearValueCount = NoofClearValues;
+			BeginInfo.pClearValues = ClearValues;
 
 			// Begin render pass.
 			vkCmdBeginRenderPass( CommandBuffer_, &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
@@ -1129,7 +1151,8 @@ void RsContextVK::bindGraphicsPSO(
 		GeometryBinding,
 		Program, 
 		RenderState,
-		FrameBuffer );
+		FrameBuffer,
+		BoundRenderPass_.handle );
 	auto FoundPSO = PSOCache_.find( PSOBinding );
 	if( FoundPSO == PSOCache_.end() )
 	{
@@ -1301,7 +1324,7 @@ void RsContextVK::bindGraphicsPSO(
 		PipelineCreateInfo.pViewportState = &VP;
 		PipelineCreateInfo.pDepthStencilState = &DS;
 		PipelineCreateInfo.pStages = ShaderStages;
-		PipelineCreateInfo.renderPass = FrameBufferVK->getRenderPass();
+		PipelineCreateInfo.renderPass = BoundRenderPass_;
 		PipelineCreateInfo.pDynamicState = &DynamicState;
 
 		RetVal = vkCreateGraphicsPipelines( Device_, PipelineCache_, 1, &PipelineCreateInfo, &Pipeline );
@@ -1390,7 +1413,28 @@ bool RsContextVK::createSamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( SamplerState );
+
+	VkSamplerCreateInfo SamplerCreateInfo = {};
+	SamplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	SamplerCreateInfo.pNext = nullptr;
+	SamplerCreateInfo.magFilter = VK_TEX_FILTER_NEAREST;
+	SamplerCreateInfo.minFilter = VK_TEX_FILTER_NEAREST;
+	SamplerCreateInfo.mipMode = VK_TEX_MIPMAP_MODE_BASE;
+	SamplerCreateInfo.addressModeU = VK_TEX_ADDRESS_MODE_CLAMP;
+	SamplerCreateInfo.addressModeV = VK_TEX_ADDRESS_MODE_CLAMP;
+	SamplerCreateInfo.addressModeW = VK_TEX_ADDRESS_MODE_CLAMP;
+	SamplerCreateInfo.mipLodBias = 0.0f;
+	SamplerCreateInfo.maxAnisotropy = 1;
+	SamplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
+	SamplerCreateInfo.minLod = 0.0f;
+	SamplerCreateInfo.maxLod = 0.0f;
+	SamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+	SamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+
+	VkSampler SamplerVK;
+	auto RetVal = vkCreateSampler( Device_, &SamplerCreateInfo, &SamplerVK );
+	BcAssert( !RetVal );
+	SamplerState->setHandle( SamplerVK.handle );
 	return true;
 }
 
@@ -1400,7 +1444,9 @@ bool RsContextVK::destroySamplerState(
 	RsSamplerState* SamplerState )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( SamplerState );
+	VkSampler SamplerVK = SamplerState->getHandle< VkSampler >();
+	vkDestroySampler( Device_, SamplerVK );
+	SamplerState->setHandle( 0 );
 	return true;
 }
 

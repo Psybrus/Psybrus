@@ -71,7 +71,10 @@ public:
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups );
 
-	void bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect );
+	void bindFrameBuffer( 
+		const RsFrameBuffer* FrameBuffer, 
+		const RsViewport* Viewport, const RsScissorRect* ScissorRect,
+		BcU32 NoofClearValues, const VkClearValue* ClearValues );
 	void bindGraphicsPSO( 
 		RsTopologyType TopologyType,
 		const RsGeometryBinding* GeometryBinding, 
@@ -199,6 +202,7 @@ private:
 	std::vector< class RsFrameBuffer* > FrameBuffers_ = {};
 	uint32_t CurrentFrameBuffer_ = 0;
 	const RsFrameBuffer* BoundFrameBuffer_ = nullptr;
+	VkRenderPass BoundRenderPass_;
 
 	// Internal utilities.
 	std::unique_ptr< class RsAllocatorVK > Allocator_;
@@ -218,7 +222,8 @@ private:
 		const RsGeometryBinding*,
 		const RsProgram*, 
 		const RsRenderState*, 
-		const RsFrameBuffer* >;
+		const RsFrameBuffer*,
+		uint64_t >;
 	std::map< PSOBindingTuple, VkPipeline > PSOCache_;
 	VkPipelineCache PipelineCache_;
 };

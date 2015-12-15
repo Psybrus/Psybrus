@@ -20,16 +20,16 @@ RsFrameBufferVK::RsFrameBufferVK( class RsFrameBuffer* Parent, VkDevice Device )
 // Dtor
 RsFrameBufferVK::~RsFrameBufferVK()
 {
-	if( RenderPass_ )
+	for( auto& RenderPass : RenderPasses_ )
 	{
-		vkDestroyRenderPass( Device_, RenderPass_ );
-		RenderPass_ = 0;
+		vkDestroyRenderPass( Device_, RenderPass );
+		RenderPass = 0;
 	}
 
-	if( FrameBuffer_ )
+	for( auto& FrameBuffer : FrameBuffers_ )
 	{
-		vkDestroyFramebuffer( Device_, FrameBuffer_ );
-		FrameBuffer_ = 0;
+		vkDestroyFramebuffer( Device_, FrameBuffer );
+		FrameBuffer = 0;
 	}
 
 	Parent_->setHandle( 0 );
@@ -83,19 +83,21 @@ void RsFrameBufferVK::createFrameBuffer()
 		FormatHash_ = BcHash::GenerateCRC32( FormatHash_, &DepthStencilDesc.Format_, sizeof( DepthStencilDesc.Format_ ) );
 	}
 
-	VkFramebufferCreateInfo FrameBufferCreateInfo = {};
-	FrameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	FrameBufferCreateInfo.pNext = nullptr;
-	FrameBufferCreateInfo.renderPass = RenderPass_;
-	FrameBufferCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentIdx );
-	FrameBufferCreateInfo.pAttachments = ImageViews.data();
-	FrameBufferCreateInfo.width  = Width;
-	FrameBufferCreateInfo.height = Height;
-	FrameBufferCreateInfo.layers = 1;
+	for( size_t PassTypeIdx = 0; PassTypeIdx < RenderPasses_.size(); ++PassTypeIdx )
+	{
+		VkFramebufferCreateInfo FrameBufferCreateInfo = {};
+		FrameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		FrameBufferCreateInfo.pNext = nullptr;
+		FrameBufferCreateInfo.renderPass = RenderPasses_[ PassTypeIdx ];
+		FrameBufferCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentIdx );
+		FrameBufferCreateInfo.pAttachments = ImageViews.data();
+		FrameBufferCreateInfo.width  = Width;
+		FrameBufferCreateInfo.height = Height;
+		FrameBufferCreateInfo.layers = 1;
 
-	auto RetVal = vkCreateFramebuffer( Device_, &FrameBufferCreateInfo, &FrameBuffer_ );
-	BcAssert( !RetVal );
-
+		auto RetVal = vkCreateFramebuffer( Device_, &FrameBufferCreateInfo, &FrameBuffers_[ PassTypeIdx ] );
+		BcAssert( !RetVal );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,86 +107,95 @@ void RsFrameBufferVK::createRenderPass()
 	const auto Desc = Parent_->getDesc();
 	const size_t NoofAttachments = Desc.RenderTargets_.size() + ( Desc.DepthStencilTarget_ ? 1 : 0 );
 
-	// Setup render pass.
-	std::vector< VkAttachmentDescription > Attachments( NoofAttachments );
-	std::vector< VkAttachmentReference > ColourAttachmentReferences( Desc.RenderTargets_.size() );
-	VkAttachmentReference DepthStencilAttachmentReference = {};
-	uint32_t AttachmentIdx = 0;
-	for( uint32_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
+	VkAttachmentLoadOp LoadOps[] =
 	{
-		if( Desc.RenderTargets_[ Idx ] )
+		VK_ATTACHMENT_LOAD_OP_LOAD,
+		VK_ATTACHMENT_LOAD_OP_CLEAR
+	};
+
+	for( size_t PassTypeIdx = 0; PassTypeIdx < RenderPasses_.size(); ++PassTypeIdx )
+	{
+		// Setup render pass.
+		std::vector< VkAttachmentDescription > Attachments( NoofAttachments );
+		std::vector< VkAttachmentReference > ColourAttachmentReferences( Desc.RenderTargets_.size() );
+		VkAttachmentReference DepthStencilAttachmentReference = {};
+		uint32_t AttachmentIdx = 0;
+		for( uint32_t Idx = 0; Idx < Desc.RenderTargets_.size(); ++Idx )
 		{
-			auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
+			if( Desc.RenderTargets_[ Idx ] )
+			{
+				auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
+
+				auto& Attachment = Attachments[ AttachmentIdx ];
+				Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
+				Attachment.pNext = nullptr;
+				Attachment.format = RsUtilsVK::GetTextureFormat( RenderTargetDesc.Format_ );
+				Attachment.samples = 1;
+				Attachment.loadOp = LoadOps[ PassTypeIdx ];
+				Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				Attachment.stencilLoadOp = LoadOps[ PassTypeIdx ];
+				Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+				Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				Attachment.flags = 0;
+
+				auto& ColourAttachmentReference = ColourAttachmentReferences[ Idx ];
+				ColourAttachmentReference.attachment = AttachmentIdx;
+				ColourAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				++AttachmentIdx;
+			}
+		}
+	
+		if( Desc.DepthStencilTarget_ )
+		{
+			auto& DepthStencilDesc = Desc.DepthStencilTarget_->getDesc();
 
 			auto& Attachment = Attachments[ AttachmentIdx ];
 			Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
 			Attachment.pNext = nullptr;
-			Attachment.format = RsUtilsVK::GetTextureFormat( RenderTargetDesc.Format_ );
+			Attachment.format = RsUtilsVK::GetTextureFormat( DepthStencilDesc.Format_ );
 			Attachment.samples = 1;
-			Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			Attachment.loadOp = LoadOps[ PassTypeIdx ];
 			Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			Attachment.stencilLoadOp = LoadOps[ PassTypeIdx ];
 			Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-			Attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			Attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			Attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			Attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			Attachment.flags = 0;
 
-			auto& ColourAttachmentReference = ColourAttachmentReferences[ Idx ];
-			ColourAttachmentReference.attachment = AttachmentIdx;
-			ColourAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			DepthStencilAttachmentReference.attachment = AttachmentIdx;
+			DepthStencilAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 			++AttachmentIdx;
 		}
+
+		VkSubpassDescription Subpass = {};
+		Subpass.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION;
+		Subpass.pNext = nullptr;
+		Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		Subpass.flags = 0;
+		Subpass.inputCount = 0;
+		Subpass.pInputAttachments = nullptr;
+		Subpass.colorCount = static_cast< uint32_t >( ColourAttachmentReferences.size() );
+		Subpass.pColorAttachments = ColourAttachmentReferences.data();
+		Subpass.pResolveAttachments = nullptr;
+		Subpass.depthStencilAttachment = DepthStencilAttachmentReference;
+		Subpass.preserveCount = 0;
+		Subpass.pPreserveAttachments = nullptr;
+
+		VkRenderPassCreateInfo RenderPassCreateInfo = {};
+		RenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		RenderPassCreateInfo.pNext = nullptr;
+		RenderPassCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentIdx );
+		RenderPassCreateInfo.pAttachments = Attachments.data();
+		RenderPassCreateInfo.subpassCount = 1;
+		RenderPassCreateInfo.pSubpasses = &Subpass;
+		RenderPassCreateInfo.dependencyCount = 0;
+		RenderPassCreateInfo.pDependencies = nullptr;
+
+		auto RetVal = vkCreateRenderPass( Device_, &RenderPassCreateInfo, &RenderPasses_[ PassTypeIdx ] );
+		BcAssert( !RetVal );
 	}
-	
-	if( Desc.DepthStencilTarget_ )
-	{
-		auto& DepthStencilDesc = Desc.DepthStencilTarget_->getDesc();
-
-		auto& Attachment = Attachments[ AttachmentIdx ];
-		Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
-		Attachment.pNext = nullptr;
-		Attachment.format = RsUtilsVK::GetTextureFormat( DepthStencilDesc.Format_ );
-		Attachment.samples = 1;
-		Attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		Attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-		Attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		Attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		Attachment.flags = 0;
-
-		DepthStencilAttachmentReference.attachment = AttachmentIdx;
-		DepthStencilAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-		++AttachmentIdx;
-	}
-
-	VkSubpassDescription Subpass = {};
-	Subpass.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION;
-	Subpass.pNext = nullptr;
-	Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	Subpass.flags = 0;
-	Subpass.inputCount = 0;
-	Subpass.pInputAttachments = nullptr;
-	Subpass.colorCount = static_cast< uint32_t >( ColourAttachmentReferences.size() );
-	Subpass.pColorAttachments = ColourAttachmentReferences.data();
-	Subpass.pResolveAttachments = nullptr;
-	Subpass.depthStencilAttachment = DepthStencilAttachmentReference;
-	Subpass.preserveCount = 0;
-	Subpass.pPreserveAttachments = nullptr;
-
-	VkRenderPassCreateInfo RenderPassCreateInfo = {};
-	RenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	RenderPassCreateInfo.pNext = nullptr;
-	RenderPassCreateInfo.attachmentCount = static_cast< uint32_t >( AttachmentIdx );
-	RenderPassCreateInfo.pAttachments = Attachments.data();
-	RenderPassCreateInfo.subpassCount = 1;
-	RenderPassCreateInfo.pSubpasses = &Subpass;
-	RenderPassCreateInfo.dependencyCount = 0;
-	RenderPassCreateInfo.pDependencies = nullptr;
-
-	auto RetVal = vkCreateRenderPass( Device_, &RenderPassCreateInfo, &RenderPass_ );
-	BcAssert( !RetVal );
 }
 
 
