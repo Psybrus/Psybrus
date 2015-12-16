@@ -167,7 +167,7 @@ void RsContextVK::endFrame()
 	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
 
 	// End command buffer.
-	VK( vkEndCommandBuffer( CommandBuffer_ ) );
+	VK( vkEndCommandBuffer( getCommandBuffer() ) );
 
 	// Create semaphore to wait for queue to complete.
 	VkSemaphore PresentCompleteSemaphore;
@@ -192,7 +192,8 @@ void RsContextVK::endFrame()
 
 	// Submit queue.
 	VkFence NullFence = { VK_NULL_HANDLE };
-	VK( vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence ) );
+	auto CommandBuffers = getCommandBuffer();
+	VK( vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffers, NullFence ) );
 
 	VkPresentInfoKHR PresentInfo = {};
 	PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -206,12 +207,15 @@ void RsContextVK::endFrame()
 
 	vkDestroySemaphore( Device_, PresentCompleteSemaphore );
 
+	// Next command buffer.
+	CurrentCommandBuffer_ = 1 - CurrentCommandBuffer_; 
+
 	// Begin command buffer.
 	VkCmdBufferBeginInfo CommandBufferInfo = {};
 	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
 	CommandBufferInfo.pNext = nullptr;
 	CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
-	VK( vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo ) );
+	VK( vkBeginCommandBuffer( getCommandBuffer(), &CommandBufferInfo ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -589,7 +593,8 @@ void RsContextVK::create()
 		CommandBufferCreateInfo_.level = VK_CMD_BUFFER_LEVEL_PRIMARY;
 		CommandBufferCreateInfo_.flags = 0;
 
-		VK( vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffer_ ) );
+		VK( vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffers_[ 0 ] ) );
+		VK( vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffers_[ 1 ] ) );
 
 		// Command buffer setup.
 		VkCmdBufferBeginInfo CommandBufferInfo = {};
@@ -598,7 +603,7 @@ void RsContextVK::create()
 		CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
 
 		// Begin command buffer.
-		VK( vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo ) );
+		VK( vkBeginCommandBuffer( getCommandBuffer(), &CommandBufferInfo ) );
 
 		// Swap chain.
 		// TODO: Get present mode info and try to use mailbox, then try immediate, then try FIFO.
@@ -656,7 +661,7 @@ void RsContextVK::create()
 
 			// Manually create the swapchain texture, it's a special case as it takes an image already.
 			RsTextureVK* TextureVK = new RsTextureVK( SwapChainTexture, Device_, Allocator_.get(), SwapChainImages_[ Idx ] );
-			TextureVK->setImageLayout( CommandBuffer_, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL );
+			TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL );
 		}
 
 		// Depth buffer.
@@ -778,8 +783,10 @@ void RsContextVK::destroy()
 	destroyTexture( DepthStencilTexture_ );
 
 	// Destroy everything else.
-	vkDestroyCommandBuffer( Device_, CommandBuffer_ );
-	CommandBuffer_ = 0;
+	vkDestroyCommandBuffer( Device_, CommandBuffers_[ 0 ] );
+	vkDestroyCommandBuffer( Device_, CommandBuffers_[ 1 ] );
+	CommandBuffers_[ 0 ] = 0;
+	CommandBuffers_[ 1 ] = 0;
 
 	vkDestroyCommandPool( Device_, CommandPool_ );
 	CommandPool_ = 0;
@@ -936,7 +943,7 @@ void RsContextVK::clear(
 				ClearRange.extent.width = Desc.RenderTargets_[ Idx ]->getDesc().Width_;
 				ClearRange.extent.height = Desc.RenderTargets_[ Idx ]->getDesc().Height_;
 				ClearRange.extent.depth = Desc.RenderTargets_[ Idx ]->getDesc().Depth_;
-				vkCmdClearColorAttachment( CommandBuffer_, Idx, TextureVK->getImageLayout(), &ClearColour, 1, &ClearRange );
+				vkCmdClearColorAttachment( getCommandBuffer(), Idx, TextureVK->getImageLayout(), &ClearColour, 1, &ClearRange );
 			}
 		}
 
@@ -958,7 +965,7 @@ void RsContextVK::clear(
 				ClearRange.extent.width = Desc.DepthStencilTarget_->getDesc().Width_;
 				ClearRange.extent.height = Desc.DepthStencilTarget_->getDesc().Height_;
 				ClearRange.extent.depth = Desc.DepthStencilTarget_->getDesc().Depth_;
-				vkCmdClearDepthStencilAttachment( CommandBuffer_, AspectFlags, TextureVK->getImageLayout(), &ClearDepthStencil, 1, &ClearRange );
+				vkCmdClearDepthStencilAttachment( getCommandBuffer(), AspectFlags, TextureVK->getImageLayout(), &ClearDepthStencil, 1, &ClearRange );
 			}
 		}
 	}
@@ -986,7 +993,7 @@ void RsContextVK::drawPrimitives(
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect, 0, nullptr );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding, RenderState, FrameBuffer );
-	vkCmdDraw( CommandBuffer_, NoofVertices, 1, VertexOffset, 0 );
+	vkCmdDraw( getCommandBuffer(), NoofVertices, 1, VertexOffset, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1011,7 +1018,7 @@ void RsContextVK::drawIndexedPrimitives(
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect, 0, nullptr );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding, RenderState, FrameBuffer );
-	vkCmdDrawIndexed( CommandBuffer_, NoofIndices, 1, IndexOffset, VertexOffset, 0 );
+	vkCmdDrawIndexed( getCommandBuffer(), NoofIndices, 1, IndexOffset, VertexOffset, 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1038,7 +1045,7 @@ void RsContextVK::bindFrameBuffer(
 		// End pass from old frame buffer.
 		if( BoundFrameBuffer_ != nullptr )
 		{
-			vkCmdEndRenderPass( CommandBuffer_ );
+			vkCmdEndRenderPass( getCommandBuffer() );
 		}
 
 		// Assign new bound framebuffer.
@@ -1066,7 +1073,7 @@ void RsContextVK::bindFrameBuffer(
 			BeginInfo.pClearValues = ClearValues;
 
 			// Begin render pass.
-			vkCmdBeginRenderPass( CommandBuffer_, &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
+			vkCmdBeginRenderPass( getCommandBuffer(), &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
 		}
 	}
 
@@ -1095,22 +1102,22 @@ void RsContextVK::bindFrameBuffer(
 		{
 			VkViewport ViewportVK;
 			ViewportVK.originX = Viewport->x();
-			ViewportVK.originY = FBHeight - Viewport->height();
-			ViewportVK.width = Viewport->width() - Viewport->x();
-			ViewportVK.height = Viewport->height() - Viewport->y();
+			ViewportVK.originY = Viewport->y();
+			ViewportVK.width = Viewport->width();
+			ViewportVK.height = Viewport->height();
 			ViewportVK.minDepth = 0.0f;
 			ViewportVK.maxDepth = 1.0f;
-			vkCmdSetViewport( CommandBuffer_, 1, &ViewportVK );
+			vkCmdSetViewport( getCommandBuffer(), 1, &ViewportVK );
 		}
 
 		//if( BoundScissorRect_ != *ScissorRect )
 		{
 			VkRect2D ScissorRectVK;
 			ScissorRectVK.offset.x = ScissorRect->X_;
-			ScissorRectVK.offset.y = FBHeight - ( ScissorRect->Height_ + ScissorRect->Y_ );
+			ScissorRectVK.offset.y = ScissorRect->Y_;
 			ScissorRectVK.extent.width = ScissorRect->Width_;
 			ScissorRectVK.extent.height = ScissorRect->Height_;
-			vkCmdSetScissor( CommandBuffer_, 1, &ScissorRectVK );
+			vkCmdSetScissor( getCommandBuffer(), 1, &ScissorRectVK );
 		}
 	}
 }
@@ -1229,7 +1236,7 @@ void RsContextVK::bindGraphicsPSO(
 		memset( &RS, 0, sizeof( RS ) );
 		RS.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTER_STATE_CREATE_INFO;
 		RS.fillMode = VK_FILL_MODE_SOLID;
-		RS.cullMode = VK_CULL_MODE_BACK;
+		RS.cullMode = VK_CULL_MODE_NONE;
 		RS.frontFace = VK_FRONT_FACE_CCW;
 		RS.depthClipEnable = VK_TRUE;
 		RS.rasterizerDiscardEnable = VK_FALSE;
@@ -1319,15 +1326,15 @@ void RsContextVK::bindGraphicsPSO(
 
 	if( Program->isGraphics() )
 	{
-		//vkCmdBindDescriptorSets( CommandBuffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
+		//vkCmdBindDescriptorSets( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
 		//	ProgramBindingVK->getDescriptorSets(), 0, nullptr );
-		vkCmdBindPipeline( CommandBuffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline );
+		vkCmdBindPipeline( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline );
 	}
 	else
 	{
-		vkCmdBindDescriptorSets( CommandBuffer_, VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipelineLayout_, 0, 1,
+		vkCmdBindDescriptorSets( getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, ComputePipelineLayout_, 0, 1,
 			ProgramBindingVK->getDescriptorSets(), 0, nullptr );
-		vkCmdBindPipeline( CommandBuffer_, VK_PIPELINE_BIND_POINT_COMPUTE, Pipeline );
+		vkCmdBindPipeline( getCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, Pipeline );
 	}
 
 	// Bind vertex buffers.
@@ -1339,7 +1346,7 @@ void RsContextVK::bindGraphicsPSO(
 		{
 			auto BufferVK = VertexBufferBinding.Buffer_->getHandle< RsBufferVK* >();
 			VkDeviceSize Offset = VertexBufferBinding.Offset_;
-			vkCmdBindVertexBuffers( CommandBuffer_, Idx, 1, &BufferVK->getBuffer(), &Offset );
+			vkCmdBindVertexBuffers( getCommandBuffer(), Idx, 1, &BufferVK->getBuffer(), &Offset );
 		}
 	}
 
@@ -1362,9 +1369,8 @@ void RsContextVK::bindGraphicsPSO(
 				GeometryBinding->getDebugName(),
 				GeometryBindingDesc.IndexBuffer_.Stride_ );
 		}
-		vkCmdBindIndexBuffer( CommandBuffer_, BufferVK->getBuffer(), Offset, Type );
-	}
-	
+		vkCmdBindIndexBuffer( getCommandBuffer(), BufferVK->getBuffer(), Offset, Type );
+	}	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1540,7 +1546,7 @@ bool RsContextVK::createTexture(
 	}
 
 	// Set image layout.
-	TextureVK->setImageLayout( CommandBuffer_, Aspect, Layout );
+	TextureVK->setImageLayout( getCommandBuffer(), Aspect, Layout );
 
 	return true;
 }

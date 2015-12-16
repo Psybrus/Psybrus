@@ -19,7 +19,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	auto Desc = Parent->getDesc();
 	auto Program = Parent->getProgram();
 	auto ProgramVK = Program->getHandle< RsProgramVK* >();
-
+	return;
 	// Descriptor types.
 	size_t CountIdx = 0;
 	size_t TotalInfos = 0;

@@ -187,8 +187,9 @@ private:
 	VkCmdPool CommandPool_ = 0;
 	VkCmdBufferCreateInfo CommandBufferCreateInfo_ = {};
 
-
-	VkCmdBuffer CommandBuffer_ = 0;
+	std::array< VkCmdBuffer, 2 > CommandBuffers_;
+	BcU32 CurrentCommandBuffer_ = 0;
+	VkCmdBuffer getCommandBuffer() { return CommandBuffers_[ CurrentCommandBuffer_ ]; }
 
 	// Swap chain
 	VkSwapchainCreateInfoKHR SwapChainCreateInfo_ = {};
