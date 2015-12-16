@@ -95,8 +95,7 @@ void RsFrameBufferVK::createFrameBuffer()
 		FrameBufferCreateInfo.height = Height;
 		FrameBufferCreateInfo.layers = 1;
 
-		auto RetVal = vkCreateFramebuffer( Device_, &FrameBufferCreateInfo, &FrameBuffers_[ PassTypeIdx ] );
-		BcAssert( !RetVal );
+		VK( vkCreateFramebuffer( Device_, &FrameBufferCreateInfo, &FrameBuffers_[ PassTypeIdx ] ) );
 	}
 }
 
@@ -193,8 +192,7 @@ void RsFrameBufferVK::createRenderPass()
 		RenderPassCreateInfo.dependencyCount = 0;
 		RenderPassCreateInfo.pDependencies = nullptr;
 
-		auto RetVal = vkCreateRenderPass( Device_, &RenderPassCreateInfo, &RenderPasses_[ PassTypeIdx ] );
-		BcAssert( !RetVal );
+		VK( vkCreateRenderPass( Device_, &RenderPassCreateInfo, &RenderPasses_[ PassTypeIdx ] ) );
 	}
 }
 

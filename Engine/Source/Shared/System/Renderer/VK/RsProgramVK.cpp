@@ -165,14 +165,14 @@ RsProgramVK::RsProgramVK( class RsProgram* Parent, VkDevice Device ):
 		ModuleCreateInfo.codeSize = InShader->getDataSize();
 		ModuleCreateInfo.pCode = InShader->getData();
 		ModuleCreateInfo.flags = 0;
-		RetVal = vkCreateShaderModule( Device_, &ModuleCreateInfo, &ShaderModule );
+		RetVal = VK( vkCreateShaderModule( Device_, &ModuleCreateInfo, &ShaderModule ) );
 		BcAssert( !RetVal && ShaderModule );
 
 		ShaderCreateInfo.flags = 0;
 		ShaderCreateInfo.module = ShaderModule;
 		ShaderCreateInfo.pName = "main";
 		ShaderCreateInfo.stage = RsUtilsVK::GetShaderStage( InShader->getDesc().ShaderType_ );
-		RetVal = vkCreateShader( Device_, &ShaderCreateInfo, &Shader );
+		RetVal = VK( vkCreateShader( Device_, &ShaderCreateInfo, &Shader ) );
 		BcAssert( !RetVal && Shader );
 
 		ShaderModules_.emplace_back( ShaderModule );

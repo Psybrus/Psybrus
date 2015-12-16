@@ -167,8 +167,7 @@ void RsContextVK::endFrame()
 	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
 
 	// End command buffer.
-	auto RetVal = vkEndCommandBuffer( CommandBuffer_ );
-	BcAssert( !RetVal );
+	VK( vkEndCommandBuffer( CommandBuffer_ ) );
 
 	// Create semaphore to wait for queue to complete.
 	VkSemaphore PresentCompleteSemaphore;
@@ -177,26 +176,23 @@ void RsContextVK::endFrame()
 	PresentCompleteSemaphoreCreateInfo.pNext = nullptr;
 	PresentCompleteSemaphoreCreateInfo.flags = 0;
 
-	RetVal = vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, &PresentCompleteSemaphore );
-	BcAssert( !RetVal );
+	VK( vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, &PresentCompleteSemaphore ) );
 
 	// Get the index of the next available swapchain image.
-	RetVal = fpAcquireNextImageKHR_( Device_, SwapChain_,
+	VK( fpAcquireNextImageKHR_( Device_, SwapChain_,
 		UINT64_MAX,
 		PresentCompleteSemaphore,
-		&CurrentFrameBuffer_ );
-	BcAssert( !RetVal );
+		&CurrentFrameBuffer_ ) );
 
 	// Wait for the present complete semaphore to be signaled to ensure
 	// that the image won't be rendered to until the presentation
 	// engine has fully released ownership to the application, and it is
 	// okay to render to the image.
-	vkQueueWaitSemaphore( GraphicsQueue_, PresentCompleteSemaphore );
+	VK( vkQueueWaitSemaphore( GraphicsQueue_, PresentCompleteSemaphore ) );
 
 	// Submit queue.
 	VkFence NullFence = { VK_NULL_HANDLE };
-	RetVal = vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence );
-	BcAssert( !RetVal );
+	VK( vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffer_, NullFence ) );
 
 	VkPresentInfoKHR PresentInfo = {};
 	PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -205,11 +201,8 @@ void RsContextVK::endFrame()
 	PresentInfo.swapchains = &SwapChain_;
 	PresentInfo.imageIndices = &CurrentFrameBuffer_;
 
-	RetVal = fpQueuePresentKHR_( GraphicsQueue_, &PresentInfo );
-	BcAssert( !RetVal );
-
-	RetVal = vkQueueWaitIdle( GraphicsQueue_ );
-	BcAssert( !RetVal );
+	VK( fpQueuePresentKHR_( GraphicsQueue_, &PresentInfo ) );
+	VK( vkQueueWaitIdle( GraphicsQueue_ ) );
 
 	vkDestroySemaphore( Device_, PresentCompleteSemaphore );
 
@@ -218,15 +211,14 @@ void RsContextVK::endFrame()
 	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
 	CommandBufferInfo.pNext = nullptr;
 	CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
-	RetVal = vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo );
-	BcAssert( !RetVal );
-
+	VK( vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // takeScreenshot
 void RsContextVK::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 {
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -247,11 +239,10 @@ void RsContextVK::create()
 
 	// Grab layers.
 	uint32_t InstanceLayerCount = 0;
-	if( ( RetVal = vkEnumerateInstanceLayerProperties( &InstanceLayerCount, nullptr ) ) == VK_SUCCESS )
+	if( VK( vkEnumerateInstanceLayerProperties( &InstanceLayerCount, nullptr ) ) == VK_SUCCESS )
 	{
 		InstanceLayers_.resize( InstanceLayerCount );
-		RetVal = vkEnumerateInstanceLayerProperties( &InstanceLayerCount, InstanceLayers_.data() );
-		BcAssert( !RetVal );
+		VK( vkEnumerateInstanceLayerProperties( &InstanceLayerCount, InstanceLayers_.data() ) );
 #if 1
 		for( const auto& InstanceLayer : InstanceLayers_ )
 		{
@@ -292,11 +283,10 @@ void RsContextVK::create()
 	// Grab extensions.
 	bool DebugEnabled = false;
 	uint32_t InstanceExtensionCount = 0;
-	if( ( RetVal = vkEnumerateInstanceExtensionProperties( nullptr, &InstanceExtensionCount, nullptr ) ) == VK_SUCCESS )
+	if( VK( vkEnumerateInstanceExtensionProperties( nullptr, &InstanceExtensionCount, nullptr ) ) == VK_SUCCESS )
 	{
 		InstanceExtensions_.resize( InstanceExtensionCount );
-		RetVal = vkEnumerateInstanceExtensionProperties( nullptr, &InstanceExtensionCount, InstanceExtensions_.data() );
-		BcAssert( !RetVal );
+		VK( vkEnumerateInstanceExtensionProperties( nullptr, &InstanceExtensionCount, InstanceExtensions_.data() ) );
 
 		for( const auto& InstanceExtension : InstanceExtensions_ )
 		{
@@ -339,16 +329,15 @@ void RsContextVK::create()
 	InstanceCreateInfo.ppEnabledExtensionNames = EnabledInstanceExtensions.data();
 
 	// Create instance.
-	if( ( RetVal = vkCreateInstance( &InstanceCreateInfo, &Instance_ ) ) == VK_SUCCESS )
+	if( VK( vkCreateInstance( &InstanceCreateInfo, &Instance_ ) ) == VK_SUCCESS )
 	{
 		// Enumerate physical devices.
 		uint32_t GPUCount = 256;
-		if( ( RetVal = vkEnumeratePhysicalDevices( Instance_, &GPUCount, nullptr ) ) == VK_SUCCESS )
+		if( VK( vkEnumeratePhysicalDevices( Instance_, &GPUCount, nullptr ) ) == VK_SUCCESS )
 		{
 			BcAssert( GPUCount > 0 );
 			PhysicalDevices_.resize( GPUCount );
-			RetVal = vkEnumeratePhysicalDevices( Instance_, &GPUCount, PhysicalDevices_.data() );
-			BcAssert( !RetVal );
+			VK( vkEnumeratePhysicalDevices( Instance_, &GPUCount, PhysicalDevices_.data() ) );
 		}
 		else
 		{
@@ -359,11 +348,10 @@ void RsContextVK::create()
 
 		// Get device layers.
 		uint32_t DeviceLayerCount = 0;
-		if( ( RetVal = vkEnumerateDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, nullptr ) ) == VK_SUCCESS )
+		if( VK( vkEnumerateDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, nullptr ) ) == VK_SUCCESS )
 		{
 			DeviceLayers_.resize( DeviceLayerCount );
-			RetVal = vkEnumerateDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, DeviceLayers_.data() );
-			BcAssert( !RetVal );
+			VK( vkEnumerateDeviceLayerProperties( PhysicalDevices_[ 0 ], &DeviceLayerCount, DeviceLayers_.data() ) );
 #if 1
 			for( const auto& DeviceLayer : DeviceLayers_ )
 			{
@@ -403,11 +391,10 @@ void RsContextVK::create()
 
 		// Get device extensions.
 		uint32_t DeviceExtensionCount = 0;
-		if( ( RetVal = vkEnumerateDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, nullptr ) ) == VK_SUCCESS )
+		if( VK( vkEnumerateDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, nullptr ) ) == VK_SUCCESS )
 		{
 			DeviceExtensions_.resize( DeviceExtensionCount );
-			RetVal = vkEnumerateDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, DeviceExtensions_.data() );
-			BcAssert( !RetVal );
+			VK( vkEnumerateDeviceExtensionProperties( PhysicalDevices_[ 0 ], nullptr, &DeviceExtensionCount, DeviceExtensions_.data() ) );
 
 			for( const auto& DeviceExtension : DeviceExtensions_ )
 			{
@@ -480,12 +467,11 @@ void RsContextVK::create()
 					PSY_LOG( Message.get() );
 					return 1;
 				};
-			RetVal = fpCreateMsgCallback_(
+			VK( fpCreateMsgCallback_(
 				Instance_,
 				VK_DBG_REPORT_ERROR_BIT | VK_DBG_REPORT_WARN_BIT | VK_DBG_REPORT_PERF_WARN_BIT | VK_DBG_REPORT_DEBUG_BIT,
 				DebugFunc, this,
-				&DebugCallback_ );
-			BcAssert( !RetVal );
+				&DebugCallback_ ) );
 		}
 
 		// Create first device.
@@ -504,7 +490,7 @@ void RsContextVK::create()
 		DeviceCreateInfo.ppEnabledExtensionNames = EnabledDeviceExtensions.data();
 		DeviceCreateInfo.pEnabledFeatures = nullptr;
 
-		if( ( RetVal = vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo, &Device_ ) ) == VK_SUCCESS )
+		if( VK( vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo, &Device_ ) ) == VK_SUCCESS )
 		{
 			// Get fps.
 			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceSupportKHR );
@@ -518,14 +504,11 @@ void RsContextVK::create()
 			GET_DEVICE_PROC_ADDR( Device_, QueuePresentKHR );
 
 			//
-			RetVal = vkGetPhysicalDeviceProperties( PhysicalDevices_[ 0 ], &DeviceProps_ );
-			BcAssert( !RetVal );
+			VK( vkGetPhysicalDeviceProperties( PhysicalDevices_[ 0 ], &DeviceProps_ ) );
 			uint32_t DeviceQueueCount = 0;
-			RetVal = vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, nullptr );
-			BcAssert( !RetVal );
+			VK( vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, nullptr ) );
 			DeviceQueueProps_.resize( DeviceQueueCount );
-			RetVal = vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, DeviceQueueProps_.data() );
-			BcAssert( !RetVal );
+			VK( vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, DeviceQueueProps_.data() ) );
 		}
 		else
 		{
@@ -568,18 +551,14 @@ void RsContextVK::create()
 		}
 
 		// Get queue.
-		RetVal = vkGetDeviceQueue( Device_, FoundGraphicsQueue, 0, &GraphicsQueue_ );
-		BcAssert( !RetVal );
-
+		VK( vkGetDeviceQueue( Device_, FoundGraphicsQueue, 0, &GraphicsQueue_ ) );
 		
-
 		// Get formats.
 		uint32_t FormatCount = 0;
-		if( ( RetVal = fpGetSurfaceFormatsKHR_( Device_, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &FormatCount, nullptr ) ) == VK_SUCCESS )
+		if( VK( fpGetSurfaceFormatsKHR_( Device_, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &FormatCount, nullptr ) ) == VK_SUCCESS )
 		{
 			SurfaceFormats_.resize( FormatCount );
-			RetVal = fpGetSurfaceFormatsKHR_( Device_, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &FormatCount, SurfaceFormats_.data() );
-			BcAssert( !RetVal );
+			VK( fpGetSurfaceFormatsKHR_( Device_, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &FormatCount, SurfaceFormats_.data() ) );
 		}
 		else
 		{
@@ -602,8 +581,7 @@ void RsContextVK::create()
 		CommandPoolCreateInfo_.queueFamilyIndex = FoundGraphicsQueue;
 		CommandPoolCreateInfo_.flags = 0;
 
-		RetVal = vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, &CommandPool_ );
-		BcAssert( !RetVal );
+		VK( vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, &CommandPool_ ) );
 
 		CommandBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_CREATE_INFO;
 		CommandBufferCreateInfo_.pNext = nullptr;
@@ -611,8 +589,7 @@ void RsContextVK::create()
 		CommandBufferCreateInfo_.level = VK_CMD_BUFFER_LEVEL_PRIMARY;
 		CommandBufferCreateInfo_.flags = 0;
 
-		RetVal = vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffer_ );
-		BcAssert( !RetVal );
+		VK( vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffer_ ) );
 
 		// Command buffer setup.
 		VkCmdBufferBeginInfo CommandBufferInfo = {};
@@ -621,9 +598,7 @@ void RsContextVK::create()
 		CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
 
 		// Begin command buffer.
-		auto RetVal = vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo );
-		BcAssert( !RetVal );
-
+		VK( vkBeginCommandBuffer( CommandBuffer_, &CommandBufferInfo ) );
 
 		// Swap chain.
 		// TODO: Get present mode info and try to use mailbox, then try immediate, then try FIFO.
@@ -652,17 +627,14 @@ void RsContextVK::create()
 		SwapChainCreateInfo_.oldSwapchain.handle = 0;
 		SwapChainCreateInfo_.clipped = true;
 
-		RetVal = fpCreateSwapchainKHR_( Device_, &SwapChainCreateInfo_, &SwapChain_ );
-		BcAssert( !RetVal );
+		VK( fpCreateSwapchainKHR_( Device_, &SwapChainCreateInfo_, &SwapChain_ ) );
 
 		uint32_t SwapChainImagesSize = 0;
-		RetVal = fpGetSwapchainImagesKHR_( Device_, SwapChain_, &SwapChainImagesSize, nullptr );
-		BcAssert( !RetVal );
+		VK( fpGetSwapchainImagesKHR_( Device_, SwapChain_, &SwapChainImagesSize, nullptr ) );
 
 		size_t SwapChainImageCount = SwapChainImagesSize;
 		SwapChainImages_.resize( SwapChainImageCount );
-		RetVal = fpGetSwapchainImagesKHR_( Device_, SwapChain_, &SwapChainImagesSize, SwapChainImages_.data() );
-		BcAssert( !RetVal );
+		VK( fpGetSwapchainImagesKHR_( Device_, SwapChain_, &SwapChainImagesSize, SwapChainImages_.data() ) );
 
 		SwapChainTextures_.resize( SwapChainImageCount );
 		for( BcU32 Idx = 0; Idx < SwapChainTextures_.size(); ++Idx )
@@ -826,27 +798,27 @@ void RsContextVK::createDescriptorLayouts()
 	VkResult RetVal = VK_SUCCESS;
 
 	VkDescriptorSetLayoutBinding BaseLayoutBindings[4];
-	BaseLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	BaseLayoutBindings[0].arraySize = 16;
+	BaseLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	BaseLayoutBindings[0].arraySize = 1;
 	BaseLayoutBindings[0].stageFlags = 0;
 	BaseLayoutBindings[0].pImmutableSamplers = nullptr;
 
-	BaseLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	BaseLayoutBindings[1].arraySize = 16;
+	BaseLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	BaseLayoutBindings[1].arraySize = 1;
 	BaseLayoutBindings[1].stageFlags = 0;
 	BaseLayoutBindings[1].pImmutableSamplers = nullptr;
 
 	BaseLayoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	BaseLayoutBindings[2].arraySize = 16;
+	BaseLayoutBindings[2].arraySize = 1;
 	BaseLayoutBindings[2].stageFlags = 0;
 	BaseLayoutBindings[2].pImmutableSamplers = nullptr;
 
 	BaseLayoutBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	BaseLayoutBindings[3].arraySize = 16;
+	BaseLayoutBindings[3].arraySize = 1;
 	BaseLayoutBindings[3].stageFlags = 0;
 	BaseLayoutBindings[3].pImmutableSamplers = nullptr;
 
-	VkDescriptorSetLayoutBinding LayoutBindings[12];
+	VkDescriptorSetLayoutBinding LayoutBindings[16*4];
 
 	const VkShaderStageFlagBits StageBits[] = 
 	{
@@ -858,18 +830,30 @@ void RsContextVK::createDescriptorLayouts()
 	};
 
 	BcU32 LayoutBindingIdx = 0;
-	LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[0];
-	LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-	++LayoutBindingIdx;
-	LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[1];
-	LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-	++LayoutBindingIdx;
-	LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[2];
-	LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-	++LayoutBindingIdx;
-	LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[3];
-	LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-	++LayoutBindingIdx;
+	for( size_t Idx = 0; Idx < 16; ++Idx )
+	{
+		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[0];
+		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
+		++LayoutBindingIdx;
+	}
+	for( size_t Idx = 0; Idx < 16; ++Idx )
+	{
+		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[1];
+		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
+		++LayoutBindingIdx;
+	}
+	for( size_t Idx = 0; Idx < 16; ++Idx )
+	{
+		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[2];
+		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
+		++LayoutBindingIdx;
+	}
+	for( size_t Idx = 0; Idx < 16; ++Idx )
+	{
+		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[3];
+		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
+		++LayoutBindingIdx;
+	}
 
 	VkDescriptorSetLayoutCreateInfo DescriptorLayout;
 	DescriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -877,8 +861,7 @@ void RsContextVK::createDescriptorLayouts()
 	DescriptorLayout.count = LayoutBindingIdx;
 	DescriptorLayout.pBinding = LayoutBindings;
 
-	RetVal = vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, &GraphicsDescriptorSetLayout_ );
-	BcAssert( !RetVal );
+	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, &GraphicsDescriptorSetLayout_ ) );
 
 	VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo;
 	PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -887,8 +870,7 @@ void RsContextVK::createDescriptorLayouts()
 	PipelineLayoutCreateInfo.pSetLayouts = &GraphicsDescriptorSetLayout_;
 	PipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 	PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-	RetVal = vkCreatePipelineLayout( Device_, &PipelineLayoutCreateInfo, &GraphicsPipelineLayout_ );
-	BcAssert( !RetVal );
+	VK( vkCreatePipelineLayout( Device_, &PipelineLayoutCreateInfo, &GraphicsPipelineLayout_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1310,8 +1292,7 @@ void RsContextVK::bindGraphicsPSO(
 			memset( &PipelineCache, 0, sizeof( PipelineCache ) );
 			PipelineCache.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 
-			RetVal = vkCreatePipelineCache( Device_, &PipelineCache, &PipelineCache_);
-			BcAssert( !RetVal );
+			VK( vkCreatePipelineCache( Device_, &PipelineCache, &PipelineCache_) );
 		}
 
 		auto FrameBufferVK = FrameBuffer->getHandle< RsFrameBufferVK* >();
@@ -1327,8 +1308,7 @@ void RsContextVK::bindGraphicsPSO(
 		PipelineCreateInfo.renderPass = BoundRenderPass_;
 		PipelineCreateInfo.pDynamicState = &DynamicState;
 
-		RetVal = vkCreateGraphicsPipelines( Device_, PipelineCache_, 1, &PipelineCreateInfo, &Pipeline );
-		BcAssert( !RetVal );
+		VK( vkCreateGraphicsPipelines( Device_, PipelineCache_, 1, &PipelineCreateInfo, &Pipeline ) );
 
 		PSOCache_[ PSOBinding ] = Pipeline;
 	}
@@ -1339,8 +1319,8 @@ void RsContextVK::bindGraphicsPSO(
 
 	if( Program->isGraphics() )
 	{
-		vkCmdBindDescriptorSets( CommandBuffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
-			ProgramBindingVK->getDescriptorSets(), 0, nullptr );
+		//vkCmdBindDescriptorSets( CommandBuffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
+		//	ProgramBindingVK->getDescriptorSets(), 0, nullptr );
 		vkCmdBindPipeline( CommandBuffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline );
 	}
 	else
@@ -1432,8 +1412,7 @@ bool RsContextVK::createSamplerState(
 	SamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
 	VkSampler SamplerVK;
-	auto RetVal = vkCreateSampler( Device_, &SamplerCreateInfo, &SamplerVK );
-	BcAssert( !RetVal );
+	VK( vkCreateSampler( Device_, &SamplerCreateInfo, &SamplerVK ) );
 	SamplerState->setHandle( SamplerVK.handle );
 	return true;
 }
@@ -1514,7 +1493,7 @@ bool RsContextVK::updateBuffer(
 #if 1
 	void* Data = nullptr;
 	auto BufferVK = Buffer->getHandle< RsBufferVK* >();
-	auto RetVal = vkMapMemory( Device_, BufferVK->getDeviceMemory(), Offset, Size, 0, &Data );
+	auto RetVal = VK( vkMapMemory( Device_, BufferVK->getDeviceMemory(), Offset, Size, 0, &Data ) );
 	if( !RetVal )
 	{
 		RsBufferLock Lock = { Data };

@@ -86,7 +86,7 @@ void RsTextureVK::setImageLayout( VkCmdBuffer CommandBuffer, VkImageAspectFlags 
 	VkPipelineStageFlags SrcStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 	VkPipelineStageFlags DestStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-	vkCmdPipelineBarrier( CommandBuffer, SrcStages, DestStages, false, 1, (const void * const*)&MemoryBarriers);
+	vkCmdPipelineBarrier( CommandBuffer, SrcStages, DestStages, false, 1, (const void * const*)&MemoryBarriers );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,13 +166,11 @@ void RsTextureVK::createImage()
 	}
 
 	// Create image.
-	auto RetVal = vkCreateImage( Device_, &ImageCreateInfo, &Image_ );
-	BcAssert( !RetVal );
+	VK( vkCreateImage( Device_, &ImageCreateInfo, &Image_ ) );
 
 	// Allocate memory.
 	VkMemoryRequirements MemoryRequirements = {};
-	RetVal = vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements );
-	BcAssert( !RetVal );
+	VK( vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements ) );
 
 	DeviceMemory_ = Allocator_->allocate( 
 		MemoryRequirements.size, 
@@ -181,8 +179,7 @@ void RsTextureVK::createImage()
 		PropertyFlags );
 
 	// Bind image memory.
-    RetVal = vkBindImageMemory( Device_, Image_, DeviceMemory_ , 0 );
-	BcAssert( !RetVal );
+    VK( vkBindImageMemory( Device_, Image_, DeviceMemory_ , 0 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -239,8 +236,7 @@ void RsTextureVK::createViews()
 				0, 1, 0, 1
 			};
 		}
-		auto RetVal = vkCreateImageView( Device_, &ViewCreateInfo, &ImageView_ );
-		BcAssert( !RetVal );
+		VK( vkCreateImageView( Device_, &ViewCreateInfo, &ImageView_ ) );
 		if( !ImageView_ )
 		{
 			PSY_LOG( "WARNING: Unable to create view for RsTexture %s.", Parent_->getDebugName() );

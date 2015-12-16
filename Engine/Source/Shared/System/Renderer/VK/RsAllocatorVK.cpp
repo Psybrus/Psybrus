@@ -7,8 +7,7 @@ RsAllocatorVK::RsAllocatorVK( VkPhysicalDevice PhysicalDevice, VkDevice Device )
 	PhysicalDevice_( PhysicalDevice ),
 	Device_( Device )
 {
-	auto RetVal = vkGetPhysicalDeviceMemoryProperties( PhysicalDevice_, &MemoryProperties_ );
-	BcAssert( !RetVal );
+	VK( vkGetPhysicalDeviceMemoryProperties( PhysicalDevice_, &MemoryProperties_ ) );
 }
 
 
@@ -38,8 +37,7 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 
 	if( MemoryAllocInfo.memoryTypeIndex < VK_MAX_MEMORY_TYPES )
 	{
-		auto RetVal = vkAllocMemory( Device_, &MemoryAllocInfo, &Memory );
-		BcAssert( !RetVal );
+		VK( vkAllocMemory( Device_, &MemoryAllocInfo, &Memory ) );
 	}
 	else
 	{
