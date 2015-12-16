@@ -198,6 +198,7 @@ namespace
 			std::string Name_ = "<INVALID>";
 			int Size_ = -1;
 			RsProgramParameterTypeValueGL ParameterType_;
+			bool Enabled_ = false;
 
 			bool operator < ( const Object& Other ) const
 			{
@@ -221,9 +222,10 @@ namespace
 		 * Add object. Puts in correct list.
 		 * @return Binding to assign back to AST (for Vulkan)
  		 */
-		BcU32 addObject( Object InObject )
+		BcU32 addObject( Object InObject, glslang::TQualifier* InOutQualifier )
 		{	
 			std::vector< Object >* Container = nullptr;
+			BcU32 DescriptorSet = 0;
 			switch( InObject.ParameterType_.Storage_ )
 			{
 			case RsProgramParameterStorageGL::UNIFORM:
@@ -231,20 +233,26 @@ namespace
 				break;
 			case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 				Container = &UniformBlocks_;
+				DescriptorSet = 0;
 				break;
 			case RsProgramParameterStorageGL::SAMPLER:
 				Container = &Samplers_;
+				DescriptorSet = 1;
 				break;
 			case RsProgramParameterStorageGL::SHADER_STORAGE_BUFFER:
 				Container = &Buffers_;
+				DescriptorSet = 2;
 				break;
 			case RsProgramParameterStorageGL::IMAGE:
 				Container = &Images_;
+				DescriptorSet = 3;
 				break;
 			default:
 				BcBreakpoint;
 				break;
 			}
+
+			InObject.Enabled_ = UseFoundBindings_;
 
 			auto FoundIt = std::find_if( Container->begin(), Container->end(),
 				[ &InObject ]( const Object& Object )
@@ -261,9 +269,18 @@ namespace
 			{
 				FoundBinding = FoundIt->ParameterType_.Binding_;
 			}
+
+			// Setup qualifier descriptor set + layout.
+			if( InOutQualifier )
+			{
+				InOutQualifier->layoutSet = DescriptorSet;
+				InOutQualifier->layoutBinding = FoundBinding;
+			}
+
 			return FoundBinding;
 		}
 
+		bool UseFoundBindings_ = false;
 		std::vector< Object > UniformBlocks_;
 		std::vector< Object > Uniforms_;
 		std::vector< Object > Samplers_;
@@ -331,12 +348,12 @@ namespace
 						if( Sampler.image )
 						{
 							Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::IMAGE;
-							Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+							Reflection_.addObject( Object, &Base->getQualifier() );
 						}
 						else
 						{
 							Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::SAMPLER;
-							Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+							Reflection_.addObject( Object, &Base->getQualifier() );
 						}
 					}
 					break;
@@ -345,18 +362,16 @@ namespace
 					Object.ParameterType_.Type_ = 0;
 					Object.Name_ = Base->getType().getTypeName().c_str();
 					Object.Size_ = getBlockSize( Base->getType() );
-					Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+					Reflection_.addObject( Object, &Base->getQualifier() );
 					break;
 				default:
 					Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM;
 					Object.ParameterType_.Type_ = mapUniformType( Base->getType() );
 					Object.Name_ = Base->getName().c_str();
 					Intermediate_.getBaseAlignment( Base->getType(), Object.Size_, true );
-					Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+					Reflection_.addObject( Object, &Base->getQualifier() );
 					break;
 				}
-
-				int a = 0; ++a;
 			}
 		    else if( Base->getQualifier().storage == glslang::EvqBuffer )
 			{
@@ -375,14 +390,12 @@ namespace
 					Object.ParameterType_.Type_ = 0;
 					Object.Name_ = Base->getType().getTypeName().c_str();
 					Object.Size_ = getBlockSize( Base->getType() );
-					Base->getQualifier().layoutBinding = Reflection_.addObject( Object );
+					Reflection_.addObject( Object, &Base->getQualifier() );
 					break;
 				default:
 					BcBreakpoint;
 					break;
 				}
-
-				int a = 0; ++a;
 			}
 		}
 
@@ -715,7 +728,6 @@ namespace
 
 		void addDereferencedUniform( glslang::TIntermBinary* TopNode )
 		{
-
 		}
 
 		void pushFunction( const char* Name )
@@ -734,6 +746,10 @@ namespace
 
 		void traverse()
 		{
+			Reflection_.UseFoundBindings_ = false;
+			Intermediate_.getTreeRoot()->traverse( this );
+
+			Reflection_.UseFoundBindings_ = true;
 			pushFunction( "main(" );
 
 		    // process all the functions
@@ -1201,81 +1217,98 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							Uniform.ParameterType_.Value_ = 0;
 							Uniform.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM_BLOCK;
 							Uniform.Size_ = 0;
-							Reflection.addObject( Uniform );
+							Reflection.addObject( Uniform, nullptr );
 						}
 					}
 				}
 			}
 
-			ProgramHeaderGLSL.NoofParameters_ = 0;
-			ProgramHeaderGLSL.NoofParameters_ += Reflection.UniformBlocks_.size();
-			ProgramHeaderGLSL.NoofParameters_ += Reflection.Uniforms_.size();
-			ProgramHeaderGLSL.NoofParameters_ += Reflection.Samplers_.size();
-			ProgramHeaderGLSL.NoofParameters_ += Reflection.Buffers_.size();
-			ProgramHeaderGLSL.NoofParameters_ += Reflection.Images_.size();
+			BcU32 MaxParameters = 0;
+			MaxParameters += Reflection.UniformBlocks_.size();
+			MaxParameters += Reflection.Uniforms_.size();
+			MaxParameters += Reflection.Samplers_.size();
+			MaxParameters += Reflection.Buffers_.size();
+			MaxParameters += Reflection.Images_.size();
 
 			Parameters.clear();
-			Parameters.reserve( ProgramHeaderGLSL.NoofParameters_ );
+			Parameters.reserve( MaxParameters );
 
 			for( auto Object : Reflection.UniformBlocks_ )
 			{
-				RsProgramParameter Parameter = {};
-				memset( &Parameter, 0, sizeof( Parameter ) );
-				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
-				Parameter.Type_ = RsProgramParameterType::UNIFORM_BLOCK;
-				Parameter.Size_ = Object.Size_;
-				// GL specific internals.
-				Parameter.InternalType_ = Object.ParameterType_.Value_;
-				Parameters.emplace_back( Parameter );
+				if( Object.Enabled_ )
+				{
+					RsProgramParameter Parameter = {};
+					memset( &Parameter, 0, sizeof( Parameter ) );
+					BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+					Parameter.Type_ = RsProgramParameterType::UNIFORM_BLOCK;
+					Parameter.Size_ = Object.Size_;
+					// GL specific internals.
+					Parameter.InternalType_ = Object.ParameterType_.Value_;
+					Parameters.emplace_back( Parameter );
+				}
 			}
 
 			for( auto Object : Reflection.Uniforms_ )
 			{
-				RsProgramParameter Parameter = {};
-				memset( &Parameter, 0, sizeof( Parameter ) );
-				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
-				Parameter.Type_ = RsProgramParameterType::UNKNOWN;
-				Parameter.Size_ = Object.Size_;
-				// GL specific internals.
-				Parameter.InternalType_ = Object.ParameterType_.Value_;
-				Parameters.emplace_back( Parameter );
+				if( Object.Enabled_ )
+				{
+					RsProgramParameter Parameter = {};
+					memset( &Parameter, 0, sizeof( Parameter ) );
+					BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+					Parameter.Type_ = RsProgramParameterType::UNKNOWN;
+					Parameter.Size_ = Object.Size_;
+					// GL specific internals.
+					Parameter.InternalType_ = Object.ParameterType_.Value_;
+					Parameters.emplace_back( Parameter );
+				}
 			}
 
 			for( auto Object : Reflection.Samplers_ )
 			{
-				RsProgramParameter Parameter = {};
-				memset( &Parameter, 0, sizeof( Parameter ) );
-				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
-				Parameter.Type_ = RsProgramParameterType::SAMPLER;
-				Parameter.Size_ = Object.Size_;
-				// GL specific internals.
-				Parameter.InternalType_ = Object.ParameterType_.Value_;
-				Parameters.emplace_back( Parameter );
+				if( Object.Enabled_ )
+				{
+					RsProgramParameter Parameter = {};
+					memset( &Parameter, 0, sizeof( Parameter ) );
+					BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+					Parameter.Type_ = RsProgramParameterType::SAMPLER;
+					Parameter.Size_ = Object.Size_;
+					// GL specific internals.
+					Parameter.InternalType_ = Object.ParameterType_.Value_;
+					Parameters.emplace_back( Parameter );
+				}
 			}
 
 			for( auto Object : Reflection.Buffers_ )
 			{
-				RsProgramParameter Parameter = {};
-				memset( &Parameter, 0, sizeof( Parameter ) );
-				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
-				Parameter.Type_ = !Object.ParameterType_.ReadOnly_ ? RsProgramParameterType::UNORDERED_ACCESS : RsProgramParameterType::SHADER_RESOURCE;
-				Parameter.Size_ = Object.Size_;
-				// GL specific internals.
-				Parameter.InternalType_ = Object.ParameterType_.Value_;
-				Parameters.emplace_back( Parameter );
+				if( Object.Enabled_ )
+				{
+					RsProgramParameter Parameter = {};
+					memset( &Parameter, 0, sizeof( Parameter ) );
+					BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+					Parameter.Type_ = !Object.ParameterType_.ReadOnly_ ? RsProgramParameterType::UNORDERED_ACCESS : RsProgramParameterType::SHADER_RESOURCE;
+					Parameter.Size_ = Object.Size_;
+					// GL specific internals.
+					Parameter.InternalType_ = Object.ParameterType_.Value_;
+					Parameters.emplace_back( Parameter );
+				}
 			}
 
 			for( auto Object : Reflection.Images_ )
 			{
-				RsProgramParameter Parameter = {};
-				memset( &Parameter, 0, sizeof( Parameter ) );
-				BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
-				Parameter.Type_ = !Object.ParameterType_.ReadOnly_ ? RsProgramParameterType::UNORDERED_ACCESS : RsProgramParameterType::SHADER_RESOURCE;
-				Parameter.Size_ = Object.Size_;
-				// GL specific internals.
-				Parameter.InternalType_ = Object.ParameterType_.Value_;
-				Parameters.emplace_back( Parameter );
+				if( Object.Enabled_ )
+				{
+					RsProgramParameter Parameter = {};
+					memset( &Parameter, 0, sizeof( Parameter ) );
+					BcStrCopy( Parameter.Name_, sizeof( Parameter.Name_ ) - 1, Object.Name_.c_str() );
+					Parameter.Type_ = !Object.ParameterType_.ReadOnly_ ? RsProgramParameterType::UNORDERED_ACCESS : RsProgramParameterType::SHADER_RESOURCE;
+					Parameter.Size_ = Object.Size_;
+					// GL specific internals.
+					Parameter.InternalType_ = Object.ParameterType_.Value_;
+					Parameters.emplace_back( Parameter );
+				}
 			}
+
+			ProgramHeaderGLSL.NoofParameters_ = Parameters.size();
 
 			// Should we build SPIR-V?
 			if( BuildSPIRV )

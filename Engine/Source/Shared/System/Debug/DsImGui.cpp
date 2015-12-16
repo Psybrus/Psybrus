@@ -184,6 +184,10 @@ namespace
 						{
 							const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
 							memcpy( Vertices, &CmdList->VtxBuffer[0], CmdList->VtxBuffer.size() * sizeof( ImDrawVert ) );
+							for( int VertIdx = 0; VertIdx < CmdList->VtxBuffer.size(); ++VertIdx )
+							{
+								Vertices[VertIdx].pos = Vertices[VertIdx].pos * UniformBlock_.ClipTransform_;
+							}
 							Vertices += CmdList->VtxBuffer.size();
 							NoofVertices += CmdList->VtxBuffer.size();
 							BcAssert( (BcU8*)Vertices <= ((BcU8*)Lock.Buffer_ ) + Buffer->getDesc().SizeBytes_ );
@@ -253,7 +257,7 @@ namespace
 										ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 									}
 									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-									ProgramBinding_.reset(); // TODO: Causes an assert to fire.
+									delete ProgramBinding_.release();
 								}
 							}
 							else
@@ -264,7 +268,7 @@ namespace
 									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 								}
 								ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-								ProgramBinding_.reset(); // TODO: Causes an assert to fire.
+								delete ProgramBinding_.release();
 							}
 							if( ProgramBinding_ == nullptr )
 							{
