@@ -82,6 +82,8 @@ namespace
 	CsPackage* Package_ = nullptr;
 	/// Fence for synchronisation.
 	SysFence RenderThreadFence_;
+	/// Program bindings to destroy.
+	std::vector< RsProgramBindingUPtr > DestroyProgramBindings_;
 
 	/// Current draw context.
 	RsContext* DrawContext_ = nullptr;
@@ -154,6 +156,9 @@ namespace
 		Sort.NodeType_ = RS_SORT_NODETYPE_MAX;
 
 		RenderThreadFence_.increment();
+
+		// Destroy last frames program bindings.
+		DestroyProgramBindings_.clear();
 
 		auto Width = IO.DisplaySize.x;
 		auto Height = IO.DisplaySize.y;
@@ -246,6 +251,7 @@ namespace
 								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
 
 							// Regenerate program binding if we need to.
+							bool RecreateProgramBinding = false;
 							if( Cmd->TextureId != nullptr )
 							{
 								if( TextureSlot == BcErrorCode || 
@@ -253,22 +259,25 @@ namespace
 								{
 									if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 									{
-										ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
-										ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+										RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
+										RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 									}
-									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-									delete ProgramBinding_.release();
+									RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
 								}
 							}
 							else
 							{
 								if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 								{
-									ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
-									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+									RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
+									RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 								}
-								ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-								delete ProgramBinding_.release();
+								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+							}
+							RecreateProgramBinding = true;
+							if( RecreateProgramBinding && ProgramBinding_ )
+							{
+								DestroyProgramBindings_.emplace_back( std::move( ProgramBinding_ ) );
 							}
 							if( ProgramBinding_ == nullptr )
 							{

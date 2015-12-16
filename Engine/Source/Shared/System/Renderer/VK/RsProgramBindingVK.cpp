@@ -19,7 +19,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	auto Desc = Parent->getDesc();
 	auto Program = Parent->getProgram();
 	auto ProgramVK = Program->getHandle< RsProgramVK* >();
-	return;
+
 	// Descriptor types.
 	size_t CountIdx = 0;
 	size_t TotalInfos = 0;
@@ -197,7 +197,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo = {};
 	DescriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	DescriptorPoolCreateInfo.pNext = nullptr;
-	DescriptorPoolCreateInfo.poolUsage = VK_DESCRIPTOR_POOL_USAGE_ONE_SHOT;
+	DescriptorPoolCreateInfo.poolUsage = VK_DESCRIPTOR_POOL_USAGE_DYNAMIC;
 	DescriptorPoolCreateInfo.maxSets = 1;
 	DescriptorPoolCreateInfo.count = CountIdx;
 	DescriptorPoolCreateInfo.pTypeCount = TypeCounts;
@@ -244,8 +244,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	WriteSet[ 3 ].pDescriptors = DescInfos.data() + StorageBufferBase;
 
 	// Do descriptor update.
-	//VK( vkUpdateDescriptorSets( Device_, WriteSet.size(), WriteSet.data(), 0, nullptr ) );
-
+	vkUpdateDescriptorSets( Device_, WriteSet.size(), WriteSet.data(), 0, nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
