@@ -252,8 +252,6 @@ namespace
 				break;
 			}
 
-			InObject.Enabled_ = UseFoundBindings_;
-
 			auto FoundIt = std::find_if( Container->begin(), Container->end(),
 				[ &InObject ]( const Object& Object )
 				{
@@ -263,10 +261,11 @@ namespace
 			if( FoundIt == Container->end() )
 			{
 				InObject.ParameterType_.Binding_ = FoundBinding;
-				Container->emplace_back( InObject );				
+				Container->emplace_back( InObject );	
 			}
 			else
 			{
+				FoundIt->Enabled_ |= UseFoundBindings_;
 				FoundBinding = FoundIt->ParameterType_.Binding_;
 			}
 
@@ -748,6 +747,7 @@ namespace
 		{
 			Reflection_.UseFoundBindings_ = false;
 			Intermediate_.getTreeRoot()->traverse( this );
+			FunctionStack_.clear();
 
 			Reflection_.UseFoundBindings_ = true;
 			pushFunction( "main(" );
@@ -1217,6 +1217,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							Uniform.ParameterType_.Value_ = 0;
 							Uniform.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM_BLOCK;
 							Uniform.Size_ = 0;
+							Uniform.Enabled_ = true;
 							Reflection.addObject( Uniform, nullptr );
 						}
 					}
