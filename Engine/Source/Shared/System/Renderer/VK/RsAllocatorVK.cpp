@@ -7,7 +7,7 @@ RsAllocatorVK::RsAllocatorVK( VkPhysicalDevice PhysicalDevice, VkDevice Device )
 	PhysicalDevice_( PhysicalDevice ),
 	Device_( Device )
 {
-	VK( vkGetPhysicalDeviceMemoryProperties( PhysicalDevice_, &MemoryProperties_ ) );
+	vkGetPhysicalDeviceMemoryProperties( PhysicalDevice_, &MemoryProperties_ );
 }
 
 
@@ -16,8 +16,8 @@ RsAllocatorVK::RsAllocatorVK( VkPhysicalDevice PhysicalDevice, VkDevice Device )
 VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t TypeFlags, VkMemoryPropertyFlagBits PropertyFlags )
 {
 	VkDeviceMemory Memory = 0;
-	VkMemoryAllocInfo MemoryAllocInfo = {};
-	MemoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOC_INFO;
+	VkMemoryAllocateInfo MemoryAllocInfo = {};
+	MemoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	MemoryAllocInfo.pNext = nullptr;
 	MemoryAllocInfo.allocationSize = Size;
 	MemoryAllocInfo.memoryTypeIndex = std::numeric_limits< uint32_t >::max();
@@ -37,7 +37,7 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 
 	if( MemoryAllocInfo.memoryTypeIndex < VK_MAX_MEMORY_TYPES )
 	{
-		VK( vkAllocMemory( Device_, &MemoryAllocInfo, &Memory ) );
+		VK( vkAllocateMemory( Device_, &MemoryAllocInfo, nullptr/*allocation*/, &Memory ) );
 	}
 	else
 	{
@@ -54,5 +54,5 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 // free
 void RsAllocatorVK::free( VkDeviceMemory Memory )
 {
-	vkFreeMemory( Device_, Memory );
+	vkFreeMemory( Device_, Memory, nullptr/*allocation*/ );
 }

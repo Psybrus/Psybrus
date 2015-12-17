@@ -11,7 +11,7 @@ public:
 	static VkFormat GetTextureFormat( RsTextureFormat TextureFormat );
 	static RsTextureFormat GetTextureFormat( VkFormat Format );
 	static VkPrimitiveTopology GetPrimitiveTopology( RsTopologyType TopologyType );
-	static VkShaderStage GetShaderStage( RsShaderType ShaderType );
+	static VkShaderStageFlagBits GetShaderStage( RsShaderType ShaderType );
 	static VkFormat GetVertexElementFormat( RsVertexElement Element );
 	static VkBufferUsageFlagBits GetBufferUsageFlags( RsResourceBindFlags BindFlags );
 };

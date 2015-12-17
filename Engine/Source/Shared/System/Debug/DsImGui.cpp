@@ -177,11 +177,15 @@ namespace
 						memcpy( Lock.Buffer_, &UniformBlock_, sizeof( UniformBlock_ ) );
 					} );
 
+				const BcU32 UniformBufferSlot = Program_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
+				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
+
 				// Update vertex buffer.
 				Context->updateBuffer( 
 					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
 					RsResourceUpdateFlags::NONE,
-					[ CachedDrawData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					[ CachedDrawData, UniformBufferSlot ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
 						ImDrawVert* Vertices = reinterpret_cast< ImDrawVert* >( Lock.Buffer_ );
 						BcU32 NoofVertices = 0;
@@ -189,9 +193,13 @@ namespace
 						{
 							const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
 							memcpy( Vertices, &CmdList->VtxBuffer[0], CmdList->VtxBuffer.size() * sizeof( ImDrawVert ) );
-							for( int VertIdx = 0; VertIdx < CmdList->VtxBuffer.size(); ++VertIdx )
+							// No uniform buffer slot in shader, so we need to transform before the vertex shader.
+							if( UniformBufferSlot == BcErrorCode )
 							{
-								Vertices[VertIdx].pos = Vertices[VertIdx].pos * UniformBlock_.ClipTransform_;
+								for( int VertIdx = 0; VertIdx < CmdList->VtxBuffer.size(); ++VertIdx )
+								{
+									Vertices[VertIdx].pos = Vertices[VertIdx].pos * UniformBlock_.ClipTransform_;
+								}
 							}
 							Vertices += CmdList->VtxBuffer.size();
 							NoofVertices += CmdList->VtxBuffer.size();
@@ -224,11 +232,6 @@ namespace
 							BcAssert( (BcU8*)Indices <= ((BcU8*)Lock.Buffer_ ) + Buffer->getDesc().SizeBytes_ );
 						}
 					} );
-
-
-				const BcU32 UniformBufferSlot = Program_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
-				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
 
  				BcU32 IndexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )

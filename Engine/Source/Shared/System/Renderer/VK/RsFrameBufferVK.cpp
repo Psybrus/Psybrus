@@ -22,13 +22,13 @@ RsFrameBufferVK::~RsFrameBufferVK()
 {
 	for( auto& RenderPass : RenderPasses_ )
 	{
-		vkDestroyRenderPass( Device_, RenderPass );
+		vkDestroyRenderPass( Device_, RenderPass, nullptr/*allocation*/ );
 		RenderPass = 0;
 	}
 
 	for( auto& FrameBuffer : FrameBuffers_ )
 	{
-		vkDestroyFramebuffer( Device_, FrameBuffer );
+		vkDestroyFramebuffer( Device_, FrameBuffer, nullptr/*allocation*/ );
 		FrameBuffer = 0;
 	}
 
@@ -95,7 +95,7 @@ void RsFrameBufferVK::createFrameBuffer()
 		FrameBufferCreateInfo.height = Height;
 		FrameBufferCreateInfo.layers = 1;
 
-		VK( vkCreateFramebuffer( Device_, &FrameBufferCreateInfo, &FrameBuffers_[ PassTypeIdx ] ) );
+		VK( vkCreateFramebuffer( Device_, &FrameBufferCreateInfo, nullptr/*allocation*/, &FrameBuffers_[ PassTypeIdx ] ) );
 	}
 }
 
@@ -126,10 +126,8 @@ void RsFrameBufferVK::createRenderPass()
 				auto& RenderTargetDesc = Desc.RenderTargets_[ Idx ]->getDesc();
 
 				auto& Attachment = Attachments[ AttachmentIdx ];
-				Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
-				Attachment.pNext = nullptr;
 				Attachment.format = RsUtilsVK::GetTextureFormat( RenderTargetDesc.Format_ );
-				Attachment.samples = 1;
+				Attachment.samples = VK_SAMPLE_COUNT_1_BIT;
 				Attachment.loadOp = LoadOps[ PassTypeIdx ];
 				Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				Attachment.stencilLoadOp = LoadOps[ PassTypeIdx ];
@@ -150,10 +148,8 @@ void RsFrameBufferVK::createRenderPass()
 			auto& DepthStencilDesc = Desc.DepthStencilTarget_->getDesc();
 
 			auto& Attachment = Attachments[ AttachmentIdx ];
-			Attachment.sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION;
-			Attachment.pNext = nullptr;
 			Attachment.format = RsUtilsVK::GetTextureFormat( DepthStencilDesc.Format_ );
-			Attachment.samples = 1;
+			Attachment.samples = VK_SAMPLE_COUNT_1_BIT;
 			Attachment.loadOp = LoadOps[ PassTypeIdx ];
 			Attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			Attachment.stencilLoadOp = LoadOps[ PassTypeIdx ];
@@ -169,17 +165,15 @@ void RsFrameBufferVK::createRenderPass()
 		}
 
 		VkSubpassDescription Subpass = {};
-		Subpass.sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION;
-		Subpass.pNext = nullptr;
 		Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		Subpass.flags = 0;
-		Subpass.inputCount = 0;
+		Subpass.inputAttachmentCount = 0;
 		Subpass.pInputAttachments = nullptr;
-		Subpass.colorCount = static_cast< uint32_t >( ColourAttachmentReferences.size() );
+		Subpass.colorAttachmentCount = static_cast< uint32_t >( ColourAttachmentReferences.size() );
 		Subpass.pColorAttachments = ColourAttachmentReferences.data();
 		Subpass.pResolveAttachments = nullptr;
-		Subpass.depthStencilAttachment = DepthStencilAttachmentReference;
-		Subpass.preserveCount = 0;
+		Subpass.pDepthStencilAttachment = &DepthStencilAttachmentReference;
+		Subpass.preserveAttachmentCount = 0;
 		Subpass.pPreserveAttachments = nullptr;
 
 		VkRenderPassCreateInfo RenderPassCreateInfo = {};
@@ -192,7 +186,7 @@ void RsFrameBufferVK::createRenderPass()
 		RenderPassCreateInfo.dependencyCount = 0;
 		RenderPassCreateInfo.pDependencies = nullptr;
 
-		VK( vkCreateRenderPass( Device_, &RenderPassCreateInfo, &RenderPasses_[ PassTypeIdx ] ) );
+		VK( vkCreateRenderPass( Device_, &RenderPassCreateInfo, nullptr/*allocation*/, &RenderPasses_[ PassTypeIdx ] ) );
 	}
 }
 

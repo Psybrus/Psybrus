@@ -19,7 +19,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	auto Desc = Parent->getDesc();
 	auto Program = Parent->getProgram();
 	auto ProgramVK = Program->getHandle< RsProgramVK* >();
-
+#if 0
 	// Descriptor types.
 	size_t CountIdx = 0;
 	size_t TotalInfos = 0;
@@ -213,7 +213,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	BcAssertMsg( RetVal == VK_SUCCESS, "Error allocating descriptor set for RsProgramBinding \"%s\"", 
 		Parent_->getDebugName() );
 
-	std::array< VkWriteDescriptorSet, 4 > WriteSet;
+	std::array< VkWriteDescriptorSet, 1 > WriteSet;
 	memset( WriteSet.data(), 0, sizeof( WriteSet ) );
 	WriteSet[ 0 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 0 ].destSet = DescriptorSet_;
@@ -221,7 +221,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	WriteSet[ 0 ].count = MaxUniformBuffer;
 	WriteSet[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	WriteSet[ 0 ].pDescriptors = DescInfos.data() + UniformBufferBase;
-
+#if 0
 	WriteSet[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 1 ].destSet = DescriptorSet_;
 	WriteSet[ 1 ].destBinding = ImageSamplerBase;
@@ -242,9 +242,10 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	WriteSet[ 3 ].count = MaxStorageBuffer;
 	WriteSet[ 3 ].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 	WriteSet[ 3 ].pDescriptors = DescInfos.data() + StorageBufferBase;
-
+#endif
 	// Do descriptor update.
 	vkUpdateDescriptorSets( Device_, WriteSet.size(), WriteSet.data(), 0, nullptr );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -253,6 +254,6 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 RsProgramBindingVK::~RsProgramBindingVK()
 {
 	VK( vkFreeDescriptorSets( Device_, DescriptorPool_, 1, &DescriptorSet_ ) );
-	vkDestroyDescriptorPool( Device_, DescriptorPool_ );
+	vkDestroyDescriptorPool( Device_, DescriptorPool_, nullptr/*allocation*/ );
 	Parent_->setHandle( nullptr );
 }

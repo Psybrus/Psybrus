@@ -36,7 +36,7 @@ RsTextureVK::~RsTextureVK()
 {
 	if( Image_ && OwnImage_ )
 	{
-		vkDestroyImage( Device_, Image_ );
+		vkDestroyImage( Device_, Image_, nullptr /*allocation*/ );
 		Image_ = 0;
 	}
 
@@ -48,7 +48,7 @@ RsTextureVK::~RsTextureVK()
 
 	if( ImageView_ )
 	{
-		vkDestroyImageView( Device_, ImageView_ );
+		vkDestroyImageView( Device_, ImageView_, nullptr /*allocation*/ );
 		ImageView_ = 0;
 	}
 
@@ -57,28 +57,28 @@ RsTextureVK::~RsTextureVK()
 
 //////////////////////////////////////////////////////////////////////////
 // setImageLayout
-void RsTextureVK::setImageLayout( VkCmdBuffer CommandBuffer, VkImageAspectFlags Aspect, VkImageLayout ImageLayout )
+void RsTextureVK::setImageLayout( VkCommandBuffer CommandBuffer, VkImageAspectFlags Aspect, VkImageLayout ImageLayout )
 {
 	VkImageMemoryBarrier ImageMemoryBarrier = {};
 	ImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	ImageMemoryBarrier.pNext = NULL;
-	ImageMemoryBarrier.outputMask = 0;
-	ImageMemoryBarrier.inputMask = 0;
+	ImageMemoryBarrier.srcAccessMask = 0;
+	ImageMemoryBarrier.dstAccessMask = 0;
 	ImageMemoryBarrier.oldLayout = ImageLayout_;
 	ImageMemoryBarrier.newLayout = ImageLayout;
 	ImageMemoryBarrier.image = Image_;
 	ImageMemoryBarrier.subresourceRange = { Aspect, 0, 1, 0, 0 };
 
-	if( ImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DESTINATION_OPTIMAL )
+	if( ImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
 	{
 		// Make sure anything that was copying from this image has completed.
-		ImageMemoryBarrier.inputMask = VK_MEMORY_INPUT_TRANSFER_BIT;
+		ImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	}
 
 	if( ImageLayout_ == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
 	{
 		// Make sure any Copy or CPU writes to image are flushed.
-		ImageMemoryBarrier.outputMask = VK_MEMORY_OUTPUT_HOST_WRITE_BIT | VK_MEMORY_OUTPUT_TRANSFER_BIT;
+		ImageMemoryBarrier.dstAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 	}
 
 	VkImageMemoryBarrier* MemoryBarriers = &ImageMemoryBarrier;
@@ -102,22 +102,22 @@ void RsTextureVK::createImage()
 	{
 		case RsTextureType::TEX1D:
 			ImageCreateInfo.imageType = VK_IMAGE_TYPE_1D;
-			ImageCreateInfo.arraySize = 1;
+			ImageCreateInfo.arrayLayers = 1;
 			ImageCreateInfo.flags = 0;
 			break;
 		case RsTextureType::TEX2D:
 			ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-			ImageCreateInfo.arraySize = 1;
+			ImageCreateInfo.arrayLayers = 1;
 			ImageCreateInfo.flags = 0;
 			break;
 		case RsTextureType::TEX3D:
 			ImageCreateInfo.imageType = VK_IMAGE_TYPE_3D;
-			ImageCreateInfo.arraySize = 1;
+			ImageCreateInfo.arrayLayers = 1;
 			ImageCreateInfo.flags = 0;
 			break;
 		case RsTextureType::TEXCUBE:
 			ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-			ImageCreateInfo.arraySize = 6;
+			ImageCreateInfo.arrayLayers = 6;
 			ImageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 			break;
 	}
@@ -129,16 +129,16 @@ void RsTextureVK::createImage()
 		static_cast< int32_t >( Desc.Depth_ )
 	};
 	ImageCreateInfo.mipLevels = Desc.Levels_;
-	ImageCreateInfo.samples = 1;
+	ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
 	
 	// Setup property flags, usage, and tiling.
-	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_ONLY;
+	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	ImageCreateInfo.usage = 0;
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
-		ImageCreateInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DESTINATION_BIT;
+		ImageCreateInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	}	
 
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
@@ -162,15 +162,15 @@ void RsTextureVK::createImage()
 	{
 		PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 		ImageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
-		ImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SOURCE_BIT;
+		ImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	}
 
 	// Create image.
-	VK( vkCreateImage( Device_, &ImageCreateInfo, &Image_ ) );
+	VK( vkCreateImage( Device_, &ImageCreateInfo, nullptr /*allocation*/, &Image_ ) );
 
 	// Allocate memory.
 	VkMemoryRequirements MemoryRequirements = {};
-	VK( vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements ) );
+	vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements );
 
 	DeviceMemory_ = Allocator_->allocate( 
 		MemoryRequirements.size, 
@@ -215,11 +215,11 @@ void RsTextureVK::createViews()
 				ViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
 				break;
 		}
-		ViewCreateInfo.channels = {
-			VK_CHANNEL_SWIZZLE_R,
-			VK_CHANNEL_SWIZZLE_G,
-			VK_CHANNEL_SWIZZLE_B,
-			VK_CHANNEL_SWIZZLE_A
+		ViewCreateInfo.components = {
+			VK_COMPONENT_SWIZZLE_R,
+			VK_COMPONENT_SWIZZLE_G,
+			VK_COMPONENT_SWIZZLE_B,
+			VK_COMPONENT_SWIZZLE_A
 		};
 
 		if( IsDS )
@@ -236,7 +236,7 @@ void RsTextureVK::createViews()
 				0, 1, 0, 1
 			};
 		}
-		VK( vkCreateImageView( Device_, &ViewCreateInfo, &ImageView_ ) );
+		VK( vkCreateImageView( Device_, &ViewCreateInfo, nullptr /*allocation*/, &ImageView_ ) );
 		if( !ImageView_ )
 		{
 			PSY_LOG( "WARNING: Unable to create view for RsTexture %s.", Parent_->getDebugName() );

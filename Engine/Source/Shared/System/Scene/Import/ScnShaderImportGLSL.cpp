@@ -1342,7 +1342,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 #if 0
 						spv::spirvbin_t SpvRemapper;
-						SpvRemapper.remap( SpvOutput );
+						SpvRemapper.remap( SpvOutput, spv::spirvbin_t::OPT_ALL | spv::spirvbin_t::DCE_ALL );
 						BcSPrintf( OutFileName, sizeof( OutFileName ) - 1, "%s/%s-%x-%u.remapped.spv",
 							getIntermediatePath().c_str(), 
 							getResourceName().c_str(),

@@ -31,17 +31,17 @@ VkFormat RsUtilsVK::GetTextureFormat( RsTextureFormat TextureFormat )
 	case RsTextureFormat::R32FG32FB32FA32F:
 		return VK_FORMAT_R32G32B32A32_SFLOAT;
 	case RsTextureFormat::DXT1:
-		return VK_FORMAT_BC1_RGB_UNORM;
+		return VK_FORMAT_BC1_RGB_UNORM_BLOCK;
 	case RsTextureFormat::DXT3:
-		return VK_FORMAT_BC2_UNORM;
+		return VK_FORMAT_BC2_UNORM_BLOCK;
 	case RsTextureFormat::DXT5:
-		return VK_FORMAT_BC3_UNORM;
+		return VK_FORMAT_BC3_UNORM_BLOCK;
 	case RsTextureFormat::ETC1:
 		return VK_FORMAT_UNDEFINED;
 	case RsTextureFormat::D16:
 		return VK_FORMAT_D16_UNORM;
 	case RsTextureFormat::D24:
-		return VK_FORMAT_D24_UNORM_X8;
+		return VK_FORMAT_X8_D24_UNORM_PACK32;
 	case RsTextureFormat::D32:
 		return VK_FORMAT_D32_SFLOAT;
 	case RsTextureFormat::D24S8:
@@ -81,16 +81,16 @@ RsTextureFormat RsUtilsVK::GetTextureFormat( VkFormat Format )
 		return RsTextureFormat::R32FG32FB32F;
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 		return RsTextureFormat::R32FG32FB32FA32F;
-	case VK_FORMAT_BC1_RGB_UNORM:
+	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
 		return RsTextureFormat::DXT1;
-	case VK_FORMAT_BC2_UNORM:
+	case VK_FORMAT_BC2_UNORM_BLOCK:
 		return RsTextureFormat::DXT3;
-	case VK_FORMAT_BC3_UNORM:
+	case VK_FORMAT_BC3_UNORM_BLOCK:
 		return RsTextureFormat::DXT5;
 
 	case VK_FORMAT_D16_UNORM:
 		return RsTextureFormat::D16;
-	case VK_FORMAT_D24_UNORM_X8:
+	case VK_FORMAT_X8_D24_UNORM_PACK32:
 		return RsTextureFormat::D24;
 	case VK_FORMAT_D32_SFLOAT:
 		return RsTextureFormat::D32;
@@ -117,10 +117,10 @@ VkPrimitiveTopology RsUtilsVK::GetPrimitiveTopology( RsTopologyType TopologyType
 		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
 		break;
 	case RsTopologyType::LINE_LIST_ADJACENCY:
-		return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_ADJ;
+		return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
 		break;
 	case RsTopologyType::LINE_STRIP_ADJACENCY:
-		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_ADJ;
+		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
 		break;
 	case RsTopologyType::TRIANGLE_LIST:
 		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -129,16 +129,16 @@ VkPrimitiveTopology RsUtilsVK::GetPrimitiveTopology( RsTopologyType TopologyType
 		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 		break;
 	case RsTopologyType::TRIANGLE_LIST_ADJACENCY:
-		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_ADJ;
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
 		break;
 	case RsTopologyType::TRIANGLE_STRIP_ADJACENCY:
-		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_ADJ;
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
 		break;
 	case RsTopologyType::TRIANGLE_FAN:
 		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 		break;
 	case RsTopologyType::PATCH_LIST:
-		return VK_PRIMITIVE_TOPOLOGY_PATCH;
+		return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
 		break;
 	default:
 		BcBreakpoint;
@@ -146,32 +146,32 @@ VkPrimitiveTopology RsUtilsVK::GetPrimitiveTopology( RsTopologyType TopologyType
 	return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
 }
 
-VkShaderStage RsUtilsVK::GetShaderStage( RsShaderType ShaderType )
+VkShaderStageFlagBits RsUtilsVK::GetShaderStage( RsShaderType ShaderType )
 {
 	switch( ShaderType )
 	{
 	case RsShaderType::VERTEX:
-		return VK_SHADER_STAGE_VERTEX;
+		return VK_SHADER_STAGE_VERTEX_BIT;
 		break;
 	case RsShaderType::PIXEL:
-		return VK_SHADER_STAGE_FRAGMENT;
+		return VK_SHADER_STAGE_FRAGMENT_BIT;
 		break;
 	case RsShaderType::HULL:
-		return VK_SHADER_STAGE_TESS_CONTROL;
+		return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
 		break;
 	case RsShaderType::DOMAIN:
-		return VK_SHADER_STAGE_TESS_EVALUATION;
+		return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
 		break;
 	case RsShaderType::GEOMETRY:
-		return VK_SHADER_STAGE_GEOMETRY;
+		return VK_SHADER_STAGE_GEOMETRY_BIT;
 		break;
 	case RsShaderType::COMPUTE:
-		return VK_SHADER_STAGE_COMPUTE;
+		return VK_SHADER_STAGE_COMPUTE_BIT;
 		break;
 	default:
 		BcBreakpoint;
 	}
-	return VK_SHADER_STAGE_MAX_ENUM;
+	return (VkShaderStageFlagBits)0;
 }
 
 VkFormat RsUtilsVK::GetVertexElementFormat( RsVertexElement Element )

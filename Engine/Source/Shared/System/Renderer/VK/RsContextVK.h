@@ -152,6 +152,7 @@ private:
 	std::vector< VkExtensionProperties > InstanceExtensions_;
 	std::vector< VkLayerProperties > DeviceLayers_;
 	std::vector< VkExtensionProperties > DeviceExtensions_;
+	VkAllocationCallbacks* AllocationCallbacks_ = nullptr;
 	VkInstance Instance_ = 0;
 	std::vector< VkPhysicalDevice > PhysicalDevices_;
 	VkDevice Device_ = 0;
@@ -160,15 +161,17 @@ private:
 
 	// KHR.
 	PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR_ = nullptr;
-	PFN_vkGetSurfacePropertiesKHR fpGetSurfacePropertiesKHR_ = nullptr;
-	PFN_vkGetSurfaceFormatsKHR fpGetSurfaceFormatsKHR_ = nullptr;
-	PFN_vkGetSurfacePresentModesKHR fpGetSurfacePresentModesKHR_ = nullptr;
+	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR_ = nullptr;
+	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR_ = nullptr;
+	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentModesKHR_ = nullptr;
+
 	PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR_ = nullptr;
 	PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR_ = nullptr;
 	PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR_ = nullptr;
 	PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR_ = nullptr;
 	PFN_vkQueuePresentKHR fpQueuePresentKHR_ = nullptr;
-	VkSurfaceDescriptionWindowKHR WindowSurfaceDesc_ = {};
+	VkSurfaceKHR WindowSurface_= {};
+	VkSurfaceCapabilitiesKHR WindowSurfaceCapabilities_ = {};
 
 	// Debug
 	PFN_vkDbgCreateMsgCallback fpCreateMsgCallback_ = nullptr;
@@ -183,13 +186,13 @@ private:
 	std::vector< VkSurfaceFormatKHR > SurfaceFormats_;
 
 	// Command pool & buffer.
-	VkCmdPoolCreateInfo CommandPoolCreateInfo_ = {};
-	VkCmdPool CommandPool_ = 0;
-	VkCmdBufferCreateInfo CommandBufferCreateInfo_ = {};
+	VkCommandPoolCreateInfo CommandPoolCreateInfo_ = {};
+	VkCommandPool CommandPool_ = 0;
+	VkCommandBufferAllocateInfo CommandBufferAllocateInfo_ = {};
 
-	std::array< VkCmdBuffer, 2 > CommandBuffers_;
+	std::array< VkCommandBuffer, 2 > CommandBuffers_;
 	BcU32 CurrentCommandBuffer_ = 0;
-	VkCmdBuffer getCommandBuffer() { return CommandBuffers_[ CurrentCommandBuffer_ ]; }
+	VkCommandBuffer getCommandBuffer() { return CommandBuffers_[ CurrentCommandBuffer_ ]; }
 
 	// Swap chain
 	VkSwapchainCreateInfoKHR SwapChainCreateInfo_ = {};
@@ -224,7 +227,7 @@ private:
 		const RsProgram*, 
 		const RsRenderState*, 
 		const RsFrameBuffer*,
-		uint64_t >;
+		VkRenderPass >;
 	std::map< PSOBindingTuple, VkPipeline > PSOCache_;
 	VkPipelineCache PipelineCache_;
 };

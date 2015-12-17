@@ -129,6 +129,7 @@ if _OPTIONS["with-vk"] then
       }
 
       links {
+          "VKstatic.0",
           "vulkan-0"
       }
 

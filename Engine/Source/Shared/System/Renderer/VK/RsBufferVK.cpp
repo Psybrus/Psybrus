@@ -20,18 +20,18 @@ RsBufferVK::RsBufferVK( class RsBuffer* Parent, VkDevice Device, RsAllocatorVK* 
 	BufferCreateInfo.usage = RsUtilsVK::GetBufferUsageFlags( BufferDesc.BindFlags_ );
 	BufferCreateInfo.flags = 0;
 	BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	BufferCreateInfo.queueFamilyCount = 0;
+	BufferCreateInfo.queueFamilyIndexCount = 0;
 	BufferCreateInfo.pQueueFamilyIndices = nullptr;
-	VK( vkCreateBuffer( Device, &BufferCreateInfo, &Buffer_ ) );
+	VK( vkCreateBuffer( Device, &BufferCreateInfo, nullptr/*allocation*/, &Buffer_ ) );
 
-	VkMemoryAllocInfo MemAlloc;
-	MemAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOC_INFO;
+	VkMemoryAllocateInfo MemAlloc;
+	MemAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	MemAlloc.pNext = nullptr;
 	MemAlloc.allocationSize = 0;
 	MemAlloc.memoryTypeIndex = 0;
 
 	VkMemoryRequirements MemoryRequirements;
-	VK( vkGetBufferMemoryRequirements( Device_, Buffer_, &MemoryRequirements ) );
+	vkGetBufferMemoryRequirements( Device_, Buffer_, &MemoryRequirements );
 
 	// TODO: Use proper visibility flag.
 	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;

@@ -146,37 +146,22 @@ RsProgramVK::RsProgramVK( class RsProgram* Parent, VkDevice Device ):
 
 	// Create shader + shader module.
 	VkShaderModuleCreateInfo ModuleCreateInfo;
-	VkShaderCreateInfo ShaderCreateInfo;
 	VkShaderModule ShaderModule;
-	VkShader Shader;
 	VkResult RetVal = VK_SUCCESS;
 
 	ModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	ModuleCreateInfo.pNext = NULL;
 
-	ShaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO;
-	ShaderCreateInfo.pNext = NULL;
-	ShaderCreateInfo.pName = "main";
-
 	ShaderModules_.reserve( Parent_->getShaders().size() );
-	Shaders_.reserve( Parent_->getShaders().size() );
 	for( const auto& InShader : Parent_->getShaders() )
 	{
 		ModuleCreateInfo.codeSize = InShader->getDataSize();
-		ModuleCreateInfo.pCode = InShader->getData();
+		ModuleCreateInfo.pCode = reinterpret_cast< const uint32_t* >( InShader->getData() );
 		ModuleCreateInfo.flags = 0;
-		RetVal = VK( vkCreateShaderModule( Device_, &ModuleCreateInfo, &ShaderModule ) );
+		RetVal = VK( vkCreateShaderModule( Device_, &ModuleCreateInfo, nullptr/*allocation*/, &ShaderModule ) );
 		BcAssert( !RetVal && ShaderModule );
 
-		ShaderCreateInfo.flags = 0;
-		ShaderCreateInfo.module = ShaderModule;
-		ShaderCreateInfo.pName = "main";
-		ShaderCreateInfo.stage = RsUtilsVK::GetShaderStage( InShader->getDesc().ShaderType_ );
-		RetVal = VK( vkCreateShader( Device_, &ShaderCreateInfo, &Shader ) );
-		BcAssert( !RetVal && Shader );
-
 		ShaderModules_.emplace_back( ShaderModule );
-		Shaders_.emplace_back( Shader );
 	}
 }
 
@@ -186,12 +171,7 @@ RsProgramVK::~RsProgramVK()
 {
 	for( auto& ShaderModule : ShaderModules_ )
 	{
-		vkDestroyShaderModule( Device_, ShaderModule );
-	}
-
-	for( auto& Shader : Shaders_ )
-	{
-		vkDestroyShader( Device_, Shader );
+		vkDestroyShaderModule( Device_, ShaderModule, nullptr/*allocation*/ );
 	}
 
 	Parent_->setHandle( 0 );

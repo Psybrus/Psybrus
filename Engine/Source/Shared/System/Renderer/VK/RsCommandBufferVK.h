@@ -12,7 +12,7 @@ public:
 
 private:
 	VkDevice Device_ = 0;
-	VkCmdPool CommandPool_ = 0;
-	VkCmdBuffer CommandBuffer_ = 0;
+	VkCommandPool CommandPool_ = 0;
+	VkCommandBuffer CommandBuffer_ = 0;
 
 };

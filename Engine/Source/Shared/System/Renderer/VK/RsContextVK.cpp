@@ -149,10 +149,10 @@ RsFrameBuffer* RsContextVK::beginFrame( BcU32 Width, BcU32 Height )
 	Height_ = Height;
 
 	// Command buffer setup.
-	VkCmdBufferBeginInfo CommandBufferInfo = {};
-	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
+	VkCommandBufferBeginInfo CommandBufferInfo = {};
+	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CommandBufferInfo.pNext = nullptr;
-	CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
+	CommandBufferInfo.flags = 0;
 
 	return nullptr;
 }
@@ -176,45 +176,51 @@ void RsContextVK::endFrame()
 	PresentCompleteSemaphoreCreateInfo.pNext = nullptr;
 	PresentCompleteSemaphoreCreateInfo.flags = 0;
 
-	VK( vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, &PresentCompleteSemaphore ) );
+	VK( vkCreateSemaphore( Device_, &PresentCompleteSemaphoreCreateInfo, AllocationCallbacks_, &PresentCompleteSemaphore ) );
 
 	// Get the index of the next available swapchain image.
 	VK( fpAcquireNextImageKHR_( Device_, SwapChain_,
 		UINT64_MAX,
 		PresentCompleteSemaphore,
+		nullptr,
 		&CurrentFrameBuffer_ ) );
 
-	// Wait for the present complete semaphore to be signaled to ensure
-	// that the image won't be rendered to until the presentation
-	// engine has fully released ownership to the application, and it is
-	// okay to render to the image.
-	VK( vkQueueWaitSemaphore( GraphicsQueue_, PresentCompleteSemaphore ) );
+	VK( vkQueueWaitIdle( GraphicsQueue_ ) );
 
 	// Submit queue.
-	VkFence NullFence = { VK_NULL_HANDLE };
 	auto CommandBuffers = getCommandBuffer();
-	VK( vkQueueSubmit( GraphicsQueue_, 1, &CommandBuffers, NullFence ) );
+	VkSubmitInfo SubmitInfo = {};
+	SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	SubmitInfo.pNext = nullptr;
+	SubmitInfo.waitSemaphoreCount = 0;
+	SubmitInfo.pWaitSemaphores = nullptr;
+	SubmitInfo.commandBufferCount = 1;
+	SubmitInfo.pCommandBuffers = &CommandBuffers;
+	SubmitInfo.signalSemaphoreCount = 0;
+	SubmitInfo.pSignalSemaphores = nullptr;
+	VkFence NullFence = { VK_NULL_HANDLE };
+	VK( vkQueueSubmit( GraphicsQueue_, 1, &SubmitInfo, NullFence ) );
 
 	VkPresentInfoKHR PresentInfo = {};
 	PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	PresentInfo.pNext = nullptr;
 	PresentInfo.swapchainCount = 1;
-	PresentInfo.swapchains = &SwapChain_;
-	PresentInfo.imageIndices = &CurrentFrameBuffer_;
+	PresentInfo.pSwapchains = &SwapChain_;
+	PresentInfo.pImageIndices = &CurrentFrameBuffer_;
 
 	VK( fpQueuePresentKHR_( GraphicsQueue_, &PresentInfo ) );
 	VK( vkQueueWaitIdle( GraphicsQueue_ ) );
 
-	vkDestroySemaphore( Device_, PresentCompleteSemaphore );
+	vkDestroySemaphore( Device_, PresentCompleteSemaphore, AllocationCallbacks_ );
 
 	// Next command buffer.
 	CurrentCommandBuffer_ = 1 - CurrentCommandBuffer_; 
 
 	// Begin command buffer.
-	VkCmdBufferBeginInfo CommandBufferInfo = {};
-	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
+	VkCommandBufferBeginInfo CommandBufferInfo = {};
+	CommandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	CommandBufferInfo.pNext = nullptr;
-	CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
+	CommandBufferInfo.flags = 0;
 	VK( vkBeginCommandBuffer( getCommandBuffer(), &CommandBufferInfo ) );
 }
 
@@ -294,13 +300,13 @@ void RsContextVK::create()
 
 		for( const auto& InstanceExtension : InstanceExtensions_ )
 		{
-			if( strstr( InstanceExtension.extName, "VK_WSI_swapchain" ) )
+			if( strstr( InstanceExtension.extensionName, "VK_WSI_swapchain" ) )
 			{
-				EnabledInstanceExtensions.push_back( InstanceExtension.extName );
+				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
 			}
-			else if( strstr( InstanceExtension.extName, "DEBUG_REPORT" ) )
+			else if( strstr( InstanceExtension.extensionName, "DEBUG_REPORT" ) )
 			{
-				EnabledInstanceExtensions.push_back( InstanceExtension.extName );
+				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
 				DebugEnabled = true;
 			}
 		}
@@ -316,8 +322,8 @@ void RsContextVK::create()
 	VkApplicationInfo AppInfo = {};
 	AppInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	AppInfo.pNext = nullptr;
-	AppInfo.pAppName = "Psybrus";
-	AppInfo.appVersion = 0;
+	AppInfo.pApplicationName = "Psybrus";
+	AppInfo.applicationVersion = 0;
 	AppInfo.pEngineName = "Psybrus";
 	AppInfo.engineVersion = 0;
 	AppInfo.apiVersion = VK_API_VERSION;
@@ -325,15 +331,14 @@ void RsContextVK::create()
 	VkInstanceCreateInfo InstanceCreateInfo = {};
 	InstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	InstanceCreateInfo.pNext = nullptr;
-	InstanceCreateInfo.pAppInfo = &AppInfo;
-	InstanceCreateInfo.pAllocCb = nullptr;
-	InstanceCreateInfo.layerCount = EnabledInstanceLayers.size();
+	InstanceCreateInfo.pApplicationInfo = &AppInfo;
+	InstanceCreateInfo.enabledLayerNameCount = EnabledInstanceLayers.size();
 	InstanceCreateInfo.ppEnabledLayerNames = EnabledInstanceLayers.size() > 0 ? EnabledInstanceLayers.data() : nullptr;
-	InstanceCreateInfo.extensionCount = EnabledInstanceExtensions.size();
+	InstanceCreateInfo.enabledExtensionNameCount = EnabledInstanceExtensions.size();
 	InstanceCreateInfo.ppEnabledExtensionNames = EnabledInstanceExtensions.data();
 
 	// Create instance.
-	if( VK( vkCreateInstance( &InstanceCreateInfo, &Instance_ ) ) == VK_SUCCESS )
+	if( VK( vkCreateInstance( &InstanceCreateInfo, AllocationCallbacks_, &Instance_ ) ) == VK_SUCCESS )
 	{
 		// Enumerate physical devices.
 		uint32_t GPUCount = 256;
@@ -402,9 +407,9 @@ void RsContextVK::create()
 
 			for( const auto& DeviceExtension : DeviceExtensions_ )
 			{
-				if( strstr( DeviceExtension.extName, "VK_EXT_KHR_device_swapchain" ) )
+				if( strstr( DeviceExtension.extensionName, "VK_EXT_KHR_device_swapchain" ) )
 				{
-					EnabledDeviceExtensions.push_back( DeviceExtension.extName );
+					EnabledDeviceExtensions.push_back( DeviceExtension.extensionName );
 				}
 			}
 		}
@@ -468,7 +473,12 @@ void RsContextVK::create()
 						return 1;
 					}
 
-					PSY_LOG( Message.get() );
+					std::stringstream LogStream( Message.get() );
+					std::string LogLine;
+					while( std::getline( LogStream, LogLine, '\n' ) )
+					{
+						PSY_LOG( LogLine.c_str() );
+					}
 					return 1;
 				};
 			VK( fpCreateMsgCallback_(
@@ -486,21 +496,21 @@ void RsContextVK::create()
 		VkDeviceCreateInfo DeviceCreateInfo = {};
 		DeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		DeviceCreateInfo.pNext = nullptr;
-		DeviceCreateInfo.queueRecordCount = 1;
-		DeviceCreateInfo.pRequestedQueues = &DeviceQueueCreateInfo;
-		DeviceCreateInfo.layerCount = EnabledDeviceLayers.size();
+		DeviceCreateInfo.queueCreateInfoCount = 1;
+		DeviceCreateInfo.pQueueCreateInfos = &DeviceQueueCreateInfo;
+		DeviceCreateInfo.enabledLayerNameCount = EnabledDeviceLayers.size();
 		DeviceCreateInfo.ppEnabledLayerNames = EnabledDeviceLayers.size() > 0 ? EnabledDeviceLayers.data() : nullptr;
-		DeviceCreateInfo.extensionCount = EnabledDeviceExtensions.size();
+		DeviceCreateInfo.enabledExtensionNameCount = EnabledDeviceExtensions.size();
 		DeviceCreateInfo.ppEnabledExtensionNames = EnabledDeviceExtensions.data();
 		DeviceCreateInfo.pEnabledFeatures = nullptr;
 
-		if( VK( vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo, &Device_ ) ) == VK_SUCCESS )
+		if( VK( vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo, AllocationCallbacks_, &Device_ ) ) == VK_SUCCESS )
 		{
 			// Get fps.
 			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceSupportKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetSurfacePropertiesKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetSurfaceFormatsKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetSurfacePresentModesKHR );
+			GET_DEVICE_PROC_ADDR( Device_, GetPhysicalDeviceSurfaceCapabilitiesKHR );
+			GET_DEVICE_PROC_ADDR( Device_, GetPhysicalDeviceSurfaceFormatsKHR );
+			GET_DEVICE_PROC_ADDR( Device_, GetPhysicalDeviceSurfacePresentModesKHR );
 			GET_DEVICE_PROC_ADDR( Device_, CreateSwapchainKHR );
 			GET_DEVICE_PROC_ADDR( Device_, DestroySwapchainKHR );
 			GET_DEVICE_PROC_ADDR( Device_, GetSwapchainImagesKHR );
@@ -508,11 +518,11 @@ void RsContextVK::create()
 			GET_DEVICE_PROC_ADDR( Device_, QueuePresentKHR );
 
 			//
-			VK( vkGetPhysicalDeviceProperties( PhysicalDevices_[ 0 ], &DeviceProps_ ) );
+			vkGetPhysicalDeviceProperties( PhysicalDevices_[ 0 ], &DeviceProps_ );
 			uint32_t DeviceQueueCount = 0;
-			VK( vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, nullptr ) );
+			vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, nullptr );
 			DeviceQueueProps_.resize( DeviceQueueCount );
-			VK( vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, DeviceQueueProps_.data() ) );
+			vkGetPhysicalDeviceQueueFamilyProperties( PhysicalDevices_[ 0 ], &DeviceQueueCount, DeviceQueueProps_.data() );
 		}
 		else
 		{
@@ -522,15 +532,13 @@ void RsContextVK::create()
 		}
 
 		// Setup windowing.
-		WindowSurfaceDesc_.sType = VK_STRUCTURE_TYPE_SURFACE_DESCRIPTION_WINDOW_KHR;
-		WindowSurfaceDesc_.pNext = nullptr;
-#ifdef PLATFORM_WINDOWS
-		WindowSurfaceDesc_.platform = VK_PLATFORM_WIN32_KHR;
-		WindowSurfaceDesc_.pPlatformHandle = ::GetModuleHandle( nullptr );
-		WindowSurfaceDesc_.pPlatformWindow = pClient_->getWindowHandle();
-#else  // PLATFORM_WINDOWS
-		BcBreakpoint;
-#endif // PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
+		VK( vkCreateWin32SurfaceKHR( Instance_, 
+			::GetModuleHandle( nullptr ),
+			(HWND)pClient_->getWindowHandle(),
+			AllocationCallbacks_,
+			&WindowSurface_ ) );
+#endif
 
 		// Find queue that can present.
 		// TODO: Find queue that supports graphics & present.
@@ -538,7 +546,7 @@ void RsContextVK::create()
 		for( uint32_t Idx = 0; Idx < DeviceQueueProps_.size(); ++Idx )
 		{
 			VkBool32 SupportsPresent = 0;
-			if( ( RetVal = fpGetPhysicalDeviceSurfaceSupportKHR_( PhysicalDevices_[ 0 ], Idx, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &SupportsPresent ) ) == VK_SUCCESS )
+			if( ( RetVal = fpGetPhysicalDeviceSurfaceSupportKHR_( PhysicalDevices_[ 0 ], Idx, WindowSurface_, &SupportsPresent ) ) == VK_SUCCESS )
 			{
 				if( SupportsPresent )
 				{
@@ -555,14 +563,14 @@ void RsContextVK::create()
 		}
 
 		// Get queue.
-		VK( vkGetDeviceQueue( Device_, FoundGraphicsQueue, 0, &GraphicsQueue_ ) );
+		vkGetDeviceQueue( Device_, FoundGraphicsQueue, 0, &GraphicsQueue_ );
 		
 		// Get formats.
 		uint32_t FormatCount = 0;
-		if( VK( fpGetSurfaceFormatsKHR_( Device_, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &FormatCount, nullptr ) ) == VK_SUCCESS )
+		if( VK( fpGetPhysicalDeviceSurfaceFormatsKHR_( PhysicalDevices_[ 0 ], WindowSurface_, &FormatCount, nullptr ) ) == VK_SUCCESS )
 		{
 			SurfaceFormats_.resize( FormatCount );
-			VK( fpGetSurfaceFormatsKHR_( Device_, (VkSurfaceDescriptionKHR*)&WindowSurfaceDesc_, &FormatCount, SurfaceFormats_.data() ) );
+			VK( fpGetPhysicalDeviceSurfaceFormatsKHR_( PhysicalDevices_[ 0 ], WindowSurface_, &FormatCount, SurfaceFormats_.data() ) );
 		}
 		else
 		{
@@ -580,27 +588,26 @@ void RsContextVK::create()
 		Allocator_.reset( new RsAllocatorVK( PhysicalDevices_[ 0 ], Device_ ) );
 
 		// Command pool & buffer.
-		CommandPoolCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_POOL_CREATE_INFO;
+		CommandPoolCreateInfo_.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		CommandPoolCreateInfo_.pNext = nullptr;
 		CommandPoolCreateInfo_.queueFamilyIndex = FoundGraphicsQueue;
 		CommandPoolCreateInfo_.flags = 0;
 
-		VK( vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, &CommandPool_ ) );
+		VK( vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, AllocationCallbacks_, &CommandPool_ ) );
 
-		CommandBufferCreateInfo_.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_CREATE_INFO;
-		CommandBufferCreateInfo_.pNext = nullptr;
-		CommandBufferCreateInfo_.cmdPool = CommandPool_;
-		CommandBufferCreateInfo_.level = VK_CMD_BUFFER_LEVEL_PRIMARY;
-		CommandBufferCreateInfo_.flags = 0;
+		CommandBufferAllocateInfo_.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		CommandBufferAllocateInfo_.pNext = nullptr;
+		CommandBufferAllocateInfo_.commandPool = CommandPool_;
+		CommandBufferAllocateInfo_.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		CommandBufferAllocateInfo_.bufferCount = 2;
 
-		VK( vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffers_[ 0 ] ) );
-		VK( vkCreateCommandBuffer( Device_, &CommandBufferCreateInfo_, &CommandBuffers_[ 1 ] ) );
+		VK( vkAllocateCommandBuffers( Device_, &CommandBufferAllocateInfo_, &CommandBuffers_[ 0 ] ) );
 
 		// Command buffer setup.
-		VkCmdBufferBeginInfo CommandBufferInfo = {};
-		CommandBufferInfo.sType = VK_STRUCTURE_TYPE_CMD_BUFFER_BEGIN_INFO;
+		VkCommandBufferBeginInfo CommandBufferInfo = {};
+		CommandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		CommandBufferInfo.pNext = nullptr;
-		CommandBufferInfo.flags = VK_CMD_BUFFER_OPTIMIZE_SMALL_BATCH_BIT | VK_CMD_BUFFER_OPTIMIZE_ONE_TIME_SUBMIT_BIT;
+		CommandBufferInfo.flags = 0;
 
 		// Begin command buffer.
 		VK( vkBeginCommandBuffer( getCommandBuffer(), &CommandBufferInfo ) );
@@ -611,28 +618,26 @@ void RsContextVK::create()
 		// TODO: Get present mode info to get pre transform.
 		VkPresentModeKHR SwapChainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 		uint32_t DesiredNumberOfSwapChainImages = 2;
-		VkSurfaceTransformKHR PreTransform = VK_SURFACE_TRANSFORM_NONE_KHR;
-
+		VkSurfaceTransformFlagBitsKHR PreTransform = VK_SURFACE_TRANSFORM_NONE_BIT_KHR;
 
 		SwapChainCreateInfo_.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		SwapChainCreateInfo_.pNext = nullptr;
-		SwapChainCreateInfo_.pSurfaceDescription = (const VkSurfaceDescriptionKHR *)&WindowSurfaceDesc_;
+		SwapChainCreateInfo_.surface = WindowSurface_;
 		SwapChainCreateInfo_.minImageCount = DesiredNumberOfSwapChainImages;
 		SwapChainCreateInfo_.imageFormat = SurfaceFormats_[ 0 ].format;
 		SwapChainCreateInfo_.imageColorSpace = SurfaceFormats_[ 0 ].colorSpace;
 		SwapChainCreateInfo_.imageExtent.width = pClient_->getWidth();
 		SwapChainCreateInfo_.imageExtent.height = pClient_->getHeight();
-		SwapChainCreateInfo_.imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		SwapChainCreateInfo_.preTransform = PreTransform;
-		SwapChainCreateInfo_.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		SwapChainCreateInfo_.queueFamilyCount = 0;
+		SwapChainCreateInfo_.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		SwapChainCreateInfo_.queueFamilyIndexCount = 0;
 		SwapChainCreateInfo_.pQueueFamilyIndices = nullptr;
-		SwapChainCreateInfo_.imageArraySize = 1;
+		SwapChainCreateInfo_.imageArrayLayers = 1;
 		SwapChainCreateInfo_.presentMode = SwapChainPresentMode;
-		SwapChainCreateInfo_.oldSwapchain.handle = 0;
+		SwapChainCreateInfo_.oldSwapchain = 0;
 		SwapChainCreateInfo_.clipped = true;
 
-		VK( fpCreateSwapchainKHR_( Device_, &SwapChainCreateInfo_, &SwapChain_ ) );
+		VK( fpCreateSwapchainKHR_( Device_, &SwapChainCreateInfo_, nullptr, &SwapChain_ ) );
 
 		uint32_t SwapChainImagesSize = 0;
 		VK( fpGetSwapchainImagesKHR_( Device_, SwapChain_, &SwapChainImagesSize, nullptr ) );
@@ -783,18 +788,14 @@ void RsContextVK::destroy()
 	destroyTexture( DepthStencilTexture_ );
 
 	// Destroy everything else.
-	vkDestroyCommandBuffer( Device_, CommandBuffers_[ 0 ] );
-	vkDestroyCommandBuffer( Device_, CommandBuffers_[ 1 ] );
-	CommandBuffers_[ 0 ] = 0;
-	CommandBuffers_[ 1 ] = 0;
-
-	vkDestroyCommandPool( Device_, CommandPool_ );
+	vkFreeCommandBuffers( Device_, CommandPool_, 2, CommandBuffers_.data() );
+	vkDestroyCommandPool( Device_, CommandPool_, AllocationCallbacks_ );
 	CommandPool_ = 0;
 
-	vkDestroyDevice( Device_ );
+	vkDestroyDevice( Device_, AllocationCallbacks_ );
 	Device_ = 0;
 
-	vkDestroyInstance( Instance_ );
+	vkDestroyInstance( Instance_, AllocationCallbacks_ );
 	Instance_ = 0;
 }
 
@@ -806,22 +807,22 @@ void RsContextVK::createDescriptorLayouts()
 
 	VkDescriptorSetLayoutBinding BaseLayoutBindings[4];
 	BaseLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	BaseLayoutBindings[0].arraySize = 1;
+	BaseLayoutBindings[0].descriptorCount = 1;
 	BaseLayoutBindings[0].stageFlags = 0;
 	BaseLayoutBindings[0].pImmutableSamplers = nullptr;
 
 	BaseLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	BaseLayoutBindings[1].arraySize = 1;
+	BaseLayoutBindings[1].descriptorCount = 1;
 	BaseLayoutBindings[1].stageFlags = 0;
 	BaseLayoutBindings[1].pImmutableSamplers = nullptr;
 
 	BaseLayoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	BaseLayoutBindings[2].arraySize = 1;
+	BaseLayoutBindings[2].descriptorCount = 1;
 	BaseLayoutBindings[2].stageFlags = 0;
 	BaseLayoutBindings[2].pImmutableSamplers = nullptr;
 
 	BaseLayoutBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	BaseLayoutBindings[3].arraySize = 1;
+	BaseLayoutBindings[3].descriptorCount = 1;
 	BaseLayoutBindings[3].stageFlags = 0;
 	BaseLayoutBindings[3].pImmutableSamplers = nullptr;
 
@@ -831,8 +832,8 @@ void RsContextVK::createDescriptorLayouts()
 	{
 		VK_SHADER_STAGE_VERTEX_BIT,
 		VK_SHADER_STAGE_FRAGMENT_BIT,
-		VK_SHADER_STAGE_TESS_CONTROL_BIT,
-		VK_SHADER_STAGE_TESS_EVALUATION_BIT,
+		VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
+		VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
 		VK_SHADER_STAGE_GEOMETRY_BIT
 	};
 
@@ -843,6 +844,7 @@ void RsContextVK::createDescriptorLayouts()
 		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
 		++LayoutBindingIdx;
 	}
+#if 0
 	for( size_t Idx = 0; Idx < 16; ++Idx )
 	{
 		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[1];
@@ -861,23 +863,23 @@ void RsContextVK::createDescriptorLayouts()
 		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
 		++LayoutBindingIdx;
 	}
-
+#endif
 	VkDescriptorSetLayoutCreateInfo DescriptorLayout;
 	DescriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	DescriptorLayout.pNext = NULL;
-	DescriptorLayout.count = LayoutBindingIdx;
+	DescriptorLayout.bindingCount = LayoutBindingIdx;
 	DescriptorLayout.pBinding = LayoutBindings;
 
-	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, &GraphicsDescriptorSetLayout_ ) );
+	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, AllocationCallbacks_, &GraphicsDescriptorSetLayout_ ) );
 
 	VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo;
 	PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	PipelineLayoutCreateInfo.pNext = nullptr;
-	PipelineLayoutCreateInfo.descriptorSetCount = 1;
+	PipelineLayoutCreateInfo.setLayoutCount = 1;
 	PipelineLayoutCreateInfo.pSetLayouts = &GraphicsDescriptorSetLayout_;
 	PipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 	PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-	VK( vkCreatePipelineLayout( Device_, &PipelineLayoutCreateInfo, &GraphicsPipelineLayout_ ) );
+	VK( vkCreatePipelineLayout( Device_, &PipelineLayoutCreateInfo, AllocationCallbacks_, &GraphicsPipelineLayout_ ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -925,7 +927,7 @@ void RsContextVK::clear(
 	{
 		BcAssertMsg( BcFalse, "Code path to clear attachments needs retesting." ); 
 		bindFrameBuffer( FrameBuffer, nullptr, nullptr, 0, nullptr );
-
+#if 0
 		if( EnableClearColour )
 		{
 			VkClearColorValue ClearColour;
@@ -968,6 +970,7 @@ void RsContextVK::clear(
 				vkCmdClearDepthStencilAttachment( getCommandBuffer(), AspectFlags, TextureVK->getImageLayout(), &ClearDepthStencil, 1, &ClearRange );
 			}
 		}
+#endif
 	}
 }
 
@@ -1073,7 +1076,7 @@ void RsContextVK::bindFrameBuffer(
 			BeginInfo.pClearValues = ClearValues;
 
 			// Begin render pass.
-			vkCmdBeginRenderPass( getCommandBuffer(), &BeginInfo, VK_RENDER_PASS_CONTENTS_INLINE );
+			vkCmdBeginRenderPass( getCommandBuffer(), &BeginInfo, VK_SUBPASS_CONTENTS_INLINE );
 		}
 	}
 
@@ -1101,8 +1104,8 @@ void RsContextVK::bindFrameBuffer(
 		//if( BoundViewport_ != *Viewport )
 		{
 			VkViewport ViewportVK;
-			ViewportVK.originX = Viewport->x();
-			ViewportVK.originY = Viewport->y();
+			ViewportVK.x = Viewport->x();
+			ViewportVK.y = Viewport->y();
 			ViewportVK.width = Viewport->width();
 			ViewportVK.height = Viewport->height();
 			ViewportVK.minDepth = 0.0f;
@@ -1141,7 +1144,7 @@ void RsContextVK::bindGraphicsPSO(
 		Program, 
 		RenderState,
 		FrameBuffer,
-		BoundRenderPass_.handle );
+		BoundRenderPass_ );
 	auto FoundPSO = PSOCache_.find( PSOBinding );
 	if( FoundPSO == PSOCache_.end() )
 	{
@@ -1150,12 +1153,12 @@ void RsContextVK::bindGraphicsPSO(
 		VkPipelineCacheCreateInfo PipelineCache;
 		VkPipelineVertexInputStateCreateInfo VI;
 		VkPipelineInputAssemblyStateCreateInfo IA;
-		VkPipelineRasterStateCreateInfo RS;
+		VkPipelineRasterizationStateCreateInfo RS;
 		VkPipelineColorBlendStateCreateInfo CB;
 		VkPipelineDepthStencilStateCreateInfo DS;
 		VkPipelineViewportStateCreateInfo VP;
 		VkPipelineMultisampleStateCreateInfo MS;
-		VkDynamicState DynamicStateEnables[ VK_DYNAMIC_STATE_NUM ];
+		VkDynamicState DynamicStateEnables[ 10 ];
 		VkPipelineDynamicStateCreateInfo DynamicState;
 		
 		memset( DynamicStateEnables, 0, sizeof( DynamicStateEnables ) );
@@ -1176,7 +1179,7 @@ void RsContextVK::bindGraphicsPSO(
 
 		memset( &VI, 0, sizeof( VI ) );
 		VI.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		VI.attributeCount = VertexDeclaration->getDesc().Elements_.size();
+		VI.vertexAttributeDescriptionCount = VertexDeclaration->getDesc().Elements_.size();
 		VI.pVertexBindingDescriptions = BindingDescription.data();
 		VI.pVertexAttributeDescriptions = AttributeDescription.data();
 
@@ -1214,31 +1217,31 @@ void RsContextVK::bindGraphicsPSO(
 				BcAssertMsg( VertexBuffer != nullptr, "Vertex buffer not bound!" );
 
 				BindingDescription[ FoundElement->StreamIdx_ ].binding = FoundElement->StreamIdx_;
-				BindingDescription[ FoundElement->StreamIdx_ ].stepRate = VK_VERTEX_INPUT_STEP_RATE_VERTEX;
-				BindingDescription[ FoundElement->StreamIdx_ ].strideInBytes = VertexBufferBinding.Stride_;
+				BindingDescription[ FoundElement->StreamIdx_ ].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+				BindingDescription[ FoundElement->StreamIdx_ ].stride = VertexBufferBinding.Stride_;
 
 				AttributeDescription[ SlotIdx ].binding = FoundElement->StreamIdx_;
 				AttributeDescription[ SlotIdx ].format = RsUtilsVK::GetVertexElementFormat( *FoundElement );
 				AttributeDescription[ SlotIdx ].location = SlotIdx;
-				AttributeDescription[ SlotIdx ].offsetInBytes = FoundElement->Offset_;
+				AttributeDescription[ SlotIdx ].offset = FoundElement->Offset_;
 
 				MaxStreamIdx = std::max( MaxStreamIdx, FoundElement->StreamIdx_ );
 				++SlotIdx;
 			}
 		}
 		BcAssert( ProgramVertexAttributeList.size() == SlotIdx );
-		VI.bindingCount = MaxStreamIdx + 1;
+		VI.vertexBindingDescriptionCount = MaxStreamIdx + 1;
 
 		memset( &IA, 0, sizeof( IA ) );
 		IA.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		IA.topology = RsUtilsVK::GetPrimitiveTopology( TopologyType );
 
 		memset( &RS, 0, sizeof( RS ) );
-		RS.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTER_STATE_CREATE_INFO;
-		RS.fillMode = VK_FILL_MODE_SOLID;
+		RS.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		RS.polygonMode = VK_POLYGON_MODE_FILL;
 		RS.cullMode = VK_CULL_MODE_NONE;
-		RS.frontFace = VK_FRONT_FACE_CCW;
-		RS.depthClipEnable = VK_TRUE;
+		RS.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		RS.depthClampEnable = VK_TRUE;
 		RS.rasterizerDiscardEnable = VK_FALSE;
 		RS.depthBiasEnable = VK_FALSE;
 
@@ -1246,7 +1249,7 @@ void RsContextVK::bindGraphicsPSO(
 		CB.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		VkPipelineColorBlendAttachmentState AttachmentState[ 1 ];
 		memset( AttachmentState, 0, sizeof( AttachmentState ) );
-		AttachmentState[0].channelWriteMask = 0xf;
+		AttachmentState[0].colorWriteMask = 0xf;
 		AttachmentState[0].blendEnable = VK_FALSE;
 		CB.attachmentCount = 1;
 		CB.pAttachments = AttachmentState;
@@ -1262,18 +1265,18 @@ void RsContextVK::bindGraphicsPSO(
 		DS.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		DS.depthTestEnable = VK_TRUE;
 		DS.depthWriteEnable = VK_TRUE;
-		DS.depthCompareOp = VK_COMPARE_OP_LESS_EQUAL;
+		DS.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		DS.depthBoundsTestEnable = VK_FALSE;
-		DS.back.stencilFailOp = VK_STENCIL_OP_KEEP;
-		DS.back.stencilPassOp = VK_STENCIL_OP_KEEP;
-		DS.back.stencilCompareOp = VK_COMPARE_OP_ALWAYS;
+		DS.back.failOp = VK_STENCIL_OP_KEEP;
+		DS.back.passOp = VK_STENCIL_OP_KEEP;
+		DS.back.compareOp = VK_COMPARE_OP_ALWAYS;
 		DS.stencilTestEnable = VK_FALSE;
 		DS.front = DS.back;
 
 		memset( &MS, 0, sizeof( MS ) );
 		MS.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		MS.pSampleMask = nullptr;
-		MS.rasterSamples = 1;
+		MS.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkPipelineShaderStageCreateInfo ShaderStages[ 5 ];
 		memset( ShaderStages, 0, sizeof( ShaderStages ) );
@@ -1288,7 +1291,7 @@ void RsContextVK::bindGraphicsPSO(
 
 			ShaderStages[ ShaderIdx ].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			ShaderStages[ ShaderIdx ].stage  = RsUtilsVK::GetShaderStage( Shader->getDesc().ShaderType_ );
-			ShaderStages[ ShaderIdx ].shader = ProgramVK->getShaders()[ ShaderIdx ];
+			ShaderStages[ ShaderIdx ].module = ProgramVK->getShaderModules()[ ShaderIdx ];
 			ShaderStages[ ShaderIdx ].pSpecializationInfo = nullptr;
 			
 			++ShaderIdx;
@@ -1299,14 +1302,14 @@ void RsContextVK::bindGraphicsPSO(
 			memset( &PipelineCache, 0, sizeof( PipelineCache ) );
 			PipelineCache.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 
-			VK( vkCreatePipelineCache( Device_, &PipelineCache, &PipelineCache_) );
+			VK( vkCreatePipelineCache( Device_, &PipelineCache, AllocationCallbacks_, &PipelineCache_ ) );
 		}
 
 		auto FrameBufferVK = FrameBuffer->getHandle< RsFrameBufferVK* >();
 
 		PipelineCreateInfo.pVertexInputState = &VI;
 		PipelineCreateInfo.pInputAssemblyState = &IA;
-		PipelineCreateInfo.pRasterState = &RS;
+		PipelineCreateInfo.pRasterizationState = &RS;
 		PipelineCreateInfo.pColorBlendState = &CB;
 		PipelineCreateInfo.pMultisampleState = &MS;
 		PipelineCreateInfo.pViewportState = &VP;
@@ -1315,7 +1318,7 @@ void RsContextVK::bindGraphicsPSO(
 		PipelineCreateInfo.renderPass = BoundRenderPass_;
 		PipelineCreateInfo.pDynamicState = &DynamicState;
 
-		VK( vkCreateGraphicsPipelines( Device_, PipelineCache_, 1, &PipelineCreateInfo, &Pipeline ) );
+		VK( vkCreateGraphicsPipelines( Device_, PipelineCache_, 1, &PipelineCreateInfo, AllocationCallbacks_, &Pipeline ) );
 
 		PSOCache_[ PSOBinding ] = Pipeline;
 	}
@@ -1326,8 +1329,8 @@ void RsContextVK::bindGraphicsPSO(
 
 	if( Program->isGraphics() )
 	{
-		//vkCmdBindDescriptorSets( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
-		//	ProgramBindingVK->getDescriptorSets(), 0, nullptr );
+		vkCmdBindDescriptorSets( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
+			ProgramBindingVK->getDescriptorSets(), 0, nullptr );
 		vkCmdBindPipeline( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline );
 	}
 	else
@@ -1346,7 +1349,8 @@ void RsContextVK::bindGraphicsPSO(
 		{
 			auto BufferVK = VertexBufferBinding.Buffer_->getHandle< RsBufferVK* >();
 			VkDeviceSize Offset = VertexBufferBinding.Offset_;
-			vkCmdBindVertexBuffers( getCommandBuffer(), Idx, 1, &BufferVK->getBuffer(), &Offset );
+			VkBuffer Buffer = BufferVK->getBuffer();
+			vkCmdBindVertexBuffers( getCommandBuffer(), Idx, 1, &Buffer, &Offset );
 		}
 	}
 
@@ -1403,12 +1407,12 @@ bool RsContextVK::createSamplerState(
 	VkSamplerCreateInfo SamplerCreateInfo = {};
 	SamplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	SamplerCreateInfo.pNext = nullptr;
-	SamplerCreateInfo.magFilter = VK_TEX_FILTER_NEAREST;
-	SamplerCreateInfo.minFilter = VK_TEX_FILTER_NEAREST;
-	SamplerCreateInfo.mipMode = VK_TEX_MIPMAP_MODE_BASE;
-	SamplerCreateInfo.addressModeU = VK_TEX_ADDRESS_MODE_CLAMP;
-	SamplerCreateInfo.addressModeV = VK_TEX_ADDRESS_MODE_CLAMP;
-	SamplerCreateInfo.addressModeW = VK_TEX_ADDRESS_MODE_CLAMP;
+	SamplerCreateInfo.magFilter = VK_FILTER_NEAREST;
+	SamplerCreateInfo.minFilter = VK_FILTER_NEAREST;
+	SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_BASE;
+	SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 	SamplerCreateInfo.mipLodBias = 0.0f;
 	SamplerCreateInfo.maxAnisotropy = 1;
 	SamplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
@@ -1418,8 +1422,8 @@ bool RsContextVK::createSamplerState(
 	SamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
 	VkSampler SamplerVK;
-	VK( vkCreateSampler( Device_, &SamplerCreateInfo, &SamplerVK ) );
-	SamplerState->setHandle( SamplerVK.handle );
+	VK( vkCreateSampler( Device_, &SamplerCreateInfo, AllocationCallbacks_, &SamplerVK ) );
+	SamplerState->setHandle( SamplerVK );
 	return true;
 }
 
@@ -1430,7 +1434,7 @@ bool RsContextVK::destroySamplerState(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	VkSampler SamplerVK = SamplerState->getHandle< VkSampler >();
-	vkDestroySampler( Device_, SamplerVK );
+	vkDestroySampler( Device_, SamplerVK, AllocationCallbacks_ );
 	SamplerState->setHandle( 0 );
 	return true;
 }
@@ -1526,22 +1530,22 @@ bool RsContextVK::createTexture(
 	RsTextureVK* TextureVK = new RsTextureVK( Texture, Device_, Allocator_.get() );
 	
 	// Determine image aspect + layout.
-	VkImageAspect Aspect = VK_IMAGE_ASPECT_COLOR;
+	VkImageAspectFlags Aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 	VkImageLayout Layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE )
 	{
-		Aspect = VK_IMAGE_ASPECT_COLOR;
+		Aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 		Layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 	else if( ( Desc.BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) != RsResourceBindFlags::NONE )
 	{
-		Aspect = VK_IMAGE_ASPECT_DEPTH;
+		Aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 		Layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	}
 	else if( ( Desc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
-		Aspect = VK_IMAGE_ASPECT_COLOR;
+		Aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 		Layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 

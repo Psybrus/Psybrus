@@ -19,14 +19,16 @@
 
 #include "System/Renderer/RsTypes.h"
 
+#define VK_USE_PLATFORM_WIN32_KHR
+
 #define VK_PROTOTYPES
-#include <vulkan.h>
-#include <vk_debug_report_lunarg.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vk_lunarg_debug_report.h>
 
 #if PLATFORM_WINDOWS
 #  include <Windows.h>
-#  include <vk_ext_khr_swapchain.h>
-#  include <vk_ext_khr_device_swapchain.h>
+#  include <vulkan/vk_platform.h>
+#  include <vulkan/vk_sdk_platform.h>
 #endif
 
 inline VkResult HandleVulkanResult( VkResult Result, const char* File, int Line, const char* CallString )
@@ -38,9 +40,6 @@ inline VkResult HandleVulkanResult( VkResult Result, const char* File, int Line,
 	}
 	switch( Result )
 	{
-	case VK_UNSUPPORTED:
-		PSY_LOG( " - Error: VK_UNSUPPORTED" );
-		break;
 	case VK_NOT_READY:
 		PSY_LOG( " - Error: VK_NOT_READY" );
 		break;

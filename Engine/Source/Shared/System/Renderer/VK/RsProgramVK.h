@@ -46,8 +46,7 @@ public:
 	~RsProgramVK();
 
 	const std::vector< VkShaderModule >& getShaderModules() const { return ShaderModules_; }
-	const std::vector< VkShader >& getShaders() const { return Shaders_; }
-
+	
 	size_t getSRVBindCount() { return SRVBindInfo_.size(); };
 	size_t getUAVBindCount() { return UAVBindInfo_.size(); };
 	size_t getSamplerBindCount() { return SamplerBindInfo_.size(); };
@@ -63,7 +62,6 @@ private:
 	VkDevice Device_;
 
 	std::vector< VkShaderModule > ShaderModules_;
-	std::vector< VkShader > Shaders_;
 
 	std::vector< RsProgramBindInfoVK > SRVBindInfo_;
 	std::vector< RsProgramBindInfoVK > UAVBindInfo_;

@@ -25,7 +25,7 @@ public:
 	/**
 	 * Set image layout.
 	 */
-	void setImageLayout( VkCmdBuffer CommandBuffer, VkImageAspectFlags Aspect, VkImageLayout ImageLayout );
+	void setImageLayout( VkCommandBuffer CommandBuffer, VkImageAspectFlags Aspect, VkImageLayout ImageLayout );
 
 	VkImage getImage() const { return Image_; }
 	VkImageView getImageView() const { return ImageView_; }
