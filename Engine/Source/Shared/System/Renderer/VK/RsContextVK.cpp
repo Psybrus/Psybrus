@@ -300,14 +300,23 @@ void RsContextVK::create()
 
 		for( const auto& InstanceExtension : InstanceExtensions_ )
 		{
-			if( strstr( InstanceExtension.extensionName, "VK_WSI_swapchain" ) )
+			if( strstr( InstanceExtension.extensionName, VK_KHR_SURFACE_EXTENSION_NAME ) )
 			{
 				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
 			}
-			else if( strstr( InstanceExtension.extensionName, "DEBUG_REPORT" ) )
+			if( strstr( InstanceExtension.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME ) )
 			{
 				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
-				DebugEnabled = true;
+			}
+#if PLATFORM_WINDOWS 
+			if( strstr( InstanceExtension.extensionName, VK_KHR_WIN32_SURFACE_EXTENSION_NAME ) )
+			{
+				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
+			}
+#endif
+			if( strstr( InstanceExtension.extensionName, VK_DEBUG_REPORT_EXTENSION_NAME) )
+			{
+				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
 			}
 		}
 	}
@@ -407,7 +416,17 @@ void RsContextVK::create()
 
 			for( const auto& DeviceExtension : DeviceExtensions_ )
 			{
-				if( strstr( DeviceExtension.extensionName, "VK_EXT_KHR_device_swapchain" ) )
+				if( strstr( DeviceExtension.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME ) )
+				{
+					EnabledDeviceExtensions.push_back( DeviceExtension.extensionName );
+				}
+#if PLATFORM_WINDOWS 
+				if( strstr( DeviceExtension.extensionName, VK_KHR_WIN32_SURFACE_EXTENSION_NAME ) )
+				{
+					EnabledDeviceExtensions.push_back( DeviceExtension.extensionName );
+				}
+#endif
+				if( strstr( DeviceExtension.extensionName, VK_DEBUG_REPORT_EXTENSION_NAME) )
 				{
 					EnabledDeviceExtensions.push_back( DeviceExtension.extensionName );
 				}
@@ -507,15 +526,15 @@ void RsContextVK::create()
 		if( VK( vkCreateDevice( PhysicalDevices_[ 0 ], &DeviceCreateInfo, AllocationCallbacks_, &Device_ ) ) == VK_SUCCESS )
 		{
 			// Get fps.
+			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceCapabilitiesKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceFormatsKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfacePresentModesKHR );
 			GET_INSTANCE_PROC_ADDR( Instance_, GetPhysicalDeviceSurfaceSupportKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetPhysicalDeviceSurfaceCapabilitiesKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetPhysicalDeviceSurfaceFormatsKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetPhysicalDeviceSurfacePresentModesKHR );
-			GET_DEVICE_PROC_ADDR( Device_, CreateSwapchainKHR );
-			GET_DEVICE_PROC_ADDR( Device_, DestroySwapchainKHR );
-			GET_DEVICE_PROC_ADDR( Device_, GetSwapchainImagesKHR );
-			GET_DEVICE_PROC_ADDR( Device_, AcquireNextImageKHR );
-			GET_DEVICE_PROC_ADDR( Device_, QueuePresentKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, CreateSwapchainKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, DestroySwapchainKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, GetSwapchainImagesKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, AcquireNextImageKHR );
+			GET_INSTANCE_PROC_ADDR( Instance_, QueuePresentKHR );
 
 			//
 			vkGetPhysicalDeviceProperties( PhysicalDevices_[ 0 ], &DeviceProps_ );
@@ -628,6 +647,7 @@ void RsContextVK::create()
 		SwapChainCreateInfo_.imageColorSpace = SurfaceFormats_[ 0 ].colorSpace;
 		SwapChainCreateInfo_.imageExtent.width = pClient_->getWidth();
 		SwapChainCreateInfo_.imageExtent.height = pClient_->getHeight();
+		SwapChainCreateInfo_.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		SwapChainCreateInfo_.preTransform = PreTransform;
 		SwapChainCreateInfo_.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		SwapChainCreateInfo_.queueFamilyIndexCount = 0;
@@ -837,13 +857,12 @@ void RsContextVK::createDescriptorLayouts()
 		VK_SHADER_STAGE_GEOMETRY_BIT
 	};
 
-	BcU32 LayoutBindingIdx = 0;
-	for( size_t Idx = 0; Idx < 16; ++Idx )
-	{
-		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[0];
-		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-		++LayoutBindingIdx;
-	}
+	LayoutBindings[ 0 ] = BaseLayoutBindings[0];
+	LayoutBindings[ 0 ].binding = 0;
+	LayoutBindings[ 0 ].descriptorCount = 16;
+	LayoutBindings[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	LayoutBindings[ 0 ].stageFlags = VK_SHADER_STAGE_ALL;
+	LayoutBindings[ 0 ].pImmutableSamplers = nullptr;
 #if 0
 	for( size_t Idx = 0; Idx < 16; ++Idx )
 	{
@@ -867,8 +886,9 @@ void RsContextVK::createDescriptorLayouts()
 	VkDescriptorSetLayoutCreateInfo DescriptorLayout;
 	DescriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	DescriptorLayout.pNext = NULL;
-	DescriptorLayout.bindingCount = LayoutBindingIdx;
+	DescriptorLayout.bindingCount = 1;
 	DescriptorLayout.pBinding = LayoutBindings;
+	DescriptorLayout.flags = 0;
 
 	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, AllocationCallbacks_, &GraphicsDescriptorSetLayout_ ) );
 
@@ -1292,6 +1312,7 @@ void RsContextVK::bindGraphicsPSO(
 			ShaderStages[ ShaderIdx ].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			ShaderStages[ ShaderIdx ].stage  = RsUtilsVK::GetShaderStage( Shader->getDesc().ShaderType_ );
 			ShaderStages[ ShaderIdx ].module = ProgramVK->getShaderModules()[ ShaderIdx ];
+			ShaderStages[ ShaderIdx ].pName = "main";
 			ShaderStages[ ShaderIdx ].pSpecializationInfo = nullptr;
 			
 			++ShaderIdx;

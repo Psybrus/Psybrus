@@ -153,9 +153,9 @@ private:
 	std::vector< VkLayerProperties > DeviceLayers_;
 	std::vector< VkExtensionProperties > DeviceExtensions_;
 	VkAllocationCallbacks* AllocationCallbacks_ = nullptr;
-	VkInstance Instance_ = 0;
+	VkInstance Instance_ = nullptr;
 	std::vector< VkPhysicalDevice > PhysicalDevices_;
-	VkDevice Device_ = 0;
+	VkDevice Device_  = nullptr; = nullptr;
 	VkPhysicalDeviceProperties DeviceProps_ = {};
 	std::vector< VkQueueFamilyProperties > DeviceQueueProps_;
 
@@ -177,7 +177,7 @@ private:
 	PFN_vkDbgCreateMsgCallback fpCreateMsgCallback_ = nullptr;
 	PFN_vkDbgDestroyMsgCallback fpDestroyMsgCallback_ = nullptr;
 	PFN_vkDbgMsgCallback fpBreakCallback_ = nullptr;
-	VkDbgMsgCallback DebugCallback_ = 0;
+	VkDbgMsgCallback DebugCallback_ = nullptr;
 
 	// Queues.
 	VkQueue GraphicsQueue_ = nullptr;
@@ -187,7 +187,7 @@ private:
 
 	// Command pool & buffer.
 	VkCommandPoolCreateInfo CommandPoolCreateInfo_ = {};
-	VkCommandPool CommandPool_ = 0;
+	VkCommandPool CommandPool_ = nullptr;
 	VkCommandBufferAllocateInfo CommandBufferAllocateInfo_ = {};
 
 	std::array< VkCommandBuffer, 2 > CommandBuffers_;
@@ -196,7 +196,7 @@ private:
 
 	// Swap chain
 	VkSwapchainCreateInfoKHR SwapChainCreateInfo_ = {};
-	VkSwapchainKHR SwapChain_ = 0;
+	VkSwapchainKHR SwapChain_ = nullptr;
 	std::vector< VkImage > SwapChainImages_;
 
 	std::vector< class RsTexture* > SwapChainTextures_;
@@ -206,7 +206,7 @@ private:
 	std::vector< class RsFrameBuffer* > FrameBuffers_ = {};
 	uint32_t CurrentFrameBuffer_ = 0;
 	const RsFrameBuffer* BoundFrameBuffer_ = nullptr;
-	VkRenderPass BoundRenderPass_;
+	VkRenderPass BoundRenderPass_ = nullptr;
 
 	// Internal utilities.
 	std::unique_ptr< class RsAllocatorVK > Allocator_;
@@ -215,10 +215,10 @@ private:
 	bool InsideBeginEndFrame_ = false;
 
 	// Descriptor layout.
-	VkDescriptorSetLayout GraphicsDescriptorSetLayout_;
-	VkPipelineLayout GraphicsPipelineLayout_;
-	VkDescriptorSetLayout ComputeDescriptorSetLayout_;
-	VkPipelineLayout ComputePipelineLayout_;
+	VkDescriptorSetLayout GraphicsDescriptorSetLayout_ = nullptr;
+	VkPipelineLayout GraphicsPipelineLayout_ = nullptr;
+	VkDescriptorSetLayout ComputeDescriptorSetLayout_ = nullptr;
+	VkPipelineLayout ComputePipelineLayout_ = nullptr;
 
 	// PSO cache.
 	using PSOBindingTuple = std::tuple< 
@@ -229,7 +229,7 @@ private:
 		const RsFrameBuffer*,
 		VkRenderPass >;
 	std::map< PSOBindingTuple, VkPipeline > PSOCache_;
-	VkPipelineCache PipelineCache_;
+	VkPipelineCache PipelineCache_ = nullptr;
 };
 
 #endif
