@@ -91,6 +91,10 @@ PS_IN( vec4, GsTexCoord0 );
 out float4 fragColor;
 #endif
 
+#if PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_430
+layout(location = 0) out float4 fragColor;
+#endif
+
 #if PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 #define fragColor gl_FragData[0]
 #endif
@@ -99,7 +103,7 @@ out float4 fragColor;
 // pixelMain
 void pixelMain()
 {
-	fragColor.rgb = ( VsNormal.rgb + vec3( 1.0f, 1.0f, 1.0f ) ) * 0.5f;
+	fragColor.xyz = ( VsNormal.xyz + vec3( 1.0f, 1.0f, 1.0f ) ) * 0.5f;
 	fragColor.w = 1.0f;
 }
 

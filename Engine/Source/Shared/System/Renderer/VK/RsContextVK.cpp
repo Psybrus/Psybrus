@@ -317,6 +317,7 @@ void RsContextVK::create()
 			if( strstr( InstanceExtension.extensionName, VK_DEBUG_REPORT_EXTENSION_NAME) )
 			{
 				EnabledInstanceExtensions.push_back( InstanceExtension.extensionName );
+				DebugEnabled = true;
 			}
 		}
 	}
@@ -610,7 +611,7 @@ void RsContextVK::create()
 		CommandPoolCreateInfo_.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		CommandPoolCreateInfo_.pNext = nullptr;
 		CommandPoolCreateInfo_.queueFamilyIndex = FoundGraphicsQueue;
-		CommandPoolCreateInfo_.flags = 0;
+		CommandPoolCreateInfo_.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		VK( vkCreateCommandPool( Device_, &CommandPoolCreateInfo_, AllocationCallbacks_, &CommandPool_ ) );
 
@@ -732,46 +733,46 @@ void RsContextVK::create()
 		Features_.Texture1D_ = true;
 		Features_.Texture2D_ = true;
 		Features_.Texture3D_ = true;
-		Features_.TextureCube_ = true;
+		Features_.TextureCube_ = false;
 
 		// TODO: Check formats properly.
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D16 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D24 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D32 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D24S8 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R8 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8 ] = false;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R16F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R32F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::D16 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::D24 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::D32 ] = true;
+		Features_.TextureFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8 ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8 ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8 ] = false;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
+		Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
 
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D16 ] = true;
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24 ] = true;
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24S8 ] = true;
+		Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D16 ] = true;
+		Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24 ] = true;
+		Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
+		Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 
 	}
 	else
@@ -857,46 +858,49 @@ void RsContextVK::createDescriptorLayouts()
 		VK_SHADER_STAGE_GEOMETRY_BIT
 	};
 
-	LayoutBindings[ 0 ] = BaseLayoutBindings[0];
-	LayoutBindings[ 0 ].binding = 0;
-	LayoutBindings[ 0 ].descriptorCount = 16;
-	LayoutBindings[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	LayoutBindings[ 0 ].stageFlags = VK_SHADER_STAGE_ALL;
-	LayoutBindings[ 0 ].pImmutableSamplers = nullptr;
-#if 0
+	size_t TotalBindings = 0;
 	for( size_t Idx = 0; Idx < 16; ++Idx )
 	{
-		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[1];
-		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-		++LayoutBindingIdx;
+		LayoutBindings[ TotalBindings ] = BaseLayoutBindings[0];
+		LayoutBindings[ TotalBindings ].binding = Idx;
+		LayoutBindings[ TotalBindings ].descriptorCount = 1;
+		LayoutBindings[ TotalBindings ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		LayoutBindings[ TotalBindings ].stageFlags = VK_SHADER_STAGE_ALL;
+		LayoutBindings[ TotalBindings ].pImmutableSamplers = nullptr;
+		++TotalBindings;
 	}
+
 	for( size_t Idx = 0; Idx < 16; ++Idx )
 	{
-		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[2];
-		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-		++LayoutBindingIdx;
+		LayoutBindings[ TotalBindings ] = BaseLayoutBindings[1];
+		LayoutBindings[ TotalBindings ].binding = Idx;
+		LayoutBindings[ TotalBindings ].descriptorCount = 1;
+		LayoutBindings[ TotalBindings ].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		LayoutBindings[ TotalBindings ].stageFlags = VK_SHADER_STAGE_ALL;
+		LayoutBindings[ TotalBindings ].pImmutableSamplers = nullptr;
+		++TotalBindings;
 	}
-	for( size_t Idx = 0; Idx < 16; ++Idx )
-	{
-		LayoutBindings[ LayoutBindingIdx ] = BaseLayoutBindings[3];
-		LayoutBindings[ LayoutBindingIdx ].stageFlags = VK_SHADER_STAGE_ALL;
-		++LayoutBindingIdx;
-	}
-#endif
+
 	VkDescriptorSetLayoutCreateInfo DescriptorLayout;
 	DescriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	DescriptorLayout.pNext = NULL;
-	DescriptorLayout.bindingCount = 1;
-	DescriptorLayout.pBinding = LayoutBindings;
+	DescriptorLayout.bindingCount = 16;
+	DescriptorLayout.pBinding = &LayoutBindings[ 0 ];
 	DescriptorLayout.flags = 0;
+	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, AllocationCallbacks_, &GraphicsDescriptorSetLayouts_[ 0 ] ) );
 
-	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, AllocationCallbacks_, &GraphicsDescriptorSetLayout_ ) );
+	DescriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	DescriptorLayout.pNext = NULL;
+	DescriptorLayout.bindingCount = 16;
+	DescriptorLayout.pBinding = &LayoutBindings[ 16 ];
+	DescriptorLayout.flags = 0;
+	VK( vkCreateDescriptorSetLayout( Device_, &DescriptorLayout, AllocationCallbacks_, &GraphicsDescriptorSetLayouts_[ 1 ] ) );
 
 	VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo;
 	PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	PipelineLayoutCreateInfo.pNext = nullptr;
-	PipelineLayoutCreateInfo.setLayoutCount = 1;
-	PipelineLayoutCreateInfo.pSetLayouts = &GraphicsDescriptorSetLayout_;
+	PipelineLayoutCreateInfo.setLayoutCount = GraphicsDescriptorSetLayouts_.size();
+	PipelineLayoutCreateInfo.pSetLayouts = GraphicsDescriptorSetLayouts_.data();
 	PipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 	PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 	VK( vkCreatePipelineLayout( Device_, &PipelineLayoutCreateInfo, AllocationCallbacks_, &GraphicsPipelineLayout_ ) );
@@ -1199,7 +1203,7 @@ void RsContextVK::bindGraphicsPSO(
 
 		memset( &VI, 0, sizeof( VI ) );
 		VI.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		VI.vertexAttributeDescriptionCount = VertexDeclaration->getDesc().Elements_.size();
+		VI.vertexAttributeDescriptionCount = 0;
 		VI.pVertexBindingDescriptions = BindingDescription.data();
 		VI.pVertexAttributeDescriptions = AttributeDescription.data();
 
@@ -1247,6 +1251,7 @@ void RsContextVK::bindGraphicsPSO(
 
 				MaxStreamIdx = std::max( MaxStreamIdx, FoundElement->StreamIdx_ );
 				++SlotIdx;
+				++VI.vertexAttributeDescriptionCount;
 			}
 		}
 		BcAssert( ProgramVertexAttributeList.size() == SlotIdx );
@@ -1258,7 +1263,7 @@ void RsContextVK::bindGraphicsPSO(
 
 		memset( &RS, 0, sizeof( RS ) );
 		RS.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		RS.polygonMode = VK_POLYGON_MODE_FILL;
+		RS.polygonMode = RenderState->getDesc().RasteriserState_.FillMode_ == RsFillMode::SOLID ? VK_POLYGON_MODE_FILL : VK_POLYGON_MODE_LINE;
 		RS.cullMode = VK_CULL_MODE_NONE;
 		RS.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		RS.depthClampEnable = VK_TRUE;
@@ -1270,7 +1275,13 @@ void RsContextVK::bindGraphicsPSO(
 		VkPipelineColorBlendAttachmentState AttachmentState[ 1 ];
 		memset( AttachmentState, 0, sizeof( AttachmentState ) );
 		AttachmentState[0].colorWriteMask = 0xf;
-		AttachmentState[0].blendEnable = VK_FALSE;
+		AttachmentState[0].blendEnable = VK_TRUE;
+		AttachmentState[0].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		AttachmentState[0].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		AttachmentState[0].colorBlendOp = VK_BLEND_OP_ADD;
+		AttachmentState[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		AttachmentState[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		AttachmentState[0].alphaBlendOp = VK_BLEND_OP_ADD;
 		CB.attachmentCount = 1;
 		CB.pAttachments = AttachmentState;
 
@@ -1283,8 +1294,8 @@ void RsContextVK::bindGraphicsPSO(
 
 		memset( &DS, 0, sizeof( DS ) );
 		DS.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		DS.depthTestEnable = VK_TRUE;
-		DS.depthWriteEnable = VK_TRUE;
+		DS.depthTestEnable = VK_FALSE;
+		DS.depthWriteEnable = VK_FALSE;
 		DS.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		DS.depthBoundsTestEnable = VK_FALSE;
 		DS.back.failOp = VK_STENCIL_OP_KEEP;
@@ -1350,7 +1361,7 @@ void RsContextVK::bindGraphicsPSO(
 
 	if( Program->isGraphics() )
 	{
-		vkCmdBindDescriptorSets( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 1, 
+		vkCmdBindDescriptorSets( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineLayout_, 0, 2, 
 			ProgramBindingVK->getDescriptorSets(), 0, nullptr );
 		vkCmdBindPipeline( getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, Pipeline );
 	}
@@ -1431,9 +1442,9 @@ bool RsContextVK::createSamplerState(
 	SamplerCreateInfo.magFilter = VK_FILTER_NEAREST;
 	SamplerCreateInfo.minFilter = VK_FILTER_NEAREST;
 	SamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_BASE;
-	SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-	SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-	SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	SamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	SamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	SamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	SamplerCreateInfo.mipLodBias = 0.0f;
 	SamplerCreateInfo.maxAnisotropy = 1;
 	SamplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
@@ -1521,9 +1532,9 @@ bool RsContextVK::updateBuffer(
 	BcUnusedVar( Size );
 	BcUnusedVar( Flags );
 	BcUnusedVar( UpdateFunc );
-#if 1
+
+	auto* BufferVK = Buffer->getHandle< const RsBufferVK* >();
 	void* Data = nullptr;
-	auto BufferVK = Buffer->getHandle< RsBufferVK* >();
 	auto RetVal = VK( vkMapMemory( Device_, BufferVK->getDeviceMemory(), Offset, Size, 0, &Data ) );
 	if( !RetVal )
 	{
@@ -1531,12 +1542,12 @@ bool RsContextVK::updateBuffer(
 		UpdateFunc( Buffer, Lock );
 		vkUnmapMemory( Device_, BufferVK->getDeviceMemory() );
 	}
-#else
-	std::unique_ptr< BcU8[] > TempBuffer;
-	TempBuffer.reset( new BcU8[ Buffer->getDesc().SizeBytes_ ] );
-	RsBufferLock Lock = { TempBuffer.get() };
-	UpdateFunc( Buffer, Lock );
-#endif
+	else
+	{
+		BcAssertMsg( BcFalse, "Unable to map memory for RsBuffer \"%s\"", Buffer->getDebugName() );
+		return false;
+	}
+
 	return true;
 }
 
@@ -1598,29 +1609,67 @@ bool RsContextVK::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Texture );
-	BcUnusedVar( Slice );
-	BcUnusedVar( Flags );
-	BcUnusedVar( UpdateFunc );
-	const auto& TextureDesc = Texture->getDesc();
-	std::unique_ptr< BcU8[] > TextureData;
-		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
-		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
-		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
-		BcU32 DataSize = RsTextureFormatSize( 
-			TextureDesc.Format_,
-			Width,
-			Height,
-			Depth,
-			1 );
-	TextureData.reset( new BcU8[ DataSize ] );
-	const auto BlockInfo = RsTextureBlockInfo( TextureDesc.Format_ );
-	RsTextureLock Lock;
-	Lock.Buffer_ = TextureData.get();
-	Lock.Pitch_ = ( ( Width / BlockInfo.Width_ ) * BlockInfo.Bits_ ) / 8;
-	Lock.SlicePitch_ = ( ( Width / BlockInfo.Width_ ) * ( Height / BlockInfo.Height_ ) * BlockInfo.Bits_ ) / 8;
 
-	UpdateFunc( Texture, Lock );
+	const auto& TextureDesc = Texture->getDesc();
+	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+	BcU32 DataSize = RsTextureFormatSize( 
+		TextureDesc.Format_,
+		Width,
+		Height,
+		Depth,
+		1 );
+
+	auto* TextureVK = Texture->getHandle< RsTextureVK* >();
+	TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_GENERAL );
+	void* Data = nullptr;
+
+	auto RetVal = VK( vkMapMemory( Device_, TextureVK->getDeviceMemory(), 0, DataSize, 0, &Data ) );
+	if( !RetVal )
+	{
+		VkImageSubresource SubResource;
+		SubResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		SubResource.mipLevel = Slice.Level_;
+		SubResource.arrayLayer = ((BcU32)Slice.Face_) - 1;
+		VkSubresourceLayout Layout;
+		vkGetImageSubresourceLayout( Device_, TextureVK->getImage(), &SubResource, &Layout );
+
+		const auto BlockInfo = RsTextureBlockInfo( TextureDesc.Format_ );
+		RsTextureLock Lock;
+		Lock.Buffer_ = Data;
+		Lock.Pitch_ = Layout.rowPitch;
+		Lock.SlicePitch_ = Layout.depthPitch;
+#if PSY_DEBUG
+		memset( Data, 0x40, DataSize );
+		for( size_t Idx = 0; Idx < DataSize / 4;  ++Idx )
+		{
+			BcU32 Y = ( Idx ) / 512;
+			BcU32 Val = BcU8( ( Idx << 2 ) & 0xff );
+			reinterpret_cast< BcU32* >( Data )[ Idx ] = Val << 16 | ( Y << 2 );
+		}
+#endif
+		UpdateFunc( Texture, Lock );
+		for( size_t Idx = 0; Idx < DataSize / 4;  ++Idx )
+		{
+			BcU32 R = ( reinterpret_cast< BcU32* >( Data )[ Idx ] ) & 0xff;
+			BcU32 G = ( reinterpret_cast< BcU32* >( Data )[ Idx ] >> 8 ) & 0xff;
+			BcU32 B = ( reinterpret_cast< BcU32* >( Data )[ Idx ] >> 16 ) & 0xff;
+			BcU32 A = ( reinterpret_cast< BcU32* >( Data )[ Idx ] >> 24 ) & 0xff;
+			//reinterpret_cast< BcU32* >( Data )[ Idx ] = 
+			//	B << 24 |
+			//	G << 16 |
+			//	R << 8 |
+			//	A;
+		}
+		vkUnmapMemory( Device_, TextureVK->getDeviceMemory() );
+		TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+	}
+	else
+	{
+		BcAssertMsg( BcFalse, "Unable to map memory for RsTexture \"%s\"", Texture->getDebugName() );
+		return false;
+	}
 	return true;
 }
 
@@ -1652,7 +1701,6 @@ bool RsContextVK::createProgram(
 	return true;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // destroyProgram
 bool RsContextVK::destroyProgram(
@@ -1672,11 +1720,11 @@ bool RsContextVK::createProgramBinding( class RsProgramBinding* ProgramBinding )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	if( ProgramBinding->getProgram()->isGraphics() )
 	{
-		new RsProgramBindingVK( ProgramBinding, Device_, GraphicsDescriptorSetLayout_ );
+		new RsProgramBindingVK( ProgramBinding, Device_, GraphicsDescriptorSetLayouts_.data(), GraphicsDescriptorSetLayouts_.size() );
 	}
 	else
 	{
-		new RsProgramBindingVK( ProgramBinding, Device_, ComputeDescriptorSetLayout_ );
+		new RsProgramBindingVK( ProgramBinding, Device_, &ComputeDescriptorSetLayout_, 1 );
 	}
 	return true;
 }

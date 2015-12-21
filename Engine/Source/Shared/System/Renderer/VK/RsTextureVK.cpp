@@ -59,6 +59,11 @@ RsTextureVK::~RsTextureVK()
 // setImageLayout
 void RsTextureVK::setImageLayout( VkCommandBuffer CommandBuffer, VkImageAspectFlags Aspect, VkImageLayout ImageLayout )
 {
+	if( ImageLayout_ == ImageLayout )
+	{
+		return;
+	}
+
 	VkImageMemoryBarrier ImageMemoryBarrier = {};
 	ImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	ImageMemoryBarrier.pNext = NULL;
@@ -72,13 +77,22 @@ void RsTextureVK::setImageLayout( VkCommandBuffer CommandBuffer, VkImageAspectFl
 	if( ImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
 	{
 		// Make sure anything that was copying from this image has completed.
-		ImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		ImageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
 	}
 
-	if( ImageLayout_ == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
+	if( ImageLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL )
 	{
-		// Make sure any Copy or CPU writes to image are flushed.
-		ImageMemoryBarrier.dstAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+		ImageMemoryBarrier.srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
+	if( ImageLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL )
+	{
+		ImageMemoryBarrier.srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	}
+
+	if( ImageLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL )
+	{
+		ImageMemoryBarrier.dstAccessMask |= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 	}
 
 	VkImageMemoryBarrier* MemoryBarriers = &ImageMemoryBarrier;
@@ -87,6 +101,8 @@ void RsTextureVK::setImageLayout( VkCommandBuffer CommandBuffer, VkImageAspectFl
 	VkPipelineStageFlags DestStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
 	vkCmdPipelineBarrier( CommandBuffer, SrcStages, DestStages, false, 1, (const void * const*)&MemoryBarriers );
+
+	ImageLayout_ = ImageLayout;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -134,7 +150,7 @@ void RsTextureVK::createImage()
 	
 	// Setup property flags, usage, and tiling.
 	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-	ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	ImageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
 	ImageCreateInfo.usage = 0;
 	if( ( Desc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 	{
@@ -179,7 +195,7 @@ void RsTextureVK::createImage()
 		PropertyFlags );
 
 	// Bind image memory.
-    VK( vkBindImageMemory( Device_, Image_, DeviceMemory_ , 0 ) );
+    VK( vkBindImageMemory( Device_, Image_, DeviceMemory_, 0 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

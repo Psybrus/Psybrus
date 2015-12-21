@@ -91,12 +91,12 @@ mat4 transpose( mat4 In )
 // HLSL mul.
 vec3 mul( mat3 M, vec3 V )
 {
-	return V * transpose( M );
+	return M * V;
 }
 
 vec4 mul( mat4 M, vec4 V )
 {
-	return V * transpose( M );
+	return M * V;
 }
 
 //////////////////////////////////////////////////////////////////////////

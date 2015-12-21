@@ -155,7 +155,7 @@ private:
 	VkAllocationCallbacks* AllocationCallbacks_ = nullptr;
 	VkInstance Instance_ = nullptr;
 	std::vector< VkPhysicalDevice > PhysicalDevices_;
-	VkDevice Device_  = nullptr; = nullptr;
+	VkDevice Device_  = nullptr;
 	VkPhysicalDeviceProperties DeviceProps_ = {};
 	std::vector< VkQueueFamilyProperties > DeviceQueueProps_;
 
@@ -215,7 +215,7 @@ private:
 	bool InsideBeginEndFrame_ = false;
 
 	// Descriptor layout.
-	VkDescriptorSetLayout GraphicsDescriptorSetLayout_ = nullptr;
+	std::array< VkDescriptorSetLayout, 2 > GraphicsDescriptorSetLayouts_;
 	VkPipelineLayout GraphicsPipelineLayout_ = nullptr;
 	VkDescriptorSetLayout ComputeDescriptorSetLayout_ = nullptr;
 	VkPipelineLayout ComputePipelineLayout_ = nullptr;

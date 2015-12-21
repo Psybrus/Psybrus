@@ -10,11 +10,15 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice Device, VkDescriptorSetLayout DescriptorSetLayout ):
+RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice Device, const VkDescriptorSetLayout* DescriptorSetLayouts, size_t DescriptorSetCount ):
 	Parent_( Parent ),
-	Device_( Device ),
-	DescriptorSetLayout_( DescriptorSetLayout )
+	Device_( Device )
 {
+	for( size_t Idx = 0; Idx < DescriptorSetCount; ++Idx )
+	{
+		DescriptorSetLayouts_[ Idx ] = DescriptorSetLayouts[ Idx ];
+	}
+
 	Parent_->setHandle( this );
 	auto Desc = Parent->getDesc();
 	auto Program = Parent->getProgram();
@@ -55,9 +59,11 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	BcU32 MaxStorageImage = 0;
 	BcU32 MaxStorageBuffer = 0;
 	std::vector< VkDescriptorBufferInfo > UniformBufferInfos;
-	//std::vector< VkDescriptorInfo > DescInfos;
+	std::vector< VkDescriptorImageInfo > ImageSamplerInfos;
 	UniformBufferInfos.resize( 16 );
 	memset( UniformBufferInfos.data(), 0, UniformBufferInfos.size() * sizeof( VkDescriptorBufferInfo ) );
+	ImageSamplerInfos.resize( 16 );
+	memset( ImageSamplerInfos.data(), 0, ImageSamplerInfos.size() * sizeof( VkDescriptorImageInfo ) );
 
 	// Setup uniform buffers.
 	for( size_t Idx = 0; Idx < Desc.UniformBuffers_.size(); ++Idx )
@@ -75,7 +81,6 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 			MaxUniformBuffer = std::max( MaxUniformBuffer, BindInfo.Binding_ + 1 );
 		}
 	}
-#if 0
 	// Setup samplers.
 	for( size_t Idx = 0; Idx < Desc.SamplerStates_.size(); ++Idx )
 	{
@@ -83,7 +88,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 		if( SamplerState )
 		{
 			auto BindInfo = ProgramVK->getSamplerBindInfo( Idx );
-			auto& DescInfo = DescInfos[ ImageSamplerBase + BindInfo.Binding_ ];
+			auto& DescInfo = ImageSamplerInfos[ BindInfo.Binding_ ];
 			DescInfo.sampler = SamplerState->getHandle< VkSampler >();
 
 			MaxImageSampler = std::max( MaxImageSampler, BindInfo.Binding_ + 1 );
@@ -101,34 +106,12 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 			{
 			case RsProgramBindTypeVK::SAMPLER:
 				{
-					auto& DescInfo = DescInfos[ ImageSamplerBase + BindInfo.Binding_ ];
+					auto& DescInfo = ImageSamplerInfos[ BindInfo.Binding_ ];
 					auto TextureVK = ShaderResource.Texture_->getHandle< const RsTextureVK* >();
 					DescInfo.imageView = TextureVK->getImageView();
-					DescInfo.imageLayout = TextureVK->getImageLayout();
+					DescInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;//TextureVK->getImageLayout();
 
 					MaxImageSampler = std::max( MaxImageSampler, BindInfo.Binding_ + 1 );
-				}
-				break;
-			case RsProgramBindTypeVK::IMAGE:
-				{
-					auto& DescInfo = DescInfos[ StorageImageBase + BindInfo.Binding_ ];
-					auto TextureVK = ShaderResource.Texture_->getHandle< const RsTextureVK* >();
-					DescInfo.imageView = TextureVK->getImageView();
-					DescInfo.imageLayout = TextureVK->getImageLayout();
-
-					MaxStorageImage = std::max( MaxStorageImage, BindInfo.Binding_ + 1 );
-				}
-				break;
-			case RsProgramBindTypeVK::BUFFER:
-				{
-					auto& DescInfo = DescInfos[ StorageBufferBase + BindInfo.Binding_ ];
-					auto BufferVK = ShaderResource.Buffer_->getHandle< const RsBufferVK* >();
-					DescInfo.bufferView = BufferVK->getBufferView();
-					DescInfo.bufferInfo.buffer = BufferVK->getBuffer();
-					DescInfo.bufferInfo.offset = 0;
-					DescInfo.bufferInfo.range = ShaderResource.Buffer_->getDesc().SizeBytes_;
-
-					MaxStorageBuffer = std::max( MaxStorageBuffer, BindInfo.Binding_ + 1 );
 				}
 				break;
 			default:
@@ -139,6 +122,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 		}
 	}
 	
+#if 0
 	// Setup UAVs.
 	for( size_t Idx = 0; Idx < Desc.UnorderedAccessSlots_.size(); ++Idx )
 	{
@@ -198,9 +182,10 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo = {};
 	DescriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	DescriptorPoolCreateInfo.pNext = nullptr;
-	DescriptorPoolCreateInfo.maxSets = 1;
+	DescriptorPoolCreateInfo.maxSets = DescriptorSetLayouts_.size();
 	DescriptorPoolCreateInfo.poolSizeCount = CountIdx;
 	DescriptorPoolCreateInfo.pPoolSizes = TypeCounts;
+	DescriptorPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 	VkResult RetVal;
 	RetVal = VK( vkCreateDescriptorPool( Device_, &DescriptorPoolCreateInfo, nullptr/*allocation*/, &DescriptorPool_ ) );
 	BcAssertMsg( RetVal == VK_SUCCESS, "Error creating descriptor pool for RsProgramBinding \"%s\"", 
@@ -210,28 +195,42 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	DescriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	DescriptorSetAllocInfo.pNext = nullptr;
 	DescriptorSetAllocInfo.descriptorPool = DescriptorPool_;
-	DescriptorSetAllocInfo.setLayoutCount = 1;
-	DescriptorSetAllocInfo.pSetLayouts = &DescriptorSetLayout_;
-	RetVal = vkAllocateDescriptorSets( Device_, &DescriptorSetAllocInfo, &DescriptorSet_ );
+	DescriptorSetAllocInfo.setLayoutCount = DescriptorSetLayouts_.size();
+	DescriptorSetAllocInfo.pSetLayouts = DescriptorSetLayouts_.data();
+	RetVal = vkAllocateDescriptorSets( Device_, &DescriptorSetAllocInfo, DescriptorSets_.data() );
 	BcAssertMsg( RetVal == VK_SUCCESS, "Error allocating descriptor set for RsProgramBinding \"%s\"", 
 		Parent_->getDebugName() );
 
-	std::array< VkWriteDescriptorSet, 1 > WriteSet;
-	memset( WriteSet.data(), 0, sizeof( WriteSet ) );
-	WriteSet[ 0 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	WriteSet[ 0 ].dstSet = DescriptorSet_;
-	WriteSet[ 0 ].dstBinding = UniformBufferBase;
-	WriteSet[ 0 ].descriptorCount = MaxUniformBuffer;
-	WriteSet[ 0 ].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	WriteSet[ 0 ].pBufferInfo = UniformBufferInfos.data();
-#if 0
-	WriteSet[ 1 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	WriteSet[ 1 ].destSet = DescriptorSet_;
-	WriteSet[ 1 ].destBinding = ImageSamplerBase;
-	WriteSet[ 1 ].count = MaxImageSampler;
-	WriteSet[ 1 ].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	WriteSet[ 1 ].pDescriptors = DescInfos.data() + ImageSamplerBase;
+	std::vector< VkWriteDescriptorSet > WriteSets;
+	VkWriteDescriptorSet WriteSet;
+	memset( &WriteSet, 0, sizeof( WriteSet ) );
 
+	if( MaxUniformBuffer > 0 )
+	{
+		WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		WriteSet.dstSet = DescriptorSets_[ 0 ];
+		WriteSet.dstBinding = 0;
+		WriteSet.descriptorCount = MaxUniformBuffer;
+		WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		WriteSet.pImageInfo = nullptr;
+		WriteSet.pBufferInfo = UniformBufferInfos.data();
+		WriteSet.pTexelBufferView = nullptr;
+		WriteSets.emplace_back( WriteSet );
+	}
+	if( MaxImageSampler > 0 )
+	{
+		WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		WriteSet.dstSet = DescriptorSets_[ 1 ];
+		WriteSet.dstBinding = 0;
+		WriteSet.descriptorCount = MaxImageSampler;
+		WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		WriteSet.pImageInfo = ImageSamplerInfos.data();
+		WriteSet.pBufferInfo = nullptr;
+		WriteSet.pTexelBufferView = nullptr;
+		WriteSets.emplace_back( WriteSet );
+	}
+
+#if 0
 	WriteSet[ 2 ].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	WriteSet[ 2 ].destSet = DescriptorSet_;
 	WriteSet[ 2 ].destBinding = StorageImageBase;
@@ -247,7 +246,10 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	WriteSet[ 3 ].pDescriptors = DescInfos.data() + StorageBufferBase;
 #endif
 	// Do descriptor update.
-	vkUpdateDescriptorSets( Device_, WriteSet.size(), WriteSet.data(), 0, nullptr );
+	if( WriteSets.size() > 0 )
+	{
+		vkUpdateDescriptorSets( Device_, WriteSets.size(), WriteSets.data(), 0, nullptr );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,7 +257,7 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 //virtual
 RsProgramBindingVK::~RsProgramBindingVK()
 {
-	VK( vkFreeDescriptorSets( Device_, DescriptorPool_, 1, &DescriptorSet_ ) );
+	VK( vkFreeDescriptorSets( Device_, DescriptorPool_, DescriptorSets_.size(), DescriptorSets_.data() ) );
 	vkDestroyDescriptorPool( Device_, DescriptorPool_, nullptr/*allocation*/ );
 	Parent_->setHandle( nullptr );
 }
