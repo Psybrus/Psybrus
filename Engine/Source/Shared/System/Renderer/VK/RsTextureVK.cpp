@@ -76,8 +76,8 @@ void RsTextureVK::setImageLayout( VkCommandBuffer CommandBuffer, VkImageAspectFl
 
 	if( ImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL )
 	{
-		// Make sure anything that was copying from this image has completed.
 		ImageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
+		ImageMemoryBarrier.dstAccessMask |= VK_ACCESS_TRANSFER_WRITE_BIT;
 	}
 
 	if( ImageLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL )
@@ -185,13 +185,12 @@ void RsTextureVK::createImage()
 	VK( vkCreateImage( Device_, &ImageCreateInfo, nullptr /*allocation*/, &Image_ ) );
 
 	// Allocate memory.
-	VkMemoryRequirements MemoryRequirements = {};
-	vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements );
+	vkGetImageMemoryRequirements( Device_, Image_, &MemoryRequirements_ );
 
 	DeviceMemory_ = Allocator_->allocate( 
-		MemoryRequirements.size, 
-		MemoryRequirements.alignment,
-		MemoryRequirements.memoryTypeBits,
+		MemoryRequirements_.size, 
+		MemoryRequirements_.alignment,
+		MemoryRequirements_.memoryTypeBits,
 		PropertyFlags );
 
 	// Bind image memory.

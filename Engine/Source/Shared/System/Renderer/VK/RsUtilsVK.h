@@ -1,6 +1,7 @@
 #pragma once
 
 #include "System/Renderer/VK/RsVK.h"
+#include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsVertexDeclaration.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,6 +15,9 @@ public:
 	static VkShaderStageFlagBits GetShaderStage( RsShaderType ShaderType );
 	static VkFormat GetVertexElementFormat( RsVertexElement Element );
 	static VkBufferUsageFlagBits GetBufferUsageFlags( RsResourceBindFlags BindFlags );
+	static VkBlendOp GetBlendOp( RsBlendOp Op );
+	static VkBlendFactor GetBlendFactor( RsBlendType Type );
+	static VkPolygonMode GetPolygonMode( RsFillMode Mode );
 };
 
 

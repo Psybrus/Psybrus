@@ -19,6 +19,15 @@ public:
 	VkDeviceMemory allocate( size_t Size, size_t Alignment, uint32_t TypeFlags, VkMemoryPropertyFlagBits PropertyFlags );
 
 	/**
+	 * Allocate memory.
+	 * @param Size Size in bytes.
+	 * @param Size Alignment in bytes.
+	 * @param TypeFlags Type of memory that is valid to allocate.
+	 * @param PropertyFlagsList Flags to determine which heap to allocate from. Will attempt them in order.
+	 */
+	VkDeviceMemory allocate( size_t Size, size_t Alignment, uint32_t TypeFlags, std::initializer_list< VkMemoryPropertyFlagBits > PropertyFlagsList );
+
+	/**
 	 * Free memory.
 	 * @param Memory Memory to free.
 	 */

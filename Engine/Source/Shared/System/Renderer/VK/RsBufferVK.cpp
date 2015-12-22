@@ -17,7 +17,7 @@ RsBufferVK::RsBufferVK( class RsBuffer* Parent, VkDevice Device, RsAllocatorVK* 
 	BufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	BufferCreateInfo.pNext = nullptr;
 	BufferCreateInfo.size = BufferDesc.SizeBytes_;
-	BufferCreateInfo.usage = RsUtilsVK::GetBufferUsageFlags( BufferDesc.BindFlags_ );
+	BufferCreateInfo.usage = RsUtilsVK::GetBufferUsageFlags( BufferDesc.BindFlags_ ) | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 	BufferCreateInfo.flags = 0;
 	BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	BufferCreateInfo.queueFamilyIndexCount = 0;
@@ -33,13 +33,11 @@ RsBufferVK::RsBufferVK( class RsBuffer* Parent, VkDevice Device, RsAllocatorVK* 
 	VkMemoryRequirements MemoryRequirements;
 	vkGetBufferMemoryRequirements( Device_, Buffer_, &MemoryRequirements );
 
-	// TODO: Use proper visibility flag.
-	VkMemoryPropertyFlagBits PropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 	DeviceMemory_ = Allocator_->allocate( 
 		MemoryRequirements.size, 
 		MemoryRequirements.alignment,
 		MemoryRequirements.memoryTypeBits,
-		PropertyFlags );
+		{ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT } );
 
 	// Bind image memory.
 	VK( vkBindBufferMemory( Device_, Buffer_, DeviceMemory_ , 0 ) );
@@ -50,4 +48,6 @@ RsBufferVK::RsBufferVK( class RsBuffer* Parent, VkDevice Device, RsAllocatorVK* 
 RsBufferVK::~RsBufferVK()
 {
 	Parent_->setHandle( nullptr );
+	vkDestroyBuffer( Device_, Buffer_, nullptr/*allocation*/ );
+	Allocator_->free( DeviceMemory_ );
 }

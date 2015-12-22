@@ -205,26 +205,26 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	VkWriteDescriptorSet WriteSet;
 	memset( &WriteSet, 0, sizeof( WriteSet ) );
 
-	if( MaxUniformBuffer > 0 )
+	for( size_t Idx = 0; Idx < MaxUniformBuffer; ++Idx )
 	{
 		WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		WriteSet.dstSet = DescriptorSets_[ 0 ];
-		WriteSet.dstBinding = 0;
-		WriteSet.descriptorCount = MaxUniformBuffer;
+		WriteSet.dstBinding = Idx;
+		WriteSet.descriptorCount = 1;
 		WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		WriteSet.pImageInfo = nullptr;
-		WriteSet.pBufferInfo = UniformBufferInfos.data();
+		WriteSet.pBufferInfo = &UniformBufferInfos[ Idx ];
 		WriteSet.pTexelBufferView = nullptr;
 		WriteSets.emplace_back( WriteSet );
 	}
-	if( MaxImageSampler > 0 )
+	for( size_t Idx = 0; Idx < MaxImageSampler; ++Idx )
 	{
 		WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		WriteSet.dstSet = DescriptorSets_[ 1 ];
-		WriteSet.dstBinding = 0;
-		WriteSet.descriptorCount = MaxImageSampler;
+		WriteSet.dstBinding = Idx;
+		WriteSet.descriptorCount = 1;
 		WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		WriteSet.pImageInfo = ImageSamplerInfos.data();
+		WriteSet.pImageInfo = &ImageSamplerInfos[ Idx ];
 		WriteSet.pBufferInfo = nullptr;
 		WriteSet.pTexelBufferView = nullptr;
 		WriteSets.emplace_back( WriteSet );

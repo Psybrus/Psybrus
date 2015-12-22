@@ -185,6 +185,9 @@ private:
 	// Formats.
 	std::vector< VkSurfaceFormatKHR > SurfaceFormats_;
 
+	// Linear buffer allocator.
+	std::unique_ptr< class RsLinearBufferAllocatorVK > LinearBufferAllocator_;
+
 	// Command pool & buffer.
 	VkCommandPoolCreateInfo CommandPoolCreateInfo_ = {};
 	VkCommandPool CommandPool_ = nullptr;

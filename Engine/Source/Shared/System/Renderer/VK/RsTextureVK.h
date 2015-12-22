@@ -44,6 +44,7 @@ private:
 	bool OwnImage_ = false;
 	VkImage Image_ = 0;
 	VkImageLayout ImageLayout_ = VK_IMAGE_LAYOUT_GENERAL;
+	VkMemoryRequirements MemoryRequirements_ = {};
 	VkDeviceMemory DeviceMemory_ = 0;
 	VkImageView ImageView_ = 0;
 	

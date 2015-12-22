@@ -51,6 +51,21 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 }
 
 //////////////////////////////////////////////////////////////////////////
+// allocate
+VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t TypeFlags, std::initializer_list< VkMemoryPropertyFlagBits > PropertyFlagsList )
+{
+	VkDeviceMemory Memory = nullptr;
+	for( auto PropertyFlags : PropertyFlagsList )
+	{
+		if( Memory = allocate( Size, Alignment, TypeFlags, PropertyFlags ) )
+		{
+			break;
+		}
+	}
+	return Memory;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // free
 void RsAllocatorVK::free( VkDeviceMemory Memory )
 {

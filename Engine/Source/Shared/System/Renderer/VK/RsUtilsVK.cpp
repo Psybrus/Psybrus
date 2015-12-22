@@ -279,3 +279,79 @@ VkBufferUsageFlagBits RsUtilsVK::GetBufferUsageFlags( RsResourceBindFlags BindFl
 	}
 	return static_cast< VkBufferUsageFlagBits >( Flags );	
 }
+
+VkBlendOp RsUtilsVK::GetBlendOp( RsBlendOp Op )
+{
+	switch( Op )
+	{
+	case RsBlendOp::ADD:
+		return VK_BLEND_OP_ADD;
+	case RsBlendOp::SUBTRACT:
+		return VK_BLEND_OP_SUBTRACT;
+	case RsBlendOp::REV_SUBTRACT:
+		return VK_BLEND_OP_REVERSE_SUBTRACT;
+	case RsBlendOp::MINIMUM:
+		return VK_BLEND_OP_MIN;
+	case RsBlendOp::MAXIMUM:
+		return VK_BLEND_OP_MAX;
+	default:
+		BcBreakpoint;
+	}
+	return VK_BLEND_OP_ADD;
+}
+
+VkBlendFactor RsUtilsVK::GetBlendFactor( RsBlendType Type )
+{
+	switch( Type )
+	{
+	case RsBlendType::ZERO:
+		return VK_BLEND_FACTOR_ZERO;
+		break;
+	case RsBlendType::ONE:
+		return VK_BLEND_FACTOR_ONE;
+		break;
+	case RsBlendType::SRC_COLOUR:
+		return VK_BLEND_FACTOR_SRC_COLOR;
+		break;
+	case RsBlendType::INV_SRC_COLOUR:
+		return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+		break;
+	case RsBlendType::SRC_ALPHA:
+		return VK_BLEND_FACTOR_SRC_ALPHA;
+		break;
+	case RsBlendType::INV_SRC_ALPHA:
+		return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		break;
+	case RsBlendType::DEST_COLOUR:
+		return VK_BLEND_FACTOR_DST_COLOR;
+		break;
+	case RsBlendType::INV_DEST_COLOUR:
+		return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+		break;
+	case RsBlendType::DEST_ALPHA:
+		return VK_BLEND_FACTOR_DST_ALPHA;
+		break;
+	case RsBlendType::INV_DEST_ALPHA:
+		return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+		break;
+	default:
+		BcBreakpoint;
+	}
+	return VK_BLEND_FACTOR_ZERO;
+}
+
+VkPolygonMode RsUtilsVK::GetPolygonMode( RsFillMode Mode )
+{
+	switch( Mode )
+	{
+	case RsFillMode::SOLID:
+		return VK_POLYGON_MODE_FILL;
+		break;
+	case RsFillMode::WIREFRAME:
+		return VK_POLYGON_MODE_LINE;
+		break;
+	default:
+		BcBreakpoint;
+	}
+	return VK_POLYGON_MODE_FILL;
+}

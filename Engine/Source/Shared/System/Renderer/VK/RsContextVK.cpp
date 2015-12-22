@@ -17,6 +17,7 @@
 #include "System/Renderer/VK/RsBufferVK.h"
 #include "System/Renderer/VK/RsCommandBufferVK.h"
 #include "System/Renderer/VK/RsFrameBufferVK.h"
+#include "System/Renderer/VK/RsLinearBufferAllocatorVK.h"
 #include "System/Renderer/VK/RsProgramVK.h"
 #include "System/Renderer/VK/RsProgramBindingVK.h"
 #include "System/Renderer/VK/RsTextureVK.h"
@@ -212,6 +213,9 @@ void RsContextVK::endFrame()
 	VK( vkQueueWaitIdle( GraphicsQueue_ ) );
 
 	vkDestroySemaphore( Device_, PresentCompleteSemaphore, AllocationCallbacks_ );
+
+	// Reset allocator.
+	LinearBufferAllocator_->reset();
 
 	// Next command buffer.
 	CurrentCommandBuffer_ = 1 - CurrentCommandBuffer_; 
@@ -783,6 +787,12 @@ void RsContextVK::create()
 	}
 
 	createDescriptorLayouts();
+
+	LinearBufferAllocator_.reset( new RsLinearBufferAllocatorVK( 
+		Device_, 
+		Allocator_.get(), 
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 
+		64 * 1024 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -847,7 +857,7 @@ void RsContextVK::createDescriptorLayouts()
 	BaseLayoutBindings[3].stageFlags = 0;
 	BaseLayoutBindings[3].pImmutableSamplers = nullptr;
 
-	VkDescriptorSetLayoutBinding LayoutBindings[16*4];
+	std::array< VkDescriptorSetLayoutBinding, 32 > LayoutBindings;
 
 	const VkShaderStageFlagBits StageBits[] = 
 	{
@@ -1172,6 +1182,7 @@ void RsContextVK::bindGraphicsPSO(
 	auto FoundPSO = PSOCache_.find( PSOBinding );
 	if( FoundPSO == PSOCache_.end() )
 	{
+		const auto& RenderStateDesc = RenderState->getDesc();
 		VkResult RetVal = VK_SUCCESS;
 		VkGraphicsPipelineCreateInfo PipelineCreateInfo;
 		VkPipelineCacheCreateInfo PipelineCache;
@@ -1263,27 +1274,32 @@ void RsContextVK::bindGraphicsPSO(
 
 		memset( &RS, 0, sizeof( RS ) );
 		RS.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		RS.polygonMode = RenderState->getDesc().RasteriserState_.FillMode_ == RsFillMode::SOLID ? VK_POLYGON_MODE_FILL : VK_POLYGON_MODE_LINE;
+		RS.polygonMode = RsUtilsVK::GetPolygonMode( RenderState->getDesc().RasteriserState_.FillMode_ );
 		RS.cullMode = VK_CULL_MODE_NONE;
 		RS.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		RS.depthClampEnable = VK_TRUE;
+		RS.depthClampEnable = VK_FALSE;
 		RS.rasterizerDiscardEnable = VK_FALSE;
 		RS.depthBiasEnable = VK_FALSE;
+		RS.lineWidth = 1.0f;
 
 		memset ( &CB, 0, sizeof( CB ) );
 		CB.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		VkPipelineColorBlendAttachmentState AttachmentState[ 1 ];
+		VkPipelineColorBlendAttachmentState AttachmentState[ 8 ];
 		memset( AttachmentState, 0, sizeof( AttachmentState ) );
-		AttachmentState[0].colorWriteMask = 0xf;
-		AttachmentState[0].blendEnable = VK_TRUE;
-		AttachmentState[0].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		AttachmentState[0].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		AttachmentState[0].colorBlendOp = VK_BLEND_OP_ADD;
-		AttachmentState[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		AttachmentState[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		AttachmentState[0].alphaBlendOp = VK_BLEND_OP_ADD;
-		CB.attachmentCount = 1;
+		CB.attachmentCount = FrameBuffer->getDesc().RenderTargets_.size();
 		CB.pAttachments = AttachmentState;
+
+		for( size_t Idx = 0; Idx < CB.attachmentCount; ++Idx )
+		{
+			AttachmentState[ Idx ].colorWriteMask = RenderStateDesc.BlendState_.RenderTarget_[ Idx ].WriteMask_;
+			AttachmentState[ Idx ].blendEnable = RenderStateDesc.BlendState_.RenderTarget_[ Idx ].Enable_ ? VK_TRUE : VK_FALSE;
+			AttachmentState[ Idx ].srcColorBlendFactor = RsUtilsVK::GetBlendFactor( RenderStateDesc.BlendState_.RenderTarget_[ Idx ].SrcBlend_ );
+			AttachmentState[ Idx ].dstColorBlendFactor = RsUtilsVK::GetBlendFactor( RenderStateDesc.BlendState_.RenderTarget_[ Idx ].DestBlend_ );
+			AttachmentState[ Idx ].colorBlendOp = RsUtilsVK::GetBlendOp( RenderStateDesc.BlendState_.RenderTarget_[ Idx ].BlendOp_ );
+			AttachmentState[ Idx ].srcAlphaBlendFactor = RsUtilsVK::GetBlendFactor( RenderStateDesc.BlendState_.RenderTarget_[ Idx ].SrcBlendAlpha_ );
+			AttachmentState[ Idx ].dstAlphaBlendFactor = RsUtilsVK::GetBlendFactor( RenderStateDesc.BlendState_.RenderTarget_[ Idx ].DestBlendAlpha_ );
+			AttachmentState[ Idx ].alphaBlendOp = RsUtilsVK::GetBlendOp( RenderStateDesc.BlendState_.RenderTarget_[ Idx ].BlendOpAlpha_ );
+		}
 
 		memset( &VP, 0, sizeof( VP ) );
 		VP.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -1527,26 +1543,30 @@ bool RsContextVK::updateBuffer(
 	RsBufferUpdateFunc UpdateFunc )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
-	BcUnusedVar( Buffer );
-	BcUnusedVar( Offset );
-	BcUnusedVar( Size );
-	BcUnusedVar( Flags );
-	BcUnusedVar( UpdateFunc );
+
+	// Terminate current render pass.
+	// TODO: Use a copy queue + events?
+	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
 
 	auto* BufferVK = Buffer->getHandle< const RsBufferVK* >();
-	void* Data = nullptr;
-	auto RetVal = VK( vkMapMemory( Device_, BufferVK->getDeviceMemory(), Offset, Size, 0, &Data ) );
-	if( !RetVal )
-	{
-		RsBufferLock Lock = { Data };
-		UpdateFunc( Buffer, Lock );
-		vkUnmapMemory( Device_, BufferVK->getDeviceMemory() );
-	}
-	else
-	{
-		BcAssertMsg( BcFalse, "Unable to map memory for RsBuffer \"%s\"", Buffer->getDebugName() );
-		return false;
-	}
+	auto Block = LinearBufferAllocator_->allocate( Size );
+	RsBufferLock Lock = { Block.Address_ };
+	UpdateFunc( Buffer, Lock );
+
+	VkMappedMemoryRange MemoryRange = {};
+	MemoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	MemoryRange.pNext = nullptr;
+	MemoryRange.memory = Block.DeviceMemory_;
+	MemoryRange.offset = Block.Offset_;
+	MemoryRange.size = Block.Size_;
+	VK( vkFlushMappedMemoryRanges( Device_, 1, &MemoryRange ) );
+
+	VkBufferCopy Region = {};
+	Region.srcOffset = Block.Offset_;
+	Region.dstOffset = Offset;
+	Region.size = Size;
+
+	vkCmdCopyBuffer( getCommandBuffer(), Block.Buffer_, BufferVK->getBuffer(), 1, &Region );
 
 	return true;
 }
@@ -1610,6 +1630,62 @@ bool RsContextVK::updateTexture(
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
+#if 0
+	// Terminate current render pass.
+	// TODO: Use a copy queue + events?
+	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
+
+	const auto& TextureDesc = Texture->getDesc();
+	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+
+	auto* TextureVK = Texture->getHandle< RsTextureVK* >();
+	TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+
+	VkImageSubresource SubResource;
+	SubResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	SubResource.mipLevel = Slice.Level_;
+	SubResource.arrayLayer = 0;//((BcU32)Slice.Face_) - 1;
+	VkSubresourceLayout Layout;
+	vkGetImageSubresourceLayout( Device_, TextureVK->getImage(), &SubResource, &Layout );
+
+	auto Block = LinearBufferAllocator_->allocate( Layout.size );
+
+	RsTextureLock Lock;
+	Lock.Buffer_ = Block.Address_;
+	Lock.Pitch_ = Layout.rowPitch;
+	Lock.SlicePitch_ = Layout.depthPitch;
+	UpdateFunc( Texture, Lock );
+
+	VkMappedMemoryRange MemoryRange = {};
+	MemoryRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	MemoryRange.pNext = nullptr;
+	MemoryRange.memory = Block.DeviceMemory_;
+	MemoryRange.offset = Block.Offset_;
+	MemoryRange.size = Block.Size_;
+	VK( vkFlushMappedMemoryRanges( Device_, 1, &MemoryRange ) );
+
+	VkBufferImageCopy Region = {};
+	Region.bufferOffset = Block.Offset_;
+	Region.bufferRowLength = Layout.rowPitch;
+	Region.bufferImageHeight = Height;
+	Region.imageSubresource.aspectMask = SubResource.aspectMask;
+	Region.imageSubresource.layerCount = 1;
+	Region.imageSubresource.mipLevel = SubResource.mipLevel;
+	Region.imageSubresource.baseArrayLayer = SubResource.arrayLayer;
+	Region.imageOffset.x = 0;
+	Region.imageOffset.y = 0;
+	Region.imageOffset.z = 0;
+	Region.imageExtent.width = Width;
+	Region.imageExtent.height = Height;
+	Region.imageExtent.depth = Depth;
+	vkCmdCopyBufferToImage( getCommandBuffer(), Block.Buffer_, TextureVK->getImage(), TextureVK->getImageLayout(), 1, &Region );
+
+	TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+#else
+	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
+
 	const auto& TextureDesc = Texture->getDesc();
 	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
@@ -1625,44 +1701,24 @@ bool RsContextVK::updateTexture(
 	TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_GENERAL );
 	void* Data = nullptr;
 
-	auto RetVal = VK( vkMapMemory( Device_, TextureVK->getDeviceMemory(), 0, DataSize, 0, &Data ) );
+	VkImageSubresource SubResource = {};
+	SubResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	SubResource.mipLevel = Slice.Level_;
+	SubResource.arrayLayer = 0;// TODO: ((BcU32)Slice.Face_) - 1;
+	VkSubresourceLayout Layout = {};
+	vkGetImageSubresourceLayout( Device_, TextureVK->getImage(), &SubResource, &Layout );
+
+	auto RetVal = VK( vkMapMemory( Device_, TextureVK->getDeviceMemory(), Layout.offset, Layout.size - Layout.offset, 0, &Data ) );
 	if( !RetVal )
 	{
-		VkImageSubresource SubResource;
-		SubResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		SubResource.mipLevel = Slice.Level_;
-		SubResource.arrayLayer = ((BcU32)Slice.Face_) - 1;
-		VkSubresourceLayout Layout;
-		vkGetImageSubresourceLayout( Device_, TextureVK->getImage(), &SubResource, &Layout );
-
 		const auto BlockInfo = RsTextureBlockInfo( TextureDesc.Format_ );
 		RsTextureLock Lock;
 		Lock.Buffer_ = Data;
 		Lock.Pitch_ = Layout.rowPitch;
 		Lock.SlicePitch_ = Layout.depthPitch;
-#if PSY_DEBUG
-		memset( Data, 0x40, DataSize );
-		for( size_t Idx = 0; Idx < DataSize / 4;  ++Idx )
-		{
-			BcU32 Y = ( Idx ) / 512;
-			BcU32 Val = BcU8( ( Idx << 2 ) & 0xff );
-			reinterpret_cast< BcU32* >( Data )[ Idx ] = Val << 16 | ( Y << 2 );
-		}
-#endif
 		UpdateFunc( Texture, Lock );
-		for( size_t Idx = 0; Idx < DataSize / 4;  ++Idx )
-		{
-			BcU32 R = ( reinterpret_cast< BcU32* >( Data )[ Idx ] ) & 0xff;
-			BcU32 G = ( reinterpret_cast< BcU32* >( Data )[ Idx ] >> 8 ) & 0xff;
-			BcU32 B = ( reinterpret_cast< BcU32* >( Data )[ Idx ] >> 16 ) & 0xff;
-			BcU32 A = ( reinterpret_cast< BcU32* >( Data )[ Idx ] >> 24 ) & 0xff;
-			//reinterpret_cast< BcU32* >( Data )[ Idx ] = 
-			//	B << 24 |
-			//	G << 16 |
-			//	R << 8 |
-			//	A;
-		}
 		vkUnmapMemory( Device_, TextureVK->getDeviceMemory() );
+
 		TextureVK->setImageLayout( getCommandBuffer(), VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 	}
 	else
@@ -1670,6 +1726,7 @@ bool RsContextVK::updateTexture(
 		BcAssertMsg( BcFalse, "Unable to map memory for RsTexture \"%s\"", Texture->getDebugName() );
 		return false;
 	}
+	#endif
 	return true;
 }
 
