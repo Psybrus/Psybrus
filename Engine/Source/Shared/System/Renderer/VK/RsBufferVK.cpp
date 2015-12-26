@@ -24,12 +24,6 @@ RsBufferVK::RsBufferVK( class RsBuffer* Parent, VkDevice Device, RsAllocatorVK* 
 	BufferCreateInfo.pQueueFamilyIndices = nullptr;
 	VK( vkCreateBuffer( Device, &BufferCreateInfo, nullptr/*allocation*/, &Buffer_ ) );
 
-	VkMemoryAllocateInfo MemAlloc;
-	MemAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	MemAlloc.pNext = nullptr;
-	MemAlloc.allocationSize = 0;
-	MemAlloc.memoryTypeIndex = 0;
-
 	VkMemoryRequirements MemoryRequirements;
 	vkGetBufferMemoryRequirements( Device_, Buffer_, &MemoryRequirements );
 
@@ -40,7 +34,7 @@ RsBufferVK::RsBufferVK( class RsBuffer* Parent, VkDevice Device, RsAllocatorVK* 
 		{ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT } );
 
 	// Bind image memory.
-	VK( vkBindBufferMemory( Device_, Buffer_, DeviceMemory_ , 0 ) );
+	VK( vkBindBufferMemory( Device_, Buffer_, DeviceMemory_, 0 ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 #include "System/Renderer/VK/RsAllocatorVK.h"
 #include "System/Renderer/VK/RsUtilsVK.h"
+#include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -19,7 +20,7 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 	VkMemoryAllocateInfo MemoryAllocInfo = {};
 	MemoryAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	MemoryAllocInfo.pNext = nullptr;
-	MemoryAllocInfo.allocationSize = Size;
+	MemoryAllocInfo.allocationSize = BcPotRoundUp( Size, Alignment );
 	MemoryAllocInfo.memoryTypeIndex = std::numeric_limits< uint32_t >::max();
 	for( uint32_t Idx = 0; Idx < MemoryProperties_.memoryTypeCount; ++Idx )
 	{
@@ -47,6 +48,7 @@ VkDeviceMemory RsAllocatorVK::allocate( size_t Size, size_t Alignment, uint32_t 
 			PropertyFlags );
 	}
 	
+	PSY_LOG( "Allocated: %p, %x", Memory, Size );
 	return Memory;
 }
 

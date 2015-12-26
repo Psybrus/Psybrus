@@ -224,27 +224,33 @@ namespace
  		 */
 		BcU32 addObject( Object InObject, glslang::TQualifier* InOutQualifier )
 		{	
+			BcU32* FoundBinding = nullptr;
 			std::vector< Object >* Container = nullptr;
 			BcU32 DescriptorSet = 0;
 			switch( InObject.ParameterType_.Storage_ )
 			{
 			case RsProgramParameterStorageGL::UNIFORM:
 				Container = &Uniforms_;
+				FoundBinding = &UniformBinding_;
 				break;
 			case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 				Container = &UniformBlocks_;
+				FoundBinding = &UniformBlockBinding_;
 				DescriptorSet = 0;
 				break;
 			case RsProgramParameterStorageGL::SAMPLER:
 				Container = &Samplers_;
+				FoundBinding = &SamplerBinding_;
 				DescriptorSet = 1;
 				break;
 			case RsProgramParameterStorageGL::SHADER_STORAGE_BUFFER:
 				Container = &Buffers_;
+				FoundBinding = &BufferBinding_;
 				DescriptorSet = 2;
 				break;
 			case RsProgramParameterStorageGL::IMAGE:
 				Container = &Images_;
+				FoundBinding = &ImageBinding_;
 				DescriptorSet = 3;
 				break;
 			default:
@@ -257,29 +263,41 @@ namespace
 				{
 					return Object.Name_ == InObject.Name_;
 				} );
-			BcU32 FoundBinding = Container->size();
+			BcU32 ReturnBinding = *FoundBinding;
 			if( FoundIt == Container->end() )
 			{
-				InObject.ParameterType_.Binding_ = FoundBinding;
 				Container->emplace_back( InObject );	
 			}
 			else
 			{
+				if( UseFoundBindings_ && FoundIt->ParameterType_.Binding_ == 0xff )
+				{
+					InObject.ParameterType_.Binding_ = (*FoundBinding);
+					FoundIt->ParameterType_.Binding_ = (*FoundBinding)++;
+				}
+
 				FoundIt->Enabled_ |= UseFoundBindings_;
-				FoundBinding = FoundIt->ParameterType_.Binding_;
+				ReturnBinding = FoundIt->ParameterType_.Binding_;
 			}
 
 			// Setup qualifier descriptor set + layout.
 			if( InOutQualifier )
 			{
 				InOutQualifier->layoutSet = DescriptorSet;
-				InOutQualifier->layoutBinding = FoundBinding;
+				InOutQualifier->layoutBinding = ReturnBinding;
 			}
 
-			return FoundBinding;
+			return ReturnBinding;
 		}
 
 		bool UseFoundBindings_ = false;
+
+		BcU32 UniformBlockBinding_ = 4;
+		BcU32 UniformBinding_ = 0;
+		BcU32 SamplerBinding_ = 0;
+		BcU32 BufferBinding_ = 0;
+		BcU32 ImageBinding_ = 0;
+
 		std::vector< Object > UniformBlocks_;
 		std::vector< Object > Uniforms_;
 		std::vector< Object > Samplers_;

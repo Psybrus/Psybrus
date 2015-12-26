@@ -277,7 +277,6 @@ namespace
 								}
 								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
 							}
-							RecreateProgramBinding = true;
 							if( RecreateProgramBinding && ProgramBinding_ )
 							{
 								DestroyProgramBindings_.emplace_back( std::move( ProgramBinding_ ) );

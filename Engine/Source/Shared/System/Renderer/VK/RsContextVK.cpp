@@ -214,8 +214,11 @@ void RsContextVK::endFrame()
 
 	vkDestroySemaphore( Device_, PresentCompleteSemaphore, AllocationCallbacks_ );
 
-	// Reset allocator.
-	LinearBufferAllocator_->reset();
+	if( CurrentCommandBuffer_ == 0 )
+	{
+		// Reset allocator.
+		LinearBufferAllocator_->reset();
+	}
 
 	// Next command buffer.
 	CurrentCommandBuffer_ = 1 - CurrentCommandBuffer_; 
@@ -805,6 +808,9 @@ void RsContextVK::update()
 // destroy
 void RsContextVK::destroy()
 {
+	LinearBufferAllocator_.reset();
+	Allocator_.reset();
+
 	// Destroy framebuffers.
 	for( auto FrameBuffer : FrameBuffers_ )
 	{
@@ -1548,8 +1554,22 @@ bool RsContextVK::updateBuffer(
 	// TODO: Use a copy queue + events?
 	bindFrameBuffer( nullptr, nullptr, nullptr, 0, nullptr );
 
+#if 1
 	auto* BufferVK = Buffer->getHandle< const RsBufferVK* >();
-	auto Block = LinearBufferAllocator_->allocate( Size );
+	void* Data = nullptr;
+	if( VK_SUCCESS == vkMapMemory( Device_, BufferVK->getDeviceMemory(), Offset, Size, 0, &Data ) )
+	{
+		RsBufferLock Lock = { Data };
+		UpdateFunc( Buffer, Lock );
+		vkUnmapMemory( Device_, BufferVK->getDeviceMemory() );
+	}
+	else
+	{
+		BcBreakpoint;
+	}
+#else
+	auto* BufferVK = Buffer->getHandle< const RsBufferVK* >();
+	auto Block = LinearBufferAllocator_->allocate( Size * 4 );
 	RsBufferLock Lock = { Block.Address_ };
 	UpdateFunc( Buffer, Lock );
 
@@ -1567,7 +1587,7 @@ bool RsContextVK::updateBuffer(
 	Region.size = Size;
 
 	vkCmdCopyBuffer( getCommandBuffer(), Block.Buffer_, BufferVK->getBuffer(), 1, &Region );
-
+#endif
 	return true;
 }
 

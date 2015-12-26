@@ -14,9 +14,9 @@ public:
 
 private:
 	class RsProgramBinding* Parent_ = nullptr;
-	VkDevice Device_;
+	VkDevice Device_ = nullptr;
 	std::array< VkDescriptorSetLayout, 2 > DescriptorSetLayouts_ = {};
-	VkDescriptorPool DescriptorPool_;
+	VkDescriptorPool DescriptorPool_ = nullptr;
 	std::array< VkDescriptorSet, 2 > DescriptorSets_ = {};
 };
 

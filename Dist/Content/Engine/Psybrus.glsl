@@ -184,7 +184,6 @@ vec4 mul( mat4 M, vec4 V )
 #  define PSY_SAMPLE_CUBE( _n, _c ) textureCUBE( a##_n, _c )
 #endif
 
-
 //////////////////////////////////////////////////////////////////////////
 // Uniforms.
 #include <PsybrusUniforms.glsl>

@@ -207,27 +207,33 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 
 	for( size_t Idx = 0; Idx < MaxUniformBuffer; ++Idx )
 	{
-		WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		WriteSet.dstSet = DescriptorSets_[ 0 ];
-		WriteSet.dstBinding = Idx;
-		WriteSet.descriptorCount = 1;
-		WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		WriteSet.pImageInfo = nullptr;
-		WriteSet.pBufferInfo = &UniformBufferInfos[ Idx ];
-		WriteSet.pTexelBufferView = nullptr;
-		WriteSets.emplace_back( WriteSet );
+		if( UniformBufferInfos[ Idx ].buffer != nullptr )
+		{
+			WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			WriteSet.dstSet = DescriptorSets_[ 0 ];
+			WriteSet.dstBinding = Idx;
+			WriteSet.descriptorCount = 1;
+			WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			WriteSet.pImageInfo = nullptr;
+			WriteSet.pBufferInfo = &UniformBufferInfos[ Idx ];
+			WriteSet.pTexelBufferView = nullptr;
+			WriteSets.emplace_back( WriteSet );
+		}
 	}
 	for( size_t Idx = 0; Idx < MaxImageSampler; ++Idx )
 	{
-		WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		WriteSet.dstSet = DescriptorSets_[ 1 ];
-		WriteSet.dstBinding = Idx;
-		WriteSet.descriptorCount = 1;
-		WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		WriteSet.pImageInfo = &ImageSamplerInfos[ Idx ];
-		WriteSet.pBufferInfo = nullptr;
-		WriteSet.pTexelBufferView = nullptr;
-		WriteSets.emplace_back( WriteSet );
+		if( ImageSamplerInfos[ Idx ].sampler != nullptr )
+		{
+			WriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			WriteSet.dstSet = DescriptorSets_[ 1 ];
+			WriteSet.dstBinding = Idx;
+			WriteSet.descriptorCount = 1;
+			WriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			WriteSet.pImageInfo = &ImageSamplerInfos[ Idx ];
+			WriteSet.pBufferInfo = nullptr;
+			WriteSet.pTexelBufferView = nullptr;
+			WriteSets.emplace_back( WriteSet );
+		}
 	}
 
 #if 0
