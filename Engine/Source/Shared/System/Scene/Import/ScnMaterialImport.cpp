@@ -45,7 +45,8 @@ void ScnMaterialImport::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnMaterialImport::ScnMaterialImport()
+ScnMaterialImport::ScnMaterialImport():
+	CsResourceImporter( "<INVALID>", "ScnMaterial" )
 {
 }
 
@@ -111,4 +112,12 @@ BcBool ScnMaterialImport::import(
 #else
 	return BcFalse;
 #endif // PSY_IMPORT_PIPELINE
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addTexture
+void ScnMaterialImport::addTexture( const std::string& Name, CsCrossRefId Texture, RsSamplerStateDesc SamplerState )
+{
+	Textures_[ Name ] = Texture;
+	Samplers_[ Name ] = SamplerState;
 }

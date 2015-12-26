@@ -38,6 +38,11 @@ public:
 	 */
 	BcBool import( const Json::Value& Object ) override;
 
+	/**
+	 * Add texture + sampler.
+	 */
+	void addTexture( const std::string& Name, CsCrossRefId Texture, RsSamplerStateDesc SamplerState );
+
 private:
 	CsCrossRefId Shader_;
 	std::map< std::string, CsCrossRefId > Textures_;

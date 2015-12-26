@@ -339,7 +339,7 @@ BcBool ScnTextureImport::import(
 				{
 					if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
 					{
-						Format_ = RsTextureFormat::DXT3;
+						Format_ = RsTextureFormat::DXT1;
 					}
 					else
 					{
