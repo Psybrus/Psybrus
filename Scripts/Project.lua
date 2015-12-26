@@ -573,10 +573,11 @@ function PsyProjectExternalLib( _name, _lang )
 	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
-	-- Only optimise linux + OSX builds, this changes runtime on windows.
-	configuration "linux-* or osx-*"
-		kind "StaticLib"
-		flags { "Optimize" }
+	configuration "Debug"
+		flags { "DebugRuntime", "Optimize"}
+
+	configuration "Release or Profile or Production"
+		flags { "ReleaseRuntime", "Optimize"}
 
 	-- External librarys should be built with no WinRT language extensions.
 	--configuration "winphone-*"
