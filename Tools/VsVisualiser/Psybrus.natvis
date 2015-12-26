@@ -3,10 +3,15 @@
 
 	<!-- BcName visualiser -->
 	<Type Name="BcName">
-    <DisplayString Condition="EntryIndex_ == 4294967295">Name: (INVALID)</DisplayString>
-    <DisplayString Condition="ID_ == 4294967295">{NameEntryList_[EntryIndex_].Value_}</DisplayString>
-    <DisplayString Condition="ID_ != 4294967295">{NameEntryList_[EntryIndex_].Value_}_{ID_}</DisplayString>
-  </Type>
+		<DisplayString Condition="EntryIndex_ == 4294967295">Name: (INVALID)</DisplayString>
+		<DisplayString Condition="ID_ == 4294967295">{NameEntryList_[EntryIndex_].Value_}</DisplayString>
+		<DisplayString Condition="ID_ != 4294967295">{NameEntryList_[EntryIndex_].Value_}_{ID_}</DisplayString>
+	</Type>
+
+	<!-- ReObject visualiser -->
+	<Type Name="ReObject">
+		<DisplayString>{Name_}</DisplayString> 
+	</Type>
 
 	<!-- CsResource visualiser -->
 	<Type Name="CsResource">
