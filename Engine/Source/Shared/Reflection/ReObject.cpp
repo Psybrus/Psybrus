@@ -64,12 +64,12 @@ void ReObject::StaticRegisterClass()
 		new ReField( "ObjectFlags_", &ReObject::ObjectFlags_, bcRFF_CONST ),
 		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY | bcRFF_CONST ),
 		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY | bcRFF_BASIS | bcRFF_CONST ),
-		new ReField( "Name_", &ReObject::Name_, bcRFF_CONST ),
+		new ReField( "Name_", &ReObject::Name_, bcRFF_IMPORTER | bcRFF_CONST ),
 #if REFLECTION_ENABLE_SIMPLE_UNIQUE_ID
 		new ReField( "UniqueId_", &ReObject::UniqueId_, bcRFF_TRANSIENT | bcRFF_CONST ),
 #endif
 	};
-		
+	
 	ReRegisterClass< ReObject >( Fields );
 }
 

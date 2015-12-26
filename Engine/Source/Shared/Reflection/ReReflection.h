@@ -49,7 +49,7 @@ _Ty* ReConstructObject(
 	ReObject* InOwner = nullptr, 
 	ReObject* InBasis = nullptr )
 {
-	return ReConstructObject( _Ty::StaticGetClass(), InName, InOwner, InBasis );
+	return static_cast< _Ty* >( ReConstructObject( _Ty::StaticGetClass(), InName, InOwner, InBasis ) );
 }
 
 /**

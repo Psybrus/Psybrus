@@ -211,7 +211,7 @@ BcBool ScnFontImport::import(
 					ImgImageUPtr pAtlasImage = ImgImage::generateAtlas( GlyphImageList, RectList, 512, 512, ClearColour );
 					
 					// Create texture.
-					std::string FontTextureName = Name_ + "fonttextureatlas";
+					std::string FontTextureName = *getName() + "fonttextureatlas";
 					std::string FontTextureFileName = getIntermediatePath() + std::string( "/" ) + FontTextureName + ".png";
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
