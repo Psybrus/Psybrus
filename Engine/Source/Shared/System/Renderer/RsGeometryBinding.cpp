@@ -28,6 +28,7 @@ void RsGeometryBindingDesc::setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, 
 // setIndexBuffer
 void RsGeometryBindingDesc::setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex, BcU32 Offset )
 {
+	BcAssert( BytesPerIndex == 2 || BytesPerIndex == 4 );
 	IndexBuffer_.Buffer_ = Buffer;
 	IndexBuffer_.Stride_ = BytesPerIndex;
 	IndexBuffer_.Offset_ = Offset;

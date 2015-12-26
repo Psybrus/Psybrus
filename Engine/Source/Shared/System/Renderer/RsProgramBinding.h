@@ -24,33 +24,39 @@ public:
 
 	/**
 	 * Set uniform buffer.
+	 * @return true if slot has changed, false if not.
 	 */
-	void setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer );
+	bool setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer );
 
 	/**
 	 * Set sampler state.
+	 * @return true if slot has changed, false if not.
 	 */
-	void setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
+	bool setSamplerState( BcU32 Slot, class RsSamplerState* SamplerState );
 
 	/**
 	 * Set shader resource view to buffer.
+	 * @return true if slot has changed, false if not.
  	 */
-	void setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer );
+	bool setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer );
 
 	/**
 	 * Set shader resource view to texture.
+	 * @return true if slot has changed, false if not.
  	 */
-	void setShaderResourceView( BcU32 Slot, class RsTexture* Texture );
+	bool setShaderResourceView( BcU32 Slot, class RsTexture* Texture );
 
 	/**
 	 * Set unordered access view to buffer.
+	 * @return true if slot has changed, false if not.
  	 */
-	void setUnorderedAccessView( BcU32 Slot, class RsBuffer* Buffer );
+	bool setUnorderedAccessView( BcU32 Slot, class RsBuffer* Buffer );
 
 	/**
 	 * Set unordered access view to texture.
+	 * @return true if slot has changed, false if not.
  	 */
-	void setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture );
+	bool setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture );
 
 	struct SRVSlot
 	{

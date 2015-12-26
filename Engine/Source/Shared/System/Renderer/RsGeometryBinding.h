@@ -27,7 +27,7 @@ public:
 	/**
 	 * Set index buffer to use.
 	 * @param Buffer Buffer to bind.
-	 * @param BytesPerIndex Bytes per index. 1, 2, or 4 bytes. 
+	 * @param BytesPerIndex Bytes per index. 2, or 4 bytes.
 	 * @param Offset Offset from start of buffer in bytes to bind from.
 	 */
 	void setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex = 2, BcU32 Offset = 0 );

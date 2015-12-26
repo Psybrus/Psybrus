@@ -82,6 +82,8 @@ namespace
 	CsPackage* Package_ = nullptr;
 	/// Fence for synchronisation.
 	SysFence RenderThreadFence_;
+	/// Program bindings to destroy.
+	std::vector< RsProgramBindingUPtr > DestroyProgramBindings_;
 
 	/// Current draw context.
 	RsContext* DrawContext_ = nullptr;
@@ -155,6 +157,9 @@ namespace
 
 		RenderThreadFence_.increment();
 
+		// Destroy last frames program bindings.
+		DestroyProgramBindings_.clear();
+
 		auto Width = IO.DisplaySize.x;
 		auto Height = IO.DisplaySize.y;
 		DrawFrame_->queueRenderNode( Sort,
@@ -172,11 +177,15 @@ namespace
 						memcpy( Lock.Buffer_, &UniformBlock_, sizeof( UniformBlock_ ) );
 					} );
 
+				const BcU32 UniformBufferSlot = Program_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
+				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
+
 				// Update vertex buffer.
 				Context->updateBuffer( 
 					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
 					RsResourceUpdateFlags::NONE,
-					[ CachedDrawData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					[ CachedDrawData, UniformBufferSlot ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
 						ImDrawVert* Vertices = reinterpret_cast< ImDrawVert* >( Lock.Buffer_ );
 						BcU32 NoofVertices = 0;
@@ -184,6 +193,14 @@ namespace
 						{
 							const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
 							memcpy( Vertices, &CmdList->VtxBuffer[0], CmdList->VtxBuffer.size() * sizeof( ImDrawVert ) );
+							// No uniform buffer slot in shader, so we need to transform before the vertex shader.
+							if( UniformBufferSlot == BcErrorCode )
+							{
+								for( int VertIdx = 0; VertIdx < CmdList->VtxBuffer.size(); ++VertIdx )
+								{
+									Vertices[VertIdx].pos = Vertices[VertIdx].pos * UniformBlock_.ClipTransform_;
+								}
+							}
 							Vertices += CmdList->VtxBuffer.size();
 							NoofVertices += CmdList->VtxBuffer.size();
 							BcAssert( (BcU8*)Vertices <= ((BcU8*)Lock.Buffer_ ) + Buffer->getDesc().SizeBytes_ );
@@ -216,11 +233,6 @@ namespace
 						}
 					} );
 
-
-				const BcU32 UniformBufferSlot = Program_->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
-				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
-
  				BcU32 IndexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
 				{
@@ -242,27 +254,33 @@ namespace
 								(BcS32)( Cmd->ClipRect.w - Cmd->ClipRect.y ) );
 
 							// Regenerate program binding if we need to.
+							bool RecreateProgramBinding = false;
 							if( Cmd->TextureId != nullptr )
 							{
-								if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
+								if( TextureSlot == BcErrorCode || 
+									ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
 								{
-									ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
-									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-									ProgramBinding_.reset();
+									if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
+									{
+										RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
+										RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+									}
+									RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
 								}
 							}
 							else
 							{
-								if( ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != WhiteTexture_.get() )
+								if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 								{
-									ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
-									ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-									ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
-									ProgramBinding_.reset();
+									RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
+									RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 								}
+								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
 							}
-
+							if( RecreateProgramBinding && ProgramBinding_ )
+							{
+								DestroyProgramBindings_.emplace_back( std::move( ProgramBinding_ ) );
+							}
 							if( ProgramBinding_ == nullptr )
 							{
 								// Not typical recommended usage as it subverts RsCore.
