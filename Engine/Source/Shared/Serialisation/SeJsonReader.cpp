@@ -399,14 +399,14 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 			{
 				void* pTemporaryValue = FieldValueClass->create< void >();
 				serialiseClass( pTemporaryValue, FieldValueClass, (*ValueIt), ParentFlags );
-				pWriteIterator->add( pTemporaryValue );
+				pWriteIterator->addMove( pTemporaryValue );
 				FieldValueClass->destroy( pTemporaryValue );
 			}
 			else
 			{
 				void* pTemporaryPointer = nullptr;
 				serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), (*ValueIt), ParentFlags, false );
-				pWriteIterator->add( &pTemporaryPointer );
+				pWriteIterator->addMove( &pTemporaryPointer );
 			}
 		}
 	}
@@ -417,14 +417,14 @@ void SeJsonReader::serialiseArray( void* pData, const ReField* pField, const Jso
 		{
 			void* pTemporaryValue = FieldValueClass->create< void >();
 			serialiseClass( pTemporaryValue, FieldValueClass, InputValue, ParentFlags );
-			pWriteIterator->add( pTemporaryValue );
+			pWriteIterator->addMove( pTemporaryValue );
 			FieldValueClass->destroy( pTemporaryValue );
 		}
 		else
 		{
 			void* pTemporaryPointer = nullptr;
 			serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), InputValue, ParentFlags, false );
-			pWriteIterator->add( &pTemporaryPointer );
+			pWriteIterator->addMove( &pTemporaryPointer );
 		}
 	}
 
@@ -461,14 +461,14 @@ void SeJsonReader::serialiseDict( void* pData, const ReField* pField, const Json
 			{
 				void* pTemporaryValue = FieldValueClass->create< void >();
 				serialiseClass( pTemporaryValue, FieldValueClass, Value, ParentFlags );
-				pWriteIterator->add( pTemporaryKey, pTemporaryValue );
+				pWriteIterator->addMove( pTemporaryKey, pTemporaryValue );
 				FieldValueClass->destroy( pTemporaryValue );
 			}
 			else
 			{
 				void* pTemporaryPointer = nullptr;
 				serialisePointer( pTemporaryPointer, FieldValueClass, pField->getValueFlags(), Value, ParentFlags, false );
-				pWriteIterator->add( pTemporaryKey, &pTemporaryPointer );
+				pWriteIterator->addMove( pTemporaryKey, &pTemporaryPointer );
 			}
 		}
 	}
