@@ -48,9 +48,34 @@ public:
 			BcAssertMsg( false, "ArrayContainerAccessor does not expose only value." );
 		}
 
-		virtual void add( void* pKey, void* pValue )
+		virtual void addMove( void* pValue )
+		{
+			BcAssertMsg( false, "ArrayContainerAccessor does not expose only value." );
+		}
+
+		template< typename _Ty >
+		typename std::enable_if< std::is_copy_constructible< _Ty >::value >::type
+		internalAdd( void* pKey, void* pValue )
 		{
 			MapData_[ *reinterpret_cast< _Key* >( pKey ) ] = *reinterpret_cast< _Ty* >( pValue );
+		}
+
+		template< typename _Ty >
+		typename std::enable_if< !std::is_copy_constructible< _Ty >::value >::type
+		internalAdd( void* pValue )
+		{
+		}
+
+		virtual void add( void* pKey, void* pValue )
+		{
+			BcAssertMsg( std::is_copy_constructible< _Ty >::value, "_Ty is not trivially copyable." );
+			internalAdd< _Ty >( pKey, pValue );
+		}
+
+		virtual void addMove( void* pKey, void* pValue )
+		{
+			BcAssertMsg( std::is_move_constructible< _Ty >::value, "_Ty is not move constructible." );
+			MapData_[ *reinterpret_cast< _Key* >( pKey ) ] = std::move( *reinterpret_cast< _Ty* >( pValue ) );
 		}
 
 		virtual bool isValid() const
