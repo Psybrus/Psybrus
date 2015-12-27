@@ -126,20 +126,27 @@ ImgImageUPtr Img::loadPNG( const BcChar* Filename )
 		BcU32 BytesPerPixel = 0;
 		
 		switch( PngColourType )
-		{
-			case PNG_COLOR_TYPE_PALETTE:
-				BcBreakpoint;
+		{								
+			case PNG_COLOR_TYPE_GRAY:
+				BytesPerPixel = 1;
 				break;
-				
+
+			case PNG_COLOR_TYPE_GRAY_ALPHA:
+				BytesPerPixel = 2;
+				break;
+
+			case PNG_COLOR_TYPE_RGB:
+				BytesPerPixel = 3;
+				break;
+
 			case PNG_COLOR_TYPE_RGB_ALPHA:
 				BytesPerPixel = 4;
 				break;
-				
-			case PNG_COLOR_TYPE_GRAY:
-			case PNG_COLOR_TYPE_GRAY_ALPHA:
-			case PNG_COLOR_TYPE_RGB:
-			case PNG_COLOR_MASK_PALETTE:
-				BytesPerPixel = 3;
+
+			default:
+				BcAssertMsg( BcFalse, "Attempting to load \"%s\", it is an unsupported PNG type. Use RGB, RGBA, Greyscale, or Greyscale + Alpha.",
+					Filename );
+				return nullptr;
 				break;
 		}
 		
@@ -188,23 +195,37 @@ ImgImageUPtr Img::loadPNG( const BcChar* Filename )
 				
 				switch( BytesPerPixel )
 				{
-					case 3:
-						Pixel.R_ = *pPixel++;
-						Pixel.G_ = *pPixel++;
-						Pixel.B_ = *pPixel++;
-						Pixel.A_ = 255;
-						break;
+				case 1:
+					Pixel.R_ = *pPixel++;
+					Pixel.G_ = Pixel.R_;
+					Pixel.B_ = Pixel.R_;
+					Pixel.A_ = 255;
+					break;
+
+				case 2:
+					Pixel.R_ = *pPixel++;
+					Pixel.G_ = Pixel.R_;
+					Pixel.B_ = Pixel.R_;
+					Pixel.A_ = *pPixel++;
+					break;
+
+				case 3:
+					Pixel.R_ = *pPixel++;
+					Pixel.G_ = *pPixel++;
+					Pixel.B_ = *pPixel++;
+					Pixel.A_ = 255;
+					break;
 						
-					case 4:
-						Pixel.R_ = *pPixel++;
-						Pixel.G_ = *pPixel++;
-						Pixel.B_ = *pPixel++;
-						Pixel.A_ = *pPixel++;
-						break;
+				case 4:
+					Pixel.R_ = *pPixel++;
+					Pixel.G_ = *pPixel++;
+					Pixel.B_ = *pPixel++;
+					Pixel.A_ = *pPixel++;
+					break;
 						
-					default:
-						BcBreakpoint;
-						break;
+				default:
+					BcBreakpoint;
+					break;
 				}
 				
 				pImage->setPixel( iCol, iRow, Pixel );

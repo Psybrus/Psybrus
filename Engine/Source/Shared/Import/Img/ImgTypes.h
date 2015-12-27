@@ -18,6 +18,7 @@
 // Includes
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
+#include "Base/BcMath.h"
 #include "Base/BcMemory.h"
 
 #include <vector>
@@ -54,13 +55,19 @@ enum class ImgEncodeFormat
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ImgColourf
+struct ImgColourf
+{
+	BcF32 R_, G_, B_, A_;
+
+	struct ImgColour toGamma( BcF32 Gamma = 2.2f ) const;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ImgColour
 struct ImgColour
 {
-	BcU8		R_;
-	BcU8		G_;
-	BcU8		B_;
-	BcU8		A_;
+	BcU8 R_, G_, B_, A_;
 	
 	bool operator == ( const ImgColour& Other ) const
 	{
@@ -71,7 +78,33 @@ struct ImgColour
 	{
 		return R_ != Other.R_ || G_ != Other.G_ || B_ != Other.B_ || A_ != Other.A_;
 	}
+
+	struct ImgColourf toLinear( BcF32 Gamma = 2.2f ) const;
 };
+
+//////////////////////////////////////////////////////////////////////////
+// toGamma
+inline ImgColour ImgColourf::toGamma( BcF32 Gamma ) const
+{
+	ImgColour RetVal;
+	RetVal.R_ = static_cast< BcU8 >( std::powf( BcClamp( R_, 0.0f, 1.0f ), 1.0f / Gamma ) * 255.0f ); 
+	RetVal.G_ = static_cast< BcU8 >( std::powf( BcClamp( G_, 0.0f, 1.0f ), 1.0f / Gamma ) * 255.0f );
+	RetVal.B_ = static_cast< BcU8 >( std::powf( BcClamp( B_, 0.0f, 1.0f ), 1.0f / Gamma ) * 255.0f );
+	RetVal.A_ = static_cast< BcU8 >( BcClamp( A_, 0.0f, 1.0f ) * 255.0f );
+	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// toLinear
+inline ImgColourf ImgColour::toLinear( BcF32 Gamma ) const
+{
+	ImgColourf RetVal;
+	RetVal.R_ = std::powf( static_cast< BcF32 >( R_ ) / 255.0f, Gamma ); 
+	RetVal.G_ = std::powf( static_cast< BcF32 >( G_ ) / 255.0f, Gamma ); 
+	RetVal.B_ = std::powf( static_cast< BcF32 >( B_ ) / 255.0f, Gamma ); 
+	RetVal.A_ = static_cast< BcF32 >( A_ ) / 255.0f;
+	return RetVal;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // ImgRect

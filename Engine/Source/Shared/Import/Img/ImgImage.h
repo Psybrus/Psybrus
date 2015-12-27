@@ -86,8 +86,9 @@ public:
 
 	/**
 	*	Resize image.
+	*	@param Gamma Gamma correction value (2.2 is default)
 	*/
-	ImgImageUPtr			resize( BcU32 Width, BcU32 Height );
+	ImgImageUPtr			resize( BcU32 Width, BcU32 Height, BcF32 Gamma = 2.2f );
 
 	/**
 	 * Canvas size. Original is aligned to left.
