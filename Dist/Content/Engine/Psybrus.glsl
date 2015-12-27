@@ -79,6 +79,28 @@ vec4 mul( mat4 M, vec4 V )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Colour space conversion.
+#define FAST_GAMMA_CONVERSION ( 0 )
+
+vec4 gamma2linear( vec4 InputRGBA )
+{
+#if FAST_GAMMA_CONVERSION
+	return vec4( InputRGBA.rgb * InputRGBA.rgb, InputRGBA.a );
+#else
+	return vec4( pow( InputRGBA.rgb, vec3( 2.2 ) ), InputRGBA.a ); 
+#endif
+}
+
+vec4 linear2gamma( vec4 InputRGBA )
+{
+#if FAST_GAMMA_CONVERSION
+	return vec4( sqrt( InputRGBA.rgb ), InputRGBA.a );
+#else	
+	return vec4( pow( InputRGBA.rgb, vec3( 1.0 / 2.2 ) ), InputRGBA.a );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
 // PSY_MAKE_WORLD_SPACE_VERTEX
 #if defined( PERM_MESH_STATIC_2D )
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
