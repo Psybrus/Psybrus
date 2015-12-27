@@ -528,8 +528,8 @@ ImgImageList ScnTextureImport::generateMipMaps( ImgImageUPtr Image )
 
 	if( BcPot( W ) && BcPot( H ) )
 	{
-		// Down to a minimum of 64x64.
-		while( W > 64 && H > 64 )
+		// Down to a minimum of 4x4.
+		while( W > 4 && H > 4 )
 		{
 			W >>= 1;
 			H >>= 1;

@@ -755,7 +755,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 						
 			// Even on failure add. List must be of same size for quick lookups.
 			ComponentData.MaterialComponentRef_ = Parent->attach< ScnMaterialComponent >( 
-				BcName::INVALID, pMeshRuntime->MaterialRef_, ShaderPermutation );
+				pMeshRuntime->MaterialRef_->getName().getUnique(), pMeshRuntime->MaterialRef_, ShaderPermutation );
 		}
 
 		// Create uniform buffer for object.
