@@ -458,9 +458,15 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 									DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( ValueType );
 									if ( FieldEditor )
 									{
-										std::string ShortName = *UpperValueType->getName();
+										std::string ItemName = *UpperValueType->getName();
+										if ( UpperValueType->hasBaseClass( ReObject::StaticGetClass() ) )
+										{
+											ReObject* Object = static_cast< ReObject* >( Value );
+											Class = Object->getClass();
+											ItemName = *Object->getName() + " (" + *Class->getName() + ")";
+										}
 										ImGui::ScopedID ScopedID( Idx );
-										if ( ImGui::TreeNode( Value, "[%u] %s", Idx++, ShortName.c_str() ) )
+										if ( ImGui::TreeNode( Value, "[%u] %s", Idx++, ItemName.c_str() ) )
 										{
 											FieldEditor->onEdit( " ", Value, UpperValueType,
 												ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
