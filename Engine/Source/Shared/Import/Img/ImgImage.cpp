@@ -156,7 +156,7 @@ ImgImageUPtr ImgImage::get( const ImgRect& SrcRect )
 
 //////////////////////////////////////////////////////////////////////////
 // resize
-ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height, BcF32 Gamma )
+ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height, BcF32 GammaRGB )
 {
 	// Create image.
 	ImgImageUPtr pImage = ImgImageUPtr( new ImgImage() );
@@ -182,10 +182,10 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height, BcF32 Gamma )
 				BcU32 iSrcY = BcU32( iSrcYF );
 				BcF32 iLerpY = iSrcYF - BcF32( iSrcY );
 
-				const ImgColourf PixelA = getPixel( iSrcX, iSrcY ).toLinear( Gamma );
-				const ImgColourf PixelB = getPixel( iSrcX + 1, iSrcY ).toLinear( Gamma );
-				const ImgColourf PixelC = getPixel( iSrcX, iSrcY + 1 ).toLinear( Gamma );
-				const ImgColourf PixelD = getPixel( iSrcX + 1, iSrcY + 1 ).toLinear( Gamma );
+				const ImgColourf PixelA = getPixel( iSrcX, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelB = getPixel( iSrcX + 1, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelC = getPixel( iSrcX, iSrcY + 1 ).toLinear( GammaRGB );
+				const ImgColourf PixelD = getPixel( iSrcX + 1, iSrcY + 1 ).toLinear( GammaRGB );
 
 				ImgColourf DstPixelT;
 				ImgColourf DstPixelB;
@@ -205,7 +205,7 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height, BcF32 Gamma )
 				DstPixel.B_ = ( DstPixelT.B_ * ( 1.0f - iLerpY ) ) + ( DstPixelB.B_ * iLerpY );
 				DstPixel.A_ = ( DstPixelT.A_ * ( 1.0f - iLerpY ) ) + ( DstPixelB.A_ * iLerpY );		
 
-				pImage->setPixel( iX, iY, DstPixel.toGamma( Gamma ) );
+				pImage->setPixel( iX, iY, DstPixel.toGamma( GammaRGB ) );
 			}
 		}
 	}
@@ -219,17 +219,17 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height, BcF32 Gamma )
 			{
 				BcU32 iSrcY = iY << 1;
 
-				const ImgColourf PixelA = getPixel( iSrcX, iSrcY ).toLinear( Gamma );
-				const ImgColourf PixelB = getPixel( iSrcX + 1, iSrcY ).toLinear( Gamma );
-				const ImgColourf PixelC = getPixel( iSrcX, iSrcY + 1 ).toLinear( Gamma );
-				const ImgColourf PixelD = getPixel( iSrcX + 1, iSrcY + 1 ).toLinear( Gamma );
+				const ImgColourf PixelA = getPixel( iSrcX, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelB = getPixel( iSrcX + 1, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelC = getPixel( iSrcX, iSrcY + 1 ).toLinear( GammaRGB );
+				const ImgColourf PixelD = getPixel( iSrcX + 1, iSrcY + 1 ).toLinear( GammaRGB );
 
 				ImgColourf DstPixel;
 				DstPixel.R_ = ( PixelA.R_ + PixelB.R_ + PixelC.R_ + PixelD.R_ ) / 4.0f;
 				DstPixel.G_ = ( PixelA.G_ + PixelB.G_ + PixelC.G_ + PixelD.G_ ) / 4.0f;
 				DstPixel.B_ = ( PixelA.B_ + PixelB.B_ + PixelC.B_ + PixelD.B_ ) / 4.0f;
 				DstPixel.A_ = ( PixelA.A_ + PixelB.A_ + PixelC.A_ + PixelD.A_ ) / 4.0f;
-				pImage->setPixel( iX, iY, DstPixel.toGamma( Gamma ) );
+				pImage->setPixel( iX, iY, DstPixel.toGamma( GammaRGB ) );
 			}
 		}
 	}
@@ -294,7 +294,7 @@ ImgImageUPtr ImgImage::cropByColour( const ImgColour& Colour, BcBool PowerOfTwo 
 
 //////////////////////////////////////////////////////////////////////////
 // generateMipMaps
-BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& OutImages )
+BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, BcF32 GammaRGB, std::vector< ImgImageUPtr >& OutImages )
 {
 	BcU32 LevelsCreated = 1;
 
@@ -315,7 +315,7 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& 
 		}
 
 		// Perform resize.
-		OutImages.push_back( pPrevImage->resize( W, H ) );
+		OutImages.push_back( pPrevImage->resize( W, H, GammaRGB ) );
 		pPrevImage = OutImages.back().get();
 		++LevelsCreated;
 	}

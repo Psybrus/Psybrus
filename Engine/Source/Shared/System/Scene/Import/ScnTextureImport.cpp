@@ -496,7 +496,8 @@ ImgImageUPtr ScnTextureImport::processRoundUpPot( ImgImageUPtr Image )
 {
 	return Image->resize( 
 		BcPotNext( Image->width() ), 
-		BcPotNext( Image->height() ) );
+		BcPotNext( Image->height() ),
+		1.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -513,7 +514,8 @@ ImgImageUPtr ScnTextureImport::processRoundDownPot( ImgImageUPtr Image )
 
 	return Image->resize( 
 		BcPotNext( W ) / 2, 
-		BcPotNext( H ) / 2 );
+		BcPotNext( H ) / 2 ,
+		1.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -533,7 +535,7 @@ ImgImageList ScnTextureImport::generateMipMaps( ImgImageUPtr Image )
 		{
 			W >>= 1;
 			H >>= 1;
-			MipImages.push_back( MipImages[ MipImages.size() - 1 ]->resize( W, H ) );
+			MipImages.push_back( MipImages[ MipImages.size() - 1 ]->resize( W, H, 1.0f ) );
 		}
 	}
 	return MipImages;

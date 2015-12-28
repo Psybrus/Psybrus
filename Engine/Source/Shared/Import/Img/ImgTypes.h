@@ -60,7 +60,7 @@ struct ImgColourf
 {
 	BcF32 R_, G_, B_, A_;
 
-	struct ImgColour toGamma( BcF32 Gamma = 2.2f ) const;
+	struct ImgColour toGamma( BcF32 GammaRGB ) const;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,29 +79,29 @@ struct ImgColour
 		return R_ != Other.R_ || G_ != Other.G_ || B_ != Other.B_ || A_ != Other.A_;
 	}
 
-	struct ImgColourf toLinear( BcF32 Gamma = 2.2f ) const;
+	struct ImgColourf toLinear( BcF32 GammaRGB ) const;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // toGamma
-inline ImgColour ImgColourf::toGamma( BcF32 Gamma ) const
+inline ImgColour ImgColourf::toGamma( BcF32 GammaRGB ) const
 {
 	ImgColour RetVal;
-	RetVal.R_ = static_cast< BcU8 >( std::powf( BcClamp( R_, 0.0f, 1.0f ), 1.0f / Gamma ) * 255.0f ); 
-	RetVal.G_ = static_cast< BcU8 >( std::powf( BcClamp( G_, 0.0f, 1.0f ), 1.0f / Gamma ) * 255.0f );
-	RetVal.B_ = static_cast< BcU8 >( std::powf( BcClamp( B_, 0.0f, 1.0f ), 1.0f / Gamma ) * 255.0f );
+	RetVal.R_ = static_cast< BcU8 >( std::powf( BcClamp( R_, 0.0f, 1.0f ), 1.0f / GammaRGB ) * 255.0f ); 
+	RetVal.G_ = static_cast< BcU8 >( std::powf( BcClamp( G_, 0.0f, 1.0f ), 1.0f / GammaRGB ) * 255.0f );
+	RetVal.B_ = static_cast< BcU8 >( std::powf( BcClamp( B_, 0.0f, 1.0f ), 1.0f / GammaRGB ) * 255.0f );
 	RetVal.A_ = static_cast< BcU8 >( BcClamp( A_, 0.0f, 1.0f ) * 255.0f );
 	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // toLinear
-inline ImgColourf ImgColour::toLinear( BcF32 Gamma ) const
+inline ImgColourf ImgColour::toLinear( BcF32 GammaRGB ) const
 {
 	ImgColourf RetVal;
-	RetVal.R_ = std::powf( static_cast< BcF32 >( R_ ) / 255.0f, Gamma ); 
-	RetVal.G_ = std::powf( static_cast< BcF32 >( G_ ) / 255.0f, Gamma ); 
-	RetVal.B_ = std::powf( static_cast< BcF32 >( B_ ) / 255.0f, Gamma ); 
+	RetVal.R_ = std::powf( static_cast< BcF32 >( R_ ) / 255.0f, GammaRGB ); 
+	RetVal.G_ = std::powf( static_cast< BcF32 >( G_ ) / 255.0f, GammaRGB ); 
+	RetVal.B_ = std::powf( static_cast< BcF32 >( B_ ) / 255.0f, GammaRGB ); 
 	RetVal.A_ = static_cast< BcF32 >( A_ ) / 255.0f;
 	return RetVal;
 }

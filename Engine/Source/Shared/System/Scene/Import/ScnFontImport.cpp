@@ -171,8 +171,8 @@ BcBool ScnFontImport::import(
 										ImgImageUPtr pPowerOfTwo = pDistanceFieldImage->canvasSize( WidthPot, HeightPot, &FillColour );
 										
 										// Scale down 4x.
-										ImgImageUPtr pScale1_2 = pPowerOfTwo->resize( WidthPot >> 1, HeightPot >> 1 );
-										ImgImageUPtr pScale1_4 = pScale1_2->resize( WidthPot >> 2, HeightPot >> 2 );			
+										ImgImageUPtr pScale1_2 = pPowerOfTwo->resize( WidthPot >> 1, HeightPot >> 1, 1.0f );
+										ImgImageUPtr pScale1_4 = pScale1_2->resize( WidthPot >> 2, HeightPot >> 2, 1.0f );			
 										
 										// Crop to final size.
 										ImgImageUPtr pFinal = pScale1_4->cropByColour( FillColour, BcFalse );

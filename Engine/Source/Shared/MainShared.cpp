@@ -157,7 +157,7 @@ namespace ScreenshotUtil
 					SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
 						[ W, H, IsScreenCapturing, Image ]()->void
 						{
-							auto ImageDiv2 = Image->resize( W / 2, H / 2 );
+							auto ImageDiv2 = Image->resize( W / 2, H / 2, 1.0f );
 							GifWriteFrame(
 								&Writer,
 								reinterpret_cast< const uint8_t* >( ImageDiv2->getImageData() ), 
