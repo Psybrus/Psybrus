@@ -16,7 +16,7 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnViewComponent.h"
-#include "System/Scene/Rendering/ScnLightingVisitor.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
@@ -315,6 +315,28 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Define resource.
+class ScnModelViewRenderData : 
+	public ScnViewRenderData
+{
+public:
+	ScnModelViewRenderData()
+	{
+	}
+
+	virtual ~ScnModelViewRenderData()
+	{
+	}
+
+	struct MaterialBinding
+	{
+		RsProgramBindingUPtr ProgramBinding_;
+		RsRenderState* RenderState_;
+	};
+
+	std::vector< MaterialBinding > MaterialBindings_; 
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
@@ -457,6 +479,7 @@ BcU32 ScnModelComponent::getNoofNodes() const
 	return NoofNodes;
 }
 
+#if 0
 //////////////////////////////////////////////////////////////////////////
 // getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
@@ -504,7 +527,7 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 
 	return std::move( MaterialComponents );
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // setBaseTransform
@@ -716,6 +739,74 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+//virtual
+class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewComponent* View )
+{
+	auto* ViewRenderData = new ScnModelViewRenderData();
+
+	// Setup program binding for all materials.
+	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
+	ViewRenderData->MaterialBindings_.resize( MeshRuntimes.size() );
+	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
+	{
+		const auto& PerComponentMeshData = PerComponentMeshDataList_[ Idx ];
+		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
+		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		auto Material = pMeshRuntime->MaterialRef_;
+
+		if( Material.isValid() )
+		{
+			BcAssert( Material.isValid() && Material->isReady() );
+
+			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
+			ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
+
+			auto Program = Material->getProgram( ShaderPermutation );
+			auto ProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
+
+			if( pMeshData->IsSkinned_ )
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderBoneUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{	
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.UniformBuffer_.get() );
+				}
+			}
+			else
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{	
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.UniformBuffer_.get() );
+				}
+			}
+
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{	
+					ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer() );
+				}
+			}
+
+			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
+		}
+	}
+	
+	return ViewRenderData;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyViewRenderData
+//virtual
+void ScnModelComponent::destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData )
+{
+	delete ViewRenderData;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
@@ -736,27 +827,6 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
 		TPerComponentMeshData ComponentData;
-
-		if( pMeshRuntime->MaterialRef_.isValid() )
-		{
-			BcAssert( pMeshRuntime->MaterialRef_.isValid() && pMeshRuntime->MaterialRef_->isReady() );
-
-			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-
-			// Setup lighting.
-			if( isLit() )
-			{
-				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_DIFFUSE;
-			}
-			else
-			{
-				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
-			}
-						
-			// Even on failure add. List must be of same size for quick lookups.
-			ComponentData.MaterialComponentRef_ = Parent->attach< ScnMaterialComponent >( 
-				pMeshRuntime->MaterialRef_->getName().getUnique(), pMeshRuntime->MaterialRef_, ShaderPermutation );
-		}
 
 		// Create uniform buffer for object.
 		if( pMeshData->IsSkinned_ )
@@ -817,51 +887,30 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 	// Wait for model to have updated.
 	UpdateFence_.wait();
 
-#if 0
-	// Gather lights.
-	ScnLightingVisitor LightingVisitor( this );
-#endif
-
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
+	auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( RenderContext.pViewComponent_->getViewRenderData( this ) );
 
 	// Set layer.
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = Layer_;
 	Sort.Pass_ = Pass_;
 
+
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 	{
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
 		ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
+		auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
-
-		BcAssertMsg( PerComponentMeshData.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
-
-		// Set skinning parameters.
-		if( pMeshData->IsSkinned_ )
-		{
-			PerComponentMeshData.MaterialComponentRef_->setBoneUniformBlock( PerComponentMeshData.UniformBuffer_.get() );
-		}
-		else
-		{
-			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_.get() );
-		}
-
-#if 0
-		// Set lighting parameters.
-		LightingVisitor.setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
-#endif		
-		// Set material components for view.
-		RenderContext.pViewComponent_->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 		
 		// Render primitive.
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[
 				GeometryBinding = pMeshRuntime->GeometryBinding_,
-				DrawProgramBinding = PerComponentMeshData.MaterialComponentRef_->getProgramBinding(),
-				RenderState = PerComponentMeshData.MaterialComponentRef_->getRenderState(),
+				DrawProgramBinding = MaterialBinding.ProgramBinding_.get(),
+				RenderState = MaterialBinding.RenderState_,
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer() ,
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveType = pMeshData->Type_,

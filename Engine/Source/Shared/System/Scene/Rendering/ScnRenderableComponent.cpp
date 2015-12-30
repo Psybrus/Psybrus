@@ -17,8 +17,8 @@
 #include "System/Renderer/RsCore.h"
 
 #include "System/Scene/Rendering/ScnDebugRenderComponent.h"
-
 #include "System/Scene/Rendering/ScnLightingVisitor.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -40,7 +40,8 @@ void ScnRenderableComponent::StaticRegisterClass()
 // Ctor
 ScnRenderableComponent::ScnRenderableComponent():
 	RenderMask_( 1 ),
-	IsLit_( BcFalse )
+	IsLit_( BcFalse ),
+	ViewRenderDataVersion_( 0 )
 {
 
 }
@@ -51,6 +52,35 @@ ScnRenderableComponent::ScnRenderableComponent():
 ScnRenderableComponent::~ScnRenderableComponent()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+//virtual
+ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewComponent* View )
+{
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyViewRenderData
+//virtual
+void ScnRenderableComponent::destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewRenderDataDirty
+void ScnRenderableComponent::setViewRenderDataDirty()
+{
+	ViewRenderDataVersion_++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewRenderDataVersion
+BcU32 ScnRenderableComponent::getViewRenderDataVersion() const
+{
+	return ViewRenderDataVersion_;
 }
 
 //////////////////////////////////////////////////////////////////////////

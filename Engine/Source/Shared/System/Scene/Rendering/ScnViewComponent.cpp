@@ -18,9 +18,10 @@
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
 
+#include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
-#include "System/Scene/Rendering/ScnMaterial.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnCore.h"
@@ -136,10 +137,17 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// onDetach
+// `
 //virtual
 void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	// Clean up all view render data.
+	for( auto& Entry : ViewRenderDatas_ )
+	{
+		Entry.first->destroyViewRenderData( this, Entry.second );
+	}
+	ViewRenderDatas_.clear();
+
 	OsCore::pImpl()->unsubscribeAll( this );
 	ViewUniformBuffer_.reset();
 
@@ -147,6 +155,64 @@ void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 
 	FrameBuffer_.reset();
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttachComponent
+void ScnViewComponent::onAttachComponent( class ScnComponent* Component )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetachComponent
+void ScnViewComponent::onDetachComponent( class ScnComponent* Component )
+{
+	if( Component->isTypeOf< ScnRenderableComponent >() )
+	{
+		auto RenderableComponent = static_cast< ScnRenderableComponent* >( Component );
+		auto FoundIt = ViewRenderDatas_.find( RenderableComponent );
+		if( FoundIt != ViewRenderDatas_.end() )
+		{
+			RenderableComponent->destroyViewRenderData( this, FoundIt->second );
+			ViewRenderDatas_.erase( FoundIt );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewRenderData
+class ScnViewRenderData* ScnViewComponent::getViewRenderData( class ScnRenderableComponent* Component )
+{
+	auto FoundIt = ViewRenderDatas_.find( Component );
+
+	// If we have found view render data, check the version and destroy if it is out of date.
+	if( FoundIt != ViewRenderDatas_.end() )
+	{
+		if( Component->getViewRenderDataVersion() != FoundIt->second->Version_ )
+		{
+			Component->destroyViewRenderData( this, FoundIt->second );
+			FoundIt = ViewRenderDatas_.end();
+		}
+	}
+
+	// None found, then create.
+	if( FoundIt == ViewRenderDatas_.end() )
+	{
+		auto ViewRenderData = Component->createViewRenderData( this );
+		ViewRenderData->Parent_ = Component;
+		ViewRenderData->Version_ = Component->getViewRenderDataVersion();
+		ViewRenderDatas_.insert( std::make_pair( Component, ViewRenderData ) );
+		return ViewRenderData;
+	}
+	return FoundIt->second;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewUniformBuffer
+class RsBuffer* ScnViewComponent::getViewUniformBuffer()
+{
+	return ViewUniformBuffer_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -439,7 +505,7 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 		{
 			BcAssert( Component->isTypeOf< ScnViewComponent >() );
 			auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
-
+	
 			ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
 
 			ViewComponent->bind( pFrame, Sort );

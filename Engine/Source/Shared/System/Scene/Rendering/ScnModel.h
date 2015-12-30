@@ -87,9 +87,11 @@ public:
 	const MaMat4d& getNode( BcU32 NodeIdx ) const;
 	BcU32 getNoofNodes() const;
 
+#if 0
 	ScnMaterialComponentRef getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef getMaterialComponent( const BcName& MaterialName );
 	ScnMaterialComponentList getMaterialComponents( const BcName& MaterialName );
+#endif
 
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
@@ -97,6 +99,8 @@ public:
 	static void updateModels( const ScnComponentList& Components );
 	void updateModel( BcF32 Tick );
 	void updateNodes( MaMat4d RootMatrix );
+	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
+	void destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 	void render( ScnRenderContext & RenderContext ) override;
@@ -119,7 +123,6 @@ protected:
 
 	struct TPerComponentMeshData
 	{
-		ScnMaterialComponentRef MaterialComponentRef_;
 		RsBufferUPtr UniformBuffer_;
 	};
 	

@@ -50,6 +50,12 @@ public:
 public:
 	ScnRenderableComponent();
 	virtual ~ScnRenderableComponent();
+
+	virtual class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View );
+	virtual void destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData );
+
+	void setViewRenderDataDirty();
+	BcU32 getViewRenderDataVersion() const;
 	
 	virtual void render( ScnRenderContext & RenderContext );
 	void setRenderMask( BcU32 RenderMask );
@@ -64,8 +70,9 @@ public:
 	bool isLit() const;
 
 private:
-	BcU32 RenderMask_;			// Used to specify what kind of object it is for selectively rendering with certain views.
-	bool IsLit_;				// Does this need to be lit?
+	BcU32 RenderMask_;				/// Used to specify what kind of object it is for selectively rendering with certain views.
+	bool IsLit_;					/// Does this need to be lit?
+	BcU32 ViewRenderDataVersion_;	/// Version of view render data. Used to recreate when dirtied.
 };
 
 #endif

@@ -22,6 +22,8 @@
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
+#include <unordered_map>
+
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
 typedef ReObjectRef< class ScnViewComponent > ScnViewComponentRef;
@@ -47,8 +49,25 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
-	void onAttachComponent( class ScnComponent* Component ) override {};
-	void onDetachComponent( class ScnComponent* Component ) override {};
+	/**
+	 * Called when component is attached to the scene.
+	 */
+	void onAttachComponent( class ScnComponent* Component ) override;
+
+	/**
+	 * Called when component is detached from the scene.
+	 */
+	void onDetachComponent( class ScnComponent* Component ) override;
+
+	/**
+	 * Get view render data for component.
+	 */
+	class ScnViewRenderData* getViewRenderData( class ScnRenderableComponent* Component );
+
+	/**
+	 * Get view uniform buffer.
+	 */
+	class RsBuffer* getViewUniformBuffer(); 
 
 	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
@@ -107,6 +126,9 @@ private:
 	ScnTextureRef RenderTarget_;
 	ScnTextureRef DepthStencilTarget_;
 	RsFrameBufferUPtr FrameBuffer_;
+
+	// Registered components and their view renderer.
+	std::unordered_map< class ScnRenderableComponent*, class ScnViewRenderData* > ViewRenderDatas_;
 };
 
 #endif
