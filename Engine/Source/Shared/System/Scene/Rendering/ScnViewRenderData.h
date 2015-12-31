@@ -12,7 +12,4 @@ public:
 
 private:
 	friend class ScnViewComponent;
-
-	class ScnRenderableComponent* Parent_ = nullptr;
-	BcU32 Version_ = 0;
 };

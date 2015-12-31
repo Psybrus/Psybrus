@@ -100,7 +100,6 @@ public:
 	void updateModel( BcF32 Tick );
 	void updateNodes( MaMat4d RootMatrix );
 	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
-	void destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 	void render( ScnRenderContext & RenderContext ) override;

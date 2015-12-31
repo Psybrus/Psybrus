@@ -18,7 +18,6 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnCoreCallback.h"
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
@@ -37,8 +36,7 @@ typedef ScnViewComponentMap::const_iterator ScnViewComponentMapConstIterator;
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponent
 class ScnViewComponent:
-	public ScnComponent,
-	public ScnCoreCallback
+	public ScnComponent
 {
 public:
 	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
@@ -48,21 +46,6 @@ public:
 	
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
-
-	/**
-	 * Called when component is attached to the scene.
-	 */
-	void onAttachComponent( class ScnComponent* Component ) override;
-
-	/**
-	 * Called when component is detached from the scene.
-	 */
-	void onDetachComponent( class ScnComponent* Component ) override;
-
-	/**
-	 * Get view render data for component.
-	 */
-	class ScnViewRenderData* getViewRenderData( class ScnRenderableComponent* Component );
 
 	/**
 	 * Get view uniform buffer.
@@ -126,9 +109,6 @@ private:
 	ScnTextureRef RenderTarget_;
 	ScnTextureRef DepthStencilTarget_;
 	RsFrameBufferUPtr FrameBuffer_;
-
-	// Registered components and their view renderer.
-	std::unordered_map< class ScnRenderableComponent*, class ScnViewRenderData* > ViewRenderDatas_;
 };
 
 #endif

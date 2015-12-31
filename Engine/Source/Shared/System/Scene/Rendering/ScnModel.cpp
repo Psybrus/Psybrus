@@ -799,14 +799,6 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 }
 
 //////////////////////////////////////////////////////////////////////////
-// destroyViewRenderData
-//virtual
-void ScnModelComponent::destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData )
-{
-	delete ViewRenderData;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
@@ -889,7 +881,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
-	auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( RenderContext.pViewComponent_->getViewRenderData( this ) );
+	auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( getViewRenderData( RenderContext.pViewComponent_ ) );
 
 	// Set layer.
 	RsRenderSort Sort = RenderContext.Sort_;
@@ -911,7 +903,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 				GeometryBinding = pMeshRuntime->GeometryBinding_,
 				DrawProgramBinding = MaterialBinding.ProgramBinding_.get(),
 				RenderState = MaterialBinding.RenderState_,
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer() ,
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveType = pMeshData->Type_,
 				NoofIndices = pMeshData->NoofIndices_,

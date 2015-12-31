@@ -12,12 +12,12 @@
 **************************************************************************/
 
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
+#include "System/Scene/ScnCore.h"
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 #include "System/Renderer/RsCore.h"
 
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
-#include "System/Scene/Rendering/ScnLightingVisitor.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,8 +40,7 @@ void ScnRenderableComponent::StaticRegisterClass()
 // Ctor
 ScnRenderableComponent::ScnRenderableComponent():
 	RenderMask_( 1 ),
-	IsLit_( BcFalse ),
-	ViewRenderDataVersion_( 0 )
+	IsLit_( BcFalse )
 {
 
 }
@@ -55,6 +54,24 @@ ScnRenderableComponent::~ScnRenderableComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// onAttachComponent
+void ScnRenderableComponent::onAttachComponent( class ScnComponent* Component )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetachComponent
+void ScnRenderableComponent::onDetachComponent( class ScnComponent* Component )
+{
+	if( Component->isTypeOf< ScnViewComponent >() )
+	{
+		auto* ViewComponent = static_cast< ScnViewComponent* >( Component );
+		resetViewRenderData( ViewComponent );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createViewRenderData
 //virtual
 ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewComponent* View )
@@ -65,22 +82,41 @@ ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewCo
 //////////////////////////////////////////////////////////////////////////
 // destroyViewRenderData
 //virtual
-void ScnRenderableComponent::destroyViewRenderData( class ScnViewComponent* View, class ScnViewRenderData* ViewRenderData )
+void ScnRenderableComponent::destroyViewRenderData( ScnViewRenderData* ViewRenderData )
 {
+	delete ViewRenderData;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setViewRenderDataDirty
-void ScnRenderableComponent::setViewRenderDataDirty()
+// getViewRenderData
+class ScnViewRenderData* ScnRenderableComponent::getViewRenderData( class ScnViewComponent* ViewComponent )
 {
-	ViewRenderDataVersion_++;
+	auto FoundIt = ViewRenderData_.find( ViewComponent );
+	if( FoundIt == ViewRenderData_.end() )
+	{
+		auto ViewRenderData = createViewRenderData( ViewComponent );
+		ViewRenderData_.insert( std::make_pair( ViewComponent, ViewRenderData ) );
+		return ViewRenderData;
+	}
+	return FoundIt->second;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getViewRenderDataVersion
-BcU32 ScnRenderableComponent::getViewRenderDataVersion() const
+// resetViewRenderData
+void ScnRenderableComponent::resetViewRenderData( ScnViewComponent* ViewComponent )
 {
-	return ViewRenderDataVersion_;
+	for( auto ViewRenderDataIt = ViewRenderData_.begin(); ViewRenderDataIt != ViewRenderData_.end(); )
+	{
+		if( ViewComponent == nullptr || ViewRenderDataIt->first == ViewComponent )
+		{
+			destroyViewRenderData( ViewRenderDataIt->second );
+			ViewRenderDataIt = ViewRenderData_.erase( ViewRenderDataIt );
+		}
+		else
+		{
+			++ViewRenderDataIt;
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,6 +147,9 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 //virtual
 void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 {
+	// TODO: Add type of component to callback.
+	ScnCore::pImpl()->addCallback( this );
+
 	Super::onAttach( Parent );
 }
 
@@ -119,6 +158,11 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	ScnCore::pImpl()->removeCallback( this );
+
+	// Reset all view render data.
+	resetViewRenderData( nullptr );
+
 	Super::onDetach( Parent );
 }
 
