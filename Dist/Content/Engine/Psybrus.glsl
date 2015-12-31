@@ -113,7 +113,8 @@ vec4 linear2gamma( vec4 InputRGBA )
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
 	_o = mul( WorldTransform_, _v );
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = mul( NormalTransform_, _v );
+	_o = mul( NormalTransform_, _v ); \
+	_o.xyz = normalize( _o.xyz );
 
 #elif defined( PERM_MESH_SKINNED_3D )
 
@@ -123,10 +124,11 @@ vec4 linear2gamma( vec4 InputRGBA )
 	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.z) ], _v ) * SEMANTIC_BLENDWEIGHTS.z; \
 	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ], _v ) * SEMANTIC_BLENDWEIGHTS.w;
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o =  mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.x) ], _v ) * SEMANTIC_BLENDWEIGHTS.x; \
-	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.y) ], _v ) * SEMANTIC_BLENDWEIGHTS.y; \
-	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.z) ], _v ) * SEMANTIC_BLENDWEIGHTS.z; \
-	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ], _v ) * SEMANTIC_BLENDWEIGHTS.w;
+	_o =  vec4( mul( mat3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.x) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.x, 0.0 ); \
+	_o += vec4( mul( mat3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.y) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.y, 0.0 ); \
+	_o += vec4( mul( mat3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.z) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.z, 0.0 ); \
+	_o += vec4( mul( mat3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.w, 0.0 ); \
+	_o.xyz = normalize( _o.xyz );
 
 #elif defined( PERM_MESH_PARTICLE_3D )
 

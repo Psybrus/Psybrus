@@ -57,6 +57,8 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "EnableClearDepth_", &ScnViewComponent::EnableClearDepth_, bcRFF_IMPORTER ),
 		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_, bcRFF_IMPORTER ),
 		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_, bcRFF_IMPORTER ),
+		new ReField( "RenderPermutation_", &ScnViewComponent::RenderPermutation_, bcRFF_IMPORTER ),
+		new ReField( "PassPermutation_", &ScnViewComponent::PassPermutation_, bcRFF_IMPORTER ),
 		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
@@ -92,12 +94,12 @@ ScnViewComponent::ScnViewComponent():
 	EnableClearDepth_( true ),
 	EnableClearStencil_( true ),
 	RenderMask_( 0 ),
-	RenderTarget_( nullptr ),
+	RenderPermutation_( ScnShaderPermutationFlags::RENDER_FORWARD ),
+	PassPermutation_( ScnShaderPermutationFlags::PASS_MAIN ),
+	RenderTarget_(),
 	DepthStencilTarget_( nullptr )
 {
 	ViewUniformBuffer_ = nullptr;
-	RenderTarget_ = nullptr;
-	DepthStencilTarget_ = nullptr;
 
 	setRenderMask( 1 );
 }
@@ -230,7 +232,7 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 // hasRenderTarget
 BcBool ScnViewComponent::hasRenderTarget() const
 {
-	return (RenderTarget_ != nullptr) && ( RenderTarget_.isValid() );
+	return RenderTarget_.size() > 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -256,10 +258,10 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	BcF32 Height = static_cast< BcF32 >( pFrame->getBackBufferHeight() );
 
 	// If we're using a render target, we want to use it for dimensions.
-	if( RenderTarget_.isValid() )
+	if( RenderTarget_.size() > 0 )
 	{
-		Width = static_cast< BcF32 >( RenderTarget_->getWidth() );
-		Height = static_cast< BcF32 >( RenderTarget_->getHeight() );
+		Width = static_cast< BcF32 >( RenderTarget_[ 0 ]->getWidth() );
+		Height = static_cast< BcF32 >( RenderTarget_[ 0 ]->getHeight() );
 	}
 	
 	const BcF32 ViewWidth = Width_ * Width;
@@ -383,21 +385,29 @@ const BcU32 ScnViewComponent::getRenderMask() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getShaderPermutation
+const ScnShaderPermutationFlags ScnViewComponent::getShaderPermutation() const
+{
+	return RenderPermutation_ | PassPermutation_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // recreate
 void ScnViewComponent::recreateFrameBuffer()
 {
-	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
+	bool AnyValid = DepthStencilTarget_.isValid();
+	for( auto RT : RenderTarget_ )
 	{
-		BcAssert( RenderTarget_.isValid() || DepthStencilTarget_.isValid() );
-		if( RenderTarget_.isValid() && DepthStencilTarget_.isValid() )
+		AnyValid |= RT.isValid();
+	}
+
+	if( AnyValid )
+	{
+		RsFrameBufferDesc FrameBufferDesc( RenderTarget_.size() );
+		BcU32 RTIdx = 0;
+		for( auto RT : RenderTarget_ )
 		{
-			BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
-			BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
-		}
-		RsFrameBufferDesc FrameBufferDesc( 1 );
-		if( RenderTarget_.isValid() )
-		{
-			FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
+			FrameBufferDesc.setRenderTarget( RTIdx++, RT->getTexture() );
 		}
 		if( DepthStencilTarget_.isValid() )
 		{

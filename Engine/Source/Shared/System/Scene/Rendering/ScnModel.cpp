@@ -729,7 +729,10 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 
 					// Normal matrix.
 					ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
-					
+					ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
+					ObjectUniformBlock->NormalTransform_.inverse();
+					ObjectUniformBlock->NormalTransform_.transpose();
+
 					UploadFence_.decrement();
 				} );
 		}
@@ -761,6 +764,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 
 			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
 			ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
+			ShaderPermutation |= View->getShaderPermutation();
 
 			auto Program = Material->getProgram( ShaderPermutation );
 			auto ProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );

@@ -68,6 +68,8 @@ public:
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 
+	const ScnShaderPermutationFlags getShaderPermutation() const;
+
 private:
 	void recreateFrameBuffer();
 
@@ -92,7 +94,10 @@ private:
 	bool EnableClearStencil_;	
 	
 	BcU32 RenderMask_;		// Used to determine what objects should be rendered for this view.
-
+	
+	// Permutation types.
+	ScnShaderPermutationFlags RenderPermutation_;
+	ScnShaderPermutationFlags PassPermutation_;
 
 	// TODO: Remove this dependency, not really needed.
 	RsViewport Viewport_;
@@ -106,7 +111,7 @@ private:
 	MaPlane FrustumPlanes_[ 6 ];
 
 	// Frame buffer + render target.
-	ScnTextureRef RenderTarget_;
+	std::vector< ScnTextureRef > RenderTarget_;
 	ScnTextureRef DepthStencilTarget_;
 	RsFrameBufferUPtr FrameBuffer_;
 };

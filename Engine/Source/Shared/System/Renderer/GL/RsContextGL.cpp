@@ -1035,12 +1035,28 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
 			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
-				GL_COLOR_ATTACHMENT0 + NoofAttachments,
+				GL_COLOR_ATTACHMENT0 + NoofAttachments++,
 				GL_TEXTURE_2D,
 				TextureGL->getHandle(),
 				0 ) );
 		}
 	}
+
+	// Bind draw buffers.
+	GLenum Targets[ 8 ] =
+	{
+		GL_COLOR_ATTACHMENT0, 
+		GL_COLOR_ATTACHMENT1, 
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3, 
+		GL_COLOR_ATTACHMENT4, 
+		GL_COLOR_ATTACHMENT5,
+		GL_COLOR_ATTACHMENT6, 
+		GL_COLOR_ATTACHMENT7
+	};
+	BcAssertMsg( Desc.RenderTargets_.size() <= 8,
+		"Too many render targets in RsFrameBuffer \"%s\". Max of 8.", FrameBuffer->getDebugName() );
+	GL( DrawBuffers( Desc.RenderTargets_.size(), Targets ) );
 
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
