@@ -61,7 +61,7 @@ void ReObject::StaticRegisterClass()
 #if REFLECTION_ENABLE_GC
 		new ReField( "RefCount_", &ReObject::RefCount_, bcRFF_TRANSIENT | bcRFF_CONST ),
 #endif
-		new ReField( "ObjectFlags_", &ReObject::ObjectFlags_, bcRFF_CONST ),
+		new ReField( "ObjectFlags_", &ReObject::ObjectFlags_, bcRFF_CONST | bcRFF_FLAGS ),
 		new ReField( "Owner_", &ReObject::Owner_, bcRFF_SHALLOW_COPY | bcRFF_CONST ),
 		new ReField( "Basis_", &ReObject::Basis_, bcRFF_SHALLOW_COPY | bcRFF_BASIS | bcRFF_CONST ),
 		new ReField( "Name_", &ReObject::Name_, bcRFF_IMPORTER | bcRFF_CONST ),

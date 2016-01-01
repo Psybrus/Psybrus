@@ -47,6 +47,12 @@ public:
     static ReEnum* GetEnum( BcName InName );
 
 	/**
+	* @brief Get Enums.
+	* @return
+	*/
+    static std::vector< ReEnum* > GetEnums();
+
+	/**
 	* @brief Get enum value name.
 	* @param EnumValue Enum Value.
 	* @return Name of enum value. BcName::INVALID if not found.

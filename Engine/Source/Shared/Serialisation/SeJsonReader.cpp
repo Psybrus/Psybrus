@@ -144,6 +144,14 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 	auto Serialiser = pClass->getTypeSerialiser();
 	std::string OutString;
 
+	if( *pClass->getName() == "ScnViewComponent" )
+	{
+		int a = 0;++a;
+	}
+	if( *pClass->getName() == "ScnShaderPermutationFlags" )
+	{
+		int a = 0;++a;
+	}
 	BcBool Success = false;
 	// Attempt conversion to string.
 	if( Serialiser != nullptr )

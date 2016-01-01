@@ -72,3 +72,9 @@ const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name ) const
 
 	return nullptr;
 }
+
+const std::vector< const ReEnumConstant* >& ReEnum::getEnumConstants() const
+{
+	return EnumConstants_;
+}
+
