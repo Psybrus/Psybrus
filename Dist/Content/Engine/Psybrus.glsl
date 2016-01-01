@@ -82,7 +82,7 @@ vec4 mul( mat4 M, vec4 V )
 // Colour space conversion.
 #define FAST_GAMMA_CONVERSION ( 0 )
 
-vec4 gamma2linear( vec4 InputRGBA )
+vec4 gammaToLinear( vec4 InputRGBA )
 {
 #if FAST_GAMMA_CONVERSION
 	return vec4( InputRGBA.rgb * InputRGBA.rgb, InputRGBA.a );
@@ -91,7 +91,7 @@ vec4 gamma2linear( vec4 InputRGBA )
 #endif
 }
 
-vec4 linear2gamma( vec4 InputRGBA )
+vec4 linearToGamma( vec4 InputRGBA )
 {
 #if FAST_GAMMA_CONVERSION
 	return vec4( sqrt( InputRGBA.rgb ), InputRGBA.a );
@@ -187,6 +187,75 @@ vec4 linear2gamma( vec4 InputRGBA )
 #  define PSY_SAMPLE_CUBE( _n, _c ) textureCUBE( a##_n, _c )
 #endif
 
+//////////////////////////////////////////////////////////////////////////
+// Fragment writing.
+#if PIXEL_SHADER
+
+#if !defined( NOOF_OUTPUT_FRAGMENTS )
+#  if defined( PERM_RENDER_DEFERRED )
+#    define NOOF_MAX_OUTPUT_FRAGMENTS 4
+#    define NOOF_OUTPUT_FRAGMENTS 4
+#  else 
+#    define NOOF_MAX_OUTPUT_FRAGMENTS 1
+#    define NOOF_OUTPUT_FRAGMENTS 1
+#  endif
+#else
+#  define NOOF_MAX_OUTPUT_FRAGMENTS NOOF_OUTPUT_FRAGMENTS
+#endif
+
+#if PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
+#  undef NOOF_MAX_OUTPUT_FRAGMENTS
+#  define NOOF_MAX_OUTPUT_FRAGMENTS 4
+#  define fragColour gl_FragData
+#elif PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_330
+out float4 fragColour[NOOF_MAX_OUTPUT_FRAGMENTS];
+#endif
+
+
+void clearFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS] )
+{
+#if NOOF_OUTPUT_FRAGMENTS >= 1
+	outFrag[0] = vec4( 1.0, 1.0, 1.0, 1.0 );
+#endif
+
+#if NOOF_OUTPUT_FRAGMENTS >= 2
+	outFrag[1] = vec4( 1.0, 1.0, 1.0, 1.0 );
+#endif
+
+#if NOOF_OUTPUT_FRAGMENTS >= 3
+	outFrag[2] = vec4( 1.0, 1.0, 1.0, 1.0 );
+#endif
+
+#if NOOF_OUTPUT_FRAGMENTS >= 4
+	outFrag[3] = vec4( 1.0, 1.0, 1.0, 1.0 );
+#endif
+}
+
+void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Colour )
+{
+	clearFrag( outFrag );
+	outFrag[0] = Colour;
+}
+
+void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, in vec3 Normal )
+{
+	clearFrag( outFrag );
+	outFrag[0].xyzw = Albedo.xyzw;
+#if defined( PERM_RENDER_DEFERRED )
+	outFrag[1].xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
+#endif
+}
+
+void writeFragFromGamma( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, in vec3 Normal )
+{
+	clearFrag( outFrag );
+	outFrag[0].xyzw = gammaToLinear( Albedo ).xyzw;
+#if defined( PERM_RENDER_DEFERRED )
+	outFrag[1].xyz = Normal;
+#endif
+}
+
+#endif // PIXEL_SHADER
 
 //////////////////////////////////////////////////////////////////////////
 // Uniforms.
