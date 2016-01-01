@@ -192,6 +192,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 {
 	auto* InputFrameBuffer = RenderContext.pViewComponent_->getFrameBuffer();
 	RsRenderSort Sort = RenderContext.Sort_;
+	Sort.Layer_ = 0;
 	Sort.Pass_ = RS_SORT_PASS_TRANSPARENT;
 	RenderFence_.increment();
 	RenderContext.pFrame_->queueRenderNode( Sort,

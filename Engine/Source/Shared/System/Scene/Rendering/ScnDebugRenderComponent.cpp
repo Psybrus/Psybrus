@@ -444,7 +444,7 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 	// HUD pass.
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = RS_SORT_LAYER_MAX;
-	Sort.Pass_ = 0;
+	Sort.Pass_ = RS_SORT_PASS_TRANSPARENT;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
