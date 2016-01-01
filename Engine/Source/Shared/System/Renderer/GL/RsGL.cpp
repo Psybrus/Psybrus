@@ -91,6 +91,8 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
@@ -107,6 +109,8 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
+			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
@@ -146,6 +150,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( Major_ >= 3 &&
 			Minor_ >= 3 )
 		{
+
 			SupportSamplerStates_ = true;
 			SupportBlitFrameBuffer_ = true;
 		}

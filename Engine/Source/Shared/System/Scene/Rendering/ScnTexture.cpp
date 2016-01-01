@@ -59,14 +59,51 @@ void ScnTexture::StaticRegisterClass()
 				ScnTexture* Value = (ScnTexture*)Object;
 				if( Value != nullptr )
 				{
+					auto StateStorage = ImGui::GetStateStorage();
+					int MinWidth = 256;
+					ImGui::PushItemWidth( MinWidth );
 					ImGui::Text( "Width: %u", Value->Width_ );
 					ImGui::Text( "Height: %u", Value->Height_ );
 					ImGui::Text( "Depth: %u", Value->Depth_ );
-					ImGui::Text( "Format: TODO" );
-					MaVec2d Size( Value->Width_, Value->Height_ );
-					const auto WidthRequirement = 256.0f;
-					Size *= WidthRequirement / Size.x();
-					ImGui::Image( Value->getTexture(), Size );
+		
+					ImGui::Text( "Format: %s", (*ReManager::GetEnumValueName( Value->Header_.Format_ )).c_str() );
+
+					// Render if we can.
+					if( ( Value->getTexture()->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+					{
+						auto FlipYID = ImGui::GetID( "Flip Y" );
+						bool FlipY = !!StateStorage->GetInt( FlipYID, false );
+						if( ImGui::Checkbox( "Flip Y", &FlipY ) )
+						{
+							StateStorage->SetInt( FlipYID, FlipY ? 1 : 0 );
+						}
+						MaVec2d Size( Value->Width_, Value->Height_);
+						MaVec2d UV0( 0.0f, 0.0f );
+						MaVec2d UV1( 1.0f, 1.0f );
+						if( FlipY )
+						{
+							UV0.y( 1.0f );
+							UV1.y( 0.0f );
+						}
+
+						auto WidthID = ImGui::GetID( "Width" );
+						int Width = StateStorage->GetInt( WidthID, MinWidth );
+						if( ImGui::InputInt( "Size", &Width, 32, 128 ) )
+						{
+							Width = std::max( Width, MinWidth );
+							Width = std::min( Width, static_cast< int >( Value->getWidth() ) );
+							StateStorage->SetInt( WidthID, Width );
+						}
+
+						Size *= static_cast< BcF32 >( Width ) / Size.x();
+						ImGui::Image( Value->getTexture(), Size, UV0, UV1 );
+					}
+					else
+					{
+						ImGui::Text( "Texture is not a SHADER_RESOURCE. Can't render." );
+					}
+					ImGui::PopItemWidth();
+				
 				}
 			} ) );
 }

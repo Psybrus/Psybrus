@@ -1958,9 +1958,9 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 	if( BoundViewport_ != *Viewport )
 	{
 		const auto VX = Viewport->x();
-		const auto VY = FBHeight - Viewport->height();
-		const auto VW = Viewport->width() - Viewport->x();
-		const auto VH = Viewport->height() - Viewport->y();
+		const auto VY = FBHeight - ( Viewport->height() + Viewport->y() );
+		const auto VW = Viewport->width();
+		const auto VH = Viewport->height();
 		GL( Viewport( VX, VY, VW, VH ) );
 		BoundViewport_ = *Viewport;
 	}

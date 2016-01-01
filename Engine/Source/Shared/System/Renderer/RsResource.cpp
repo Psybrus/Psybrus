@@ -37,7 +37,8 @@ RsResourceDataInputDesc::RsResourceDataInputDesc( void* pData, BcU32 DataSize, B
 // RsResource
 RsResource::RsResource( RsResourceType ResourceType, class RsContext* pContext ):
 	ResourceType_( ResourceType ),
-	pContext_( pContext )
+	pContext_( pContext ),
+	DebugName_( "" )
 {
 	
 }
@@ -62,6 +63,7 @@ class RsContext* RsResource::getContext()
 void RsResource::setDebugName( const BcChar* DebugName )
 {
 #if PSY_DEBUG
+	BcAssert( DebugName );
 	DebugName_ = DebugName ? DebugName : "(No Debug Name)";
 #endif
 }

@@ -285,6 +285,7 @@ namespace
 							{
 								// Not typical recommended usage as it subverts RsCore.
 								ProgramBinding_.reset( new RsProgramBinding( Context, Program_, ProgramBindingDesc_ ) );
+								ProgramBinding_->setDebugName( "DsImGui" );
 								Context->createProgramBinding( ProgramBinding_.get() );
 							}
 
@@ -688,6 +689,7 @@ namespace Psybrus
 		Package_ = nullptr;
 		BcAssert( DrawContext_ == nullptr );
 		BcAssert( DrawFrame_ == nullptr );
+		DestroyProgramBindings_.clear();
 		GeometryBinding_.reset();
 		ProgramBinding_.reset();
 		VertexDeclaration_.reset();

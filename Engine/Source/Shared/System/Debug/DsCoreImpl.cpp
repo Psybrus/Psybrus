@@ -438,7 +438,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 						if ( Field->getKeyType() == nullptr )
 						{
 							ReContainerAccessor::ReadIteratorUPtr It( FieldAccessor.newReadIterator() );
-							BcU32 Idx = 0;
+							BcU32 Idx = 0;							
 							for ( ; It->isValid(); It->next() )
 							{
 								void* Value = nullptr;
@@ -462,8 +462,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 										if ( UpperValueType->hasBaseClass( ReObject::StaticGetClass() ) )
 										{
 											ReObject* Object = static_cast< ReObject* >( Value );
-											Class = Object->getClass();
-											ItemName = *Object->getName() + " (" + *Class->getName() + ")";
+											ItemName = *Object->getName() + " (" + *Object->getClass()->getName() + ")";
 										}
 										ImGui::ScopedID ScopedID( Idx );
 										if ( ImGui::TreeNode( Value, "[%u] %s", Idx++, ItemName.c_str() ) )
@@ -711,7 +710,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcS16* Value = ( BcS16* ) Object;
 		int ValueInt = *Value;
-		if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+		if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = ( BcS16 ) ValueInt;
 		}
@@ -723,7 +722,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcU32* Value = ( BcU32* ) Object;
 		int ValueInt = *Value;
-		if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+		if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = ( BcU32 ) ValueInt;
 		}
@@ -735,7 +734,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcS32* Value = ( BcS32* ) Object;
 		int ValueInt = *Value;
-		if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+		if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = ( BcS32 ) ValueInt;
 		}
@@ -771,7 +770,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcF32* Value = ( BcF32* ) Object;
 		BcF32 ValueF32 = *Value;
-		if ( ImGui::InputFloat( Name.c_str(), &ValueF32 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+		if ( ImGui::InputFloat( Name.c_str(), &ValueF32, 0.1f, 1.0f ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = ValueF32;
 		}
@@ -783,7 +782,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 	{
 		BcF64* Value = ( BcF64* ) Object;
 		float ValueF32 = *Value;
-		if ( ImGui::InputFloat( Name.c_str(), &ValueF32 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+		if ( ImGui::InputFloat( Name.c_str(), &ValueF32, 0.1f, 1.0f ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 		{
 			*Value = ValueF32;
 		}
