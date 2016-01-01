@@ -68,7 +68,8 @@ public:
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 
-	const ScnShaderPermutationFlags getShaderPermutation() const;
+	const ScnShaderPermutationFlags getRenderPermutation() const;
+	const ScnShaderPermutationFlags getPassPermutations() const;
 
 private:
 	void recreateFrameBuffer();
@@ -97,7 +98,7 @@ private:
 	
 	// Permutation types.
 	ScnShaderPermutationFlags RenderPermutation_;
-	ScnShaderPermutationFlags PassPermutation_;
+	ScnShaderPermutationFlags PassPermutations_;
 
 	// TODO: Remove this dependency, not really needed.
 	RsViewport Viewport_;

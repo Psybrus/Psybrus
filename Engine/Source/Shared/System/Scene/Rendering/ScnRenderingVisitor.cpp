@@ -43,6 +43,10 @@ void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 		PSY_LOGSCOPEDCATEGORY( *pComponent->getClass()->getName() );
 		BcAssert( pComponent->isReady() );
 
-		pComponent->render( RenderContext_ );
+		RenderContext_.ViewRenderData_ = pComponent->getViewRenderData( RenderContext_.pViewComponent_ );
+		if( RenderContext_.ViewRenderData_ )
+		{
+			pComponent->render( RenderContext_ );
+		}
 	}
 }

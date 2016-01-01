@@ -150,7 +150,7 @@ namespace
 
 		RsRenderSort Sort;
 		Sort.Value_ = 0;
-		Sort.Pass_ = RS_SORT_PASS_OVERLAY;		
+		Sort.Pass_ = RS_SORT_PASS_TRANSPARENT;		
 		Sort.Viewport_ = RS_SORT_VIEWPORT_MAX;
 		Sort.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
 		Sort.NodeType_ = RS_SORT_NODETYPE_MAX;
@@ -597,7 +597,7 @@ namespace Psybrus
 				BcAssert( Textured );
 				ScnShaderPermutationFlags Permutation = 
 					ScnShaderPermutationFlags::RENDER_FORWARD |
-					ScnShaderPermutationFlags::PASS_MAIN |
+					ScnShaderPermutationFlags::PASS_TRANSPARENT |
 					ScnShaderPermutationFlags::MESH_STATIC_2D |
 					ScnShaderPermutationFlags::LIGHTING_NONE;
 

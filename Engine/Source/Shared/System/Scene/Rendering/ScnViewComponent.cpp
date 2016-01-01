@@ -58,7 +58,7 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_, bcRFF_IMPORTER ),
 		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_, bcRFF_IMPORTER ),
 		new ReField( "RenderPermutation_", &ScnViewComponent::RenderPermutation_, bcRFF_IMPORTER ),
-		new ReField( "PassPermutation_", &ScnViewComponent::PassPermutation_, bcRFF_IMPORTER ),
+		new ReField( "PassPermutations_", &ScnViewComponent::PassPermutations_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
@@ -95,7 +95,7 @@ ScnViewComponent::ScnViewComponent():
 	EnableClearStencil_( true ),
 	RenderMask_( 0 ),
 	RenderPermutation_( ScnShaderPermutationFlags::RENDER_FORWARD ),
-	PassPermutation_( ScnShaderPermutationFlags::PASS_MAIN ),
+	PassPermutations_( ScnShaderPermutationFlags::PASS_OPAQUE | ScnShaderPermutationFlags::PASS_TRANSPARENT ),
 	RenderTarget_(),
 	DepthStencilTarget_( nullptr )
 {
@@ -385,10 +385,17 @@ const BcU32 ScnViewComponent::getRenderMask() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getShaderPermutation
-const ScnShaderPermutationFlags ScnViewComponent::getShaderPermutation() const
+// getRenderPermutation
+const ScnShaderPermutationFlags ScnViewComponent::getRenderPermutation() const
 {
-	return RenderPermutation_ | PassPermutation_;
+	return RenderPermutation_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getPassPermutations
+const ScnShaderPermutationFlags ScnViewComponent::getPassPermutations() const
+{
+	return PassPermutations_;
 }
 
 //////////////////////////////////////////////////////////////////////////

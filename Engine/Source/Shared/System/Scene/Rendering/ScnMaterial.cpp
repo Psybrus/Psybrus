@@ -282,7 +282,6 @@ ScnMaterialComponent::~ScnMaterialComponent()
 // initialise
 void ScnMaterialComponent::initialise()
 {
-	PermutationFlags_ = PermutationFlags_ | ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::PASS_MAIN;
 	if( Material_ && pProgram_ == nullptr )
 	{
 		BcAssertMsg( Material_->isReady(), 
@@ -494,7 +493,7 @@ ScnTextureRef ScnMaterialComponent::getTexture( const BcName& TextureName )
 {
 	return getTexture( findTextureSlot( TextureName ) );
 }
-
+ 
 //////////////////////////////////////////////////////////////////////////
 // getMaterial
 ScnMaterialRef ScnMaterialComponent::getMaterial()

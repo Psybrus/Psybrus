@@ -30,8 +30,9 @@ void ScnRenderableComponent::StaticRegisterClass()
 	{
 		new ReField( "RenderMask_", &ScnRenderableComponent::RenderMask_, bcRFF_IMPORTER ),
 		new ReField( "IsLit_", &ScnRenderableComponent::IsLit_, bcRFF_IMPORTER ),
+		new ReField( "IsTransparent_", &ScnRenderableComponent::IsTransparent_, bcRFF_IMPORTER ),
 	};
-		
+	
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
 		.addAttribute( new ScnComponentProcessor() );
 }
@@ -40,7 +41,8 @@ void ScnRenderableComponent::StaticRegisterClass()
 // Ctor
 ScnRenderableComponent::ScnRenderableComponent():
 	RenderMask_( 1 ),
-	IsLit_( BcFalse )
+	IsLit_( BcFalse ),
+	IsTransparent_( BcFalse )
 {
 
 }
@@ -76,7 +78,7 @@ void ScnRenderableComponent::onDetachComponent( class ScnComponent* Component )
 //virtual
 ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewComponent* View )
 {
-	return nullptr;
+	return shouldRenderInView( View ) ? new ScnViewRenderData() : nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,7 +143,6 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 	return RenderMask_;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
@@ -167,8 +168,28 @@ void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// isLit
-bool ScnRenderableComponent::isLit() const
+// shouldRenderInView
+bool ScnRenderableComponent::shouldRenderInView( class ScnViewComponent* View ) const
 {
-	return IsLit_;
+	bool ShouldRender = false;
+
+	// If opaque view and not transparent - render.
+	if( ( View->getPassPermutations() & ScnShaderPermutationFlags::PASS_OPAQUE ) != ScnShaderPermutationFlags::NONE )
+	{
+		if( !IsTransparent_ )
+		{
+			ShouldRender = true;
+		}
+	}
+
+	// If transparent view and transparent - render.
+	if( ( View->getPassPermutations() & ScnShaderPermutationFlags::PASS_TRANSPARENT ) != ScnShaderPermutationFlags::NONE )
+	{
+		if( IsTransparent_ )
+		{
+			ShouldRender = true;
+		}
+	}
+
+	return ShouldRender;
 }

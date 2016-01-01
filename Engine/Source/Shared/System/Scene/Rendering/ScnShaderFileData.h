@@ -1,4 +1,4 @@
-/**************************************************************************
+/*******************	*******************************************************
 *
 * File:		Rendering/ScnShaderFileData.h
 * Author:	Neil Richardson 
@@ -22,12 +22,6 @@
 #include "Math/MaMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
-// Undefine PASS_MAX
-#if PLATFORM_OSX
-#undef PASS_MAX
-#endif
-
-//////////////////////////////////////////////////////////////////////////
 // ScnShaderPermutationType
 enum class ScnShaderPermutationType : BcU32
 {
@@ -42,8 +36,10 @@ enum class ScnShaderPermutationType : BcU32
 	
 	// Pass types.
 	PASS_FIRST = RENDER_MAX_END,
-	PASS_MAIN = PASS_FIRST,								// Main pass. (Typical default)
-	PASS_SHADOW,										// Shadow pass (Render to shadow buffer)
+	PASS_SHADOW = PASS_FIRST,							// Shadow pass.
+	PASS_DEPTH,											// Depth pass.
+	PASS_OPAQUE,										// Opaque pass.
+	PASS_TRANSPARENT,									// Transparent pass.
 	PASS_MAX_END,
 	PASS_COUNT = PASS_MAX_END - PASS_FIRST,
 	
@@ -91,11 +87,15 @@ enum class ScnShaderPermutationFlags : BcU32
 		RENDER_POST_PROCESS,
 	
 	// Pass type.
-	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,
 	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,
+	PASS_DEPTH					= 1 << (BcU32)ScnShaderPermutationType::PASS_DEPTH,
+	PASS_OPAQUE					= 1 << (BcU32)ScnShaderPermutationType::PASS_OPAQUE,
+	PASS_TRANSPARENT			= 1 << (BcU32)ScnShaderPermutationType::PASS_TRANSPARENT,
 	PASS_ALL =
-		PASS_MAIN |
-		PASS_SHADOW,
+		PASS_SHADOW |
+		PASS_DEPTH |
+		PASS_OPAQUE |
+		PASS_TRANSPARENT,
 
 	// Mesh type.
 	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,

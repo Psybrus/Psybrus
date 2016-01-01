@@ -37,8 +37,10 @@ RsResourceDataInputDesc::RsResourceDataInputDesc( void* pData, BcU32 DataSize, B
 // RsResource
 RsResource::RsResource( RsResourceType ResourceType, class RsContext* pContext ):
 	ResourceType_( ResourceType ),
-	pContext_( pContext ),
-	DebugName_( "" )
+	pContext_( pContext )
+#if PSY_DEBUG
+	, DebugName_( "" )
+#endif
 {
 	
 }

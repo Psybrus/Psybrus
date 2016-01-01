@@ -192,7 +192,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 {
 	auto* InputFrameBuffer = RenderContext.pViewComponent_->getFrameBuffer();
 	RsRenderSort Sort = RenderContext.Sort_;
-	Sort.Pass_ = RS_SORT_PASS_POSTPROCESS;
+	Sort.Pass_ = RS_SORT_PASS_TRANSPARENT;
 	RenderFence_.increment();
 	RenderContext.pFrame_->queueRenderNode( Sort,
 		[ 
@@ -221,7 +221,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 
 			ScnShaderPermutationFlags Permutation = 
 				ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-				ScnShaderPermutationFlags::PASS_MAIN |
+				ScnShaderPermutationFlags::PASS_TRANSPARENT |
 				ScnShaderPermutationFlags::MESH_STATIC_2D |
 				ScnShaderPermutationFlags::LIGHTING_NONE;
 
@@ -357,7 +357,7 @@ void ScnPostProcessComponent::recreateResources()
 
 	const ScnShaderPermutationFlags Permutation = 
 		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::PASS_TRANSPARENT |
 		ScnShaderPermutationFlags::MESH_STATIC_2D |
 		ScnShaderPermutationFlags::LIGHTING_NONE;
 

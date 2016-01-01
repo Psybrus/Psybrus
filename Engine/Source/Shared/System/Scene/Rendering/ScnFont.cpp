@@ -1201,7 +1201,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 	MaterialComponent_ = Parent->attach< ScnMaterialComponent >(
 		BcName::INVALID, Material_, 
 		ScnShaderPermutationFlags::RENDER_FORWARD |
-		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::PASS_TRANSPARENT |
 		ScnShaderPermutationFlags::MESH_STATIC_2D );
 
 	// Setup texture.

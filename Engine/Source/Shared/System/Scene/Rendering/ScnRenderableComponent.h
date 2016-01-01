@@ -31,11 +31,13 @@ public:
 			class RsFrame* pFrame,
 			RsRenderSort Sort ):
 		pViewComponent_( pViewComponent ),
+		ViewRenderData_( nullptr ),
 		pFrame_( pFrame ),
 		Sort_( Sort )
 	{}
 
 	class ScnViewComponent* pViewComponent_;
+	class ScnViewRenderData* ViewRenderData_;
 	class RsFrame* pFrame_;
 	RsRenderSort Sort_;
 };
@@ -66,7 +68,7 @@ public:
 
 	/**
 	 * Create view render data.
-	 * Should return a new @a ScnViewRenderData, or nullptr.
+	 * Should return a new @a ScnViewRenderData or derived type if rendering if required. nullptr if not.
 	 * If overridden, no need to call this function from the override.
 	 */
 	virtual class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View );
@@ -99,13 +101,34 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
+	 * Should this component render in @a View?
+	 */
+	bool shouldRenderInView( class ScnViewComponent* View ) const;
+
+	/**
 	 * Is this renderable component lit?
 	 */
-	bool isLit() const;
+	bool isLit() const { return IsLit_; }
+
+	/**
+	 * Is this renderable component transparent?
+	 */
+	bool isTransparent() const { return IsTransparent_; }
+
+	/**
+	 * Set if renderable is lit.
+	 */
+	void setLit( bool Lit ) { IsLit_ = Lit; }
+
+	/**
+	 * Set if renderable is transparent.
+	 */
+	void setTransparent( bool Transparent ) { IsTransparent_ = Transparent; }
 
 private:
 	BcU32 RenderMask_;				/// Used to specify what kind of object it is for selectively rendering with certain views.
 	bool IsLit_;					/// Does this need to be lit?
+	bool IsTransparent_;			/// Is renderable transparent?
 
 	// TODO: Look at a smarter way to store + look up ScnViewRenderData structures.
 	std::unordered_map< class ScnViewComponent*, class ScnViewRenderData* > ViewRenderData_; /// View render data.
