@@ -50,6 +50,11 @@ namespace
 		public boost::wave::context_policies::default_preprocessing_hooks
 	{
 	public:
+		glsl_directives_hooks( class ScnShaderImport& Importer ):
+			Importer_( Importer )
+		{
+		}
+
 		template < typename _Context, typename _Container >
 		bool found_unknown_directive( const _Context& Context, _Container const& Line, _Container& Pending )
 		{
@@ -62,15 +67,17 @@ namespace
 				return false;
 			}
 
+			auto Value = Iter->get_value();
+
 			// Version.
-			if( Iter->get_value() == "version" )
+			if( Value == "version" )
 			{
 				std::copy( Line.begin(), Line.end(), std::back_inserter( Pending ) );
 				return true;
 			}
 
 			// Extensions.
-			if( Iter->get_value() == "extension" )
+			if( Value == "extension" )
 			{
 				std::copy( Line.begin(), Line.end(), std::back_inserter( Pending ) );
 				return true;
@@ -79,6 +86,20 @@ namespace
 			// Unknown directive
 			return false;
 		}
+
+		template <typename _Context>
+		bool locate_include_file( _Context& Context, std::string& FilePath, bool IsSystem, char const* CurrentName, std::string& DirPath, std::string& NativeName )
+		{
+			if( boost::wave::context_policies::default_preprocessing_hooks::locate_include_file(
+				Context, FilePath, IsSystem, CurrentName, DirPath, NativeName ) )
+			{
+				Importer_.addDependency( DirPath.c_str() );
+				return true;
+			}
+			return false;
+		}
+
+		class ScnShaderImport& Importer_;
 	};
 
 	TBuiltInResource GetDefaultResource()
@@ -284,7 +305,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 				std::string SourceData = Params.ShaderSourceData_;
 
-				glsl_directives_hooks GLSLDirectiveHooks;
+				glsl_directives_hooks GLSLDirectiveHooks( *this );
 				context_type Context( SourceData.begin(), SourceData.end(), Params.ShaderSource_.c_str(), GLSLDirectiveHooks );
 
 				// Add defines.
@@ -464,6 +485,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					else
 					{
 						PSY_LOG( "Error: Unsupported shader type for glsl-optimizer" );
+						GotErrorBuilding_++;
 						return BcFalse;
 					}
 
@@ -482,7 +504,8 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					{
 						PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
 							glslopt_get_log( GlslOptShader ) );
-						return BcFalse;
+						logSource( ProcessedSourceData );
+						RetVal = BcFalse;
 					}
 
 					int ApproxMath, ApproxTex, ApproxFlow;
@@ -513,9 +536,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						PSY_LOG( "%s", Line.c_str() );
 					}
 
-					{
-						logSource( ProcessedSourceData );
-					}
+					logSource( ProcessedSourceData );
 					RetVal = BcFalse;
 				}
 				else
