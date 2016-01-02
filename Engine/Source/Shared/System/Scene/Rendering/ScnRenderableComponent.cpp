@@ -15,10 +15,12 @@
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
-#include "System/Renderer/RsCore.h"
 
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
+
+#include "System/Os/OsCore.h"
+#include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -162,6 +164,14 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 	// TODO: Add type of component to callback.
 	ScnCore::pImpl()->addCallback( this );
 
+	// HACK: Subscribe for resize event to reset bindings incase anything needs to be rebound.
+	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+		{
+			resetViewRenderData( nullptr );
+			return evtRET_PASS;
+		} );
+
 	Super::onAttach( Parent );
 }
 
@@ -170,6 +180,7 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
+	OsCore::pImpl()->unsubscribeAll( this );
 	ScnCore::pImpl()->removeCallback( this );
 
 	// Reset all view render data.

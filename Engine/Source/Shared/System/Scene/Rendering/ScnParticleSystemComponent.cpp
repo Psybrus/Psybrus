@@ -13,6 +13,7 @@
 
 #include "System/Scene/Rendering/ScnParticleSystemComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
@@ -23,6 +24,24 @@
 
 #include "Base/BcRandom.h"
 #include "Base/BcMath.h"
+
+//////////////////////////////////////////////////////////////////////////
+// ScnParticleSystemViewRenderData
+class ScnParticleSystemViewRenderData : 
+	public ScnViewRenderData
+{
+public:
+	ScnParticleSystemViewRenderData()
+	{
+	}
+
+	virtual ~ScnParticleSystemViewRenderData()
+	{
+	}
+
+	RsProgramBindingUPtr ProgramBinding_;
+	RsRenderState* RenderState_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
@@ -40,7 +59,6 @@ void ScnParticleSystemComponent::StaticRegisterClass()
 		new ReField( "ObjectUniforms_", &ScnParticleSystemComponent::ObjectUniforms_, bcRFF_TRANSIENT ),
 		new ReField( "pParticleBuffer_", &ScnParticleSystemComponent::pParticleBuffer_, bcRFF_TRANSIENT ),
 		new ReField( "PotentialFreeParticle_", &ScnParticleSystemComponent::PotentialFreeParticle_, bcRFF_TRANSIENT ),
-		new ReField( "MaterialComponent_", &ScnParticleSystemComponent::MaterialComponent_, bcRFF_TRANSIENT ),
 		new ReField( "WorldTransformParam_", &ScnParticleSystemComponent::WorldTransformParam_, bcRFF_TRANSIENT ),
 		new ReField( "UVBounds_", &ScnParticleSystemComponent::UVBounds_ ),
 		new ReField( "AABB_", &ScnParticleSystemComponent::AABB_ ),
@@ -65,7 +83,6 @@ ScnParticleSystemComponent::ScnParticleSystemComponent():
 	NoofParticles_( 0 ),
 	PotentialFreeParticle_( 0 ),
 	Material_( nullptr ),
-	MaterialComponent_( nullptr ),
 	WorldTransformParam_( 0 ),
 	IsLocalSpace_( BcFalse )
 {
@@ -293,21 +310,16 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 	// Draw particles last.
 	if( NoofParticlesToRender > 0 )
 	{
+		auto* ViewRenderData = static_cast< ScnParticleSystemViewRenderData* >( RenderContext.ViewRenderData_ );
 		RsRenderSort Sort = RenderContext.Sort_;
 		Sort.Layer_ = 15;
-
-		// Set material parameters for view.
-		RenderContext.pViewComponent_->setMaterialParameters( MaterialComponent_ );
-
-		// Set ubo.
-		MaterialComponent_->setObjectUniformBlock( UniformBuffer_.get() );
 
 		// Add to frame.
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[
 				GeometryBinding = GeometryBinding_.get(),
-				ProgramBinding = MaterialComponent_->getProgramBinding(),
-				RenderState = MaterialComponent_->getRenderState(),
+				ProgramBinding = ViewRenderData->ProgramBinding_.get(),
+				RenderState = ViewRenderData->RenderState_,
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				NoofParticlesToRender 
@@ -327,15 +339,41 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+//virtual
+class ScnViewRenderData* ScnParticleSystemComponent::createViewRenderData( class ScnViewComponent* View )
+{
+	ScnParticleSystemViewRenderData* ViewRenderData = new ScnParticleSystemViewRenderData();
+
+	ScnShaderPermutationFlags ShaderPermutation = ScnShaderPermutationFlags::MESH_PARTICLE_3D;
+	ShaderPermutation |= View->getRenderPermutation();
+	auto Program = Material_->getProgram( ShaderPermutation );
+	auto ProgramBindingDesc = Material_->getProgramBinding( ShaderPermutation );
+	{
+		auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
+		if( Slot != BcErrorCode )
+		{	
+			ProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer_.get() );
+		}
+	}
+	{
+		auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+		if( Slot != BcErrorCode )
+		{	
+			ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer() );
+		}
+	}
+	ViewRenderData->ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+	ViewRenderData->RenderState_ = Material_->getRenderState();
+
+	return ViewRenderData;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	// Attach a new material component.
-	MaterialComponent_ = Parent->attach< ScnMaterialComponent >( 
-		BcName::INVALID, Material_, 
-		ScnShaderPermutationFlags::MESH_PARTICLE_3D );
-
 	// TODO: Allow different types of geom for this.
 	// TODO: Use index buffer.
 	// Calc what we need.
@@ -384,20 +422,9 @@ void ScnParticleSystemComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	UploadFence_.wait();
 
-	Parent->detach( MaterialComponent_ );
-
-	MaterialComponent_ = nullptr;
-	
 	delete [] pParticleBuffer_;
 
 	Super::onDetach( Parent );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getMaterialComponent
-ScnMaterialComponentRef ScnParticleSystemComponent::getMaterialComponent()
-{
-	return MaterialComponent_;
 }
 
 //////////////////////////////////////////////////////////////////////////
