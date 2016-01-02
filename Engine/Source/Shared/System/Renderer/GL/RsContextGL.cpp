@@ -1113,10 +1113,8 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			break;
 		}
 
-		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
-			RsResourceBindFlags::NONE );
-		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) !=
-			RsResourceBindFlags::NONE );
+		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsResourceBindFlags::SHADER_RESOURCE ) );
+		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsResourceBindFlags::DEPTH_STENCIL ) );
 
 		RsTextureGL* TextureGL = Desc.DepthStencilTarget_->getHandle< RsTextureGL* >();
 		GL( FramebufferTexture2D( 

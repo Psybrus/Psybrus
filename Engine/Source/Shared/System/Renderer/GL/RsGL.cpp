@@ -237,6 +237,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 			bool SupportDepthTextures = 
 				HaveExtension( "OES_depth_texture" ) |
 				HaveExtension( "WEBGL_depth_texture" );
+			Features_.DepthTextures_ = SupportDepthTextures;
 
 			bool SupportFloatTextures =
 				HaveExtension( "OES_texture_float" ) |
