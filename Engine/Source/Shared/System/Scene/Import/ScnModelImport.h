@@ -138,6 +138,8 @@ private:
 	std::vector< MaMat4d > InverseBindposes_;
 
 	ScnModelVertexFormat VertexFormat_;
+
+	std::map< std::string, CsCrossRefId > DefaultTextures_;
 };
 
 #endif

@@ -129,8 +129,10 @@ void ScnModelVertexFormat::StaticRegisterClass()
 	{
 		new ReField( "Position_", &ScnModelVertexFormat::Position_, bcRFF_IMPORTER ),
 		new ReField( "Normal_", &ScnModelVertexFormat::Normal_, bcRFF_IMPORTER ),
+		new ReField( "Binormal_", &ScnModelVertexFormat::Binormal_, bcRFF_IMPORTER ),
 		new ReField( "Tangent_", &ScnModelVertexFormat::Tangent_, bcRFF_IMPORTER ),
 		new ReField( "Colour_", &ScnModelVertexFormat::Colour_, bcRFF_IMPORTER ),
+		new ReField( "BlendIndices_", &ScnModelVertexFormat::BlendIndices_, bcRFF_IMPORTER ),
 		new ReField( "BlendWeights_", &ScnModelVertexFormat::BlendWeights_, bcRFF_IMPORTER ),
 		new ReField( "TexCoord0_", &ScnModelVertexFormat::TexCoord0_, bcRFF_IMPORTER ),
 		new ReField( "TexCoord1_", &ScnModelVertexFormat::TexCoord1_, bcRFF_IMPORTER ),
@@ -166,6 +168,7 @@ void ScnModelImport::StaticRegisterClass()
 		new ReField( "Source_", &ScnModelImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Materials_", &ScnModelImport::Materials_, bcRFF_IMPORTER ),
 		new ReField( "VertexFormat_", &ScnModelImport::VertexFormat_, bcRFF_IMPORTER ),
+		new ReField( "DefaultTextures_", &ScnModelImport::DefaultTextures_, bcRFF_IMPORTER ),
 	};
 	
 	ReRegisterClass< ScnModelImport, Super >( Fields );
@@ -452,6 +455,9 @@ void ScnModelImport::serialiseMesh(
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(), 
 				4, VertexFormat_.Tangent_, RsVertexUsage::TANGENT, 0 ) );
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(), 
+				4, VertexFormat_.Binormal_, RsVertexUsage::BINORMAL, 0 ) );
 		}
 
 		if( Mesh->HasTextureCoords( 0 ) )
@@ -704,7 +710,7 @@ void ScnModelImport::serialiseVertices(
 				break;
 			case RsVertexUsage::BINORMAL:
 				{
-					BcAssert( VertexElement.Components_ == 3 );
+					BcAssert( VertexElement.Components_ == 4 );
 					BcF32 Input[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 					if( Mesh->mBitangents != nullptr )
 					{
@@ -958,6 +964,17 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 		else
 		{
 			addMessage( CsMessageCategory::WARNING, "Unable to find texture " + TexturePath.string() );
+		}
+	}
+
+	// Patch in default texture if we need to.
+	if( TextureRef == CSCROSSREFID_INVALID )
+	{
+		auto It = DefaultTextures_.find( Name );
+		if( It != DefaultTextures_.end() )
+		{
+			TextureRef = It->second;
+			MaterialImport->addTexture( Name, TextureRef, RsSamplerStateDesc() );
 		}
 	}
 	return TextureRef;
