@@ -235,7 +235,7 @@ void clearFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS] )
 #endif
 
 #if NOOF_OUTPUT_FRAGMENTS >= 4
-	outFrag[3] = vec4( 1.0, 1.0, 1.0, 1.0 );
+	outFrag[3] = vec4( 0.0, 0.0, 0.0, 0.0 );
 #endif
 }
 
@@ -250,16 +250,14 @@ void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, i
 	clearFrag( outFrag );
 	outFrag[0].xyzw = Albedo.xyzw;
 #if defined( PERM_RENDER_DEFERRED )
-	outFrag[1].xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	outFrag[2].xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
 #endif
 }
 
-void writeFragFromGamma( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, in vec3 Normal )
+void writeVelocity( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec2 Velocity )
 {
-	clearFrag( outFrag );
-	outFrag[0].xyzw = gammaToLinear( Albedo ).xyzw;
 #if defined( PERM_RENDER_DEFERRED )
-	outFrag[1].xyz = Normal;
+	outFrag[3].xy = Velocity;
 #endif
 }
 
