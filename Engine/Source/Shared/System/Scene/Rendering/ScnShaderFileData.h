@@ -217,7 +217,8 @@ struct ScnShaderAlphaTestUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderAlphaTestUniformBlockData );
 	ScnShaderAlphaTestUniformBlockData(){};
 
-	MaVec4d AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
+	/// smoothstep min, smoothstep max, ref (<), unused
+	MaVec4d AlphaTestParams_; 
 };
 
 //////////////////////////////////////////////////////////////////////////
