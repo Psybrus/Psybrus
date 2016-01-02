@@ -69,10 +69,16 @@ void ScnTexture::StaticRegisterClass()
 					ImGui::Text( "Format: %s", (*ReManager::GetEnumValueName( Value->Header_.Format_ )).c_str() );
 
 					// Render if we can.
-					if( ( Value->getTexture()->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
+					if( BcContainsAllFlags( Value->getTexture()->getDesc().BindFlags_, RsResourceBindFlags::SHADER_RESOURCE ) )
 					{
+						const auto& Features = RsCore::pImpl()->getContext( nullptr )->getFeatures();
+						bool ShouldFlip = false;
+						if( Features.RTOrigin_ != RsFeatureRenderTargetOrigin::TOP_LEFT )
+						{
+							ShouldFlip = BcContainsAnyFlags( Value->getTexture()->getDesc().BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL );
+						}
 						auto FlipYID = ImGui::GetID( "Flip Y" );
-						bool FlipY = !!StateStorage->GetInt( FlipYID, false );
+						bool FlipY = !!StateStorage->GetInt( FlipYID, ShouldFlip );
 						if( ImGui::Checkbox( "Flip Y", &FlipY ) )
 						{
 							StateStorage->SetInt( FlipYID, FlipY ? 1 : 0 );
