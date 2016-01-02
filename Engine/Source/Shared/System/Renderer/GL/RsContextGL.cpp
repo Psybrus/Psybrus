@@ -444,9 +444,9 @@ void RsContextGL::create()
 		PSY_LOG( "Can't create pixel format.\n" );
 	}
 	
-	if( !::SetPixelFormat( WindowDC_, PixelFormat, &pfd ) )               // Are We Able To Set The Pixel Format?
+	if( !::SetPixelFormat( WindowDC_, PixelFormat, &pfd ) )
 	{
-		PSY_LOG( "Can't Set The PixelFormat." );
+		PSY_LOG( "Can't set PixelFormat." );
 	}
 
 	// Create a rendering context to start with.
@@ -798,12 +798,50 @@ void RsContextGL::destroy()
 #if PLATFORM_WINDOWS
 bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 {
+	// Setup pixel format.
+	const int PixelFormatAttribs[] =
+	{
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		WGL_RED_BITS_ARB, 8,
+		WGL_GREEN_BITS_ARB, 8,
+		WGL_BLUE_BITS_ARB, 8,
+		WGL_ALPHA_BITS_ARB, 8,
+		0,
+	};
+
+	int PixelFormat = 0;
+	UINT NumFormats = 0;
+	auto RetVal = wglChoosePixelFormatARB( WindowDC_, PixelFormatAttribs, nullptr, 1, &PixelFormat, &NumFormats );
+	if( RetVal == 0 || NumFormats == 0 )
+	{
+		PSY_LOG( "Unable to choose pixel format." );
+		return false;
+	}
+
+	PIXELFORMATDESCRIPTOR PixelFormatDesc;
+	::DescribePixelFormat( WindowDC_, PixelFormat, sizeof( PIXELFORMATDESCRIPTOR ), &PixelFormatDesc );
+	PSY_LOG( "Pixel format:" );
+	PSY_LOG( " Backbuffer RT: R%dG%dB%dA%d", PixelFormatDesc.cRedBits, PixelFormatDesc.cGreenBits, PixelFormatDesc.cBlueBits, PixelFormatDesc.cAlphaBits );
+	PSY_LOG( " Backbuffer DS: D%dS%d", PixelFormatDesc.cDepthBits, PixelFormatDesc.cStencilBits );
+
+	if( !::SetPixelFormat( WindowDC_, PixelFormat, &PixelFormatDesc ) )
+	{
+		PSY_LOG( "Can't set PixelFormat." );
+	}
+
+	// Create context.
 	int ContextAttribs[] = 
 	{
 		WGL_CONTEXT_PROFILE_MASK_ARB, 0,
 		WGL_CONTEXT_MAJOR_VERSION_ARB, Version.Major_,
 		WGL_CONTEXT_MINOR_VERSION_ARB, Version.Minor_,
-		NULL
+		0
 	};
 
 	switch( Version.Type_ )
@@ -828,9 +866,6 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 	
 	BcAssert( WGL_ARB_create_context );
 	BcAssert( WGL_ARB_create_context_profile );
-
-	auto func = wglCreateContextAttribsARB;
-	BcUnusedVar( func );
 
 	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
 	if( CoreProfile != NULL )
