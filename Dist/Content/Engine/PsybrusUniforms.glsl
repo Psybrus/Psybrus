@@ -30,6 +30,8 @@ BEGIN_CBUFFER( ScnShaderViewUniformBlockData )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ViewTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ClipTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4, ViewTime_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4, ViewSize_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4, NearFar_ )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
@@ -40,6 +42,8 @@ END_CBUFFER
 #  define ViewTransform_ ScnShaderViewUniformBlockDataVS_XViewTransform_
 #  define ClipTransform_ ScnShaderViewUniformBlockDataVS_XClipTransform_
 #  define ViewTime_ ScnShaderViewUniformBlockDataVS_XViewTime_
+#  define ViewSize_ ScnShaderViewUniformBlockDataVS_XViewSize_ 
+#  define NearFar_ ScnShaderViewUniformBlockDataVS_XNearFar_ 
 
 #endif
 

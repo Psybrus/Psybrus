@@ -301,6 +301,16 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	BcF32 Time = SysKernel::pImpl()->getFrameTime();
 	ViewUniformBlock_.ViewTime_ += MaVec4d( Time, Time * 0.5f, Time * 0.25f, Time * 0.125f );
 
+	// View size.
+	ViewUniformBlock_.ViewSize_ = MaVec4d( 
+		static_cast< BcF32 >( Viewport_.width() ), 
+		static_cast< BcF32 >( Viewport_.height() ),
+		1.0f / static_cast< BcF32 >( Viewport_.width() ), 
+		1.0f / static_cast< BcF32 >( Viewport_.height() ) );
+
+	// Near + far planes.
+	ViewUniformBlock_.NearFar_ = MaVec4d( Near_, Far_, Near_ + Far_, Near_ * Far_ );
+
 	// Upload uniforms.
 	RsCore::pImpl()->updateBuffer( 
 		ViewUniformBuffer_.get(),
