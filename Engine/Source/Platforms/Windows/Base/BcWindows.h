@@ -53,5 +53,8 @@
 #undef max
 #define max max
 
+#undef OPAQUE
+#undef TRANSPARENT
+
 #endif
 
