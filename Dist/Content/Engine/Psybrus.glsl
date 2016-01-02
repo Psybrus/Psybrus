@@ -101,6 +101,14 @@ vec4 linearToGamma( vec4 InputRGBA )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Depth utility.
+float linearDepth( float DepthSample, float Near, float Far )
+{
+	DepthSample = 2.0 * DepthSample - 1.0;
+	return ( 2.0 * ( Near * Far ) ) / ( ( Near + Far ) - DepthSample * ( Far - Near ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // PSY_MAKE_WORLD_SPACE_VERTEX
 #if defined( PERM_MESH_STATIC_2D )
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
@@ -260,3 +268,4 @@ void writeFragFromGamma( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 
 //////////////////////////////////////////////////////////////////////////
 // Uniforms.
 #include <PsybrusUniforms.glsl>
+
