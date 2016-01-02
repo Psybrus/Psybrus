@@ -14,6 +14,7 @@
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Scene/ScnCore.h"
 
@@ -43,9 +44,11 @@ void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
 		PSY_LOGSCOPEDCATEGORY( *pComponent->getClass()->getName() );
 		BcAssert( pComponent->isReady() );
 
-		RenderContext_.ViewRenderData_ = pComponent->getViewRenderData( RenderContext_.pViewComponent_ );
-		if( RenderContext_.ViewRenderData_ )
+		auto* ViewRenderData = pComponent->getViewRenderData( RenderContext_.pViewComponent_ );
+		if( ViewRenderData )
 		{
+			RenderContext_.ViewRenderData_ = ViewRenderData;
+			RenderContext_.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
 			pComponent->render( RenderContext_ );
 		}
 	}

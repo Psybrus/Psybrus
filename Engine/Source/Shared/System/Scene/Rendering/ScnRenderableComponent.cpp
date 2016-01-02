@@ -30,7 +30,8 @@ void ScnRenderableComponent::StaticRegisterClass()
 	{
 		new ReField( "RenderMask_", &ScnRenderableComponent::RenderMask_, bcRFF_IMPORTER ),
 		new ReField( "IsLit_", &ScnRenderableComponent::IsLit_, bcRFF_IMPORTER ),
-		new ReField( "IsTransparent_", &ScnRenderableComponent::IsTransparent_, bcRFF_IMPORTER ),
+		new ReField( "RenderPermutations_", &ScnRenderableComponent::RenderPermutations_, bcRFF_IMPORTER | bcRFF_FLAGS ),
+		new ReField( "Passes_", &ScnRenderableComponent::Passes_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 	};
 	
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
@@ -42,7 +43,8 @@ void ScnRenderableComponent::StaticRegisterClass()
 ScnRenderableComponent::ScnRenderableComponent():
 	RenderMask_( 1 ),
 	IsLit_( BcFalse ),
-	IsTransparent_( BcFalse )
+	RenderPermutations_( ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::RENDER_DEFERRED | ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
+	Passes_( RsRenderSortPassFlags::DEPTH | RsRenderSortPassFlags::OPAQUE | RsRenderSortPassFlags::SHADOW )
 {
 
 }
@@ -78,7 +80,7 @@ void ScnRenderableComponent::onDetachComponent( class ScnComponent* Component )
 //virtual
 ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewComponent* View )
 {
-	return shouldRenderInView( View ) ? new ScnViewRenderData() : nullptr;
+	return new ScnViewRenderData();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -96,7 +98,16 @@ class ScnViewRenderData* ScnRenderableComponent::getViewRenderData( class ScnVie
 	auto FoundIt = ViewRenderData_.find( ViewComponent );
 	if( FoundIt == ViewRenderData_.end() )
 	{
-		auto ViewRenderData = createViewRenderData( ViewComponent );
+		ScnViewRenderData* ViewRenderData = nullptr;
+		auto SortPassType = getSortPassType( ViewComponent );
+		if( SortPassType != RsRenderSortPassType::INVALID )
+		{
+			ViewRenderData = createViewRenderData( ViewComponent );
+			if( ViewRenderData )
+			{
+				ViewRenderData->setSortPassType( SortPassType );
+			}
+		}	
 		ViewRenderData_.insert( std::make_pair( ViewComponent, ViewRenderData ) );
 		return ViewRenderData;
 	}
@@ -168,28 +179,19 @@ void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// shouldRenderInView
-bool ScnRenderableComponent::shouldRenderInView( class ScnViewComponent* View ) const
+// getSortPassType
+RsRenderSortPassType ScnRenderableComponent::getSortPassType( class ScnViewComponent* View ) const
 {
-	bool ShouldRender = false;
-
-	// If opaque view and not transparent - render.
-	if( ( View->getPassPermutations() & ScnShaderPermutationFlags::PASS_OPAQUE ) != ScnShaderPermutationFlags::NONE )
+	RsRenderSortPassType RetVal = RsRenderSortPassType::INVALID;
+	if( BcContainsAnyFlags( View->getRenderPermutation(), RenderPermutations_ ) )
 	{
-		if( !IsTransparent_ )
+		const auto ViewPasses = View->getPasses();
+		const auto CombinedFlags = ViewPasses & Passes_;
+		const auto LeadingZeros = BcCountLeadingZeros( static_cast< BcU32 >( CombinedFlags ) );
+		if( LeadingZeros < 32 )
 		{
-			ShouldRender = true;
+			RetVal = static_cast< RsRenderSortPassType >( 31 - LeadingZeros );
 		}
 	}
-
-	// If transparent view and transparent - render.
-	if( ( View->getPassPermutations() & ScnShaderPermutationFlags::PASS_TRANSPARENT ) != ScnShaderPermutationFlags::NONE )
-	{
-		if( IsTransparent_ )
-		{
-			ShouldRender = true;
-		}
-	}
-
-	return ShouldRender;
+	return RetVal;
 }

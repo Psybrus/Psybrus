@@ -65,11 +65,10 @@ public:
 
 	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
-	void setRenderMask( BcU32 RenderMask );
-	const BcU32 getRenderMask() const;
-
-	const ScnShaderPermutationFlags getRenderPermutation() const;
-	const ScnShaderPermutationFlags getPassPermutations() const;
+	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
+	const BcU32 getRenderMask() const { return RenderMask_; }
+	const ScnShaderPermutationFlags getRenderPermutation() const { return RenderPermutation_ & ScnShaderPermutationFlags::RENDER_ALL; }
+	const RsRenderSortPassFlags getPasses() const { return Passes_; }
 
 private:
 	void recreateFrameBuffer();
@@ -98,7 +97,7 @@ private:
 	
 	// Permutation types.
 	ScnShaderPermutationFlags RenderPermutation_;
-	ScnShaderPermutationFlags PassPermutations_;
+	RsRenderSortPassFlags Passes_;
 
 	// TODO: Remove this dependency, not really needed.
 	RsViewport Viewport_;

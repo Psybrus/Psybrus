@@ -747,7 +747,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewComponent* View )
 {
 	ScnModelViewRenderData* ViewRenderData = nullptr;
-	if( shouldRenderInView( View ) )
+	if( getSortPassType( View ) != RsRenderSortPassType::INVALID )
 	{
 		ViewRenderData = new ScnModelViewRenderData();
 

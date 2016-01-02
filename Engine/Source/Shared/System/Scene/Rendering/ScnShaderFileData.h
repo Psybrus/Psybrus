@@ -40,6 +40,7 @@ enum class ScnShaderPermutationType : BcU32
 	PASS_DEPTH,											// Depth pass.
 	PASS_OPAQUE,										// Opaque pass.
 	PASS_TRANSPARENT,									// Transparent pass.
+	PASS_OVERLAY,										// Overlay pass.
 	PASS_MAX_END,
 	PASS_COUNT = PASS_MAX_END - PASS_FIRST,
 	
@@ -59,13 +60,6 @@ enum class ScnShaderPermutationType : BcU32
 	LIGHTING_DIFFUSE,									// Diffuse lit geometry.
 	LIGHTING_MAX_END,
 	LIGHTING_COUNT = LIGHTING_MAX_END - LIGHTING_FIRST,
-
-	// Vertex colour types.
-	VERTEX_COLOUR_FIRST = LIGHTING_MAX_END,
-	VERTEX_COLOUR_NONE = VERTEX_COLOUR_FIRST,			// No vertex colour.
-	VERTEX_COLOUR_MULTIPLY_0,							// 1 vertex colour.
-	VERTEX_COLOUR_MAX_END,
-	VERTEX_COLOUR_COUNT = VERTEX_COLOUR_MAX_END - VERTEX_COLOUR_FIRST,
 };
 
 
@@ -91,11 +85,13 @@ enum class ScnShaderPermutationFlags : BcU32
 	PASS_DEPTH					= 1 << (BcU32)ScnShaderPermutationType::PASS_DEPTH,
 	PASS_OPAQUE					= 1 << (BcU32)ScnShaderPermutationType::PASS_OPAQUE,
 	PASS_TRANSPARENT			= 1 << (BcU32)ScnShaderPermutationType::PASS_TRANSPARENT,
+	PASS_OVERLAY				= 1 << (BcU32)ScnShaderPermutationType::PASS_OVERLAY,
 	PASS_ALL =
 		PASS_SHADOW |
 		PASS_DEPTH |
 		PASS_OPAQUE |
-		PASS_TRANSPARENT,
+		PASS_TRANSPARENT |
+		PASS_OVERLAY,
 
 	// Mesh type.
 	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,
@@ -118,27 +114,8 @@ enum class ScnShaderPermutationFlags : BcU32
 		LIGHTING_DIFFUSE,
 };
 
-inline ScnShaderPermutationFlags operator |= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
-{
-	In = (ScnShaderPermutationFlags)( (int)In | (int)Other );
-	return In;
-}
-
-inline ScnShaderPermutationFlags operator | ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
-{
-	return (ScnShaderPermutationFlags)( (int)In | (int)Other );
-}
-
-inline ScnShaderPermutationFlags operator &= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
-{
-	In = (ScnShaderPermutationFlags)( (int)In & (int)Other );
-	return In;
-}
-
-inline ScnShaderPermutationFlags operator & ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
-{
-	return (ScnShaderPermutationFlags)( (int)In & (int)Other );
-}
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, & );
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader

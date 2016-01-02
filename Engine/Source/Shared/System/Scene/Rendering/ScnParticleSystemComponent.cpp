@@ -70,7 +70,7 @@ ScnParticleSystemComponent::ScnParticleSystemComponent():
 	IsLocalSpace_( BcFalse )
 {
 	BcMemZero( &ObjectUniforms_, sizeof( ObjectUniforms_ ) );
-	setTransparent( BcTrue );
+	setPasses( RsRenderSortPassFlags::TRANSPARENT );
 }
 
 //////////////////////////////////////////////////////////////////////////

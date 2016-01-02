@@ -91,15 +91,8 @@ enum class ScnFontAlignment : BcU32
 	VERTICAL			= TOP | BOTTOM | VCENTRE,
 };
 
-inline ScnFontAlignment operator | ( ScnFontAlignment A, ScnFontAlignment B )
-{
-	return ScnFontAlignment( BcU32( A ) | BcU32( B ) );
-}
-
-inline ScnFontAlignment operator & ( ScnFontAlignment A, ScnFontAlignment B )
-{
-	return ScnFontAlignment( BcU32( A ) & BcU32( B ) );
-}
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnFontAlignment, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnFontAlignment, & );
 
 //////////////////////////////////////////////////////////////////////////
 // ScnFontUniformBlockData

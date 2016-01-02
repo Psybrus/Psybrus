@@ -55,10 +55,9 @@ public:
 			BcU64			Depth_			: 24;		// 40
 			BcU64			Blend_			: 2;		// 42
 			BcU64			Layer_			: 4;		// 46
-			BcU64			Pass_			: 2;		// 48
-			BcU64			Viewport_		: 8;		// 56
-			BcU64			RenderTarget_	: 4;		// 60
-			BcU64			NodeType_		: 4;		// 64
+			BcU64			Pass_			: 4;		// 50
+			BcU64			Viewport_		: 8;		// 58
+			BcU64			RenderTarget_	: 4;		// 62
 		};
 	};
 };
@@ -68,30 +67,44 @@ public:
 #define RS_SORT_BLEND_SHIFT				BcU64( 40 )
 #define RS_SORT_LAYER_SHIFT				BcU64( 42 )
 #define RS_SORT_PASS_SHIFT				BcU64( 46 )
-#define RS_SORT_VIEWPORT_SHIFT			BcU64( 48 )
-#define RS_SORT_RENDERTARGET_SHIFT		BcU64( 56 )
-#define RS_SORT_NODETYPE_SHIFT			BcU64( 60 )
+#define RS_SORT_VIEWPORT_SHIFT			BcU64( 50 )
+#define RS_SORT_RENDERTARGET_SHIFT		BcU64( 58 )
 
 #define RS_SORT_MATERIAL_MAX			BcU64( 0x000000000000ffff )
 #define RS_SORT_DEPTH_MAX				BcU64( 0x0000000000ffffff )
 #define RS_SORT_BLEND_MAX				BcU64( 0x0000000000000003 )
 #define RS_SORT_LAYER_MAX				BcU64( 0x000000000000000f )
-#define RS_SORT_PASS_MAX				BcU64( 0x0000000000000003 )
+#define RS_SORT_PASS_MAX				BcU64( 0x000000000000000f )
 #define RS_SORT_VIEWPORT_MAX			BcU64( 0x00000000000000ff )
 #define RS_SORT_RENDERTARGET_MAX		BcU64( 0x000000000000000f )
-#define RS_SORT_NODETYPE_MAX			BcU64( 0x000000000000000f )
 
-#define RS_SORT_PASS_SHADOW				BcU64( 0x0000000000000000 )
-#define RS_SORT_PASS_DEPTH				BcU64( 0x0000000000000001 )
-#define RS_SORT_PASS_OPAQUE				BcU64( 0x0000000000000002 )
-#define RS_SORT_PASS_TRANSPARENT		BcU64( 0x0000000000000003 )
 
-#define RS_SORT_NODETYPE_RESOURCE		BcU64( 0 )
+//////////////////////////////////////////////////////////////////////////
+// RsRenderSortPass
+enum class RsRenderSortPassType : BcU32
+{
+	SHADOW,
+	DEPTH,
+	OPAQUE,
+	TRANSPARENT,
+	OVERLAY,
 
-#define RS_SORT_MACRO_VIEWPORT_RENDERTARGET( _V, _T ) \
-	BcU64(	( ( BcU64( _V ) & RS_SORT_VIEWPORT_MAX ) << RS_SORT_VIEWPORT_SHIFT ) | \
-	( ( BcU64( _T ) & RS_SORT_RENDERTARGET_MAX ) << RS_SORT_RENDERTARGET_SHIFT ) )
+	INVALID = BcErrorCode
+};
 
+enum class RsRenderSortPassFlags : BcU32
+{
+	NONE = 0,
+	SHADOW = 1 << BcU32( RsRenderSortPassType::SHADOW ),
+	DEPTH = 1 << BcU32( RsRenderSortPassType::DEPTH ),
+	OPAQUE = 1 << BcU32( RsRenderSortPassType::OPAQUE ),
+	TRANSPARENT = 1 << BcU32( RsRenderSortPassType::TRANSPARENT ),
+	OVERLAY = 1 << BcU32( RsRenderSortPassType::OVERLAY ),
+	ALL = SHADOW | DEPTH | OPAQUE | TRANSPARENT | OVERLAY
+};
+
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsRenderSortPassFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsRenderSortPassFlags, & );
 
 //////////////////////////////////////////////////////////////////////////
 /**	\class RsRenderNode

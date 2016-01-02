@@ -58,7 +58,7 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_, bcRFF_IMPORTER ),
 		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_, bcRFF_IMPORTER ),
 		new ReField( "RenderPermutation_", &ScnViewComponent::RenderPermutation_, bcRFF_IMPORTER ),
-		new ReField( "PassPermutations_", &ScnViewComponent::PassPermutations_, bcRFF_IMPORTER | bcRFF_FLAGS ),
+		new ReField( "Passes_", &ScnViewComponent::Passes_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
@@ -95,7 +95,7 @@ ScnViewComponent::ScnViewComponent():
 	EnableClearStencil_( true ),
 	RenderMask_( 0 ),
 	RenderPermutation_( ScnShaderPermutationFlags::RENDER_FORWARD ),
-	PassPermutations_( ScnShaderPermutationFlags::PASS_OPAQUE | ScnShaderPermutationFlags::PASS_TRANSPARENT ),
+	Passes_( RsRenderSortPassFlags::OPAQUE | RsRenderSortPassFlags::TRANSPARENT ),
 	RenderTarget_(),
 	DepthStencilTarget_( nullptr )
 {
@@ -368,34 +368,6 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
 			Context->clear( FrameBuffer, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
 		} );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setRenderMask
-void ScnViewComponent::setRenderMask( BcU32 RenderMask )
-{
-	RenderMask_ = RenderMask;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderMask
-const BcU32 ScnViewComponent::getRenderMask() const
-{
-	return RenderMask_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderPermutation
-const ScnShaderPermutationFlags ScnViewComponent::getRenderPermutation() const
-{
-	return RenderPermutation_;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getPassPermutations
-const ScnShaderPermutationFlags ScnViewComponent::getPassPermutations() const
-{
-	return PassPermutations_;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -18,6 +18,7 @@
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnCoreCallback.h"
 #include "System/Scene/ScnSpatialComponent.h"
+#include "System/Scene/Rendering/ScnShaderFileData.h"
 
 #include <unordered_map>
 
@@ -101,9 +102,12 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
-	 * Should this component render in @a View?
+	 * Get sort pass type.
+	 * This will get the highest matching type of sort pass for view.
+	 * I.e. if view + renderable both have OPAQUE + TRANSPARENT, then TRANSPARENT is returned.
+	 * @param View View to get sort pass type for.
 	 */
-	bool shouldRenderInView( class ScnViewComponent* View ) const;
+	RsRenderSortPassType getSortPassType( class ScnViewComponent* View ) const;
 
 	/**
 	 * Is this renderable component lit?
@@ -111,24 +115,39 @@ public:
 	bool isLit() const { return IsLit_; }
 
 	/**
-	 * Is this renderable component transparent?
-	 */
-	bool isTransparent() const { return IsTransparent_; }
-
-	/**
 	 * Set if renderable is lit.
 	 */
 	void setLit( bool Lit ) { IsLit_ = Lit; }
 
 	/**
-	 * Set if renderable is transparent.
+	 * Set render permutation flags.
 	 */
-	void setTransparent( bool Transparent ) { IsTransparent_ = Transparent; }
+	void setRenderPermutations( ScnShaderPermutationFlags RenderPermutations ) { RenderPermutations_ = RenderPermutations & ScnShaderPermutationFlags::RENDER_ALL; }
+	
+	/**
+	 * Get render permutation flags.
+	 */
+	ScnShaderPermutationFlags getRenderPermutations() const { return RenderPermutations_ & ScnShaderPermutationFlags::RENDER_ALL; }
+
+	/**
+	 * Set sort pass flags.
+	 */
+	void setPasses( RsRenderSortPassFlags Passes ) { Passes_ = Passes; }
+
+	/**
+	 * Get sort pass flags.
+	 */
+	RsRenderSortPassFlags getPasses() const { return Passes_; }
 
 private:
-	BcU32 RenderMask_;				/// Used to specify what kind of object it is for selectively rendering with certain views.
-	bool IsLit_;					/// Does this need to be lit?
-	bool IsTransparent_;			/// Is renderable transparent?
+	/// Used to specify what kind of object it is for selectively rendering with certain views.
+	BcU32 RenderMask_;
+	/// Does this need to be lit?
+	bool IsLit_;
+	/// Render permutation flags that this renderable supports.
+	ScnShaderPermutationFlags RenderPermutations_;
+	/// Sort pass flags that this renderable supports.
+	RsRenderSortPassFlags Passes_;
 
 	// TODO: Look at a smarter way to store + look up ScnViewRenderData structures.
 	std::unordered_map< class ScnViewComponent*, class ScnViewRenderData* > ViewRenderData_; /// View render data.

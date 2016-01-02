@@ -150,10 +150,9 @@ namespace
 
 		RsRenderSort Sort;
 		Sort.Value_ = 0;
-		Sort.Pass_ = RS_SORT_PASS_TRANSPARENT;		
+		Sort.Pass_ = BcU64( RsRenderSortPassType::OVERLAY );
 		Sort.Viewport_ = RS_SORT_VIEWPORT_MAX;
 		Sort.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
-		Sort.NodeType_ = RS_SORT_NODETYPE_MAX;
 
 		RenderThreadFence_.increment();
 

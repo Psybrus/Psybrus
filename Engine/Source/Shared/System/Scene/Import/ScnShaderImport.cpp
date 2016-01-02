@@ -65,6 +65,7 @@ namespace
 		{ ScnShaderPermutationFlags::PASS_DEPTH,				"PERM_PASS_DEPTH",					"1" },
 		{ ScnShaderPermutationFlags::PASS_OPAQUE,				"PERM_PASS_OPAQUE",					"1" },
 		{ ScnShaderPermutationFlags::PASS_TRANSPARENT,			"PERM_PASS_TRANSPARENT",			"1" },
+		{ ScnShaderPermutationFlags::PASS_OVERLAY,				"PERM_PASS_OVERLAY",				"1" },
 	};
 
 	static ScnShaderPermutationEntry GPermutationsMeshType[] = 
@@ -224,19 +225,20 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		ReEnumConstant* EnumConstants[] = 
 		{
-			new ReEnumConstant( "NONE", (BcU32)ScnShaderPermutationFlags::NONE ),
+			new ReEnumConstant( "NONE", ScnShaderPermutationFlags::NONE ),
 
-			new ReEnumConstant( "RENDER_FORWARD", (BcU32)ScnShaderPermutationFlags::RENDER_FORWARD ),
-			new ReEnumConstant( "RENDER_DEFERRED", (BcU32)ScnShaderPermutationFlags::RENDER_DEFERRED ),
-			new ReEnumConstant( "RENDER_FORWARD_PLUS", (BcU32)ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
-			new ReEnumConstant( "RENDER_POST_PROCESS", (BcU32)ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
-			new ReEnumConstant( "RENDER_ALL", (BcU32)ScnShaderPermutationFlags::RENDER_ALL ),
+			new ReEnumConstant( "RENDER_FORWARD", ScnShaderPermutationFlags::RENDER_FORWARD ),
+			new ReEnumConstant( "RENDER_DEFERRED", ScnShaderPermutationFlags::RENDER_DEFERRED ),
+			new ReEnumConstant( "RENDER_FORWARD_PLUS", ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
+			new ReEnumConstant( "RENDER_POST_PROCESS", ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
+			new ReEnumConstant( "RENDER_ALL", ScnShaderPermutationFlags::RENDER_ALL ),
 
-			new ReEnumConstant( "PASS_SHADOW", (BcU32)ScnShaderPermutationFlags::PASS_SHADOW ),
-			new ReEnumConstant( "PASS_DEPTH", (BcU32)ScnShaderPermutationFlags::PASS_DEPTH ),
-			new ReEnumConstant( "PASS_OPAQUE", (BcU32)ScnShaderPermutationFlags::PASS_OPAQUE ),
+			new ReEnumConstant( "PASS_SHADOW", ScnShaderPermutationFlags::PASS_SHADOW ),
+			new ReEnumConstant( "PASS_DEPTH", ScnShaderPermutationFlags::PASS_DEPTH ),
+			new ReEnumConstant( "PASS_OPAQUE", ScnShaderPermutationFlags::PASS_OPAQUE ),
 			new ReEnumConstant( "PASS_TRANSPARENT", (BcU32)ScnShaderPermutationFlags::PASS_TRANSPARENT ),
-			new ReEnumConstant( "PASS_ALL", (BcU32)ScnShaderPermutationFlags::PASS_ALL ),
+			new ReEnumConstant( "PASS_OVERLAY", (BcU32)ScnShaderPermutationFlags::PASS_OVERLAY ),
+			new ReEnumConstant( "PASS_ALL", ScnShaderPermutationFlags::PASS_ALL ),
 
 			new ReEnumConstant( "MESH_STATIC_2D", (BcU32)ScnShaderPermutationFlags::MESH_STATIC_2D ),
 			new ReEnumConstant( "MESH_STATIC_3D", (BcU32)ScnShaderPermutationFlags::MESH_STATIC_3D ),
