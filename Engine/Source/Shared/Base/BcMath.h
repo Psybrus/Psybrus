@@ -181,6 +181,11 @@ BcU32 BcBitsSet( BcU32 Value );
 BcU32 BcBitsSet( BcU64 Value );
 
 //////////////////////////////////////////////////////////////////////////
+// BcCountLeadingZeros
+BcU32 BcCountLeadingZeros( BcU32 Mask );
+BcU32 BcCountLeadingZeros( BcU64 Mask );
+
+//////////////////////////////////////////////////////////////////////////
 // BcSmoothStep
 BcF32 BcSmoothStep( BcF32 T );
 

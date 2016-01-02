@@ -14,6 +14,10 @@
 #include "BcMath.h"
 #include "BcFixed.h"
 
+#if COMPILER_MSVC
+#  include <intrin.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // BcSqrt
 BcF32 BcSqrt( BcF32 v )
@@ -219,6 +223,34 @@ BcU32 BcBitsSet( BcU64 Value )
 {
 	return BcBitsSet( static_cast< BcU32 >( Value & 0xffffffff ) ) + 
 	       BcBitsSet( static_cast< BcU32 >( Value >> 32 ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcCountLeadingZeros
+BcU32 BcCountLeadingZeros( BcU32 Mask )
+{
+#if COMPILER_MSVC
+	unsigned long Index;
+	auto Return = _BitScanReverse( &Index, Mask );
+	return Return ? 31 - Index : 32;
+#elif COMPILER_GCC || COMPILER_CLANG
+	return __builtin_clz( Mask );
+#else
+#  error "No BSR implementation."
+#endif
+}
+
+BcU32 BcCountLeadingZeros( BcU64 Mask )
+{
+#if COMPILER_MSVC
+	unsigned long Index;
+	auto Return = _BitScanReverse( &Index, Mask );
+	return Return ? 63 - Index : 64;
+#elif COMPILER_GCC || COMPILER_CLANG
+	return __builtin_clzll( Mask );
+#else
+#  error "No BSR implementation."
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
