@@ -70,12 +70,12 @@ mat4 transpose( mat4 In )
 // HLSL mul.
 vec3 mul( mat3 M, vec3 V )
 {
-	return V * transpose( M );
+	return M * V;
 }
 
 vec4 mul( mat4 M, vec4 V )
 {
-	return V * transpose( M );
+	return M * V;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -254,6 +254,15 @@ void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, i
 #endif
 }
 
+void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, in vec3 Normal, in vec3 Specular )
+{
+	clearFrag( outFrag );
+	outFrag[0].xyzw = Albedo.xyzw;
+#if defined( PERM_RENDER_DEFERRED )
+	outFrag[1].xyz = Specular;
+	outFrag[2].xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
+#endif
+}
 void writeVelocity( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec2 Velocity )
 {
 #if defined( PERM_RENDER_DEFERRED )
