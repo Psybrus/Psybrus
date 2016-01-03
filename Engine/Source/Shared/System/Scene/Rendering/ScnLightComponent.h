@@ -43,44 +43,34 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
-	*	Get ambient colour.
-	*/ 
+	 *	Get ambient colour.
+	 */ 
 	const RsColour& getAmbientColour() const;
 
 	/**
-	*	Get diffuse colour.
-	*/ 
+	 *	Get diffuse colour.
+	 */ 
 	const RsColour& getDiffuseColour() const;
 
 	/**
-	*	Find attenuation of light by a distance.
-	*/
+	 *	Find attenuation of light by a distance.
+	 */
 	BcF32 findAttenuationByDistance( BcF32 Distance ) const;
 
 	/**
-	*	Find distance from light by an attenuation.
-	*/
+	 *	Find distance from light by an attenuation.
+	 */
 	BcF32 findDistanceByAttenuation( BcF32 Attenuation ) const;
 	
 	/**
-	*	Create attenuation values using min, mid and max distances.
-	*/
+	 *	Create attenuation values using min, mid and max distances.
+	 */
 	void createAttenuationValues( BcF32 MinDistance, BcF32 MidDistance, BcF32 MaxDistance );
 
 	/**
-	*	Set material parameters.
-	*/
-	void setMaterialParameters( BcU32 LightIndex, class ScnMaterialComponent* MaterialComponent );
-
-	/**
-	 * Set the light tree node we are in.
+	 *	Set light uniform block data.
 	 */
-	void setLightTreeNode( class ScnLightTreeNode* Node );
-
-	/**
-	 * Get the light tree node we are in.
-	 */
-	class ScnLightTreeNode* getLightTreeNode();
+	void setLightUniformBlockData( BcU32 LightIndex, struct ScnShaderLightUniformBlockData& OutLightData );
 
 	/**
 	 *	Get light AABB.

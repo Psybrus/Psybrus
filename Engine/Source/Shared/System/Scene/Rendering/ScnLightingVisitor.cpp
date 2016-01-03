@@ -36,7 +36,6 @@ public:
 
 	bool operator()( const class ScnLightComponent* A, const class ScnLightComponent* B ) const
 	{
-		PSY_PROFILE_FUNCTION;
 		BcF32 DistanceA = ( Position_ - A->getParentEntity()->getWorldPosition() ).magnitude();
 		BcF32 DistanceB = ( Position_ - B->getParentEntity()->getWorldPosition() ).magnitude();
 		BcF32 AttnA = A->findAttenuationByDistance( DistanceA );
@@ -53,11 +52,28 @@ private:
 ScnLightingVisitor::ScnLightingVisitor( class ScnRenderableComponent* RenderableComponent )
 {
 	PSY_PROFILE_FUNCTION;
-	LightComponents_.reserve( MAX_LIGHTS );
 	ScnCore::pImpl()->visitBounds( this, RenderableComponent->getAABB() );
 
 	// Sort by light strength
 	std::sort( LightComponents_.begin(), LightComponents_.end(), ScnLightingVisitorLightSort( RenderableComponent->getAABB().centre() ) );
+
+	// Build uniform block.
+	BcU32 Count = BcMin( ScnShaderLightUniformBlockData::MAX_LIGHTS, LightComponents_.size() );
+	for( BcU32 Idx = 0; Idx < Count; ++Idx )
+	{
+		ScnLightComponent* LightComponent = LightComponents_[ Idx ];
+		LightComponent->setLightUniformBlockData( Idx, LightUniformData_ );
+	}
+
+	// Clear unused lights.
+	for( BcU32 Idx = Count; Idx < 4; ++Idx )
+	{
+		LightUniformData_.LightPosition_[ Idx ] = MaVec3d( 0.0f, 0.0f, 0.0f );
+		LightUniformData_.LightDirection_[ Idx ] = MaVec3d( 0.0f, 0.0f, 0.0f );
+		LightUniformData_.LightAmbientColour_[ Idx ] = RsColour::BLACK;
+		LightUniformData_.LightDiffuseColour_[ Idx ] = RsColour::BLACK;
+		LightUniformData_.LightAttn_[ Idx ] = MaVec4d( 0.0, 0.0, 0.0, 0.0f );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,36 +90,8 @@ ScnLightingVisitor::~ScnLightingVisitor()
 void ScnLightingVisitor::visit( class ScnLightComponent* Component )
 {
 	PSY_PROFILE_FUNCTION;
-	if( LightComponents_.size() < MAX_LIGHTS )
+	if( NoofLights_ < LightComponents_.size() )
 	{
-		LightComponents_.push_back( Component );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setMaterialParameters
-void ScnLightingVisitor::setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const
-{
-	PSY_PROFILE_FUNCTION;
-	BcU32 Count = BcMin( (BcU32)4, (BcU32)LightComponents_.size() );
-	for( BcU32 Idx = 0; Idx < Count; ++Idx )
-	{
-		ScnLightComponent* LightComponent = LightComponents_[ Idx ];
-		LightComponent->setMaterialParameters( Idx, MaterialComponent );
-
-	}	
-
-	for( BcU32 Idx = Count; Idx < 4; ++Idx )
-	{
-		/*
-		MaterialComponent->setLightParameters( Idx,
-	                                           MaVec3d( 0.0f, 0.0f, 0.0f ),
-	                                           MaVec3d( 0.0f, 0.0f, 0.0f ),
-	                                           RsColour::BLACK,
-	                                           RsColour::BLACK,
-	                                           0.0f,
-	                                           0.0f,
-	                                           0.0f );
-	                                           */
+		LightComponents_[ NoofLights_++ ] = Component;
 	}
 }

@@ -171,21 +171,14 @@ void ScnLightComponent::createAttenuationValues( BcF32 MinDistance, BcF32 MidDis
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setMaterialParameters
-void ScnLightComponent::setMaterialParameters( BcU32 LightIndex, ScnMaterialComponent* MaterialComponent )
+// setLightUniformBlockData
+void ScnLightComponent::setLightUniformBlockData( BcU32 LightIndex, ScnShaderLightUniformBlockData& OutLightData )
 {
-	/*
-	const MaVec4d& Position( getParentEntity()->getWorldMatrix().row3() );
-	const MaVec4d& Direction( getParentEntity()->getWorldMatrix().row2() );
-	MaterialComponent->setLightParameters( LightIndex,
-	                                       MaVec3d( Position.x(), Position.y(), Position.z() ),
-	                                       MaVec3d( Direction.x(), Direction.y(), Direction.z() ),
-	                                       AmbientColour_,
-	                                       DiffuseColour_,
-	                                       AttnC_,
-	                                       AttnL_,
-	                                       AttnQ_ );
-	                                       */
+	OutLightData.LightPosition_[ LightIndex ] = getParentEntity()->getWorldMatrix().row3();
+	OutLightData.LightDirection_[ LightIndex ] = getParentEntity()->getWorldMatrix().row2();
+	OutLightData.LightAmbientColour_[ LightIndex ] = AmbientColour_;
+	OutLightData.LightDiffuseColour_[ LightIndex ] = DiffuseColour_;
+	OutLightData.LightAttn_[ LightIndex ] = MaVec4d( AttnC_, AttnL_, AttnQ_, 0.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////

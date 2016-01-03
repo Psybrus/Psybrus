@@ -174,11 +174,13 @@ struct ScnShaderLightUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderLightUniformBlockData );
 	ScnShaderLightUniformBlockData(){};
 
-	MaVec4d LightPosition_[ 4 ];
-	MaVec4d LightDirection_[ 4 ];
-	MaVec4d LightAmbientColour_[ 4 ];
-	MaVec4d LightDiffuseColour_[ 4 ];
-	MaVec4d LightAttn_[ 4 ];
+	static const BcU32 MAX_LIGHTS = 4;
+
+	std::array< MaVec4d, MAX_LIGHTS > LightPosition_;
+	std::array< MaVec4d, MAX_LIGHTS > LightDirection_;
+	std::array< MaVec4d, MAX_LIGHTS > LightAmbientColour_;
+	std::array< MaVec4d, MAX_LIGHTS > LightDiffuseColour_;
+	std::array< MaVec4d, MAX_LIGHTS > LightAttn_;
 };
 
 //////////////////////////////////////////////////////////////////////////
