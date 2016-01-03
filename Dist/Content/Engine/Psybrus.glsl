@@ -214,59 +214,79 @@ float linearDepth( float DepthSample, float Near, float Far )
 #if PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 #  undef NOOF_MAX_OUTPUT_FRAGMENTS
 #  define NOOF_MAX_OUTPUT_FRAGMENTS 4
-#  define fragColour gl_FragData
+#  define outputFrag gl_FragData
+#  define FRAMEBUFFER_OUTPUT gl_FragData[0],  gl_FragData[1], gl_FragData[2], gl_FragData[3]
+#  define FRAMEBUFFER_INPUT inout vec4 outFrag0, inout vec4 outFrag1, inout vec4 outFrag2, inout vec4 outFrag3
+#  define FRAMEBUFFER_INTERNAL outFrag0, outFrag1, outFrag2, outFrag3
+
 #elif PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_330
-out float4 fragColour[NOOF_MAX_OUTPUT_FRAGMENTS];
+out float4 outputFrag[NOOF_MAX_OUTPUT_FRAGMENTS];
+#  if NOOF_MAX_OUTPUT_FRAGMENTS == 1
+#  define FRAMEBUFFER_OUTPUT outputFrag[0]
+#  define FRAMEBUFFER_INPUT inout vec4 outFrag0
+#  define FRAMEBUFFER_INTERNAL outFrag0
+#  elif NOOF_MAX_OUTPUT_FRAGMENTS == 2
+#  define FRAMEBUFFER_OUTPUT outputFrag[0], outputFrag[1]
+#  define FRAMEBUFFER_INPUT inout vec4 outFrag0, inout vec4 outFrag1
+#  define FRAMEBUFFER_INTERNAL outFrag0, outFrag1
+#  elif NOOF_MAX_OUTPUT_FRAGMENTS == 3
+#  define FRAMEBUFFER_OUTPUT outputFrag[0], outputFrag[1], outputFrag[2]
+#  define FRAMEBUFFER_INPUT inout vec4 outFrag0, inout vec4 outFrag1, inout vec4 outFrag2
+#  define FRAMEBUFFER_INTERNAL outFrag0, outFrag1, outFrag2
+#  elif NOOF_MAX_OUTPUT_FRAGMENTS == 4
+#  define FRAMEBUFFER_OUTPUT outputFrag[0], outputFrag[1], outputFrag[2], outputFrag[3]
+#  define FRAMEBUFFER_INPUT inout vec4 outFrag0, inout vec4 outFrag1, inout vec4 outFrag2, inout vec4 outFrag3
+#  define FRAMEBUFFER_INTERNAL outFrag0, outFrag1, outFrag2, outFrag3
+#  endif
 #endif
 
-
-void clearFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS] )
+void clearFrag( FRAMEBUFFER_INPUT )
 {
 #if NOOF_OUTPUT_FRAGMENTS >= 1
-	outFrag[0] = vec4( 1.0, 1.0, 1.0, 1.0 );
+	outFrag0 = vec4( 1.0, 1.0, 1.0, 1.0 );
 #endif
 
 #if NOOF_OUTPUT_FRAGMENTS >= 2
-	outFrag[1] = vec4( 1.0, 1.0, 1.0, 1.0 );
+	outFrag1 = vec4( 1.0, 1.0, 1.0, 1.0 );
 #endif
 
 #if NOOF_OUTPUT_FRAGMENTS >= 3
-	outFrag[2] = vec4( 1.0, 1.0, 1.0, 1.0 );
+	outFrag2 = vec4( 1.0, 1.0, 1.0, 1.0 );
 #endif
 
 #if NOOF_OUTPUT_FRAGMENTS >= 4
-	outFrag[3] = vec4( 0.0, 0.0, 0.0, 0.0 );
+	outFrag3 = vec4( 0.0, 0.0, 0.0, 0.0 );
 #endif
 }
 
-void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Colour )
+void writeFrag( FRAMEBUFFER_INPUT, in vec4 Colour )
 {
-	clearFrag( outFrag );
-	outFrag[0] = Colour;
+	clearFrag( FRAMEBUFFER_INTERNAL );
+	outFrag0 = Colour;
 }
 
-void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, in vec3 Normal )
+void writeFrag( FRAMEBUFFER_INPUT, in vec4 Albedo, in vec3 Normal )
 {
-	clearFrag( outFrag );
-	outFrag[0].xyzw = Albedo.xyzw;
+	clearFrag( FRAMEBUFFER_INTERNAL );
+	outFrag0.xyzw = Albedo.xyzw;
 #if defined( PERM_RENDER_DEFERRED )
-	outFrag[2].xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	outFrag2.xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
 #endif
 }
 
-void writeFrag( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec4 Albedo, in vec3 Normal, in vec3 Specular )
+void writeFrag( FRAMEBUFFER_INPUT, in vec4 Albedo, in vec3 Normal, in vec3 Specular )
 {
-	clearFrag( outFrag );
-	outFrag[0].xyzw = Albedo.xyzw;
+	clearFrag( FRAMEBUFFER_INTERNAL );
+	outFrag0.xyzw = Albedo.xyzw;
 #if defined( PERM_RENDER_DEFERRED )
-	outFrag[1].xyz = Specular;
-	outFrag[2].xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	outFrag1.xyz = Specular;
+	outFrag2.xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
 #endif
 }
-void writeVelocity( inout vec4 outFrag[NOOF_MAX_OUTPUT_FRAGMENTS], in vec2 Velocity )
+void writeVelocity( FRAMEBUFFER_INPUT, in vec2 Velocity )
 {
 #if defined( PERM_RENDER_DEFERRED )
-	outFrag[3].xy = Velocity;
+	outFrag3.xy = Velocity;
 #endif
 }
 
