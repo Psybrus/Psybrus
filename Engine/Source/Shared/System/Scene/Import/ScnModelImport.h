@@ -113,7 +113,7 @@ private:
 
 private:
 	CsCrossRefId findMaterialMatch( struct aiMaterial* Material );
-	CsCrossRefId addTexture( struct aiMaterial* Material, class ScnMaterialImport* MaterialImport, std::string Name, enum aiTextureType Type, BcU32 Idx );
+	CsCrossRefId addTexture( struct aiMaterial* Material, class ScnMaterialImport* MaterialImport, std::string Name, BcU32 Type, BcU32 Idx );
 
 private:
 	std::string Source_;

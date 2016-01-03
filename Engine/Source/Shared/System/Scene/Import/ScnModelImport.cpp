@@ -910,7 +910,7 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 
 //////////////////////////////////////////////////////////////////////////
 // addTexture
-CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport* MaterialImport, std::string Name, aiTextureType Type, BcU32 Idx )
+CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport* MaterialImport, std::string Name, BcU32 Type, BcU32 Idx )
 {
 	CsCrossRefId TextureRef = CSCROSSREFID_INVALID;
 	aiString AiName;
@@ -920,7 +920,7 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 	float Blend = 0.0f;
 	aiTextureOp TextureOp = aiTextureOp_Multiply;
 	aiTextureMapMode TextureMapMode = aiTextureMapMode_Wrap;
-	if( Material->GetTexture( Type, Idx, &Path,
+	if( Material->GetTexture( (aiTextureType)Type, Idx, &Path,
 			&TextureMapping, &UVIndex, &Blend, &TextureOp, &TextureMapMode ) == aiReturn_SUCCESS )
 	{
 		boost::filesystem::path TexturePath;

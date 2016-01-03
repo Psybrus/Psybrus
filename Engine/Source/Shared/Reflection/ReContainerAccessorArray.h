@@ -41,15 +41,15 @@ public:
 
 		}
 
-		template< typename _Ty >
-		typename std::enable_if< std::is_copy_constructible< _Ty >::value >::type
+		template< typename _InternalTy >
+		typename std::enable_if< std::is_copy_constructible< _InternalTy >::value >::type
 		internalAdd( void* pValue )
 		{
 			pArrayData_[ Index_++ ] = *reinterpret_cast< _Ty* >( pValue );
 		}
 
-		template< typename _Ty >
-		typename std::enable_if< !std::is_copy_constructible< _Ty >::value >::type
+		template< typename _InternalTy >
+		typename std::enable_if< !std::is_copy_constructible< _InternalTy >::value >::type
 		internalAdd( void* pValue )
 		{
 		}

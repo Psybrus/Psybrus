@@ -43,15 +43,15 @@ public:
 			ListData_.clear();
 		}
 
-		template< typename _Ty >
-		typename std::enable_if< std::is_copy_constructible< _Ty >::value >::type
+		template< typename _InternalTy >
+		typename std::enable_if< std::is_copy_constructible< _InternalTy >::value >::type
 		internalAdd( void* pValue )
 		{
 			ListData_.emplace_back( *reinterpret_cast< _Ty* >( pValue ) );
 		}
 
-		template< typename _Ty >
-		typename std::enable_if< !std::is_copy_constructible< _Ty >::value >::type
+		template< typename _InternalTy >
+		typename std::enable_if< !std::is_copy_constructible< _InternalTy >::value >::type
 		internalAdd( void* pValue )
 		{
 		}
