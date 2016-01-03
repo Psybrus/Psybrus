@@ -666,6 +666,9 @@ void RsContextGL::create()
 		Version_.Minor_ );
 
 #  if PLATFORM_HTML5
+	auto RTFormat = RsTextureFormat::R8G8B8A8;
+	auto DSFormat = RsTextureFormat::D24;
+
 	// Init GLEW.
 	glewExperimental = 1;
 	glewInit();
@@ -2767,7 +2770,11 @@ void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum Bin
 		}
 		else
 		{
+#if !defined( RENDER_USE_GLES )
 			GL( BindBufferRange( BindTypeGL, 0, Handle, Offset, BindSize ) );
+#else
+			BcAssertMsg( BcFalse, "No support for glBindBufferRange." );
+#endif
 		}
 		BindingInfo.Resource_ = Buffer;
 		BindingInfo.Buffer_ = Handle;

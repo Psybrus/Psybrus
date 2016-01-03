@@ -420,7 +420,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --emrun --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	configuration { "html5-clang-asmjs", "Release" }
@@ -430,7 +430,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --emrun --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	configuration { "html5-clang-asmjs", "Production" }
@@ -573,8 +573,8 @@ function PsyProjectExternalLib( _name, _lang )
 	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
-	configuration "Debug"
-		flags { "DebugRuntime", "Optimize"}
+	--configuration "Debug"
+	--	flags { "DebugRuntime", "Optimize"}
 
 	configuration "Release or Profile or Production"
 		flags { "ReleaseRuntime", "Optimize"}

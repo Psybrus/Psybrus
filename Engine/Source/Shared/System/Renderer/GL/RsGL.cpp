@@ -192,11 +192,14 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( Major_ >= 2 &&
 			Minor_ >= 0 )
 		{
+			Features_.MRT_ |=
+				HaveExtension( "WEBGL_draw_buffers" );
 			Features_.Texture2D_ = true;
 			Features_.Texture3D_ |= 
 				HaveExtension( "OES_texture_3D" );
 			Features_.TextureCube_ |= 
 				HaveExtension( "OES_texture_cube_map" );
+
 
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;

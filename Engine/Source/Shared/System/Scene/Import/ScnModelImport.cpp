@@ -29,6 +29,7 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 
 // TODO: Remove dup from ScnPhysicsMeshImport.
@@ -847,6 +848,7 @@ size_t ScnModelImport::findNodeIndex(
 CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 {
 	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
+#if PSY_IMPORT_PIPELINE
 
 	// Grab material name.
 	auto MaterialName = AssimpGetMaterialName( Material );
@@ -904,7 +906,7 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 		
 		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
 	}
-
+#endif
 	return RetVal;
 }
 
@@ -913,6 +915,7 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport* MaterialImport, std::string Name, BcU32 Type, BcU32 Idx )
 {
 	CsCrossRefId TextureRef = CSCROSSREFID_INVALID;
+#if PSY_IMPORT_PIPELINE
 	aiString AiName;
 	aiString Path;
 	aiTextureMapping TextureMapping = aiTextureMapping_UV;
@@ -925,8 +928,12 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 	{
 		boost::filesystem::path TexturePath;
 		TexturePath = boost::filesystem::path( Source_ ).remove_filename();
-		TexturePath.append( Path.C_Str() );
+		std::string FixedPath = Path.C_Str();
+		boost::replace_all( FixedPath, "\\", "/" );
+		TexturePath.append( FixedPath.c_str() );
 
+		TexturePath = TexturePath.make_preferred();
+		auto Native = TexturePath.native();
 		if( boost::filesystem::exists( TexturePath ) )
 		{
 			RsSamplerStateDesc SamplerState;
@@ -977,5 +984,6 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			MaterialImport->addTexture( Name, TextureRef, RsSamplerStateDesc() );
 		}
 	}
+#endif
 	return TextureRef;
 }

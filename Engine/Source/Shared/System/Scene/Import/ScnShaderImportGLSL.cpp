@@ -464,7 +464,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
-#if 1
+#if 0 // Disabled temporarily. 
 				// Run glsl-optimizer for ES (Only GLSL_ES_100)
 				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 				{

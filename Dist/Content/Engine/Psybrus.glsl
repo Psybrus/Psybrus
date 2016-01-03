@@ -4,11 +4,16 @@
 // Version directives.
 #if PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_150
 #version 150
+
 #elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_330
 #version 330
+
 #elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
+
 #version 100
+#extension GL_EXT_draw_buffers : enable
 precision mediump float;
+
 #else
 #error Invalid output code type - PSY_OUTPUT_CODE_TYPE
 #endif
