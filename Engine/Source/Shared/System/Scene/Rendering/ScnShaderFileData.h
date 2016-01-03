@@ -38,9 +38,7 @@ enum class ScnShaderPermutationType : BcU32
 	PASS_FIRST = RENDER_MAX_END,
 	PASS_SHADOW = PASS_FIRST,							// Shadow pass.
 	PASS_DEPTH,											// Depth pass.
-	PASS_OPAQUE,										// Opaque pass.
-	PASS_TRANSPARENT,									// Transparent pass.
-	PASS_OVERLAY,										// Overlay pass.
+	PASS_MAIN,											// Main pass (Opaque, Transparent or Overlay passes)
 	PASS_MAX_END,
 	PASS_COUNT = PASS_MAX_END - PASS_FIRST,
 	
@@ -83,15 +81,11 @@ enum class ScnShaderPermutationFlags : BcU32
 	// Pass type.
 	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,
 	PASS_DEPTH					= 1 << (BcU32)ScnShaderPermutationType::PASS_DEPTH,
-	PASS_OPAQUE					= 1 << (BcU32)ScnShaderPermutationType::PASS_OPAQUE,
-	PASS_TRANSPARENT			= 1 << (BcU32)ScnShaderPermutationType::PASS_TRANSPARENT,
-	PASS_OVERLAY				= 1 << (BcU32)ScnShaderPermutationType::PASS_OVERLAY,
+	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,
 	PASS_ALL =
 		PASS_SHADOW |
 		PASS_DEPTH |
-		PASS_OPAQUE |
-		PASS_TRANSPARENT |
-		PASS_OVERLAY,
+		PASS_MAIN,
 
 	// Mesh type.
 	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,

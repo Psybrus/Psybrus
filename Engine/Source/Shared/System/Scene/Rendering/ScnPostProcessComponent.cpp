@@ -221,7 +221,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 
 			ScnShaderPermutationFlags Permutation = 
 				ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-				ScnShaderPermutationFlags::PASS_TRANSPARENT |
+				ScnShaderPermutationFlags::PASS_MAIN |
 				ScnShaderPermutationFlags::MESH_STATIC_2D |
 				ScnShaderPermutationFlags::LIGHTING_NONE;
 
@@ -357,7 +357,7 @@ void ScnPostProcessComponent::recreateResources()
 
 	const ScnShaderPermutationFlags Permutation = 
 		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-		ScnShaderPermutationFlags::PASS_TRANSPARENT |
+		ScnShaderPermutationFlags::PASS_MAIN |
 		ScnShaderPermutationFlags::MESH_STATIC_2D |
 		ScnShaderPermutationFlags::LIGHTING_NONE;
 

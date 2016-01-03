@@ -596,7 +596,7 @@ namespace Psybrus
 				BcAssert( Textured );
 				ScnShaderPermutationFlags Permutation = 
 					ScnShaderPermutationFlags::RENDER_FORWARD |
-					ScnShaderPermutationFlags::PASS_TRANSPARENT |
+					ScnShaderPermutationFlags::PASS_MAIN |
 					ScnShaderPermutationFlags::MESH_STATIC_2D |
 					ScnShaderPermutationFlags::LIGHTING_NONE;
 

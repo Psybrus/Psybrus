@@ -230,7 +230,6 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				FreeShaderData = BcTrue;
 			}
 #endif
-			PSY_LOG( "Creating shader: %s %x", (*getName()).c_str(), pShaderHeader->PermutationFlags_ );
 			RsShaderUPtr Shader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize,
@@ -300,7 +299,11 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 		
 			// Create program.
-			PSY_LOG( "Creating program: %s %x", (*getName()).c_str(), pProgramHeader->ProgramPermutationFlags_ );
+#if !PSY_PRODUCTION
+			std::string Flags;
+			ReManager::GetEnum( "ScnShaderPermutationFlags" )->getTypeSerialiser()->serialiseToString( &pProgramHeader->ProgramPermutationFlags_, Flags );
+			PSY_LOG( "Creating program: %s %s (%x)", (*getName()).c_str(), Flags.c_str(), pProgramHeader->ProgramPermutationFlags_ );
+#endif
 			RsProgramUPtr Program = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
 				std::move( VertexAttributes ),
