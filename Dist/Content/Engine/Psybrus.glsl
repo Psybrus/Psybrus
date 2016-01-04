@@ -87,22 +87,32 @@ vec4 mul( mat4 M, vec4 V )
 // Colour space conversion.
 #define FAST_GAMMA_CONVERSION ( 0 )
 
-vec4 gammaToLinear( vec4 InputRGBA )
+vec3 gammaToLinear( vec3 InputRGBA )
 {
 #if FAST_GAMMA_CONVERSION
-	return vec4( InputRGBA.rgb * InputRGBA.rgb, InputRGBA.a );
+	return vec3( InputRGBA.rgb * InputRGBA.rgb );
 #else
-	return vec4( pow( InputRGBA.rgb, vec3( 2.2 ) ), InputRGBA.a ); 
+	return vec3( pow( InputRGBA.rgb, vec3( 2.2 ) ) ); 
+#endif
+}
+
+vec4 gammaToLinear( vec4 InputRGBA )
+{
+	return vec4( gammaToLinear( InputRGBA.rgb ), InputRGBA.a );
+}
+
+vec3 linearToGamma( vec3 InputRGBA )
+{
+#if FAST_GAMMA_CONVERSION
+	return vec3( sqrt( InputRGBA.rgb ) );
+#else	
+	return vec3( pow( InputRGBA.rgb, vec3( 1.0 / 2.2 ) ) );
 #endif
 }
 
 vec4 linearToGamma( vec4 InputRGBA )
 {
-#if FAST_GAMMA_CONVERSION
-	return vec4( sqrt( InputRGBA.rgb ), InputRGBA.a );
-#else	
-	return vec4( pow( InputRGBA.rgb, vec3( 1.0 / 2.2 ) ), InputRGBA.a );
-#endif
+	return vec4( linearToGamma( InputRGBA.rgb ), InputRGBA.a );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -300,4 +310,4 @@ void writeVelocity( FRAMEBUFFER_INPUT, in vec2 Velocity )
 //////////////////////////////////////////////////////////////////////////
 // Uniforms.
 #include <PsybrusUniforms.glsl>
-
+#include <PsybrusLighting.glsl>
