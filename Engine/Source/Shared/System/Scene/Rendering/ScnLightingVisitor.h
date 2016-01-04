@@ -29,7 +29,7 @@ public:
 	};
 
 public:
-	ScnLightingVisitor( class ScnRenderableComponent* RenderableComponent );
+	ScnLightingVisitor( const class MaAABB& AABB );
 	virtual ~ScnLightingVisitor();
 
 	virtual void visit( class ScnLightComponent* Component );

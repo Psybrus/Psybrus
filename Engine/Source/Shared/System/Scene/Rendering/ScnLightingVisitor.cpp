@@ -49,16 +49,16 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnLightingVisitor::ScnLightingVisitor( class ScnRenderableComponent* RenderableComponent )
+ScnLightingVisitor::ScnLightingVisitor( const MaAABB& AABB )
 {
 	PSY_PROFILE_FUNCTION;
-	ScnCore::pImpl()->visitBounds( this, RenderableComponent->getAABB() );
+	ScnCore::pImpl()->visitBounds( this, AABB );
 
 	// Sort by light strength
-	std::sort( LightComponents_.begin(), LightComponents_.end(), ScnLightingVisitorLightSort( RenderableComponent->getAABB().centre() ) );
+	std::sort( LightComponents_.data(), LightComponents_.data() + NoofLights_, ScnLightingVisitorLightSort( AABB.centre() ) );
 
 	// Build uniform block.
-	BcU32 Count = BcMin( ScnShaderLightUniformBlockData::MAX_LIGHTS, LightComponents_.size() );
+	BcU32 Count = BcMin( ScnShaderLightUniformBlockData::MAX_LIGHTS, NoofLights_ );
 	for( BcU32 Idx = 0; Idx < Count; ++Idx )
 	{
 		ScnLightComponent* LightComponent = LightComponents_[ Idx ];

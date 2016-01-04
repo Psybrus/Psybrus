@@ -122,7 +122,8 @@ protected:
 
 	struct TPerComponentMeshData
 	{
-		RsBufferUPtr UniformBuffer_;
+		RsBufferUPtr ObjectUniformBuffer_;
+		RsBufferUPtr LightingUniformBuffer_;
 	};
 	
 	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;

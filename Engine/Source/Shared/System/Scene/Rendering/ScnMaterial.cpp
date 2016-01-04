@@ -158,6 +158,24 @@ RsRenderState* ScnMaterial::getRenderState()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createUniformBuffer
+RsBufferUPtr ScnMaterial::createUniformBuffer( const ReClass* UniformBuffer, const BcChar* DebugName ) const
+{
+#if !PSY_PRODUCTION
+	BcAssert( DebugName != nullptr && DebugName[0] != '\0' );
+	std::string LongDebugName = ( getFullName() + "/" + DebugName + "/" + *UniformBuffer->getName() );
+	const char* DebugNameCStr = LongDebugName.c_str();
+#else
+	const char* DebugNameCStr = DebugName;
+#endif
+	return RsCore::pImpl()->createBuffer( 
+		RsBufferDesc(
+			RsResourceBindFlags::UNIFORM_BUFFER,
+			RsResourceCreationFlags::STREAM,
+			UniformBuffer->getSize() ), DebugNameCStr );	
+}
+
+//////////////////////////////////////////////////////////////////////////
 // fileReady
 void ScnMaterial::fileReady()
 {

@@ -81,6 +81,16 @@ public:
 	 */
 	RsRenderState* getRenderState();
 
+	/**
+	 * Create uniform buffer.
+	 * @return Uniform buffer. If nullptr, then material doesn't have uniform buffer.
+	 */
+	RsBufferUPtr createUniformBuffer( const ReClass* UniformBuffer, const BcChar* DebugName ) const;
+	template< typename _Ty >
+	RsBufferUPtr createUniformBuffer( const BcChar* DebugName ) const
+	{
+		return createUniformBuffer( _Ty::StaticGetClass(), DebugName );
+	}
 
 private:
 	void fileReady() override;

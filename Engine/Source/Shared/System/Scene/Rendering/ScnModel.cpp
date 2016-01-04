@@ -15,6 +15,7 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
+#include "System/Scene/Rendering/ScnLightingVisitor.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
 
@@ -641,9 +642,9 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		if( pNodeMeshData->IsSkinned_ == BcFalse )
 		{
 			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
-		
-			MaAABB PrimitiveAABB = pNodeMeshData->AABB_;
-			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->WorldTransform_ ) );
+			
+			pNodeMeshRuntime->AABB_ = pNodeMeshData->AABB_.transform( pNodeTransformData->WorldTransform_ );
+			FullAABB.expandBy( pNodeMeshRuntime->AABB_ );
 		}
 		else
 		{
@@ -692,7 +693,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		if( pNodeMeshData->IsSkinned_ )
 		{
 			RsCore::pImpl()->updateBuffer( 
-				PerComponentMeshData.UniformBuffer_.get(),
+				PerComponentMeshData.ObjectUniformBuffer_.get(),
 				0, sizeof( ScnShaderBoneUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -715,7 +716,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		else
 		{
 			RsCore::pImpl()->updateBuffer( 
-				PerComponentMeshData.UniformBuffer_.get(),
+				PerComponentMeshData.ObjectUniformBuffer_.get(),
 				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -763,7 +764,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 			BcAssert( Material.isValid() && Material->isReady() );
 
 			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-			ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
+			ShaderPermutation |= isLit() ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
 			ShaderPermutation |= View->getRenderPermutation();
 
 			auto Program = Material->getProgram( ShaderPermutation );
@@ -773,26 +774,36 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 			{
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderBoneUniformBlockData" );
 				if( Slot != BcErrorCode )
-				{	
-					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.UniformBuffer_.get() );
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get() );
 				}
 			}
 			else
 			{
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
 				if( Slot != BcErrorCode )
-				{	
-					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.UniformBuffer_.get() );
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get() );
 				}
 			}
 
 			{
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 				if( Slot != BcErrorCode )
-				{	
+				{
 					ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer() );
 				}
 			}
+
+			if( PerComponentMeshData.LightingUniformBuffer_ )
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{	
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.LightingUniformBuffer_.get() );
+				}
+			}
+
 
 			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
@@ -808,6 +819,13 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
+#if !PSY_PRODUCTION
+	const std::string DebugName = getFullName();
+	const char* DebugNameCStr = DebugName.c_str();
+#else
+	const char* DebugNameCStr = nullptr;
+#endif
+
 	// Duplicate node data for update/rendering.
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
@@ -821,27 +839,21 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	{
 		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		auto Material = pMeshRuntime->MaterialRef_;
 		TPerComponentMeshData ComponentData;
 
-		// Create uniform buffer for object.
+		// Create object uniform buffer - bone or object.
 		if( pMeshData->IsSkinned_ )
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
-				RsCore::pImpl()->createBuffer( 
-					RsBufferDesc( 
-						RsBufferType::UNIFORM,
-						RsResourceCreationFlags::STREAM,
-						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ), getFullName().c_str() ) : nullptr;
+			ComponentData.ObjectUniformBuffer_ = Material->createUniformBuffer< ScnShaderBoneUniformBlockData >( DebugNameCStr );
 		}
 		else
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
-				RsCore::pImpl()->createBuffer( 
-					RsBufferDesc( 
-						RsBufferType::UNIFORM,
-						RsResourceCreationFlags::STREAM,
-						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ), getFullName().c_str() ) : nullptr;
+			ComponentData.ObjectUniformBuffer_ = Material->createUniformBuffer< ScnShaderObjectUniformBlockData >( DebugNameCStr );
 		}
+
+		// Try create lighting uniform buffer.
+		ComponentData.LightingUniformBuffer_ = Material->createUniformBuffer< ScnShaderLightUniformBlockData >( DebugNameCStr );
 
 		//
 		PerComponentMeshDataList_.emplace_back( std::move( ComponentData ) );
@@ -891,6 +903,29 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 	Sort.Layer_ = Layer_;
 	Sort.Pass_ = Pass_;
 
+	// Lighting visitors.
+	if( isLit() )
+	{
+		for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+		{
+			ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
+			TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
+			if( PerComponentMeshData.LightingUniformBuffer_ )
+			{
+				ScnLightingVisitor LightingVisitor( pMeshRuntime->AABB_ );
+				RsCore::pImpl()->updateBuffer( 
+					PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
+					RsResourceUpdateFlags::ASYNC,
+					[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
+					( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+					{
+						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
+						BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
+							sizeof( LightUniformBlockData ) );
+					} );
+			}
+		}
+	}
 
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 	{
