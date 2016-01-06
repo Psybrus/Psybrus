@@ -26,6 +26,7 @@
 // ScnEntityHeader
 struct ScnEntityHeader
 {
+	MaMat4d LocalTransform_;
 	BcU32 NoofComponents_;
 };
 

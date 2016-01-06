@@ -17,6 +17,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 
+#include "Math/MaMat4d.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ScnEntityImport
 class ScnEntityImport:
@@ -36,7 +38,7 @@ public:
 	BcBool import( const Json::Value& Object ) override;
 
 private:
-
+	MaMat4d LocalTransform_;
 };
 
 #endif
