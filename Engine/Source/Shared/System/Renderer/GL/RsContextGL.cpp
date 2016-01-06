@@ -2376,11 +2376,11 @@ void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool For
 		case RsCullMode::NONE:
 			GL( Disable( GL_CULL_FACE ) );
 			break;
-		case RsCullMode::CW:
+		case RsCullMode::CCW:
 			GL( Enable( GL_CULL_FACE ) );
 			GL( CullFace( GL_FRONT ) );
 			break;
-		case RsCullMode::CCW:
+		case RsCullMode::CW:
 			GL( Enable( GL_CULL_FACE ) );
 			GL( CullFace( GL_BACK ) );
 			break;

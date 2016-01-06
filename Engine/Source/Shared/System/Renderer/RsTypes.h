@@ -94,8 +94,8 @@ enum class RsFillMode : BcU32
 enum class RsCullMode : BcU32
 {
 	NONE = 0,
-	CW, 
 	CCW,
+	CW, 
 
 	MAX,
 	INVALID = BcErrorCode
