@@ -16,6 +16,7 @@
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnLightComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 #include "System/Scene/ScnCore.h"
 

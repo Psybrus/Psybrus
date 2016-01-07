@@ -166,7 +166,7 @@ float linearDepth( float DepthSample, float Near, float Far )
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
 	_o = mul( WorldTransform_, _v );
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = mul( NormalTransform_, _v );
+	_o = normalize( mul( NormalTransform_, _v ) );
 
 #endif
 

@@ -147,6 +147,8 @@ namespace
 		UniformBlock_.ViewTransform_ = UniformBlock_.InverseViewTransform_;
 		UniformBlock_.ViewTransform_.inverse();
 		UniformBlock_.ClipTransform_ = UniformBlock_.ViewTransform_ * UniformBlock_.ProjectionTransform_;
+		UniformBlock_.InverseClipTransform_ = UniformBlock_.ClipTransform_;
+		UniformBlock_.InverseClipTransform_.inverse();
 
 		RsRenderSort Sort;
 		Sort.Value_ = 0;

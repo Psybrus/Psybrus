@@ -296,6 +296,8 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 
 	// Clip transform.
 	ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
+	ViewUniformBlock_.InverseClipTransform_ = ViewUniformBlock_.ClipTransform_;
+	ViewUniformBlock_.InverseClipTransform_.inverse();
 
 	// Time.
 	BcF32 Time = SysKernel::pImpl()->getFrameTime();

@@ -39,3 +39,27 @@ void defaultLighting( in vec3 Normal, out vec3 OutDiffuse, out vec3 OutSpecular 
 	OutDiffuse = vec3( DiffuseLight );
 	OutSpecular = vec3( SpecularLight );
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// defaultLighting
+void defaultLighting( int LightIdx, in vec3 EyePosition, in vec3 SurfacePosition, in vec3 Normal, out vec3 OutDiffuse, out vec3 OutSpecular )
+{
+	// Hacky lighting.
+	vec3 EyeVector = normalize( EyePosition - SurfacePosition );
+	vec3 LightVector = normalize( LightPosition_[ LightIdx ].xyz - SurfacePosition );
+	vec3 HalfVector = normalize( LightVector + EyeVector );
+	
+	float NdotL = dot( Normal.xyz, LightVector );
+	float NdotH = dot( Normal.xyz, HalfVector );
+	
+	// Ambient + Diffuse
+	float DiffuseLight = max( NdotL, 0.0 );
+	DiffuseLight = min( DiffuseLight, 1.0 );
+
+	float Facing = NdotL > 0.0 ? 1.0 : 0.0;
+	float SpecularLight = ( Facing * pow( max( NdotH, 0.0 ), 1.0 ) ) * 0.2;	
+
+	OutDiffuse += vec3( DiffuseLight ) * LightDiffuseColour_[ LightIdx ].xyz + LightAmbientColour_[ LightIdx ].xyz;
+	OutSpecular += vec3( SpecularLight ) * LightDiffuseColour_[ LightIdx ].xyz;
+}

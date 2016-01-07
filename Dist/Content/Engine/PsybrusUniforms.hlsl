@@ -19,6 +19,7 @@ BEGIN_CBUFFER( ScnShaderViewUniformBlockData )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ProjectionTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseViewTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ViewTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseClipTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ClipTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4, ViewTime_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4, ViewSize_ )
@@ -31,6 +32,7 @@ END_CBUFFER
 #  define ProjectionTransform_ ScnShaderViewUniformBlockDataVS_XProjectionTransform_
 #  define InverseViewTransform_ ScnShaderViewUniformBlockDataVS_XInverseViewTransform_
 #  define ViewTransform_ ScnShaderViewUniformBlockDataVS_XViewTransform_
+#  define InverseClipTransform_ ScnShaderViewUniformBlockDataVS_XInverseClipTransform_
 #  define ClipTransform_ ScnShaderViewUniformBlockDataVS_XClipTransform_
 #  define ViewTime_ ScnShaderViewUniformBlockDataVS_XViewTime_
 #  define ViewSize_ ScnShaderViewUniformBlockDataVS_XViewSize_
