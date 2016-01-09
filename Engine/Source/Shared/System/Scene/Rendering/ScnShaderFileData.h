@@ -185,6 +185,18 @@ struct ScnShaderLightUniformBlockData
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderMaterialUniformBlockData
+struct ScnShaderMaterialUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderMaterialUniformBlockData );
+	ScnShaderMaterialUniformBlockData(){};
+
+	MaVec4d MaterialBaseColour_;
+	MaVec4d MaterialReflectance_;
+	MaVec4d MaterialRoughness_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderObjectUniformBlockData
 struct ScnShaderObjectUniformBlockData
 {

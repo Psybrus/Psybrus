@@ -55,6 +55,23 @@ void ScnShaderLightUniformBlockData::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderMaterialUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnShaderMaterialUniformBlockData );
+
+void ScnShaderMaterialUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "MaterialBaseColour_", &ScnShaderMaterialUniformBlockData::MaterialBaseColour_ ),
+		new ReField( "MaterialReflectance_", &ScnShaderMaterialUniformBlockData::MaterialReflectance_ ),
+		new ReField( "MaterialRoughness_", &ScnShaderMaterialUniformBlockData::MaterialRoughness_ ),
+	};
+		
+	auto& Class = ReRegisterClass< ScnShaderMaterialUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderObjectUniformBlockData
 REFLECTION_DEFINE_BASIC( ScnShaderObjectUniformBlockData );
 
