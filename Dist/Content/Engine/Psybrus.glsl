@@ -27,6 +27,15 @@ precision mediump float;
 #define float4x4 mat4
 
 //////////////////////////////////////////////////////////////////////////
+// PI
+#define PI (3.14159265358979310)
+#define PIMUL2 (6.28318530717958620)
+#define PIMUL4 (12.5663706143591720)
+#define PIDIV2 (1.57079632679489660)
+#define PIDIV4 (0.78539816339744828)
+
+
+//////////////////////////////////////////////////////////////////////////
 // Input attributes.
 #define VsPosition gl_Position
 

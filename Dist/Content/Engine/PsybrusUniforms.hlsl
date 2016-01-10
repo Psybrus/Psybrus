@@ -43,12 +43,13 @@ END_CBUFFER
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderLightUniformBlockData
+#define MAX_LIGHTS 4
 BEGIN_CBUFFER( ScnShaderLightUniformBlockData )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightPosition_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightDirection_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightAmbientColour_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightDiffuseColour_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightAttn_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightPosition_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightDirection_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightAmbientColour_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightDiffuseColour_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightAttn_[MAX_LIGHTS] )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
