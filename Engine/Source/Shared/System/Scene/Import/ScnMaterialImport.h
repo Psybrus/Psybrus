@@ -48,6 +48,7 @@ private:
 	std::map< std::string, CsCrossRefId > Textures_;
 	std::map< std::string, RsSamplerStateDesc > Samplers_;
 	RsRenderStateDesc RenderState_;
+	std::vector< BcName > AutomaticUniformBlocks_;
 };
 
 #endif

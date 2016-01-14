@@ -159,13 +159,13 @@ struct ScnShaderViewUniformBlockData
 	MaMat4d ClipTransform_;
 
 	/// t, t/2, t/4, t/8
-	MaVec4d ViewTime_;
+	MaVec4d ViewTime_ = MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	/// w, h, 1/w, 1/h
-	MaVec4d ViewSize_;
+	MaVec4d ViewSize_ = MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	/// n, f, n+f, n*f
-	MaVec4d NearFar_;
+	MaVec4d NearFar_ = MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f );
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,9 +191,11 @@ struct ScnShaderMaterialUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderMaterialUniformBlockData );
 	ScnShaderMaterialUniformBlockData(){};
 
-	MaVec4d MaterialBaseColour_;
-	MaVec4d MaterialReflectance_;
-	MaVec4d MaterialRoughness_;
+	MaVec4d MaterialBaseColour_ = MaVec4d( 1.0f, 1.0f, 1.0f, 1.0f );
+	BcF32 MaterialMetallic_ = 0.0f;
+	BcF32 MaterialSpecular_ = 0.5f;
+	BcF32 MaterialRoughness_ = 0.0f;
+	BcF32 MaterialUnused_[ 1 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -227,7 +229,7 @@ struct ScnShaderAlphaTestUniformBlockData
 	ScnShaderAlphaTestUniformBlockData(){};
 
 	/// smoothstep min, smoothstep max, ref (<), unused
-	MaVec4d AlphaTestParams_; 
+	MaVec4d AlphaTestParams_ = MaVec4d( 0.45f, 5.0f, 0.0f, 0.0f );
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -262,13 +264,13 @@ struct ScnShaderPostProcessBlurBlockData
 	ScnShaderPostProcessBlurBlockData(){};
 
 	/// Texture size.
-	MaVec2d TextureDimensions_;
+	MaVec2d TextureDimensions_ = MaVec2d( 0.0f, 0.0f );
 
 	/// Radius in texels.
-	BcF32 Radius_;
+	BcF32 Radius_ = 1.0f;
 
 	/// Unued.
-	BcF32 Unused_;
+	BcF32 Unused_ = 0.0f;
 };
 
 #endif

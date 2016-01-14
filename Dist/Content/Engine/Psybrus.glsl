@@ -298,12 +298,12 @@ void writeFrag( FRAMEBUFFER_INPUT, in vec4 Albedo, in vec3 Normal )
 #endif
 }
 
-void writeFrag( FRAMEBUFFER_INPUT, in vec4 Albedo, in vec3 Normal, in vec3 Specular )
+void writeFrag( FRAMEBUFFER_INPUT, in vec4 Albedo, in vec3 Normal, in vec3 Material )
 {
 	clearFrag( FRAMEBUFFER_INTERNAL );
 	outFrag0.xyzw = Albedo.xyzw;
 #if defined( PERM_RENDER_DEFERRED )
-	outFrag1.xyz = Specular;
+	outFrag1.xyz = Material;
 	outFrag2.xyz = ( Normal.xyz + vec3( 1.0, 1.0, 1.0 ) ) * 0.5;
 #endif
 }

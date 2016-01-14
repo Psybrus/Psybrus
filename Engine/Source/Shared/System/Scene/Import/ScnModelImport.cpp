@@ -867,7 +867,7 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 					// Create new material importer based on template.
 					ScnMaterialImport* MaterialImport(
 						ReConstructObject< ScnMaterialImport >( 
-							MaterialName, this, MaterialEntry.TemplateMaterial_ ) );
+							this->getResourceName() + "/" + MaterialName, this, MaterialEntry.TemplateMaterial_ ) );
 
 					// Attempt to find textures.
 					auto DiffuseRef = addTexture( Material, MaterialImport, "aDiffuseTex", aiTextureType_DIFFUSE, 0 );

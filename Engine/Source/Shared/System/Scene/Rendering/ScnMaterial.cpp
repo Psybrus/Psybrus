@@ -16,7 +16,10 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
+#include "System/Debug/DsCore.h"
+
 #include "System/Renderer/RsRenderNode.h"
+
 
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Import/ScnMaterialImport.h"
@@ -35,7 +38,7 @@ void ScnMaterial::StaticRegisterClass()
 		new ReField( "TextureMap_", &ScnMaterial::TextureMap_ ),
 		new ReField( "RenderStateDesc_", &ScnMaterial::RenderStateDesc_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnMaterial, Super >( Fields );
 	BcUnusedVar( Class );
 
@@ -44,6 +47,43 @@ void ScnMaterial::StaticRegisterClass()
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnMaterialImport::StaticGetClass(), 0 ) );
 #endif
+
+	// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				auto Material = static_cast< ScnMaterial* >( Object );
+				if( ImGui::TreeNode( Material, "%s", Name.c_str() ) )
+				{
+					for( auto Iter( Material->AutomaticUniformBlocks_.begin() ); Iter != Material->AutomaticUniformBlocks_.end(); ++Iter )
+					{
+						if( ImGui::TreeNode( Material, "Uniform Block: %s", (*Iter->first).c_str() ) )
+						{
+							auto Data = Iter->second.getData< BcU8 >();
+							auto DataSize = Iter->second.getDataSize();
+
+							DsCore::pImpl()->drawObjectEditor(
+								ThisFieldEditor, 
+								Data,
+								ReManager::GetClass( Iter->first ), Flags );
+
+							// Update uniform buffer.
+							RsCore::pImpl()->updateBuffer(
+								Material->AutomaticUniformBuffers_[ Iter->first ].get(),
+								0, Iter->second.getDataSize(),
+								RsResourceUpdateFlags::ASYNC,
+								[ Data, DataSize ]
+								( RsBuffer* Buffer, RsBufferLock Lock )
+								{
+									memcpy( Lock.Buffer_, Data, DataSize );
+								} );
+							ImGui::TreePop();
+						}
+					}
+					ImGui::TreePop();
+				}
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,6 +109,7 @@ ScnMaterial::~ScnMaterial()
 void ScnMaterial::create()
 {
 	ScnMaterialTextureHeader* pTextureHeaders = (ScnMaterialTextureHeader*)( pHeader_ + 1 );
+	ScnMaterialUniformBlockName* pAutomaticUniformBlockNames = (ScnMaterialUniformBlockName*)( pTextureHeaders + pHeader_->NoofTextures_ );
 		
 	// Get resources.
 	Shader_ = getPackage()->getCrossRefResource( pHeader_->ShaderRef_ );
@@ -87,6 +128,44 @@ void ScnMaterial::create()
 		ScnMaterialTextureHeader* pTextureHeader = &pTextureHeaders[ Idx ];
 		auto SamplerState = RsCore::pImpl()->createSamplerState( pTextureHeader->SamplerStateDesc_, getFullName().c_str() );
 		SamplerStateMap_[ pTextureHeader->SamplerName_ ] = std::move( SamplerState );
+	}
+
+	// Create uniforms.
+	for( BcU32 Idx = 0; Idx < pHeader_->NoofAutomaticUniformBlocks_; ++Idx )
+	{
+		ScnMaterialUniformBlockName& UniformBlockName = pAutomaticUniformBlockNames[ Idx ];
+		markupName( UniformBlockName.Name_ );
+		auto Class = ReManager::GetClass( UniformBlockName.Name_ );
+		if( Class )
+		{
+			auto UniformBuffer = createUniformBuffer( Class, getFullName().c_str() );
+			auto UniformBlock = BcBinaryData( Class->getSize() );
+			auto Data = UniformBlock.getData< BcU8 >();
+			auto DataSize = Class->getSize();
+
+			// Construct with default values.
+			Class->construct< BcU8 >( UniformBlock.getData< BcU8 >() );
+
+			// Update uniform buffer.
+			RsCore::pImpl()->updateBuffer(
+				UniformBuffer.get(),
+				0, DataSize,
+				RsResourceUpdateFlags::ASYNC,
+				[ Data, DataSize ]
+				( RsBuffer* Buffer, RsBufferLock Lock )
+				{
+					memcpy( Lock.Buffer_, Data, DataSize );
+				} );
+
+			// Move into containers.
+			AutomaticUniformBuffers_.insert( std::make_pair( UniformBlockName.Name_, std::move( UniformBuffer ) ) );
+			AutomaticUniformBlocks_.insert( std::make_pair( UniformBlockName.Name_, std::move( UniformBlock ) ) );
+		}
+		else
+		{
+			PSY_LOG( "ERROR: Uniform block \"%s\" does not exists. Check automatic uniform names on \"%s\"", 
+				(*UniformBlockName.Name_).c_str(), getFullName().c_str() );
+		}
 	}
 
 	// Mark as ready.
@@ -144,6 +223,18 @@ RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags P
 		if( Slot != BcErrorCode )
 		{
 			ProgramBindingDesc.setSamplerState( Slot, Sampler );
+		}
+	}
+
+	for( auto Iter( AutomaticUniformBuffers_.begin() ); Iter != AutomaticUniformBuffers_.end(); ++Iter )
+	{
+		const BcName& UniformBufferName = (*Iter).first;
+		RsBuffer* Buffer = (*Iter).second.get();
+	
+		BcU32 Slot = Program->findUniformBufferSlot( (*UniformBufferName).c_str() );
+		if( Slot != BcErrorCode )
+		{
+			ProgramBindingDesc.setUniformBuffer( Slot, Buffer );
 		}
 	}
 

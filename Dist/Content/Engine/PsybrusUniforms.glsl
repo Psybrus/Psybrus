@@ -75,15 +75,17 @@ END_CBUFFER
 // ScnShaderMaterialUniformBlockData
 BEGIN_CBUFFER( ScnShaderMaterialUniformBlockData )
 	ENTRY( ScnShaderMaterialUniformBlockData, float4, MaterialBaseColour_ )
-	ENTRY( ScnShaderMaterialUniformBlockData, float4, MaterialReflectance_ )
-	ENTRY( ScnShaderMaterialUniformBlockData, float4, MaterialRoughness_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialMetallic_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialSpecular_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialRoughness_ )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
 
 #  define MaterialBaseColour_ ScnShaderMaterialUniformBlockDataVS_XMaterialBaseColour_
-#  define MaterialReflectance_ ScnShaderMaterialUniformBlockDataVS_XMaterialReflectance_
-#  define MaterialRoughness_ ScnShaderMaterialUniformBlockDataVS_XMaterialRouighness_
+#  define MaterialMetallic_ ScnShaderMaterialUniformBlockDataVS_XMaterialMetallic_
+#  define MaterialSpecular_ ScnShaderMaterialUniformBlockDataVS_XMaterialSpecular_
+#  define MaterialRoughness_ ScnShaderMaterialUniformBlockDataVS_XMaterialRoughness_
 
 #endif
 

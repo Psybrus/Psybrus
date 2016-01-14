@@ -3,11 +3,22 @@
 #include <PsybrusUniforms.glsl>
 
 //////////////////////////////////////////////////////////////////////////
-// DefaultPointLight
-struct DefaultPointLight
+// Light
+struct Light
 {
 	vec3 Position_;
+	vec3 Colour_;
 	vec3 AttenuationCLQ_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Material
+struct Material
+{
+	vec3 Colour_;
+	float Specular_;
+	float Roughness_;
+	float Metallic_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -20,10 +31,10 @@ float calculateAttenuation( float Distance, vec3 Attenuation )
 
 //////////////////////////////////////////////////////////////////////////
 // Fresnel_SchlickApproximation
-float Fresnel_SchlickApproximation( float F0, float CosA )
+vec3 Fresnel_SchlickApproximation( vec3 F0, float CosA )
 {
 	float Pow5OneMinusCosA = pow( 1.0 - CosA, 5.0 );
-	return F0 + ( 1.0 - F0 ) * Pow5OneMinusCosA;
+	return F0 + ( vec3( 1.0 ) - F0 ) * Pow5OneMinusCosA;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,54 +59,67 @@ float GeometryVisibility_CookTorrence( float NdotL, float NdotV, float NdotH, fl
 
 //////////////////////////////////////////////////////////////////////////
 // CookTorrence
-float CookTorrence( float D, float F, float G, float NdotL, float NdotV )
+vec3 CookTorrence( float D, vec3 F, float G, float NdotL, float NdotV )
 {
-	float Numerator = D * F * G;
-	float Denominator = 4.0  * NdotL * NdotV;
+	vec3 Numerator = vec3( D * F * G );
+	vec3 Denominator = vec3( 4.0  * NdotL * NdotV );
 	return Numerator / Denominator;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Lambert
-float Lambert( float NdotL )
+// BRDF_Default
+vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, in vec3 SurfacePosition, in vec3 Normal )
 {
-	return max( NdotL, 0.0 );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// defaultLighting
-void defaultLighting( int LightIdx, in vec3 EyePosition, in vec3 SurfacePosition, in vec3 Normal, inout vec3 OutDiffuse, inout vec3 OutSpecular )
-{
-	float EPSILON = 1e6;
-	vec3 LightPosition = LightPosition_[ LightIdx ].xyz;
-	vec3 ViewVector = normalize( EyePosition - SurfacePosition );
+	vec3 LightPosition = InLight.Position_.xyz;
+	vec3 ViewVector = normalize( ViewPosition - SurfacePosition );
 	vec3 LightVector = normalize( LightPosition - SurfacePosition );
 	vec3 HalfVector = normalize( LightVector + ViewVector );
-	float NdotL = max( 0.0, dot( Normal, LightVector ) );
-	float NdotH = max( 0.0, dot( Normal, HalfVector ) );
-	float NdotV = max( 0.0, dot( Normal, ViewVector ) );
-	float LdotH = max( 0.0, dot( LightVector, HalfVector ) );
-	float VdotH = max( 0.0, dot( ViewVector, HalfVector ) );
+	float SmallValue = 0.00001;
+	float NdotL = max( SmallValue, dot( Normal, LightVector ) );
+	float NdotH = max( SmallValue, dot( Normal, HalfVector ) );
+	float NdotV = max( SmallValue, dot( Normal, ViewVector ) );
+	float LdotH = max( SmallValue, dot( LightVector, HalfVector ) );
+	float VdotH = max( SmallValue, dot( ViewVector, HalfVector ) );
 
-	float Reflectivity = 1.0;
-	float Roughness = 0.0;
-	float SpecularPower = ( ( 1.0 - Roughness ) * 100.0 ) + 1.0;
-
-	// Specular.
-#if 0
-	float Specular = CookTorrence( 
-		NDF_BlinnPhongNormalised( NdotH, SpecularPower ), 
-		Fresnel_SchlickApproximation( Reflectivity, LdotH ),
-		GeometryVisibility_CookTorrence( NdotL, NdotV, NdotH, VdotH ),
-		NdotL, NdotV );
+#if 0	
+	// SurfacePosition - good.
+	// ViewPosition - good.
+	// Normal - good
+	// ViewVector - good
+	// NdotL - 
+	// NdotH - 
+	vec3 RetVal = mod( vec3( ( Normal + 1.0 ) * 0.5 ), vec3( 1.0 ) );
+#if defined ( PERM_RENDER_DEFERRED )
+	return RetVal;
 #else
-	float Specular = min( pow( NdotH, SpecularPower ), 1.0 );
+	return RetVal;
+#endif
 #endif
 
-	// Diffuse
-	float Diffuse = max( NdotL, 0.0 );
-	Diffuse = 0.0;//Specular;
+	// Convert roughness to specular power.
+	float Roughness = InMaterial.Roughness_;
+	float SpecularPower = ( ( 1.0 - Roughness ) * 100.0 ) + 1.0;
 
-	OutDiffuse += vec3( Diffuse ) * LightDiffuseColour_[ LightIdx ].xyz + LightAmbientColour_[ LightIdx ].xyz;
-	OutSpecular += vec3( Specular ) * LightDiffuseColour_[ LightIdx ].xyz;
+	// Calculate reflectance.
+	vec3 SpecularReflectance = mix( vec3( InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
+
+	// Calculate terms for spec + diffuse.
+	float D = NDF_BlinnPhongNormalised( NdotH, SpecularPower );
+	float G = GeometryVisibility_CookTorrence( NdotL, NdotV, NdotH, VdotH );
+	vec3 Fspec = Fresnel_SchlickApproximation( SpecularReflectance, LdotH );
+
+	// Specular.
+	vec3 Specular = CookTorrence( D, Fspec, G, NdotL, NdotV );
+
+	// Diffuse
+	vec3 Diffuse = vec3( max( NdotL, 0.0 ) );
+	Diffuse = max( vec3( 0.0 ), Diffuse * ( vec3( 1.0 ) - Fspec ) * ( vec3( 1.0 - InMaterial.Metallic_ ) ) );
+	//	Diffuse = max( vec3( 0.0 ), Diffuse * ( vec3( 1.0 ) - Fdiff ) );
+
+
+	// Total colour.
+	vec3 Total = ( Diffuse * ( InMaterial.Colour_ / vec3( PI ) ) ) + ( Specular * InMaterial.Colour_ );
+
+	// Punctual light source.
+	return Total * InLight.Colour_ * NdotL;
 }

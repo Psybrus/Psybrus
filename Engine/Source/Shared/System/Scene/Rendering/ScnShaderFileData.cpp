@@ -63,7 +63,8 @@ void ScnShaderMaterialUniformBlockData::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "MaterialBaseColour_", &ScnShaderMaterialUniformBlockData::MaterialBaseColour_ ),
-		new ReField( "MaterialReflectance_", &ScnShaderMaterialUniformBlockData::MaterialReflectance_ ),
+		new ReField( "MaterialMetallic_", &ScnShaderMaterialUniformBlockData::MaterialMetallic_ ),
+		new ReField( "MaterialSpecular_", &ScnShaderMaterialUniformBlockData::MaterialSpecular_ ),
 		new ReField( "MaterialRoughness_", &ScnShaderMaterialUniformBlockData::MaterialRoughness_ ),
 	};
 		

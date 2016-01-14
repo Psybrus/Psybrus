@@ -30,6 +30,18 @@ typedef ReObjectRef< class ScnModel > ScnModelRef;
 typedef ReObjectRef< class ScnModelComponent > ScnModelComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelUniforms
+struct ScnModelUniforms
+{
+	REFLECTION_DECLARE_BASIC( ScnModelUniforms );
+	ScnModelUniforms();
+
+	std::string Name_;
+	BcBinaryData Data_;
+	RsBufferUPtr Buffer_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnModel
 class ScnModel:
 	public CsResource
@@ -75,6 +87,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnModelComponent, ScnRenderableComponent );
 
 	ScnModelComponent();
+	ScnModelComponent( ScnModelRef Model );
 	virtual ~ScnModelComponent();
 
 	void initialise() override;
@@ -86,6 +99,22 @@ public:
 	void setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform );
 	const MaMat4d& getNode( BcU32 NodeIdx ) const;
 	BcU32 getNoofNodes() const;
+
+	/**
+	 * Set uniforms.
+	 * @param UniformClass Uniform reflection class.
+	 * @param UniformData Uniform data.
+	 */
+	void setUniforms( const ReClass* UniformClass, const void* UniformData );
+
+	/**
+	 * Templated version of @a setUniforms.
+	 */
+	template< typename _Ty >
+	void setUniforms( const _Ty& UniformData )
+	{
+		setUniforms( _Ty::StaticGetClass(), &UniformData );
+	}
 
 #if 0
 	ScnMaterialComponentRef getMaterialComponent( BcU32 Index );
@@ -114,6 +143,9 @@ protected:
 	MaVec3d Rotation_;
 	MaMat4d BaseTransform_;
 
+	typedef std::vector< ScnModelUniforms > TMaterialUniforms;
+	TMaterialUniforms Uniforms_;
+
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
 	SysFence UpdateFence_;
@@ -126,8 +158,7 @@ protected:
 		RsBufferUPtr LightingUniformBuffer_;
 	};
 	
-	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;
-	
+	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;	
 	TPerComponentMeshDataList PerComponentMeshDataList_;
 };
 

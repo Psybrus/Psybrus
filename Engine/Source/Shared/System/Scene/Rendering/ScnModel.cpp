@@ -19,6 +19,9 @@
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
 
+#include "System/Debug/DsCore.h"
+#include "System/Debug/DsImGuiFieldEditor.h"
+
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
 
@@ -35,33 +38,76 @@
 #endif // DEBUG_RENDER_NODES
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelUniforms
+REFLECTION_DEFINE_BASIC( ScnModelUniforms );
+
+void ScnModelUniforms::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Name_", &ScnModelUniforms::Name_ ),
+		new ReField( "Data_", &ScnModelUniforms::Data_ ),
+	};
+	ReRegisterClass< ScnModelUniforms >( Fields );
+}
+
+ScnModelUniforms::ScnModelUniforms():
+	Name_( "" ),
+	Data_(),
+	Buffer_()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnModel );
 
 void ScnModel::StaticRegisterClass()
 {
+	ReField* Fields[] = 
 	{
-		ReField* Fields[] = 
-		{
-			new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA),
-			new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			//TODO: move support. new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
-		};
+		new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA),
+		new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		//TODO: move support. new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
+	};
 		
-		auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
-		BcUnusedVar( Class );
+	auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
+	BcUnusedVar( Class );
 
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnModelImport::StaticGetClass(), 0 ) );
 #endif
-	}
+
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				auto Model = static_cast< ScnModel* >( Object );
+				if( ImGui::TreeNode( Model, "Materials") )
+				{
+					for( auto& MeshRuntime : Model->MeshRuntimes_ )
+					{
+						DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( MeshRuntime.MaterialRef_->getClass() );
+						if( FieldEditor )
+						{
+							FieldEditor->onEdit( MeshRuntime.MaterialRef_->getFullName(), MeshRuntime.MaterialRef_, ScnMaterial::StaticGetClass(),
+								ReFieldFlags( Flags & bcRFF_CONST ) );
+						}
+					}
+					ImGui::TreePop();
+				}
+
+				// Defaults.
+				DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Object, Class, Flags );
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -347,12 +393,13 @@ void ScnModelComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER | bcRFF_CONST ),
+		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
 		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
 		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
 		new ReField( "Scale_", &ScnModelComponent::Scale_, bcRFF_IMPORTER ),
 		new ReField( "Rotation_", &ScnModelComponent::Rotation_, bcRFF_IMPORTER ),
+		new ReField( "Uniforms_", &ScnModelComponent::Uniforms_, bcRFF_IMPORTER ),
 
 		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
 		new ReField( "UploadFence_", &ScnModelComponent::UploadFence_, bcRFF_TRANSIENT ),
@@ -389,6 +436,14 @@ ScnModelComponent::ScnModelComponent():
 	PerComponentMeshDataList_()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnModelComponent::ScnModelComponent( ScnModelRef Model ):
+	ScnModelComponent()
+{
+	Model_ = Model;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -470,6 +525,54 @@ const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 
 	static MaMat4d Default;
 	return Default;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setUniforms
+void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* UniformData )
+{
+#if !PSY_PRODUCTION
+	const std::string DebugName = getFullName();
+	const char* DebugNameCStr = DebugName.c_str();
+#else
+	const char* DebugNameCStr = nullptr;
+#endif
+
+	auto FoundIt = std::find_if( Uniforms_.begin(), Uniforms_.end(),
+		[ UniformClass ]( const ScnModelUniforms& Uniform )
+		{
+			return Uniform.Name_ == *UniformClass->getName();
+		} );
+
+	auto Size = UniformClass->getSize();
+	if( FoundIt == Uniforms_.end() )
+	{
+		ScnModelUniforms Uniform;
+		Uniform.Name_ = *UniformClass->getName();
+		Uniform.Data_ = std::move( BcBinaryData( Size ) );
+		Uniform.Buffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc(
+				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsResourceCreationFlags::STREAM,
+				Size ), DebugNameCStr );	
+		Uniforms_.emplace_back( std::move( Uniform ) );
+		FoundIt = Uniforms_.end() - 1;
+
+		// May need to rebind, so reset view data.
+		ScnRenderableComponent::resetViewRenderData( nullptr );
+	}
+
+	// Copy into intermedate.
+	memcpy( FoundIt->Data_.getData< BcU8 >(), UniformData, Size );
+	UniformData = FoundIt->Data_.getData< BcU8 >();
+
+	// Copy into buffer.
+	RsCore::pImpl()->updateBuffer(
+		FoundIt->Buffer_.get(), 0, Size, RsResourceUpdateFlags::ASYNC,
+		[ UniformData, Size ]( RsBuffer* Buffer, RsBufferLock Lock )
+		{
+			memcpy( Lock.Buffer_, UniformData, Size );
+		} );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -770,6 +873,15 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 			auto Program = Material->getProgram( ShaderPermutation );
 			auto ProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
 
+			for( const auto& Uniform : Uniforms_ )
+			{
+				auto Slot = Program->findUniformBufferSlot( Uniform.Name_.c_str() );
+				if( Slot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, Uniform.Buffer_.get() );
+				}
+			}
+
 			if( pMeshData->IsSkinned_ )
 			{
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderBoneUniformBlockData" );
@@ -804,7 +916,6 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				}
 			}
 
-
 			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
 		}
@@ -830,6 +941,28 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
 	BcMemCopy( pNodeTransformData_, Model_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
+
+	// Create uniform buffers.
+	for( auto& Uniform : Uniforms_ )
+	{
+		auto Data = Uniform.Data_.getData< BcU8 >();
+		auto Size = Uniform.Data_.getDataSize();
+		if( Uniform.Buffer_ == nullptr )
+		{
+			Uniform.Buffer_ = RsCore::pImpl()->createBuffer( 
+				RsBufferDesc(
+					RsResourceBindFlags::UNIFORM_BUFFER,
+					RsResourceCreationFlags::STREAM,
+					Size ), DebugNameCStr );	
+		}
+
+		RsCore::pImpl()->updateBuffer(
+			Uniform.Buffer_.get(), 0, Size, RsResourceUpdateFlags::ASYNC,
+			[ Data, Size ]( RsBuffer* Buffer, RsBufferLock Lock )
+			{
+				memcpy( Lock.Buffer_, Data, Size );
+			} );
+	}
 
 	// Create material instances to render with.
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;

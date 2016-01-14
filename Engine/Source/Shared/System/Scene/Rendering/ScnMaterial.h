@@ -104,10 +104,12 @@ private:
 	ScnShaderRef Shader_;
 	ScnTextureMap TextureMap_;
 	std::map< BcName, RsSamplerStateUPtr > SamplerStateMap_;
-
 	const RsRenderStateDesc* RenderStateDesc_;
 	RsRenderStateUPtr RenderState_;
 
+	// Automatic uniforms.
+	std::map< BcName, RsBufferUPtr > AutomaticUniformBuffers_;
+	std::map< BcName, BcBinaryData > AutomaticUniformBlocks_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -212,7 +214,6 @@ private:
 	BcU32 ViewUniformBlockIndex_;
 	BcU32 BoneUniformBlockIndex_;
 	BcU32 ObjectUniformBlockIndex_;
-
 };
 
 #endif

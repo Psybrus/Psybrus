@@ -2,6 +2,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
+#include "System/Debug/DsCore.h"
+
 #include "System/Renderer/RsFeatures.h"
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
@@ -13,8 +15,6 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
-#include "System/Debug/DsCore.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
