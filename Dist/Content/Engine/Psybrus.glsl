@@ -36,6 +36,82 @@ precision mediump float;
 
 
 //////////////////////////////////////////////////////////////////////////
+// textureQueryLevels implementations (glslang doesn't support yet)
+#if PSY_OUTPUT_CODE_TYPE != PSY_CODE_TYPE_GLSL_ES_100
+int textureQueryLevels( sampler1D Sampler )
+{
+	int Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size > 4 )
+		{
+			Size /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+
+int textureQueryLevels( sampler2D Sampler )
+{
+	ivec2 Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size.x > 4 )
+		{
+			Size.x /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+
+int textureQueryLevels( sampler3D Sampler )
+{
+	ivec3 Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size.x > 4 )
+		{
+			Size.x /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+
+int textureQueryLevels( samplerCube Sampler )
+{
+	ivec2 Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size.x > 4 )
+		{
+			Size.x /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // Input attributes.
 #define VsPosition gl_Position
 

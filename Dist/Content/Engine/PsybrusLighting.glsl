@@ -137,7 +137,10 @@ vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, 
 	Diffuse = max( vec3( 0.0 ), Diffuse * ( vec3( 1.0 ) - Fspec ) * ( vec3( 1.0 - InMaterial.Metallic_ ) ) );
 
 	// Specular colour.
-	vec3 SpecularColour = mix( Specular * InMaterial.Colour_, ReflectionColour, InMaterial.Metallic_ );
+	vec3 SpecularColour = Specular * InMaterial.Colour_;
+	//float MinimumReflectionAmount = 0.0 * InMaterial.Specular_;
+	//vec3 SpecularColour = mix( Specular * InMaterial.Colour_, ReflectionColour * ( 1.0 - MinimumReflectionAmount ), InMaterial.Metallic_ );
+	//SpecularColour += ReflectionColour * MinimumReflectionAmount;
 
 	// Total colour.
 	vec3 Total = ( Diffuse * ( InMaterial.Colour_ / vec3( PI ) ) ) + SpecularColour;
