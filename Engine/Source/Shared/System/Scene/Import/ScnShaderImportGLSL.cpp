@@ -338,7 +338,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				}
 
 				std::regex VertexAttributePattern( 
-					"\\s*(in|attribute).*;" );
+					"\\s*(in|attribute)\\s.*;" );
 
 				std::regex VertexAttributeFullPattern( 
 					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4).*;" );

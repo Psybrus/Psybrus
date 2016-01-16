@@ -395,7 +395,6 @@ void ScnModelComponent::StaticRegisterClass()
 	{
 		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
-		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
 		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
 		new ReField( "Scale_", &ScnModelComponent::Scale_, bcRFF_IMPORTER ),
 		new ReField( "Rotation_", &ScnModelComponent::Rotation_, bcRFF_IMPORTER ),
@@ -425,7 +424,6 @@ void ScnModelComponent::StaticRegisterClass()
 ScnModelComponent::ScnModelComponent():
 	Model_(),
 	Layer_( 0 ),
-	Pass_( RsRenderSortPassType::OPAQUE ),
 	Position_( 0.0f, 0.0f, 0.0f ),
 	Scale_( 1.0f, 1.0f, 1.0f ),
 	Rotation_( 0.0f, 0.0f, 0.0f ),
@@ -1038,7 +1036,6 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 	// Set layer.
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = Layer_;
-	Sort.Pass_ = static_cast< BcU32 >( Pass_ );
 
 	// Lighting visitors.
 	if( isLit() )

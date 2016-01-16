@@ -981,7 +981,7 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 		{
 			// TODO: Implement DefaultSamplerStates.
 			RsSamplerStateDesc Sampler;
-			Sampler.MinFilter_ = RsTextureFilteringMode::LINEAR;
+			Sampler.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
 			Sampler.MagFilter_ = RsTextureFilteringMode::LINEAR;
 
 			TextureRef = It->second;

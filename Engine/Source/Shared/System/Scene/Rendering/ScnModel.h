@@ -136,7 +136,6 @@ public:
 protected:
 	ScnModelRef Model_;
 	BcU32 Layer_;
-	RsRenderSortPassType Pass_;
 
 	MaVec3d Position_;
 	MaVec3d Scale_;

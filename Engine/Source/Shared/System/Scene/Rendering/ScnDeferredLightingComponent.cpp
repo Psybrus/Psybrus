@@ -257,6 +257,8 @@ void ScnDeferredLightingComponent::recreateResources()
 
 	// Create sampler.
 	RsSamplerStateDesc SamplerStateDesc;
+	SamplerStateDesc.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
+	SamplerStateDesc.MagFilter_ = RsTextureFilteringMode::LINEAR;
 	SamplerState_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, getFullName().c_str() );
 
 	// Create render state.
