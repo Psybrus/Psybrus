@@ -749,6 +749,11 @@ void RsContextGL::create()
 		endFrame();
 	}
 
+#if !defined( RENDER_USE_GLES )
+	// Enable seamless cube map globally.
+	GL( Enable( GL_TEXTURE_CUBE_MAP_SEAMLESS ) );
+#endif
+
 }
 
 //////////////////////////////////////////////////////////////////////////
