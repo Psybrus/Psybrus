@@ -504,7 +504,7 @@ void ScnTexture::recreate()
 			Depth = BcMax( 1, Depth >> 1 );
 
 			// Advance texture data.
-			TextureData += SliceSize;
+			TextureData += SliceSize * NoofFaces;
 		}
 
 #if DO_TEXTURE_COPY_TEST
