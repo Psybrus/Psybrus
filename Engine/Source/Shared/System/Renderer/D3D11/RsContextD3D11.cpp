@@ -1958,8 +1958,7 @@ bool RsContextD3D11::updateTexture(
 	// Calculate cubemap subresource.
 	if( Desc.Type_ == RsTextureType::TEXCUBE )
 	{
-		BcAssert( Slice.Face_ != RsTextureFace::NONE );
-		SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ - 1 );
+		SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ );
 	}
 
 	// Buffer sub resource.

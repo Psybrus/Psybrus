@@ -289,8 +289,8 @@ extern BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, Bc
 // RsTextureFace
 enum class RsTextureFace : BcU32
 {
-	NONE,
-	POSITIVE_X,
+	NONE = 0,
+	POSITIVE_X = 0,
 	NEGATIVE_X,
 	POSITIVE_Y,
 	NEGATIVE_Y,

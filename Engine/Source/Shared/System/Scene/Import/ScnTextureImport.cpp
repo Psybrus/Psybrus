@@ -324,6 +324,21 @@ BcBool ScnTextureImport::import(
 			TextureType_ = MipImages[ 0 ]->height() == 1 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
 		}
 
+		if( TextureType_ == RsTextureType::TEXCUBE )
+		{
+			if( MipImages[ 0 ]->width() != ( MipImages[ 0 ]->height() * 6 ) )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "TextureType is cube map, but dimensions of texture are not correct (6x horizontal images)." );
+				return BcFalse;
+			}
+
+			if( BcPot( MipImages[ 0 ]->height() ) == BcFalse )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "TextureType is cube map, but each face is not a power of two width + height." );
+				return BcFalse;
+			}
+		}
+
 		// Automatically determine the best format if we specify unknown.
 		if( Format_ == RsTextureFormat::UNKNOWN || Format_ == RsTextureFormat::INVALID )
 		{
@@ -380,7 +395,7 @@ BcBool ScnTextureImport::import(
 		// Write header.
 		ScnTextureHeader Header =
 		{
-			static_cast< BcS32 >( MipImages[ 0 ]->width() ),
+			static_cast< BcS32 >( MipImages[ 0 ]->width() ) / ( TextureType_ == RsTextureType::TEXCUBE ? 6 : 1 ),
 			static_cast< BcS32 >( MipImages[ 0 ]->height() ),
 			0,
 			(BcU32)MipImages.size(),
@@ -528,7 +543,8 @@ ImgImageList ScnTextureImport::generateMipMaps( ImgImageUPtr Image )
 
 	MipImages.push_back( std::move( Image ) );
 
-	if( BcPot( W ) && BcPot( H ) )
+	if( ( BcPot( W ) && BcPot( H ) ) ||
+		( ( W / 6 ) == H && BcPot( H ) ) ) // Cubemap.
 	{
 		// Down to a minimum of 4x4.
 		while( W > 4 && H > 4 )

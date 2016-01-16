@@ -88,7 +88,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
 			{
 				for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
 				{
-					auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
+					auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx ) );
 
 					// Load slice.
 					loadTexture( TextureSlice, 0, nullptr );
@@ -263,6 +263,7 @@ void RsTextureGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
+			PSY_LOG("TODO: Investigate why this doesn't work.");
 			GL( CompressedTexImage2D( 
 				RsUtilsGL::GetTextureFace( Slice.Face_ ),
 				Slice.Level_,
@@ -272,6 +273,7 @@ void RsTextureGL::loadTexture(
 				0,
 				DataSize,
 				Data ) );
+			break;
 #endif
 
 		default:

@@ -450,6 +450,8 @@ void ScnTexture::recreate()
 		BcU32 Depth = Depth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 		{
+			const auto NoofFaces = Header_.Type_ == RsTextureType::TEXCUBE ? 6 : 1;
+
 			const auto SourcePitch = 
 				RsTexturePitch( Header_.Format_, Width, Height );
 
@@ -466,24 +468,34 @@ void ScnTexture::recreate()
 
 			if( LevelIdx >= SkipMips )
 			{
-				auto Slice = StagingTexture->getSlice( LevelIdx - SkipMips );
+				if( NoofFaces > 1 )
+				{
+					int a = 0; ++a;
+				}
+				for( BcU32 FaceIdx = 0; FaceIdx < NoofFaces; ++FaceIdx )
+				{
+					auto Slice = StagingTexture->getSlice( LevelIdx - SkipMips, static_cast< RsTextureFace >( FaceIdx ) );
 
-				RsCore::pImpl()->updateTexture( 
-					StagingTexture.get(),
-					Slice,
-					RsResourceUpdateFlags::ASYNC,
-					[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo ]( RsTexture* Texture, const RsTextureLock& Lock )
-					{
-						BcAssert( Lock.Buffer_ );
-						BcAssert( Lock.Pitch_ >= SourcePitch );
-						BcAssert( Lock.SlicePitch_ >= SliceSize );
-						const auto Rows = Height / BlockInfo.Height_;
-						for( BcU32 Row = 0; Row < Rows; ++Row )
+					RsCore::pImpl()->updateTexture( 
+						StagingTexture.get(),
+						Slice,
+						RsResourceUpdateFlags::ASYNC,
+						[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo, NoofFaces, FaceIdx ]( RsTexture* Texture, const RsTextureLock& Lock )
 						{
-							BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
-							memcpy( DestData, TextureData + ( SourcePitch * Row ), SourcePitch );
-						}
-					} );
+							BcAssert( Lock.Buffer_ );
+							BcAssert( Lock.Pitch_ >= SourcePitch );
+							BcAssert( Lock.SlicePitch_ >= SliceSize / NoofFaces );
+							const auto Rows = Height / BlockInfo.Height_;
+							const auto FaceOffsetPitch = FaceIdx * SourcePitch;
+							for( BcU32 Row = 0; Row < Rows; ++Row )
+							{
+								BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
+								memcpy( DestData, 
+									TextureData + ( SourcePitch * Row * NoofFaces ) + FaceOffsetPitch, 
+									SourcePitch );
+							}
+						} );
+				}
 			}
 
 			// Down a level.
