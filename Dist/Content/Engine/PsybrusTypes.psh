@@ -1,0 +1,26 @@
+#pragma once
+
+#include <PsybrusVersion.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Setup HLSL types
+#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#define float2 vec2
+#define float3 vec3
+#define float4 vec4
+#define int2 ivec2
+#define int3 ivec3
+#define int4 ivec4
+#define float3x3 mat3
+#define float4x4 mat4
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// PI
+#define PI (3.14159265358979310)
+#define PIMUL2 (6.28318530717958620)
+#define PIMUL4 (12.5663706143591720)
+#define PIDIV2 (1.57079632679489660)
+#define PIDIV4 (0.78539816339744828)
+
+

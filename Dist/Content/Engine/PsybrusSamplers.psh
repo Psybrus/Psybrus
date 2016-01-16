@@ -1,0 +1,66 @@
+#pragma once
+
+#include <PsybrusTypes.psh>
+
+
+//////////////////////////////////////////////////////////////////////////
+// Samplers.
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+#  define PSY_SAMPLER_1D( _n ) \
+		texture1D a##_n; \
+		SamplerState s##_n
+
+#  define PSY_SAMPLER_2D( _n ) \
+		texture2D a##_n; \
+		SamplerState s##_n
+
+#  define PSY_SAMPLER_3D( _n ) \
+		texture3D a##_n; \
+		SamplerState s##_n
+
+#  define PSY_SAMPLER_CUBE( _n ) \
+		textureCUBE a##_n; \
+		SamplerState s##_n
+
+#  define PSY_SAMPLE_1D( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_2D( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_3D( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_CUBE( _n, _c ) a##_n.Sample( s##_n, _c )
+#  define PSY_SAMPLE_1D_LOD( _n, _c, _l ) a##_n.SampleLevel( s##_n, _c, _l )
+#  define PSY_SAMPLE_2D_LOD( _n, _c, _l ) a##_n.SampleLevel( s##_n, _c, _l )
+#  define PSY_SAMPLE_3D_LOD( _n, _c, _l ) a##_n.SampleLevel( s##_n, _c, _l )
+#  define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) a##_n.SampleLevel( s##_n, _c, _l )
+
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  define PSY_SAMPLER_1D( _n ) \
+		uniform sampler1D a##_n									
+
+#  define PSY_SAMPLER_2D( _n ) \
+		uniform sampler2D a##_n									
+
+#  define PSY_SAMPLER_3D( _n ) \
+		uniform sampler3D a##_n									
+
+#  define PSY_SAMPLER_CUBE( _n ) \
+		uniform samplerCube a##_n								
+
+#  if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
+#    define PSY_SAMPLE_1D( _n, _c ) texture( a##_n, _c )
+#    define PSY_SAMPLE_2D( _n, _c ) texture( a##_n, _c )
+#    define PSY_SAMPLE_3D( _n, _c ) texture( a##_n, _c )
+#    define PSY_SAMPLE_CUBE( _n, _c ) texture( a##_n, _c )
+#    define PSY_SAMPLE_1D_LOD( _n, _c, _l ) textureLod( a##_n, _c, _l )
+#    define PSY_SAMPLE_2D_LOD( _n, _c, _l ) textureLod( a##_n, _c, _l )
+#    define PSY_SAMPLE_3D_LOD( _n, _c, _l ) textureLod( a##_n, _c, _l )
+#    define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) textureLod( a##_n, _c, _l )
+#  else
+#    define PSY_SAMPLE_1D( _n, _c ) texture1D( a##_n, _c )
+#    define PSY_SAMPLE_2D( _n, _c ) texture2D( a##_n, _c )
+#    define PSY_SAMPLE_3D( _n, _c ) texture3D( a##_n, _c )
+#    define PSY_SAMPLE_CUBE( _n, _c ) textureCUBE( a##_n, _c )
+#    define PSY_SAMPLE_1D_LOD( _n, _c ) texture1D( a##_n, _c )
+#    define PSY_SAMPLE_2D_LOD( _n, _c ) texture2D( a##_n, _c )
+#    define PSY_SAMPLE_3D_LOD( _n, _c ) texture3D( a##_n, _c )
+#    define PSY_SAMPLE_CUBE_LOD( _n, _c ) textureCUBE( a##_n, _c )
+#  endif
+#endif

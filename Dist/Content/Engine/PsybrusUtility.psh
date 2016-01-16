@@ -1,0 +1,153 @@
+#pragma once
+
+#include <PsybrusVersion.psh>
+#include <PsybrusTypes.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// transpose & mul
+#if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_150 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_ES_300 )
+float3x3 transpose( float3x3 In )
+{
+	return float3x3( 
+		float3( In[0].x, In[1].x, In[2].x ),
+		float3( In[0].y, In[1].y, In[2].y ),
+		float3( In[0].z, In[1].z, In[2].z ) );
+}
+
+float4x4 transpose( float4x4 In )
+{
+	return float4x4( 
+		float4( In[0].x, In[1].x, In[2].x, In[3].x ),
+		float4( In[0].y, In[1].y, In[2].y, In[3].y ),
+		float4( In[0].z, In[1].z, In[2].z, In[3].z ),
+		float4( In[0].w, In[1].w, In[2].w, In[3].w ) );
+}
+#endif // ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_150 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_ES_300 )
+
+#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+float3 mul( float3x3 M, float3 V )
+{
+	return M * V;
+}
+
+float4 mul( float4x4 M, float4 V )
+{
+	return M * V;
+}
+#endif // PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+
+//////////////////////////////////////////////////////////////////////////
+// textureQueryLevels implementations (glslang doesn't support yet)
+#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
+int textureQueryLevels( sampler1D Sampler )
+{
+	int Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size > 4 )
+		{
+			Size /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+
+int textureQueryLevels( sampler2D Sampler )
+{
+	int2 Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size.x > 4 )
+		{
+			Size.x /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+
+int textureQueryLevels( sampler3D Sampler )
+{
+	int3 Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size.x > 4 )
+		{
+			Size.x /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+
+int textureQueryLevels( samplerCube Sampler )
+{
+	int2 Size = textureSize( Sampler, 0 );
+	int MipCount = 1;
+	for( MipCount = 1; MipCount < 16; ++MipCount )
+	{
+		if( Size.x > 4 )
+		{
+			Size.x /= 2;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return MipCount;
+}
+#endif // PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
+
+//////////////////////////////////////////////////////////////////////////
+// Colour space conversion.
+
+
+float3 gammaToLinear( float3 InputRGBA )
+{
+#if FAST_GAMMA_CONVERSION
+	return float3( InputRGBA.rgb * InputRGBA.rgb );
+#else
+	return float3( pow( InputRGBA.rgb, float3( 2.2 ) ) ); 
+#endif
+}
+
+float4 gammaToLinear( float4 InputRGBA )
+{
+	return float4( gammaToLinear( InputRGBA.rgb ), InputRGBA.a );
+}
+
+float3 linearToGamma( float3 InputRGBA )
+{
+#if FAST_GAMMA_CONVERSION
+	return float3( sqrt( InputRGBA.rgb ) );
+#else	
+	return float3( pow( InputRGBA.rgb, float3( 1.0 / 2.2 ) ) );
+#endif
+}
+
+float4 linearToGamma( float4 InputRGBA )
+{
+	return float4( linearToGamma( InputRGBA.rgb ), InputRGBA.a );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Depth utility.
+float linearDepth( float DepthSample, float Near, float Far )
+{
+	DepthSample = 2.0 * DepthSample - 1.0;
+	return ( 2.0 * ( Near * Far ) ) / ( ( Near + Far ) - DepthSample * ( Far - Near ) );
+}

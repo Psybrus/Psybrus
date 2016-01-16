@@ -4,21 +4,34 @@
 // cbuffer macros
 
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
-#undef PSY_USE_CBUFFER
-#define PSY_USE_CBUFFER 0
+#  undef PSY_USE_CBUFFER
+#  define PSY_USE_CBUFFER 0
 #else
-#undef PSY_USE_CBUFFER
-#define PSY_USE_CBUFFER 1
+#  undef PSY_USE_CBUFFER
+#  define PSY_USE_CBUFFER 1
 #endif
 
-#if PSY_USE_CBUFFER
-#	define BEGIN_CBUFFER( _n ) layout(std140) uniform _n {
-#	define ENTRY( _p, _t, _n ) _t _n;
-#	define END_CBUFFER };
-#else
-#	define BEGIN_CBUFFER( _n )
-#	define ENTRY( _p, _t, _n ) uniform _t _p##VS_X##_n;
-#	define END_CBUFFER
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+#  if PSY_USE_CBUFFER
+#    define BEGIN_CBUFFER( _n ) cbuffer _n {
+#    define ENTRY( _p, _t, _n ) _t _n;
+#    define END_CBUFFER };
+#  else
+#    define BEGIN_CBUFFER( _n )
+#    define ENTRY( _p, _t, _n ) _t _p##VS_X##_n;
+#    define END_CBUFFER
+#  endif
+
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  if PSY_USE_CBUFFER
+#    define BEGIN_CBUFFER( _n ) layout(std140) uniform _n {
+#    define ENTRY( _p, _t, _n ) _t _n;
+#    define END_CBUFFER };
+#  else
+#    define BEGIN_CBUFFER( _n )
+#    define ENTRY( _p, _t, _n ) uniform _t _p##VS_X##_n;
+#    define END_CBUFFER
+#  endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////
