@@ -425,7 +425,7 @@ void ScnModelComponent::StaticRegisterClass()
 ScnModelComponent::ScnModelComponent():
 	Model_(),
 	Layer_( 0 ),
-	Pass_( 0 ),
+	Pass_( RsRenderSortPassType::OPAQUE ),
 	Position_( 0.0f, 0.0f, 0.0f ),
 	Scale_( 1.0f, 1.0f, 1.0f ),
 	Rotation_( 0.0f, 0.0f, 0.0f ),
@@ -675,11 +675,15 @@ void ScnModelComponent::updateModel( BcF32 Tick )
 	UploadFence_.wait();
 	UpdateFence_.increment();
 	MaMat4d Matrix = BaseTransform_ * getParentEntity()->getWorldMatrix();
+#if 1
+	updateNodes( Matrix );
+#else
 	SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
 		[ this, Matrix ]()->void
 		{
 			updateNodes( Matrix );
 		} );
+#endif
 
 #if DEBUG_RENDER_NODES
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
@@ -1034,7 +1038,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 	// Set layer.
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = Layer_;
-	Sort.Pass_ = Pass_;
+	Sort.Pass_ = static_cast< BcU32 >( Pass_ );
 
 	// Lighting visitors.
 	if( isLit() )
