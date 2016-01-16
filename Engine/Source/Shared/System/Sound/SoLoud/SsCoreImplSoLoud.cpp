@@ -95,11 +95,17 @@ void SsCoreImplSoLoud::StaticRegisterClass()
 SsCoreImplSoLoud::SsCoreImplSoLoud():
 	SoLoudCore_( nullptr )
 {
-	// Create our job queue.
-	// - 1 thread if we have 4 or more hardware threads.
-	// Synchronisation issues. Revisit post-hectic game jam.
-	//SsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 4 );
-
+	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
+	{
+		SsCore::JOB_QUEUE_ID = -1;
+	}
+	else
+	{
+		// Create our job queue.
+		// - 1 thread if we have 4 or more hardware threads.
+		// Synchronisation issues. Revisit post-hectic game jam.
+		//SsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 4 );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
