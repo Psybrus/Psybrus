@@ -55,6 +55,17 @@ float NDF_BlinnPhongNormalised( float NdotH, float N )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// NDF_GGX
+// http://www.filmicworlds.com/2014/04/21/optimizing-ggx-shaders-with-dotlh/
+float NDF_GGX( float NdotH, float Roughness )
+{
+	float Alpha = Roughness * Roughness;
+	float AlphaSquared = Alpha * Alpha;
+	float Denominator = NdotH * NdotH * ( Alpha - 1.0 ) + 1.0;
+	return AlphaSquared / ( PI * Denominator * Denominator );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // GeometryVisibility_CookTorrence
 float GeometryVisibility_CookTorrence( float NdotL, float NdotV, float NdotH, float VdotH )
 {
@@ -105,13 +116,16 @@ vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, 
 
 	// Convert roughness to specular power.
 	float Roughness = InMaterial.Roughness_;
-	float SpecularPower = RoughnessToSpecularPower( Roughness );
 
 	// Calculate reflectance.
 	vec3 SpecularReflectance = mix( vec3( InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
 
 	// Calculate terms for spec + diffuse.
-	float D = NDF_BlinnPhongNormalised( NdotH, SpecularPower );
+#if 1
+	float D = NDF_BlinnPhongNormalised( NdotH, RoughnessToSpecularPower( Roughness ) );
+#else
+	float D = NDF_GGX( NdotH, Roughness );
+#endif
 	float G = GeometryVisibility_CookTorrence( NdotL, NdotV, NdotH, VdotH );
 	vec3 Fspec = Fresnel_SchlickApproximation( SpecularReflectance, LdotH );
 
