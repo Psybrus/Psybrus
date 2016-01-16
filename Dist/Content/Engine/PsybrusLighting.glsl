@@ -30,6 +30,13 @@ float calculateAttenuation( float Distance, vec3 Attenuation )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// RoughnessToSpecularPower
+float RoughnessToSpecularPower( float Roughness )
+{
+	return 1024.0 * pow( 1.0 - Roughness, 5.0 ) + 1.0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Fresnel_SchlickApproximation
 vec3 Fresnel_SchlickApproximation( vec3 F0, float CosA )
 {
@@ -68,7 +75,7 @@ vec3 CookTorrence( float D, vec3 F, float G, float NdotL, float NdotV )
 
 //////////////////////////////////////////////////////////////////////////
 // BRDF_Default
-vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, in vec3 SurfacePosition, in vec3 Normal )
+vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, in vec3 SurfacePosition, in vec3 Normal, in vec3 ReflectionColour )
 {
 	vec3 LightPosition = InLight.Position_.xyz;
 	vec3 ViewVector = normalize( ViewPosition - SurfacePosition );
@@ -98,7 +105,7 @@ vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, 
 
 	// Convert roughness to specular power.
 	float Roughness = InMaterial.Roughness_;
-	float SpecularPower = ( ( 1.0 - Roughness ) * 100.0 ) + 1.0;
+	float SpecularPower = RoughnessToSpecularPower( Roughness );
 
 	// Calculate reflectance.
 	vec3 SpecularReflectance = mix( vec3( InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
@@ -114,11 +121,12 @@ vec3 BRDF_Default( Light InLight, in Material InMaterial, in vec3 ViewPosition, 
 	// Diffuse
 	vec3 Diffuse = vec3( max( NdotL, 0.0 ) );
 	Diffuse = max( vec3( 0.0 ), Diffuse * ( vec3( 1.0 ) - Fspec ) * ( vec3( 1.0 - InMaterial.Metallic_ ) ) );
-	//	Diffuse = max( vec3( 0.0 ), Diffuse * ( vec3( 1.0 ) - Fdiff ) );
 
+	// Specular colour.
+	vec3 SpecularColour = mix( Specular * InMaterial.Colour_, ReflectionColour, InMaterial.Metallic_ );
 
 	// Total colour.
-	vec3 Total = ( Diffuse * ( InMaterial.Colour_ / vec3( PI ) ) ) + ( Specular * InMaterial.Colour_ );
+	vec3 Total = ( Diffuse * ( InMaterial.Colour_ / vec3( PI ) ) ) + SpecularColour;
 
 	// Punctual light source.
 	return Total * InLight.Colour_ * NdotL;
