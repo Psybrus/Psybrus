@@ -979,8 +979,13 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 		auto It = DefaultTextures_.find( Name );
 		if( It != DefaultTextures_.end() )
 		{
+			// TODO: Implement DefaultSamplerStates.
+			RsSamplerStateDesc Sampler;
+			Sampler.MinFilter_ = RsTextureFilteringMode::LINEAR;
+			Sampler.MagFilter_ = RsTextureFilteringMode::LINEAR;
+
 			TextureRef = It->second;
-			MaterialImport->addTexture( Name, TextureRef, RsSamplerStateDesc() );
+			MaterialImport->addTexture( Name, TextureRef, Sampler );
 		}
 	}
 #endif
