@@ -397,40 +397,22 @@ void MainShared()
 
 	// Setup default system job queues.
 	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
+	
 
-	/*
-	// Disable render thread for debugging.
-	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
-	{
-		RsCore::JOB_QUEUE_ID = -1;
-	}
-	
-	// Disable sound thread for debugging.
-	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
-	{
-		SsCore::JOB_QUEUE_ID = -1;
-	}
-	
-	// Disable file thread for debugging.
-	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
-	{
-		FsCore::JOB_QUEUE_ID = -1;
-	}
-	*/
 
 	// Parse command line params for disabling systems.
-	if( SysArgs_.find( "-noremote" ) != std::string::npos )
+	if( SysArgs_.find( "-noremote " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
 	}
 
 
-	if( SysArgs_.find( "-norender" ) != std::string::npos )
+	if( SysArgs_.find( "-norender " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_RENDER;
 	}
 
-	if( SysArgs_.find( "-nosound" ) != std::string::npos )
+	if( SysArgs_.find( "-nosound " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
