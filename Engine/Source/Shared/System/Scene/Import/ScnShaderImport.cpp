@@ -861,12 +861,26 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 		std::string Entrypoint = Entrypoints_[ Entry.Type_ ];
 		BcAssert( !Entrypoint.empty() );
 
+		std::map< std::string, std::string > Defines = Params.Permutation_.Defines_;
+
+		const char* ShaderDefines[] = 
+		{
+			"VERTEX_SHADER",
+			"PIXEL_SHADER",
+			"HULL_SHADER",
+			"DOMAIN_SHADER",
+			"GEOMETRY_SHADER",
+			"COMPUTE_SHADER"
+		};
+
+		Defines[ ShaderDefines[ (int)Entry.Type_ ] ] = "1";
+
 		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::D3D11 )
 		{
 			if( compileShader( 
 					Params.ShaderSource_, 
 					Entrypoint, 
-					Params.Permutation_.Defines_, 
+					Defines, 
 					IncludePaths_, 
 					Entry.Level_, 
 					ByteCode, 
