@@ -241,7 +241,7 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 		if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
 		{
 			PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
-			return;
+			return nullptr;
 		}
 		else
 		{
@@ -253,7 +253,7 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 		if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
 		{
 			PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
-			return;
+			return nullptr;
 		}
 		else
 		{

@@ -101,7 +101,7 @@ void writeVelocity( FRAMEBUFFER_INPUT, in float2 Velocity )
 #    define NOOF_MAX_OUTPUT_FRAGMENTS 4
 #    define outputFrag gl_FragData
 #    define FRAMEBUFFER_OUTPUT gl_FragData[0],  gl_FragData[1], gl_FragData[2], gl_FragData[3]
-#    define FRAMEBUFFER_INPUT inout float4 outFrag0, inout float4 outFrag1, inout float4 outFrag2, inout float4 outFrag3
+#    define FRAMEBUFFER_INPUT inout highp float4 outFrag0, inout highp float4 outFrag1, inout highp float4 outFrag2, inout highp float4 outFrag3
 #    define FRAMEBUFFER_INTERNAL outFrag0, outFrag1, outFrag2, outFrag3
 
 #  elif PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_330

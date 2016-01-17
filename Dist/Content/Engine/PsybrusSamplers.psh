@@ -58,11 +58,11 @@
 #    define PSY_SAMPLE_1D( _n, _c ) float4( 0.0, 0.0, 0.0, 0.0 )
 #    define PSY_SAMPLE_2D( _n, _c ) texture2D( a##_n, _c )
 #    define PSY_SAMPLE_3D( _n, _c ) float4( 0.0, 0.0, 0.0, 0.0 )
-#    define PSY_SAMPLE_CUBE( _n, _c ) float4( 0.0, 0.0, 0.0, 0.0 )
+#    define PSY_SAMPLE_CUBE( _n, _c ) textureCube( a##_n, _c )
 #    define PSY_SAMPLE_1D_LOD( _n, _c, _l ) float4( 0.0, 0.0, 0.0, 0.0 )
 #    define PSY_SAMPLE_2D_LOD( _n, _c, _l ) texture2D( a##_n, _c )
 #    define PSY_SAMPLE_3D_LOD( _n, _c, _l ) float4( 0.0, 0.0, 0.0, 0.0 )
-#    define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) float4( 0.0, 0.0, 0.0, 0.0 )
+#    define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) textureCube( a##_n, _c )
 #  endif
 #endif
 

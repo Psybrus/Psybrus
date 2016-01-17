@@ -7,12 +7,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
+RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceType ):
 	Parent_( Parent ),
 	ResourceType_( ResourceType )
 {
 	Parent_->setHandle( this );
-	if( ResourceType_ == ResourceType::TEXTURE )
+	if( ResourceType_ == RsTextureGL::ResourceType::TEXTURE )
 	{
 		const auto& TextureDesc = Parent_->getDesc();
 		auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
