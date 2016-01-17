@@ -1,65 +1,101 @@
 #ifndef __PSYBRUSVERTICES_PSH__
 #define __PSYBRUSVERTICES_PSH__
 
-#include <PsybrusTypes.psh>
+#include <PsybrusUtility.psh>
+#include <PsybrusUniforms.psh>
 
 //////////////////////////////////////////////////////////////////////////
 // Input attributes for GLSL
 #define VsPosition gl_Position
 
-#if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
-#  define VS_IN( _Ty, _Name, _Semantic )		in _Ty _Name : _Semantic
-#  define VS_OUT( _Ty, _Name )					out _Ty _Name
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
 
-#  define GS_IN( _Ty, _Name )					in _Ty _Name
-#  define GS_OUT( _Ty, _Name )					out _Ty _Name
+#  define DECLARE_IN( _Ty, _Name, _Semantic )			_Ty _Name : _Semantic
+#  define DECLARE_OUT( _Ty, _Name, _Semantic )			_Ty _Name : _Semantic
 
-#  define PS_IN( _Ty, _Name )					in _Ty _Name
+#  define IN( _Name ) i._Name
+#  define OUT( _Name ) o._Name
+#  define OUT_POSITION o.Position_
 
-#else
-#  define VS_IN( _Ty, _Name, _Semantic ) 		attribute _Ty _Name : _Semantic
-#  define VS_OUT( _Ty, _Name )					varying _Ty _Name
+#  define VS_IN_BEGIN struct VS_INPUT {
+#  define VS_IN_END };
 
-#  define GS_IN( _Ty, _Name )					in _Ty _Name
-#  define GS_OUT( _Ty, _Name )					out _Ty _Name
+#  define VS_OUT_BEGIN struct VS_OUTPUT { float4 Position_ : SV_POSITION; 
+#  define VS_OUT_END };
 
-#  define PS_IN( _Ty, _Name )					varying _Ty _Name
+#  define VS_MAIN( _Name ) VS_OUTPUT _Name( VS_INPUT i )
+#  define VS_ENTER VS_OUTPUT o = (VS_OUTPUT)0
+#  define VS_EXIT return o
+
+
+#  define GS_IN_BEGIN struct GS_INPUT {
+#  define GS_IN_END };
+
+#  define GS_OUT_BEGIN struct GS_OUTPUT {
+#  define GS_OUT_END };
+
+#  define GS_MAIN( _Name ) GS_OUTPUT _Name( GS_INPUT i )
+#  define GS_ENTER GS_OUTPUT o = (GS_OUTPUT)0
+#  define GS_EXIT return o
+
+
+#  define PS_IN_BEGIN struct PS_INPUT { float4 Position_ : SV_POSITION; 
+#  define PS_IN_END };
+
+#  define PS_MAIN( _Name ) PS_OUTPUT_INTERNAL _Name( PS_INPUT i )
+#  define PS_ENTER PS_OUTPUT_INTERNAL o = (PS_OUTPUT_INTERNAL)0
+#  define PS_EXIT return o
+
+
+#elif ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES )
+
+#  define DECLARE_IN( _Ty, _Name, _Semantic ) in _Ty _Name : _Semantic
+#  define DECLARE_OUT( _Ty, _Name, _Semantic ) out _Ty _Name : _Semantic
+
+#  define IN( _Name ) _Name
+#  define OUT( _Name ) _Name
+#  define OUT_POSITION gl_Position
+
+#  define VS_IN_BEGIN
+#  define VS_IN_END
+
+#  define VS_OUT_BEGIN
+#  define VS_OUT_END
+
+#  define VS_MAIN( _Name ) void _Name()
+#  define VS_ENTER
+#  define VS_EXIT
+
+#  define GS_IN_BEGIN
+#  define GS_IN_END
+
+#  define GS_OUT_BEGIN
+#  define GS_OUT_END
+
+#  define GS_MAIN( _Name ) void _Name()
+#  define GS_ENTER
+#  define GS_EXIT
+
+
+#  define PS_IN_BEGIN
+#  define PS_IN_END
+
+#  define PS_MAIN( _Name ) void _Name()
+#  define PS_ENTER
+#  define PS_EXIT
 
 #endif
 
 
-////////////////////////////////////////////////////////////////////////
-// VertexDefault for HLSL
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
-struct VertexDefault
-{
-	float4 Position_		: POSITION;
-	float4 Normal_			: NORMAL;
-	float4 Colour_			: COLOR0;
-	float4 TexCoord0_		: TEXCOORD0;
-
-#  if defined( PERM_MESH_SKINNED_3D )
-	int4 BlendIndices_		: BLENDINDICES;
-	float4 BlendWeights_	: BLENDWEIGHTS;
-
-#  elif defined( PERM_MESH_PARTICLE_3D )
-	float4 Tangent_	: TANGENT;
-
-#  elif defined( PERM_MESH_INSTANCED_3D )
-	float4 WorldMatrix0_	: TEXCOORD4;
-	float4 WorldMatrix1_	: TEXCOORD5;
-	float4 WorldMatrix2_	: TEXCOORD6;
-	float4 WorldMatrix3_	: TEXCOORD7;
-#  endif
-};
-#endif ///PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
-
 //////////////////////////////////////////////////////////////////////////
 // Setup semantics for HLSL
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
-#  define SEMANTIC_BLENDINDICES i.BlendIndices_
-#  define SEMANTIC_BLENDWEIGHTS i.BlendWeights_
-#  define SEMANTIC_TANGENT i.Tangent_
+#  define SEMANTIC_BLENDINDICES i.InBlendIndices_
+#  define SEMANTIC_BLENDWEIGHTS i.InBlendWeights_
+#  define SEMANTIC_TANGENT i.InTangent_
+#  define BLENDINDICES_TYPE int4
+#else
+#  define BLENDINDICES_TYPE int4
 #endif
 
 //////////////////////////////////////////////////////////////////////////

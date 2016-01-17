@@ -9,7 +9,78 @@
 
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
 
-// TODO: D3D11 stuffs.
+#  if !defined( NOOF_OUTPUT_FRAGMENTS )
+#    if defined( PERM_RENDER_DEFERRED )
+#      define NOOF_MAX_OUTPUT_FRAGMENTS 4
+#      define NOOF_OUTPUT_FRAGMENTS 4
+#    else 
+#      define NOOF_MAX_OUTPUT_FRAGMENTS 1
+#      define NOOF_OUTPUT_FRAGMENTS 1
+#    endif
+#  else
+#    define NOOF_MAX_OUTPUT_FRAGMENTS NOOF_OUTPUT_FRAGMENTS
+#  endif
+
+struct PS_OUTPUT_INTERNAL
+{
+	float4 Output_[ NOOF_MAX_OUTPUT_FRAGMENTS ] : SV_TARGET;
+};
+
+#  define outputFrag o.Output_
+#  define FRAMEBUFFER_OUTPUT i, o
+#  define FRAMEBUFFER_INPUT in PS_INPUT i, inout PS_OUTPUT_INTERNAL o
+#  define FRAMEBUFFER_INTERNAL i, o
+
+void clearFrag( FRAMEBUFFER_INPUT )
+{
+#  if NOOF_OUTPUT_FRAGMENTS >= 1
+	o.Output_[0] = float4( 1.0, 1.0, 1.0, 1.0 );
+#  endif
+
+#  if NOOF_OUTPUT_FRAGMENTS >= 2
+	o.Output_[1] = float4( 1.0, 1.0, 1.0, 1.0 );
+#  endif
+
+#  if NOOF_OUTPUT_FRAGMENTS >= 3
+	o.Output_[2] = float4( 1.0, 1.0, 1.0, 1.0 );
+#  endif
+
+#  if NOOF_OUTPUT_FRAGMENTS >= 4
+	o.Output_[3] = float4( 0.0, 0.0, 0.0, 0.0 );
+#  endif
+}
+
+void writeFrag( FRAMEBUFFER_INPUT, in float4 Colour )
+{
+	clearFrag( FRAMEBUFFER_INTERNAL );
+	o.Output_[0] = Colour;
+}
+
+void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal )
+{
+	clearFrag( FRAMEBUFFER_INTERNAL );
+	o.Output_[0].xyzw = Albedo.xyzw;
+#  if defined( PERM_RENDER_DEFERRED )
+	o.Output_[2].xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
+#  endif
+}
+
+void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal, in float3 Material )
+{
+	clearFrag( FRAMEBUFFER_INTERNAL );
+	o.Output_[0].xyzw = Albedo.xyzw;
+#  if defined( PERM_RENDER_DEFERRED )
+	o.Output_[1].xyz = Material;
+	o.Output_[2].xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
+#  endif
+}
+
+void writeVelocity( FRAMEBUFFER_INPUT, in float2 Velocity )
+{
+#  if defined( PERM_RENDER_DEFERRED )
+	o.Output_[3].xy = Velocity;
+#  endif
+}
 
 #elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
@@ -98,7 +169,7 @@ void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal, in float3
 #  endif
 }
 
-void writeVelocity( FRAMEBUFFER_INPUT, in vec2 Velocity )
+void writeVelocity( FRAMEBUFFER_INPUT, in float2 Velocity )
 {
 #  if defined( PERM_RENDER_DEFERRED )
 	outFrag3.xy = Velocity;

@@ -7,7 +7,5 @@
 #include <PsybrusUniforms.psh>
 #include <PsybrusVertices.psh>
 #include <PsybrusSamplers.psh>
-#include <PsybrusOutput.psh>
-#include <PsybrusLighting.psh>
 
 #endif // __PSYBRUS_PSH__

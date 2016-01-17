@@ -3,7 +3,7 @@
 
 #include <PsybrusUniforms.psh>
 
-float LIGHTING_EPSILON = 1e-6;
+#define LIGHTING_EPSILON  ( 1e-6 )
 
 //////////////////////////////////////////////////////////////////////////
 // Light
@@ -54,7 +54,7 @@ float3 Fresnel_SchlickApproximation( float3 F0, float CosA )
 float NDF_BlinnPhongNormalised( float NdotH, float N )
 {
 	float NormTerm = ( N + 2.0 ) / ( PIMUL2 );
-	float SpecTerm = pow( NdotH, N );
+	float SpecTerm = pow( max( 0.0, NdotH ), N );
 	return NormTerm * SpecTerm;
 }
 //////////////////////////////////////////////////////////////////////////

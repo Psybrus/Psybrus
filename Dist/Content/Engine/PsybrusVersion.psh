@@ -1,6 +1,8 @@
 #ifndef __PSYBRUSVERSION_PSH__
 #define __PSYBRUSVERSION_PSH__
 
+#if !defined( SKIP_VERSION )
+
 //////////////////////////////////////////////////////////////////////////
 // Version directives.
 #if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_150
@@ -28,5 +30,6 @@
 precision mediump float;
 
 #endif
+#endif // !defined( SKIP_VERSION )
 
 #endif // __PSYBRUSVERSION_PSH__

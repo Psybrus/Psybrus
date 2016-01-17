@@ -39,7 +39,46 @@ float4 mul( float4x4 M, float4 V )
 
 //////////////////////////////////////////////////////////////////////////
 // textureQueryLevels implementations (glslang doesn't support yet)
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+int textureQueryLevels( Texture1D<float4> InTex )
+{
+	int Width;
+	int NumberOfLevels = 1;
+	InTex.GetDimensions( 0, Width, NumberOfLevels );
+	return NumberOfLevels;
+}
+
+int textureQueryLevels( Texture2D<float4> InTex )
+{
+	int Width;
+	int Height;
+	int NumberOfLevels = 1;
+	InTex.GetDimensions( 0, Width, Height, NumberOfLevels );
+	return NumberOfLevels;
+}
+
+int textureQueryLevels( Texture3D<float4> InTex )
+{
+	int Width;
+	int Height;
+	int Depth;
+	int NumberOfLevels = 1;
+	int NumberOfSamples;
+	InTex.GetDimensions( 0, Width, Height, Depth, NumberOfLevels );
+	return NumberOfLevels;
+}
+
+int textureQueryLevels( TextureCube<float4> InTex )
+{
+	int Width;
+	int Height;
+	int NumberOfLevels = 1;
+	InTex.GetDimensions( 0, Width, Height, NumberOfLevels );
+	return NumberOfLevels;
+}
+
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
+
 int textureQueryLevels( sampler1D Sampler )
 {
 	int Size = textureSize( Sampler, 0 );
@@ -111,7 +150,9 @@ int textureQueryLevels( samplerCube Sampler )
 	}
 	return MipCount;
 }
+
 #elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+
 int textureQueryLevels( sampler2D Sampler )
 {
 	return 1;
@@ -132,7 +173,7 @@ float3 gammaToLinear( float3 InputRGBA )
 	return InputRGBA.rgb * InputRGBA.rgb;
 #else
 	float Gamma = 2.2;
-	return pow( InputRGBA.rgb, float3( Gamma, Gamma, Gamma ) );
+	return pow( max( float3( 0.0, 0.0, 0.0 ), InputRGBA.rgb ), float3( Gamma, Gamma, Gamma ) );
 #endif
 }
 
@@ -147,7 +188,7 @@ float3 linearToGamma( float3 InputRGBA )
 	return sqrt( InputRGBA.rgb );
 #else	
 	float InvGamma = 1.0 / 2.2;
-	return pow( InputRGBA.rgb, float3( InvGamma, InvGamma, InvGamma ) );
+	return pow( max( float3( 0.0, 0.0, 0.0 ), InputRGBA.rgb ), float3( InvGamma, InvGamma, InvGamma ) );
 #endif
 }
 
