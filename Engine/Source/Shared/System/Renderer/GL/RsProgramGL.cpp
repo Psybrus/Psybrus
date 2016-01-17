@@ -563,7 +563,7 @@ void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuff
 		}
 		else
 		{
-			BcBreakpoint;
+			//BcBreakpoint;
 		}
 	}
 }

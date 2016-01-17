@@ -277,7 +277,7 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	// Construct a new graphics pipeline state.
 	ComPtr< ID3D12PipelineState > GraphicsPS;
 
-	HRESULT RetVal = Device_->CreateGraphicsPipelineState( &PSODesc, IID_PPV_ARGS( GraphicsPS.GetAddressOf() ) );
+ 	HRESULT RetVal = Device_->CreateGraphicsPipelineState( &PSODesc, IID_PPV_ARGS( GraphicsPS.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 		
 	// Add to map & return.

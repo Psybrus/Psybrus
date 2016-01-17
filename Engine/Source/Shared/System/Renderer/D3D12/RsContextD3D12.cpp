@@ -1333,7 +1333,8 @@ bool RsContextD3D12::updateTexture(
 	// Calculate cubemap subresource.
 	if( TextureDesc.Type_ == RsTextureType::TEXCUBE )
 	{
-		SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ );
+		//SubResource = Slice.Level_ * 6 + ( (BcU32)Slice.Face_ );
+		SubResource = Slice.Level_ + ( (BcU32)Slice.Face_ ) * TextureDesc.Levels_;
 	}
 
 	// Setup pitched subresource to match source data.

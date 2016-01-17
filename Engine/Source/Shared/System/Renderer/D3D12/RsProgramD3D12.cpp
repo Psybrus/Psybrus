@@ -26,9 +26,29 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	{
 		const auto& ShaderDesc = Shader->getDesc();
 		BcU32 ShaderTypeIdx = static_cast< BcU32 >( ShaderDesc.ShaderType_ );
-		ID3D12ShaderReflection* Reflector = nullptr; 
+		ComPtr< ID3D12ShaderReflection > Reflector = nullptr; 
 		D3DReflect( Shader->getData(), Shader->getDataSize(),
-			IID_ID3D12ShaderReflection, (void**)&Reflector );
+			IID_ID3D12ShaderReflection, (void**)Reflector.GetAddressOf() );
+
+		for( BcU32 Idx = 0; Idx < 128; ++Idx )
+		{
+			D3D12_SIGNATURE_PARAMETER_DESC Desc;
+			if( SUCCEEDED( Reflector->GetInputParameterDesc( Idx, &Desc ) ) )
+			{
+				int a = 0;
+				++a;
+			}
+		}
+
+		for( BcU32 Idx = 0; Idx < 128; ++Idx )
+		{
+			D3D12_SIGNATURE_PARAMETER_DESC Desc;
+			if( SUCCEEDED( Reflector->GetOutputParameterDesc( Idx, &Desc ) ) )
+			{
+				int a = 0;
+				++a;
+			}
+		}
 
 		// Just iterate over a big number...we'll assert if we go over.
 		for( BcU32 Idx = 0; Idx < 128; ++Idx )
@@ -56,9 +76,26 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 						BcAssert( BufferDesc.Size == Size );
 					}
 
-					SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
-					Size = BufferDesc.Size;
-					CBSizes[ BindDesc.Name ] = Size;
+					if( BcStrStr( BufferDesc.Name, "$Globals" ) )
+					{
+						PSY_LOG( "ERROR: $Globals exists in shader." );
+						for( BcU32 Idx = 0; Idx < BufferDesc.Variables; ++Idx )
+						{
+							ID3D12ShaderReflectionVariable* Variable = ConstantBuffer->GetVariableByIndex( Idx );
+							D3D12_SHADER_VARIABLE_DESC Desc;
+							if( SUCCEEDED( Variable->GetDesc( &Desc ) ) )
+							{
+								PSY_LOG( "Variable: %s", Desc.Name );
+							}
+						}
+
+					}
+					else
+					{
+						SlotMapping.ShaderSlot[ ShaderTypeIdx ] = BindDesc.BindPoint;
+						Size = BufferDesc.Size;
+						CBSizes[ BindDesc.Name ] = Size;
+					}
 				}
 				else if( 
 					BindDesc.Type == D3D_SIT_TEXTURE ||
