@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __PSYBRUSOUTPUT_PSH__
+#define __PSYBRUSOUTPUT_PSH__
 
 #include <PsybrusTypes.psh>
 
@@ -107,3 +108,4 @@ void writeVelocity( FRAMEBUFFER_INPUT, in vec2 Velocity )
 #  endif // PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
 #endif // PIXEL_SHADER
+#endif // __PSYBRUSOUTPUT_PSH__

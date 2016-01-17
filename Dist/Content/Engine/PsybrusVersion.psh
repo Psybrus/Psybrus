@@ -1,26 +1,27 @@
-#pragma once
+#ifndef __PSYBRUSVERSION_PSH__
+#define __PSYBRUSVERSION_PSH__
 
 //////////////////////////////////////////////////////////////////////////
 // Version directives.
-#if PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_150
+#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_150
 #version 150
 
-#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_330
+#elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_330
 #version 330
 
-#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_400
+#elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_400
 #version 400
 
-#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_410
+#elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_410
 #version 410
 
-#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_420
+#elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_420
 #version 420
 
-#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_430
+#elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_430
 #version 430
 
-#elif PSY_OUTPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
+#elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 
 #version 100
 #extension GL_EXT_draw_buffers : enable
@@ -28,3 +29,4 @@ precision mediump float;
 
 #endif
 
+#endif // __PSYBRUSVERSION_PSH__

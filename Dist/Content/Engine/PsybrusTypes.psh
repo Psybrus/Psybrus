@@ -1,10 +1,12 @@
-#pragma once
+#ifndef __PSYBRUSTYPES_PSH__
+#define __PSYBRUSTYPES_PSH__
+
 
 #include <PsybrusVersion.psh>
 
 //////////////////////////////////////////////////////////////////////////
 // Setup HLSL types
-#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 #define float2 vec2
 #define float3 vec3
 #define float4 vec4
@@ -13,6 +15,24 @@
 #define int4 ivec4
 #define float3x3 mat3
 #define float4x4 mat4
+
+#define lerp mix
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+// Matrix casting
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+float3x3 getFloat3x3(float4x4 Matrix)
+{
+	return (float3x3)Matrix;
+}
+
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+float3x3 getFloat3x3(float4x4 Matrix)
+{
+	return float3x3(Matrix);
+}
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -23,4 +43,4 @@
 #define PIDIV2 (1.57079632679489660)
 #define PIDIV4 (0.78539816339744828)
 
-
+#endif // __PSYBRUSTYPES_PSH__

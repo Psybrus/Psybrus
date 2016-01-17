@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __PSYBRUSSAMPLERS_PSH__
+#define __PSYBRUSSAMPLERS_PSH__
 
 #include <PsybrusTypes.psh>
 
@@ -44,7 +45,7 @@
 #  define PSY_SAMPLER_CUBE( _n ) \
 		uniform samplerCube a##_n								
 
-#  if ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
+#  if ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_INPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
 #    define PSY_SAMPLE_1D( _n, _c ) texture( a##_n, _c )
 #    define PSY_SAMPLE_2D( _n, _c ) texture( a##_n, _c )
 #    define PSY_SAMPLE_3D( _n, _c ) texture( a##_n, _c )
@@ -54,13 +55,15 @@
 #    define PSY_SAMPLE_3D_LOD( _n, _c, _l ) textureLod( a##_n, _c, _l )
 #    define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) textureLod( a##_n, _c, _l )
 #  else
-#    define PSY_SAMPLE_1D( _n, _c ) texture1D( a##_n, _c )
+#    define PSY_SAMPLE_1D( _n, _c ) float4( 0.0, 0.0, 0.0, 0.0 )
 #    define PSY_SAMPLE_2D( _n, _c ) texture2D( a##_n, _c )
-#    define PSY_SAMPLE_3D( _n, _c ) texture3D( a##_n, _c )
-#    define PSY_SAMPLE_CUBE( _n, _c ) textureCUBE( a##_n, _c )
-#    define PSY_SAMPLE_1D_LOD( _n, _c ) texture1D( a##_n, _c )
-#    define PSY_SAMPLE_2D_LOD( _n, _c ) texture2D( a##_n, _c )
-#    define PSY_SAMPLE_3D_LOD( _n, _c ) texture3D( a##_n, _c )
-#    define PSY_SAMPLE_CUBE_LOD( _n, _c ) textureCUBE( a##_n, _c )
+#    define PSY_SAMPLE_3D( _n, _c ) float4( 0.0, 0.0, 0.0, 0.0 )
+#    define PSY_SAMPLE_CUBE( _n, _c ) float4( 0.0, 0.0, 0.0, 0.0 )
+#    define PSY_SAMPLE_1D_LOD( _n, _c, _l ) float4( 0.0, 0.0, 0.0, 0.0 )
+#    define PSY_SAMPLE_2D_LOD( _n, _c, _l ) texture2D( a##_n, _c )
+#    define PSY_SAMPLE_3D_LOD( _n, _c, _l ) float4( 0.0, 0.0, 0.0, 0.0 )
+#    define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) float4( 0.0, 0.0, 0.0, 0.0 )
 #  endif
 #endif
+
+#endif // __PSYBRUSSAMPLERS_PSH__

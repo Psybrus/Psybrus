@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __PSYBRUSVERTICES_PSH__
+#define __PSYBRUSVERTICES_PSH__
 
 #include <PsybrusTypes.psh>
 
@@ -26,9 +27,36 @@
 
 #endif
 
+
+////////////////////////////////////////////////////////////////////////
+// VertexDefault for HLSL
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+struct VertexDefault
+{
+	float4 Position_		: POSITION;
+	float4 Normal_			: NORMAL;
+	float4 Colour_			: COLOR0;
+	float4 TexCoord0_		: TEXCOORD0;
+
+#  if defined( PERM_MESH_SKINNED_3D )
+	int4 BlendIndices_		: BLENDINDICES;
+	float4 BlendWeights_	: BLENDWEIGHTS;
+
+#  elif defined( PERM_MESH_PARTICLE_3D )
+	float4 Tangent_	: TANGENT;
+
+#  elif defined( PERM_MESH_INSTANCED_3D )
+	float4 WorldMatrix0_	: TEXCOORD4;
+	float4 WorldMatrix1_	: TEXCOORD5;
+	float4 WorldMatrix2_	: TEXCOORD6;
+	float4 WorldMatrix3_	: TEXCOORD7;
+#  endif
+};
+#endif ///PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+
 //////////////////////////////////////////////////////////////////////////
 // Setup semantics for HLSL
-#if PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
 #  define SEMANTIC_BLENDINDICES i.BlendIndices_
 #  define SEMANTIC_BLENDWEIGHTS i.BlendWeights_
 #  define SEMANTIC_TANGENT i.Tangent_
@@ -40,43 +68,48 @@
 
 /**
  * Make a world space vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
-	_o = float4( _v.xy, 0.0, 1.0 );
+	_o = float4( _v.xy, 0.0, 1.0 )
 
 /**
  * Make a world space normal.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output normal. Should be float4.
  * @param _v Input normal. Should be float4.
  */
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = float4( _v.xy, 0.0, 1.0 );
+	_o = float4( _v.xy, 0.0, 1.0 )
 
 #elif defined( PERM_MESH_STATIC_3D )
 
 /**
  * Make a world space vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
-	_o = mul( WorldTransform_, _v );
+	_o = mul( WorldTransform_, _v )
 
 /**
  * Make a world space normal.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output normal. Should be float4.
  * @param _v Input normal. Should be float4.
  */
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
 	_o = mul( NormalTransform_, _v ); \
-	_o.xyz = normalize( _o.xyz );
+	_o.xyz = normalize( _o.xyz )
 
 #elif defined( PERM_MESH_SKINNED_3D )
 
 /**
  * Make a world space vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
@@ -84,43 +117,48 @@
 	_o =  mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.x) ], _v ) * SEMANTIC_BLENDWEIGHTS.x; \
 	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.y) ], _v ) * SEMANTIC_BLENDWEIGHTS.y; \
 	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.z) ], _v ) * SEMANTIC_BLENDWEIGHTS.z; \
-	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ], _v ) * SEMANTIC_BLENDWEIGHTS.w;
+	_o += mul( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ], _v ) * SEMANTIC_BLENDWEIGHTS.w
 
 /**
  * Make a world space normal.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output normal. Should be float4.
  * @param _v Input normal. Should be float4.
  */
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o =  float4( mul( float3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.x) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.x, 0.0 ); \
-	_o += float4( mul( float3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.y) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.y, 0.0 ); \
-	_o += float4( mul( float3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.z) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.z, 0.0 ); \
-	_o += float4( mul( float3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.w, 0.0 ); \
-	_o.xyz = normalize( _o.xyz );
+	_o =  float4( mul( getFloat3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.x) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.x, 0.0 ); \
+	_o += float4( mul( getFloat3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.y) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.y, 0.0 ); \
+	_o += float4( mul( getFloat3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.z) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.z, 0.0 ); \
+	_o += float4( mul( getFloat3x3( BoneTransform_[ int(SEMANTIC_BLENDINDICES.w) ] ), _v.xyz ) * SEMANTIC_BLENDWEIGHTS.w, 0.0 ); \
+	_o.xyz = normalize( _o.xyz )
 
 #elif defined( PERM_MESH_PARTICLE_3D )
 
 /**
  * Make a world space vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
   */
+  
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
-	_o = _v + float4( mul( float3x3(InverseViewTransform_), SEMANTIC_TANGENT.xyz ), 1.0 );
+	_o = _v + float4( mul( getFloat3x3(InverseViewTransform_), SEMANTIC_TANGENT.xyz ), 1.0 )
+
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = _v;
+	_o = _v
 
 #elif defined( PERM_MESH_INSTANCED_3D )
 
 /**
  * Make a world space vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
   */
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
-	_o = mul( WorldTransform_, _v );
+	_o = mul( WorldTransform_, _v )
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = normalize( mul( NormalTransform_, _v ) );
+	_o = normalize( mul( NormalTransform_, _v ) )
 
 #endif
 
@@ -130,22 +168,24 @@
 
 /**
  * Make a clip transformed vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) \
-		_o = _v;
+		_o = _v
 
 #else
 
 /**
  * Make a clip transformed vertex.
+ * In HLSL, expects a variable 'i' to exist in scope, containing vertex inputs.
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
  */
 #  define PSY_MAKE_CLIP_SPACE_VERTEX( _o, _v ) \
-		_o = mul( ClipTransform_, _v );
+		_o = mul( ClipTransform_, _v )
 
 #endif
 
-
+#endif // __PSYBRUSVERTICES_PSH__

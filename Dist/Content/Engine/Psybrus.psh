@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __PSYBRUS_PSH__
+#define __PSYBRUS_PSH__
 
 #include <PsybrusVersion.psh>
 #include <PsybrusTypes.psh>
@@ -8,3 +9,5 @@
 #include <PsybrusSamplers.psh>
 #include <PsybrusOutput.psh>
 #include <PsybrusLighting.psh>
+
+#endif // __PSYBRUS_PSH__

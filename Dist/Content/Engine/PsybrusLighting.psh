@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __PSYBRUSLIGHTING_PSH__
+#define __PSYBRUSLIGHTING_PSH__
 
 #include <PsybrusUniforms.psh>
 
@@ -44,7 +45,7 @@ float RoughnessToSpecularPower( float Roughness )
 float3 Fresnel_SchlickApproximation( float3 F0, float CosA )
 {
 	float Pow5OneMinusCosA = pow( 1.0 - CosA, 5.0 );
-	return F0 + ( float3( 1.0 ) - F0 ) * Pow5OneMinusCosA;
+	return F0 + ( float3( 1.0, 1.0, 1.0 ) - F0 ) * Pow5OneMinusCosA;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +94,7 @@ float GeometryVisibility_SmithGGXApprox( float LdotH, float Roughness )
 float3 CookTorrence( float D, float3 F, float G, float NdotL, float NdotV )
 {
 	float3 Numerator = float3( D * F * G );
-	float3 Denominator = float3( 4.0  * NdotL * NdotV );
+	float Denominator = 4.0  * NdotL * NdotV;
 	return Numerator / Denominator;
 }
 
@@ -115,7 +116,7 @@ float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPositi
 	float Roughness = InMaterial.Roughness_;
 
 	// Calculate reflectance.
-	float3 SpecularReflectance = mix( float3( InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
+	float3 SpecularReflectance = lerp( float3( InMaterial.Specular_, InMaterial.Specular_, InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
 
 	// Calculate terms for spec + diffuse.
 #if 1
@@ -131,15 +132,18 @@ float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPositi
 	float3 Specular = CookTorrence( D, Fspec, G, NdotL, NdotV );
 
 	// Diffuse
-	float3 Diffuse = float3( max( NdotL, 0.0 ) ) - Specular;
-	Diffuse = max( float3( 0.0 ), Diffuse * ( float3( 1.0 - InMaterial.Metallic_ ) ) );
+	float DiffuseScalar = max( NdotL, 0.0 );
+	float3 Diffuse = float3( DiffuseScalar, DiffuseScalar, DiffuseScalar ) - Specular;
+	Diffuse = max( float3( 0.0, 0.0, 0.0 ), Diffuse * ( float3( 1.0, 1.0, 1.0 ) - float3( InMaterial.Metallic_, InMaterial.Metallic_, InMaterial.Metallic_ ) ) );
 
 	// Specular colour.
 	float3 SpecularColour = Specular + ( ReflectionColour * InMaterial.Colour_ ) * InMaterial.Metallic_;
 
 	// Total colour.
-	float3 Total = ( Diffuse * ( InMaterial.Colour_ / float3( PI ) ) ) + SpecularColour;
+	float3 Total = ( Diffuse * ( InMaterial.Colour_ / PI ) ) + SpecularColour;
 
 	// Punctual light source.
 	return Total * InLight.Colour_ * NdotL;
 }
+
+#endif // __PSYBRUSLIGHTING_PSH__
