@@ -95,7 +95,7 @@
 #  define SEMANTIC_TANGENT i.InTangent_
 #  define BLENDINDICES_TYPE int4
 #else
-#  define BLENDINDICES_TYPE int4
+#  define BLENDINDICES_TYPE vec4
 #endif
 
 //////////////////////////////////////////////////////////////////////////

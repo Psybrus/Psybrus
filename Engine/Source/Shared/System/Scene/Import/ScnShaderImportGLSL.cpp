@@ -341,10 +341,10 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					"\\s*(in|attribute)\\s.*;" );
 
 				std::regex VertexAttributeFullPattern( 
-					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|ivec2|ivec3|ivec4).*;" );
+					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;" );
 
 				std::regex VertexAttributeExtendedPattern( 
-					"\\s*(in|attribute)\\s*(float|vec2|vec3|vec4|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*(in|attribute)\\s*(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
 				std::regex LineDirectivePattern(
 					"\\s*#line.*" );
@@ -353,10 +353,10 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					"\\s*(in|out)\\s.*;" );
 
 				std::regex InOutAttributeFullPattern( 
-					"\\s*(in|out)\\s*(float|vec2|vec2|vec4|ivec2|ivec3|ivec4).*;" );
+					"\\s*(in|out)\\s*(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;" );
 
 				std::regex InOutAttributeExtendedPattern( 
-					"\\s*(in|out)\\s*(float|vec2|vec3|vec4|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*(in|out)\\s*(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
 				// If we're parsing a vertex shader, try grab vertex attributes.
 				std::istringstream Stream( ProcessedSourceData );
@@ -373,7 +373,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							if( std::regex_match( Line.c_str(), Match, VertexAttributeExtendedPattern ) )
 							{
 								auto Keyword = Match.str( 1 );
-								const auto Type = Match.str( 2 );
+								auto Type = Match.str( 2 );
 								const auto Name = Match.str( 3 );
 								const auto Semantic = Match.str( 4 );
 								const auto Index = Match.str( 5 );
@@ -381,24 +381,6 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 								{
 									Keyword = "attribute";
-
-									// Force integer types to float for ES.
-									if( Type == "int" )
-									{
-										Type == "float";
-									}
-									else if( Type == "ivec2" )
-									{
-										Type == "vec2";
-									}
-									else if( Type == "ivec3" )
-									{
-										Type == "vec3";
-									}
-									else if( Type == "ivec4" )
-									{
-										Type == "vec4";
-									}
 								}
 
 								Line = Keyword + " " + Type + " " + Name + "; // " + Semantic + Index + "\n";
