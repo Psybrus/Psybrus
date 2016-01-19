@@ -166,6 +166,16 @@ int textureQueryLevels( samplerCube Sampler )
 
 
 //////////////////////////////////////////////////////////////////////////
+// TBN matrix building
+float3x3 buildTBN( float3 Tangent, float3 Binormal, float3 Normal )
+{
+	float3 InNNormal = normalize( InNormal ).xyz;
+	float3 InNTangent = normalize( InTangent ).xyz;
+	float3 InNBinormal = normalize( InBinormal ).xyz;
+	return getFloat3x3( InNTangent, InNBinormal, InNNormal );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Colour space conversion.
 float3 gammaToLinear( float3 InputRGBA )
 {

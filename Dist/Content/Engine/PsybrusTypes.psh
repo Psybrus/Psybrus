@@ -28,11 +28,22 @@ float3x3 getFloat3x3(float4x4 Matrix)
 	return (float3x3)Matrix;
 }
 
+float3x3 getFloat3x3(float3 Row0, float3 Row1, float3 Row2)
+{
+	return transpose( float3x3( Row0, Row1, Row2 ) );
+}
+
 #elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 float3x3 getFloat3x3(float4x4 Matrix)
 {
 	return float3x3(Matrix);
 }
+
+float3x3 getFloat3x3(float3 Row0, float3 Row1, float3 Row2)
+{
+	return float3x3( Row0, Row1, Row2 );
+}
+
 #endif
 
 //////////////////////////////////////////////////////////////////////////

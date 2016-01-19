@@ -93,7 +93,7 @@
 #  define SEMANTIC_BLENDINDICES i.InBlendIndices_
 #  define SEMANTIC_BLENDWEIGHTS i.InBlendWeights_
 #  define SEMANTIC_TANGENT i.InTangent_
-#  define BLENDINDICES_TYPE int4
+#  define BLENDINDICES_TYPE uint4
 #else
 #  define BLENDINDICES_TYPE vec4
 #endif
