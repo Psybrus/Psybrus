@@ -167,12 +167,9 @@ int textureQueryLevels( samplerCube Sampler )
 
 //////////////////////////////////////////////////////////////////////////
 // TBN matrix building
-float3x3 buildTBN( float3 Tangent, float3 Binormal, float3 Normal )
+float3x3 buildTBN( float3 InTangent, float3 InBinormal, float3 InNormal )
 {
-	float3 InNNormal = normalize( InNormal ).xyz;
-	float3 InNTangent = normalize( InTangent ).xyz;
-	float3 InNBinormal = normalize( InBinormal ).xyz;
-	return getFloat3x3( InNTangent, InNBinormal, InNNormal );
+	return getFloat3x3( normalize( InTangent ), normalize( InBinormal ), normalize( InNormal ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
