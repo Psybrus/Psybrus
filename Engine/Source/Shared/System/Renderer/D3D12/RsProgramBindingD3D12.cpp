@@ -34,7 +34,14 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 		HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( SamplerDescriptorHeap_.GetAddressOf() ) );
 		BcAssert( SUCCEEDED( RetVal ) );
 
-		auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3DDHDesc.Type );
+#if !PSY_PRODUCTION
+		auto* DebugName = Parent_->getDebugName();
+		BcAssert( DebugName != nullptr );
+		std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+		SamplerDescriptorHeap_->SetName( DebugNameW.c_str() );
+#endif
+
+	auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3DDHDesc.Type );
 		CD3DX12_CPU_DESCRIPTOR_HANDLE BaseDHHandle( SamplerDescriptorHeap_->GetCPUDescriptorHandleForHeapStart() );
 
 		for( INT StageIdx = 0; StageIdx < DESCRIPTOR_STAGES; ++StageIdx )
@@ -67,6 +74,13 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 		D3DDHDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 		HRESULT RetVal = Device_->CreateDescriptorHeap( &D3DDHDesc, IID_PPV_ARGS( ShaderResourceDescriptorHeap_.GetAddressOf() ) );
 		BcAssert( SUCCEEDED( RetVal ) );
+
+#if !PSY_PRODUCTION
+		auto* DebugName = Parent_->getDebugName();
+		BcAssert( DebugName != nullptr );
+		std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+		ShaderResourceDescriptorHeap_->SetName( DebugNameW.c_str() );
+#endif
 
 		auto DescriptorSize = Device_->GetDescriptorHandleIncrementSize( D3DDHDesc.Type );
 		auto BaseDHHandle = ShaderResourceDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();

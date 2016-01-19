@@ -114,7 +114,9 @@ BcBool ScnShaderImport::compileShader(
 	ID3D10Blob* OutByteCode;
 	ID3D10Blob* OutErrorMessages;
 	ScnShaderIncludeHandler IncludeHandler( *this, IncludePaths );
-	D3DCompileFromFile( WFileName.c_str(), &Macros[ 0 ], &IncludeHandler, EntryPoint.c_str(), Target.c_str(), 0, 0, &OutByteCode, &OutErrorMessages );
+	UINT Flags = 0;
+	//Flags |= D3DCOMPILE_DEBUG;
+	D3DCompileFromFile( WFileName.c_str(), &Macros[ 0 ], &IncludeHandler, EntryPoint.c_str(), Target.c_str(), Flags, 0, &OutByteCode, &OutErrorMessages );
 
 	// Extract byte code if we have it.
 	if( OutByteCode != nullptr )

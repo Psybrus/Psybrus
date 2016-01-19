@@ -818,7 +818,7 @@ void RsContextD3D12::bindGraphicsPSO(
 
 		// Get current pipeline state.
 		ID3D12PipelineState* GraphicsPS = nullptr;
-		GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_, GraphicsRootSignature_.Get() );
+		GraphicsPS = PSOCache_->getPipelineState( GraphicsPSODesc_, GraphicsRootSignature_.Get(), Program->getDebugName() );
 		BcAssert( GraphicsPS );
 
 		// Reset command list if we need to, otherwise just set new pipeline state.
@@ -845,7 +845,7 @@ void RsContextD3D12::bindComputePSO(
 
 		// Get current pipeline state.
 		ID3D12PipelineState* ComputePS = nullptr;
-		ComputePS = PSOCache_->getPipelineState( ComputePSODesc_, ComputeRootSignature_.Get() );
+		ComputePS = PSOCache_->getPipelineState( ComputePSODesc_, ComputeRootSignature_.Get(), Program->getDebugName() );
 		BcAssert( ComputePS );
 
 		// Reset command list if we need to, otherwise just set new pipeline state.
@@ -1771,6 +1771,7 @@ void RsContextD3D12::recreateBackBuffers( BcU32 Width, BcU32 Height )
 			Desc.BindFlags_ = RsResourceBindFlags::DEPTH_STENCIL;
 			Desc.Format_ = RsTextureFormat::D24S8;
 			BackBufferDS_ = new RsTexture( this, Desc );
+			BackBufferDS_->setDebugName( "BackBuffer" );
 			auto RetVal = createTexture( BackBufferDS_ );
 			BcAssert( RetVal );
 		}
