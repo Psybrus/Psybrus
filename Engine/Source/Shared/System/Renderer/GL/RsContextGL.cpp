@@ -1278,7 +1278,7 @@ bool RsContextGL::updateBuffer(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createTexture
+// bTexture
 bool RsContextGL::createTexture( class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -2695,6 +2695,8 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 				}
 			}
 		}
+
+		UniformBufferBindingInfoSingle_ = BufferBindingInfo();
 	}
 #endif // !defined( RENDER_USE_GLES )
 }
@@ -2744,7 +2746,7 @@ void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 O
 		break;
 	case GL_UNIFORM_BUFFER:
 		{
-			bindBufferInternal( UniformBufferBindingInfo_[0], GL_UNIFORM_BUFFER, Buffer, Offset );
+			bindBufferInternal( UniformBufferBindingInfoSingle_, GL_UNIFORM_BUFFER, Buffer, Offset );
 
 			// Binding of uniform buffers mean we potentially need to rebind program bindings.
 			BoundProgramBinding_ = nullptr;
@@ -2767,7 +2769,7 @@ void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum Bin
 	if( BindingInfo.Resource_ != Buffer ||
 		BindingInfo.Buffer_ != Handle ||
 		BindingInfo.Offset_ != Offset ||
-		BindingInfo.Size_ != 0 )
+		BindingInfo.Size_ != BindSize )
 	{
 		if( Offset == 0 )
 		{
@@ -2784,7 +2786,7 @@ void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum Bin
 		BindingInfo.Resource_ = Buffer;
 		BindingInfo.Buffer_ = Handle;
 		BindingInfo.Offset_ = Offset;
-		BindingInfo.Size_ = 0;
+		BindingInfo.Size_ = BindSize;
 	}
 }
 
@@ -2840,6 +2842,11 @@ void RsContextGL::unbindResource( const RsResource* Resource )
 	if( VertexBufferBindingInfo_.Resource_ == Resource )
 	{
 		bindBuffer( GL_ARRAY_BUFFER, nullptr, 0 );
+	}
+
+	if( UniformBufferBindingInfoSingle_.Resource_ == Resource )
+	{
+		bindBuffer( GL_UNIFORM_BUFFER, nullptr, 0 );
 	}
 }
 
