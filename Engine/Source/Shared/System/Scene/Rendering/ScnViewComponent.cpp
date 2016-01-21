@@ -318,9 +318,12 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 		ViewUniformBuffer_.get(),
 		0, sizeof( ViewUniformBlock_ ),
 		RsResourceUpdateFlags::ASYNC,
-		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		[
+			ViewUniformBlock = ViewUniformBlock_
+		]
+		( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
-			BcMemCopy( Lock.Buffer_, &ViewUniformBlock_, sizeof( ViewUniformBlock_ ) );
+			BcMemCopy( Lock.Buffer_, &ViewUniformBlock, sizeof( ViewUniformBlock ) );
 		} );
 
 	// Build frustum planes.

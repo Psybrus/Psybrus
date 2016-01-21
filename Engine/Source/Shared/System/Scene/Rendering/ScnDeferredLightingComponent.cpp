@@ -10,6 +10,7 @@
 #include "System/Scene/Rendering/ScnDeferredLightingComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
@@ -19,6 +20,23 @@
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Define resource.
+class ScnDeferredLightingViewRenderData : 
+	public ScnViewRenderData
+{
+public:
+	ScnDeferredLightingViewRenderData()
+	{
+	}
+
+	virtual ~ScnDeferredLightingViewRenderData()
+	{
+	}
+
+	std::array< RsProgramBindingUPtr, scnLT_MAX > ProgramBindings_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // ScnDeferredLightingVertex
@@ -76,6 +94,56 @@ ScnDeferredLightingComponent::~ScnDeferredLightingComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+//virtual
+class ScnViewRenderData* ScnDeferredLightingComponent::createViewRenderData( class ScnViewComponent* View )
+{
+	ScnDeferredLightingViewRenderData* ViewRenderData = new ScnDeferredLightingViewRenderData();
+
+	const ScnShaderPermutationFlags Permutation = 
+		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::MESH_STATIC_2D |
+		ScnShaderPermutationFlags::LIGHTING_NONE;
+
+	// Create program binding.
+	RsProgramBindingDesc ProgramBindingDesc;
+	for( size_t LightTypeIdx = 0; LightTypeIdx < Shaders_.size(); ++LightTypeIdx )
+	{
+		auto Shader = Shaders_[ LightTypeIdx ];
+		auto Program = Shader->getProgram( Permutation );
+
+		for( auto& Texture : Textures_ )
+		{
+			BcU32 SRVSlot = Program->findShaderResourceSlot( Texture.first.c_str() );
+			BcU32 SamplerSlot = Program->findSamplerSlot( Texture.first.c_str() );
+			ProgramBindingDesc.setShaderResourceView( SRVSlot, Texture.second->getTexture() );
+			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+		}
+
+		// TODO: Tailored uniform buffer for deferred.
+		{
+			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
+			if( UniformSlot != BcErrorCode )
+			{
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get() );
+			}
+		}
+		{
+			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+			if( UniformSlot != BcErrorCode )
+			{
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, View->getViewUniformBuffer() );
+			}
+		}
+
+		ViewRenderData->ProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+	}
+
+	return ViewRenderData;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnDeferredLightingComponent::onAttach( ScnEntityWeakRef Parent )
@@ -123,6 +191,8 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = 0;
 
+	auto* ViewRenderData = static_cast< ScnDeferredLightingViewRenderData* >( RenderContext.ViewRenderData_ );
+
 	// Gather lights that intersect with our view.
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
@@ -130,7 +200,7 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 	for( size_t Idx = 0; Idx < LightComponents_.size(); ++Idx )
 	{
 		auto LightComponent = LightComponents_[ Idx ];
-		auto ProgramBinding = ProgramBindings_[ scnLT_SPOT ].get(); // TODO: Get from component.
+		auto ProgramBinding = ViewRenderData->ProgramBindings_[ scnLT_SPOT ].get(); // TODO: Get from component.
 		
 		// 
 		ScnShaderLightUniformBlockData LightUniformData = {};
@@ -152,12 +222,14 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-
+#if 1
 				Context->updateBuffer( UniformBuffer, 0, sizeof( LightUniformData ), RsResourceUpdateFlags::ASYNC,
 					[ &LightUniformData ]( RsBuffer* Buffer, RsBufferLock Lock )
 					{
+						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformData ) );
 						memcpy( Lock.Buffer_, &LightUniformData, sizeof( LightUniformData ) );
 					} );
+#endif
 
 				Context->drawPrimitives( 
 					GeometryBinding,
@@ -249,12 +321,6 @@ void ScnDeferredLightingComponent::recreateResources()
 		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 	}
 
-	const ScnShaderPermutationFlags Permutation = 
-		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-		ScnShaderPermutationFlags::PASS_MAIN |
-		ScnShaderPermutationFlags::MESH_STATIC_2D |
-		ScnShaderPermutationFlags::LIGHTING_NONE;
-
 	// Create sampler.
 	RsSamplerStateDesc SamplerStateDesc;
 	SamplerStateDesc.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
@@ -272,25 +338,6 @@ void ScnDeferredLightingComponent::recreateResources()
 	BlendState.BlendOp_ = RsBlendOp::ADD;
 	BlendState.BlendOpAlpha_ = RsBlendOp::ADD;
 	RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
-	
-	// Create program binding.
-	RsProgramBindingDesc ProgramBindingDesc;
-	for( size_t LightTypeIdx = 0; LightTypeIdx < Shaders_.size(); ++LightTypeIdx )
-	{
-		auto Shader = Shaders_[ LightTypeIdx ];
-		auto Program = Shader->getProgram( Permutation );
 
-		for( auto& Texture : Textures_ )
-		{
-			BcU32 SRVSlot = Program->findShaderResourceSlot( Texture.first.c_str() );
-			BcU32 SamplerSlot = Program->findSamplerSlot( Texture.first.c_str() );
-			ProgramBindingDesc.setShaderResourceView( SRVSlot, Texture.second->getTexture() );
-			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
-		}
-
-		// TODO: Tailored uniform buffer for deferred.
-		BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
-		ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get() );
-		ProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
-	}
+	resetViewRenderData( nullptr );
 }

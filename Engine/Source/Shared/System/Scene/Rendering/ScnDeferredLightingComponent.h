@@ -32,6 +32,7 @@ public:
 	ScnDeferredLightingComponent();
 	virtual ~ScnDeferredLightingComponent();
 	
+	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
@@ -48,8 +49,6 @@ protected:
 	std::map< std::string, ScnTextureRef > Textures_;
 	std::array< ScnShaderRef, scnLT_MAX > Shaders_;
 	std::vector< ScnLightComponent* > LightComponents_;
-
-	std::array< RsProgramBindingUPtr, scnLT_MAX > ProgramBindings_;
 
 	RsRenderStateUPtr RenderState_;
 	RsSamplerStateUPtr SamplerState_;
