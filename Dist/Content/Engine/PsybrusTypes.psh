@@ -17,6 +17,7 @@
 #define float4x4 mat4
 
 #define lerp mix
+#define fmod mod
 #endif
 
 
