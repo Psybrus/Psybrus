@@ -64,7 +64,7 @@ class RsContext* RsResource::getContext()
 // setDebugName
 void RsResource::setDebugName( const BcChar* DebugName )
 {
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
 	BcAssert( DebugName );
 	DebugName_ = DebugName ? DebugName : "(No Debug Name)";
 #endif
@@ -74,7 +74,7 @@ void RsResource::setDebugName( const BcChar* DebugName )
 // getDebugName
 const BcChar* RsResource::getDebugName() const
 {
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
 	return DebugName_.c_str();
 #else
 	return "(No Debug Name)";
