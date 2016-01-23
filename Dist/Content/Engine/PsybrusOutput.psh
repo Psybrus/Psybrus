@@ -159,12 +159,12 @@ void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal )
 #  endif
 }
 
-void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal, in float3 Material )
+void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal, in float3 InMaterial )
 {
 	clearFrag( FRAMEBUFFER_INTERNAL );
 	outFrag0.xyzw = Albedo.xyzw;
 #  if defined( PERM_RENDER_DEFERRED )
-	outFrag1.xyz = Material;
+	outFrag1.xyz = InMaterial;
 	outFrag2.xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
 #  endif
 }

@@ -26,7 +26,6 @@
 #elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 
 #version 100
-#extension GL_EXT_draw_buffers : enable
 #extension GL_EXT_shader_texture_lod : enable
 precision mediump float;
 
