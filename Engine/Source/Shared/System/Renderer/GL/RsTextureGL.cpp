@@ -144,6 +144,7 @@ void RsTextureGL::loadTexture(
 		if( glGetError() != 0 )
 		{
 			PSY_LOG( "ERROR: Attempting to create mipmaps for texture (%u levels), but glGenerateMipMap failed.", TextureDesc.Levels_ );
+			while( glGetError() != 0 );
 		}
 		//return;
 	}
