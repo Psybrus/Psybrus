@@ -517,7 +517,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
-#if 0 // Disabled temporarily. 
+#if 1 
 				// Run glsl-optimizer for ES (Only GLSL_ES_100)
 				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 				{
@@ -569,6 +569,19 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						ApproxMath, ApproxTex, ApproxFlow );
 
 					glslopt_cleanup( GlslOptContext );
+
+					// Prefix extension for draw buffers after #version.
+					std::stringstream ShaderSourceStream( ProcessedSourceData );
+					std::string ShaderSourceLine;
+					ProcessedSourceData.clear();
+					while( std::getline( ShaderSourceStream, ShaderSourceLine, '\n' ) )
+					{
+						ProcessedSourceData += ShaderSourceLine + "\n";
+						if( ShaderSourceLine.substr( 0, 8 ) == "#version" )
+						{
+							ProcessedSourceData += "#extension GL_EXT_draw_buffers : enable\n";
+						}
+					}
 				}
 #endif
 				// Attempt to compile.
