@@ -196,7 +196,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 #endif
 		if( TargetCodeType_ == RsShaderCodeType::INVALID )
 		{
-			PSY_LOG( "ERROR: No valid code type built in shader. Please add to your package." );
+			PSY_LOG( "ERROR: No valid code type built in shader. Please one for \"%s\"", getFullName().c_str() );
 		}
 
 		// Grab the rest of the chunks.
