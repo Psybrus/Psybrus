@@ -137,6 +137,10 @@ void DsCoreImpl::open()
 		} );
 
 		DrawPanels_ = BcFalse;
+#if PLATFORM_HTML5
+		DrawPanels_ = BcTrue;
+#endif
+
 #if PLATFORM_ANDROID
 		auto& Style = ImGui::GetStyle();
 		Style.FramePadding.x *= 2.0f;
