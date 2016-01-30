@@ -165,6 +165,7 @@ struct RsOpenGLVersion
 	bool SupportBlitFrameBuffer_;
 	bool SupportCopyImageSubData_;
 	GLint MaxTextureSlots_;
+	GLfloat MaxTextureAnisotropy_;
 
 };
 

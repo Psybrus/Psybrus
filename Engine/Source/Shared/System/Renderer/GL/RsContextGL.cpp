@@ -990,6 +990,10 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+		if( Version_.MaxTextureAnisotropy_ > 0.0f )
+		{
+			GL( SamplerParameterf( SamplerObject, GL_TEXTURE_MAX_ANISOTROPY_EXT, Version_.MaxTextureAnisotropy_ ) );
+		}
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
@@ -2646,6 +2650,10 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 				GL( ActiveTexture( GL_TEXTURE0 + SamplerStateSlotGL.Slot_ ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+				if( Version_.MaxTextureAnisotropy_ > 0.0f )
+				{
+					GL( TexParameterf( TextureType, GL_TEXTURE_MAX_ANISOTROPY_EXT, Version_.MaxTextureAnisotropy_ ) );
+				}
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
 #if !defined( RENDER_USE_GLES )

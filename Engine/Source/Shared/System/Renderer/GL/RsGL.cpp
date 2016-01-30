@@ -40,7 +40,9 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportComputeShaders_( false ),
 	SupportDrawElementsBaseVertex_( false ),
 	SupportBlitFrameBuffer_( false ),
-	SupportCopyImageSubData_( false )
+	SupportCopyImageSubData_( false ),
+	MaxTextureSlots_( 0 ),
+	MaxTextureAnisotropy_( 0.0f )
 {
 
 }
@@ -314,6 +316,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &MaxTextureSlots_ );
 	PSY_LOG( "GL_MAX_TEXTURE_IMAGE_UNITS: %u", MaxTextureSlots_ );
+
+	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &MaxTextureAnisotropy_ );
+	PSY_LOG( "GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT: %f", MaxTextureAnisotropy_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
