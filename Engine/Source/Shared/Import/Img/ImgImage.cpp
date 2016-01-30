@@ -308,12 +308,6 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, BcF32 GammaRGB, std::vector< 
 		BcU32 W = pPrevImage->width() >> 1;
 		BcU32 H = pPrevImage->height() >> 1;
 
-		// Bail if target is too small.
-		if( W < 4 || H < 4 )
-		{
-			break;
-		}
-
 		// Perform resize.
 		OutImages.push_back( pPrevImage->resize( W, H, GammaRGB ) );
 		pPrevImage = OutImages.back().get();
@@ -1069,37 +1063,58 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 		Format == ImgEncodeFormat::DXT3 ||
 		Format == ImgEncodeFormat::DXT5 )
 	{
-		// Check if its a multiple of 4.
-		if( Width_ >= 4 && Height_ >= 4 &&
-			( Width_ % 4 == 0 ) && ( Height_ % 4 ) == 0 )
-		{
-			BcU32 SquishFormat = 0;
+		BcU32 SquishFormat = 0;
 
-			switch( Format )
+		switch( Format )
+		{
+		case ImgEncodeFormat::DXT1:
+			SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
+			break;
+		case ImgEncodeFormat::DXT3:
+			SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+			break;
+		case ImgEncodeFormat::DXT5:
+			SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+			break;
+		default:
+			BcBreakpoint;
+		}
+			
+		// Find out what space squish needs.
+		OutSize = squish::GetStorageRequirements( Width_, Height_, SquishFormat );
+		pOutData = new BcU8[ OutSize ];
+			
+		// Squish takes RGBA8, so no need to convert before passing in.
+		if( Width_ >= 4 && Height_ >= 4 )
+		{
+			squish::CompressImage( reinterpret_cast< squish::u8* >( pPixelData_ ), Width_, Height_, pOutData, SquishFormat );
+		}
+		// If less than block size, copy into a 4x4 block.
+		else if ( Width_ < 4 && Height_ < 4 )
+		{
+			std::array< ImgColour, 4 * 4 > Block;
+			Block.fill( getPixel( 0, 0 ) );
+
+			// Copy into single block.
+			for( BcU32 Y = 0; Y < Height_; ++Y )
 			{
-			case ImgEncodeFormat::DXT1:
-				SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
-				break;
-			case ImgEncodeFormat::DXT3:
-				SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
-				break;
-			case ImgEncodeFormat::DXT5:
-				SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
-				break;
-			default:
-				BcBreakpoint;
+				for( BcU32 X = 0; X < Width_; ++X )
+				{
+					BcU32 Idx = X + Y * 4;
+					Block[ Idx ] = getPixel( X, Y );
+				}
 			}
 			
-			// Find out what space squish needs.
-			OutSize = squish::GetStorageRequirements( Width_, Height_, SquishFormat );
-			pOutData = new BcU8[ OutSize ];
-			
-			// Squish takes RGBA8, so no need to convert before passing in.
-			squish::CompressImage( reinterpret_cast< squish::u8*>( pPixelData_ ), Width_, Height_, pOutData, SquishFormat );
-			
-			//
-			return BcTrue;
+			// Now encode.
+			squish::CompressImage( reinterpret_cast< squish::u8* >( Block.data() ), 4, 4, pOutData, SquishFormat );
 		}
+		else
+		{
+			return BcFalse;
+		}
+
+		//
+		return BcTrue;
 	}
 	
 	return BcFalse;
@@ -1121,7 +1136,7 @@ BcBool ImgImage::encodeAsETC1( BcU8*& pOutData, BcU32& OutSize )
 		}
 
 		// Calculate output side.
-		OutSize = ( Width_ * Height_ ) / 2;
+		OutSize = ( BcMax( Width_, 4 ) * BcMax( Height_, 4 ) ) / 2;
 		pOutData = new BcU8[ OutSize ];
 		BcU8* EncodedData = pOutData;
 

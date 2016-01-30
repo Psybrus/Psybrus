@@ -546,8 +546,7 @@ ImgImageList ScnTextureImport::generateMipMaps( ImgImageUPtr Image )
 	if( ( BcPot( W ) && BcPot( H ) ) ||
 		( ( W / 6 ) == H && BcPot( H ) ) ) // Cubemap.
 	{
-		// Down to a minimum of 4x4.
-		while( W > 4 && H > 4 )
+		while( W > 1 && H > 1 )
 		{
 			W >>= 1;
 			H >>= 1;

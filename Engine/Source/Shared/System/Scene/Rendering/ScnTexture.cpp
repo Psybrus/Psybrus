@@ -485,7 +485,7 @@ void ScnTexture::recreate()
 							BcAssert( Lock.Buffer_ );
 							BcAssert( Lock.Pitch_ >= SourcePitch );
 							BcAssert( Lock.SlicePitch_ >= SliceSize / NoofFaces );
-							const auto Rows = Height / BlockInfo.Height_;
+							const auto Rows = std::max( BcU32( 1 ), Height / BlockInfo.Height_ );
 							const auto FaceOffsetPitch = FaceIdx * SourcePitch;
 							for( BcU32 Row = 0; Row < Rows; ++Row )
 							{

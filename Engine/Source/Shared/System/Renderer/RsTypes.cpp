@@ -330,6 +330,18 @@ RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
 		BlockInfo.Width_ = 4;
 		BlockInfo.Height_ = 4;
 		break;
+	case RsTextureFormat::D16:
+		BlockInfo.Bits_ = 16;
+		break;
+	case RsTextureFormat::D24:
+		BlockInfo.Bits_ = 24;
+		break;
+	case RsTextureFormat::D32:
+		BlockInfo.Bits_ = 32;
+		break;
+	case RsTextureFormat::D24S8:
+		BlockInfo.Bits_ = 32;
+		break;
 	default:
 		BcBreakpoint; // Format not defined.
 		break;
@@ -449,7 +461,7 @@ BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
 {
 	BcU32 Pitch = 0;
 	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
-	auto WidthByBlock = ( Width / BlockInfo.Width_ );
+	auto WidthByBlock = std::max( BcU32( 1 ), Width / BlockInfo.Width_ );
 	Pitch = ( WidthByBlock * BlockInfo.Bits_ ) / 8;
 	return Pitch;
 }
@@ -460,8 +472,8 @@ BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 {
 	BcU32 SlicePitch = 0;
 	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
-	auto WidthByBlock = ( Width / BlockInfo.Width_ );
-	auto HeightByBlock = ( Height / BlockInfo.Height_ );
+	auto WidthByBlock = std::max( BcU32( 1 ), Width / BlockInfo.Width_ );
+	auto HeightByBlock = std::max( BcU32( 1 ), Height / BlockInfo.Height_ );
 	SlicePitch = ( WidthByBlock * HeightByBlock * BlockInfo.Bits_ ) / 8;
 	return SlicePitch;
 }
