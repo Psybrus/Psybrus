@@ -27,6 +27,10 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	// Attach shaders.
 	for( auto* Shader : Shaders )
 	{
+		BcAssertMsg( Shader->getHandle< GLuint >() != 0, 
+			"RsShader \"%s\" invalid when attaching to RsProgram \"%s\"",
+			Shader->getDebugName(),
+			Parent->getDebugName() );
 		GL( AttachShader( Handle_, Shader->getHandle< GLuint >() ) );
 	}
 	

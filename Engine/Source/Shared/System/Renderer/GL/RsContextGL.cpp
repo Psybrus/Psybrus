@@ -496,7 +496,7 @@ void RsContextGL::create()
 	}
 
 	// Clear current errors.
-	glGetError();
+	while( glGetError() != 0 );
 #endif
 
 #if PLATFORM_LINUX	|| PLATFORM_OSX
@@ -538,7 +538,7 @@ void RsContextGL::create()
 	// Init GLEW.
 	glewExperimental = 1;
 	glewInit();
-	glGetError();
+	while( glGetError() != 0 );
 #endif
 
 #if PLATFORM_ANDROID
@@ -667,12 +667,7 @@ void RsContextGL::create()
 
 #  if PLATFORM_HTML5
 	auto RTFormat = RsTextureFormat::R8G8B8A8;
-	auto DSFormat = RsTextureFormat::D24;
-
-	// Init GLEW.
-	glewExperimental = 1;
-	glewInit();
-	glGetError();
+	auto DSFormat = RsTextureFormat::D24S8;
 #  endif
 #endif
 
@@ -695,7 +690,7 @@ void RsContextGL::create()
 	OwningThread_ = BcCurrentThreadId();
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-#if !PLATFORM_ANDROID
+#if !defined( RENDER_USE_GLES )
 	// Create + bind global VAO.
 	if( Version_.SupportVAOs_ )
 	{
@@ -707,7 +702,7 @@ void RsContextGL::create()
 
 	// Create transfer FBO.
 	GL( GenFramebuffers( 2, TransferFBOs_ ) );
-#endif
+#endif // !defined( RENDER_USE_GLES )
 
 	// Force set render state to the default.
 	// Initialises redundant state caching.
@@ -1378,7 +1373,6 @@ bool RsContextGL::createShader( RsShader* Shader )
 	// Create handle for shader.
 	GLuint Handle = GL( CreateShader( ShaderType ) );
 	
-	
 	//
 	const GLchar* ShaderData[] = 
 	{
@@ -1435,15 +1429,6 @@ bool RsContextGL::createShader( RsShader* Shader )
 	}
 
 	++NoofShaders_;
-	
-	// Destroy if there is a failure.
-	GLenum Error = GL( GetError() );
-	if ( Error != GL_NO_ERROR )
-	{
-		PSY_LOG( "RsShaderGL: Error has occured: %u\n", Error );
-		GL( DeleteShader( Handle ) );
-		return false;
-	}
 
 	Shader->setHandle( Handle );
 	return true;

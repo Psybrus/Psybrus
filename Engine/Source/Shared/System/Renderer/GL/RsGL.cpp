@@ -422,7 +422,6 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if PSY_GL_CATCH_ERRORS
 GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 {
 	PSY_PROFILER_SECTION( CatchRoot, "RsReportGLErrors" );
@@ -435,11 +434,12 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 #endif
 
 	BcU32 TotalErrors = 0;
-	GLuint Error;
+	GLuint LastError = 0;
+	GLuint Error = 0;
 	do
 	{
 		Error = glGetError();
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
 		std::string ErrorString = "UNKNOWN";
 		switch( Error )
 		{
@@ -458,7 +458,7 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 		case GL_INVALID_FRAMEBUFFER_OPERATION:
 			ErrorString = "GL_INVALID_FRAMEBUFFER_OPERATION";
 			break;
-#if !PLATFORM_ANDROID
+#if !defined( RENDER_USE_GLES )
 		case GL_TABLE_TOO_LARGE:
 			ErrorString = "GL_TABLE_TOO_LARGE";
 			break;
@@ -468,7 +468,7 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 		case GL_STACK_UNDERFLOW:
 			ErrorString = "GL_STACK_UNDERFLOW";
 			break;
-#endif
+#endif // !defined( RENDER_USE_GLES )
 		}
 
 		if( Error != 0 )
@@ -479,6 +479,7 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 			auto Result = BcBacktrace();
 			BcPrintBacktrace( Result );
 			++TotalErrors;
+			LastError = Error;
 		}
 #endif
 	}
@@ -496,6 +497,5 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 #endif
 	}
 
-	return Error;
+	return LastError;
 }
-#endif

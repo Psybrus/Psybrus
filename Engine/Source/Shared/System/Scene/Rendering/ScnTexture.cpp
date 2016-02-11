@@ -383,7 +383,7 @@ void ScnTexture::recreate()
 	const BcBool IsNPOT = !BcPot( Width_ ) || !BcPot( Height_ ) || !BcPot( Depth_ );
 	if( IsNPOT && Features.NPOTTextures_ == false )
 	{
-		PSY_LOG( "WARNING: Rounding down texture \"%s\" to a power of two.", (*getName()).c_str() );
+		PSY_LOG( "WARNING: Rounding up texture \"%s\" to a power of two.", (*getName()).c_str() );
 		Width_ = BcMax( BcPotNext( Width_ ), 1 );
 		Height_ = BcMax( BcPotNext( Height_ ), 1 );
 		Depth_ = BcMax( BcPotNext( Depth_ ), 1 );
@@ -468,10 +468,6 @@ void ScnTexture::recreate()
 
 			if( LevelIdx >= SkipMips )
 			{
-				if( NoofFaces > 1 )
-				{
-					int a = 0; ++a;
-				}
 				for( BcU32 FaceIdx = 0; FaceIdx < NoofFaces; ++FaceIdx )
 				{
 					auto Slice = StagingTexture->getSlice( LevelIdx - SkipMips, static_cast< RsTextureFace >( FaceIdx ) );
