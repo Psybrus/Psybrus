@@ -164,6 +164,7 @@ BcBool ScnShaderImport::compileShader(
 	{
 		CommandLine += " -I" + IncludePath;
 	}
+
 	int RetCode = std::system( CommandLine.c_str() );
 
 	// If successful, load in output file.
@@ -176,6 +177,10 @@ BcBool ScnShaderImport::compileShader(
 			ShaderByteCode = std::move( BcBinaryData( ByteCode.get(), ByteCodeFile.size(), BcTrue ) );
 			RetVal = BcTrue;
 		}
+	}
+	else
+	{
+		PSY_LOG( "Error: %u", RetCode );
 	}
 
 #endif // PLATFORM_LINUX || PLATFORM_OSX

@@ -367,13 +367,16 @@ BcBool ScnTextureImport::import(
 		// Streams.
 		BcStream HeaderStream;
 		BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
+		BcBool AllMipsSucceeded = BcTrue;
 
 		// Write all mip images into the same body for now.
-		for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
+		for( BcU32 Attempt = 0; Attempt < 2; ++Attempt )
 		{
-			auto* pImage = MipImages[ Idx ].get();
-			for( BcU32 Attempt = 0; Attempt < 2; ++Attempt )
+			BodyStream.clear();
+			AllMipsSucceeded = BcTrue;
+			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
 			{
+				auto* pImage = MipImages[ Idx ].get();
 				ImgEncodeFormat EncodeFormat = (ImgEncodeFormat)Format_;
 				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 				{
@@ -382,14 +385,25 @@ BcBool ScnTextureImport::import(
 					delete [] pEncodedImageData;
 					pEncodedImageData = NULL;
 					EncodedImageDataSize = 0;
-					Attempt = 2;
 				}
 				else
 				{
 					PSY_LOG( "Failed to encode image, falling back to R8G8B8A8\n" );
 					Format_ = RsTextureFormat::R8G8B8A8;
+					AllMipsSucceeded = BcFalse;
 				}
 			}
+
+			if( AllMipsSucceeded )
+			{
+				break;
+			}
+		}
+
+		if( AllMipsSucceeded == BcFalse )
+		{
+			PSY_LOG( "ERROR: Failed to encode all image's mip levels." );
+			return BcFalse;
 		}
 
 		// Write header.

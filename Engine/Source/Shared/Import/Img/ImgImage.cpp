@@ -1110,6 +1110,10 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 		}
 		else
 		{
+			PSY_LOG( "ERROR: Image can't be encoded. (%ux%u)", Width_, Height_ );
+			delete [] pOutData;
+			pOutData = nullptr;
+			OutSize = 0;
 			return BcFalse;
 		}
 

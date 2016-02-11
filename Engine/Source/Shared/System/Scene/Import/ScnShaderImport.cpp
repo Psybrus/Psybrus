@@ -900,7 +900,7 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 			}
 			else
 			{
-				PSY_LOG( "Unable to compile." );
+				PSY_LOG( "Unable to compile D3D11 shader." );
 				RetVal = BcFalse;
 			}
 		}
