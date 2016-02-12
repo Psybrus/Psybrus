@@ -48,6 +48,7 @@ void ScnDeferredLightingVertex::StaticRegisterClass()
 	{
 		new ReField( "Position_", &ScnDeferredLightingVertex::Position_ ),
 		new ReField( "UV_", &ScnDeferredLightingVertex::UV_ ),
+		new ReField( "Screen_", &ScnDeferredLightingVertex::Screen_ ),
 	};
 	ReRegisterClass< ScnDeferredLightingVertex >( Fields );
 }
@@ -57,9 +58,10 @@ ScnDeferredLightingVertex::ScnDeferredLightingVertex()
 
 }
 
-ScnDeferredLightingVertex::ScnDeferredLightingVertex( const MaVec4d& Position, const MaVec2d& UV ):
+ScnDeferredLightingVertex::ScnDeferredLightingVertex( const MaVec4d& Position, const MaVec2d& UV, const MaVec2d& Screen ):
 	Position_( Position ),
-	UV_( UV )
+	UV_( UV ),
+	Screen_( Screen )
 {
 
 }
@@ -193,7 +195,55 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 
 	auto* ViewRenderData = static_cast< ScnDeferredLightingViewRenderData* >( RenderContext.ViewRenderData_ );
 
-	// Gather lights that intersect with our view.
+	// Grab albedo texture for size data.
+	MaVec2d UVSize( 1.0f, 1.0f );
+	auto AlbedoTexIt = Textures_.find( "aAlbedoTex" );
+	if( AlbedoTexIt != Textures_.end() )
+	{
+		auto AlbedoTex = AlbedoTexIt->second;
+		auto Rect = AlbedoTex->getRect( 0 );			
+		UVSize.x( Rect.W_ );
+		UVSize.y( Rect.H_ );
+	}
+
+	// Update vertex buffer.
+	const BcU32 VertexBufferSize = 4 * VertexDeclaration_->getDesc().getMinimumStride();
+	const auto& Features = RsCore::pImpl()->getContext( 0 )->getFeatures();
+	const auto RTOrigin = Features.RTOrigin_;
+	RsCore::pImpl()->updateBuffer( 
+		VertexBuffer_.get(),
+		0, VertexBufferSize,
+		RsResourceUpdateFlags::ASYNC,
+		[ RTOrigin, UVSize ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			auto Vertices = reinterpret_cast< ScnDeferredLightingVertex* >( Lock.Buffer_ );
+
+			// TODO: Pass in separate UVs for what is intended to be a render target source?
+			if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
+			{
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f - UVSize.y() ), MaVec2d( -1.0f, -1.0f ) );
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f - UVSize.y() ), MaVec2d( 1.0f, -1.0f ) );
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ), MaVec2d( -1.0f, 1.0f ) );
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f ), MaVec2d( 1.0f, 1.0f ) );
+			}
+			else
+			{
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, UVSize.y() ), MaVec2d( -1.0f, 1.0f ) );
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), UVSize.y() ), MaVec2d( 1.0f, 1.0f ) );
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ), MaVec2d( -1.0f, -1.0f ) );
+				*Vertices++ = ScnDeferredLightingVertex( 
+					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 0.0f ), MaVec2d( 1.0f, -1.0f ) );
+			}
+		} );	
+	
+		// Gather lights that intersect with our view.
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
 	// Render all lights.
@@ -222,14 +272,13 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-#if 1
+
 				Context->updateBuffer( UniformBuffer, 0, sizeof( LightUniformData ), RsResourceUpdateFlags::ASYNC,
 					[ &LightUniformData ]( RsBuffer* Buffer, RsBufferLock Lock )
 					{
 						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformData ) );
 						memcpy( Lock.Buffer_, &LightUniformData, sizeof( LightUniformData ) );
 					} );
-#endif
 
 				Context->drawPrimitives( 
 					GeometryBinding,
@@ -256,7 +305,8 @@ void ScnDeferredLightingComponent::recreateResources()
 		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 2 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ScnDeferredLightingVertex*)0)->Position_),  4, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
-				.addElement( RsVertexElement( 0, (size_t)(&((ScnDeferredLightingVertex*)0)->UV_), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) ),
+				.addElement( RsVertexElement( 0, (size_t)(&((ScnDeferredLightingVertex*)0)->UV_), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
+				.addElement( RsVertexElement( 0, (size_t)(&((ScnDeferredLightingVertex*)0)->Screen_), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 1 ) ),
 			getFullName().c_str() );
 	}
 
@@ -269,41 +319,6 @@ void ScnDeferredLightingComponent::recreateResources()
 				RsResourceCreationFlags::STREAM, 
 				VertexBufferSize ),
 			getFullName().c_str() );
-
-		const auto& Features = RsCore::pImpl()->getContext( 0 )->getFeatures();
-		const auto RTOrigin = Features.RTOrigin_;
-		RsCore::pImpl()->updateBuffer( 
-			VertexBuffer_.get(),
-			0, VertexBufferSize,
-			RsResourceUpdateFlags::ASYNC,
-			[ RTOrigin ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-			{
-				auto Vertices = reinterpret_cast< ScnDeferredLightingVertex* >( Lock.Buffer_ );
-
-				// TODO: Pass in separate UVs for what is intended to be a render target source?
-				if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
-				{
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
-				}
-				else
-				{
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
-					*Vertices++ = ScnDeferredLightingVertex( 
-						MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
-				}
-			} );		
 	}
 
 	if( UniformBuffer_ == nullptr )
@@ -337,6 +352,9 @@ void ScnDeferredLightingComponent::recreateResources()
 	BlendState.DestBlendAlpha_ = RsBlendType::ONE;
 	BlendState.BlendOp_ = RsBlendOp::ADD;
 	BlendState.BlendOpAlpha_ = RsBlendOp::ADD;
+	auto& DepthStencilState = RenderStateDesc.DepthStencilState_;
+	DepthStencilState.DepthTestEnable_ = false;
+	DepthStencilState.DepthWriteEnable_ = false;
 	RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 
 	resetViewRenderData( nullptr );

@@ -14,10 +14,11 @@ struct ScnDeferredLightingVertex
 {
 	REFLECTION_DECLARE_BASIC( ScnDeferredLightingVertex );
 	ScnDeferredLightingVertex();
-	ScnDeferredLightingVertex( const MaVec4d& Position, const MaVec2d& UV );
+	ScnDeferredLightingVertex( const MaVec4d& Position, const MaVec2d& UV, const MaVec2d& Screen );
 
 	MaVec4d Position_;
 	MaVec2d UV_;
+	MaVec2d Screen_;
 };
 
 //////////////////////////////////////////////////////////////////////////

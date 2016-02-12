@@ -123,6 +123,9 @@ ScnTexture::ScnTexture()
 	Width_ = 0;
 	Height_ = 0;
 	Depth_ = 0;
+	InternalWidth_ = 0;
+	InternalHeight_ = 0;
+	InternalDepth_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -305,6 +308,34 @@ BcU32 ScnTexture::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getDepth
+BcU32 ScnTexture::getDepth() const
+{
+	return Depth_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInternalWidth
+BcU32 ScnTexture::getInternalWidth() const
+{
+	return InternalWidth_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInternalHeight
+BcU32 ScnTexture::getInternalHeight() const
+{
+	return InternalHeight_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInternalDepth
+BcU32 ScnTexture::getInternalDepth() const
+{
+	return InternalDepth_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isClientDependent
 bool ScnTexture::isClientDependent() const
 {
@@ -314,12 +345,13 @@ bool ScnTexture::isClientDependent() const
 //////////////////////////////////////////////////////////////////////////
 // getRect
 //virtual
-const ScnRect& ScnTexture::getRect( BcU32 Idx ) const
+ScnRect ScnTexture::getRect( BcU32 Idx ) const
 {
-	static ScnRect Rect = 
+	ScnRect Rect = 
 	{
 		0.0f, 0.0f,
-		1.0f, 1.0f
+		static_cast< BcF32 >( Width_ ) / static_cast< BcF32 >( InternalWidth_ ), 
+		static_cast< BcF32 >( Height_ ) / static_cast< BcF32 >( InternalHeight_ )
 	};
 	
 	return Rect;
@@ -378,15 +410,20 @@ void ScnTexture::recreate()
 		Depth_ = 1;
 	}
 
+	// Set internal size.
+	InternalWidth_ = Width_;
+	InternalHeight_ = Height_;
+	InternalDepth_ = Depth_;
+
 	// If texture is NPOT and we don't support it, round up size and warn.
 	// We don't want to crash out if possible.
 	const BcBool IsNPOT = !BcPot( Width_ ) || !BcPot( Height_ ) || !BcPot( Depth_ );
 	if( IsNPOT && Features.NPOTTextures_ == false )
 	{
 		PSY_LOG( "WARNING: Rounding up texture \"%s\" to a power of two.", (*getName()).c_str() );
-		Width_ = BcMax( BcPotNext( Width_ ), 1 );
-		Height_ = BcMax( BcPotNext( Height_ ), 1 );
-		Depth_ = BcMax( BcPotNext( Depth_ ), 1 );
+		InternalWidth_ = BcMax( BcPotNext( Width_ ), 1 );
+		InternalHeight_ = BcMax( BcPotNext( Height_ ), 1 );
+		InternalDepth_ = BcMax( BcPotNext( Depth_ ), 1 );
 	}
 
 	// Create new one immediately.
@@ -420,9 +457,9 @@ void ScnTexture::recreate()
 			BindFlags,
 			Header_.Format_,
 			Header_.Levels_ - SkipMips,
-			Width_ >> SkipMips,
-			Height_ >> SkipMips,
-			Depth_ ),
+			InternalWidth_ >> SkipMips,
+			InternalHeight_ >> SkipMips,
+			InternalDepth_ ),
 		getFullName().c_str() );
 
 #if DO_TEXTURE_COPY_TEST
@@ -433,9 +470,9 @@ void ScnTexture::recreate()
 			RsResourceBindFlags::NONE,
 			Header_.Format_,
 			Header_.Levels_ - SkipMips,
-			Width_ >> SkipMips,
-			Height_ >> SkipMips,
-			Depth_ ),
+			InternalWidth_ >> SkipMips,
+			InternalHeight_ >> SkipMips,
+			InternalDepth_ ),
 		getFullName().c_str() );
 #else
 	auto& StagingTexture = Texture_;
@@ -444,10 +481,15 @@ void ScnTexture::recreate()
 	// Upload texture data.
 	if( pTextureData_ != nullptr )
 	{
+		// TODO: Handle uploading smaller source data to larger internal texture.
+		BcAssert( Width_ == InternalWidth_ );
+		BcAssert( Height_ == InternalHeight_ );
+		BcAssert( Depth_ == InternalDepth_ );
+
 		BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
-		BcU32 Width = Width_;
-		BcU32 Height = Height_;
-		BcU32 Depth = Depth_;
+		BcU32 Width = InternalWidth_;
+		BcU32 Height = InternalHeight_;
+		BcU32 Depth = InternalDepth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 		{
 			const auto NoofFaces = Header_.Type_ == RsTextureType::TEXCUBE ? 6 : 1;

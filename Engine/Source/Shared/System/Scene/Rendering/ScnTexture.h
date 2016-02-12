@@ -52,13 +52,17 @@ public:
 	
 	BcU32 getWidth() const;
 	BcU32 getHeight() const;
+	BcU32 getDepth() const;
+	BcU32 getInternalWidth() const;
+	BcU32 getInternalHeight() const;
+	BcU32 getInternalDepth() const;
 
 	/**
 	 * Is texture dependent on client size? I.e. will it change on resize?
 	 */
 	bool isClientDependent() const;
 	
-	virtual const ScnRect& getRect( BcU32 Idx ) const;
+	virtual ScnRect getRect( BcU32 Idx ) const;
 	virtual BcU32 noofRects() const;
 
 	
@@ -76,9 +80,15 @@ protected:
 	ScnTextureHeader Header_;
 	void* pTextureData_;
 
+	// Texture dimensions.
 	BcU32 Width_;
 	BcU32 Height_;
 	BcU32 Depth_;
+
+	// Internal texture dimensions.
+	BcU32 InternalWidth_;
+	BcU32 InternalHeight_;
+	BcU32 InternalDepth_;
 };
 
 #endif
