@@ -212,7 +212,7 @@ class RsFrameBuffer* RsContextGL::getBackBuffer() const
 // beginFrame
 RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 0 );
 	++InsideBeginEnd_;
@@ -298,7 +298,7 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 // endFrame
 void RsContextGL::endFrame()
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 1 );
 	--InsideBeginEnd_;
@@ -1208,7 +1208,7 @@ bool RsContextGL::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::updateBuffer" );
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
@@ -1540,7 +1540,7 @@ void RsContextGL::clear(
 	BcBool EnableClearDepth,
 	BcBool EnableClearStencil )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::clear" );
+	PSY_PROFILE_FUNCTION;
 
 	bindFrameBuffer( FrameBuffer, nullptr, nullptr );
 	GL( ClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() ) );
@@ -1586,7 +1586,7 @@ void RsContextGL::drawPrimitives(
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
+	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
@@ -1634,7 +1634,7 @@ void RsContextGL::drawIndexedPrimitives(
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
+	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
@@ -1950,8 +1950,6 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 // bindFrameBuffer
 void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
 {
-	PSY_PROFILE_FUNCTION;
-
 	// Null signifies backbuffer.
 	if( FrameBuffer == nullptr )
 	{
@@ -2010,8 +2008,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 // bindProgram
 void RsContextGL::bindProgram( const RsProgram* Program )
 {
-	PSY_PROFILE_FUNCTION;
-
 	if( BoundProgram_ != Program )
 	{
 		BoundProgram_ = Program;
@@ -2026,8 +2022,6 @@ void RsContextGL::bindProgram( const RsProgram* Program )
 // bindGeometry
 void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding, BcU32 VertexOffset )
 {
-	PSY_PROFILE_FUNCTION;
-
 	if( BoundGeometryBinding_ != GeometryBinding || 
 		BoundVertexOffset_ != VertexOffset )
 	{
@@ -2130,8 +2124,6 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 // bindRenderStateDesc
 void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
 {
-	PSY_PROFILE_FUNCTION;
-
 #if !defined( RENDER_USE_GLES )
 	if( Version_.Features_.SeparateBlendState_ )
 	{
@@ -2426,7 +2418,6 @@ void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool For
 // bindSRVs
 void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2511,7 +2502,6 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 // bindUAVs
 void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings, GLbitfield& Barrier )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2592,7 +2582,6 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 // bindSamplerStates
 void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2655,7 +2644,6 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 // bindUniformBuffers
 void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;

@@ -498,8 +498,6 @@ RsProgramGL::~RsProgramGL()
 // copyUniformBuffersToUniforms
 void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuffer* const * Buffers )
 {
-	PSY_PROFILE_FUNCTION;
-
 #if PSY_DEBUG
 	if( UniformEntries_.size() > 0 )
 	{
