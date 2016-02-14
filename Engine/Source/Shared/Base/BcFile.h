@@ -28,6 +28,7 @@ enum eBcFileMode
 {
 	bcFM_READ = 0,
 	bcFM_WRITE,
+	bcFM_WRITE_TEXT,
 };
 
 /////////////////////////////////////////////////

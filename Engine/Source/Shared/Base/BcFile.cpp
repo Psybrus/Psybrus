@@ -132,6 +132,12 @@ BcBool BcFile::open( const BcChar* FileName, eBcFileMode AccessMode )
 		}
 		break;
 
+	case bcFM_WRITE_TEXT:
+		{
+			FileHandle_ = fopen( FileName, "w+" );
+		}
+		break;
+
 	default:
 		return BcFalse;
 		break;
