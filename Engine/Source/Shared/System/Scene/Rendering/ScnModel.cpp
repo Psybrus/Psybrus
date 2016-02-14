@@ -402,10 +402,8 @@ void ScnModelComponent::StaticRegisterClass()
 
 		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
 		new ReField( "UploadFence_", &ScnModelComponent::UploadFence_, bcRFF_TRANSIENT ),
-		new ReField( "UpdateFence_", &ScnModelComponent::UpdateFence_, bcRFF_TRANSIENT ),
 		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
 		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
-		// TODO: move support. new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
 	};
 
 	using namespace std::placeholders;
@@ -429,7 +427,6 @@ ScnModelComponent::ScnModelComponent():
 	Rotation_( 0.0f, 0.0f, 0.0f ),
 	pNodeTransformData_( nullptr ),
 	UploadFence_(),
-	UpdateFence_(),
 	AABB_(),
 	PerComponentMeshDataList_()
 {
@@ -464,8 +461,6 @@ void ScnModelComponent::initialise()
 //virtual
 MaAABB ScnModelComponent::getAABB() const
 {
-	UpdateFence_.wait();
-
 	return AABB_;
 }
 
@@ -648,62 +643,116 @@ void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d
 	BaseTransform_.translation( Position_ );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// recursiveModelUpdate
+//static 
+BcU32 ScnModelComponent::recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence )
+{
+	// Calculate number of nodes.
+	BcU32 NoofNodes = 0;
+	for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
+	{
+		auto Component = Components[ Idx ];
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+		NoofNodes += ModelComponent->Model_->pHeader_->NoofNodes_;
+	}
+
+	// Check if we're updating a single component, hit node limit, or have no node limit.
+	const BcU32 NoofComponents = ( EndIdx - StartIdx );
+	if( NoofComponents == 1 || NoofNodes <= MaxNodesPerJob || MaxNodesPerJob == 0 )
+	{
+		for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
+		{
+			auto Component = Components[ Idx ];
+			auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+			
+			MaMat4d Matrix = ModelComponent->BaseTransform_ * ModelComponent->getParentEntity()->getWorldMatrix();
+			ModelComponent->updateNodes( Matrix );
+		}
+
+		Fence->decrement( NoofComponents );
+	}
+	else
+	{
+		using namespace std::placeholders;
+
+		BcU32 MidIdx = ( StartIdx + EndIdx ) / 2;
+
+		if( MidIdx > StartIdx )
+		{
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				std::bind( &ScnModelComponent::recursiveModelUpdate, Components, StartIdx, MidIdx, MaxNodesPerJob, Fence ) );
+		}
+
+		if( EndIdx > MidIdx )
+		{
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				std::bind( &ScnModelComponent::recursiveModelUpdate, Components, MidIdx, EndIdx, MaxNodesPerJob, Fence ) );
+		}
+	}
+
+	return NoofNodes;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // updateModels
 //static
 void ScnModelComponent::updateModels( const ScnComponentList& Components )
 {
-	// TODO: All models are independent, so we can parallelise these in some jobs.
-	auto Tick = SysKernel::pImpl()->getFrameTime();
-	for( auto Component : Components )
-	{
-		BcAssert( Component->isTypeOf< ScnModelComponent >() );
-		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
-		ModelComponent->updateModel( Tick );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// updateModel
-//virtual
-void ScnModelComponent::updateModel( BcF32 Tick )
-{
 	PSY_PROFILE_FUNCTION;
 
-	UploadFence_.wait();
-	UpdateFence_.increment();
-	MaMat4d Matrix = BaseTransform_ * getParentEntity()->getWorldMatrix();
-#if 1
-	updateNodes( Matrix );
-#else
-	SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
-		[ this, Matrix ]()->void
+	static bool UseJobs = true;
+
+	PSY_PROFILER_INSTANT_EVENT( "Updating models", nullptr );
+
+	BcTimer Timer;
+	Timer.mark();
+
+	auto Tick = SysKernel::pImpl()->getFrameTime();
+	SysFence Fence;
+
+	// Wait for all uploads to complete.
+	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
+	{
+		auto Component = Components[ Idx ];
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+					
+		ModelComponent->UploadFence_.wait();
+	}
+	
+	// Recursive model update func.
+	static BcU32 MaxNodesPerJob = 64;
+	Fence.increment( Components.size() );
+	BcU32 NoofNodes = recursiveModelUpdate( Components, 0, Components.size(), UseJobs ? MaxNodesPerJob : 0, &Fence );
+	Fence.wait();
+
+#if !PSY_PRODUCTION
+	if ( ImGui::Begin( "Engine Debug" ) )
+	{
+		if( ImGui::TreeNode( "ScnModelComponent" ) )
 		{
-			updateNodes( Matrix );
-		} );
+			const BcF32 UpdateTime = Timer.time() * 1000.0f;
+			ImGui::Checkbox( "Enable jobs", &UseJobs );
+			ImGui::Text( "Time: %f ms", UpdateTime );
+			ImGui::Text( "Components: %u", Components.size() );
+			ImGui::Text( "Nodes: %u", NoofNodes );
+
+			static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+			static int GraphPointIdx = 0;
+			GraphPoints[ GraphPointIdx ] = UpdateTime;
+			GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+			ImGui::PlotLines( "", GraphPoints.data(), GraphPoints.size(), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+
+
+			ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob );
+			ImGui::Separator();
+			ImGui::TreePop();
+		}
+	}
+	ImGui::End();
 #endif
 
-#if DEBUG_RENDER_NODES
-	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
-	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
-	{
-		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ NodeIdx ];
-
-		MaMat4d ThisMatrix = pNodeTransformData->WorldTransform_;
-		MaMat4d ParentMatrix = pNodePropertyData->ParentIndex_ != BcErrorCode ? 
-			pNodeTransformData_[ pNodePropertyData->ParentIndex_ ].WorldTransform_ :
-			getParentEntity()->getWorldMatrix();
-
-		ScnDebugRenderComponent::pImpl()->drawMatrix( 
-			ThisMatrix, RsColour::WHITE, 2000 );
-		ScnDebugRenderComponent::pImpl()->drawLine( 
-			ParentMatrix.translation(), 
-			ThisMatrix.translation(), 
-			RsColour::WHITE, 1000 );
-	}
-
-#endif // DEBUG_RENDER_NODES
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -843,8 +892,6 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				} );
 		}
 	}
-
-	UpdateFence_.decrement();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -995,7 +1042,6 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	}
 
 	// Update nodes.
-	UpdateFence_.increment();
 	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
 }
 
@@ -1004,8 +1050,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	// Wait for update, upload + render to complete.
-	UpdateFence_.wait();
+	// Wait for upload + render to complete.
 	UploadFence_.wait();
 
 	PerComponentMeshDataList_.clear();
@@ -1025,9 +1070,6 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 	PSY_PROFILE_FUNCTION;
 
 	Super::render( RenderContext );
-
-	// Wait for model to have updated.
-	UpdateFence_.wait();
 
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;

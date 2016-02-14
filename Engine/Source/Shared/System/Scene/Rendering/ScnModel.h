@@ -125,8 +125,9 @@ public:
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
 public:
+	static BcU32 recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence );
 	static void updateModels( const ScnComponentList& Components );
-	void updateModel( BcF32 Tick );
+	void updateModel( BcF32 Tick, SysFence* Fence );
 	void updateNodes( MaMat4d RootMatrix );
 	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
@@ -147,7 +148,6 @@ protected:
 
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
-	SysFence UpdateFence_;
 
 	MaAABB AABB_;
 
