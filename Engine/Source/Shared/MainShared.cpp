@@ -531,9 +531,11 @@ void MainShared()
 	// Subscribe to F1 & F2 for screenshot
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, onScreenshot );
 
+#if PSY_USE_PROFILER
 	// Set name in profiler.
 	if( BcProfiler::pImpl() )
 	{
 		BcProfiler::pImpl()->setThreadName( BcCurrentThreadId(), "Main Thread" );
 	}
+#endif
 }

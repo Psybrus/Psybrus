@@ -248,6 +248,7 @@ public:
 #define PSY_PROFILE_FUNCTION
 #define PSY_PROFILER_SECTION( _LocalName, _Tag )
 #define PSY_PROFILER_START_ASYNC( _Tag, _Data )
+#define PSY_PROFILER_STEP_ASYNC( _Tag, _Data )
 #define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data )
 #define PSY_PROFILER_INSTANT_EVENT( _Tag, _Data )
 

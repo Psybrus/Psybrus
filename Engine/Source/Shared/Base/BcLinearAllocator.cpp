@@ -28,7 +28,7 @@ void BcLinearAllocator::reset()
 // allocate
 void* BcLinearAllocator::allocate( size_t Bytes )
 {
-	Bytes = BcCalcAlignment( static_cast< size_t >( Bytes ), static_cast< size_t >( Alignment_ ) );
+	Bytes = BcCalcAlignment( static_cast< BcU64 >( Bytes ), static_cast< BcU64 >( Alignment_ ) );
 	size_t ThisOffset = Offset_.fetch_add( Bytes );
 	if( ( ThisOffset + Bytes ) < Size_ )
 	{

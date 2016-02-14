@@ -112,11 +112,13 @@ void SysJobWorker::execute()
 	PSY_LOGSCOPEDCATEGORY( "Worker" );
 
 	// Set name in profiler.
+#if PSY_USE_PROFILER
 	if( BcProfiler::pImpl() )
 	{
 		BcProfiler::pImpl()->setThreadName( BcCurrentThreadId(), DebugName_.c_str() );
 	}
-
+#endif
+	
 	// Mark as started.
 	StartFence_.decrement();
 

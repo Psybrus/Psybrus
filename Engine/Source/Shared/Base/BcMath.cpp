@@ -196,12 +196,6 @@ BcU32 BcCalcAlignment( BcU32 Value, BcU32 Alignment )
 	return ( Value + ( Alignment - 1 ) ) & ~( Alignment - 1 );
 }
 
-BcU64 BcCalcAlignment( BcU64 Value, BcU32 Alignment )
-{
-	BcAssert( BcPot( Alignment ) );
-	return ( Value + BcU64( Alignment - 1 ) ) & ~( BcU64( Alignment - 1 ) );
-}
-
 BcU64 BcCalcAlignment( BcU64 Value, BcU64 Alignment )
 {
 	BcAssert( BcPot( Alignment ) );

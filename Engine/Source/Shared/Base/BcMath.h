@@ -172,7 +172,6 @@ BcU64 BcPotNext( BcU64 Value );
 //////////////////////////////////////////////////////////////////////////
 // BcCalcAlignment
 BcU32 BcCalcAlignment( BcU32 Value, BcU32 Alignment );
-BcU64 BcCalcAlignment( BcU64 Value, BcU32 Alignment );
 BcU64 BcCalcAlignment( BcU64 Value, BcU64 Alignment );
 
 //////////////////////////////////////////////////////////////////////////
