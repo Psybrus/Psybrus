@@ -22,10 +22,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#if PSY_USE_PROFILER
-#include <boost/format.hpp>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // System Creator
 SYS_CREATOR( FsCoreImplLinux );
