@@ -6,6 +6,7 @@
 
 #include "Base/BcFile.h"
 #include "Base/BcHtml.h"
+#include "Base/BcProfiler.h"
 
 #include "Math/MaQuat.h"
 #include "Math/MaMat4d.h"
@@ -175,11 +176,15 @@ void DsCoreImpl::update()
 #if USE_WEBBY
 	for ( unsigned int Idx = 0; Idx < Servers_.size(); ++Idx )
 	{
+		PSY_PROFILER_SECTION( UpdateWebby, "WebbyServerUpdate" );
+
 		WebbyServerUpdate( Servers_[ Idx ] );
 	}
 #endif // USE_WEBBY
 	if( OsCore::pImpl() && OsCore::pImpl()->getClient( 0 ) )
 	{
+		PSY_PROFILER_SECTION( UpdateWebby, "ImGui" );
+
 		if ( ImGui::Psybrus::NewFrame() )
 		{
 			if ( DrawPanels_ )
