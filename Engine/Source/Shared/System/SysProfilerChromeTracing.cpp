@@ -21,11 +21,16 @@
 #if PSY_USE_PROFILER
 
 //////////////////////////////////////////////////////////////////////////
+// Defines
+#define MAX_PROFILER_ALLOCATOR_MB ( 32 )
+#define MAX_EVENTS ( 1024 * 1024 )
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
-SysProfilerChromeTracing::SysProfilerChromeTracing()
+SysProfilerChromeTracing::SysProfilerChromeTracing():
+	Allocator_( 1024 * 1024 * MAX_PROFILER_ALLOCATOR_MB )
 {
-	ProfilerSectionPool_.resize( 65536 );
-	ProfilerSectionIndex_ = 0;
+	ProfilerSections_.resize( MAX_EVENTS );
 	BeginCount_ = 0;
 	ProfilingActive_ = 0;
 }
@@ -39,7 +44,16 @@ SysProfilerChromeTracing::~SysProfilerChromeTracing()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// registerThreadId
+// setThreadName
+//virtual
+void SysProfilerChromeTracing::setThreadName( BcThreadId ThreadId, const char* Name )
+{
+	std::lock_guard< std::mutex > Lock( InternalMutex_ );
+	ThreadNames_[ ThreadId ] = Name;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginProfiling
 //virtual
 void SysProfilerChromeTracing::beginProfiling()
 {
@@ -48,17 +62,18 @@ void SysProfilerChromeTracing::beginProfiling()
 		// Final flush out.
 		SysKernel::pImpl()->flushAllJobQueues();
 
-		// Reset allocation
-		ProfilerSectionIndex_ = 0;
+		// Reset allocator.
+		Allocator_.reset();
+	
+		// Reset sections.
+		std::fill( ProfilerSections_.begin(), ProfilerSections_.end(), nullptr );
+		ProfilerSectionIdx_ = 0;
 
 		// Mark timer!
 		Timer_.mark();
 		
 		// And we're off!
-		++ProfilingActive_;
-
-		//
-		SysKernel::pImpl()->flushAllJobQueues();
+		ProfilingActive_ = 1;
 	}
 	else
 	{
@@ -67,7 +82,7 @@ void SysProfilerChromeTracing::beginProfiling()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// registerThreadId
+// endProfiling
 //virtual
 void SysProfilerChromeTracing::endProfiling()
 {
@@ -77,38 +92,61 @@ void SysProfilerChromeTracing::endProfiling()
 		SysKernel::pImpl()->flushAllJobQueues();
 
 		// Stop profiling.
-		--ProfilingActive_;
+		ProfilingActive_ = 0;
 
 		// Wait for all workers to complete.
 		SysKernel::pImpl()->flushAllJobQueues();
 
-		std::stringstream Stream;
+		std::lock_guard< std::mutex > Lock( InternalMutex_ );
 
-		Stream << "{\"traceEvents\" : [";
+		auto Time = std::time( nullptr );
+		auto LocalTime = *std::localtime( &Time );
+		std::array< char, 1024 > FileName = { 0 };
+#if PLATFORM_ANDROID
+		strftime( FileName.data(), FileName.size() - 1, "/sdcard/Pictures/chrome_tracing_%Y-%m-%d-%H-%M-%S.json", &LocalTime );
+#else
+		strftime( FileName.data(), FileName.size() - 1, "chrome_tracing_%Y-%m-%d-%H-%M-%S.json", &LocalTime );
+#endif
 
-		BcAssert( ProfilerSectionIndex_ <= ProfilerSectionPool_.size() );
+		std::array< char, 1024 > LineBuffer = { 0 };
+		std::array< char, 32 > ID = { 0 };
+		std::ofstream OutFileStream;
+
+		OutFileStream.open( FileName.data(), std::ofstream::out | std::ofstream::trunc );
+		OutFileStream << "{\"traceEvents\" : [\n";
 
 		// Clear all per thread sections back down to the root nodes.
-		for( BcU32 Idx = 0; Idx < ProfilerSectionIndex_; ++Idx )
+		for( BcU32 Idx = 0; Idx < ProfilerSections_.size(); ++Idx )
 		{
-			TProfilerEvent* Event = &ProfilerSectionPool_[ Idx ];
+			const TProfilerEvent* Event = ProfilerSections_[ Idx ];
+			if( Event == nullptr )
+			{
+				break;
+			}
 
-			Stream << "{"
-			       << "\"cat\": \"" << "Psybrus" << "\","
-			       << "\"pid\": 0,"
-		 		   << "\"tid\": " << Event->ThreadId_ << ","
-			       << "\"ts\": " << Event->StartTime_ * 1000000.0 << ","
-			       << "\"ph\": \"" << Event->Type_ << "\","
-			       << "\"name\": \"" << Event->Tag_ << "\","
-			       << "\"args\": {}"
-			       << "},\n";
+#if PLATFORM_WINDOWS
+			BcSPrintf( ID.data(), ID.size() - 1, "0x%p", Event->Data_ );
+#else
+			BcSPrintf( ID.data(), ID.size() - 1, "%p", Event->Data_ );
+#endif
+
+			auto ThreadNameIt = ThreadNames_.find( Event->ThreadId_ );
+			if( ThreadNameIt != ThreadNames_.end() )
+			{
+				BcSPrintf( LineBuffer.data(), LineBuffer.size() - 1, 
+					"\t{ \"cat\": \"%s\", \"pid\": %u, \"tid\": \"%s\", \"ts\": %.4f, \"ph\": \"%c\", \"name\": \"%s\", \"id\": \"%s\", \"args\": {} },\n",
+					"", 0, ThreadNameIt->second.c_str(), Event->StartTime_ * 1000000.0, Event->Type_, Event->Tag_, ID.data() );
+			}
+			else
+			{
+				BcSPrintf( LineBuffer.data(), LineBuffer.size() - 1, 
+					"\t{ \"cat\": \"%s\", \"pid\": %u, \"tid\": %u, \"ts\": %.4f, \"ph\": \"%c\", \"name\": \"%s\", \"id\": \"%s\", \"args\": {} },\n",
+					"", 0, Event->ThreadId_, Event->StartTime_ * 1000000.0, Event->Type_, Event->Tag_, ID.data() );
+			}
+			OutFileStream << LineBuffer.data();
 		}
 
-		Stream << "{}]}";
-
-		std::ofstream OutFileStream;
-		OutFileStream.open( "test.json", std::ofstream::out | std::ofstream::trunc );
-		OutFileStream << Stream.str();
+		OutFileStream << "{}]}\n";
 		OutFileStream.close();
 	}
 	else
@@ -120,17 +158,16 @@ void SysProfilerChromeTracing::endProfiling()
 //////////////////////////////////////////////////////////////////////////
 // enterSection
 //virtual
-void SysProfilerChromeTracing::enterSection( const std::string& Tag )
+void SysProfilerChromeTracing::enterSection( const char* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
 		// New section.
-		TProfilerEvent* Event = allocEvent();
+		TProfilerEvent* Event = allocEvent( Tag );
 		if( Event != nullptr )
 		{
 			// Setup section.
-			Event->Tag_ = Tag;
-			Event->Type_ = "B";
+			Event->Type_ = 'B';
 			Event->ThreadId_ = BcCurrentThreadId();
 			Event->StartTime_ = Timer_.time();
 		}
@@ -140,17 +177,16 @@ void SysProfilerChromeTracing::enterSection( const std::string& Tag )
 //////////////////////////////////////////////////////////////////////////
 // exitSection
 //virtual
-void SysProfilerChromeTracing::exitSection( const std::string& Tag )
+void SysProfilerChromeTracing::exitSection( const char* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
 		// New section.
-		TProfilerEvent* Event = allocEvent();
+		TProfilerEvent* Event = allocEvent( Tag );
 		if( Event != nullptr )
 		{
 			// Setup section.
-			Event->Tag_ = Tag;
-			Event->Type_ = "E";
+			Event->Type_ = 'E';
 			Event->ThreadId_ = BcCurrentThreadId();
 			Event->StartTime_ = Timer_.time();
 		}
@@ -160,18 +196,38 @@ void SysProfilerChromeTracing::exitSection( const std::string& Tag )
 //////////////////////////////////////////////////////////////////////////
 // startAsync
 //virtual
-void SysProfilerChromeTracing::startAsync( const std::string& Tag )
+void SysProfilerChromeTracing::startAsync( const char* Tag, void* Data )
 {
 	if( ProfilingActive_ == 1 )
 	{
 		// New section.
-		TProfilerEvent* Event = allocEvent();
+		TProfilerEvent* Event = allocEvent( Tag );
 		if( Event != nullptr )
 		{
 			// Setup section.
-			Event->Tag_ = Tag;
-			Event->Type_ = "S";
+			Event->Type_ = 's';
 			Event->ThreadId_ = BcCurrentThreadId();
+			Event->Data_ = Data;
+			Event->StartTime_ = Timer_.time();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// stepAsync
+//virtual
+void SysProfilerChromeTracing::stepAsync( const char* Tag, void* Data )
+{
+	if( ProfilingActive_ == 1 )
+	{
+		// New section.
+		TProfilerEvent* Event = allocEvent( Tag );
+		if( Event != nullptr )
+		{
+			// Setup section.
+			Event->Type_ = 't';
+			Event->ThreadId_ = BcCurrentThreadId();
+			Event->Data_ = Data;
 			Event->StartTime_ = Timer_.time();
 		}
 	}
@@ -180,17 +236,17 @@ void SysProfilerChromeTracing::startAsync( const std::string& Tag )
 //////////////////////////////////////////////////////////////////////////
 // endAsync
 //virtual
-void SysProfilerChromeTracing::endAsync( const std::string& Tag )
+void SysProfilerChromeTracing::endAsync( const char* Tag, void* Data )
 {
 	if( ProfilingActive_ == 1 )
 	{
 		// New section.
-		TProfilerEvent* Event = allocEvent();
+		TProfilerEvent* Event = allocEvent( Tag );
 		if( Event != nullptr )
 		{
 			// Setup section.
-			Event->Tag_ = Tag;
-			Event->Type_ = "F";
+			Event->Type_ = 'f';
+			Event->Data_ = Data;
 			Event->ThreadId_ = BcCurrentThreadId();
 			Event->StartTime_ = Timer_.time();
 		}
@@ -200,17 +256,16 @@ void SysProfilerChromeTracing::endAsync( const std::string& Tag )
 //////////////////////////////////////////////////////////////////////////
 // instantEvent
 //virtual
-void SysProfilerChromeTracing::instantEvent( const std::string& Tag )
+void SysProfilerChromeTracing::instantEvent( const char* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
 		// New section.
-		TProfilerEvent* Event = allocEvent();
+		TProfilerEvent* Event = allocEvent( Tag );
 		if( Event != nullptr )
 		{
 			// Setup section.
-			Event->Tag_ = Tag;
-			Event->Type_ = "I";
+			Event->Type_ = 'i';
 			Event->ThreadId_ = BcCurrentThreadId();
 			Event->StartTime_ = Timer_.time();
 		}
@@ -219,20 +274,23 @@ void SysProfilerChromeTracing::instantEvent( const std::string& Tag )
 
 //////////////////////////////////////////////////////////////////////////
 // allocEvent
-SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent()
+SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent( const char* Tag )
 {
-	BcAssert( ProfilingActive_ == 1 );
-	BcU32 Idx = ProfilerSectionIndex_++;
-	if( Idx < ProfilerSectionPool_.size() )
+	auto Idx = ProfilerSectionIdx_++;
+
+	if( Idx < ProfilerSections_.size() )
 	{
-		auto Section = &ProfilerSectionPool_[ Idx ];
-		*Section = TProfilerEvent();
-		return Section;
-	}
-	else
-	{
-		ProfilerSectionIndex_--;
-		// end and dump.
+		const size_t StringDataSize = BcStrLength( Tag ) + 1;
+		void* EventData = Allocator_.allocate( sizeof( TProfilerEvent ) + StringDataSize );
+
+		if( EventData != nullptr )
+		{
+			TProfilerEvent* ProfilerEvent = new ( EventData ) TProfilerEvent;		
+			BcMemSet( ProfilerEvent->Tag_, 0, StringDataSize );
+			BcStrCopy( ProfilerEvent->Tag_, BcU32( StringDataSize - 1 ), Tag );
+			ProfilerSections_[ Idx ] = ProfilerEvent;
+			return ProfilerEvent;
+		}
 	}
 	return nullptr;
 }
