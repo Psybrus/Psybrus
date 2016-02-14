@@ -168,7 +168,9 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	JobWorkers_.reserve( NoofThreads );
 	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
 	{
-		JobWorkers_.push_back( new SysJobWorker( this, JobWorkerStartFence_ ) );
+		std::array< char, 32 > DebugName;
+		BcSPrintf( DebugName.data(), DebugName.size() - 1, "SysJobWorker %u", Idx );
+		JobWorkers_.push_back( new SysJobWorker( this, JobWorkerStartFence_, DebugName.data() ) );
 	}
 
 	// Wait for workers to start.

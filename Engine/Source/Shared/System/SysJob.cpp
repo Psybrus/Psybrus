@@ -13,6 +13,8 @@
 
 #include "System/SysJob.h"
 
+#include "Base/BcProfiler.h"
+
 #define DEBUG_JOB_IDS ( 0 )
 
 //////////////////////////////////////////////////////////////////////////
@@ -20,7 +22,7 @@
 SysJob::SysJob():
 	WorkerMask_( 0 )
 {
-	
+	PSY_PROFILER_START_ASYNC( "SysJob", this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +38,9 @@ SysJob::~SysJob()
 // virtual
 void SysJob::internalExecute()
 {
+	PSY_PROFILER_STEP_ASYNC( "SysJob", this );
 	execute();
+	PSY_PROFILER_FINISH_ASYNC( "SysJob", this );
 }
 
 //////////////////////////////////////////////////////////////////////////

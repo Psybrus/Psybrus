@@ -33,7 +33,7 @@ class SysJobQueue;
 class SysJobWorker
 {
 public:
-	SysJobWorker( class SysKernel* Parent, SysFence& StartFence );
+	SysJobWorker( class SysKernel* Parent, SysFence& StartFence, const char* DebugName );
 	virtual ~SysJobWorker();
 	
 	/**
@@ -66,6 +66,7 @@ private:
 	
 private:
 	class SysKernel* Parent_;
+	std::string DebugName_;
 	SysFence& StartFence_;
 	BcBool Active_;
 	std::atomic< size_t > PendingJobQueue_;
