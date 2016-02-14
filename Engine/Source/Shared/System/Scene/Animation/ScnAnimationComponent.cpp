@@ -22,6 +22,8 @@
 
 #include "System/SysKernel.h"
 
+#include "Base/BcProfiler.h"
+
 #include "System/Content/CsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,17 +186,28 @@ ScnAnimationTreeNode* ScnAnimationComponent::findNodeRecursively( ScnAnimationTr
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Statics
+SysFence ScnAnimationComponent::SyncFence_;
+
+//////////////////////////////////////////////////////////////////////////
 // decode
 //static
 void ScnAnimationComponent::decode( const ScnComponentList& Components )
 {
+	PSY_PROFILE_FUNCTION;
 	for( auto Component : Components )
 	{
 		BcAssert( Component->isTypeOf< ScnAnimationComponent >() );
 		auto* AnimationComponent = static_cast< ScnAnimationComponent* >( Component.get() );
 		if( AnimationComponent->Tree_ != nullptr )
 		{
-			AnimationComponent->Tree_->decode();
+			SyncFence_.increment();
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				[ AnimationComponent ]()
+				{
+					AnimationComponent->Tree_->decode();
+					SyncFence_.decrement();
+				} );
 		}
 	}
 }
@@ -204,17 +217,43 @@ void ScnAnimationComponent::decode( const ScnComponentList& Components )
 //static 
 void ScnAnimationComponent::pose( const ScnComponentList& Components )
 {
+	PSY_PROFILE_FUNCTION;
+	SyncFence_.wait( 0, "SysAnimationComponent: Wait for decode" );
+
 	for( auto Component : Components )
 	{
 		BcAssert( Component->isTypeOf< ScnAnimationComponent >() );
 		auto* AnimationComponent = static_cast< ScnAnimationComponent* >( Component.get() );
 		if( AnimationComponent->Tree_ != nullptr )
 		{
-			AnimationComponent->Tree_->pose();
+			SyncFence_.increment();
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				[ AnimationComponent ]()
+				{
+					PSY_PROFILE_FUNCTION;
+					AnimationComponent->Tree_->pose();
+					SyncFence_.decrement();
+				} );
 		}
-
-		AnimationComponent->applyPose();
 	}
+
+	SyncFence_.wait( 0, "SysAnimationComponent: Wait for pose" );
+
+	for( auto Component : Components )
+	{
+		BcAssert( Component->isTypeOf< ScnAnimationComponent >() );
+		auto* AnimationComponent = static_cast< ScnAnimationComponent* >( Component.get() );
+
+		SyncFence_.increment();
+		SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+			[ AnimationComponent ]()
+			{
+				AnimationComponent->applyPose();
+				SyncFence_.decrement();
+			} );
+	}
+
+	SyncFence_.wait( 0, "SysAnimationComponent: Wait for applyPose" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -222,6 +261,7 @@ void ScnAnimationComponent::pose( const ScnComponentList& Components )
 //static 
 void ScnAnimationComponent::advance( const ScnComponentList& Components )
 {
+	PSY_PROFILE_FUNCTION;
 	auto Tick = SysKernel::pImpl()->getFrameTime();
 	for( auto Component : Components )
 	{
