@@ -682,13 +682,19 @@ BcU32 ScnModelComponent::recursiveModelUpdate( const ScnComponentList& Component
 		if( MidIdx > StartIdx )
 		{
 			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
-				std::bind( &ScnModelComponent::recursiveModelUpdate, Components, StartIdx, MidIdx, MaxNodesPerJob, Fence ) );
+				[ &Components, StartIdx, MidIdx, MaxNodesPerJob, Fence ]()
+				{
+					ScnModelComponent::recursiveModelUpdate( Components, StartIdx, MidIdx, MaxNodesPerJob, Fence );
+				} );
 		}
 
 		if( EndIdx > MidIdx )
 		{
 			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
-				std::bind( &ScnModelComponent::recursiveModelUpdate, Components, MidIdx, EndIdx, MaxNodesPerJob, Fence ) );
+				[ &Components, MidIdx, EndIdx, MaxNodesPerJob, Fence ]()
+				{
+					ScnModelComponent::recursiveModelUpdate( Components, MidIdx, EndIdx, MaxNodesPerJob, Fence );
+				} );
 		}
 	}
 
