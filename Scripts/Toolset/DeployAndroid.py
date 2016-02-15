@@ -37,7 +37,6 @@ class DeployAndroid( Deploy ):
 		self.configs = {
 			"debug" : "Debug",
 			"release" : "Release",
-			"profile" : "Profile",
 			"production" : "Production",
 		}
 

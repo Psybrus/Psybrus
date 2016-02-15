@@ -148,6 +148,7 @@ void SysProfilerChromeTracing::endProfiling()
 
 		OutFileStream << "{}]}\n";
 		OutFileStream.close();
+		PSY_LOG( "Written profile to \"%s\"", FileName.data() );
 	}
 	else
 	{

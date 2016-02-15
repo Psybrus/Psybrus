@@ -124,11 +124,6 @@ void PsyAndroidMain( struct android_app* State )
 	// Create reflection database
 	ReManager::Init();
 
-#if PSY_USE_PROFILER
-	// new profiler.
-	new SysProfilerChromeTracing();
-#endif
-
 	//extern void MainUnitTests();
 	//MainUnitTests();
 

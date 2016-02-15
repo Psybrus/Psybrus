@@ -483,9 +483,6 @@ function PsySetupToolchain()
 	configuration "Release"
 		targetsuffix "Release"
 
-	configuration "Profile"
-		targetsuffix "Profile"
-
 	configuration "Production"
 		targetsuffix "Production"
 

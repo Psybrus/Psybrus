@@ -157,28 +157,6 @@ SysKernel::SysKernel( BcF32 TickRate ):
 	SleepAccumulator_ = 0.0f;
 	FrameTime_ = 0.0f;
 	CurrWorkerAllocIdx_ = 0;
-
-#if !PLATFORM_HTML5
-	// Create job workers for the number of threads we have.
-	BcU32 NoofThreads = BcMax( std::thread::hardware_concurrency(), 1 );
-
-	// Increment fence by number of threads.
-	JobWorkerStartFence_.increment( NoofThreads );
-	
-	JobWorkers_.reserve( NoofThreads );
-	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
-	{
-		std::array< char, 32 > DebugName;
-		BcSPrintf( DebugName.data(), DebugName.size() - 1, "SysJobWorker %u", Idx );
-		JobWorkers_.push_back( new SysJobWorker( this, JobWorkerStartFence_, DebugName.data() ) );
-	}
-
-	// Wait for workers to start.
-	JobWorkerStartFence_.wait( 0 );
-
-	// Mark main timer.
-	MainTimer_.mark();
-#endif // !PLATFORM_HTML5
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,6 +189,34 @@ SysKernel::~SysKernel()
 	JobQueues_.clear();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// startWorkers
+void SysKernel::startWorkers()
+{
+#if !PLATFORM_HTML5
+	// Create job workers for the number of threads we have.
+	BcU32 NoofThreads = BcMax( std::thread::hardware_concurrency(), 1 );
+
+	// Increment fence by number of threads.
+	JobWorkerStartFence_.increment( NoofThreads );
+	
+	JobWorkers_.reserve( NoofThreads );
+	for( BcU32 Idx = 0; Idx < NoofThreads; ++Idx )
+	{
+		std::array< char, 32 > DebugName;
+		BcSPrintf( DebugName.data(), DebugName.size() - 1, "SysJobWorker %u", Idx );
+		JobWorkers_.push_back( new SysJobWorker( this, JobWorkerStartFence_, DebugName.data() ) );
+	}
+
+	// Wait for workers to start.
+	JobWorkerStartFence_.wait( 0 );
+
+	// Mark main timer.
+	MainTimer_.mark();
+#endif // !PLATFORM_HTML5
+}
+
 //////////////////////////////////////////////////////////////////////////
 // createJobQueue
 size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThreads )
@@ -223,6 +229,8 @@ size_t SysKernel::createJobQueue( size_t NoofWorkers, size_t MinimumHardwareThre
 	{
 		NoofWorkers = JobWorkers_.size();
 	}
+
+	BcAssert( JobWorkers_.size() > 0 );
 
 	// If we have less than the minimum required number of hardware threads,
 	// then we just want to return an error code.
@@ -526,9 +534,12 @@ void SysKernel::runOnce()
 #endif
 
 #if PSY_USE_PROFILER
-	if( FrameCount == 0 )
+	if( BcProfiler::pImpl() )
 	{
-		BcProfiler::pImpl()->beginProfiling();
+		if( FrameCount == 0 )
+		{
+			BcProfiler::pImpl()->beginProfiling();
+		}
 	}
 #endif
 
@@ -570,12 +581,15 @@ void SysKernel::runOnce()
 #endif
 
 #if PSY_USE_PROFILER
-	++FrameCount;
-
-	if( FrameCount == 60 )
+	if( BcProfiler::pImpl() )
 	{
-		BcProfiler::pImpl()->endProfiling();
-		FrameCount = 0;
+		++FrameCount;
+
+		if( FrameCount == 60 )
+		{
+			BcProfiler::pImpl()->endProfiling();
+			FrameCount = 0;
+		}
 	}
 #endif
 }

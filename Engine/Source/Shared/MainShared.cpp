@@ -41,6 +41,8 @@ BcU32 GResolutionHeight = 720;
 #include "Base/BcBuildInfo.h"
 #include "Base/BcProfiler.h"
 
+#include "System/SysProfilerChromeTracing.h"
+
 #define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
 
 #if SEARCH_FOR_CORRECT_PATH
@@ -438,10 +440,6 @@ void MainShared()
 	}
 #endif
 
-
-	// Setup default system job queues.
-	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
-
 	// Parse command line params for disabling systems.
 	if( SysArgs_.find( "-noremote " ) != std::string::npos )
 	{
@@ -465,6 +463,19 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
 	}
 
+	// Start profiler.
+#if PSY_USE_PROFILER
+	if( SysArgs_.find( "-profile " ) != std::string::npos )
+	{
+		new SysProfilerChromeTracing();
+	}
+#endif
+
+	// Start workers.
+	SysKernel::pImpl()->startWorkers();
+
+	// Setup default system job queues.
+	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
 
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
