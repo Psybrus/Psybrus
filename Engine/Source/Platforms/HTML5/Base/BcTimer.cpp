@@ -14,23 +14,19 @@
 #include "Base/BcTimer.h"
 #include "Base/BcDebug.h"
 
+#include <emscripten.h>
+
 //////////////////////////////////////////////////////////////////////////
 // mark
 void BcTimer::mark()
 {
-	auto RetVal = ::gettimeofday( &MarkedTime_, NULL );
-	BcAssert( RetVal != -1 );
+	MarkedTime_ = emscripten_get_now();
 }
 
 //////////////////////////////////////////////////////////////////////////
 // time
 BcF64 BcTimer::time()
 {
-	timeval TimeVal;
-	auto RetVal = ::gettimeofday( &TimeVal, NULL );
-	BcAssert( RetVal != -1 );
-	BcF64 MarkedTime = MarkedTime_.tv_sec + ( (BcF64)MarkedTime_.tv_usec / 1000000.0 );
-	BcF64 CurrTime = TimeVal.tv_sec + ( (BcF64)TimeVal.tv_usec / 1000000.0 );
-	BcAssert( CurrTime >= MarkedTime );
-	return BcF64( CurrTime - MarkedTime );
+	BcF64 CurrTime = emscripten_get_now();
+	return BcF64( CurrTime - MarkedTime_ ) / 1000.0;
 }
