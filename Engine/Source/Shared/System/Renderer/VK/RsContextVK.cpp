@@ -263,27 +263,27 @@ void RsContextVK::create()
 #if 1
 		for( const auto& InstanceLayer : InstanceLayers_ )
 		{
-			if( strstr( InstanceLayer.layerName, "MemTracker" ) )
+			if( strstr( InstanceLayer.layerName, "mem_tracker" ) )
 			{
 				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
-			if( strstr( InstanceLayer.layerName, "ObjectTracker" ) )
+			if( strstr( InstanceLayer.layerName, "object_tracker" ) )
 			{
 				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
-			if( strstr( InstanceLayer.layerName, "ParamChecker" ) )
+			if( strstr( InstanceLayer.layerName, "param_checker" ) )
 			{
 				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
-			if( strstr( InstanceLayer.layerName, "ShaderChecker" ) )
+			if( strstr( InstanceLayer.layerName, "shader_checker" ) )
 			{
 				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
-			if( strstr( InstanceLayer.layerName, "Threading" ) )
+			if( strstr( InstanceLayer.layerName, "threading" ) )
 			{
 				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
-			if( strstr( InstanceLayer.layerName, "DrawState" ) )
+			if( strstr( InstanceLayer.layerName, "draw_state" ) )
 			{
 				EnabledInstanceLayers.push_back( InstanceLayer.layerName );
 			}
@@ -381,27 +381,27 @@ void RsContextVK::create()
 #if 1
 			for( const auto& DeviceLayer : DeviceLayers_ )
 			{
-				if( strstr( DeviceLayer.layerName, "Threading" ) )
+				if( strstr( DeviceLayer.layerName, "threading" ) )
 				{
 					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				if( strstr( DeviceLayer.layerName, "MemTracker" ) )
+				if( strstr( DeviceLayer.layerName, "mem_tracker" ) )
 				{
 					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				if( strstr( DeviceLayer.layerName, "ObjectTracker" ) )
+				if( strstr( DeviceLayer.layerName, "object_tracker" ) )
 				{
 					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				if( strstr( DeviceLayer.layerName, "ParamChecker" ) )
+				if( strstr( DeviceLayer.layerName, "param_checker" ) )
 				{
 					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				if( strstr( DeviceLayer.layerName, "ShaderChecker" ) )
+				if( strstr( DeviceLayer.layerName, "shader_checker" ) )
 				{
 					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
-				if( strstr( DeviceLayer.layerName, "DrawState" ) )
+				if( strstr( DeviceLayer.layerName, "draw_state" ) )
 				{
 					EnabledDeviceLayers.push_back( DeviceLayer.layerName );
 				}
