@@ -18,7 +18,9 @@ public:
 
 		virtual void clear() = 0;
 		virtual void add( void* pValue ) = 0;
+		virtual void addMove( void* pValue ) = 0;
 		virtual void add( void* pKey, void* pValue ) = 0;
+		virtual void addMove( void* pKey, void* pValue ) = 0;
 		virtual bool isValid() const = 0;
 	};
 

@@ -46,7 +46,33 @@ public:
 	*/
     static ReEnum* GetEnum( BcName InName );
 
-    /**
+	/**
+	* @brief Get Enums.
+	* @return
+	*/
+    static std::vector< ReEnum* > GetEnums();
+
+	/**
+	* @brief Get enum value name.
+	* @param EnumValue Enum Value.
+	* @return Name of enum value. BcName::INVALID if not found.
+	*/
+	template< typename _Ty >
+    static BcName GetEnumValueName( _Ty EnumValue )
+	{
+		auto Enum = GetEnum( ReTypeTraits< _Ty >::Name() );
+		if( Enum )
+		{
+			auto EnumConstant = Enum->getEnumConstant( static_cast< BcU32 >( EnumValue ) );
+			if( EnumConstant )
+			{
+				return EnumConstant->getName();
+			}
+		}
+		return BcName::INVALID;
+	}
+	
+	/**
 	* @brief Get Class. Will always return, will add a new empty class if it does not exist.
 	* @param _Ty Type of class, autogens name.
 	* @return

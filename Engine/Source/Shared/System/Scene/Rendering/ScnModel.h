@@ -30,6 +30,18 @@ typedef ReObjectRef< class ScnModel > ScnModelRef;
 typedef ReObjectRef< class ScnModelComponent > ScnModelComponentRef;
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelUniforms
+struct ScnModelUniforms
+{
+	REFLECTION_DECLARE_BASIC( ScnModelUniforms );
+	ScnModelUniforms();
+
+	std::string Name_;
+	BcBinaryData Data_;
+	RsBufferUPtr Buffer_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnModel
 class ScnModel:
 	public CsResource
@@ -75,6 +87,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnModelComponent, ScnRenderableComponent );
 
 	ScnModelComponent();
+	ScnModelComponent( ScnModelRef Model );
 	virtual ~ScnModelComponent();
 
 	void initialise() override;
@@ -87,16 +100,36 @@ public:
 	const MaMat4d& getNode( BcU32 NodeIdx ) const;
 	BcU32 getNoofNodes() const;
 
+	/**
+	 * Set uniforms.
+	 * @param UniformClass Uniform reflection class.
+	 * @param UniformData Uniform data.
+	 */
+	void setUniforms( const ReClass* UniformClass, const void* UniformData );
+
+	/**
+	 * Templated version of @a setUniforms.
+	 */
+	template< typename _Ty >
+	void setUniforms( const _Ty& UniformData )
+	{
+		setUniforms( _Ty::StaticGetClass(), &UniformData );
+	}
+
+#if 0
 	ScnMaterialComponentRef getMaterialComponent( BcU32 Index );
 	ScnMaterialComponentRef getMaterialComponent( const BcName& MaterialName );
 	ScnMaterialComponentList getMaterialComponents( const BcName& MaterialName );
+#endif
 
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
 public:
+	static BcU32 recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence );
 	static void updateModels( const ScnComponentList& Components );
-	void updateModel( BcF32 Tick );
+	void updateModel( BcF32 Tick, SysFence* Fence );
 	void updateNodes( MaMat4d RootMatrix );
+	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 	void render( ScnRenderContext & RenderContext ) override;
@@ -104,27 +137,27 @@ public:
 protected:
 	ScnModelRef Model_;
 	BcU32 Layer_;
-	BcU32 Pass_;
 
 	MaVec3d Position_;
 	MaVec3d Scale_;
 	MaVec3d Rotation_;
 	MaMat4d BaseTransform_;
 
+	typedef std::vector< ScnModelUniforms > TMaterialUniforms;
+	TMaterialUniforms Uniforms_;
+
 	ScnModelNodeTransformData* pNodeTransformData_;
 	SysFence UploadFence_;
-	SysFence UpdateFence_;
 
 	MaAABB AABB_;
 
 	struct TPerComponentMeshData
 	{
-		ScnMaterialComponentRef MaterialComponentRef_;
-		RsBufferUPtr UniformBuffer_;
+		RsBufferUPtr ObjectUniformBuffer_;
+		RsBufferUPtr LightingUniformBuffer_;
 	};
 	
-	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;
-	
+	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;	
 	TPerComponentMeshDataList PerComponentMeshDataList_;
 };
 

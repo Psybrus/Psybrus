@@ -38,11 +38,17 @@ public:
 	 */
 	BcBool import( const Json::Value& Object ) override;
 
+	/**
+	 * Add texture + sampler.
+	 */
+	void addTexture( const std::string& Name, CsCrossRefId Texture, RsSamplerStateDesc SamplerState );
+
 private:
 	CsCrossRefId Shader_;
 	std::map< std::string, CsCrossRefId > Textures_;
 	std::map< std::string, RsSamplerStateDesc > Samplers_;
 	RsRenderStateDesc RenderState_;
+	std::vector< BcName > AutomaticUniformBlocks_;
 };
 
 #endif

@@ -39,6 +39,9 @@ BcU32 GResolutionHeight = 720;
 #include "Import/Img/gif.h"
 
 #include "Base/BcBuildInfo.h"
+#include "Base/BcProfiler.h"
+
+#include "System/SysProfilerChromeTracing.h"
 
 #define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
 
@@ -157,7 +160,7 @@ namespace ScreenshotUtil
 					SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
 						[ W, H, IsScreenCapturing, Image ]()->void
 						{
-							auto ImageDiv2 = Image->resize( W / 2, H / 2 );
+							auto ImageDiv2 = Image->resize( W / 2, H / 2, 1.0f );
 							GifWriteFrame(
 								&Writer,
 								reinterpret_cast< const uint8_t* >( ImageDiv2->getImageData() ), 
@@ -245,6 +248,14 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			static int CaptureAmount = 60;
 			static int CaptureAccum = 0;
 
+			const BcU32 NOOF_POINTS = 128;
+			static std::array< BcF32, NOOF_POINTS > GameTimeGraphPoints = { 0.0f };
+			static std::array< BcF32, NOOF_POINTS > RenderTimeGraphPoints = { 0.0f };
+			static std::array< BcF32, NOOF_POINTS > FrameTimeGraphPoints = { 0.0f };
+			static int GraphPointIdx = 0;
+
+			static BcF32 GraphScale = 18.0f;
+
 			GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
 			RenderTimeAccum += RsCore::pImpl()->getFrameTime();
 			FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
@@ -259,6 +270,35 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 				FrameTimeAccum = 0.0f;
 				CaptureAccum = 0;
 			}
+
+			GameTimeGraphPoints[ GraphPointIdx ] = SysKernel::pImpl()->getGameThreadTime() * 1000.0f;
+			RenderTimeGraphPoints[ GraphPointIdx ] = RsCore::pImpl()->getFrameTime() * 1000.0f;
+			FrameTimeGraphPoints[ GraphPointIdx ] = SysKernel::pImpl()->getFrameTime() * 1000.0f;
+			
+			GraphScale = std::max( GraphScale, 33.0f );
+			BcF32 TargetGraphScale = 33.0f;
+			for( BcU32 Idx = 0; Idx < NOOF_POINTS; ++Idx )
+			{
+				TargetGraphScale = std::max( GraphScale, GameTimeGraphPoints[ Idx ] );
+				TargetGraphScale = std::max( GraphScale, RenderTimeGraphPoints[ Idx ] );
+				TargetGraphScale = std::max( GraphScale, FrameTimeGraphPoints[ Idx ] );
+			}
+			if( TargetGraphScale > 33.0f )
+			{
+				while( GraphScale < TargetGraphScale )
+				{
+					GraphScale *= 2.0f;
+				}
+			}
+			else
+			{
+				GraphScale = TargetGraphScale;
+			}
+
+
+			GraphPointIdx = ( GraphPointIdx + 1 ) % GameTimeGraphPoints.size();
+
+			
 
 			OsClient* Client = OsCore::pImpl()->getClient( 0 );
 			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
@@ -278,10 +318,16 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 					SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
 					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
+				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+
 				ImGui::Text( "Render time: %.2fms (%.2fms avg.)", 
 					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f );
+				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+
 				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
 					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
+				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+
 
 				if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
 				{
@@ -394,43 +440,19 @@ void MainShared()
 	}
 #endif
 
-
-	// Setup default system job queues.
-	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
-
-	/*
-	// Disable render thread for debugging.
-	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
-	{
-		RsCore::JOB_QUEUE_ID = -1;
-	}
-	
-	// Disable sound thread for debugging.
-	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
-	{
-		SsCore::JOB_QUEUE_ID = -1;
-	}
-	
-	// Disable file thread for debugging.
-	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
-	{
-		FsCore::JOB_QUEUE_ID = -1;
-	}
-	*/
-
 	// Parse command line params for disabling systems.
-	if( SysArgs_.find( "-noremote" ) != std::string::npos )
+	if( SysArgs_.find( "-noremote " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
 	}
 
 
-	if( SysArgs_.find( "-norender" ) != std::string::npos )
+	if( SysArgs_.find( "-norender " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_RENDER;
 	}
 
-	if( SysArgs_.find( "-nosound" ) != std::string::npos )
+	if( SysArgs_.find( "-nosound " ) != std::string::npos )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
@@ -441,6 +463,19 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
 	}
 
+	// Start profiler.
+#if PSY_USE_PROFILER
+	if( SysArgs_.find( "-profile " ) != std::string::npos )
+	{
+		new SysProfilerChromeTracing();
+	}
+#endif
+
+	// Start workers.
+	SysKernel::pImpl()->startWorkers();
+
+	// Setup default system job queues.
+	SysKernel::DEFAULT_JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( std::thread::hardware_concurrency(), 0 );
 
 	// Start file system.
 	SysKernel::pImpl()->startSystem( "FsCore" );
@@ -506,4 +541,12 @@ void MainShared()
 
 	// Subscribe to F1 & F2 for screenshot
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, onScreenshot );
+
+#if PSY_USE_PROFILER
+	// Set name in profiler.
+	if( BcProfiler::pImpl() )
+	{
+		BcProfiler::pImpl()->setThreadName( BcCurrentThreadId(), "Main Thread" );
+	}
+#endif
 }

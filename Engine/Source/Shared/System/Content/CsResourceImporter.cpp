@@ -37,19 +37,18 @@ void CsResourceImporterAttribute::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
-REFLECTION_DEFINE_BASE( CsResourceImporter );
+REFLECTION_DEFINE_DERIVED( CsResourceImporter );
 
 void CsResourceImporter::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Name_", &CsResourceImporter::Name_, bcRFF_IMPORTER ),
 		new ReField( "Type_", &CsResourceImporter::Type_, bcRFF_IMPORTER ),
 		new ReField( "MessageCount_", &CsResourceImporter::MessageCount_ ),
 		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
 	};
 	
-	ReRegisterClass< CsResourceImporter >( Fields );
+	ReRegisterClass< CsResourceImporter, Super >( Fields );
 }
 
 CsResourceImporterAttribute::CsResourceImporterAttribute():
@@ -99,7 +98,8 @@ void CsResourceImporterDeleter::operator() ( class CsResourceImporter* Importer 
 // Ctor
 CsResourceImporter::CsResourceImporter():
 	MessageCount_( { 0, 0, 0, 0 } ),
-	Importer_( nullptr )
+	Importer_( nullptr ),
+	ResourceId_( BcErrorCode )
 {
 
 }
@@ -109,11 +109,12 @@ CsResourceImporter::CsResourceImporter():
 CsResourceImporter::CsResourceImporter(
 		const std::string& Name,
 		const std::string& Type ):
-	Name_( Name ),
 	Type_( Type ),
 	MessageCount_( { 0, 0, 0, 0 } ),
-	Importer_( nullptr )
+	Importer_( nullptr ),
+	ResourceId_( BcErrorCode )
 {
+	setName( Name );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -159,7 +160,7 @@ std::string CsResourceImporter::getPackageName() const
 // getResourceName
 std::string CsResourceImporter::getResourceName() const
 {
-	return Name_;
+	return *getName();
 }
 
 //////////////////////////////////////////////////////////////////////////

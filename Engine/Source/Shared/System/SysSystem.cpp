@@ -108,7 +108,7 @@ BcF32 SysSystem::lastTickTime() const
 // process
 BcBool SysSystem::process()
 {
-	PSY_PROFILER_SECTION( TickRoot, "SysSystem::process" );
+	PSY_PROFILER_SECTION( TickRoot, *Name_ + "::SysSystem::process" );
 
 	// Mark perf timer.
 	PerfTimer_.mark();

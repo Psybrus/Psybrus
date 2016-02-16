@@ -38,7 +38,7 @@ void ScnEntity::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_ ),
+		new ReField( "LocalTransform_",	&ScnEntity::LocalTransform_, bcRFF_IMPORTER ),
 		new ReField( "WorldTransform_",	&ScnEntity::WorldTransform_ ),
 		new ReField( "Components_",		&ScnEntity::Components_, bcRFF_OWNER ),
 #if SCNENTITY_USES_EVTPUBLISHER
@@ -488,6 +488,8 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		pJsonObject_ = nullptr;
 		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
+
+		LocalTransform_ = pHeader_->LocalTransform_;
 
 		setupComponents();
 

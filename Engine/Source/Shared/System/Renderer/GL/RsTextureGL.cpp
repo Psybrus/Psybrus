@@ -7,12 +7,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
+RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceType ):
 	Parent_( Parent ),
 	ResourceType_( ResourceType )
 {
 	Parent_->setHandle( this );
-	if( ResourceType_ == ResourceType::TEXTURE )
+	if( ResourceType_ == RsTextureGL::ResourceType::TEXTURE )
 	{
 		const auto& TextureDesc = Parent_->getDesc();
 		auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
@@ -42,10 +42,9 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
 		// Bind texture.
 		ContextGL->bindTexture( 0, Parent_ );
 		
-	#if !defined( RENDER_USE_GLES )
+#if !defined( RENDER_USE_GLES )
 		// Set max levels.
 		GL( TexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 ) );
-		
 
 		// Set compare mode to none.
 		if( TextureDesc.Format_ == RsTextureFormat::D16 ||
@@ -58,7 +57,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
 			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 			
 		}
-	#endif
+#endif
 
 		// Instantiate levels.
 		BcU32 Width = TextureDesc.Width_;
@@ -88,7 +87,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, ResourceType ResourceType ):
 			{
 				for( BcU32 FaceIdx = 0; FaceIdx < 6; ++FaceIdx )
 				{
-					auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx + 1 ) );
+					auto TextureSlice = Parent_->getSlice( LevelIdx, RsTextureFace( FaceIdx ) );
 
 					// Load slice.
 					loadTexture( TextureSlice, 0, nullptr );
@@ -132,23 +131,6 @@ void RsTextureGL::loadTexture(
 
 	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
 	
-#if defined( RENDER_USE_GLES )
-	// TODO: Fix this properly.
-	if( Slice.Level_ > 0 )
-	{
-		if( Slice.Level_ > 1 )
-		{
-			return;
-		}
-		glGenerateMipmap( TypeGL );
-		if( glGetError() != 0 )
-		{
-			PSY_LOG( "ERROR: Attempting to create mipmaps for texture (%u levels), but glGenerateMipMap failed.", TextureDesc.Levels_ );
-		}
-		//return;
-	}
-#endif
-
 	if( FormatGL.Compressed_ == BcFalse )
 	{
 		switch( TextureDesc.Type_ )
@@ -221,61 +203,66 @@ void RsTextureGL::loadTexture(
 	}
 	else
 	{
-		switch( TextureDesc.Type_ )
+		if( Data != nullptr )
 		{
+			switch( TextureDesc.Type_ )
+			{
 #if !defined( RENDER_USE_GLES )
-		case RsTextureType::TEX1D:
-			GL( CompressedTexImage1D( 
-				TypeGL, 
-				Slice.Level_,
-				FormatGL.InternalFormat_,
-				Width,
-				0,
-				DataSize,
-				Data ) );
-			break;
+			case RsTextureType::TEX1D:
+				GL( CompressedTexImage1D( 
+					TypeGL, 
+					Slice.Level_,
+					FormatGL.InternalFormat_,
+					Width,
+					0,
+					DataSize,
+					Data ) );
+				break;
 #endif // !defined( RENDER_USE_GLES )
 
-		case RsTextureType::TEX2D:
-			GL( CompressedTexImage2D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				0,
-				DataSize,
-				Data ) );
-			break;
+			case RsTextureType::TEX2D:
+				GL( CompressedTexImage2D( 
+					TypeGL, 
+					Slice.Level_, 
+					FormatGL.InternalFormat_,
+					Width,
+					Height,
+					0,
+					DataSize,
+					Data ) );
+				break;
 
 #if !defined( RENDER_USE_GLES )
-		case RsTextureType::TEX3D:
-			GL( CompressedTexImage3D( 
-				TypeGL, 
-				Slice.Level_, 
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				Depth,
-				0,
-				DataSize,
-				Data ) );
-			break;
+			case RsTextureType::TEX3D:
+				GL( CompressedTexImage3D( 
+					TypeGL, 
+					Slice.Level_, 
+					FormatGL.InternalFormat_,
+					Width,
+					Height,
+					Depth,
+					0,
+					DataSize,
+					Data ) );
+				break;
 
-		case RsTextureType::TEXCUBE:
-			GL( CompressedTexImage2D( 
-				RsUtilsGL::GetTextureFace( Slice.Face_ ),
-				Slice.Level_,
-				FormatGL.InternalFormat_,
-				Width,
-				Height,
-				0,
-				DataSize,
-				Data ) );
+			case RsTextureType::TEXCUBE:
+				PSY_LOG("TODO: Investigate why this doesn't work.");
+				GL( CompressedTexImage2D( 
+					RsUtilsGL::GetTextureFace( Slice.Face_ ),
+					Slice.Level_,
+					FormatGL.InternalFormat_,
+					Width,
+					Height,
+					0,
+					DataSize,
+					Data ) );
+				break;
 #endif
 
-		default:
-			BcBreakpoint;
+			default:
+				BcBreakpoint;
+			}
 		}
 	}
 }

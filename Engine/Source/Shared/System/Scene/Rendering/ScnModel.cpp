@@ -15,8 +15,12 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnLightingVisitor.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
+
+#include "System/Debug/DsCore.h"
+#include "System/Debug/DsImGuiFieldEditor.h"
 
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
@@ -34,33 +38,76 @@
 #endif // DEBUG_RENDER_NODES
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelUniforms
+REFLECTION_DEFINE_BASIC( ScnModelUniforms );
+
+void ScnModelUniforms::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Name_", &ScnModelUniforms::Name_ ),
+		new ReField( "Data_", &ScnModelUniforms::Data_ ),
+	};
+	ReRegisterClass< ScnModelUniforms >( Fields );
+}
+
+ScnModelUniforms::ScnModelUniforms():
+	Name_( "" ),
+	Data_(),
+	Buffer_()
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnModel );
 
 void ScnModel::StaticRegisterClass()
 {
+	ReField* Fields[] = 
 	{
-		ReField* Fields[] = 
-		{
-			new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA),
-			new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-			//TODO: move support. new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
-		};
+		new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA),
+		new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		//TODO: move support. new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
+	};
 		
-		auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
-		BcUnusedVar( Class );
+	auto& Class = ReRegisterClass< ScnModel, Super >( Fields );
+	BcUnusedVar( Class );
 
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
 		ScnModelImport::StaticGetClass(), 0 ) );
 #endif
-	}
+
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				auto Model = static_cast< ScnModel* >( Object );
+				if( ImGui::TreeNode( Model, "Materials") )
+				{
+					for( auto& MeshRuntime : Model->MeshRuntimes_ )
+					{
+						DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( MeshRuntime.MaterialRef_->getClass() );
+						if( FieldEditor )
+						{
+							FieldEditor->onEdit( MeshRuntime.MaterialRef_->getFullName(), MeshRuntime.MaterialRef_, ScnMaterial::StaticGetClass(),
+								ReFieldFlags( Flags & bcRFF_CONST ) );
+						}
+					}
+					ImGui::TreePop();
+				}
+
+				// Defaults.
+				DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Object, Class, Flags );
+			} ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -315,6 +362,28 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Define resource.
+class ScnModelViewRenderData : 
+	public ScnViewRenderData
+{
+public:
+	ScnModelViewRenderData()
+	{
+	}
+
+	virtual ~ScnModelViewRenderData()
+	{
+	}
+
+	struct MaterialBinding
+	{
+		RsProgramBindingUPtr ProgramBinding_;
+		RsRenderState* RenderState_;
+	};
+
+	std::vector< MaterialBinding > MaterialBindings_; 
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
@@ -324,19 +393,17 @@ void ScnModelComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER | bcRFF_CONST ),
+		new ReField( "Model_", &ScnModelComponent::Model_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "Layer_", &ScnModelComponent::Layer_, bcRFF_IMPORTER ),
-		new ReField( "Pass_", &ScnModelComponent::Pass_, bcRFF_IMPORTER ),
 		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
 		new ReField( "Scale_", &ScnModelComponent::Scale_, bcRFF_IMPORTER ),
 		new ReField( "Rotation_", &ScnModelComponent::Rotation_, bcRFF_IMPORTER ),
+		new ReField( "Uniforms_", &ScnModelComponent::Uniforms_, bcRFF_IMPORTER ),
 
 		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
 		new ReField( "UploadFence_", &ScnModelComponent::UploadFence_, bcRFF_TRANSIENT ),
-		new ReField( "UpdateFence_", &ScnModelComponent::UpdateFence_, bcRFF_TRANSIENT ),
 		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
 		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
-		// TODO: move support. new ReField( "PerComponentMeshDataList_", &ScnModelComponent::PerComponentMeshDataList_, bcRFF_TRANSIENT ),
 	};
 
 	using namespace std::placeholders;
@@ -355,17 +422,23 @@ void ScnModelComponent::StaticRegisterClass()
 ScnModelComponent::ScnModelComponent():
 	Model_(),
 	Layer_( 0 ),
-	Pass_( 0 ),
 	Position_( 0.0f, 0.0f, 0.0f ),
 	Scale_( 1.0f, 1.0f, 1.0f ),
 	Rotation_( 0.0f, 0.0f, 0.0f ),
 	pNodeTransformData_( nullptr ),
 	UploadFence_(),
-	UpdateFence_(),
 	AABB_(),
 	PerComponentMeshDataList_()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnModelComponent::ScnModelComponent( ScnModelRef Model ):
+	ScnModelComponent()
+{
+	Model_ = Model;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -388,8 +461,6 @@ void ScnModelComponent::initialise()
 //virtual
 MaAABB ScnModelComponent::getAABB() const
 {
-	UpdateFence_.wait();
-
 	return AABB_;
 }
 
@@ -450,6 +521,54 @@ const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setUniforms
+void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* UniformData )
+{
+#if !PSY_PRODUCTION
+	const std::string DebugName = getFullName();
+	const char* DebugNameCStr = DebugName.c_str();
+#else
+	const char* DebugNameCStr = nullptr;
+#endif
+
+	auto FoundIt = std::find_if( Uniforms_.begin(), Uniforms_.end(),
+		[ UniformClass ]( const ScnModelUniforms& Uniform )
+		{
+			return Uniform.Name_ == *UniformClass->getName();
+		} );
+
+	auto Size = UniformClass->getSize();
+	if( FoundIt == Uniforms_.end() )
+	{
+		ScnModelUniforms Uniform;
+		Uniform.Name_ = *UniformClass->getName();
+		Uniform.Data_ = std::move( BcBinaryData( Size ) );
+		Uniform.Buffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc(
+				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsResourceCreationFlags::STREAM,
+				Size ), DebugNameCStr );	
+		Uniforms_.emplace_back( std::move( Uniform ) );
+		FoundIt = Uniforms_.end() - 1;
+
+		// May need to rebind, so reset view data.
+		ScnRenderableComponent::resetViewRenderData( nullptr );
+	}
+
+	// Copy into intermedate.
+	memcpy( FoundIt->Data_.getData< BcU8 >(), UniformData, Size );
+	UniformData = FoundIt->Data_.getData< BcU8 >();
+
+	// Copy into buffer.
+	RsCore::pImpl()->updateBuffer(
+		FoundIt->Buffer_.get(), 0, Size, RsResourceUpdateFlags::ASYNC,
+		[ UniformData, Size ]( RsBuffer* Buffer, RsBufferLock Lock )
+		{
+			memcpy( Lock.Buffer_, UniformData, Size );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getNoofNodes
 BcU32 ScnModelComponent::getNoofNodes() const
 {
@@ -457,6 +576,7 @@ BcU32 ScnModelComponent::getNoofNodes() const
 	return NoofNodes;
 }
 
+#if 0
 //////////////////////////////////////////////////////////////////////////
 // getMaterialComponent
 ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
@@ -504,7 +624,7 @@ ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName&
 
 	return std::move( MaterialComponents );
 }
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // setBaseTransform
@@ -523,58 +643,122 @@ void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d
 	BaseTransform_.translation( Position_ );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// recursiveModelUpdate
+//static 
+BcU32 ScnModelComponent::recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence )
+{
+	// Calculate number of nodes.
+	BcU32 NoofNodes = 0;
+	for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
+	{
+		auto Component = Components[ Idx ];
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+		NoofNodes += ModelComponent->Model_->pHeader_->NoofNodes_;
+	}
+
+	// Check if we're updating a single component, hit node limit, or have no node limit.
+	const BcU32 NoofComponents = ( EndIdx - StartIdx );
+	if( NoofComponents == 1 || NoofNodes <= MaxNodesPerJob || MaxNodesPerJob == 0 )
+	{
+		for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
+		{
+			auto Component = Components[ Idx ];
+			auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+			
+			MaMat4d Matrix = ModelComponent->BaseTransform_ * ModelComponent->getParentEntity()->getWorldMatrix();
+			ModelComponent->updateNodes( Matrix );
+		}
+
+		Fence->decrement( NoofComponents );
+	}
+	else
+	{
+		using namespace std::placeholders;
+
+		BcU32 MidIdx = ( StartIdx + EndIdx ) / 2;
+
+		if( MidIdx > StartIdx )
+		{
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				[ &Components, StartIdx, MidIdx, MaxNodesPerJob, Fence ]()
+				{
+					ScnModelComponent::recursiveModelUpdate( Components, StartIdx, MidIdx, MaxNodesPerJob, Fence );
+				} );
+		}
+
+		if( EndIdx > MidIdx )
+		{
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				[ &Components, MidIdx, EndIdx, MaxNodesPerJob, Fence ]()
+				{
+					ScnModelComponent::recursiveModelUpdate( Components, MidIdx, EndIdx, MaxNodesPerJob, Fence );
+				} );
+		}
+	}
+
+	return NoofNodes;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // updateModels
 //static
 void ScnModelComponent::updateModels( const ScnComponentList& Components )
 {
-	// TODO: All models are independent, so we can parallelise these in some jobs.
-	auto Tick = SysKernel::pImpl()->getFrameTime();
-	for( auto Component : Components )
-	{
-		BcAssert( Component->isTypeOf< ScnModelComponent >() );
-		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
-		ModelComponent->updateModel( Tick );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// updateModel
-//virtual
-void ScnModelComponent::updateModel( BcF32 Tick )
-{
 	PSY_PROFILE_FUNCTION;
 
-	UploadFence_.wait();
-	UpdateFence_.increment();
-	MaMat4d Matrix = BaseTransform_ * getParentEntity()->getWorldMatrix();
-	SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
-		[ this, Matrix ]()->void
-		{
-			updateNodes( Matrix );
-		} );
+	static bool UseJobs = true;
 
-#if DEBUG_RENDER_NODES
-	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
-	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
+	PSY_PROFILER_INSTANT_EVENT( "Updating models", nullptr );
+
+	BcTimer Timer;
+	Timer.mark();
+
+	auto Tick = SysKernel::pImpl()->getFrameTime();
+	SysFence Fence;
+
+	// Wait for all uploads to complete.
+	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
 	{
-		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ NodeIdx ];
-
-		MaMat4d ThisMatrix = pNodeTransformData->WorldTransform_;
-		MaMat4d ParentMatrix = pNodePropertyData->ParentIndex_ != BcErrorCode ? 
-			pNodeTransformData_[ pNodePropertyData->ParentIndex_ ].WorldTransform_ :
-			getParentEntity()->getWorldMatrix();
-
-		ScnDebugRenderComponent::pImpl()->drawMatrix( 
-			ThisMatrix, RsColour::WHITE, 2000 );
-		ScnDebugRenderComponent::pImpl()->drawLine( 
-			ParentMatrix.translation(), 
-			ThisMatrix.translation(), 
-			RsColour::WHITE, 1000 );
+		auto Component = Components[ Idx ];
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+					
+		ModelComponent->UploadFence_.wait();
 	}
+	
+	// Recursive model update func.
+	static BcU32 MaxNodesPerJob = 64;
+	Fence.increment( Components.size() );
+	BcU32 NoofNodes = recursiveModelUpdate( Components, 0, Components.size(), UseJobs ? MaxNodesPerJob : 0, &Fence );
+	Fence.wait();
 
-#endif // DEBUG_RENDER_NODES
+#if !PSY_PRODUCTION
+	if ( ImGui::Begin( "Engine Debug" ) )
+	{
+		if( ImGui::TreeNode( "ScnModelComponent" ) )
+		{
+			const BcF32 UpdateTime = Timer.time() * 1000.0f;
+			ImGui::Checkbox( "Enable jobs", &UseJobs );
+			ImGui::Text( "Time: %f ms", UpdateTime );
+			ImGui::Text( "Components: %u", Components.size() );
+			ImGui::Text( "Nodes: %u", NoofNodes );
+
+			static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+			static int GraphPointIdx = 0;
+			GraphPoints[ GraphPointIdx ] = UpdateTime;
+			GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+			ImGui::PlotLines( "", GraphPoints.data(), GraphPoints.size(), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+
+
+			ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob );
+			ImGui::Separator();
+			ImGui::TreePop();
+		}
+	}
+	ImGui::End();
+#endif
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -618,9 +802,9 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		if( pNodeMeshData->IsSkinned_ == BcFalse )
 		{
 			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
-		
-			MaAABB PrimitiveAABB = pNodeMeshData->AABB_;
-			FullAABB.expandBy( PrimitiveAABB.transform( pNodeTransformData->WorldTransform_ ) );
+			
+			pNodeMeshRuntime->AABB_ = pNodeMeshData->AABB_.transform( pNodeTransformData->WorldTransform_ );
+			FullAABB.expandBy( pNodeMeshRuntime->AABB_ );
 		}
 		else
 		{
@@ -669,7 +853,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		if( pNodeMeshData->IsSkinned_ )
 		{
 			RsCore::pImpl()->updateBuffer( 
-				PerComponentMeshData.UniformBuffer_.get(),
+				PerComponentMeshData.ObjectUniformBuffer_.get(),
 				0, sizeof( ScnShaderBoneUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -692,7 +876,7 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 		else
 		{
 			RsCore::pImpl()->updateBuffer( 
-				PerComponentMeshData.UniformBuffer_.get(),
+				PerComponentMeshData.ObjectUniformBuffer_.get(),
 				0, sizeof( ScnShaderObjectUniformBlockData ),
 				RsResourceUpdateFlags::ASYNC,
 				[ this, pNodeMeshData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
@@ -706,13 +890,92 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 
 					// Normal matrix.
 					ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
-					
+					ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
+					ObjectUniformBlock->NormalTransform_.inverse();
+					ObjectUniformBlock->NormalTransform_.transpose();
+
 					UploadFence_.decrement();
 				} );
 		}
 	}
+}
 
-	UpdateFence_.decrement();
+//////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+//virtual
+class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewComponent* View )
+{
+	ScnModelViewRenderData* ViewRenderData = new ScnModelViewRenderData();
+
+	// Setup program binding for all materials.
+	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
+	ViewRenderData->MaterialBindings_.resize( MeshRuntimes.size() );
+	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
+	{
+		const auto& PerComponentMeshData = PerComponentMeshDataList_[ Idx ];
+		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
+		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		auto Material = pMeshRuntime->MaterialRef_;
+
+		if( Material.isValid() )
+		{
+			BcAssert( Material.isValid() && Material->isReady() );
+
+			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
+			ShaderPermutation |= isLit() ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
+			ShaderPermutation |= View->getRenderPermutation();
+
+			auto Program = Material->getProgram( ShaderPermutation );
+			auto ProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
+
+			for( const auto& Uniform : Uniforms_ )
+			{
+				auto Slot = Program->findUniformBufferSlot( Uniform.Name_.c_str() );
+				if( Slot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, Uniform.Buffer_.get() );
+				}
+			}
+
+			if( pMeshData->IsSkinned_ )
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderBoneUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get() );
+				}
+			}
+			else
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get() );
+				}
+			}
+
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer() );
+				}
+			}
+
+			if( PerComponentMeshData.LightingUniformBuffer_ )
+			{
+				auto Slot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
+				if( Slot != BcErrorCode )
+				{	
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.LightingUniformBuffer_.get() );
+				}
+			}
+
+			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
+		}
+	}
+	return ViewRenderData;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -722,10 +985,39 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	Super::onAttach( Parent );
 
+#if !PSY_PRODUCTION
+	const std::string DebugName = getFullName();
+	const char* DebugNameCStr = DebugName.c_str();
+#else
+	const char* DebugNameCStr = nullptr;
+#endif
+
 	// Duplicate node data for update/rendering.
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
 	BcMemCopy( pNodeTransformData_, Model_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
+
+	// Create uniform buffers.
+	for( auto& Uniform : Uniforms_ )
+	{
+		auto Data = Uniform.Data_.getData< BcU8 >();
+		auto Size = Uniform.Data_.getDataSize();
+		if( Uniform.Buffer_ == nullptr )
+		{
+			Uniform.Buffer_ = RsCore::pImpl()->createBuffer( 
+				RsBufferDesc(
+					RsResourceBindFlags::UNIFORM_BUFFER,
+					RsResourceCreationFlags::STREAM,
+					Size ), DebugNameCStr );	
+		}
+
+		RsCore::pImpl()->updateBuffer(
+			Uniform.Buffer_.get(), 0, Size, RsResourceUpdateFlags::ASYNC,
+			[ Data, Size ]( RsBuffer* Buffer, RsBufferLock Lock )
+			{
+				memcpy( Lock.Buffer_, Data, Size );
+			} );
+	}
 
 	// Create material instances to render with.
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
@@ -735,55 +1027,27 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	{
 		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		auto Material = pMeshRuntime->MaterialRef_;
 		TPerComponentMeshData ComponentData;
 
-		if( pMeshRuntime->MaterialRef_.isValid() )
-		{
-			BcAssert( pMeshRuntime->MaterialRef_.isValid() && pMeshRuntime->MaterialRef_->isReady() );
-
-			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-
-			// Setup lighting.
-			if( isLit() )
-			{
-				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_DIFFUSE;
-			}
-			else
-			{
-				ShaderPermutation |= ScnShaderPermutationFlags::LIGHTING_NONE;
-			}
-						
-			// Even on failure add. List must be of same size for quick lookups.
-			ComponentData.MaterialComponentRef_ = Parent->attach< ScnMaterialComponent >( 
-				BcName::INVALID, pMeshRuntime->MaterialRef_, ShaderPermutation );
-		}
-
-		// Create uniform buffer for object.
+		// Create object uniform buffer - bone or object.
 		if( pMeshData->IsSkinned_ )
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
-				RsCore::pImpl()->createBuffer( 
-					RsBufferDesc( 
-						RsBufferType::UNIFORM,
-						RsResourceCreationFlags::STREAM,
-						ScnShaderBoneUniformBlockData::StaticGetClass()->getSize() ), getFullName().c_str() ) : nullptr;
+			ComponentData.ObjectUniformBuffer_ = Material->createUniformBuffer< ScnShaderBoneUniformBlockData >( DebugNameCStr );
 		}
 		else
 		{
-			ComponentData.UniformBuffer_ = RsCore::pImpl() ? 
-				RsCore::pImpl()->createBuffer( 
-					RsBufferDesc( 
-						RsBufferType::UNIFORM,
-						RsResourceCreationFlags::STREAM,
-						ScnShaderObjectUniformBlockData::StaticGetClass()->getSize() ), getFullName().c_str() ) : nullptr;
+			ComponentData.ObjectUniformBuffer_ = Material->createUniformBuffer< ScnShaderObjectUniformBlockData >( DebugNameCStr );
 		}
+
+		// Try create lighting uniform buffer.
+		ComponentData.LightingUniformBuffer_ = Material->createUniformBuffer< ScnShaderLightUniformBlockData >( DebugNameCStr );
 
 		//
 		PerComponentMeshDataList_.emplace_back( std::move( ComponentData ) );
 	}
 
 	// Update nodes.
-	UpdateFence_.increment();
 	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
 }
 
@@ -792,8 +1056,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	// Wait for update, upload + render to complete.
-	UpdateFence_.wait();
+	// Wait for upload + render to complete.
 	UploadFence_.wait();
 
 	PerComponentMeshDataList_.clear();
@@ -814,55 +1077,53 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 
 	Super::render( RenderContext );
 
-	// Wait for model to have updated.
-	UpdateFence_.wait();
-
-#if 0
-	// Gather lights.
-	ScnLightingVisitor LightingVisitor( this );
-#endif
-
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
+	auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( RenderContext.ViewRenderData_ );
 
 	// Set layer.
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = Layer_;
-	Sort.Pass_ = Pass_;
+
+	// Lighting visitors.
+	if( isLit() )
+	{
+		for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+		{
+			ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
+			TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
+			if( PerComponentMeshData.LightingUniformBuffer_ )
+			{
+				ScnLightingVisitor LightingVisitor( pMeshRuntime->AABB_ );
+				RsCore::pImpl()->updateBuffer( 
+					PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
+					RsResourceUpdateFlags::ASYNC,
+					[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
+					( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+					{
+						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
+						BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
+							sizeof( LightUniformBlockData ) );
+					} );
+			}
+		}
+	}
 
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 	{
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
 		ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
+		auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
 		BcU32 Offset = 0; // This will change when index buffers are merged.
-
-		BcAssertMsg( PerComponentMeshData.MaterialComponentRef_.isValid(), "Material not valid for use on ScnModelComponent \"%s\"", (*getName()).c_str() );
-
-		// Set skinning parameters.
-		if( pMeshData->IsSkinned_ )
-		{
-			PerComponentMeshData.MaterialComponentRef_->setBoneUniformBlock( PerComponentMeshData.UniformBuffer_.get() );
-		}
-		else
-		{
-			PerComponentMeshData.MaterialComponentRef_->setObjectUniformBlock( PerComponentMeshData.UniformBuffer_.get() );
-		}
-
-#if 0
-		// Set lighting parameters.
-		LightingVisitor.setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
-#endif		
-		// Set material components for view.
-		RenderContext.pViewComponent_->setMaterialParameters( PerComponentMeshData.MaterialComponentRef_ );
 		
 		// Render primitive.
 		RenderContext.pFrame_->queueRenderNode( Sort,
 			[
 				GeometryBinding = pMeshRuntime->GeometryBinding_,
-				DrawProgramBinding = PerComponentMeshData.MaterialComponentRef_->getProgramBinding(),
-				RenderState = PerComponentMeshData.MaterialComponentRef_->getRenderState(),
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer() ,
+				DrawProgramBinding = MaterialBinding.ProgramBinding_.get(),
+				RenderState = MaterialBinding.RenderState_,
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
 				Viewport = RenderContext.pViewComponent_->getViewport(),
 				PrimitiveType = pMeshData->Type_,
 				NoofIndices = pMeshData->NoofIndices_,

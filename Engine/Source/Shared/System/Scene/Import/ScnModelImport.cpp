@@ -12,6 +12,9 @@
 **************************************************************************/
 
 #include "ScnModelImport.h"
+#include "ScnMaterialImport.h"
+#include "ScnTextureImport.h"
+#include "Reflection/ReReflection.h"
 
 #include "Base/BcMath.h"
 
@@ -25,6 +28,9 @@
 #include "assimp/scene.h"
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
+
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem.hpp>
 
 // TODO: Remove dup from ScnPhysicsMeshImport.
 namespace
@@ -124,8 +130,10 @@ void ScnModelVertexFormat::StaticRegisterClass()
 	{
 		new ReField( "Position_", &ScnModelVertexFormat::Position_, bcRFF_IMPORTER ),
 		new ReField( "Normal_", &ScnModelVertexFormat::Normal_, bcRFF_IMPORTER ),
+		new ReField( "Binormal_", &ScnModelVertexFormat::Binormal_, bcRFF_IMPORTER ),
 		new ReField( "Tangent_", &ScnModelVertexFormat::Tangent_, bcRFF_IMPORTER ),
 		new ReField( "Colour_", &ScnModelVertexFormat::Colour_, bcRFF_IMPORTER ),
+		new ReField( "BlendIndices_", &ScnModelVertexFormat::BlendIndices_, bcRFF_IMPORTER ),
 		new ReField( "BlendWeights_", &ScnModelVertexFormat::BlendWeights_, bcRFF_IMPORTER ),
 		new ReField( "TexCoord0_", &ScnModelVertexFormat::TexCoord0_, bcRFF_IMPORTER ),
 		new ReField( "TexCoord1_", &ScnModelVertexFormat::TexCoord1_, bcRFF_IMPORTER ),
@@ -136,8 +144,24 @@ void ScnModelVertexFormat::StaticRegisterClass()
 	ReRegisterClass< ScnModelVertexFormat >( Fields );
 }
 
+
+REFLECTION_DEFINE_BASIC( ScnModelMaterialDesc );
+
+void ScnModelMaterialDesc::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Regex_", &ScnModelMaterialDesc::Regex_, bcRFF_IMPORTER ),
+		new ReField( "TemplateMaterial_", &ScnModelMaterialDesc::TemplateMaterial_, bcRFF_IMPORTER ),
+		new ReField( "Material_", &ScnModelMaterialDesc::Material_, bcRFF_IMPORTER ),
+	};
+		
+	ReRegisterClass< ScnModelMaterialDesc >( Fields );
+}
+
+
 REFLECTION_DEFINE_DERIVED( ScnModelImport )
-	
+
 void ScnModelImport::StaticRegisterClass()
 {
 	ReField* Fields[] = 
@@ -145,14 +169,22 @@ void ScnModelImport::StaticRegisterClass()
 		new ReField( "Source_", &ScnModelImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Materials_", &ScnModelImport::Materials_, bcRFF_IMPORTER ),
 		new ReField( "VertexFormat_", &ScnModelImport::VertexFormat_, bcRFF_IMPORTER ),
+		new ReField( "DefaultTextures_", &ScnModelImport::DefaultTextures_, bcRFF_IMPORTER ),
 	};
-		
+	
 	ReRegisterClass< ScnModelImport, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnModelImport::ScnModelImport()
+ScnModelImport::ScnModelImport():
+	HeaderStream_(),
+	NodeTransformDataStream_( BcFalse, 65536, 65536 ),
+	NodePropertyDataStream_( BcFalse, 65536, 65536 ),
+	VertexDataStream_( BcFalse, 1024 * 1024, 1024 * 1024 ),
+	IndexDataStream_( BcFalse, 1024 * 1024, 1024 * 1024 ),
+	VertexElementStream_( BcFalse, 65536, 65536 ),
+	MeshDataStream_( BcFalse, 65536, 65536 )
 {
 }
 
@@ -197,7 +229,6 @@ BcBool ScnModelImport::import( const Json::Value& )
 
 	CsResourceImporter::addDependency( Source_.c_str() );
 
-	// Failed? Try to use assimp.
 	auto PropertyStore = aiCreatePropertyStore();
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_SBBC_MAX_BONES, ScnShaderBoneUniformBlockData::MAX_BONES );
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4 );
@@ -215,7 +246,7 @@ BcBool ScnModelImport::import( const Json::Value& )
 		aiProcessPreset_TargetRealtime_MaxQuality | 
 			aiProcess_SplitByBoneCount |
 			aiProcess_LimitBoneWeights |
-			aiProcess_MakeLeftHanded,
+			aiProcess_ConvertToLeftHanded,
 		nullptr, 
 		PropertyStore );
 
@@ -424,6 +455,9 @@ void ScnModelImport::serialiseMesh(
 			VertexDeclarationDesc.addElement( RsVertexElement( 
 				0, VertexDeclarationDesc.getMinimumStride(), 
 				4, VertexFormat_.Tangent_, RsVertexUsage::TANGENT, 0 ) );
+			VertexDeclarationDesc.addElement( RsVertexElement( 
+				0, VertexDeclarationDesc.getMinimumStride(), 
+				4, VertexFormat_.Binormal_, RsVertexUsage::BINORMAL, 0 ) );
 		}
 
 		if( Mesh->HasTextureCoords( 0 ) )
@@ -523,11 +557,9 @@ void ScnModelImport::serialiseMesh(
 		// Grab material name.
 		std::string MaterialName;
 		aiMaterial* Material = Scene_->mMaterials[ Mesh->mMaterialIndex ];
-
-		MaterialName = AssimpGetMaterialName( Material );
 		
 		// Import material.
-		MeshData.MaterialRef_ = findMaterialMatch( MaterialName.c_str() );	
+		MeshData.MaterialRef_ = findMaterialMatch( Material );	
 		MeshData_.push_back( MeshData );
 
 		// Export indices.
@@ -678,7 +710,7 @@ void ScnModelImport::serialiseVertices(
 				break;
 			case RsVertexUsage::BINORMAL:
 				{
-					BcAssert( VertexElement.Components_ == 3 );
+					BcAssert( VertexElement.Components_ == 4 );
 					BcF32 Input[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 					if( Mesh->mBitangents != nullptr )
 					{
@@ -812,15 +844,57 @@ size_t ScnModelImport::findNodeIndex(
 
 //////////////////////////////////////////////////////////////////////////
 // findMaterialMatch
-CsCrossRefId ScnModelImport::findMaterialMatch( const std::string& MaterialName )
+CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 {
 	CsCrossRefId RetVal = CSCROSSREFID_INVALID;
+#if PSY_IMPORT_PIPELINE
 
-	for( const auto& MaterialEntry : Materials_ )
+	// Grab material name.
+	auto MaterialName = AssimpGetMaterialName( Material );
+
+	// Setup material refs if there are matches.
+	for( auto MaterialEntryIt = Materials_.rbegin(); MaterialEntryIt != Materials_.rend(); ++MaterialEntryIt )
 	{
-		if( std::regex_match( MaterialName, std::regex( MaterialEntry.first ) ) )
+		auto& MaterialEntry = *MaterialEntryIt;
+
+		if( std::regex_match( MaterialName, std::regex( MaterialEntry.Regex_ ) ) )
 		{
-			RetVal = MaterialEntry.second;
+			auto FoundMaterial = AddedMaterials_.find( MaterialName );
+			if( FoundMaterial == AddedMaterials_.end() )
+			{
+				if( MaterialEntry.Material_ == CSCROSSREFID_INVALID )
+				{
+					// Create new material importer based on template.
+					ScnMaterialImport* MaterialImport(
+						ReConstructObject< ScnMaterialImport >( 
+							this->getResourceName() + "/" + MaterialName, this, MaterialEntry.TemplateMaterial_ ) );
+
+					// Attempt to find textures.
+					auto DiffuseRef = addTexture( Material, MaterialImport, "aDiffuseTex", aiTextureType_DIFFUSE, 0 );
+					auto SpecularRef = addTexture( Material, MaterialImport, "aSpecularTex", aiTextureType_SPECULAR, 0 );
+					auto AmbientRef = addTexture( Material, MaterialImport, "aAmbientTex", aiTextureType_AMBIENT, 0 );
+					auto EmissiveRef = addTexture( Material, MaterialImport, "aEmissiveTex", aiTextureType_EMISSIVE, 0 );
+					auto HeightRef = addTexture( Material, MaterialImport, "aHeightTex", aiTextureType_HEIGHT, 0 );
+					auto NormalRef = addTexture( Material, MaterialImport, "aNormalTex", aiTextureType_NORMALS, 0 );
+					auto ShininessRef = addTexture( Material, MaterialImport, "aShininessTex", aiTextureType_SHININESS, 0 );
+					auto OpacityRef = addTexture( Material, MaterialImport, "aOpacityTex", aiTextureType_OPACITY, 0 );
+					auto DisplacementRef = addTexture( Material, MaterialImport, "aDisplacementTex", aiTextureType_DISPLACEMENT, 0 );
+					auto LightmapRef = addTexture( Material, MaterialImport, "aLightmapTex", aiTextureType_LIGHTMAP, 0 );
+					auto ReflectionRef = addTexture( Material, MaterialImport, "aReflectionTex", aiTextureType_REFLECTION, 0 );
+
+					RetVal = addImport( CsResourceImporterUPtr( MaterialImport ) );
+					AddedMaterials_[ MaterialName ] = RetVal;
+				}
+				else
+				{
+					RetVal = MaterialEntry.Material_;
+					AddedMaterials_[ MaterialName ] = RetVal;
+				}
+			}
+			else
+			{
+				RetVal = FoundMaterial->second;
+			}
 		}
 	}
 
@@ -831,6 +905,89 @@ CsCrossRefId ScnModelImport::findMaterialMatch( const std::string& MaterialName 
 		
 		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
 	}
-
+#endif
 	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addTexture
+CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport* MaterialImport, std::string Name, BcU32 Type, BcU32 Idx )
+{
+	CsCrossRefId TextureRef = CSCROSSREFID_INVALID;
+#if PSY_IMPORT_PIPELINE
+	aiString AiName;
+	aiString Path;
+	aiTextureMapping TextureMapping = aiTextureMapping_UV;
+	unsigned int UVIndex = 0;
+	float Blend = 0.0f;
+	aiTextureOp TextureOp = aiTextureOp_Multiply;
+	aiTextureMapMode TextureMapMode = aiTextureMapMode_Wrap;
+	if( Material->GetTexture( (aiTextureType)Type, Idx, &Path,
+			&TextureMapping, &UVIndex, &Blend, &TextureOp, &TextureMapMode ) == aiReturn_SUCCESS )
+	{
+		boost::filesystem::path TexturePath;
+		TexturePath = boost::filesystem::path( Source_ ).remove_filename();
+		std::string FixedPath = Path.C_Str();
+		boost::replace_all( FixedPath, "\\", "/" );
+		TexturePath.append( FixedPath.c_str() );
+
+		TexturePath = TexturePath.make_preferred();
+		auto Native = TexturePath.native();
+		if( boost::filesystem::exists( TexturePath ) )
+		{
+			RsSamplerStateDesc SamplerState;
+
+			switch( TextureMapMode )
+			{
+			case aiTextureMapMode_Wrap:
+				SamplerState.AddressU_ = RsTextureSamplingMode::WRAP;
+				break;
+			case aiTextureMapMode_Clamp:
+				SamplerState.AddressU_ = RsTextureSamplingMode::CLAMP;
+				break;
+			case aiTextureMapMode_Decal:
+				SamplerState.AddressU_ = RsTextureSamplingMode::DECAL;
+				break;
+			case aiTextureMapMode_Mirror:
+				SamplerState.AddressU_ = RsTextureSamplingMode::MIRROR;
+				break;
+			default: 
+				BcBreakpoint;
+			}
+			SamplerState.AddressV_ = SamplerState.AddressU_;
+			SamplerState.AddressW_ = SamplerState.AddressU_;
+
+			SamplerState.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
+			SamplerState.MagFilter_ = RsTextureFilteringMode::LINEAR;
+
+			auto TextureImporter = CsResourceImporterUPtr(
+				new ScnTextureImport(
+					Path.C_Str(), "ScnTexture",
+					TexturePath.string(), RsTextureFormat::UNKNOWN ) );
+			TextureRef = addImport( std::move( TextureImporter ) );
+			MaterialImport->addTexture( Name, TextureRef, SamplerState );
+		}
+		else
+		{
+			addMessage( CsMessageCategory::WARNING, "Unable to find texture " + TexturePath.string() );
+		}
+	}
+
+	// Patch in default texture if we need to.
+	if( TextureRef == CSCROSSREFID_INVALID )
+	{
+		auto It = DefaultTextures_.find( Name );
+		if( It != DefaultTextures_.end() )
+		{
+			// TODO: Implement DefaultSamplerStates.
+			RsSamplerStateDesc Sampler;
+			Sampler.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
+			Sampler.MagFilter_ = RsTextureFilteringMode::LINEAR;
+
+			TextureRef = It->second;
+			MaterialImport->addTexture( Name, TextureRef, Sampler );
+		}
+	}
+#endif
+	return TextureRef;
 }

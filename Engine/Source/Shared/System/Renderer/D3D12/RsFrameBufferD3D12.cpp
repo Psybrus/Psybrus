@@ -38,6 +38,13 @@ void RsFrameBufferD3D12::createRTVDescriptorHeap()
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	RetVal = Device_->CreateDescriptorHeap( &RTVHeapDesc, IID_PPV_ARGS( RTV_.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
+
+#if !PSY_PRODUCTION
+	auto* DebugName = Parent_->getDebugName();
+	BcAssert( DebugName != nullptr );
+	std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+	RTV_->SetName( DebugNameW.c_str() );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,6 +63,13 @@ void RsFrameBufferD3D12::createDSVDescriptorHeap()
 		RetVal = Device_->CreateDescriptorHeap( &DSVHeapDesc, IID_PPV_ARGS( DSV_.GetAddressOf() ) );
 		BcAssert( SUCCEEDED( RetVal ) );
 	}
+
+#if !PSY_PRODUCTION
+	auto* DebugName = Parent_->getDebugName();
+	BcAssert( DebugName != nullptr );
+	std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+	DSV_->SetName( DebugNameW.c_str() );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

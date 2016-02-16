@@ -61,8 +61,9 @@ namespace
 
 	static ScnShaderPermutationEntry GPermutationsPassType[] = 
 	{
-		{ ScnShaderPermutationFlags::PASS_MAIN,					"PERM_PASS_MAIN",					"1" },
 		{ ScnShaderPermutationFlags::PASS_SHADOW,				"PERM_PASS_SHADOW",					"1" },
+		{ ScnShaderPermutationFlags::PASS_DEPTH,				"PERM_PASS_DEPTH",					"1" },
+		{ ScnShaderPermutationFlags::PASS_MAIN,					"PERM_PASS_MAIN",					"1" },
 	};
 
 	static ScnShaderPermutationEntry GPermutationsMeshType[] = 
@@ -222,17 +223,18 @@ void ScnShaderImport::StaticRegisterClass()
 	{
 		ReEnumConstant* EnumConstants[] = 
 		{
-			new ReEnumConstant( "NONE", (BcU32)ScnShaderPermutationFlags::NONE ),
+			new ReEnumConstant( "NONE", ScnShaderPermutationFlags::NONE ),
 
-			new ReEnumConstant( "RENDER_FORWARD", (BcU32)ScnShaderPermutationFlags::RENDER_FORWARD ),
-			new ReEnumConstant( "RENDER_DEFERRED", (BcU32)ScnShaderPermutationFlags::RENDER_DEFERRED ),
-			new ReEnumConstant( "RENDER_FORWARD_PLUS", (BcU32)ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
-			new ReEnumConstant( "RENDER_POST_PROCESS", (BcU32)ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
-			new ReEnumConstant( "RENDER_ALL", (BcU32)ScnShaderPermutationFlags::RENDER_ALL ),
+			new ReEnumConstant( "RENDER_FORWARD", ScnShaderPermutationFlags::RENDER_FORWARD ),
+			new ReEnumConstant( "RENDER_DEFERRED", ScnShaderPermutationFlags::RENDER_DEFERRED ),
+			new ReEnumConstant( "RENDER_FORWARD_PLUS", ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
+			new ReEnumConstant( "RENDER_POST_PROCESS", ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
+			new ReEnumConstant( "RENDER_ALL", ScnShaderPermutationFlags::RENDER_ALL ),
 
+			new ReEnumConstant( "PASS_SHADOW", ScnShaderPermutationFlags::PASS_SHADOW ),
+			new ReEnumConstant( "PASS_DEPTH", ScnShaderPermutationFlags::PASS_DEPTH ),
 			new ReEnumConstant( "PASS_MAIN", (BcU32)ScnShaderPermutationFlags::PASS_MAIN ),
-			new ReEnumConstant( "PASS_SHADOW", (BcU32)ScnShaderPermutationFlags::PASS_SHADOW ),
-			new ReEnumConstant( "PASS_ALL", (BcU32)ScnShaderPermutationFlags::PASS_ALL ),
+			new ReEnumConstant( "PASS_ALL", ScnShaderPermutationFlags::PASS_ALL ),
 
 			new ReEnumConstant( "MESH_STATIC_2D", (BcU32)ScnShaderPermutationFlags::MESH_STATIC_2D ),
 			new ReEnumConstant( "MESH_STATIC_3D", (BcU32)ScnShaderPermutationFlags::MESH_STATIC_3D ),
@@ -859,12 +861,26 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 		std::string Entrypoint = Entrypoints_[ Entry.Type_ ];
 		BcAssert( !Entrypoint.empty() );
 
+		std::map< std::string, std::string > Defines = Params.Permutation_.Defines_;
+
+		const char* ShaderDefines[] = 
+		{
+			"VERTEX_SHADER",
+			"PIXEL_SHADER",
+			"HULL_SHADER",
+			"DOMAIN_SHADER",
+			"GEOMETRY_SHADER",
+			"COMPUTE_SHADER"
+		};
+
+		Defines[ ShaderDefines[ (int)Entry.Type_ ] ] = "1";
+
 		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::D3D11 )
 		{
 			if( compileShader( 
 					Params.ShaderSource_, 
 					Entrypoint, 
-					Params.Permutation_.Defines_, 
+					Defines, 
 					IncludePaths_, 
 					Entry.Level_, 
 					ByteCode, 
@@ -884,7 +900,7 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 			}
 			else
 			{
-				PSY_LOG( "Unable to compile." );
+				PSY_LOG( "Unable to compile D3D11 shader." );
 				RetVal = BcFalse;
 			}
 		}

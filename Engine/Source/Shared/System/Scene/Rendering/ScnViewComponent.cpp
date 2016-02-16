@@ -18,9 +18,10 @@
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
 
+#include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
-#include "System/Scene/Rendering/ScnMaterial.h"
+#include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnCore.h"
@@ -56,6 +57,8 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "EnableClearDepth_", &ScnViewComponent::EnableClearDepth_, bcRFF_IMPORTER ),
 		new ReField( "EnableClearStencil_", &ScnViewComponent::EnableClearStencil_, bcRFF_IMPORTER ),
 		new ReField( "RenderMask_", &ScnViewComponent::RenderMask_, bcRFF_IMPORTER ),
+		new ReField( "RenderPermutation_", &ScnViewComponent::RenderPermutation_, bcRFF_IMPORTER ),
+		new ReField( "Passes_", &ScnViewComponent::Passes_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
@@ -91,12 +94,12 @@ ScnViewComponent::ScnViewComponent():
 	EnableClearDepth_( true ),
 	EnableClearStencil_( true ),
 	RenderMask_( 0 ),
-	RenderTarget_( nullptr ),
+	RenderPermutation_( ScnShaderPermutationFlags::RENDER_FORWARD ),
+	Passes_( RsRenderSortPassFlags::OPAQUE | RsRenderSortPassFlags::TRANSPARENT ),
+	RenderTarget_(),
 	DepthStencilTarget_( nullptr )
 {
 	ViewUniformBuffer_ = nullptr;
-	RenderTarget_ = nullptr;
-	DepthStencilTarget_ = nullptr;
 
 	setRenderMask( 1 );
 }
@@ -127,8 +130,6 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
-	ScnCore::pImpl()->addCallback( this );
-
 	memset( &ViewUniformBlock_, 0, sizeof( ViewUniformBlock_ ) );
 
 	recreateFrameBuffer();
@@ -143,10 +144,15 @@ void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 	OsCore::pImpl()->unsubscribeAll( this );
 	ViewUniformBuffer_.reset();
 
-	ScnCore::pImpl()->removeCallback( this );
-
 	FrameBuffer_.reset();
 	Super::onDetach( Parent );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getViewUniformBuffer
+class RsBuffer* ScnViewComponent::getViewUniformBuffer()
+{
+	return ViewUniformBuffer_.get();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -226,7 +232,7 @@ BcBool ScnViewComponent::intersect( const MaAABB& AABB ) const
 // hasRenderTarget
 BcBool ScnViewComponent::hasRenderTarget() const
 {
-	return (RenderTarget_ != nullptr) && ( RenderTarget_.isValid() );
+	return RenderTarget_.size() > 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -252,10 +258,10 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 	BcF32 Height = static_cast< BcF32 >( pFrame->getBackBufferHeight() );
 
 	// If we're using a render target, we want to use it for dimensions.
-	if( RenderTarget_.isValid() )
+	if( RenderTarget_.size() > 0 )
 	{
-		Width = static_cast< BcF32 >( RenderTarget_->getWidth() );
-		Height = static_cast< BcF32 >( RenderTarget_->getHeight() );
+		Width = static_cast< BcF32 >( RenderTarget_[ 0 ]->getWidth() );
+		Height = static_cast< BcF32 >( RenderTarget_[ 0 ]->getHeight() );
 	}
 	
 	const BcF32 ViewWidth = Width_ * Width;
@@ -290,19 +296,34 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 
 	// Clip transform.
 	ViewUniformBlock_.ClipTransform_ = ViewUniformBlock_.ViewTransform_ * ViewUniformBlock_.ProjectionTransform_;
+	ViewUniformBlock_.InverseClipTransform_ = ViewUniformBlock_.ClipTransform_;
+	ViewUniformBlock_.InverseClipTransform_.inverse();
 
 	// Time.
 	BcF32 Time = SysKernel::pImpl()->getFrameTime();
 	ViewUniformBlock_.ViewTime_ += MaVec4d( Time, Time * 0.5f, Time * 0.25f, Time * 0.125f );
+
+	// View size.
+	ViewUniformBlock_.ViewSize_ = MaVec4d( 
+		static_cast< BcF32 >( Viewport_.width() ), 
+		static_cast< BcF32 >( Viewport_.height() ),
+		1.0f / static_cast< BcF32 >( Viewport_.width() ), 
+		1.0f / static_cast< BcF32 >( Viewport_.height() ) );
+
+	// Near + far planes.
+	ViewUniformBlock_.NearFar_ = MaVec4d( Near_, Far_, Near_ + Far_, Near_ * Far_ );
 
 	// Upload uniforms.
 	RsCore::pImpl()->updateBuffer( 
 		ViewUniformBuffer_.get(),
 		0, sizeof( ViewUniformBlock_ ),
 		RsResourceUpdateFlags::ASYNC,
-		[ this ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		[
+			ViewUniformBlock = ViewUniformBlock_
+		]
+		( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
-			BcMemCopy( Lock.Buffer_, &ViewUniformBlock_, sizeof( ViewUniformBlock_ ) );
+			BcMemCopy( Lock.Buffer_, &ViewUniformBlock, sizeof( ViewUniformBlock ) );
 		} );
 
 	// Build frustum planes.
@@ -365,35 +386,22 @@ void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setRenderMask
-void ScnViewComponent::setRenderMask( BcU32 RenderMask )
-{
-	RenderMask_ = RenderMask;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getRenderMask
-const BcU32 ScnViewComponent::getRenderMask() const
-{
-	return RenderMask_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // recreate
 void ScnViewComponent::recreateFrameBuffer()
 {
-	if( RenderTarget_.isValid() || DepthStencilTarget_.isValid() )
+	bool AnyValid = DepthStencilTarget_.isValid();
+	for( auto RT : RenderTarget_ )
 	{
-		BcAssert( RenderTarget_.isValid() || DepthStencilTarget_.isValid() );
-		if( RenderTarget_.isValid() && DepthStencilTarget_.isValid() )
+		AnyValid |= RT.isValid();
+	}
+
+	if( AnyValid )
+	{
+		RsFrameBufferDesc FrameBufferDesc( RenderTarget_.size() );
+		BcU32 RTIdx = 0;
+		for( auto RT : RenderTarget_ )
 		{
-			BcAssert( RenderTarget_->getWidth() && DepthStencilTarget_->getWidth() );
-			BcAssert( RenderTarget_->getHeight() && DepthStencilTarget_->getHeight() );
-		}
-		RsFrameBufferDesc FrameBufferDesc( 1 );
-		if( RenderTarget_.isValid() )
-		{
-			FrameBufferDesc.setRenderTarget( 0, RenderTarget_->getTexture() );
+			FrameBufferDesc.setRenderTarget( RTIdx++, RT->getTexture() );
 		}
 		if( DepthStencilTarget_.isValid() )
 		{
@@ -448,7 +456,7 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 		{
 			BcAssert( Component->isTypeOf< ScnViewComponent >() );
 			auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
-
+	
 			ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
 
 			ViewComponent->bind( pFrame, Sort );

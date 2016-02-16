@@ -145,14 +145,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( "FsCoreImplHTML5::addReadOp" );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplHTML5::addReadOp", this );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplHTML5::addReadOp" );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplHTML5::addReadOp", this );	
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
@@ -183,14 +183,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplLinux::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplLinux::addWriteOp", this );
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplLinux::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplLinux::addWriteOp", this );
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	

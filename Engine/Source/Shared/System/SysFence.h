@@ -44,7 +44,7 @@ public:
 	/**
 	 * Wait for fence to reach a certain value.
 	 */
-	void wait( size_t Value = 0 ) const;
+	void wait( size_t Value = 0, const char* DebugName = nullptr ) const;
 
 private:
 	std::atomic< size_t > Count_;

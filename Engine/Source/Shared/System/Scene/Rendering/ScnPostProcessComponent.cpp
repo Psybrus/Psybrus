@@ -2,6 +2,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
+#include "System/Debug/DsCore.h"
+
 #include "System/Renderer/RsFeatures.h"
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
@@ -13,8 +15,6 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
-#include "System/Debug/DsCore.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -192,7 +192,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 {
 	auto* InputFrameBuffer = RenderContext.pViewComponent_->getFrameBuffer();
 	RsRenderSort Sort = RenderContext.Sort_;
-	Sort.Pass_ = RS_SORT_PASS_POSTPROCESS;
+	Sort.Layer_ = 0;
 	RenderFence_.increment();
 	RenderContext.pFrame_->queueRenderNode( Sort,
 		[ 
@@ -232,6 +232,54 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
  				auto& FrameBuffer = FrameBuffers_[ NodeIdx ];
  				auto& RenderState = RenderStates_[ NodeIdx ];
  				auto& ProgramBinding = ProgramBindings_[ NodeIdx ];
+
+				// Grab first input texture for size data.
+				MaVec2d UVSize( 1.0f, 1.0f );
+				auto TextureIt = Node.InputTextures_.begin();
+				if( TextureIt != Node.InputTextures_.end() )
+				{
+					auto Texture = TextureIt->second;
+					auto Rect = Texture->getRect( 0 );			
+					UVSize.x( Rect.W_ );
+					UVSize.y( Rect.H_ );
+				}
+
+				// Update vertex buffer.
+				const BcU32 VertexBufferSize = 4 * VertexDeclaration_->getDesc().getMinimumStride();
+				const auto& Features = Context->getFeatures();
+				const auto RTOrigin = Features.RTOrigin_;
+				Context->updateBuffer( 
+					VertexBuffer_.get(),
+					0, VertexBufferSize,
+					RsResourceUpdateFlags::ASYNC,
+					[ RTOrigin, UVSize ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+					{
+						auto Vertices = reinterpret_cast< ScnPostProcessVertex* >( Lock.Buffer_ );
+
+						// TODO: Pass in separate UVs for what is intended to be a render target source?
+						if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
+						{
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f - UVSize.y() ) );
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f - UVSize.y() ) );
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f ) );
+						}
+						else
+						{
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, UVSize.y() ) );
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), UVSize.y() ) );
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
+							*Vertices++ = ScnPostProcessVertex( 
+								MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 0.0f ) );
+						}
+					} );
 					
 				// Setup config uniform block.
 				ScnShaderPostProcessConfigData* ConfigUniformBlock = nullptr;
@@ -310,41 +358,6 @@ void ScnPostProcessComponent::recreateResources()
 				RsResourceCreationFlags::STREAM, 
 				VertexBufferSize ),
 			getFullName().c_str() );
-
-		const auto& Features = RsCore::pImpl()->getContext( 0 )->getFeatures();
-		const auto RTOrigin = Features.RTOrigin_;
-		RsCore::pImpl()->updateBuffer( 
-			VertexBuffer_.get(),
-			0, VertexBufferSize,
-			RsResourceUpdateFlags::ASYNC,
-			[ RTOrigin ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-			{
-				auto Vertices = reinterpret_cast< ScnPostProcessVertex* >( Lock.Buffer_ );
-
-				// TODO: Pass in separate UVs for what is intended to be a render target source?
-				if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
-				{
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
-				}
-				else
-				{
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ) );
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 1.0f ) );
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ) );
-					*Vertices++ = ScnPostProcessVertex( 
-						MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 1.0f, 0.0f ) );
-				}
-			} );		
 	}
 
 	if( GeometryBinding_ == nullptr )

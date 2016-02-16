@@ -25,7 +25,8 @@ RsResourceD3D12::RsResourceD3D12(
 
 #if !PSY_PRODUCTION
 	BcAssert( DebugName != nullptr );
-	Resource->SetPrivateData( WKPDID_D3DDebugObjectName, BcStrLength( DebugName ), DebugName );
+	std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+	Resource->SetName( DebugNameW.c_str() );
 #endif
 }
 

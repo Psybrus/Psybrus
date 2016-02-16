@@ -27,14 +27,12 @@ REFLECTION_DEFINE_DERIVED( ScnEntityImport )
 	
 void ScnEntityImport::StaticRegisterClass()
 {
-	/*
 	ReField* Fields[] = 
 	{
-		new ReField( "Components_", &ScnEntityImport::Components_, bcRFF_IMPORTER ),
+		new ReField( "LocalTransform_", &ScnEntityImport::LocalTransform_, bcRFF_IMPORTER ),
 	};
-	*/
 	
-	ReRegisterClass< ScnEntityImport, Super >();
+	ReRegisterClass< ScnEntityImport, Super >( Fields );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,6 +67,7 @@ BcBool ScnEntityImport::import(
 
 	BcStream Stream;
 	ScnEntityHeader Header;
+	Header.LocalTransform_ = LocalTransform_;
 	Header.NoofComponents_ = Components.size();
 	Stream << Header;
 	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )

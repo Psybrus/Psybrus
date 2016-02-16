@@ -28,6 +28,10 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	// Attach shaders.
 	for( auto* Shader : Shaders )
 	{
+		BcAssertMsg( Shader->getHandle< GLuint >() != 0, 
+			"RsShader \"%s\" invalid when attaching to RsProgram \"%s\"",
+			Shader->getDebugName(),
+			Parent->getDebugName() );
 		GL( AttachShader( Handle_, Shader->getHandle< GLuint >() ) );
 	}
 	
@@ -56,7 +60,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		GL( GetProgramInfoLog( Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog ) );
-		PSY_LOG( "RsProgramGL: Infolog:\n", pszInfoLog );
+		PSY_LOG( "RsProgramGL: Infolog (%s):\n", Parent_->getDebugName(), pszInfoLog );
 		std::stringstream LogStream( pszInfoLog );
 		std::string LogLine;
 		while( std::getline( LogStream, LogLine, '\n' ) )
@@ -423,7 +427,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		// Allocate enough space for the message, and retrieve it.
 		char* pszInfoLog = new char[i32InfoLogLength];
 		GL( GetProgramInfoLog( Handle_, i32InfoLogLength, &i32CharsWritten, pszInfoLog ) );
-		PSY_LOG( "RsProgramGL: Infolog:\n %s\n", pszInfoLog );
+		PSY_LOG( "RsProgramGL: Infolog (%s):\n %s\n", Parent_->getDebugName(), pszInfoLog );
 		delete [] pszInfoLog;
 
 		BcBreakpoint;
@@ -444,8 +448,6 @@ RsProgramGL::~RsProgramGL()
 // copyUniformBuffersToUniforms
 void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuffer* const * Buffers )
 {
-	PSY_PROFILE_FUNCTION;
-
 #if PSY_DEBUG
 	if( UniformEntries_.size() > 0 )
 	{
@@ -513,7 +515,7 @@ void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuff
 		}
 		else
 		{
-			BcBreakpoint;
+			//BcBreakpoint;
 		}
 	}
 }

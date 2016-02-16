@@ -120,11 +120,6 @@ int main(int argc, char** argv)
 	// Create reflection database
 	ReManager::Init();
 
-#if PSY_USE_PROFILER
-	// new profiler.
-	new SysProfilerChromeTracing();
-#endif
-
 	// Unit tests prior to full kernel initialisation.
 	if( SysArgs_.find( "-unittest " ) != std::string::npos )
 	{

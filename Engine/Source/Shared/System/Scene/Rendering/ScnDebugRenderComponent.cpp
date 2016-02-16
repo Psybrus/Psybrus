@@ -66,7 +66,7 @@ ScnDebugRenderComponent* ScnDebugRenderComponent::pImpl()
 ScnDebugRenderComponent::ScnDebugRenderComponent():
 	ScnDebugRenderComponent( 0 )
 {
-
+	setPasses( RsRenderSortPassFlags::TRANSPARENT );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +78,7 @@ ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices ):
 	pWorkingVertices_( nullptr ),
 	NoofVertices_( NoofVertices )
 {
+	setPasses( RsRenderSortPassFlags::TRANSPARENT );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -440,11 +441,10 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 				UploadFence_.decrement();
 			} );
 	}
-
+	
 	// HUD pass.
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = RS_SORT_LAYER_MAX;
-	Sort.Pass_ = 0;
 
 	// NOTE: Could do this sort inside of the renderer, but I'm just gonna keep the canvas
 	//       as one solid object as to not conflict with other canvas objects when rendered
@@ -555,7 +555,6 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnDebugRenderComponentVertex[ NoofVertices_ ];
-
 
 	BcAssert( pImpl_ == NULL );
 	pImpl_ = this;

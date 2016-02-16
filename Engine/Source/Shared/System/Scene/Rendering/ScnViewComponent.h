@@ -18,9 +18,10 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
-#include "System/Scene/ScnCoreCallback.h"
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
+
+#include <unordered_map>
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -35,8 +36,7 @@ typedef ScnViewComponentMap::const_iterator ScnViewComponentMapConstIterator;
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponent
 class ScnViewComponent:
-	public ScnComponent,
-	public ScnCoreCallback
+	public ScnComponent
 {
 public:
 	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
@@ -47,8 +47,10 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
-	void onAttachComponent( class ScnComponent* Component ) override {};
-	void onDetachComponent( class ScnComponent* Component ) override {};
+	/**
+	 * Get view uniform buffer.
+	 */
+	class RsBuffer* getViewUniformBuffer(); 
 
 	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
@@ -63,8 +65,10 @@ public:
 
 	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
-	void setRenderMask( BcU32 RenderMask );
-	const BcU32 getRenderMask() const;
+	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
+	const BcU32 getRenderMask() const { return RenderMask_; }
+	const ScnShaderPermutationFlags getRenderPermutation() const { return RenderPermutation_ & ScnShaderPermutationFlags::RENDER_ALL; }
+	const RsRenderSortPassFlags getPasses() const { return Passes_; }
 
 private:
 	void recreateFrameBuffer();
@@ -90,7 +94,10 @@ private:
 	bool EnableClearStencil_;	
 	
 	BcU32 RenderMask_;		// Used to determine what objects should be rendered for this view.
-
+	
+	// Permutation types.
+	ScnShaderPermutationFlags RenderPermutation_;
+	RsRenderSortPassFlags Passes_;
 
 	// TODO: Remove this dependency, not really needed.
 	RsViewport Viewport_;
@@ -104,7 +111,7 @@ private:
 	MaPlane FrustumPlanes_[ 6 ];
 
 	// Frame buffer + render target.
-	ScnTextureRef RenderTarget_;
+	std::vector< ScnTextureRef > RenderTarget_;
 	ScnTextureRef DepthStencilTarget_;
 	RsFrameBufferUPtr FrameBuffer_;
 };

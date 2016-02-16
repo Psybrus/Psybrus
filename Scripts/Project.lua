@@ -96,9 +96,6 @@ function PsyProjectCommon( _name, _lang )
 	--configuration { "Release", "gmake" }
 	--	linkoptions { "-rdynamic" }
 
-	--configuration { "Profile", "gmake" }
-	--	linkoptions { "-rdynamic" }
-
 	-- Common defines for build targets across all types of project.
 	configuration "Debug"
 		defines { "_DEBUG", "DEBUG" }
@@ -108,19 +105,12 @@ function PsyProjectCommon( _name, _lang )
 		defines { "NDEBUG" }
 		flags { "Symbols" }
 
-	configuration "Profile"
-		defines { "NDEBUG" }
-		flags { "Symbols" }
-
 	configuration "Production"
 		defines { "NDEBUG" }
 		flags { "Symbols" }
 
 	-- Optimised builds.
 	configuration { "windows-* or linux-* or android-* or osx-*", "Release" }
-		flags { "Optimize" }
-
-	configuration { "windows-* or linux-* or android-* or osx-*", "Profile" }
 		flags { "Optimize" }
 
 	configuration { "windows-* or linux-* or android-* or osx-*", "Production" }
@@ -191,14 +181,10 @@ function PsyProjectCommonEngine( _name )
 
 	-- Defines for all configurations
 	configuration "Debug"
-		defines { "PSY_USE_PROFILER=0" }
+		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_DEBUG" }
 
 	configuration "Release"
-		defines { "PSY_USE_PROFILER=0" }
-		defines { "PSY_RELEASE" }
-
-	configuration "Profile"
 		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_RELEASE" }
 
@@ -259,11 +245,6 @@ function PsyProjectCommonEngine( _name )
 			"BUILD_CONFIG=\\\"Release\\\"",
 		}
 
-	configuration { "gmake", "Profile" }
-		defines {
-			"BUILD_CONFIG=\\\"Profile\\\"",
-		}
-
 	configuration { "gmake", "Production" }
 		defines {
 			"BUILD_CONFIG=\\\"Production\\\"",
@@ -284,11 +265,6 @@ function PsyProjectCommonEngine( _name )
 	configuration { "vs*", "Release" }
 		defines {
 			"BUILD_CONFIG=\"Release\"",
-		}
-
-	configuration { "vs*", "Profile" }
-		defines {
-			"BUILD_CONFIG=\"Profile\"",
 		}
 
 	configuration { "vs*", "Production" }
@@ -332,9 +308,6 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		targetsuffix ""
 	configuration { "osx-*", "Release" }
 		targetname( targetNamePrefix .. "-Release" )
-		targetsuffix ""
-	configuration { "osx-*", "Profile" }
-		targetname( targetNamePrefix .. "-Profile" )
 		targetsuffix ""
 	configuration { "osx-*", "Production" }
 		targetname( targetNamePrefix .. "-Production" )
@@ -420,7 +393,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Debug\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O0 --emrun --memory-init-file 1 --js-opts 0 -g3 -s ASM_JS=1 -s ASSERTIONS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	configuration { "html5-clang-asmjs", "Release" }
@@ -430,7 +403,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 			"$(SILENT) cp ../../Dist/PackedContent/html5/* ./PackedContent",
 			"$(SILENT) echo Running asmjs finalise \\(Release\\)",
 			"$(SILENT) mv $(TARGET) $(TARGET).o",
-			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
+			"$(SILENT) $(EMSCRIPTEN)/emcc -v -O3 --emrun --memory-init-file 1 --js-opts 1 -g3 -s ASM_JS=1 -s DEMANGLE_SUPPORT=1 -s TOTAL_MEMORY=" .. GAME.html5.total_memory .. " \"$(TARGET).o\" -o \"$(TARGET)\".html --preload-file ./PackedContent@/PackedContent",
 		}
 
 	configuration { "html5-clang-asmjs", "Production" }
@@ -573,10 +546,11 @@ function PsyProjectExternalLib( _name, _lang )
 	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
-	-- Only optimise linux + OSX builds, this changes runtime on windows.
-	configuration "linux-* or osx-*"
-		kind "StaticLib"
-		flags { "Optimize" }
+	--configuration "Debug"
+	--	flags { "DebugRuntime", "Optimize"}
+
+	configuration "Release or Profile or Production"
+		flags { "ReleaseRuntime", "Optimize"}
 
 	-- External librarys should be built with no WinRT language extensions.
 	--configuration "winphone-*"

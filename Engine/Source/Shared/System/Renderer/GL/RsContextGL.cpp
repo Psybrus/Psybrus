@@ -212,7 +212,7 @@ class RsFrameBuffer* RsContextGL::getBackBuffer() const
 // beginFrame
 RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 0 );
 	++InsideBeginEnd_;
@@ -241,7 +241,7 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 		if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
 		{
 			PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
-			return;
+			return nullptr;
 		}
 		else
 		{
@@ -253,7 +253,7 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 		if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
 		{
 			PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
-			return;
+			return nullptr;
 		}
 		else
 		{
@@ -298,7 +298,7 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 // endFrame
 void RsContextGL::endFrame()
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::endFrame" );
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 1 );
 	--InsideBeginEnd_;
@@ -444,9 +444,9 @@ void RsContextGL::create()
 		PSY_LOG( "Can't create pixel format.\n" );
 	}
 	
-	if( !::SetPixelFormat( WindowDC_, PixelFormat, &pfd ) )               // Are We Able To Set The Pixel Format?
+	if( !::SetPixelFormat( WindowDC_, PixelFormat, &pfd ) )
 	{
-		PSY_LOG( "Can't Set The PixelFormat." );
+		PSY_LOG( "Can't set PixelFormat." );
 	}
 
 	// Create a rendering context to start with.
@@ -496,7 +496,7 @@ void RsContextGL::create()
 	}
 
 	// Clear current errors.
-	glGetError();
+	while( glGetError() != 0 );
 #endif
 
 #if PLATFORM_LINUX	|| PLATFORM_OSX
@@ -538,7 +538,7 @@ void RsContextGL::create()
 	// Init GLEW.
 	glewExperimental = 1;
 	glewInit();
-	glGetError();
+	while( glGetError() != 0 );
 #endif
 
 #if PLATFORM_ANDROID
@@ -666,10 +666,8 @@ void RsContextGL::create()
 		Version_.Minor_ );
 
 #  if PLATFORM_HTML5
-	// Init GLEW.
-	glewExperimental = 1;
-	glewInit();
-	glGetError();
+	auto RTFormat = RsTextureFormat::R8G8B8A8;
+	auto DSFormat = RsTextureFormat::D24S8;
 #  endif
 #endif
 
@@ -692,7 +690,7 @@ void RsContextGL::create()
 	OwningThread_ = BcCurrentThreadId();
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
-#if !PLATFORM_ANDROID
+#if !defined( RENDER_USE_GLES )
 	// Create + bind global VAO.
 	if( Version_.SupportVAOs_ )
 	{
@@ -704,7 +702,7 @@ void RsContextGL::create()
 
 	// Create transfer FBO.
 	GL( GenFramebuffers( 2, TransferFBOs_ ) );
-#endif
+#endif // !defined( RENDER_USE_GLES )
 
 	// Force set render state to the default.
 	// Initialises redundant state caching.
@@ -745,6 +743,11 @@ void RsContextGL::create()
 		GL( Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ) );
 		endFrame();
 	}
+
+#if !defined( RENDER_USE_GLES )
+	// Enable seamless cube map globally.
+	GL( Enable( GL_TEXTURE_CUBE_MAP_SEAMLESS ) );
+#endif
 
 }
 
@@ -798,12 +801,50 @@ void RsContextGL::destroy()
 #if PLATFORM_WINDOWS
 bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 {
+	// Setup pixel format.
+	const int PixelFormatAttribs[] =
+	{
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		WGL_RED_BITS_ARB, 8,
+		WGL_GREEN_BITS_ARB, 8,
+		WGL_BLUE_BITS_ARB, 8,
+		WGL_ALPHA_BITS_ARB, 8,
+		0,
+	};
+
+	int PixelFormat = 0;
+	UINT NumFormats = 0;
+	auto RetVal = wglChoosePixelFormatARB( WindowDC_, PixelFormatAttribs, nullptr, 1, &PixelFormat, &NumFormats );
+	if( RetVal == 0 || NumFormats == 0 )
+	{
+		PSY_LOG( "Unable to choose pixel format." );
+		return false;
+	}
+
+	PIXELFORMATDESCRIPTOR PixelFormatDesc;
+	::DescribePixelFormat( WindowDC_, PixelFormat, sizeof( PIXELFORMATDESCRIPTOR ), &PixelFormatDesc );
+	PSY_LOG( "Pixel format:" );
+	PSY_LOG( " Backbuffer RT: R%dG%dB%dA%d", PixelFormatDesc.cRedBits, PixelFormatDesc.cGreenBits, PixelFormatDesc.cBlueBits, PixelFormatDesc.cAlphaBits );
+	PSY_LOG( " Backbuffer DS: D%dS%d", PixelFormatDesc.cDepthBits, PixelFormatDesc.cStencilBits );
+
+	if( !::SetPixelFormat( WindowDC_, PixelFormat, &PixelFormatDesc ) )
+	{
+		PSY_LOG( "Can't set PixelFormat." );
+	}
+
+	// Create context.
 	int ContextAttribs[] = 
 	{
 		WGL_CONTEXT_PROFILE_MASK_ARB, 0,
 		WGL_CONTEXT_MAJOR_VERSION_ARB, Version.Major_,
 		WGL_CONTEXT_MINOR_VERSION_ARB, Version.Minor_,
-		NULL
+		0
 	};
 
 	switch( Version.Type_ )
@@ -828,9 +869,6 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 	
 	BcAssert( WGL_ARB_create_context );
 	BcAssert( WGL_ARB_create_context_profile );
-
-	auto func = wglCreateContextAttribsARB;
-	BcUnusedVar( func );
 
 	HGLRC CoreProfile = wglCreateContextAttribsARB( WindowDC_, ParentContext, ContextAttribs );
 	if( CoreProfile != NULL )
@@ -947,6 +985,10 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+		if( Version_.MaxTextureAnisotropy_ > 0.0f )
+		{
+			GL( SamplerParameterf( SamplerObject, GL_TEXTURE_MAX_ANISOTROPY_EXT, Version_.MaxTextureAnisotropy_ ) );
+		}
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_WRAP_R, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressW_ ) ) );	
@@ -1035,12 +1077,28 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
 			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
-				GL_COLOR_ATTACHMENT0 + NoofAttachments,
+				GL_COLOR_ATTACHMENT0 + NoofAttachments++,
 				GL_TEXTURE_2D,
 				TextureGL->getHandle(),
 				0 ) );
 		}
 	}
+
+	// Bind draw buffers.
+	GLenum Targets[ 8 ] =
+	{
+		GL_COLOR_ATTACHMENT0, 
+		GL_COLOR_ATTACHMENT1, 
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3, 
+		GL_COLOR_ATTACHMENT4, 
+		GL_COLOR_ATTACHMENT5,
+		GL_COLOR_ATTACHMENT6, 
+		GL_COLOR_ATTACHMENT7
+	};
+	BcAssertMsg( Desc.RenderTargets_.size() <= 8,
+		"Too many render targets in RsFrameBuffer \"%s\". Max of 8.", FrameBuffer->getDebugName() );
+	GL( DrawBuffers( Desc.RenderTargets_.size(), Targets ) );
 
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
@@ -1062,10 +1120,8 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			break;
 		}
 
-		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
-			RsResourceBindFlags::NONE );
-		BcAssert( ( Desc.DepthStencilTarget_->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) !=
-			RsResourceBindFlags::NONE );
+		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsResourceBindFlags::SHADER_RESOURCE ) );
+		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsResourceBindFlags::DEPTH_STENCIL ) );
 
 		RsTextureGL* TextureGL = Desc.DepthStencilTarget_->getHandle< RsTextureGL* >();
 		GL( FramebufferTexture2D( 
@@ -1152,7 +1208,7 @@ bool RsContextGL::updateBuffer(
 	RsResourceUpdateFlags Flags,
 	RsBufferUpdateFunc UpdateFunc )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::updateBuffer" );
+	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
@@ -1221,7 +1277,7 @@ bool RsContextGL::updateBuffer(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// createTexture
+// bTexture
 bool RsContextGL::createTexture( class RsTexture* Texture )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -1317,7 +1373,6 @@ bool RsContextGL::createShader( RsShader* Shader )
 	// Create handle for shader.
 	GLuint Handle = GL( CreateShader( ShaderType ) );
 	
-	
 	//
 	const GLchar* ShaderData[] = 
 	{
@@ -1374,15 +1429,6 @@ bool RsContextGL::createShader( RsShader* Shader )
 	}
 
 	++NoofShaders_;
-	
-	// Destroy if there is a failure.
-	GLenum Error = GL( GetError() );
-	if ( Error != GL_NO_ERROR )
-	{
-		PSY_LOG( "RsShaderGL: Error has occured: %u\n", Error );
-		GL( DeleteShader( Handle ) );
-		return false;
-	}
 
 	Shader->setHandle( Handle );
 	return true;
@@ -1494,7 +1540,7 @@ void RsContextGL::clear(
 	BcBool EnableClearDepth,
 	BcBool EnableClearStencil )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::clear" );
+	PSY_PROFILE_FUNCTION;
 
 	bindFrameBuffer( FrameBuffer, nullptr, nullptr );
 	GL( ClearColor( Colour.r(), Colour.g(), Colour.b(), Colour.a() ) );
@@ -1540,7 +1586,7 @@ void RsContextGL::drawPrimitives(
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
+	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
@@ -1588,7 +1634,7 @@ void RsContextGL::drawIndexedPrimitives(
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
+	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
@@ -1904,8 +1950,6 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 // bindFrameBuffer
 void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
 {
-	PSY_PROFILE_FUNCTION;
-
 	// Null signifies backbuffer.
 	if( FrameBuffer == nullptr )
 	{
@@ -1942,9 +1986,9 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 	if( BoundViewport_ != *Viewport )
 	{
 		const auto VX = Viewport->x();
-		const auto VY = FBHeight - Viewport->height();
-		const auto VW = Viewport->width() - Viewport->x();
-		const auto VH = Viewport->height() - Viewport->y();
+		const auto VY = FBHeight - ( Viewport->height() + Viewport->y() );
+		const auto VW = Viewport->width();
+		const auto VH = Viewport->height();
 		GL( Viewport( VX, VY, VW, VH ) );
 		BoundViewport_ = *Viewport;
 	}
@@ -1964,8 +2008,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 // bindProgram
 void RsContextGL::bindProgram( const RsProgram* Program )
 {
-	PSY_PROFILE_FUNCTION;
-
 	if( BoundProgram_ != Program )
 	{
 		BoundProgram_ = Program;
@@ -1980,8 +2022,6 @@ void RsContextGL::bindProgram( const RsProgram* Program )
 // bindGeometry
 void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding, BcU32 VertexOffset )
 {
-	PSY_PROFILE_FUNCTION;
-
 	if( BoundGeometryBinding_ != GeometryBinding || 
 		BoundVertexOffset_ != VertexOffset )
 	{
@@ -2084,8 +2124,6 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 // bindRenderStateDesc
 void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool Force )
 {
-	PSY_PROFILE_FUNCTION;
-
 #if !defined( RENDER_USE_GLES )
 	if( Version_.Features_.SeparateBlendState_ )
 	{
@@ -2324,11 +2362,11 @@ void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool For
 		case RsCullMode::NONE:
 			GL( Disable( GL_CULL_FACE ) );
 			break;
-		case RsCullMode::CW:
+		case RsCullMode::CCW:
 			GL( Enable( GL_CULL_FACE ) );
 			GL( CullFace( GL_FRONT ) );
 			break;
-		case RsCullMode::CCW:
+		case RsCullMode::CW:
 			GL( Enable( GL_CULL_FACE ) );
 			GL( CullFace( GL_BACK ) );
 			break;
@@ -2380,7 +2418,6 @@ void RsContextGL::bindRenderStateDesc( const RsRenderStateDesc& Desc, BcBool For
 // bindSRVs
 void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2465,7 +2502,6 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 // bindUAVs
 void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc& Bindings, GLbitfield& Barrier )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2546,7 +2582,6 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 // bindSamplerStates
 void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2589,6 +2624,10 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 				GL( ActiveTexture( GL_TEXTURE0 + SamplerStateSlotGL.Binding_ ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+				if( Version_.MaxTextureAnisotropy_ > 0.0f )
+				{
+					GL( TexParameterf( TextureType, GL_TEXTURE_MAX_ANISOTROPY_EXT, Version_.MaxTextureAnisotropy_ ) );
+				}
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
 #if !defined( RENDER_USE_GLES )
@@ -2605,7 +2644,6 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 // bindUniformBuffers
 void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramBindingDesc& Bindings )
 {
-	PSY_PROFILE_FUNCTION;
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 #if PSY_DEBUG
 	GLint BoundProgram = 0;
@@ -2638,6 +2676,8 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 				}
 			}
 		}
+
+		UniformBufferBindingInfoSingle_ = BufferBindingInfo();
 	}
 #endif // !defined( RENDER_USE_GLES )
 }
@@ -2687,7 +2727,7 @@ void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 O
 		break;
 	case GL_UNIFORM_BUFFER:
 		{
-			bindBufferInternal( UniformBufferBindingInfo_[0], GL_UNIFORM_BUFFER, Buffer, Offset );
+			bindBufferInternal( UniformBufferBindingInfoSingle_, GL_UNIFORM_BUFFER, Buffer, Offset );
 
 			// Binding of uniform buffers mean we potentially need to rebind program bindings.
 			BoundProgramBinding_ = nullptr;
@@ -2710,7 +2750,7 @@ void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum Bin
 	if( BindingInfo.Resource_ != Buffer ||
 		BindingInfo.Buffer_ != Handle ||
 		BindingInfo.Offset_ != Offset ||
-		BindingInfo.Size_ != 0 )
+		BindingInfo.Size_ != BindSize )
 	{
 		if( Offset == 0 )
 		{
@@ -2718,12 +2758,16 @@ void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum Bin
 		}
 		else
 		{
+#if !defined( RENDER_USE_GLES )
 			GL( BindBufferRange( BindTypeGL, 0, Handle, Offset, BindSize ) );
+#else
+			BcAssertMsg( BcFalse, "No support for glBindBufferRange." );
+#endif
 		}
 		BindingInfo.Resource_ = Buffer;
 		BindingInfo.Buffer_ = Handle;
 		BindingInfo.Offset_ = Offset;
-		BindingInfo.Size_ = 0;
+		BindingInfo.Size_ = BindSize;
 	}
 }
 
@@ -2779,6 +2823,11 @@ void RsContextGL::unbindResource( const RsResource* Resource )
 	if( VertexBufferBindingInfo_.Resource_ == Resource )
 	{
 		bindBuffer( GL_ARRAY_BUFFER, nullptr, 0 );
+	}
+
+	if( UniformBufferBindingInfoSingle_.Resource_ == Resource )
+	{
+		bindBuffer( GL_UNIFORM_BUFFER, nullptr, 0 );
 	}
 }
 

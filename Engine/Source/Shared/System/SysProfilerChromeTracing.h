@@ -14,13 +14,16 @@
 #ifndef __SysProfilerChromeTracing_H__
 #define __SysProfilerChromeTracing_H__
 
+#include "Base/BcLinearAllocator.h"
 #include "Base/BcProfiler.h"
-#include <atomic>
-#include <mutex>
 #include "Base/BcString.h"
 #include "Base/BcTimer.h"
+#include "System/SysFence.h"
 
+#include <atomic>
+#include <mutex>
 #include <vector>
+#include <unordered_map>
 
 #if PSY_USE_PROFILER
 
@@ -33,29 +36,33 @@ public:
 	SysProfilerChromeTracing();
 	virtual ~SysProfilerChromeTracing();
 
-	virtual void beginProfiling();
-	virtual void endProfiling();
-	virtual void enterSection( const std::string& Tag );
-	virtual void exitSection( const std::string& Tag );
-	virtual void startAsync( const std::string& Tag );
-	virtual void endAsync( const std::string& Tag );
-	virtual void instantEvent( const std::string& Tag );
+	void setThreadName( BcThreadId ThreadId, const char* Name ) override;
+	void beginProfiling() override;
+	void endProfiling() override;
+	void enterSection( const char* Tag ) override;
+	void exitSection( const char* Tag ) override;
+	void startAsync( const char* Tag, void* Data ) override;
+	void stepAsync( const char* Tag, void* Data ) override;
+	void endAsync( const char* Tag, void* Data ) override;
+	void instantEvent( const char* Tag ) override;
 
 protected:
 	struct TProfilerEvent
 	{
 		TProfilerEvent():
-			Tag_( "" ),
-			Type_( "" ),
+			Tag_( reinterpret_cast< char* > ( this + 1 ) ),
+			Type_( 0 ),
+			Data_( nullptr ),
 			ThreadId_( 0 ),
 			StartTime_( 0.0f )
 		{
 		}
 
-		std::string			Tag_;
-		std::string			Type_;
-		BcThreadId			ThreadId_;
-		BcF64				StartTime_;
+		char* Tag_;
+		char Type_;
+		void* Data_;
+		BcThreadId ThreadId_;
+		BcF64 StartTime_;
 	};
 
 	struct TProfilerThread
@@ -64,17 +71,22 @@ protected:
 		BcThreadId			Id_;
 	};
 	
-	TProfilerEvent* allocEvent();
+	TProfilerEvent* allocEvent( const char* Tag );
 
 private:
-	typedef std::vector< TProfilerEvent > TProfilerEventVector;
+	typedef std::vector< TProfilerEvent* > TProfilerEventVector;
 	
-	TProfilerEventVector ProfilerSectionPool_;
-	std::atomic< BcU32 > ProfilerSectionIndex_;
+	std::mutex InternalMutex_;
+	std::unordered_map< BcThreadId, std::string > ThreadNames_;
+
+	TProfilerEventVector ProfilerSections_;
+	std::atomic< size_t > ProfilerSectionIdx_;
 	BcTimer Timer_;
 
 	std::atomic< BcU32 > BeginCount_;
 	std::atomic< BcU32 > ProfilingActive_;
+
+	BcLinearAllocator Allocator_;
 };
 
 //////////////////////////////////////////////////////////////////////////

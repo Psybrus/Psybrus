@@ -324,6 +324,21 @@ BcBool ScnTextureImport::import(
 			TextureType_ = MipImages[ 0 ]->height() == 1 ? RsTextureType::TEX1D : RsTextureType::TEX2D;
 		}
 
+		if( TextureType_ == RsTextureType::TEXCUBE )
+		{
+			if( MipImages[ 0 ]->width() != ( MipImages[ 0 ]->height() * 6 ) )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "TextureType is cube map, but dimensions of texture are not correct (6x horizontal images)." );
+				return BcFalse;
+			}
+
+			if( BcPot( MipImages[ 0 ]->height() ) == BcFalse )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "TextureType is cube map, but each face is not a power of two width + height." );
+				return BcFalse;
+			}
+		}
+
 		// Automatically determine the best format if we specify unknown.
 		if( Format_ == RsTextureFormat::UNKNOWN || Format_ == RsTextureFormat::INVALID )
 		{
@@ -339,7 +354,7 @@ BcBool ScnTextureImport::import(
 				{
 					if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
 					{
-						Format_ = RsTextureFormat::DXT3;
+						Format_ = RsTextureFormat::DXT1;
 					}
 					else
 					{
@@ -352,13 +367,16 @@ BcBool ScnTextureImport::import(
 		// Streams.
 		BcStream HeaderStream;
 		BcStream BodyStream( BcFalse, 1024, EncodedImageDataSize );
+		BcBool AllMipsSucceeded = BcTrue;
 
 		// Write all mip images into the same body for now.
-		for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
+		for( BcU32 Attempt = 0; Attempt < 2; ++Attempt )
 		{
-			auto* pImage = MipImages[ Idx ].get();
-			for( BcU32 Attempt = 0; Attempt < 2; ++Attempt )
+			BodyStream.clear();
+			AllMipsSucceeded = BcTrue;
+			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
 			{
+				auto* pImage = MipImages[ Idx ].get();
 				ImgEncodeFormat EncodeFormat = (ImgEncodeFormat)Format_;
 				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 				{
@@ -367,20 +385,31 @@ BcBool ScnTextureImport::import(
 					delete [] pEncodedImageData;
 					pEncodedImageData = NULL;
 					EncodedImageDataSize = 0;
-					Attempt = 2;
 				}
 				else
 				{
 					PSY_LOG( "Failed to encode image, falling back to R8G8B8A8\n" );
 					Format_ = RsTextureFormat::R8G8B8A8;
+					AllMipsSucceeded = BcFalse;
 				}
 			}
+
+			if( AllMipsSucceeded )
+			{
+				break;
+			}
+		}
+
+		if( AllMipsSucceeded == BcFalse )
+		{
+			PSY_LOG( "ERROR: Failed to encode all image's mip levels." );
+			return BcFalse;
 		}
 
 		// Write header.
 		ScnTextureHeader Header =
 		{
-			static_cast< BcS32 >( MipImages[ 0 ]->width() ),
+			static_cast< BcS32 >( MipImages[ 0 ]->width() ) / ( TextureType_ == RsTextureType::TEXCUBE ? 6 : 1 ),
 			static_cast< BcS32 >( MipImages[ 0 ]->height() ),
 			0,
 			(BcU32)MipImages.size(),
@@ -496,7 +525,8 @@ ImgImageUPtr ScnTextureImport::processRoundUpPot( ImgImageUPtr Image )
 {
 	return Image->resize( 
 		BcPotNext( Image->width() ), 
-		BcPotNext( Image->height() ) );
+		BcPotNext( Image->height() ),
+		1.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -513,7 +543,8 @@ ImgImageUPtr ScnTextureImport::processRoundDownPot( ImgImageUPtr Image )
 
 	return Image->resize( 
 		BcPotNext( W ) / 2, 
-		BcPotNext( H ) / 2 );
+		BcPotNext( H ) / 2 ,
+		1.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -526,14 +557,14 @@ ImgImageList ScnTextureImport::generateMipMaps( ImgImageUPtr Image )
 
 	MipImages.push_back( std::move( Image ) );
 
-	if( BcPot( W ) && BcPot( H ) )
+	if( ( BcPot( W ) && BcPot( H ) ) ||
+		( ( W / 6 ) == H && BcPot( H ) ) ) // Cubemap.
 	{
-		// Down to a minimum of 64x64.
-		while( W > 64 && H > 64 )
+		while( W > 1 && H > 1 )
 		{
 			W >>= 1;
 			H >>= 1;
-			MipImages.push_back( MipImages[ MipImages.size() - 1 ]->resize( W, H ) );
+			MipImages.push_back( MipImages[ MipImages.size() - 1 ]->resize( W, H, 1.0f ) );
 		}
 	}
 	return MipImages;

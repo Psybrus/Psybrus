@@ -12,8 +12,6 @@
 #include "System/Os/OsClientWindows.h"
 #include "System/Os/OsMinidumpWindows.h"
 
-#include "System/SysProfilerChromeTracing.h"
-
 BcHandle GInstance_ = NULL;
 
 eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
@@ -174,11 +172,6 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Create reflection database
 	ReManager::Init();
-
-#if PSY_USE_PROFILER
-	// new profiler.
-	new SysProfilerChromeTracing();
-#endif
 
 	// Unit tests prior to full kernel initialisation.
 	if( SysArgs_.find( "-unittest " ) != std::string::npos )

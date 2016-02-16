@@ -61,6 +61,7 @@ void ScnCanvasComponent::StaticRegisterClass()
 ScnCanvasComponent::ScnCanvasComponent():
 	ScnCanvasComponent( 0 )
 {
+	setPasses( RsRenderSortPassFlags::OVERLAY );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,7 +81,7 @@ ScnCanvasComponent::ScnCanvasComponent( BcU32 NoofVertices ):
 	Top_( 0.0f ),
 	Bottom_( 0.0f )
 {
-
+	setPasses( RsRenderSortPassFlags::OVERLAY );
 }
 
 //////////////////////////////////////////////////////////////////////////

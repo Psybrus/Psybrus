@@ -44,13 +44,13 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 
 	configuration "linux-* or osx-*"
 		files { 
-			"./glslang/glslang/OSDependent/Linux/**.h",
-			"./glslang/glslang/OSDependent/Linux/**.c",
-			"./glslang/glslang/OSDependent/Linux/**.cpp",
+			"./glslang/glslang/OSDependent/Unix/**.h",
+			"./glslang/glslang/OSDependent/Unix/**.c",
+			"./glslang/glslang/OSDependent/Unix/**.cpp",
 		}
 
 		includedirs { 
-			"./glslang/glslang/OSDependent/Linux",
+			"./glslang/glslang/OSDependent/Unix",
 		}
 
 		glslangPath = "../../Psybrus/External/glslang/glslang/MachineIndependent"

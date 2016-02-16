@@ -81,7 +81,7 @@ private:
 
 	RsResourceType ResourceType_;
 	class RsContext* pContext_;		///!< Owning/parent context.
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
 	std::string DebugName_;
 #endif
 };

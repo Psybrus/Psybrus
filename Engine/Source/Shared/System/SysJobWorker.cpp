@@ -21,8 +21,9 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysJobWorker::SysJobWorker( class SysKernel* Parent, SysFence& StartFence ):
+SysJobWorker::SysJobWorker( class SysKernel* Parent, SysFence& StartFence, const char* DebugName ):
 	Parent_( Parent ),
+	DebugName_( DebugName ),
 	StartFence_( StartFence ),
 	Active_( BcTrue ),
 	PendingJobSchedule_( 0 ),
@@ -110,14 +111,22 @@ void SysJobWorker::execute()
 {
 	PSY_LOGSCOPEDCATEGORY( "Worker" );
 
+	// Set name in profiler.
+#if PSY_USE_PROFILER
+	if( BcProfiler::pImpl() )
+	{
+		BcProfiler::pImpl()->setThreadName( BcCurrentThreadId(), DebugName_.c_str() );
+	}
+#endif
+	
 	// Mark as started.
 	StartFence_.decrement();
+
+	PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker" );
 
 	// Enter loop.
 	while( Active_ )
 	{
-		PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker_WaitSchedule" );
-
 		// Wait to be scheduled.
 		std::unique_lock< std::mutex > Lock( WorkScheduledMutex_ );
 		WorkScheduled_.wait( Lock, [ this ]()
@@ -126,8 +135,6 @@ void SysJobWorker::execute()
 				const BcBool PendingJobQueue = PendingJobQueue_.load() > 0;
 				return PendingJobSchedule || PendingJobQueue || !Active_;
 			} );
-
-		PSY_PROFILER_SECTION( DoneSchedule_Profiler, "SysJobWorker_DoneSchedule" );
 
 		// Check for a job queues update.
 		if( PendingJobQueue_.load() > 0 )
@@ -158,17 +165,22 @@ void SysJobWorker::execute()
 				// If we can pop, execute and break out.
 				if( JobQueue->popJob( Job ) )
 				{
-					PSY_PROFILER_SECTION( ExecuteJob_Profiler, "SysJobWorker_ExecuteJob" );
+					PSY_PROFILER_SECTION( ExecuteJob_Profiler, "ExecuteJob" );
 
 					// Execute.
+#if !PSY_PRODUCTION
 					try
 					{
+#endif
 						Job->internalExecute();
+
+#if !PSY_PRODUCTION
 					}
 					catch( ... )
 					{
 						PSY_LOG( "Unhandled exception in job.\n" );
 					}
+#endif
 
 					// Delete job.
 					delete Job;

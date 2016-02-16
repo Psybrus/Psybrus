@@ -94,8 +94,8 @@ enum class RsFillMode : BcU32
 enum class RsCullMode : BcU32
 {
 	NONE = 0,
-	CW, 
 	CCW,
+	CW, 
 
 	MAX,
 	INVALID = BcErrorCode
@@ -245,6 +245,8 @@ enum class RsTextureFormat : BcU32
 	R32FG32F,
 	R32FG32FB32F,
 	R32FG32FB32FA32F,
+	R10G10B10A2,
+	R11G11B10F,
 	DXT1,
 	DXT3,
 	DXT5,
@@ -287,8 +289,8 @@ extern BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, Bc
 // RsTextureFace
 enum class RsTextureFace : BcU32
 {
-	NONE,
-	POSITIVE_X,
+	NONE = 0,
+	POSITIVE_X = 0,
 	NEGATIVE_X,
 	POSITIVE_Y,
 	NEGATIVE_Y,
@@ -596,15 +598,8 @@ enum class RsResourceCreationFlags : BcU32
 	STREAM			= 0x00000004,
 };
 
-inline RsResourceCreationFlags operator & ( RsResourceCreationFlags A, RsResourceCreationFlags B )
-{
-	return (RsResourceCreationFlags)( (BcU32)A & (BcU32)B );
-}
-
-inline RsResourceCreationFlags operator | ( RsResourceCreationFlags A, RsResourceCreationFlags B )
-{
-	return (RsResourceCreationFlags)( (BcU32)A | (BcU32)B );
-}
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceCreationFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceCreationFlags, & );
 
 enum class RsResourceBindFlags : BcU32
 {
@@ -621,15 +616,8 @@ enum class RsResourceBindFlags : BcU32
 	TRANSIENT			= 0x00000200
 };
 
-inline RsResourceBindFlags operator & ( RsResourceBindFlags A, RsResourceBindFlags B )
-{
-	return (RsResourceBindFlags)( (BcU32)A & (BcU32)B );
-}
-
-inline RsResourceBindFlags operator | ( RsResourceBindFlags A, RsResourceBindFlags B )
-{
-	return (RsResourceBindFlags)( (BcU32)A | (BcU32)B );
-}
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceBindFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceBindFlags, & );
 
 enum class RsResourceUpdateFlags : BcU32
 {
@@ -637,15 +625,8 @@ enum class RsResourceUpdateFlags : BcU32
 	ASYNC			= 0x00000001,
 };
 
-inline RsResourceUpdateFlags operator & ( RsResourceUpdateFlags A, RsResourceUpdateFlags B )
-{
-	return (RsResourceUpdateFlags)( (BcU32)A & (BcU32)B );
-}
-
-inline RsResourceUpdateFlags operator | ( RsResourceUpdateFlags A, RsResourceUpdateFlags B )
-{
-	return (RsResourceUpdateFlags)( (BcU32)A | (BcU32)B );
-}
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceUpdateFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceUpdateFlags, & );
 
 //////////////////////////////////////////////////////////////////////////
 // Buffer stuff

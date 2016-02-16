@@ -112,7 +112,8 @@ RsPipelineStateCacheD3D12::~RsPipelineStateCacheD3D12()
 // getPipelineState
 ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState( 
 		const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc,
-		ID3D12RootSignature* RootSignature )
+		ID3D12RootSignature* RootSignature,
+		const BcChar* DebugName )
 {
 	PSY_PROFILE_FUNCTION;
 	auto FoundIt = GraphicsPSMap_.find( GraphicsPSDesc );
@@ -277,9 +278,15 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	// Construct a new graphics pipeline state.
 	ComPtr< ID3D12PipelineState > GraphicsPS;
 
-	HRESULT RetVal = Device_->CreateGraphicsPipelineState( &PSODesc, IID_PPV_ARGS( GraphicsPS.GetAddressOf() ) );
+ 	HRESULT RetVal = Device_->CreateGraphicsPipelineState( &PSODesc, IID_PPV_ARGS( GraphicsPS.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 		
+#if !PSY_PRODUCTION
+	BcAssert( DebugName != nullptr );
+	std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+	GraphicsPS->SetName( DebugNameW.c_str() );
+#endif
+
 	// Add to map & return.
 	GraphicsPSMap_.insert( std::make_pair( GraphicsPSDesc, GraphicsPS ) );
 	return GraphicsPS.Get();
@@ -289,7 +296,8 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 // getPipelineState
 ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState( 
 		const RsComputePipelineStateDescD3D12& ComputePSDesc,
-		ID3D12RootSignature* RootSignature )
+		ID3D12RootSignature* RootSignature,
+		const BcChar* DebugName )
 {
 	PSY_PROFILE_FUNCTION;
 	auto FoundIt = ComputePSMap_.find( ComputePSDesc );
@@ -321,6 +329,12 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	HRESULT RetVal = Device_->CreateComputePipelineState( &PSODesc, IID_PPV_ARGS( ComputePS.GetAddressOf() ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 		
+#if !PSY_PRODUCTION
+	BcAssert( DebugName != nullptr );
+	std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+	ComputePS->SetName( DebugNameW.c_str() );
+#endif
+
 	// Add to map & return.
 	ComputePSMap_.insert( std::make_pair( ComputePSDesc, ComputePS ) );
 	return ComputePS.Get();

@@ -9,9 +9,28 @@
 ////////////////////////////////////////////////////////////////////////////////
 // HTML5
 #if PLATFORM_HTML5
-#  include "GL/glew.h"
+#  include "GLES2/gl2.h"
+#  include "GLES2/gl2ext.h"
+#  include "GLES3/gl3.h"
+#  include "GLES3/gl3ext.h"
+#  include "GLES3/gl31.h"
 
-#  define GL_ETC1_RGB8_OES 0x8D64
+#define GL_SAMPLER_1D 0x8B5D
+#define GL_SAMPLER_1D_SHADOW 0x8B61
+
+#define GL_IMAGE_1D 0x904C
+#define GL_IMAGE_2D 0x904D
+#define GL_IMAGE_3D 0x904E
+#define GL_IMAGE_2D_RECT 0x904F
+#define GL_IMAGE_CUBE 0x9050
+#define GL_IMAGE_BUFFER 0x9051
+#define GL_IMAGE_1D_ARRAY 0x9052
+#define GL_IMAGE_2D_ARRAY 0x9053
+#define GL_IMAGE_CUBE_MAP_ARRAY 0x9054
+#define GL_IMAGE_2D_MULTISAMPLE 0x9055
+#define GL_IMAGE_2D_MULTISAMPLE_ARRAY 0x9056
+
+#define GL_UNSIGNED_INT_10_10_10_2 0x8036
 
 #  define RENDER_USE_GLES
 
@@ -40,6 +59,8 @@
 #define GL_IMAGE_CUBE_MAP_ARRAY 0x9054
 #define GL_IMAGE_2D_MULTISAMPLE 0x9055
 #define GL_IMAGE_2D_MULTISAMPLE_ARRAY 0x9056
+
+#define GL_UNSIGNED_INT_10_10_10_2 0x8036
 
 #  define RENDER_USE_GLES
 
@@ -91,6 +112,7 @@
 // GLES defines.
 #if !defined( RENDER_USE_GLES )
 #define GL_ETC1_RGB8_OES           0x8D64
+#define GL_TEXTURE_MAX_LEVEL       0x813D
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +185,7 @@ struct RsOpenGLVersion
 	bool SupportBlitFrameBuffer_;
 	bool SupportCopyImageSubData_;
 	GLint MaxTextureSlots_;
+	GLfloat MaxTextureAnisotropy_;
 
 };
 

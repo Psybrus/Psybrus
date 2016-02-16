@@ -1,0 +1,149 @@
+#ifndef __PSYBRUSLIGHTING_PSH__
+#define __PSYBRUSLIGHTING_PSH__
+
+#include <PsybrusUniforms.psh>
+
+#define LIGHTING_EPSILON  ( 1e-6 )
+
+//////////////////////////////////////////////////////////////////////////
+// Light
+struct Light
+{
+	float3 Position_;
+	float3 Colour_;
+	float3 AttenuationCLQ_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Material
+struct Material
+{
+	float3 Colour_;
+	float Specular_;
+	float Roughness_;
+	float Metallic_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// calculateAttenuation
+float calculateAttenuation( float Distance, float3 Attenuation )
+{
+	float InvA = ( ( Attenuation.x + ( Distance * Attenuation.y ) + ( Distance * Distance * Attenuation.z ) ) );
+	return 1.0 / InvA;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RoughnessToSpecularPower
+float RoughnessToSpecularPower( float Roughness )
+{
+	return 1024.0 * pow( 1.0 - Roughness, 5.0 ) + 1.0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Fresnel_SchlickApproximation
+
+float3 Fresnel_SchlickApproximation( float3 F0, float CosA )
+{
+	float Pow5OneMinusCosA = pow( 1.0 - CosA, 5.0 );
+	return F0 + ( float3( 1.0, 1.0, 1.0 ) - F0 ) * Pow5OneMinusCosA;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// NDF_BlinnPhongNormalised
+// Equation 19: https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+float NDF_BlinnPhongNormalised( float NdotH, float N )
+{
+	float NormTerm = ( N + 2.0 ) / ( PIMUL2 );
+	float SpecTerm = pow( max( 0.0, NdotH ), N );
+	return NormTerm * SpecTerm;
+}
+//////////////////////////////////////////////////////////////////////////
+// NDF_GGX
+// http://www.filmicworlds.com/2014/04/21/optimizing-ggx-shaders-with-dotlh/
+float NDF_GGX( float NdotH, float Roughness )
+{
+	float Alpha = Roughness * Roughness;
+	float AlphaSquared = Alpha * Alpha;
+	float Denominator = NdotH * NdotH * ( AlphaSquared - 1.0 ) + 1.0;
+	return AlphaSquared / ( PI * Denominator * Denominator );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GeometryVisibility_CookTorrence
+float GeometryVisibility_CookTorrence( float NdotL, float NdotV, float NdotH, float VdotH )
+{
+	float G = 1.0;
+	G = min( G, ( 2.0 * NdotH * NdotV ) / VdotH );
+	G = min( G, ( 2.0 * NdotH * NdotL ) / VdotH );
+	return G;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GeometryVisibility_SmithGGXApprox
+// http://www.filmicworlds.com/2014/04/21/optimizing-ggx-shaders-with-dotlh/
+float GeometryVisibility_SmithGGXApprox( float LdotH, float Roughness )
+{
+	float K = ( Roughness * Roughness ) / 2.0;
+	float KSquared = K * K;
+	float InvKSquared = 1.0 - KSquared;
+	return 1.0 / ( LdotH * LdotH * InvKSquared + KSquared );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// CookTorrence
+float3 CookTorrence( float D, float3 F, float G, float NdotL, float NdotV )
+{
+	float3 Numerator = float3( D * F * G );
+	float Denominator = 4.0  * NdotL * NdotV;
+	return Numerator / Denominator;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BRDF_Default
+float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPosition, in float3 SurfacePosition, in float3 Normal, in float3 ReflectionColour )
+{
+	float3 LightPosition = InLight.Position_.xyz;
+	float3 ViewVector = normalize( ViewPosition - SurfacePosition );
+	float3 LightVector = normalize( LightPosition - SurfacePosition );
+	float3 HalfVector = normalize( LightVector + ViewVector );
+	float NdotL = max( LIGHTING_EPSILON, dot( Normal, LightVector ) );
+	float NdotH = max( LIGHTING_EPSILON, dot( Normal, HalfVector ) );
+	float NdotV = max( LIGHTING_EPSILON, dot( Normal, ViewVector ) );
+	float LdotH = max( LIGHTING_EPSILON, dot( LightVector, HalfVector ) );
+	float VdotH = max( LIGHTING_EPSILON, dot( ViewVector, HalfVector ) );
+
+	// Convert roughness to specular power.
+	float Roughness = InMaterial.Roughness_;
+
+	// Calculate reflectance.
+	float3 SpecularReflectance = lerp( float3( InMaterial.Specular_, InMaterial.Specular_, InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
+
+	// Calculate terms for spec + diffuse.
+#if 1
+	float D = NDF_BlinnPhongNormalised( NdotH, RoughnessToSpecularPower( Roughness ) );
+	float G = GeometryVisibility_CookTorrence( NdotL, NdotV, NdotH, VdotH );
+#else
+	float D = NDF_GGX( NdotH, Roughness );
+	float G = GeometryVisibility_SmithGGXApprox( LdotH, Roughness );
+#endif
+	float3 Fspec = Fresnel_SchlickApproximation( SpecularReflectance, LdotH );
+
+	// Specular.
+	float3 Specular = CookTorrence( D, Fspec, G, NdotL, NdotV );
+
+	// Diffuse
+	float DiffuseScalar = max( NdotL, 0.0 );
+	float3 Diffuse = float3( DiffuseScalar, DiffuseScalar, DiffuseScalar ) - Specular;
+	Diffuse = max( float3( 0.0, 0.0, 0.0 ), Diffuse * ( float3( 1.0, 1.0, 1.0 ) - float3( InMaterial.Metallic_, InMaterial.Metallic_, InMaterial.Metallic_ ) ) );
+
+	// Specular colour.
+	float3 SpecularColour = Specular + ( ReflectionColour * InMaterial.Colour_ ) * InMaterial.Metallic_;
+
+	// Total colour.
+	float3 Total = ( Diffuse * ( InMaterial.Colour_ / PI ) ) + SpecularColour;
+
+	// Punctual light source.
+	return Total * InLight.Colour_ * NdotL;
+}
+
+#endif // __PSYBRUSLIGHTING_PSH__

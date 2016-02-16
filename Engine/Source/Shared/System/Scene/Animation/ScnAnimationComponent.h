@@ -52,6 +52,7 @@ private:
 	void applyPose();
 	ScnAnimationTreeNode* findNodeRecursively( ScnAnimationTreeNode* pStartNode, const BcName& Name, const ReClass* Class );
 
+	static SysFence SyncFence_;
 	static void decode( const ScnComponentList& Components );
 	static void pose( const ScnComponentList& Components );
 	static void advance( const ScnComponentList& Components );

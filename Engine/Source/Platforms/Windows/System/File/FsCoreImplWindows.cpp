@@ -23,10 +23,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#if PSY_USE_PROFILER
-#include <boost/format.hpp>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // System Creator
 SYS_CREATOR( FsCoreImplWindows );
@@ -35,9 +31,16 @@ SYS_CREATOR( FsCoreImplWindows );
 // Ctor
 FsCoreImplWindows::FsCoreImplWindows()
 {
-	// Create our job queue.
-	// 1 thread if we have 1 or more hardware thread.
-	FsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 1 );
+	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
+	{
+		FsCore::JOB_QUEUE_ID = -1;
+	}
+	else
+	{
+		// Create our job queue.
+		// 1 thread if we have 1 or more hardware thread.
+		FsCore::JOB_QUEUE_ID = SysKernel::pImpl()->createJobQueue( 1, 1 );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -255,14 +258,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( "FsCoreImplWindows::addReadOp" );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplWindows::addReadOp", this );
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplWindows::addReadOp" );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplWindows::addReadOp", this );
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
@@ -293,14 +296,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplWindows::addWriteOp", this );
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplWindows::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplWindows::addWriteOp", this );
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	

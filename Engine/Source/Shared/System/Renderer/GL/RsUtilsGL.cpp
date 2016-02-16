@@ -394,6 +394,7 @@ RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
 		return TextureFormat( BcFalse, BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE );
 	case RsTextureFormat::R8G8B8A8:
 		return TextureFormat( BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE );
+#if !defined( RENDER_USE_GLES )
 	case RsTextureFormat::R16F:
 		return TextureFormat( BcFalse, BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT );
 	case RsTextureFormat::R16FG16F:
@@ -410,6 +411,28 @@ RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
 		return TextureFormat( BcFalse, BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT );
 	case RsTextureFormat::R32FG32FB32FA32F:
 		return TextureFormat( BcFalse, BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT );
+#else
+	case RsTextureFormat::R16F:
+		return TextureFormat( BcFalse, BcFalse, GL_RED, GL_RED, GL_HALF_FLOAT_OES );
+	case RsTextureFormat::R16FG16F:
+		return TextureFormat( BcFalse, BcFalse, GL_RG, GL_RG, GL_HALF_FLOAT_OES );
+	case RsTextureFormat::R16FG16FB16F:
+		return TextureFormat( BcFalse, BcFalse, GL_RGB, GL_RGB, GL_HALF_FLOAT_OES );
+	case RsTextureFormat::R16FG16FB16FA16F:
+		return TextureFormat( BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_HALF_FLOAT_OES );
+	case RsTextureFormat::R32F:
+		return TextureFormat( BcFalse, BcFalse, GL_RED, GL_RED, GL_FLOAT );
+	case RsTextureFormat::R32FG32F:
+		return TextureFormat( BcFalse, BcFalse, GL_RG, GL_RG, GL_FLOAT );
+	case RsTextureFormat::R32FG32FB32F:
+		return TextureFormat( BcFalse, BcFalse, GL_RGB, GL_RGB, GL_FLOAT );
+	case RsTextureFormat::R32FG32FB32FA32F:
+		return TextureFormat( BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_FLOAT );
+#endif
+	case RsTextureFormat::R10G10B10A2:
+		return TextureFormat( BcFalse, BcFalse, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_10_10_10_2 );
+	case RsTextureFormat::R11G11B10F:
+		return TextureFormat( BcFalse, BcFalse, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT );
 	case RsTextureFormat::DXT1:
 		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 );
 	case RsTextureFormat::DXT3:
@@ -424,8 +447,13 @@ RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
 		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT );
 	case RsTextureFormat::D32:
 		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT );
+#if !defined( RENDER_USE_GLES )
 	case RsTextureFormat::D24S8:
 		return TextureFormat( BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 );
+#else
+	case RsTextureFormat::D24S8:
+		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8_OES );
+#endif
 	default:
 		BcBreakpoint;
 	}
@@ -463,6 +491,10 @@ GLenum RsUtilsGL::GetImageFormat( RsTextureFormat Format )
 		return GL_RGB32F;
 	case RsTextureFormat::R32FG32FB32FA32F:
 		return GL_RGBA32F;
+	case RsTextureFormat::R10G10B10A2:
+		return GL_RGB10_A2;
+	case RsTextureFormat::R11G11B10F:
+		return GL_R11F_G11F_B10F;
 	case RsTextureFormat::DXT1:
 	case RsTextureFormat::DXT3:
 	case RsTextureFormat::DXT5:

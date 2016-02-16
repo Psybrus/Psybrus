@@ -207,14 +207,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( "FsCoreImplAndroid::addReadOp" );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplAndroid::addReadOp", this );	
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->read( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplAndroid::addReadOp" );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplAndroid::addReadOp", this );	
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	
@@ -245,14 +245,14 @@ public:
 		Bytes_( Bytes ),
 		DoneCallback_( DoneCallback )
 	{
-		PSY_PROFILER_START_ASYNC( boost::str( boost::format( "FsCoreImplAndroid::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_START_ASYNC( "FsCoreImplAndroid::addWriteOp", this );
 	}
 	
 	void execute()
 	{
 		pImpl_->seek( Position_ );
 		pImpl_->write( pData_, Bytes_ );
-		PSY_PROFILER_FINISH_ASYNC( boost::str( boost::format( "FsCoreImplAndroid::addWriteOp (%1%)" ) % pImpl_->fileName() ) );	
+		PSY_PROFILER_FINISH_ASYNC( "FsCoreImplAndroid::addWriteOp", this );
 		SysKernel::pImpl()->enqueueCallback( std::bind( DoneCallback_, pData_, Bytes_ ) );
 	}
 	

@@ -156,7 +156,7 @@ ImgImageUPtr ImgImage::get( const ImgRect& SrcRect )
 
 //////////////////////////////////////////////////////////////////////////
 // resize
-ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
+ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height, BcF32 GammaRGB )
 {
 	// Create image.
 	ImgImageUPtr pImage = ImgImageUPtr( new ImgImage() );
@@ -182,30 +182,30 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 				BcU32 iSrcY = BcU32( iSrcYF );
 				BcF32 iLerpY = iSrcYF - BcF32( iSrcY );
 
-				const ImgColour& PixelA = getPixel( iSrcX, iSrcY );
-				const ImgColour& PixelB = getPixel( iSrcX + 1, iSrcY );
-				const ImgColour& PixelC = getPixel( iSrcX, iSrcY + 1 );
-				const ImgColour& PixelD = getPixel( iSrcX + 1, iSrcY + 1 );
+				const ImgColourf PixelA = getPixel( iSrcX, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelB = getPixel( iSrcX + 1, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelC = getPixel( iSrcX, iSrcY + 1 ).toLinear( GammaRGB );
+				const ImgColourf PixelD = getPixel( iSrcX + 1, iSrcY + 1 ).toLinear( GammaRGB );
 
-				ImgColour DstPixelT;
-				ImgColour DstPixelB;
-				ImgColour DstPixel;
+				ImgColourf DstPixelT;
+				ImgColourf DstPixelB;
+				ImgColourf DstPixel;
 
-				DstPixelT.R_ = BcU8( ( BcF32( PixelA.R_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.R_ ) * iLerpX ) );
-				DstPixelT.G_ = BcU8( ( BcF32( PixelA.G_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.G_ ) * iLerpX ) );
-				DstPixelT.B_ = BcU8( ( BcF32( PixelA.B_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.B_ ) * iLerpX ) );
-				DstPixelT.A_ = BcU8( ( BcF32( PixelA.A_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelB.A_ ) * iLerpX ) );
-				DstPixelB.R_ = BcU8( ( BcF32( PixelC.R_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.R_ ) * iLerpX ) );
-				DstPixelB.G_ = BcU8( ( BcF32( PixelC.G_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.G_ ) * iLerpX ) );
-				DstPixelB.B_ = BcU8( ( BcF32( PixelC.B_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.B_ ) * iLerpX ) );
-				DstPixelB.A_ = BcU8( ( BcF32( PixelC.A_ ) * ( 1.0f - iLerpX ) ) + ( BcF32( PixelD.A_ ) * iLerpX ) );
+				DstPixelT.R_ = ( PixelA.R_ * ( 1.0f - iLerpX ) ) + ( PixelB.R_ * iLerpX );
+				DstPixelT.G_ = ( PixelA.G_ * ( 1.0f - iLerpX ) ) + ( PixelB.G_ * iLerpX );
+				DstPixelT.B_ = ( PixelA.B_ * ( 1.0f - iLerpX ) ) + ( PixelB.B_ * iLerpX );
+				DstPixelT.A_ = ( PixelA.A_ * ( 1.0f - iLerpX ) ) + ( PixelB.A_ * iLerpX );
+				DstPixelB.R_ = ( PixelC.R_ * ( 1.0f - iLerpX ) ) + ( PixelD.R_ * iLerpX );
+				DstPixelB.G_ = ( PixelC.G_ * ( 1.0f - iLerpX ) ) + ( PixelD.G_ * iLerpX );
+				DstPixelB.B_ = ( PixelC.B_ * ( 1.0f - iLerpX ) ) + ( PixelD.B_ * iLerpX );
+				DstPixelB.A_ = ( PixelC.A_ * ( 1.0f - iLerpX ) ) + ( PixelD.A_ * iLerpX );
 
-				DstPixel.R_ = BcU8( ( BcF32( DstPixelT.R_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.R_ ) * iLerpY ) );
-				DstPixel.G_ = BcU8( ( BcF32( DstPixelT.G_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.G_ ) * iLerpY ) );
-				DstPixel.B_ = BcU8( ( BcF32( DstPixelT.B_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.B_ ) * iLerpY ) );
-				DstPixel.A_ = BcU8( ( BcF32( DstPixelT.A_ ) * ( 1.0f - iLerpY ) ) + ( BcF32( DstPixelB.A_ ) * iLerpY ) );		
+				DstPixel.R_ = ( DstPixelT.R_ * ( 1.0f - iLerpY ) ) + ( DstPixelB.R_ * iLerpY );
+				DstPixel.G_ = ( DstPixelT.G_ * ( 1.0f - iLerpY ) ) + ( DstPixelB.G_ * iLerpY );
+				DstPixel.B_ = ( DstPixelT.B_ * ( 1.0f - iLerpY ) ) + ( DstPixelB.B_ * iLerpY );
+				DstPixel.A_ = ( DstPixelT.A_ * ( 1.0f - iLerpY ) ) + ( DstPixelB.A_ * iLerpY );		
 
-				pImage->setPixel( iX, iY, DstPixel );
+				pImage->setPixel( iX, iY, DstPixel.toGamma( GammaRGB ) );
 			}
 		}
 	}
@@ -219,31 +219,17 @@ ImgImageUPtr ImgImage::resize( BcU32 Width, BcU32 Height )
 			{
 				BcU32 iSrcY = iY << 1;
 
-				const ImgColour& PixelA = getPixel( iSrcX, iSrcY );
-				const ImgColour& PixelB = getPixel( iSrcX + 1, iSrcY );
-				const ImgColour& PixelC = getPixel( iSrcX, iSrcY + 1 );
-				const ImgColour& PixelD = getPixel( iSrcX + 1, iSrcY + 1 );
+				const ImgColourf PixelA = getPixel( iSrcX, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelB = getPixel( iSrcX + 1, iSrcY ).toLinear( GammaRGB );
+				const ImgColourf PixelC = getPixel( iSrcX, iSrcY + 1 ).toLinear( GammaRGB );
+				const ImgColourf PixelD = getPixel( iSrcX + 1, iSrcY + 1 ).toLinear( GammaRGB );
 
-				ImgColour DstPixel;
-
-				DstPixel.R_ = BcU8( ( BcU32( PixelA.R_ ) +
-				                      BcU32( PixelB.R_ ) +
-				                      BcU32( PixelC.R_ ) +
-				                      BcU32( PixelD.R_ ) ) >> 2 );
-				DstPixel.G_ = BcU8( ( BcU32( PixelA.G_ ) +
-				                      BcU32( PixelB.G_ ) +
-				                      BcU32( PixelC.G_ ) +
-				                      BcU32( PixelD.G_ ) ) >> 2 );
-				DstPixel.B_ = BcU8( ( BcU32( PixelA.B_ ) +
-				                      BcU32( PixelB.B_ ) +
-				                      BcU32( PixelC.B_ ) +
-				                      BcU32( PixelD.B_ ) ) >> 2 );
-				DstPixel.A_ = BcU8( ( BcU32( PixelA.A_ ) +
-				                      BcU32( PixelB.A_ ) +
-				                      BcU32( PixelC.A_ ) +
-				                      BcU32( PixelD.A_ ) ) >> 2 );
-
-				pImage->setPixel( iX, iY, DstPixel );
+				ImgColourf DstPixel;
+				DstPixel.R_ = ( PixelA.R_ + PixelB.R_ + PixelC.R_ + PixelD.R_ ) / 4.0f;
+				DstPixel.G_ = ( PixelA.G_ + PixelB.G_ + PixelC.G_ + PixelD.G_ ) / 4.0f;
+				DstPixel.B_ = ( PixelA.B_ + PixelB.B_ + PixelC.B_ + PixelD.B_ ) / 4.0f;
+				DstPixel.A_ = ( PixelA.A_ + PixelB.A_ + PixelC.A_ + PixelD.A_ ) / 4.0f;
+				pImage->setPixel( iX, iY, DstPixel.toGamma( GammaRGB ) );
 			}
 		}
 	}
@@ -274,7 +260,7 @@ ImgImageUPtr ImgImage::canvasSize( BcU32 Width, BcU32 Height, const ImgColour* p
 }
 
 //////////////////////////////////////////////////////////////////////////
-// generateMipMaps
+// cropByColour
 ImgImageUPtr ImgImage::cropByColour( const ImgColour& Colour, BcBool PowerOfTwo )
 {
 	// Find bounds.
@@ -308,7 +294,7 @@ ImgImageUPtr ImgImage::cropByColour( const ImgColour& Colour, BcBool PowerOfTwo 
 
 //////////////////////////////////////////////////////////////////////////
 // generateMipMaps
-BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& OutImages )
+BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, BcF32 GammaRGB, std::vector< ImgImageUPtr >& OutImages )
 {
 	BcU32 LevelsCreated = 1;
 
@@ -322,14 +308,8 @@ BcU32 ImgImage::generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& 
 		BcU32 W = pPrevImage->width() >> 1;
 		BcU32 H = pPrevImage->height() >> 1;
 
-		// Bail if target is too small.
-		if( W < 8 || H < 8 )
-		{
-			break;
-		}
-
 		// Perform resize.
-		OutImages.push_back( pPrevImage->resize( W, H ) );
+		OutImages.push_back( pPrevImage->resize( W, H, GammaRGB ) );
 		pPrevImage = OutImages.back().get();
 		++LevelsCreated;
 	}
@@ -1083,37 +1063,62 @@ BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 		Format == ImgEncodeFormat::DXT3 ||
 		Format == ImgEncodeFormat::DXT5 )
 	{
-		// Check if its a multiple of 4.
-		if( Width_ >= 64 && Height_ >= 64 &&
-			( Width_ % 4 == 0 ) && ( Height_ % 4 ) == 0 )
-		{
-			BcU32 SquishFormat = 0;
+		BcU32 SquishFormat = 0;
 
-			switch( Format )
+		switch( Format )
+		{
+		case ImgEncodeFormat::DXT1:
+			SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
+			break;
+		case ImgEncodeFormat::DXT3:
+			SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+			break;
+		case ImgEncodeFormat::DXT5:
+			SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+			break;
+		default:
+			BcBreakpoint;
+		}
+			
+		// Find out what space squish needs.
+		OutSize = squish::GetStorageRequirements( Width_, Height_, SquishFormat );
+		pOutData = new BcU8[ OutSize ];
+			
+		// Squish takes RGBA8, so no need to convert before passing in.
+		if( Width_ >= 4 && Height_ >= 4 )
+		{
+			squish::CompressImage( reinterpret_cast< squish::u8* >( pPixelData_ ), Width_, Height_, pOutData, SquishFormat );
+		}
+		// If less than block size, copy into a 4x4 block.
+		else if ( Width_ < 4 && Height_ < 4 )
+		{
+			std::array< ImgColour, 4 * 4 > Block;
+			Block.fill( getPixel( 0, 0 ) );
+
+			// Copy into single block.
+			for( BcU32 Y = 0; Y < Height_; ++Y )
 			{
-			case ImgEncodeFormat::DXT1:
-				SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
-				break;
-			case ImgEncodeFormat::DXT3:
-				SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
-				break;
-			case ImgEncodeFormat::DXT5:
-				SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
-				break;
-			default:
-				BcBreakpoint;
+				for( BcU32 X = 0; X < Width_; ++X )
+				{
+					BcU32 Idx = X + Y * 4;
+					Block[ Idx ] = getPixel( X, Y );
+				}
 			}
 			
-			// Find out what space squish needs.
-			OutSize = squish::GetStorageRequirements( Width_, Height_, SquishFormat );
-			pOutData = new BcU8[ OutSize ];
-			
-			// Squish takes RGBA8, so no need to convert before passing in.
-			squish::CompressImage( reinterpret_cast< squish::u8*>( pPixelData_ ), Width_, Height_, pOutData, SquishFormat );
-			
-			//
-			return BcTrue;
+			// Now encode.
+			squish::CompressImage( reinterpret_cast< squish::u8* >( Block.data() ), 4, 4, pOutData, SquishFormat );
 		}
+		else
+		{
+			PSY_LOG( "ERROR: Image can't be encoded. (%ux%u)", Width_, Height_ );
+			delete [] pOutData;
+			pOutData = nullptr;
+			OutSize = 0;
+			return BcFalse;
+		}
+
+		//
+		return BcTrue;
 	}
 	
 	return BcFalse;
@@ -1135,7 +1140,7 @@ BcBool ImgImage::encodeAsETC1( BcU8*& pOutData, BcU32& OutSize )
 		}
 
 		// Calculate output side.
-		OutSize = ( Width_ * Height_ ) / 2;
+		OutSize = ( BcMax( Width_, 4 ) * BcMax( Height_, 4 ) ) / 2;
 		pOutData = new BcU8[ OutSize ];
 		BcU8* EncodedData = pOutData;
 

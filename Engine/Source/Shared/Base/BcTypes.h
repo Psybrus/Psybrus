@@ -336,6 +336,34 @@ typedef std::size_t					BcSize;
 
 #endif
 
+//////////////////////////////////////////////////////////////////////////
+// Enum class flag operators.
+#define DEFINE_ENUM_CLASS_FLAG_OPERATOR( _Type, _Operator ) \
+	inline _Type operator _Operator##= ( _Type& A, _Type B ) \
+	{ \
+		A = (_Type)( (int)A _Operator (int)B ); \
+		return A; \
+	} \
+	inline _Type operator _Operator ( _Type A, _Type B ) \
+	{ \
+		return (_Type)( (int)A _Operator (int)B ); \
+	} 
+
+//////////////////////////////////////////////////////////////////////////
+// Enum class flag utilities.
+template< typename _Enum >
+inline bool BcContainsAllFlags( _Enum Value, _Enum Flags )
+{
+	static_assert( sizeof( _Enum ) <= sizeof( int ), "Enum size too large." );
+	return ( (int)Value & (int)Flags ) == (int)Flags;
+}
+
+template< typename _Enum >
+inline bool BcContainsAnyFlags( _Enum Value, _Enum Flags )
+{
+	static_assert( sizeof( _Enum ) <= sizeof( int ), "Enum size too large." );
+	return ( (int)Value & (int)Flags ) != 0;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // TODO: Move this to a better place...

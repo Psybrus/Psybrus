@@ -23,6 +23,7 @@ struct ScnMaterialHeader
 {
 	BcU32 ShaderRef_;
 	BcU32 NoofTextures_;
+	BcU32 NoofAutomaticUniformBlocks_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,6 +33,13 @@ struct ScnMaterialTextureHeader
 	BcName SamplerName_;
 	RsSamplerStateDesc SamplerStateDesc_;
 	BcU32 TextureRef_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnMaterialUniformBlockName
+struct ScnMaterialUniformBlockName
+{
+	BcName Name_;
 };
 
 #endif

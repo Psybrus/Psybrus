@@ -38,6 +38,7 @@ void ScnMaterialImport::StaticRegisterClass()
 		new ReField( "Textures_", &ScnMaterialImport::Textures_, bcRFF_IMPORTER ),
 		new ReField( "Samplers_", &ScnMaterialImport::Samplers_, bcRFF_IMPORTER ),
 		new ReField( "RenderState_", &ScnMaterialImport::RenderState_, bcRFF_IMPORTER ),
+		new ReField( "AutomaticUniformBlocks_", &ScnMaterialImport::AutomaticUniformBlocks_, bcRFF_IMPORTER ),
 	};
 		
 	ReRegisterClass< ScnMaterialImport, Super >( Fields );
@@ -45,7 +46,8 @@ void ScnMaterialImport::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnMaterialImport::ScnMaterialImport()
+ScnMaterialImport::ScnMaterialImport():
+	CsResourceImporter( "<INVALID>", "ScnMaterial" )
 {
 }
 
@@ -76,10 +78,12 @@ BcBool ScnMaterialImport::import(
 	
 	ScnMaterialHeader Header;
 	ScnMaterialTextureHeader TextureHeader;
+	ScnMaterialUniformBlockName UniformBlockName;
 	
 	// Make header.
 	Header.ShaderRef_ = Shader_;
 	Header.NoofTextures_ = (BcU32)Samplers_.size();	
+	Header.NoofAutomaticUniformBlocks_ = (BcU32)AutomaticUniformBlocks_.size();	
 	HeaderStream << Header;
 
 	// Make texture headers.
@@ -102,7 +106,17 @@ BcBool ScnMaterialImport::import(
 
 		HeaderStream << TextureHeader;
 	}
-	
+
+	// Automatic uniform blocks.
+	for( const auto& AutomaticUniformBlock : AutomaticUniformBlocks_ )
+	{
+		ScnMaterialUniformBlockName UniformBlockName = 
+		{
+			BcName( CsResourceImporter::addString( (*AutomaticUniformBlock).c_str() ) )
+		};
+		HeaderStream << UniformBlockName;
+	}
+
 	// Add chunks.
 	CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream.pData(), HeaderStream.dataSize() );
 	CsResourceImporter::addChunk( BcHash( "renderstate" ), &RenderState_, sizeof( RenderState_ ) );
@@ -111,4 +125,12 @@ BcBool ScnMaterialImport::import(
 #else
 	return BcFalse;
 #endif // PSY_IMPORT_PIPELINE
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addTexture
+void ScnMaterialImport::addTexture( const std::string& Name, CsCrossRefId Texture, RsSamplerStateDesc SamplerState )
+{
+	Textures_[ Name ] = Texture;
+	Samplers_[ Name ] = SamplerState;
 }

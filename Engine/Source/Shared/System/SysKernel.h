@@ -51,6 +51,11 @@ public:
 	~SysKernel();
 
 	/**
+	 * Start workers.
+	 */
+	void startWorkers();
+
+	/**
 	 * Create job queue.
 	 * Not thread safe. Should only call from the game thread during initialisation.
 	 * Job queues are destroyed when the engine shuts down.
@@ -64,7 +69,7 @@ public:
 	 * Register system.
 	 */
 	void registerSystem( const BcName& Name, SysSystemCreator creator );
-	
+
 	/**
 	 * Start system.
 	 */

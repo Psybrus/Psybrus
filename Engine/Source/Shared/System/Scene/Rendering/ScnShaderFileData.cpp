@@ -25,8 +25,11 @@ void ScnShaderViewUniformBlockData::StaticRegisterClass()
 		new ReField( "ProjectionTransform_", &ScnShaderViewUniformBlockData::ProjectionTransform_ ),
 		new ReField( "InverseViewTransform_", &ScnShaderViewUniformBlockData::InverseViewTransform_ ),
 		new ReField( "ViewTransform_", &ScnShaderViewUniformBlockData::ViewTransform_ ),
+		new ReField( "InverseClipTransform_", &ScnShaderViewUniformBlockData::InverseClipTransform_ ),
 		new ReField( "ClipTransform_", &ScnShaderViewUniformBlockData::ClipTransform_ ),
 		new ReField( "ViewTime_", &ScnShaderViewUniformBlockData::ViewTime_ ),
+		new ReField( "ViewSize_", &ScnShaderViewUniformBlockData::ViewSize_ ),
+		new ReField( "NearFar_", &ScnShaderViewUniformBlockData::NearFar_ ),
 	};
 		
 	ReRegisterClass< ScnShaderViewUniformBlockData >( Fields );
@@ -48,6 +51,24 @@ void ScnShaderLightUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderLightUniformBlockData >( Fields );
+	Class.setFlags( bcRFF_POD );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderMaterialUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnShaderMaterialUniformBlockData );
+
+void ScnShaderMaterialUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "MaterialBaseColour_", &ScnShaderMaterialUniformBlockData::MaterialBaseColour_ ),
+		new ReField( "MaterialMetallic_", &ScnShaderMaterialUniformBlockData::MaterialMetallic_ ),
+		new ReField( "MaterialSpecular_", &ScnShaderMaterialUniformBlockData::MaterialSpecular_ ),
+		new ReField( "MaterialRoughness_", &ScnShaderMaterialUniformBlockData::MaterialRoughness_ ),
+	};
+		
+	auto& Class = ReRegisterClass< ScnShaderMaterialUniformBlockData >( Fields );
 	Class.setFlags( bcRFF_POD );
 }
 

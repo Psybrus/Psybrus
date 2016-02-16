@@ -58,6 +58,11 @@ namespace
 		public boost::wave::context_policies::default_preprocessing_hooks
 	{
 	public:
+		glsl_directives_hooks( class ScnShaderImport& Importer ):
+			Importer_( Importer )
+		{
+		}
+
 		template < typename _Context, typename _Container >
 		bool found_unknown_directive( const _Context& Context, _Container const& Line, _Container& Pending )
 		{
@@ -70,15 +75,17 @@ namespace
 				return false;
 			}
 
+			auto Value = Iter->get_value();
+
 			// Version.
-			if( Iter->get_value() == "version" )
+			if( Value == "version" )
 			{
 				std::copy( Line.begin(), Line.end(), std::back_inserter( Pending ) );
 				return true;
 			}
 
 			// Extensions.
-			if( Iter->get_value() == "extension" )
+			if( Value == "extension" )
 			{
 				std::copy( Line.begin(), Line.end(), std::back_inserter( Pending ) );
 				return true;
@@ -87,6 +94,20 @@ namespace
 			// Unknown directive
 			return false;
 		}
+
+		template <typename _Context>
+		bool locate_include_file( _Context& Context, std::string& FilePath, bool IsSystem, char const* CurrentName, std::string& DirPath, std::string& NativeName )
+		{
+			if( boost::wave::context_policies::default_preprocessing_hooks::locate_include_file(
+				Context, FilePath, IsSystem, CurrentName, DirPath, NativeName ) )
+			{
+				Importer_.addDependency( DirPath.c_str() );
+				return true;
+			}
+			return false;
+		}
+
+		class ScnShaderImport& Importer_;
 	};
 
 	TBuiltInResource GetDefaultResource()
@@ -867,7 +888,6 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 	for( auto& Entry : Params.Entries_ )
 	{
-
 		RetVal = BcFalse;
 		ScnShaderBuiltData BuiltShaderGLSL;
 		BcBinaryData ByteCode;
@@ -890,7 +910,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 				std::string SourceData = Params.ShaderSourceData_;
 
-				glsl_directives_hooks GLSLDirectiveHooks;
+				glsl_directives_hooks GLSLDirectiveHooks( *this );
 				context_type Context( SourceData.begin(), SourceData.end(), Params.ShaderSource_.c_str(), GLSLDirectiveHooks );
 
 				// Add defines.
@@ -922,20 +942,30 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					ProcessedSourceData += (*It).get_value().c_str();
 				}
 
+				// Parse inputs + outputs.
 				std::regex VertexAttributePattern( 
-					"\\s*(in|attribute).*;" );
+					"\\s*(in|attribute)\\s.*;" );
 
 				std::regex VertexAttributeFullPattern( 
-					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4).*;" );
+					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;" );
 
 				std::regex VertexAttributeExtendedPattern( 
-					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*(in|attribute)\\s*(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
 				std::regex VertexAttributeLayoutPattern(
 					"\\s*layout\\(location=(.*)\\)\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
 				std::regex LineDirectivePattern(
 					"\\s*#line.*" );
+				
+				std::regex InOutAttributePattern( 
+					"\\s*(in|out)\\s.*;" );
+
+				std::regex InOutAttributeFullPattern( 
+					"\\s*(in|out)\\s*(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;" );
+
+				std::regex InOutAttributeExtendedPattern( 
+					"\\s*(in|out)\\s*(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
 
 				// If we're parsing a vertex shader, try grab vertex attributes.
 				std::istringstream Stream( ProcessedSourceData );
@@ -951,11 +981,16 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						{
 							if( std::regex_match( Line.c_str(), Match, VertexAttributeExtendedPattern ) )
 							{
-								const auto Keyword = Match.str( 1 );
-								const auto Type = Match.str( 2 );
+								auto Keyword = Match.str( 1 );
+								auto Type = Match.str( 2 );
 								const auto Name = Match.str( 3 );
 								const auto Semantic = Match.str( 4 );
 								const auto Index = Match.str( 5 );
+
+								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+								{
+									Keyword = "attribute";
+								}
 
 								Line = Keyword + " " + Type + " " + Name + "; // " + Semantic + Index + "\n";
 								VertexAttributeNames.emplace_back( Name );
@@ -991,6 +1026,45 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 								Semantic,
 								std::atoi( Index.c_str() ) );
 							VertexAttributes.emplace_back( VertexAttr );
+						}
+						else if( std::regex_match( Line.c_str(), Match, InOutAttributePattern ) )
+						{
+							if( std::regex_match( Line.c_str(), Match, InOutAttributeExtendedPattern ) )
+							{
+								auto Keyword = Match.str( 1 );
+								const auto Type = Match.str( 2 );
+								const auto Name = Match.str( 3 );
+								const auto Semantic = Match.str( 4 );
+								const auto Index = Match.str( 5 );
+
+								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+								{
+									Keyword = "varying";
+								}
+								
+								Line = Keyword + " " + Type + " " + Name + "; // " + Semantic + Index + "\n";
+							}
+						}
+					}
+					else
+					{
+						if( std::regex_match( Line.c_str(), Match, InOutAttributePattern ) )
+						{
+							if( std::regex_match( Line.c_str(), Match, InOutAttributeExtendedPattern ) )
+							{
+								auto Keyword = Match.str( 1 );
+								const auto Type = Match.str( 2 );
+								const auto Name = Match.str( 3 );
+								const auto Semantic = Match.str( 4 );
+								const auto Index = Match.str( 5 );
+
+								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+								{
+									Keyword = "varying";
+								}
+
+								Line = Keyword + " " + Type + " " + Name + "; // " + Semantic + Index + "\n";
+							}
 						}
 					}
 					
@@ -1070,7 +1144,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
-#if 1
+#if 1 
 				// Run glsl-optimizer for ES (Only GLSL_ES_100)
 				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 				{
@@ -1091,6 +1165,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					else
 					{
 						PSY_LOG( "Error: Unsupported shader type for glsl-optimizer" );
+						GotErrorBuilding_++;
 						return BcFalse;
 					}
 
@@ -1109,7 +1184,8 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					{
 						PSY_LOG( "Failed to optimiser GLSL shader:\n%s\n", 
 							glslopt_get_log( GlslOptShader ) );
-						return BcFalse;
+						logSource( ProcessedSourceData );
+						RetVal = BcFalse;
 					}
 
 					int ApproxMath, ApproxTex, ApproxFlow;
@@ -1120,6 +1196,19 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						ApproxMath, ApproxTex, ApproxFlow );
 
 					glslopt_cleanup( GlslOptContext );
+
+					// Prefix extension for draw buffers after #version.
+					std::stringstream ShaderSourceStream( ProcessedSourceData );
+					std::string ShaderSourceLine;
+					ProcessedSourceData.clear();
+					while( std::getline( ShaderSourceStream, ShaderSourceLine, '\n' ) )
+					{
+						ProcessedSourceData += ShaderSourceLine + "\n";
+						if( ShaderSourceLine.substr( 0, 8 ) == "#version" )
+						{
+							ProcessedSourceData += "#extension GL_EXT_draw_buffers : enable\n";
+						}
+					}
 				}
 #endif
 				// Attempt to compile.
@@ -1140,9 +1229,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						PSY_LOG( "%s", Line.c_str() );
 					}
 
-					{
-						logSource( ProcessedSourceData );
-					}
+					logSource( ProcessedSourceData );
 					RetVal = BcFalse;
 				}
 				else

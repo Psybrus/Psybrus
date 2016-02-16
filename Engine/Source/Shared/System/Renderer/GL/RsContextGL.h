@@ -247,6 +247,7 @@ private:
 	std::array< ImageBindingInfo, 32 > ImageBindingInfo_;
 	std::array< BufferBindingInfo, 32 > ShaderStorageBufferBindingInfo_;
 	std::array< BufferBindingInfo, 32 > UniformBufferBindingInfo_;
+	BufferBindingInfo UniformBufferBindingInfoSingle_;
 	std::array< SamplerBindingInfo, 32 > SamplerBindingInfo_;
 	BufferBindingInfo VertexBufferBindingInfo_;
 	BufferBindingInfo IndexBufferBindingInfo_;

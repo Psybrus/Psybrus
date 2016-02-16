@@ -74,10 +74,9 @@ public:
 	MaAABB getAABB() const override;
 
 	void render( ScnRenderContext & RenderContext ) override;
+	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
-
-	ScnMaterialComponentRef getMaterialComponent();
 
 	BcBool allocParticle( ScnParticle*& pParticle );
 
@@ -106,7 +105,6 @@ private:
 	
 	// 
 	ScnMaterialRef Material_;
-	ScnMaterialComponentRef MaterialComponent_;
 	BcU32 WorldTransformParam_;
 
 	//

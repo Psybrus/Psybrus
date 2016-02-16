@@ -16,8 +16,6 @@
 
 #include "Base/BcTypes.h"
 
-#include <sys/time.h>
-
 //////////////////////////////////////////////////////////////////////////
 // BcTimer
 class BcTimer
@@ -34,7 +32,7 @@ public:
 	BcF64						time();
 
 private:
-	timeval						MarkedTime_;
+	BcF64						MarkedTime_;
 };
 
 #endif

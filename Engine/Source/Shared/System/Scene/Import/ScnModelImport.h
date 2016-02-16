@@ -42,6 +42,31 @@ class ScnModelVertexFormat
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelMaterialDesc
+class ScnModelMaterialDesc
+{
+	REFLECTION_DECLARE_BASIC( ScnModelMaterialDesc );
+
+	ScnModelMaterialDesc(){}
+	ScnModelMaterialDesc( ScnModelMaterialDesc&& Other )
+	{
+		using std::swap;
+		swap( Regex_, Other.Regex_ );
+		swap( TemplateMaterial_, Other.TemplateMaterial_ );
+		swap( Material_, Other.Material_ );
+	}
+	~ScnModelMaterialDesc()
+	{ 
+		delete TemplateMaterial_;
+		TemplateMaterial_ = nullptr;
+	}
+
+	std::string Regex_;
+	class ScnMaterialImport* TemplateMaterial_ = nullptr;
+	CsCrossRefId Material_ = CSCROSSREFID_INVALID;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnModelImport
 class ScnModelImport:
 	public CsResourceImporter
@@ -87,11 +112,14 @@ private:
 	size_t findNodeIndex( std::string Name, aiNode* RootSearchNode, size_t& BaseIndex ) const;
 
 private:
-	CsCrossRefId findMaterialMatch( const std::string& MaterialName );
+	CsCrossRefId findMaterialMatch( struct aiMaterial* Material );
+	CsCrossRefId addTexture( struct aiMaterial* Material, class ScnMaterialImport* MaterialImport, std::string Name, BcU32 Type, BcU32 Idx );
 
 private:
 	std::string Source_;
-	std::map< std::string, CsCrossRefId > Materials_;
+	std::vector< ScnModelMaterialDesc > Materials_;
+
+	std::map< std::string, CsCrossRefId > AddedMaterials_;
 
 	BcStream HeaderStream_;
 	BcStream NodeTransformDataStream_;
@@ -110,6 +138,8 @@ private:
 	std::vector< MaMat4d > InverseBindposes_;
 
 	ScnModelVertexFormat VertexFormat_;
+
+	std::map< std::string, CsCrossRefId > DefaultTextures_;
 };
 
 #endif

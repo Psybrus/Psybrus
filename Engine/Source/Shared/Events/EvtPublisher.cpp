@@ -122,7 +122,7 @@ BcBool EvtPublisher::publishInternal( EvtID ID, const EvtBaseEvent& EventBase, B
 {
 	BcAssert( BcIsGameThread() );
 
-	PSY_PROFILER_INSTANT_EVENT( "EvtPublisher::publishInternal" );
+	PSY_PROFILER_INSTANT_EVENT( "EvtPublisher::publishInternal", this );
 
 	// Proxy event through all attached proxies if this event allows it.
 	if( AllowProxy == BcTrue )

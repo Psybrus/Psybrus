@@ -86,8 +86,9 @@ public:
 
 	/**
 	*	Resize image.
+	*	@param GammaRGB Gamma to use when converting RGB to linear on resize. 1.0f = No conversion.
 	*/
-	ImgImageUPtr			resize( BcU32 Width, BcU32 Height );
+	ImgImageUPtr			resize( BcU32 Width, BcU32 Height, BcF32 GammaRGB );
 
 	/**
 	 * Canvas size. Original is aligned to left.
@@ -101,9 +102,12 @@ public:
 
 	/**
 	*	Generate mipmaps.
+	*	@param NoofLevel Maximum number of levels to create.
+	*	@param GammaRGB Gamma to use when converting RGB to linear on resize. 1.0f = No conversion.
+	*	@param OutImages Output images.
 	*	@return Number of levels generated.
 	*/
-	static BcU32			generateMipMaps( BcU32 NoofLevels, std::vector< ImgImageUPtr >& OutImages );
+	static BcU32			generateMipMaps( BcU32 NoofLevels, BcF32 GammaRGB, std::vector< ImgImageUPtr >& OutImages );
 	
 	/**
 	 *	Generate distance field.

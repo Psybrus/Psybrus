@@ -58,7 +58,7 @@ ScnTextureAtlas::~ScnTextureAtlas()
 //////////////////////////////////////////////////////////////////////////
 // getRect
 //virtual
-const ScnRect& ScnTextureAtlas::getRect( BcU32 Idx ) const
+ScnRect ScnTextureAtlas::getRect( BcU32 Idx ) const
 {
 	if( Idx < pAtlasHeader_->NoofTextures_ )
 	{

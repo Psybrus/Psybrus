@@ -35,7 +35,7 @@ public:
 	ScnTextureAtlas();
 	virtual ~ScnTextureAtlas();
 
-	const ScnRect& getRect( BcU32 Idx ) const override;
+	ScnRect getRect( BcU32 Idx ) const override;
 	BcU32 noofRects() const override;
 
 protected:

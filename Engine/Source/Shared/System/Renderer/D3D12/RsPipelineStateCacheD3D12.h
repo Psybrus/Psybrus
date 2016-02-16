@@ -71,14 +71,16 @@ public:
 	 */
 	ID3D12PipelineState* getPipelineState( 
 		const RsGraphicsPipelineStateDescD3D12& GraphicsPSDesc,
-		ID3D12RootSignature* RootSignature );
+		ID3D12RootSignature* RootSignature,
+		const BcChar* DebugName );
 
 	/**
 	 * @return New, or existing pipeline state.
 	 */
 	ID3D12PipelineState* getPipelineState( 
 		const RsComputePipelineStateDescD3D12& ComputePSDesc,
-		ID3D12RootSignature* RootSignature );
+		ID3D12RootSignature* RootSignature,
+		const BcChar* DebugName );
 
 	/**
 	 * Destroy resources.

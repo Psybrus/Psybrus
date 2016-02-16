@@ -59,14 +59,57 @@ void ScnTexture::StaticRegisterClass()
 				ScnTexture* Value = (ScnTexture*)Object;
 				if( Value != nullptr )
 				{
+					auto StateStorage = ImGui::GetStateStorage();
+					int MinWidth = 256;
+					ImGui::PushItemWidth( MinWidth );
 					ImGui::Text( "Width: %u", Value->Width_ );
 					ImGui::Text( "Height: %u", Value->Height_ );
 					ImGui::Text( "Depth: %u", Value->Depth_ );
-					ImGui::Text( "Format: TODO" );
-					MaVec2d Size( Value->Width_, Value->Height_ );
-					const auto WidthRequirement = 256.0f;
-					Size *= WidthRequirement / Size.x();
-					ImGui::Image( Value->getTexture(), Size );
+		
+					ImGui::Text( "Format: %s", (*ReManager::GetEnumValueName( Value->Header_.Format_ )).c_str() );
+
+					// Render if we can.
+					if( BcContainsAllFlags( Value->getTexture()->getDesc().BindFlags_, RsResourceBindFlags::SHADER_RESOURCE ) )
+					{
+						const auto& Features = RsCore::pImpl()->getContext( nullptr )->getFeatures();
+						bool ShouldFlip = false;
+						if( Features.RTOrigin_ != RsFeatureRenderTargetOrigin::TOP_LEFT )
+						{
+							ShouldFlip = BcContainsAnyFlags( Value->getTexture()->getDesc().BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL );
+						}
+						auto FlipYID = ImGui::GetID( "Flip Y" );
+						bool FlipY = !!StateStorage->GetInt( FlipYID, ShouldFlip );
+						if( ImGui::Checkbox( "Flip Y", &FlipY ) )
+						{
+							StateStorage->SetInt( FlipYID, FlipY ? 1 : 0 );
+						}
+						MaVec2d Size( Value->Width_, Value->Height_);
+						MaVec2d UV0( 0.0f, 0.0f );
+						MaVec2d UV1( 1.0f, 1.0f );
+						if( FlipY )
+						{
+							UV0.y( 1.0f );
+							UV1.y( 0.0f );
+						}
+
+						auto WidthID = ImGui::GetID( "Width" );
+						int Width = StateStorage->GetInt( WidthID, MinWidth );
+						if( ImGui::InputInt( "Size", &Width, 32, 128 ) )
+						{
+							Width = std::max( Width, MinWidth );
+							Width = std::min( Width, static_cast< int >( Value->getWidth() ) );
+							StateStorage->SetInt( WidthID, Width );
+						}
+
+						Size *= static_cast< BcF32 >( Width ) / Size.x();
+						ImGui::Image( Value->getTexture(), Size, UV0, UV1 );
+					}
+					else
+					{
+						ImGui::Text( "Texture is not a SHADER_RESOURCE. Can't render." );
+					}
+					ImGui::PopItemWidth();
+				
 				}
 			} ) );
 }
@@ -80,6 +123,9 @@ ScnTexture::ScnTexture()
 	Width_ = 0;
 	Height_ = 0;
 	Depth_ = 0;
+	InternalWidth_ = 0;
+	InternalHeight_ = 0;
+	InternalDepth_ = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -262,6 +308,34 @@ BcU32 ScnTexture::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getDepth
+BcU32 ScnTexture::getDepth() const
+{
+	return Depth_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInternalWidth
+BcU32 ScnTexture::getInternalWidth() const
+{
+	return InternalWidth_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInternalHeight
+BcU32 ScnTexture::getInternalHeight() const
+{
+	return InternalHeight_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInternalDepth
+BcU32 ScnTexture::getInternalDepth() const
+{
+	return InternalDepth_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isClientDependent
 bool ScnTexture::isClientDependent() const
 {
@@ -271,12 +345,13 @@ bool ScnTexture::isClientDependent() const
 //////////////////////////////////////////////////////////////////////////
 // getRect
 //virtual
-const ScnRect& ScnTexture::getRect( BcU32 Idx ) const
+ScnRect ScnTexture::getRect( BcU32 Idx ) const
 {
-	static ScnRect Rect = 
+	ScnRect Rect = 
 	{
 		0.0f, 0.0f,
-		1.0f, 1.0f
+		static_cast< BcF32 >( Width_ ) / static_cast< BcF32 >( InternalWidth_ ), 
+		static_cast< BcF32 >( Height_ ) / static_cast< BcF32 >( InternalHeight_ )
 	};
 	
 	return Rect;
@@ -335,15 +410,20 @@ void ScnTexture::recreate()
 		Depth_ = 1;
 	}
 
+	// Set internal size.
+	InternalWidth_ = Width_;
+	InternalHeight_ = Height_;
+	InternalDepth_ = Depth_;
+
 	// If texture is NPOT and we don't support it, round up size and warn.
 	// We don't want to crash out if possible.
 	const BcBool IsNPOT = !BcPot( Width_ ) || !BcPot( Height_ ) || !BcPot( Depth_ );
 	if( IsNPOT && Features.NPOTTextures_ == false )
 	{
-		PSY_LOG( "WARNING: Rounding down texture \"%s\" to a power of two.", (*getName()).c_str() );
-		Width_ = BcMax( BcPotNext( Width_ ), 1 );
-		Height_ = BcMax( BcPotNext( Height_ ), 1 );
-		Depth_ = BcMax( BcPotNext( Depth_ ), 1 );
+		PSY_LOG( "WARNING: Rounding up texture \"%s\" to a power of two.", (*getName()).c_str() );
+		InternalWidth_ = BcMax( BcPotNext( Width_ ), 1 );
+		InternalHeight_ = BcMax( BcPotNext( Height_ ), 1 );
+		InternalDepth_ = BcMax( BcPotNext( Depth_ ), 1 );
 	}
 
 	// Create new one immediately.
@@ -377,9 +457,9 @@ void ScnTexture::recreate()
 			BindFlags,
 			Header_.Format_,
 			Header_.Levels_ - SkipMips,
-			Width_ >> SkipMips,
-			Height_ >> SkipMips,
-			Depth_ ),
+			InternalWidth_ >> SkipMips,
+			InternalHeight_ >> SkipMips,
+			InternalDepth_ ),
 		getFullName().c_str() );
 
 #if DO_TEXTURE_COPY_TEST
@@ -390,9 +470,9 @@ void ScnTexture::recreate()
 			RsResourceBindFlags::NONE,
 			Header_.Format_,
 			Header_.Levels_ - SkipMips,
-			Width_ >> SkipMips,
-			Height_ >> SkipMips,
-			Depth_ ),
+			InternalWidth_ >> SkipMips,
+			InternalHeight_ >> SkipMips,
+			InternalDepth_ ),
 		getFullName().c_str() );
 #else
 	auto& StagingTexture = Texture_;
@@ -401,12 +481,19 @@ void ScnTexture::recreate()
 	// Upload texture data.
 	if( pTextureData_ != nullptr )
 	{
+		// TODO: Handle uploading smaller source data to larger internal texture.
+		BcAssert( Width_ == InternalWidth_ );
+		BcAssert( Height_ == InternalHeight_ );
+		BcAssert( Depth_ == InternalDepth_ );
+
 		BcU8* TextureData = reinterpret_cast< BcU8* >( pTextureData_ );
-		BcU32 Width = Width_;
-		BcU32 Height = Height_;
-		BcU32 Depth = Depth_;
+		BcU32 Width = InternalWidth_;
+		BcU32 Height = InternalHeight_;
+		BcU32 Depth = InternalDepth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
 		{
+			const auto NoofFaces = Header_.Type_ == RsTextureType::TEXCUBE ? 6 : 1;
+
 			const auto SourcePitch = 
 				RsTexturePitch( Header_.Format_, Width, Height );
 
@@ -423,24 +510,30 @@ void ScnTexture::recreate()
 
 			if( LevelIdx >= SkipMips )
 			{
-				auto Slice = StagingTexture->getSlice( LevelIdx - SkipMips );
+				for( BcU32 FaceIdx = 0; FaceIdx < NoofFaces; ++FaceIdx )
+				{
+					auto Slice = StagingTexture->getSlice( LevelIdx - SkipMips, static_cast< RsTextureFace >( FaceIdx ) );
 
-				RsCore::pImpl()->updateTexture( 
-					StagingTexture.get(),
-					Slice,
-					RsResourceUpdateFlags::ASYNC,
-					[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo ]( RsTexture* Texture, const RsTextureLock& Lock )
-					{
-						BcAssert( Lock.Buffer_ );
-						BcAssert( Lock.Pitch_ >= SourcePitch );
-						BcAssert( Lock.SlicePitch_ >= SliceSize );
-						const auto Rows = Height / BlockInfo.Height_;
-						for( BcU32 Row = 0; Row < Rows; ++Row )
+					RsCore::pImpl()->updateTexture( 
+						StagingTexture.get(),
+						Slice,
+						RsResourceUpdateFlags::ASYNC,
+						[ this, TextureData, SourcePitch, SliceSize, Height, BlockInfo, NoofFaces, FaceIdx ]( RsTexture* Texture, const RsTextureLock& Lock )
 						{
-							BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
-							memcpy( DestData, TextureData + ( SourcePitch * Row ), SourcePitch );
-						}
-					} );
+							BcAssert( Lock.Buffer_ );
+							BcAssert( Lock.Pitch_ >= SourcePitch );
+							BcAssert( Lock.SlicePitch_ >= SliceSize / NoofFaces );
+							const auto Rows = std::max( BcU32( 1 ), Height / BlockInfo.Height_ );
+							const auto FaceOffsetPitch = FaceIdx * SourcePitch;
+							for( BcU32 Row = 0; Row < Rows; ++Row )
+							{
+								BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
+								memcpy( DestData, 
+									TextureData + ( SourcePitch * Row * NoofFaces ) + FaceOffsetPitch, 
+									SourcePitch );
+							}
+						} );
+				}
 			}
 
 			// Down a level.
@@ -449,7 +542,7 @@ void ScnTexture::recreate()
 			Depth = BcMax( 1, Depth >> 1 );
 
 			// Advance texture data.
-			TextureData += SliceSize;
+			TextureData += SliceSize * NoofFaces;
 		}
 
 #if DO_TEXTURE_COPY_TEST

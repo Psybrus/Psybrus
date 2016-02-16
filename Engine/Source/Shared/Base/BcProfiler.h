@@ -14,9 +14,9 @@
 #ifndef __BCPROFILER_H__
 #define __BCPROFILER_H__
 
-#include "Base/BcTypes.h"
-#include "Base/BcMisc.h"
 #include "Base/BcGlobal.h"
+#include "Base/BcMisc.h"
+#include "Base/BcString.h"
 
 #if PSY_USE_PROFILER
 
@@ -28,6 +28,11 @@ class BcProfiler:
 public:
 	BcProfiler(){};
 	virtual ~BcProfiler(){};
+
+	/**
+	 * Set thread name.
+	 */
+	virtual void setThreadName( BcThreadId ThreadId, const char* Name ) = 0;
 
 	/**
 	 * Begin profiling.
@@ -43,31 +48,37 @@ public:
 	 * Enter section to profile.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void enterSection( const std::string& Tag ) = 0;
+	virtual void enterSection( const char* Tag ) = 0;
 
 	/**
 	 * Exit section.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void exitSection( const std::string& Tag ) = 0;
+	virtual void exitSection( const char* Tag ) = 0;
 
 	/**
 	 * Start async section. Tag MUST be unique.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void startAsync( const std::string& Tag ) = 0;
+	virtual void startAsync( const char* Tag, void* Data ) = 0;
+
+	/**
+	 * Step async section. Tag MUST be unique.
+	 * Should be thread safe, and track appropriately.
+	 */
+	virtual void stepAsync( const char* Tag, void* Data ) = 0;
 
 	/**
 	 * End async section. Tag MUST be unique.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void endAsync( const std::string& Tag ) = 0;
+	virtual void endAsync( const char* Tag, void* Data ) = 0;
 
 	/**
 	 * Instant event.
 	 * Should be thread safe, and track appropriately.
 	 */
-	virtual void instantEvent( const std::string& Tag ) = 0;
+	virtual void instantEvent( const char* Tag ) = 0;
 
 private:
 
@@ -78,25 +89,143 @@ private:
 class BcProfilerSectionScope
 {
 public:
-	BcProfilerSectionScope( const std::string& Tag )
+	BcProfilerSectionScope( const char* Tag ):
+		Tag_( { 0 } )
+	{
+		if( Tag )
+		{
+			if( BcProfiler::pImpl() != nullptr )
+			{
+				BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag );
+				BcProfiler::pImpl()->enterSection( Tag_.data() );
+			}
+		}
+	}
+
+	BcProfilerSectionScope( const std::string& Tag ):
+		Tag_( { 0 } )
 	{
 		if( BcProfiler::pImpl() != nullptr )
 		{
-			Tag_ = Tag;
-			BcProfiler::pImpl()->enterSection( Tag_.c_str() );
+			BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag.c_str() );
+			BcProfiler::pImpl()->enterSection( Tag_.data() );
 		}
 	}
 
 	~BcProfilerSectionScope()
 	{
-		if( BcProfiler::pImpl() != nullptr )
+		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
 		{
-			BcProfiler::pImpl()->exitSection( Tag_.c_str() );
+			BcProfiler::pImpl()->exitSection( Tag_.data() );
 		}
 	}
 
 private:
-	std::string Tag_;
+	std::array< char, 128 > Tag_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcProfilerStartAsync
+class BcProfilerStartAsync
+{
+public:
+	BcProfilerStartAsync( const char* Tag, void* Data )
+	{
+		if( Tag )
+		{
+			if( BcProfiler::pImpl() != nullptr )
+			{
+				BcProfiler::pImpl()->startAsync( Tag, Data );
+			}
+		}
+	}
+
+	BcProfilerStartAsync( const std::string& Tag, void* Data )
+	{
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			BcProfiler::pImpl()->startAsync( Tag.c_str(), Data );
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcProfilerStepAsync
+class BcProfilerStepAsync
+{
+public:
+	BcProfilerStepAsync( const char* Tag, void* Data )
+	{
+		if( Tag )
+		{
+			if( BcProfiler::pImpl() != nullptr )
+			{
+				BcProfiler::pImpl()->stepAsync( Tag, Data );
+			}
+		}
+	}
+
+	BcProfilerStepAsync( const std::string& Tag, void* Data )
+	{
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			BcProfiler::pImpl()->stepAsync( Tag.c_str(), Data );
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcProfilerEndAsync
+class BcProfilerEndAsync
+{
+public:
+	BcProfilerEndAsync( const char* Tag, void* Data )
+	{
+		if( Tag )
+		{
+			if( BcProfiler::pImpl() != nullptr )
+			{
+				BcProfiler::pImpl()->endAsync( Tag, Data );
+			}
+		}
+	}
+
+	BcProfilerEndAsync( const std::string& Tag, void* Data )
+	{
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			BcProfiler::pImpl()->endAsync( Tag.c_str(), Data );
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcProfilerInstantEvent
+class BcProfilerInstantEvent
+{
+public:
+	BcProfilerInstantEvent( const char* Tag, void* Data )
+	{
+		if( Tag )
+		{
+			if( BcProfiler::pImpl() != nullptr )
+			{
+				std::array< char, 128 > Buffer = { 0 };
+				BcSPrintf( Buffer.data(), Buffer.size() - 1, "%s[%p]", Tag, Data );
+				BcProfiler::pImpl()->instantEvent( Buffer.data() );
+			}
+		}
+	}
+
+	BcProfilerInstantEvent( const std::string& Tag, void* Data )
+	{
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			std::array< char, 128 > Buffer = { 0 };
+			BcSPrintf( Buffer.data(), Buffer.size() - 1, "%s[%p]", Tag.c_str(), Data );
+			BcProfiler::pImpl()->instantEvent( Buffer.data() );
+		}
+	}
 };
 
 
@@ -108,35 +237,20 @@ private:
 	BcProfilerSectionScope _ProfilerFunction_##__LINE__( __PRETTY_FUNCTION__ ) 
 #endif
 
-#define PSY_PROFILER_SECTION( _LocalName, _Tag )		\
-	BcProfilerSectionScope _LocalName( _Tag ) 
-
-
-#define PSY_PROFILER_START_ASYNC( _Tag )				\
-	if( BcProfiler::pImpl() != nullptr )				\
-	{													\
-		BcProfiler::pImpl()->startAsync( _Tag );		\
-	}												
-
-#define PSY_PROFILER_FINISH_ASYNC( _Tag )				\
-	if( BcProfiler::pImpl() != nullptr )				\
-	{													\
-		BcProfiler::pImpl()->endAsync( _Tag );			\
-	}												
-
-#define PSY_PROFILER_INSTANT_EVENT( _Tag )				\
-	if( BcProfiler::pImpl() != nullptr )				\
-	{													\
-		BcProfiler::pImpl()->instantEvent( _Tag );		\
-	}												
+#define PSY_PROFILER_SECTION( _LocalName, _Tag ) BcProfilerSectionScope _LocalName( _Tag ) 
+#define PSY_PROFILER_START_ASYNC( _Tag, _Data ) BcProfilerStartAsync( _Tag, _Data )
+#define PSY_PROFILER_STEP_ASYNC( _Tag, _Data ) BcProfilerStepAsync( _Tag, _Data )
+#define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data ) BcProfilerEndAsync( _Tag, _Data )
+#define PSY_PROFILER_INSTANT_EVENT( _Tag, _Data ) BcProfilerInstantEvent( _Tag, _Data )	
 
 #else
 
 #define PSY_PROFILE_FUNCTION
 #define PSY_PROFILER_SECTION( _LocalName, _Tag )
-#define PSY_PROFILER_START_ASYNC( _Tag )
-#define PSY_PROFILER_FINISH_ASYNC( _Tag )
-#define PSY_PROFILER_INSTANT_EVENT( _Tag )
+#define PSY_PROFILER_START_ASYNC( _Tag, _Data )
+#define PSY_PROFILER_STEP_ASYNC( _Tag, _Data )
+#define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data )
+#define PSY_PROFILER_INSTANT_EVENT( _Tag, _Data )
 
 #endif // PSY_USE_PROFILER
 

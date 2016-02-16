@@ -15,6 +15,7 @@
 #define __ScnLightingVisitor_H__
 
 #include "System/Scene/ScnVisitor.h"
+#include "System/Scene/Rendering/ScnShaderFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnLightingVisitor
@@ -28,15 +29,18 @@ public:
 	};
 
 public:
-	ScnLightingVisitor( class ScnRenderableComponent* RenderableComponent );
+	ScnLightingVisitor( const class MaAABB& AABB );
 	virtual ~ScnLightingVisitor();
 
 	virtual void visit( class ScnLightComponent* Component );
 
-	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
+	const ScnShaderLightUniformBlockData& getLightUniformBlockData() const { return LightUniformData_; }
 
 private:
-	std::vector< ScnLightComponent*	> LightComponents_;
+	std::array< ScnLightComponent*, MAX_LIGHTS > LightComponents_;
+	size_t NoofLights_ = 0;
+	ScnShaderLightUniformBlockData LightUniformData_ = {};
+
 };
 
 #endif

@@ -207,6 +207,22 @@ ReEnum* ReManager::GetEnum( BcName Name )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// GetEnums
+std::vector< ReEnum* > ReManager::GetEnums()
+{
+	std::vector< ReEnum* > Ret;
+	for( auto& It : Factory::Instance().Types_ )
+	{
+		if( It.second->isTypeOf< ReEnum >() )
+		{
+			Ret.push_back( static_cast< ReEnum* >( It.second ) );
+		}
+	}
+	return Ret;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // GetClassesOfBase
 void ReManager::GetClassesOfBase( std::vector< const ReClass* >& OutClasses, const ReClass* Base )
 {

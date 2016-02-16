@@ -196,8 +196,7 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 #endif
 		if( TargetCodeType_ == RsShaderCodeType::INVALID )
 		{
-			PSY_LOG( "ERROR: No valid code type built in shader %s. Please add to your package.",
-				getFullName().c_str() );
+			PSY_LOG( "ERROR: No valid code type built in shader. Please one for \"%s\"", getFullName().c_str() );	
 		}
 
 		// Grab the rest of the chunks.
@@ -231,7 +230,6 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 				FreeShaderData = BcTrue;
 			}
 #endif
-			PSY_LOG( "Creating shader: %s %x", (*getName()).c_str(), pShaderHeader->PermutationFlags_ );
 			RsShaderUPtr Shader = RsCore::pImpl()->createShader(
 				RsShaderDesc( pShaderHeader->ShaderType_, pShaderHeader->ShaderCodeType_ ), 
 				pShaderData, ShaderSize,
@@ -293,7 +291,11 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			}
 
 			// Create program.
-			PSY_LOG( "Creating program: %s %x", (*getName()).c_str(), pProgramHeader->ProgramPermutationFlags_ );
+#if PSY_DEBUG
+			std::string Flags;
+			ReManager::GetEnum( "ScnShaderPermutationFlags" )->getTypeSerialiser()->serialiseToString( &pProgramHeader->ProgramPermutationFlags_, Flags );
+			PSY_LOG( "Creating program: %s %s (%x)", (*getName()).c_str(), Flags.c_str(), pProgramHeader->ProgramPermutationFlags_ );
+#endif // PSY_DEBUG
 			RsProgramUPtr Program = RsCore::pImpl()->createProgram( 
 				std::move( Shaders ), 
 				std::move( VertexAttributes ),

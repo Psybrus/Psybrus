@@ -3,6 +3,8 @@
 #include "Reflection/ReEnum.h"
 #include "Reflection/ReEnumConstant.h"
 
+#include <regex>
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ReClassSerialiser_EnumType::ReClassSerialiser_EnumType( BcName Name ):
@@ -158,10 +160,38 @@ BcBool ReClassSerialiser_EnumType::serialiseToString( const void* pInstance, std
 		return false;
 	}
 
-	auto EnumConstant = static_cast< ReEnum* >( Class_ )->getEnumConstant( Value );
+	auto* EnumConstant = static_cast< const ReEnum* >( Class_ )->getEnumConstant( Value );
 	if( EnumConstant != nullptr )
 	{
 		OutString = *EnumConstant->getName();
+	}
+	else
+	{
+		// Reserve to reduce number of allocations.
+		OutString.reserve( 1024 );
+
+		// Attempt to find flags.
+		bool PrependSeparator = false;
+		for( BcU32 Idx = 0; Idx < 32; ++Idx )
+		{
+			BcU32 Flag = Value & ( 1 << Idx );
+			if( Flag != 0 )
+			{
+				EnumConstant = static_cast< const ReEnum* >( Class_ )->getEnumConstant( Flag );
+				if( EnumConstant != nullptr )
+				{
+					if( PrependSeparator )
+					{
+						OutString += "|";
+					}
+					OutString += *EnumConstant->getName();
+					PrependSeparator = true;
+				}
+			}
+		}
+
+		// Shrink back to size required to converse memory.
+		OutString.shrink_to_fit();
 	}
 	return true;
 }
@@ -170,30 +200,56 @@ BcBool ReClassSerialiser_EnumType::serialiseToString( const void* pInstance, std
 // serialiseFromString
 BcBool ReClassSerialiser_EnumType::serialiseFromString( void* pInstance, const std::string& InString ) const
 {
-	auto EnumConstant = static_cast< ReEnum* >( Class_ )->getEnumConstant( InString );
+	BcU32 Value = 0;
+	auto* EnumConstant = static_cast< const ReEnum* >( Class_ )->getEnumConstant( InString );
 
 	if( EnumConstant != nullptr )
 	{
-		switch( Class_->getSize() )
+		Value = EnumConstant->getValue();
+	}
+	else
+	{
+		std::string Buffer;
+		Buffer.reserve( InString.size() );
+		
+		for( size_t Idx = 0; Idx < InString.size(); ++Idx )
 		{
-		case 1:
-			*((BcU8*)pInstance) = (BcU8)EnumConstant->getValue();
-			break;
-		case 2:
-			*((BcU16*)pInstance) = (BcU16)EnumConstant->getValue();
-			break;
-		case 4:
-			*((BcU32*)pInstance) = (BcU32)EnumConstant->getValue();
-			break;
-		default:
-			BcAssert( false );
-			return false;
+			if( InString[ Idx ] != '|' )
+			{
+				Buffer += InString[ Idx ];
+			}
+			
+			if( Buffer.size() > 0 && ( InString[ Idx ] == '|' || Idx == InString.size() - 1 ) )
+			{	
+				EnumConstant = static_cast< const ReEnum* >( Class_ )->getEnumConstant( Buffer );
+				if( EnumConstant != nullptr )
+				{
+					Value |= EnumConstant->getValue();
+				}
+				
+				Buffer.clear();
+			}
 		}
-
-		return true;
+	}
+	
+	// Check size.
+	switch( Class_->getSize() )
+	{
+	case 1:
+		*((BcU8*)pInstance) = (BcU8)Value;
+		break;
+	case 2:
+		*((BcU16*)pInstance) = (BcU16)Value;
+		break;
+	case 4:
+		*((BcU32*)pInstance) = (BcU32)Value;
+		break;
+	default:
+		BcAssert( false );
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

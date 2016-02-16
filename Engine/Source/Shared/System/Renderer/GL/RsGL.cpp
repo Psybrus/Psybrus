@@ -40,7 +40,9 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportComputeShaders_( false ),
 	SupportDrawElementsBaseVertex_( false ),
 	SupportBlitFrameBuffer_( false ),
-	SupportCopyImageSubData_( false )
+	SupportCopyImageSubData_( false ),
+	MaxTextureSlots_( 0 ),
+	MaxTextureAnisotropy_( 0.0f )
 {
 
 }
@@ -91,6 +93,8 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
@@ -107,6 +111,8 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
+			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
 			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
@@ -146,6 +152,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( Major_ >= 3 &&
 			Minor_ >= 3 )
 		{
+
 			SupportSamplerStates_ = true;
 			SupportBlitFrameBuffer_ = true;
 		}
@@ -187,11 +194,14 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( Major_ >= 2 &&
 			Minor_ >= 0 )
 		{
+			Features_.MRT_ |=
+				HaveExtension( "WEBGL_draw_buffers" ) |
+				HaveExtension( "NV_draw_buffers" );
 			Features_.Texture2D_ = true;
 			Features_.Texture3D_ |= 
 				HaveExtension( "OES_texture_3D" );
-			Features_.TextureCube_ |= 
-				HaveExtension( "OES_texture_cube_map" );
+			Features_.TextureCube_ |= true;
+
 
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;
@@ -232,6 +242,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 			bool SupportDepthTextures = 
 				HaveExtension( "OES_depth_texture" ) |
 				HaveExtension( "WEBGL_depth_texture" );
+			Features_.DepthTextures_ = SupportDepthTextures;
 
 			bool SupportFloatTextures =
 				HaveExtension( "OES_texture_float" ) |
@@ -305,6 +316,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &MaxTextureSlots_ );
 	PSY_LOG( "GL_MAX_TEXTURE_IMAGE_UNITS: %u", MaxTextureSlots_ );
+
+	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &MaxTextureAnisotropy_ );
+	PSY_LOG( "GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT: %f", MaxTextureAnisotropy_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -408,7 +422,6 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#if PSY_GL_CATCH_ERRORS
 GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 {
 	PSY_PROFILER_SECTION( CatchRoot, "RsReportGLErrors" );
@@ -421,11 +434,12 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 #endif
 
 	BcU32 TotalErrors = 0;
-	GLuint Error;
+	GLuint LastError = 0;
+	GLuint Error = 0;
 	do
 	{
 		Error = glGetError();
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
 		std::string ErrorString = "UNKNOWN";
 		switch( Error )
 		{
@@ -444,7 +458,7 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 		case GL_INVALID_FRAMEBUFFER_OPERATION:
 			ErrorString = "GL_INVALID_FRAMEBUFFER_OPERATION";
 			break;
-#if !PLATFORM_ANDROID
+#if !defined( RENDER_USE_GLES )
 		case GL_TABLE_TOO_LARGE:
 			ErrorString = "GL_TABLE_TOO_LARGE";
 			break;
@@ -454,7 +468,7 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 		case GL_STACK_UNDERFLOW:
 			ErrorString = "GL_STACK_UNDERFLOW";
 			break;
-#endif
+#endif // !defined( RENDER_USE_GLES )
 		}
 
 		if( Error != 0 )
@@ -465,6 +479,7 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 			auto Result = BcBacktrace();
 			BcPrintBacktrace( Result );
 			++TotalErrors;
+			LastError = Error;
 		}
 #endif
 	}
@@ -478,10 +493,9 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 			BcBreakpoint;
 		}
 #else
-		BcBreakpoint;
+		//BcBreakpoint;
 #endif
 	}
 
-	return Error;
+	return LastError;
 }
-#endif

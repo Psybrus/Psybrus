@@ -1,16 +1,39 @@
+#ifndef __PSYBRUSUNIFORMS_PSH__
+#define __PSYBRUSUNIFORMS_PSH__
+
 ////////////////////////////////////////////////////////////////////////
 // cbuffer macros
-#if PSY_USE_CBUFFER
-#	define BEGIN_CBUFFER( _n ) cbuffer _n {
-#	define ENTRY( _p, _t, _n ) _t _n;
-#	define END_CBUFFER };
+
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  undef PSY_USE_CBUFFER
+#  define PSY_USE_CBUFFER 0
 #else
-#	define BEGIN_CBUFFER( _n )
-#	define ENTRY( _p, _t, _n ) _t _p##VS_X##_n;
-#	define END_CBUFFER
+#  undef PSY_USE_CBUFFER
+#  define PSY_USE_CBUFFER 1
 #endif
 
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+#  if PSY_USE_CBUFFER
+#    define BEGIN_CBUFFER( _n ) cbuffer _n {
+#    define ENTRY( _p, _t, _n ) _t _n;
+#    define END_CBUFFER };
+#  else
+#    define BEGIN_CBUFFER( _n )
+#    define ENTRY( _p, _t, _n ) _t _p##VS_X##_n;
+#    define END_CBUFFER
+#  endif
 
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  if PSY_USE_CBUFFER
+#    define BEGIN_CBUFFER( _n ) layout(std140) uniform _n {
+#    define ENTRY( _p, _t, _n ) _t _n;
+#    define END_CBUFFER };
+#  else
+#    define BEGIN_CBUFFER( _n )
+#    define ENTRY( _p, _t, _n ) uniform _t _p##VS_X##_n;
+#    define END_CBUFFER
+#  endif
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderViewUniformBlockData
@@ -19,8 +42,11 @@ BEGIN_CBUFFER( ScnShaderViewUniformBlockData )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ProjectionTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseViewTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ViewTransform_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseClipTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, ClipTransform_ )
 	ENTRY( ScnShaderViewUniformBlockData, float4, ViewTime_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4, ViewSize_ )
+	ENTRY( ScnShaderViewUniformBlockData, float4, NearFar_ )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
@@ -29,20 +55,32 @@ END_CBUFFER
 #  define ProjectionTransform_ ScnShaderViewUniformBlockDataVS_XProjectionTransform_
 #  define InverseViewTransform_ ScnShaderViewUniformBlockDataVS_XInverseViewTransform_
 #  define ViewTransform_ ScnShaderViewUniformBlockDataVS_XViewTransform_
+#  define InverseClipTransform_ ScnShaderViewUniformBlockDataVS_XInverseClipTransform_
 #  define ClipTransform_ ScnShaderViewUniformBlockDataVS_XClipTransform_
 #  define ViewTime_ ScnShaderViewUniformBlockDataVS_XViewTime_
+#  define ViewSize_ ScnShaderViewUniformBlockDataVS_XViewSize_ 
+#  define NearFar_ ScnShaderViewUniformBlockDataVS_XNearFar_ 
 
 #endif
 
+float3 getViewPosition()
+{
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+	return float3( InverseViewTransform_[0].w, InverseViewTransform_[1].w, InverseViewTransform_[2].w );
+#else
+	return InverseViewTransform_[3].xyz;
+#endif
+}
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderLightUniformBlockData
+#define MAX_LIGHTS 4
 BEGIN_CBUFFER( ScnShaderLightUniformBlockData )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightPosition_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightDirection_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightAmbientColour_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightDiffuseColour_[4] )
-	ENTRY( ScnShaderLightUniformBlockData, float4, LightAttn_[4] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightPosition_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightDirection_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightAmbientColour_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightDiffuseColour_[MAX_LIGHTS] )
+	ENTRY( ScnShaderLightUniformBlockData, float4, LightAttn_[MAX_LIGHTS] )
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
@@ -55,6 +93,24 @@ END_CBUFFER
 
 #endif
 
+////////////////////////////////////////////////////////////////////////
+// ScnShaderMaterialUniformBlockData
+BEGIN_CBUFFER( ScnShaderMaterialUniformBlockData )
+	ENTRY( ScnShaderMaterialUniformBlockData, float4, MaterialBaseColour_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialMetallic_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialSpecular_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialRoughness_ )
+	ENTRY( ScnShaderMaterialUniformBlockData, float, MaterialPadding_ )
+END_CBUFFER
+
+#if !PSY_USE_CBUFFER
+
+#  define MaterialBaseColour_ ScnShaderMaterialUniformBlockDataVS_XMaterialBaseColour_
+#  define MaterialMetallic_ ScnShaderMaterialUniformBlockDataVS_XMaterialMetallic_
+#  define MaterialSpecular_ ScnShaderMaterialUniformBlockDataVS_XMaterialSpecular_
+#  define MaterialRoughness_ ScnShaderMaterialUniformBlockDataVS_XMaterialRoughness_
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderObjectUniformBlockData
@@ -115,12 +171,12 @@ END_CBUFFER
 // ScnShaderPostProcessCopyBlockData
 BEGIN_CBUFFER( ScnShaderPostProcessCopyBlockData )
 	/// Colour transform to copy using.
-	ENTRY( ScnShaderPostProcessCopyBlockData, float4, ColourTransform_ ) 
+	ENTRY( ScnShaderPostProcessCopyBlockData, float4x4, ColourTransform_ ) 
 END_CBUFFER
 
 #if !PSY_USE_CBUFFER
 
-#  define ColourTransform_ ScnShaderPostProcessCopyVS_XColourTransform_
+#  define ColourTransform_ ScnShaderPostProcessCopyBlockDataVS_XColourTransform_
 
 #endif
 
@@ -134,8 +190,8 @@ END_CBUFFER
 
 #if !PSY_USE_CBUFFER
 
-#  define TextureDimensions_ ScnShaderPostProcessBlurVS_XTextureDimensions_
-#  define Radius_ ScnShaderPostProcessBlurVS_XRadius_
+#  define TextureDimensions_ ScnShaderPostProcessBlurBlockDataVS_XTextureDimensions_
+#  define Radius_ ScnShaderPostProcessBlurBlockDataVS_XRadius_
 
 #endif
 
@@ -161,3 +217,5 @@ END_CBUFFER
 #  define ShadowColour_ ScnFontUniformBlockDataVS_XShadowColour_
 
 #endif
+
+#endif // __PSYBRUSUNIFORMS_PSH__

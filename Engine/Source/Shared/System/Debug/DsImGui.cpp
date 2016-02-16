@@ -147,13 +147,14 @@ namespace
 		UniformBlock_.ViewTransform_ = UniformBlock_.InverseViewTransform_;
 		UniformBlock_.ViewTransform_.inverse();
 		UniformBlock_.ClipTransform_ = UniformBlock_.ViewTransform_ * UniformBlock_.ProjectionTransform_;
+		UniformBlock_.InverseClipTransform_ = UniformBlock_.ClipTransform_;
+		UniformBlock_.InverseClipTransform_.inverse();
 
 		RsRenderSort Sort;
 		Sort.Value_ = 0;
-		Sort.Pass_ = RS_SORT_PASS_OVERLAY;		
+		Sort.Pass_ = BcU64( RsRenderSortPassType::OVERLAY );
 		Sort.Viewport_ = RS_SORT_VIEWPORT_MAX;
 		Sort.RenderTarget_ = RS_SORT_RENDERTARGET_MAX;
-		Sort.NodeType_ = RS_SORT_NODETYPE_MAX;
 
 		RenderThreadFence_.increment();
 
@@ -285,6 +286,7 @@ namespace
 							{
 								// Not typical recommended usage as it subverts RsCore.
 								ProgramBinding_.reset( new RsProgramBinding( Context, Program_, ProgramBindingDesc_ ) );
+								ProgramBinding_->setDebugName( "DsImGui" );
 								Context->createProgramBinding( ProgramBinding_.get() );
 							}
 
@@ -688,6 +690,7 @@ namespace Psybrus
 		Package_ = nullptr;
 		BcAssert( DrawContext_ == nullptr );
 		BcAssert( DrawFrame_ == nullptr );
+		DestroyProgramBindings_.clear();
 		GeometryBinding_.reset();
 		ProgramBinding_.reset();
 		VertexDeclaration_.reset();

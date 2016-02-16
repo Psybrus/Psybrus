@@ -59,10 +59,11 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // CsResourceImporter
-class CsResourceImporter
+class CsResourceImporter:
+	public ReObject
 {
 public:
-	REFLECTION_DECLARE_BASE( CsResourceImporter );
+	REFLECTION_DECLARE_DERIVED( CsResourceImporter, ReObject );
 
 public:
 	CsResourceImporter();
@@ -176,7 +177,6 @@ protected:
 	std::string getIntermediatePath();
 
 protected:
-	std::string Name_;
 	std::string Type_;
 	std::array< size_t, (size_t)CsMessageCategory::MAX > MessageCount_;
 

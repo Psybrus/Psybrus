@@ -18,6 +18,7 @@ public:
 	template< typename _Ty >
 	ReEnumConstant( BcName Name, _Ty Value )
 	{
+		static_assert( sizeof( _Ty ) <= sizeof( BcU32 ), "Enum type too large." );
 		setName( Name );
 		Value_ = static_cast< BcU32 >( Value );
 	}

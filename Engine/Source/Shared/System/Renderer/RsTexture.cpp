@@ -127,12 +127,6 @@ RsTextureSlice RsTexture::getSlice( BcU32 Level, RsTextureFace Face ) const
 #ifdef PSY_DEBUG
 	// Check level validity.
 	BcAssert( Level >= 0 && Level < Desc_.Levels_ );
-
-	// Check face validity.
-	if( Desc_.Type_ == RsTextureType::TEXCUBE )
-	{
-		BcAssert( Face != RsTextureFace::NONE );
-	}
 #endif
 
 	RsTextureSlice Slice = 

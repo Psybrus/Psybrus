@@ -42,12 +42,37 @@ public:
 			SetData_.clear();
 		}
 
-		virtual void add( void* pValue )
+		template< typename _InternalTy >
+		typename std::enable_if< std::is_copy_constructible< _InternalTy >::value >::type
+		internalAdd( void* pValue )
 		{
 			SetData_.insert( *reinterpret_cast< _Ty* >( pValue ) );
 		}
 
+		template< typename _InternalTy >
+		typename std::enable_if< !std::is_copy_constructible< _InternalTy >::value >::type
+		internalAdd( void* pValue )
+		{
+		}
+
+		virtual void add( void* pValue )
+		{
+			BcAssertMsg( std::is_copy_constructible< _Ty >::value, "_Ty is not trivially copyable." );
+			internalAdd< _Ty >( pValue );
+		}
+
+		virtual void addMove( void* pValue )
+		{
+			BcAssertMsg( std::is_move_constructible< _Ty >::value, "_Ty is not move constructible." );
+			SetData_.insert( std::move( *reinterpret_cast< _Ty* >( pValue ) ) );
+		}
+
 		virtual void add( void* pKey, void* pValue )
+		{
+			BcAssertMsg( false, "ArrayContainerAccessor does not expose key." );
+		}
+
+		virtual void addMove( void* pKey, void* pValue )
 		{
 			BcAssertMsg( false, "ArrayContainerAccessor does not expose key." );
 		}

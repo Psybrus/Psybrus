@@ -1,4 +1,4 @@
-/**************************************************************************
+/*******************	*******************************************************
 *
 * File:		Rendering/ScnShaderFileData.h
 * Author:	Neil Richardson 
@@ -22,12 +22,6 @@
 #include "Math/MaMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
-// Undefine PASS_MAX
-#if PLATFORM_OSX
-#undef PASS_MAX
-#endif
-
-//////////////////////////////////////////////////////////////////////////
 // ScnShaderPermutationType
 enum class ScnShaderPermutationType : BcU32
 {
@@ -42,8 +36,9 @@ enum class ScnShaderPermutationType : BcU32
 	
 	// Pass types.
 	PASS_FIRST = RENDER_MAX_END,
-	PASS_MAIN = PASS_FIRST,								// Main pass. (Typical default)
-	PASS_SHADOW,										// Shadow pass (Render to shadow buffer)
+	PASS_SHADOW = PASS_FIRST,							// Shadow pass.
+	PASS_DEPTH,											// Depth pass.
+	PASS_MAIN,											// Main pass (Opaque, Transparent or Overlay passes)
 	PASS_MAX_END,
 	PASS_COUNT = PASS_MAX_END - PASS_FIRST,
 	
@@ -63,13 +58,6 @@ enum class ScnShaderPermutationType : BcU32
 	LIGHTING_DIFFUSE,									// Diffuse lit geometry.
 	LIGHTING_MAX_END,
 	LIGHTING_COUNT = LIGHTING_MAX_END - LIGHTING_FIRST,
-
-	// Vertex colour types.
-	VERTEX_COLOUR_FIRST = LIGHTING_MAX_END,
-	VERTEX_COLOUR_NONE = VERTEX_COLOUR_FIRST,			// No vertex colour.
-	VERTEX_COLOUR_MULTIPLY_0,							// 1 vertex colour.
-	VERTEX_COLOUR_MAX_END,
-	VERTEX_COLOUR_COUNT = VERTEX_COLOUR_MAX_END - VERTEX_COLOUR_FIRST,
 };
 
 
@@ -91,11 +79,13 @@ enum class ScnShaderPermutationFlags : BcU32
 		RENDER_POST_PROCESS,
 	
 	// Pass type.
-	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,
 	PASS_SHADOW					= 1 << (BcU32)ScnShaderPermutationType::PASS_SHADOW,
+	PASS_DEPTH					= 1 << (BcU32)ScnShaderPermutationType::PASS_DEPTH,
+	PASS_MAIN					= 1 << (BcU32)ScnShaderPermutationType::PASS_MAIN,
 	PASS_ALL =
-		PASS_MAIN |
-		PASS_SHADOW,
+		PASS_SHADOW |
+		PASS_DEPTH |
+		PASS_MAIN,
 
 	// Mesh type.
 	MESH_STATIC_2D				= 1 << (BcU32)ScnShaderPermutationType::MESH_STATIC_2D,
@@ -118,27 +108,8 @@ enum class ScnShaderPermutationFlags : BcU32
 		LIGHTING_DIFFUSE,
 };
 
-inline ScnShaderPermutationFlags operator |= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
-{
-	In = (ScnShaderPermutationFlags)( (int)In | (int)Other );
-	return In;
-}
-
-inline ScnShaderPermutationFlags operator | ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
-{
-	return (ScnShaderPermutationFlags)( (int)In | (int)Other );
-}
-
-inline ScnShaderPermutationFlags operator &= ( ScnShaderPermutationFlags& In, ScnShaderPermutationFlags Other )
-{
-	In = (ScnShaderPermutationFlags)( (int)In & (int)Other );
-	return In;
-}
-
-inline ScnShaderPermutationFlags operator & ( ScnShaderPermutationFlags In, ScnShaderPermutationFlags Other )
-{
-	return (ScnShaderPermutationFlags)( (int)In & (int)Other );
-}
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, & );
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader
@@ -183,8 +154,17 @@ struct ScnShaderViewUniformBlockData
 	MaMat4d ProjectionTransform_;
 	MaMat4d InverseViewTransform_;
 	MaMat4d ViewTransform_;
+	MaMat4d InverseClipTransform_;
 	MaMat4d ClipTransform_;
-	MaVec4d ViewTime_;
+
+	/// t, t/2, t/4, t/8
+	MaVec4d ViewTime_ = MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f );
+
+	/// w, h, 1/w, 1/h
+	MaVec4d ViewSize_ = MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f );
+
+	/// n, f, n+f, n*f
+	MaVec4d NearFar_ = MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f );
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -194,11 +174,27 @@ struct ScnShaderLightUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderLightUniformBlockData );
 	ScnShaderLightUniformBlockData(){};
 
-	MaVec4d LightPosition_[ 4 ];
-	MaVec4d LightDirection_[ 4 ];
-	MaVec4d LightAmbientColour_[ 4 ];
-	MaVec4d LightDiffuseColour_[ 4 ];
-	MaVec4d LightAttn_[ 4 ];
+	static const BcU32 MAX_LIGHTS = 4;
+
+	std::array< MaVec4d, MAX_LIGHTS > LightPosition_;
+	std::array< MaVec4d, MAX_LIGHTS > LightDirection_;
+	std::array< MaVec4d, MAX_LIGHTS > LightAmbientColour_;
+	std::array< MaVec4d, MAX_LIGHTS > LightDiffuseColour_;
+	std::array< MaVec4d, MAX_LIGHTS > LightAttn_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderMaterialUniformBlockData
+struct ScnShaderMaterialUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderMaterialUniformBlockData );
+	ScnShaderMaterialUniformBlockData(){};
+
+	MaVec4d MaterialBaseColour_ = MaVec4d( 1.0f, 1.0f, 1.0f, 1.0f );
+	BcF32 MaterialMetallic_ = 1.0f;
+	BcF32 MaterialSpecular_ = 1.0f;
+	BcF32 MaterialRoughness_ = 1.0f;
+	BcF32 MaterialUnused_[ 1 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,7 +227,8 @@ struct ScnShaderAlphaTestUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderAlphaTestUniformBlockData );
 	ScnShaderAlphaTestUniformBlockData(){};
 
-	MaVec4d AlphaTestParams_; // x = smoothstep min, y = smoothstep max, z = ref (<)
+	/// smoothstep min, smoothstep max, ref (<), unused
+	MaVec4d AlphaTestParams_ = MaVec4d( 0.45f, 5.0f, 0.0f, 0.0f );
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,13 +263,13 @@ struct ScnShaderPostProcessBlurBlockData
 	ScnShaderPostProcessBlurBlockData(){};
 
 	/// Texture size.
-	MaVec2d TextureDimensions_;
+	MaVec2d TextureDimensions_ = MaVec2d( 0.0f, 0.0f );
 
 	/// Radius in texels.
-	BcF32 Radius_;
+	BcF32 Radius_ = 1.0f;
 
 	/// Unued.
-	BcF32 Unused_;
+	BcF32 Unused_ = 0.0f;
 };
 
 #endif

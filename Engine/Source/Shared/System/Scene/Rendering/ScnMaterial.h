@@ -58,7 +58,39 @@ public:
 	void create() override;
 	void destroy() override;
 
+	/**
+	 * Get texture by name.
+	 */
 	ScnTextureRef getTexture( BcName Name );
+
+	/**
+	 * Get program.
+	 */
+	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
+
+	/**
+	 * Get program binding descriptor.
+	 * Will return a program binding descriptor for given permutation.
+	 */
+	RsProgramBindingDesc getProgramBinding( ScnShaderPermutationFlags PermutationFlags );
+
+	/**
+	 * Get render state.
+	 * Will create a new render state object if it needs to.
+	 * @return Render state from this material component.
+	 */
+	RsRenderState* getRenderState();
+
+	/**
+	 * Create uniform buffer.
+	 * @return Uniform buffer. If nullptr, then material doesn't have uniform buffer.
+	 */
+	RsBufferUPtr createUniformBuffer( const ReClass* UniformBuffer, const BcChar* DebugName ) const;
+	template< typename _Ty >
+	RsBufferUPtr createUniformBuffer( const BcChar* DebugName ) const
+	{
+		return createUniformBuffer( _Ty::StaticGetClass(), DebugName );
+	}
 
 private:
 	void fileReady() override;
@@ -72,10 +104,12 @@ private:
 	ScnShaderRef Shader_;
 	ScnTextureMap TextureMap_;
 	std::map< BcName, RsSamplerStateUPtr > SamplerStateMap_;
-
 	const RsRenderStateDesc* RenderStateDesc_;
 	RsRenderStateUPtr RenderState_;
 
+	// Automatic uniforms.
+	std::map< BcName, RsBufferUPtr > AutomaticUniformBuffers_;
+	std::map< BcName, BcBinaryData > AutomaticUniformBlocks_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,10 +157,22 @@ public:
 	 */
 	RsRenderState* getRenderState();
 	
-	ScnTextureRef getTexture( BcU32 Idx );
+	/**
+	 * Get bound texture from slot.
+	 */
+	ScnTextureRef getTexture( BcU32 Slot );
+
+	/**
+	 * Get bound texture by name.
+	 */
 	ScnTextureRef getTexture( const BcName& TextureName );
+
+	/**
+	 * Get parent material.
+	 */
 	ScnMaterialRef getMaterial();
 	
+	[[deprecated]]
 	void bind( class RsFrame* pFrame, class RsRenderSort& Sort, BcBool Stateless = BcFalse );
 
 public:
@@ -154,28 +200,20 @@ private:
 		BcU32 Index_;
 		RsBuffer* UniformBuffer_;
 	};
-
-	typedef std::vector< TTextureBinding > TTextureBindingList;
-	typedef TTextureBindingList::iterator TTextureBindingListIterator;
-
-	typedef std::vector< TUniformBlockBinding > TUniformBlockBindingList;
-	typedef TUniformBlockBindingList::iterator TUniformBlockBindingListIterator;
-
-
+	
 	ScnMaterialRef Material_;
 	ScnShaderPermutationFlags PermutationFlags_;
 	RsProgram* pProgram_;
 	RsProgramBindingDesc ProgramBindingDesc_;
 	RsProgramBindingUPtr ProgramBinding_;
 
-	TTextureBindingList TextureBindingList_;
-	TUniformBlockBindingList UniformBlockBindingList_;
+	// Cache of textures.
+	std::unordered_map< BcU32, ScnTextureRef > TextureMap_;
 	
 	// Common scene parameters.
 	BcU32 ViewUniformBlockIndex_;
 	BcU32 BoneUniformBlockIndex_;
 	BcU32 ObjectUniformBlockIndex_;
-
 };
 
 #endif
