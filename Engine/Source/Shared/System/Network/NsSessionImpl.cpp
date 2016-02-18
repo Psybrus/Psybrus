@@ -8,8 +8,6 @@
 #include "ConnectionGraph2.h"
 #include "BitStream.h"
 
-#include <boost/format.hpp>
-
 //////////////////////////////////////////////////////////////////////////
 // NsSessionMessageID
 enum class NsSessionMessageID : BcU8
@@ -40,7 +38,7 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED )
 {
-	PSY_LOGSCOPEDCATEGORY( boost::str( boost::format( "NsSession %1%" ) % this ) );
+	PSY_LOGSCOPEDCATEGORY( "NsSession" );
 	PSY_LOG( "Starting worker thread, and trying to connect to server." );
 
 	RakNet::SocketDescriptor Desc;
@@ -62,7 +60,7 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED )
 {
-	PSY_LOGSCOPEDCATEGORY( boost::str( boost::format( "NsSession %1%" ) % this ) );
+	PSY_LOGSCOPEDCATEGORY( "NsSession" );
 	PSY_LOG( "Starting worker thread, and trying to start server." );
 
 	RakNet::SocketDescriptor Desc( Port, 0 );
@@ -154,7 +152,7 @@ BcBool NsSessionImpl::deregisterMessageHandler( BcU8 Channel, NsSessionMessageHa
 // workerThread
 void NsSessionImpl::workerThread()
 {
-	PSY_LOGSCOPEDCATEGORY( boost::str( boost::format( "NsSession %1%" ) % this ) );
+	PSY_LOGSCOPEDCATEGORY( "NsSession" );
 	PSY_LOG( "Starting to receive packets." );
 
 	OwningThread_ = BcCurrentThreadId();

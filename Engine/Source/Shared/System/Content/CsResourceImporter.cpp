@@ -16,7 +16,7 @@
 #include "System/Content/CsCore.h"
 
 #if PSY_IMPORT_PIPELINE
-#include <boost/uuid/sha1.hpp>
+#include <DR_SHA1.h> // from RakNet.
 #include <json/json.h>
 #endif // PSY_IMPORT_PIPELINE
 
@@ -305,25 +305,30 @@ CsFileHash CsResourceImporter::addFile(
 	if( InFile.open( FileName.c_str() ) )
 	{
 		auto Bytes = InFile.readAllBytes();
-		boost::uuids::detail::sha1 Hasher;
-		Hasher.process_block( Bytes.get(), Bytes.
-			get() + InFile.size() );
-		Hasher.get_digest( FileHash.Hash_ );
-
-		auto PackedPath = Importer_->getParams().getPackagePackedPath( BcName::INVALID );
-		auto OutFileName = 
-			*PackedPath + 
-			std::string( "/" ) + 
-			FileHash.getName() + std::string( ".dat" );
-
-		BcFile OutFile;
-		if( OutFile.open( OutFileName.c_str(),  bcFM_WRITE ) )
+		CSHA1 Hasher;
+		Hasher.Update( Bytes.get(), InFile.size() );
+		Hasher.Final();
+		if( Hasher.GetHash( reinterpret_cast< unsigned char* >( &FileHash.Hash_[ 0 ] ) ) )
 		{
-			OutFile.write( Bytes.get(), InFile.size() );
-			OutFile.close();
-		}
+			auto PackedPath = Importer_->getParams().getPackagePackedPath( BcName::INVALID );
+			auto OutFileName = 
+				*PackedPath + 
+				std::string( "/" ) + 
+				FileHash.getName() + std::string( ".dat" );
 
-		InFile.close();
+			BcFile OutFile;
+			if( OutFile.open( OutFileName.c_str(),  bcFM_WRITE ) )
+			{
+				OutFile.write( Bytes.get(), InFile.size() );
+				OutFile.close();
+			}
+
+			InFile.close();
+		}
+		else
+		{
+			throw new CsImportException( "Unable to get hash", FileName.c_str() );
+		}
 	}
 	else
 	{

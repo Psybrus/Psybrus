@@ -10,6 +10,7 @@ PsyProjectEngineLib( "System_Content" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
+      "../../External/RakNet/Source/", -- For DR_SHA1.
       BOOST_INCLUDE_PATH,
     }
 

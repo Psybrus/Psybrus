@@ -17,8 +17,6 @@
 
 #include "Base/BcFile.h"
 
-#include <boost/format.hpp>
-
 #if PLATFORM_WINDOWS
 #include "Base/BcComRef.h"
 
@@ -145,15 +143,16 @@ BcBool ScnShaderImport::compileShader(
 
 	// Generate some unique ids.
 	BcU32 ShaderCompileId = ++ShaderCompileId_;
-	std::string BytecodeFilename = IntermediatePath_ + 
-		boost::str( boost::format( "/built_shader_%1%.bytecode" ) % ShaderCompileId );
-	std::string LogFilename = IntermediatePath_ + 
-		boost::str( boost::format( "/built_shader_%1%.bytecode" ) % ShaderCompileId );
+	std::array< char, 64 > BytecodeFilename;
+	std::array< char, 64 > LogFilename;
+
+	BcSPrintf( BytecodeFilename.data(), BytecodeFilename.size() - 1, "%s/built_shader_%u.bytecode", IntermediatePath_.c_str(), ShaderCompileId);
+	BcSPrintf( LogFilename.data(), LogFilename.size() - 1, "%s/built_shader_%u.log", IntermediatePath_ .c_str(), ShaderCompileId );
 
 	std::string CommandLine = std::string( "wine " ) + PsybrusSDKRoot + "/Tools/ShaderCompiler/ShaderCompiler.exe";
 	CommandLine += std::string( " -i" ) + FileName;
-	CommandLine += std::string( " -e" ) + LogFilename;
-	CommandLine += std::string( " -o" ) + BytecodeFilename;
+	CommandLine += std::string( " -e" ) + LogFilename.data();
+	CommandLine += std::string( " -o" ) + BytecodeFilename.data();
 	CommandLine += std::string( " -T" ) + Target;
 	CommandLine += std::string( " -E" ) + EntryPoint;
 	for( auto Define : Defines )

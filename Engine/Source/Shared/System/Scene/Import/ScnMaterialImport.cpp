@@ -22,8 +22,6 @@
 #include "Base/BcFile.h"
 #include "Base/BcStream.h"
 
-#include <boost/lexical_cast.hpp>
-
 #endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
