@@ -197,7 +197,6 @@ private:
 
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
-	std::string removeComments( std::string Input );
 	void logSource( std::string Source );
 
 	RsProgramVertexAttribute semanticToVertexAttribute( BcU32 Channel, const std::string& Name, BcU32 Index );

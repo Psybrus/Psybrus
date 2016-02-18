@@ -80,5 +80,10 @@ BcBool BcStrIsNumber( const BcChar* pStr );
 // BcStrCountChars
 BcU32 BcStrCountChars( const BcChar* pStr, BcChar Char );
 
+//////////////////////////////////////////////////////////////////////////
+// BcStrReplace
+std::string BcStrReplace( const std::string& InString, const std::string& FindString, const std::string& ReplaceString );
+
+
 #endif
 

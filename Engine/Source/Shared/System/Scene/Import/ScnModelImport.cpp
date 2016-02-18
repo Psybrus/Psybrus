@@ -29,8 +29,8 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 
 // TODO: Remove dup from ScnPhysicsMeshImport.
 namespace
@@ -925,15 +925,15 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 	if( Material->GetTexture( (aiTextureType)Type, Idx, &Path,
 			&TextureMapping, &UVIndex, &Blend, &TextureOp, &TextureMapMode ) == aiReturn_SUCCESS )
 	{
-		boost::filesystem::path TexturePath;
-		TexturePath = boost::filesystem::path( Source_ ).remove_filename();
+		std::filesystem::path TexturePath;
+		TexturePath = std::filesystem::path( Source_ ).remove_filename();
 		std::string FixedPath = Path.C_Str();
-		boost::replace_all( FixedPath, "\\", "/" );
+		std::replace( FixedPath.begin(), FixedPath.end(), '\\', '/');
 		TexturePath.append( FixedPath.c_str() );
 
 		TexturePath = TexturePath.make_preferred();
 		auto Native = TexturePath.native();
-		if( boost::filesystem::exists( TexturePath ) )
+		if( std::filesystem::exists( TexturePath ) )
 		{
 			RsSamplerStateDesc SamplerState;
 

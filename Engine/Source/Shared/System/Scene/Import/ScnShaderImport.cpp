@@ -34,16 +34,16 @@
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
 #endif
 
-#include <boost/format.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/wave.hpp>
 #include <boost/wave/cpplexer/cpp_lex_interface.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
-#include <boost/filesystem.hpp>
 #include <bitset>
 #include <regex>
 #include <sstream>
+
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 
 #undef DOMAIN // This is defined somewhere in a core header.
 
@@ -690,6 +690,9 @@ ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
 	ScnShaderPermutation Permutation;
 #if PSY_IMPORT_PIPELINE
 
+	std::array< char, 64 > Buffer;
+	Buffer.fill( 0 );
+
 	// Default to alway use cbuffers.
 	Permutation.Defines_[ "PSY_USE_CBUFFER" ] = "1";
 
@@ -697,16 +700,16 @@ ScnShaderPermutation ScnShaderImport::getDefaultPermutation()
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderCodeType::MAX; ++Idx )
 	{
 		auto CodeTypeString = RsShaderCodeTypeToString( (RsShaderCodeType)Idx );
-		auto Define = boost::str( boost::format( "PSY_CODE_TYPE_%1%" ) % CodeTypeString );
-		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+		BcSPrintf( Buffer.data(), Buffer.size() - 1, "PSY_CODE_TYPE_%s", CodeTypeString.c_str() );
+		Permutation.Defines_[ Buffer.data() ] = std::to_string( Idx );
 	}
 
 	// Add backend type defines.
 	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderBackendType::MAX; ++Idx )
 	{
 		auto BackendTypeString = RsShaderBackendTypeToString( (RsShaderBackendType)Idx );
-		auto Define = boost::str( boost::format( "PSY_BACKEND_TYPE_%1%" ) % BackendTypeString );
-		Permutation.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % Idx );
+		BcSPrintf( Buffer.data(), Buffer.size() - 1, "PSY_BACKEND_TYPE_%s", BackendTypeString.c_str() );
+		Permutation.Defines_[ Buffer.data() ] = std::to_string( Idx );
 	}
 #endif
 	return Permutation;
@@ -800,22 +803,10 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 	}
 
 	// Add code type and backend types.
-	{
-		auto Define = boost::str( boost::format( "PSY_OUTPUT_CODE_TYPE" ) );
-		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)Params.OutputCodeType_ );
-	}
-	{
-		auto Define = boost::str( boost::format( "PSY_INPUT_CODE_TYPE" ) );
-		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)Params.InputCodeType_ );
-	}
-	{
-		auto Define = boost::str( boost::format( "PSY_OUTPUT_BACKEND_TYPE" ) );
-		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) );
-	}
-	{
-		auto Define = boost::str( boost::format( "PSY_INPUT_BACKEND_TYPE" ) );
-		Params.Permutation_.Defines_[ Define ] = boost::str( boost::format( "%1%" ) % (BcU32)RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) );
-	}
+	Params.Permutation_.Defines_[ "PSY_OUTPUT_CODE_TYPE" ] = std::to_string( (BcU32)Params.OutputCodeType_ );
+	Params.Permutation_.Defines_[ "PSY_INPUT_CODE_TYPE" ] = std::to_string( (BcU32)Params.InputCodeType_ );
+	Params.Permutation_.Defines_[ "PSY_OUTPUT_BACKEND_TYPE" ] = std::to_string( (BcU32)RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) );
+	Params.Permutation_.Defines_[ "PSY_INPUT_BACKEND_TYPE" ] = std::to_string( (BcU32)RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) );
 
 	switch( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) )
 	{
@@ -1201,7 +1192,7 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 						if( OutputShaderCode.find( Semantic ) != std::string::npos )
 						{
 							std::string NewSemantic = std::string( "dcl_Input" ) + std::to_string( Attribute.Channel_ );
-							boost::replace_all( OutputShaderCode, Semantic, NewSemantic );	
+							OutputShaderCode = BcStrReplace( OutputShaderCode, Semantic, NewSemantic );	
 
 							Attribute.Usage_ = (RsVertexUsage)Usage;
 							Attribute.UsageIdx_ = Idx == 0 -1 ? 0 : (BcU32)Idx;
@@ -1218,14 +1209,14 @@ BcBool ScnShaderImport::convertHLSL2GLSL(
 			Hlsl2Glsl_DestructCompiler( CompilerHandle );
 
 			// Finalise shader.
-			OutGLSL = removeComments( OutputShaderCode );
+			OutGLSL = std::move( OutputShaderCode );
 			RetVal = BcTrue;
 
 			// Add version + precision.
 			OutGLSL = "#version 100\nprecision mediump float;\n" + OutGLSL;
 
 			// Workaround for adreno.
-			boost::replace_all( OutGLSL, "gl_FragData[0]", "gl_FragColor" );
+			OutGLSL = BcStrReplace( OutGLSL, "gl_FragData[0]", "gl_FragColor" );
 		}
 	}
 #endif // USE_HLSL2GLSL
@@ -1333,8 +1324,7 @@ BcBool ScnShaderImport::convertHLSLCC(
 			// Check success.
 			if( GLSLSuccess )
 			{
-				// Strip comments out of code for more compact GLSL.
-				OutGLSL = removeComments( GLSLResult.sourceCode );
+				OutGLSL = GLSLResult.sourceCode;
 			
 				// Vertex shader attributes.
 				if( LevelEntry.Type_ == RsShaderType::VERTEX )
@@ -1377,37 +1367,6 @@ BcU32 ScnShaderImport::generateShaderHash( const ScnShaderBuiltData& Data )
 	Hash = BcHash::GenerateCRC32( Hash, &Data.CodeType_, sizeof( Data.CodeType_ ) );
 	Hash = BcHash::GenerateCRC32( Hash, Data.Code_.getData< BcU8* >(), Data.Code_.getDataSize() );
 	return Hash;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// removeComments
-std::string ScnShaderImport::removeComments( std::string Input )
-{
-#if PSY_IMPORT_PIPELINE
-	std::string Output;
-	typedef boost::wave::cpplexer::lex_token<> token_type;
-	typedef boost::wave::cpplexer::lex_iterator<token_type> lexer_type;
-	typedef token_type::position_type position_type;
-
-	position_type pos;
-
-	lexer_type Iter = lexer_type(Input.begin(), Input.end(), pos, 
-		boost::wave::language_support( 
-			boost::wave::support_cpp | boost::wave::support_option_long_long ) );
-	lexer_type End = lexer_type();
-
-	for ( ; Iter != End; ++Iter )
-	{
-		if ( *Iter != boost::wave::T_CCOMMENT && 
-			 *Iter != boost::wave::T_CPPCOMMENT )
-		{
-			Output += std::string( Iter->get_value().begin(), Iter->get_value().end() );
-		}
-	}
-	return std::move( Output );
-#else
-	return "";
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

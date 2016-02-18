@@ -22,10 +22,12 @@
 #include "Base/BcFile.h"
 #include "Base/BcMath.h"
 
-#include <boost/filesystem/path.hpp>
 #include <regex>
 
 #include <rapidxml.hpp>
+
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 
 extern "C"
 {
@@ -321,7 +323,7 @@ void ScnTileMapImport::parseImage(
 
 			if( Image->TextureRef_ == CSCROSSREFID_INVALID )
 			{
-				using namespace boost::filesystem;
+				using namespace std::filesystem;
 				path TMXSourcePath = Source_;
 				path TexSourcePath = TMXSourcePath.parent_path() / path( ChildAttrib->value() );
 

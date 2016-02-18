@@ -5,7 +5,8 @@
 #include <regex>
 
 #if PSY_IMPORT_PIPELINE
-#include <boost/filesystem.hpp>
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 #endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,7 +69,7 @@ BcPath CsPlatformParams::getPackageIntermediatePath( const BcName& Package ) con
 	}
 
 #if PSY_IMPORT_PIPELINE
-	boost::filesystem::create_directories( *Path );
+	std::filesystem::create_directories( *Path );
 #endif // PSY_IMPORT_PIPELINE
 
 	return Path;

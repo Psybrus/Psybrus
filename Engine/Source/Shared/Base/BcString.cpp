@@ -186,3 +186,24 @@ BcU32 BcStrCountChars( const BcChar* pStr, BcChar Char )
 	}
 	return NoofChars;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrReplace
+std::string BcStrReplace( const std::string& InString, const std::string& FindString, const std::string& ReplaceString )
+{
+	std::string OutString;
+	OutString.reserve( InString.size() );
+
+	size_t LastPos = 0;
+	size_t FoundPos = 0;
+	while( ( FoundPos = InString.find( FindString, LastPos ) ) != std::string::npos )
+	{
+		OutString.append( InString, LastPos, FoundPos - LastPos );
+		OutString.append( ReplaceString );
+		LastPos = FoundPos + FindString.size();
+	}
+
+	OutString.append( InString.substr( LastPos ) );
+
+	return std::move( OutString );
+}

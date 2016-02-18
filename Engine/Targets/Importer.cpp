@@ -12,8 +12,9 @@
 
 #include <vector>
 #include <iostream>
-#include <boost/filesystem.hpp>
-#include <boost/algorithm/string.hpp>
+
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
@@ -25,7 +26,7 @@ std::vector< BcPath > FindPackages( const CsPlatformParams& Params )
 {
 	std::vector< BcPath > FoundPackages;
 
-	using namespace boost::filesystem;
+	using namespace std::filesystem;
 	path Path( "Content/" );
 
 	auto It = directory_iterator( Path );
@@ -63,15 +64,15 @@ std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::
 		std::string OutputDependencies = *Params.getPackageIntermediatePath( PackageName ) + "/deps.json";
 
 		// Import package if it doesn't exist.
-		if( !boost::filesystem::exists( PackedPackage ) )
+		if( !std::filesystem::exists( PackedPackage ) )
 		{
 			ShouldImport = BcTrue;
 		}
 
 		// Import package & output dependencies changed?
-		if( boost::filesystem::exists( *PackagePath ) )
+		if( std::filesystem::exists( *PackagePath ) )
 		{
-			if(	boost::filesystem::exists( OutputDependencies ) )
+			if(	std::filesystem::exists( OutputDependencies ) )
 			{
 				PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
 				PSY_LOGSCOPEDINDENT;
@@ -188,7 +189,7 @@ void PsyToolMain()
 	}
 
 	// Try loading params file.
-	if( boost::filesystem::exists( ConfigFile ) )
+	if( std::filesystem::exists( ConfigFile ) )
 	{
 		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 		SeJsonReader Reader( &ObjectCodec );

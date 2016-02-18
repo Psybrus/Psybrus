@@ -29,6 +29,8 @@
 #include <GL/glew.h>
 #include <disassemble.h>
 #include <SPVRemapper.h>
+#include "../MachineIndependent/preprocessor/PpContext.h"
+#include "../MachineIndependent/preprocessor/PpTokens.h"
 #include "../MachineIndependent/localintermediate.h"
 #include "../MachineIndependent/gl_types.h"
 
@@ -36,17 +38,17 @@
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
 #endif
 
-#include <boost/format.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/wave.hpp>
 #include <boost/wave/cpplexer/cpp_lex_interface.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 #include <boost/wave/cpplexer/cpp_lex_token.hpp>
-#include <boost/filesystem.hpp>
 #include <bitset>
 #include <regex>
 #include <sstream>
 #include <algorithm>
+
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 
 #undef DOMAIN // This is defined somewhere in a core header.
 
@@ -1081,7 +1083,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				{
 					const auto Name = VertexAttributeNames[ Attribute.Channel_ ];
 					const auto NewName = std::string( "dcl_Input" ) + std::to_string( Attribute.Channel_ );
-					boost::replace_all( ProcessedSourceData, Name, NewName );	
+					ProcessedSourceData = BcStrReplace( ProcessedSourceData, Name, NewName );	
 
 					std::string SemanticName;
 					switch( Attribute.Usage_ )
@@ -1136,11 +1138,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					BcChar NumberedSemanticName[ 128 ] = { 0 };
 					BcSPrintf( NumberedSemanticName, sizeof( NumberedSemanticName ) - 1, 
 						"%s%u", SemanticName.c_str(), Attribute.UsageIdx_ );
-					boost::replace_all( ProcessedSourceData, NumberedSemanticName, NewName );
+					ProcessedSourceData = BcStrReplace( ProcessedSourceData, NumberedSemanticName, NewName );
 					// Replace 0 case.
 					if( Attribute.UsageIdx_ == 0 )
 					{
-						boost::replace_all( ProcessedSourceData, SemanticName, NewName );	
+						ProcessedSourceData = BcStrReplace( ProcessedSourceData, SemanticName, NewName );	
 					}
 				}
 

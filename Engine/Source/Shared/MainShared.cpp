@@ -46,7 +46,8 @@ BcU32 GResolutionHeight = 720;
 #define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
 
 #if SEARCH_FOR_CORRECT_PATH
-#include <boost/filesystem.hpp>
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 #endif
 
 #include <chrono>
@@ -398,17 +399,21 @@ eEvtReturn onScreenshot( EvtID ID, const EvtBaseEvent& Event )
 // MainShared
 void MainShared()
 {
+#ifdef SearchPath
+#undef SearchPath
+#endif
+
 #if SEARCH_FOR_CORRECT_PATH
 	// Search each level up from the executable until we hit either a "PackedContent" folder,
 	// or we hit a "Dist" folder in non-production builds. This will allow executables to be
 	// subfoldered by platform or similar.
-	using namespace boost::filesystem;
+	using namespace std::filesystem;
 	path SearchPath( canonical( SysExePath_ ).parent_path() );
 	path CurrentPath( canonical( current_path() ) );
 
 	// Search up the path to find where we should be.
 	bool FoundRoot = false;
-	while( FoundRoot == false && SearchPath.has_leaf() )
+	while( FoundRoot == false && SearchPath.has_filename() )
 	{
 		auto It = directory_iterator( SearchPath );
 		while( It != directory_iterator() )
@@ -430,7 +435,7 @@ void MainShared()
 #endif
 			++It;
 		}
-		SearchPath = SearchPath.remove_leaf();
+		SearchPath = SearchPath.remove_filename();
 	}
 
 	// Change to found path.

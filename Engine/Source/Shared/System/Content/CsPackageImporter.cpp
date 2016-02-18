@@ -36,9 +36,8 @@
 #include <sstream>
 
 #if PSY_IMPORT_PIPELINE
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
-#include <boost/lexical_cast.hpp>
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 #endif // PSY_IMPORT_PIPELINE
 
 #undef ERROR
@@ -286,9 +285,9 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 	// Create target folder.
 	const auto& PackedPath = Params_.PackedContentPath_;
 
-	if( !boost::filesystem::exists( PackedPath.c_str() ) )
+	if( !std::filesystem::exists( PackedPath.c_str() ) )
 	{
-		boost::filesystem::create_directories( PackedPath.c_str() );
+		std::filesystem::create_directories( PackedPath.c_str() );
 	}
 
 	// Open package output.
@@ -396,11 +395,11 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		File_.close();
 
 		// Rename.
-		if( boost::filesystem::exists( *Path ) )
+		if( std::filesystem::exists( *Path ) )
 		{
-			boost::filesystem::remove( *Path );
+			std::filesystem::remove( *Path );
 		}
-		boost::filesystem::rename( *TempFile, *Path );
+		std::filesystem::rename( *TempFile, *Path );
 
 		//
 		return BcTrue;
@@ -628,7 +627,7 @@ BcU32 CsPackageImporter::addImport(
 		// Construct and add package cross ref.
 		std::string CrossRef;
 		CrossRef += "$(";
-		CrossRef += boost::lexical_cast< std::string >( ResourceId );
+		CrossRef += std::to_string( ResourceId );
 		CrossRef += ")";
 		
 		return addPackageCrossRef( CrossRef.c_str() );
@@ -764,7 +763,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		{
 			0,
 			0,
-			boost::lexical_cast< BcU32 >( ResourceId ),
+			std::stoi( ResourceId ),
 			BcFalse,
 			BcTrue
 		};
