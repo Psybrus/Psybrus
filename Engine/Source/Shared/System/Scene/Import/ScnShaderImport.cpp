@@ -34,10 +34,6 @@
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
 #endif
 
-#include <boost/wave.hpp>
-#include <boost/wave/cpplexer/cpp_lex_interface.hpp>
-#include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
-#include <boost/wave/cpplexer/cpp_lex_token.hpp>
 #include <bitset>
 #include <regex>
 #include <sstream>

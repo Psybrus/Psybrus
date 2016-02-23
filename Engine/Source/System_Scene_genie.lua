@@ -10,6 +10,7 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/assimp/include",
       "../../External/bullet3/Extras/HACD",
       "../../External/bullet3/src",
+      "../../External/fcpp",
       "../../External/freetype/include",
       "../../External/glew/include",
       "../../External/jsoncpp/include/",
@@ -51,6 +52,7 @@ PsyProjectEngineLib( "System_Scene" )
   configuration "linux-* or osx-* or windows-*"
     PsyAddExternalLinks {
       "assimp",
+      "fcpp",
       "glsl-optimizer",
       "hlsl2glslfork",
       "HLSLCrossCompiler"

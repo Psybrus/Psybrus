@@ -31,3 +31,6 @@
 [submodule "External/glslang"]
 	path = External/glslang
 	url = https://github.com/Psybrus/glslang
+[submodule "External/fcpp"]
+	path = External/fcpp
+	url = https://github.com/Psybrus/fcpp

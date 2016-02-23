@@ -19,6 +19,7 @@
 
 #include "System/SysKernel.h"
 
+#include "Base/BcLinearAllocator.h"
 #include "Base/BcMath.h"
 #include "Base/BcStream.h"
 
@@ -29,19 +30,19 @@
 #include <GL/glew.h>
 #include <disassemble.h>
 #include <SPVRemapper.h>
-#include "../MachineIndependent/preprocessor/PpContext.h"
-#include "../MachineIndependent/preprocessor/PpTokens.h"
 #include "../MachineIndependent/localintermediate.h"
 #include "../MachineIndependent/gl_types.h"
+
+extern "C"
+{
+	#include "cppdef.h"
+	#include "fpp.h"
+}
 
 #if PLATFORM_WINDOWS
 #pragma warning ( disable : 4512 ) // Can't generate assignment operator (for boost)
 #endif
 
-#include <boost/wave.hpp>
-#include <boost/wave/cpplexer/cpp_lex_interface.hpp>
-#include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
-#include <boost/wave/cpplexer/cpp_lex_token.hpp>
 #include <bitset>
 #include <regex>
 #include <sstream>
@@ -54,63 +55,181 @@ namespace std { namespace filesystem { using namespace std::experimental::filesy
 
 namespace
 {
-	//////////////////////////////////////////////////////////////////////////
-	// glsl_directives_hooks for boost::wave
-	class glsl_directives_hooks:
-		public boost::wave::context_policies::default_preprocessing_hooks
+	class FCPPInterface
 	{
 	public:
-		glsl_directives_hooks( class ScnShaderImport& Importer ):
-			Importer_( Importer )
+		FCPPInterface( ScnShaderImport& Importer, const char* InputFile, const char* InputData ):
+			Importer_( Importer ),
+			Allocator_( 256 * 1024 )
+		{
+			if( strstr( InputFile, "compute.glsl" ) )
+			{
+				int a = 0;
+				a++;
+				printf("");
+			}
+
+			fppTag Tag;
+			Tag.tag = FPPTAG_USERDATA;
+			Tag.data = this;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_ERROR;
+			Tag.data = (void*)cbError;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_INPUT;
+			Tag.data = (void*)cbInput;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_OUTPUT;
+			Tag.data = (void*)cbOutput;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_DEPENDENCY;
+			Tag.data = (void*)cbDependency;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_IGNOREVERSION;
+			Tag.data = (void*)0;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_LINE;
+			Tag.data = (void*)0;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_KEEPCOMMENTS;
+			Tag.data = (void*)0;
+			Tags_.push_back( Tag );
+
+			Tag.tag = FPPTAG_INPUT_NAME;
+			Tag.data = (void*)InputFile;
+			Tags_.push_back( Tag );
+
+			// Unix line endings.
+			auto FixedInputData  = BcStrReplace( InputData, "\r\n", "\n" );
+			InputOffset_ = 0;
+			InputSize_ = FixedInputData.size() + 1;
+			InputData_ = Allocator_.allocate< char >( InputSize_ );
+			memset( InputData_, 0, InputSize_ );
+			BcStrCopy( InputData_, InputSize_, FixedInputData.c_str() );
+		}
+
+		~FCPPInterface()
 		{
 		}
 
-		template < typename _Context, typename _Container >
-		bool found_unknown_directive( const _Context& Context, _Container const& Line, _Container& Pending )
+		void addInclude( const char* IncludePath ) 
 		{
-			using iterator_type = typename _Container::const_iterator;
-			iterator_type Iter = Line.begin();
-			boost::wave::token_id ID = boost::wave::util::impl::skip_whitespace( Iter, Line.end() );
+			auto Size = BcStrLength( IncludePath ) + 1;
+			char* Data = Allocator_.allocate< char >( Size );
+			BcStrCopy( Data, Size, IncludePath );
 
-			if( ID != boost::wave::T_IDENTIFIER )
-			{
-				return false;
-			}
-
-			auto Value = Iter->get_value();
-
-			// Version.
-			if( Value == "version" )
-			{
-				std::copy( Line.begin(), Line.end(), std::back_inserter( Pending ) );
-				return true;
-			}
-
-			// Extensions.
-			if( Value == "extension" )
-			{
-				std::copy( Line.begin(), Line.end(), std::back_inserter( Pending ) );
-				return true;
-			}
-
-			// Unknown directive
-			return false;
+			fppTag Tag;
+			Tag.tag = FPPTAG_INCLUDE_DIR;
+			Tag.data = Data;
+			Tags_.push_back( Tag );
 		}
 
-		template <typename _Context>
-		bool locate_include_file( _Context& Context, std::string& FilePath, bool IsSystem, char const* CurrentName, std::string& DirPath, std::string& NativeName )
+		void addDefine( const char* Define, const char* Value ) 
 		{
-			if( boost::wave::context_policies::default_preprocessing_hooks::locate_include_file(
-				Context, FilePath, IsSystem, CurrentName, DirPath, NativeName ) )
+			auto Size = BcStrLength( Define ) + 1;
+			if( Value )
 			{
-				Importer_.addDependency( DirPath.c_str() );
-				return true;
+				Size += BcStrLength( Value ) + 1;
 			}
-			return false;
+			char* Data = Allocator_.allocate< char >( Size );
+			memset( Data, 0, Size );
+			if( Value )
+			{
+				BcSPrintf( Data, Size, "%s=%s", Define, Value );
+			}
+			else
+			{
+				BcStrCopy( Data, Size, Define );
+			}
+
+			fppTag Tag;
+			Tag.tag = FPPTAG_DEFINE;
+			Tag.data = Data;
+			Tags_.push_back( Tag );
 		}
 
-		class ScnShaderImport& Importer_;
+		int preprocess()
+		{
+			fppTag Tag;
+			
+			Tag.tag = FPPTAG_END;
+			Tag.data = (void*)0;
+			Tags_.push_back( Tag );
+
+			int Result = fppPreProcess( Tags_.data() );
+
+			// Patch up pragmas.
+			Output_ = BcStrReplace( Output_, "#pragma  version", "#version" );
+			Output_ = BcStrReplace( Output_, "#pragma  extension", "#extension" );
+
+			Tags_.pop_back();
+
+			return Result == 0;
+		}
+
+		const std::string& getOutput()
+		{
+			return Output_;
+		}
+
+		static void cbError( void* UserData, char* Format, va_list VarArgs )
+		{
+			FCPPInterface* This = static_cast< FCPPInterface* >( UserData );
+			std::array< char, 4096 > ErrorBuffer;
+			ErrorBuffer.fill( 0 );
+			BcVSPrintf( ErrorBuffer.data(), ErrorBuffer.size() - 1, Format, VarArgs );
+			PSY_LOG( "ERROR: %s", ErrorBuffer.data() );
+		}
+
+		static char* cbInput( char* Buffer, int Size, void* UserData )
+		{
+			FCPPInterface* This = static_cast< FCPPInterface* >( UserData );
+			int OutIdx = 0;
+			char InputChar = This->InputData_[ This->InputOffset_ ];
+			while( This->InputOffset_ < This->InputSize_ && OutIdx < ( Size - 1 ) )
+			{
+				Buffer[ OutIdx ] = InputChar;
+				if( InputChar == '\n' || OutIdx == ( Size - 1 ) )
+				{
+					Buffer[ ++OutIdx ] = '\0';
+					This->InputOffset_++;
+					return Buffer;
+				}
+				++OutIdx;
+				InputChar = This->InputData_[ ++This->InputOffset_ ];
+			}
+			return nullptr;
+		}
+
+		static void cbOutput( int Char, void* UserData )
+		{
+			FCPPInterface* This = static_cast< FCPPInterface* >( UserData );
+			This->Output_ += Char;
+		}
+
+		static void cbDependency( char* Dependency, void* UserData )
+		{
+			FCPPInterface* This = static_cast< FCPPInterface* >( UserData );
+			This->Importer_.addDependency( Dependency );
+		}
+
+	private:
+		ScnShaderImport& Importer_;
+		std::vector< fppTag > Tags_;
+		char* InputData_;
+		size_t InputOffset_;
+		size_t InputSize_;
+		BcLinearAllocator Allocator_;
+		std::string Output_;
 	};
+
 
 	TBuiltInResource GetDefaultResource()
 	{
@@ -865,12 +984,12 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 	const char* ShaderDefines[] = 
 	{
-		"VERTEX_SHADER=1",
-		"PIXEL_SHADER=1",
-		"HULL_SHADER=1",
-		"DOMAIN_SHADER=1",
-		"GEOMETRY_SHADER=1",
-		"COMPUTE_SHADER=1"
+		"VERTEX_SHADER",
+		"PIXEL_SHADER",
+		"HULL_SHADER",
+		"DOMAIN_SHADER",
+		"GEOMETRY_SHADER",
+		"COMPUTE_SHADER"
 	};
 
 	const EShLanguage Language[] =
@@ -903,71 +1022,52 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 			// Preprocess it:
 			try
 			{
-				using lex_iterator_type = boost::wave::cpplexer::lex_iterator< boost::wave::cpplexer::lex_token<> >;
-				using context_type = boost::wave::context< 
-					std::string::iterator, 
-					lex_iterator_type,
-					boost::wave::iteration_context_policies::load_file_to_string,
-					glsl_directives_hooks >;
-
-				std::string SourceData = Params.ShaderSourceData_;
-
-				glsl_directives_hooks GLSLDirectiveHooks( *this );
-				context_type Context( SourceData.begin(), SourceData.end(), Params.ShaderSource_.c_str(), GLSLDirectiveHooks );
-
+				FCPPInterface Preprocessor( *this, Params.ShaderSource_.c_str(), Params.ShaderSourceData_.c_str() );
 				// Add defines.
 				for( auto Define : Params.Permutation_.Defines_ )
 				{
-					Context.add_macro_definition( Define.first + "=" + Define.second );
+					Preprocessor.addDefine( Define.first.c_str(), Define.second.c_str() );
 				}
 				auto ShaderDefine = ShaderDefines[ (int)Entry.Type_ ];
-				Context.add_macro_definition( ShaderDefine );
+				Preprocessor.addDefine( ShaderDefine, "1" );
 
 				// Add entry point macro.
-				Context.add_macro_definition( Entrypoint + "=main" );
+				if( Entrypoint != "main" )
+				{
+					Preprocessor.addDefine( Entrypoint.c_str(), "main" );
+				}
 
 				// Setup include paths.
-#if PLATFORM_WINDOWS
-				Context.add_sysinclude_path( ".\\" );
-				Context.add_sysinclude_path( "..\\Psybrus\\Dist\\Content\\Engine\\" );
-#elif PLATFORM_LINUX || PLATFORM_OSX
-				Context.add_sysinclude_path( "./" );
-				Context.add_sysinclude_path( "../Psybrus/Dist/Content/Engine/" );
-#else
-				BcBreakpoint;
-#endif
+				Preprocessor.addInclude( "." );
+				Preprocessor.addInclude( "../Psybrus/Dist/Content/Engine" );
 
-				// Get preprocessed shader.
-				std::string ProcessedSourceData;
-				for( auto It = Context.begin(); It != Context.end(); ++It )
-				{
-					ProcessedSourceData += (*It).get_value().c_str();
-				}
+				Preprocessor.preprocess();
+				std::string ProcessedSourceData = Preprocessor.getOutput();
 
 				// Parse inputs + outputs.
 				std::regex VertexAttributePattern( 
-					"\\s*(in|attribute)\\s.*;" );
+					"\\s*(in|attribute)\\s{1,}.*;.*" );
 
 				std::regex VertexAttributeFullPattern( 
-					"\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;" );
+					"\\s*(in|attribute)\\s{1,}(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;.*" );
 
 				std::regex VertexAttributeExtendedPattern( 
-					"\\s*(in|attribute)\\s*(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*(in|attribute)\\s{1,}(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s{1,}([a-zA-Z_][a-zA-Z0-9_]*)\\s{1,}:\\s{1,}([a-zA-Z][a-zA-Z]*)([0-9])?.*;.*" );
 
 				std::regex VertexAttributeLayoutPattern(
-					"\\s*layout\\(location=(.*)\\)\\s*(in|attribute)\\s*(float|vec2|vec2|vec4|int2|int3|int4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*layout\\(location=(.*)\\)\\s{1,}(in|attribute)\\s{1,}(float|vec2|vec2|vec4|int2|int3|int4)\\s{1,}([a-zA-Z_][a-zA-Z0-9_]*)\\s{1,}:\\s{1,}([a-zA-Z][a-zA-Z]*)([0-9])?.*" );
 
 				std::regex LineDirectivePattern(
-					"\\s*#line.*" );
+					"\\s*#line\\s{1,}.*" );
 				
 				std::regex InOutAttributePattern( 
-					"\\s*(in|out)\\s.*;" );
+					"\\s*(in|out)\\s{1,}.*" );
 
 				std::regex InOutAttributeFullPattern( 
-					"\\s*(in|out)\\s*(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;" );
+					"\\s*(in|out)\\s{1,}(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;.*" );
 
 				std::regex InOutAttributeExtendedPattern( 
-					"\\s*(in|out)\\s*(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([a-zA-Z][a-zA-Z]*)([0-9])?;" );
+					"\\s*(in|out)\\s{1,}(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s{1,}([a-zA-Z_][a-zA-Z0-9_]*)\\s{1,}:\\s{1,}([a-zA-Z][a-zA-Z]*)([0-9])?.*;.*" );
 
 				// If we're parsing a vertex shader, try grab vertex attributes.
 				std::istringstream Stream( ProcessedSourceData );
@@ -1247,14 +1347,6 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					RetVal = BcTrue;
 				}
 			}
-			catch ( const boost::wave::preprocess_exception& Exception )
-			{
-				PSY_LOG( "%s:%u: %s: %s", Exception.file_name(), Exception.line_no(), Exception.what(), Exception.description() );
-			}
-			catch ( const boost::wave::cpplexer::lexing_exception& Exception )
-			{
-				PSY_LOG( "%s:%u: %s: %s", Exception.file_name(), Exception.line_no(), Exception.what(), Exception.description() );
-			}
 			catch( const CsImportException& Exception )
 			{
 				PSY_LOG( "%s", Exception.what() );
@@ -1468,13 +1560,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						BuiltShaderData_[ BuiltShaderSPIRV.Hash_ ] = std::move( BuiltShaderSPIRV );
 					}
 				}
-				
 			}					
-
-
 		}
 		else
 		{
+			PSY_LOG( "Link errors:" );
 			PSY_LOG( "Link errors:" );
 			std::istringstream Stream( Program->getInfoLog() );
 			std::string Line;

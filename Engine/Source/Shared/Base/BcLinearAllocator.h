@@ -25,6 +25,15 @@ public:
 	 */
 	void* allocate( size_t Bytes );
 
+	/**
+	 * Allocate.
+	 */
+	template< typename _Ty >
+	_Ty* allocate( size_t Count )
+	{
+		return reinterpret_cast< _Ty* >( allocate( Count * sizeof( _Ty ) ) );
+	}
+
 private:
 	std::unique_ptr< BcU8 > Base_;
 	size_t Size_;
