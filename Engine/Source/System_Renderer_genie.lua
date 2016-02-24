@@ -9,8 +9,7 @@ PsyProjectEngineLib( "System_Renderer" )
   	includedirs {
       "./Shared/",
       "../../External/jsoncpp/include/",
-      "../../External/libb64/include/",
-      BOOST_INCLUDE_PATH,
+      "../../External/libb64/include/"
     }
 
  		PsyAddEngineLinks {
@@ -95,10 +94,6 @@ PsyProjectEngineLib( "System_Renderer" )
             "./Platforms/Windows/",
       }
 
-      libdirs {
-           BOOST_LIB_PATH
-      }
-
 
 if _OPTIONS["with-dx12"] then
       files {
@@ -129,8 +124,8 @@ if _OPTIONS["with-vk"] then
       }
 
       links {
-          "VKstatic.0",
-          "vulkan-0"
+          "VKstatic.1",
+          "vulkan-1"
       }
 
       defines { "WITH_VK=1" }

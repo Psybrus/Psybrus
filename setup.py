@@ -28,16 +28,6 @@ if vs110ComnTools == None:
 else:
 	print "...got!"
 
-# Check for boost.
-print "Checking for Boost..."
-boostRoot = os.getenv("BOOST_ROOT", None)
-if boostRoot == None:
-	print "BOOST_ROOT is not set to Boost root directory (i.e. C:\\Boost)"
-	print "Please set this up and run setup again"
-	exit(1)
-else:
-	print "...got!"
-
 # Add Psybrus env var.
 addEnvironmentVar("PSYBRUS_SDK", os.getcwd())
 

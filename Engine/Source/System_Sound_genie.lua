@@ -9,8 +9,7 @@ PsyProjectEngineLib( "System_Sound" )
       "./Shared/",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
-      "../../External/SoLoud/include/",
-      BOOST_INCLUDE_PATH,
+      "../../External/SoLoud/include/"
     }
 
   	PsyAddEngineLinks {
@@ -45,9 +44,5 @@ PsyProjectEngineLib( "System_Sound" )
       
       includedirs {
             "./Platforms/Windows/",
-      }
-
-      libdirs {
-           BOOST_LIB_PATH
       }
 

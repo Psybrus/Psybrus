@@ -8,8 +8,7 @@ PsyProjectEngineLib( "System_File" )
   	includedirs {
       "./Shared/",
       "../../External/jsoncpp/include/",
-      "../../External/libb64/include/",
-      BOOST_INCLUDE_PATH,
+      "../../External/libb64/include/"
     }
 
     PsyAddEngineLinks {
@@ -66,10 +65,6 @@ PsyProjectEngineLib( "System_File" )
         }
         includedirs {
             "./Platforms/Windows/",
-        }
-
-      libdirs {
-           BOOST_LIB_PATH
         }
         
   configuration "winphone-*"

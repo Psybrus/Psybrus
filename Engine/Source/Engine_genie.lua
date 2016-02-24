@@ -16,12 +16,7 @@ PsyProjectEngineLib( "Engine" )
             "../../External/png/",
             "../../External/squish/",
             "../../External/webby/",
-            "../../External/zlib/",
-            BOOST_INCLUDE_PATH,  
-        }
-
-        libdirs {
-           BOOST_LIB_PATH
+            "../../External/zlib/"
         }
 
     configuration "linux-*"

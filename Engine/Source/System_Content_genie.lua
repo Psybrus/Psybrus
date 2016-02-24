@@ -11,7 +11,6 @@ PsyProjectEngineLib( "System_Content" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/RakNet/Source/", -- For DR_SHA1.
-      BOOST_INCLUDE_PATH,
     }
 
   	PsyAddEngineLinks {
@@ -48,9 +47,5 @@ PsyProjectEngineLib( "System_Content" )
         }
         includedirs {
             "./Platforms/Windows/",
-        }
-
-      libdirs {
-           BOOST_LIB_PATH
         }
 

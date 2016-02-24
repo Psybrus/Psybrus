@@ -16,8 +16,7 @@ PsyProjectEngineLib( "System" )
       "../../External/png/",
       "../../External/squish/",
       "../../External/webby/",
-      "../../External/zlib/",
-      BOOST_INCLUDE_PATH,
+      "../../External/zlib/"
     }
 
     -- GLEW config.
@@ -61,8 +60,4 @@ PsyProjectEngineLib( "System" )
         }
         includedirs {
             "./Platforms/Windows/",
-        }
-
-	    libdirs {
-           BOOST_LIB_PATH
         }

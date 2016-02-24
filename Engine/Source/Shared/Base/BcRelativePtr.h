@@ -6,11 +6,6 @@
 #include <limits>
 #include <type_traits>
 
-#if COMPILER_MSVC
-// Fallback to boost as VS doesn't support const_expr.
-#include <boost/integer.hpp>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // @brief Relative pointer.
 // Stores an offset from 'this' to the data it points to rather than pointer.
@@ -20,13 +15,8 @@ template< typename _OffsetType, typename _Ty >
 class BcRelativePtr
 {
 private:
-#if COMPILER_MSVC
-	static const ptrdiff_t OFFSET_TYPE_MIN = boost::integer_traits< _OffsetType >::const_min;
-	static const ptrdiff_t OFFSET_TYPE_MAX = boost::integer_traits< _OffsetType >::const_max - 1;
-#else
 	static const ptrdiff_t OFFSET_TYPE_MIN = std::numeric_limits< _OffsetType >::min();
 	static const ptrdiff_t OFFSET_TYPE_MAX = std::numeric_limits< _OffsetType >::max() - 1;
-#endif
 
 	static const size_t OFFSET_TYPE_BITS = sizeof( _OffsetType ) * 8;
 	static const _OffsetType NULLPTR_VALUE = static_cast< _OffsetType >( OFFSET_TYPE_MAX + 1 );

@@ -13,7 +13,7 @@ class Build():
 		command_line = ""
 		for additional_option in self.platform.extra_flags:
 			command_line += additional_option + " "
-		command_line += "--file=genie.lua --toolchain={0} --boostpath=$BOOST_ROOT --platform={1} --os={2} {3}".format( 
+		command_line += "--file=genie.lua --toolchain={0} --platform={1} --os={2} {3}".format( 
 			self.platform.name, 
 			self.platform.arch, 
 			self.platform.build_type, 
@@ -26,7 +26,6 @@ class Build():
 		elif system() == "Darwin":
 			os.system( "./Psybrus/Tools/genie/darwin/genie " + command_line )
 		elif system() == "Windows":
-			command_line = command_line.replace( "$BOOST_ROOT", "%BOOST_ROOT%" );
 			os.system( "Psybrus\\Tools\\genie\\windows\\genie.exe " + command_line )
 
 

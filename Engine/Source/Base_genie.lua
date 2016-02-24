@@ -8,12 +8,7 @@ PsyProjectEngineLib( "Base" )
 
     includedirs {
       "./Shared/",
-      "../../External/zlib/",
-      BOOST_INCLUDE_PATH,
-    }
-
-    libdirs {
-      BOOST_LIB_PATH
+      "../../External/zlib/"
     }
 
     PsyAddExternalLinks {

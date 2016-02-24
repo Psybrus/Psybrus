@@ -12,15 +12,10 @@ PsyProjectEngineLib( "Math" )
   	includedirs {
       "./Shared/",
       "./Platforms/Windows/",
-      "../../External/zlib/",
-      BOOST_INCLUDE_PATH,
+      "../../External/zlib/"
     }
 
 	configuration "windows-*"
-	    libdirs {
-           BOOST_LIB_PATH
-        }
-
    		PsyAddEngineLinks {
    			"Base",
         "Reflection",

@@ -21,16 +21,10 @@ Python must be in your PATH env var.
 
 Linux:
 ------
-You will need to build a version of boost with Clang, otherwise it will not link correctly.
 
 Dependencies:
 1) Clang 3.5
 2) ccache
-3) Boost 1.59
-Will probably need to be built against clang and libc++:
-    b2 toolset=clang cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" link=static
-
-Then set BOOST_ROOT environment var to its path (i.e. ~/path/to/boost_1_59_0).
 
 Linux users can also build for HTML5, but they will also need to build Emscripten themselves. Details of this to be written later.
 
@@ -42,11 +36,6 @@ I've setup a natvis file for use with Psybrus, as it helps a lot with debugging 
 Dependencies:
 1) Visual Studio 2015
 2) Windows SDK 8.1 (Windows SDK 10 if you want D3D12 support)
-3) Boost 1.59
-Requires static linking libs, so the following:
-    b2 --toolset=msvc-14.0 address-model=64 link=static runtime-link=static stage
-
-Then set BOOST_ROOT environment var to its path (i.e. C:\Path\to\boost_1_59_0).
 
 When building in Visual Studio, be sure to select the "x64" platform.
 

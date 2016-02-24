@@ -41,14 +41,12 @@ function PsyPlatformIncludes()
 
     configuration "windows-*"
        includedirs {
-          "../Psybrus/Engine/Source/Platforms/Windows/",
-          BOOST_INCLUDE_PATH
+          "../Psybrus/Engine/Source/Platforms/Windows/"
        }
 
     configuration "winphone-*"
        includedirs {
-          "../Psybrus/Engine/Source/Platforms/Windows/",
-          BOOST_INCLUDE_PATH
+          "../Psybrus/Engine/Source/Platforms/Windows/"
        }
 
     configuration "*"
@@ -357,14 +355,6 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	       "zlib",
 	    }
 
-	    PsyAddBoostLibs {
-	       "regex",
-	       "filesystem",
-	       "system",
-	       "thread",
-	       "wave",
-	    }
-
 	PsyAddSystemLibs()
 
     configuration { "windows-* or linux-* or osx-*" }
@@ -418,14 +408,8 @@ function PsyProjectPsybrusExe( _name, _exeName )
 
    configuration "windows-*"
       includedirs {
-         "../Psybrus/Engine/Source/Platforms/Windows/",
-         BOOST_INCLUDE_PATH
+         "../Psybrus/Engine/Source/Platforms/Windows/"
       }
-
-      libdirs {
-           BOOST_LIB_PATH
-      }
-
 
 	-- Terminate project.
 	configuration "*"

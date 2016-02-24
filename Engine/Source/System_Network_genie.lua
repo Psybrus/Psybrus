@@ -14,8 +14,7 @@ PsyProjectEngineLib( "System_Network" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/RakNet/Source",
-      "../../External/webby/",
-      BOOST_INCLUDE_PATH,
+      "../../External/webby/"
     }
 
 		PsyAddEngineLinks {
@@ -25,8 +24,3 @@ PsyProjectEngineLib( "System_Network" )
     PsyAddExternalLinks {
       "webby",
 		}
-
-  configuration "windows-*"
-    libdirs {
-         BOOST_LIB_PATH
-    }

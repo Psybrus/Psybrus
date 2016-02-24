@@ -10,15 +10,10 @@ PsyProjectEngineLib( "Events" )
       "./Platforms/Windows/",
       "../../External/zlib/",
       "../../External/jsoncpp/include/",
-      "../../External/libb64/include/",
-      BOOST_INCLUDE_PATH,
+      "../../External/libb64/include/"
     }
 
 	configuration "windows-*"
-	    libdirs {
-           BOOST_LIB_PATH
-        }
-
    		PsyAddEngineLinks {
         "Base",
    		}

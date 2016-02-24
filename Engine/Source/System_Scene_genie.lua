@@ -21,16 +21,11 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/glslang/glslang/Public",
       "../../External/glslang/SPIRV",
       "../../External/glsl-optimizer/src",
-      "../../External/rapidxml/",
-      BOOST_INCLUDE_PATH,
+      "../../External/rapidxml/"
     }
 
     -- GLEW config.
     defines { "GLEW_STATIC" }
-
-    libdirs {
-         BOOST_LIB_PATH
-    }
 
 		PsyAddEngineLinks {
       "System",
@@ -80,8 +75,4 @@ PsyProjectEngineLib( "System_Scene" )
       
       includedirs {
             "./Platforms/Windows/",
-      }
-
-      libdirs {
-           BOOST_LIB_PATH
       }

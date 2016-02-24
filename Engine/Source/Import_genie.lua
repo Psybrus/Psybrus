@@ -15,13 +15,7 @@ PsyProjectEngineLib( "Import" )
       "../../External/ogg/include/",
       "../../External/png/",
       "../../External/rg-etc1/",
-      "../../External/squish/",
-      "../../External/tremor/",
-      BOOST_INCLUDE_PATH,
-    }
-
-    libdirs {
-       BOOST_LIB_PATH
+      "../../External/squish/"
     }
 
   	PsyAddEngineLinks {

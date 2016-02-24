@@ -31,8 +31,8 @@ if PsyProjectExternalLib( "assimp", "C++" ) then
 			"./assimp",
 			"./assimp/include",
 			"./assimp/code",
-			"./zlib",
-			BOOST_INCLUDE_PATH
+			"./assimp/code/BoostWorkaround",
+			"./zlib"
 		}
 
 		defines { 
@@ -73,9 +73,6 @@ if PsyProjectExternalLib( "assimp", "C++" ) then
 		}
 
 		excludes { 
-			-- Remove boost workaround.
-			"./assimp/code/BoostWorkaround/**.*",
-
 			-- Remove ogre, has compile issues.
 			"./assimp/code/Ogre**.*",
 		}
@@ -105,8 +102,7 @@ if PsyProjectExternalLib( "assimp_contrib", "C++" ) then
 		}
 
 		includedirs { 
-			"./zlib",
-			BOOST_INCLUDE_PATH
+			"./zlib"
 		}
 
 		defines { 

@@ -10,8 +10,7 @@ PsyProjectEngineLib( "System_Debug" )
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
       "../../External/RakNet/Source",
-      "../../External/rapidxml/",
-      BOOST_INCLUDE_PATH,
+      "../../External/rapidxml/"
     }
 
     PsyAddEngineLinks {
@@ -60,8 +59,3 @@ PsyProjectEngineLib( "System_Debug" )
         includedirs {
             "./Platforms/Windows/",
         }
-
-      libdirs {
-           BOOST_LIB_PATH
-        }
-
