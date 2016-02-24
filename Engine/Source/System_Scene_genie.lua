@@ -15,9 +15,6 @@ PsyProjectEngineLib( "System_Scene" )
       "../../External/glew/include",
       "../../External/jsoncpp/include/",
       "../../External/libb64/include/",
-      "../../External/HLSLCrossCompiler/include/",
-      "../../External/hlsl2glslfork/include/",
-      "../../External/hlsl2glslfork/include/",
       "../../External/glslang/glslang/Public",
       "../../External/glslang/SPIRV",
       "../../External/glsl-optimizer/src",
@@ -48,9 +45,7 @@ PsyProjectEngineLib( "System_Scene" )
     PsyAddExternalLinks {
       "assimp",
       "fcpp",
-      "glsl-optimizer",
-      "hlsl2glslfork",
-      "HLSLCrossCompiler"
+      "glsl-optimizer"
 		}
 
   configuration "linux-*"

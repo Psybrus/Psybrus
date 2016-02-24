@@ -25,8 +25,6 @@ if _OPTIONS[ "toolchain" ] ~= "html5-clang-asmjs" then
 	dofile ("glew_genie.lua")
 	dofile ("glslang_genie.lua")
 	dofile ("glsl-optimizer_genie.lua")
-	dofile ("hlsl2glslfork_genie.lua")
-	dofile ("HLSLCrossCompiler_genie.lua")
 	dofile ("RakNet_genie.lua")
 	dofile ("rapidxml_genie.lua")
 	dofile ("rg-etc1_genie.lua")

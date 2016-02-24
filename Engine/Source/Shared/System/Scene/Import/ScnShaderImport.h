@@ -176,25 +176,6 @@ private:
 	BcBool buildPermutationHLSL( const ScnShaderPermutationJobParams& Params );
 	BcBool buildPermutationGLSL( const ScnShaderPermutationJobParams& Params );
 
-	BcBool convertHLSL2GLSL(
-		ScnShaderPermutationJobParams Params,
-		ScnShaderLevelEntry LevelEntry,
-		const std::string& Entrypoint,
-		const std::string& InHLSL, 
-		std::string& OutGLSL,
-		std::vector< RsProgramVertexAttribute >& OutVertexAttributes,
-		std::vector< std::string >& OutErrorMessages );
-
-	BcBool convertHLSLCC(
-		ScnShaderPermutationJobParams Params,
-		ScnShaderLevelEntry LevelEntry,
-		const std::string& Entrypoint,
-		const std::string& InHLSL, 
-		void* InOutCrossDependencyData,
-		std::string& OutGLSL,
-		std::vector< RsProgramVertexAttribute >& OutVertexAttributes,
-		std::vector< std::string >& OutErrorMessages );
-
 	BcU32 generateShaderHash( const ScnShaderBuiltData& Data );
 
 	void logSource( std::string Source );

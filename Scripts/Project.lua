@@ -363,8 +363,6 @@ function PsyProjectPsybrusExe( _name, _exeName )
           "assimp_contrib",
           "glslang",
           "glsl-optimizer",
-          "hlsl2glslfork",
-          "HLSLCrossCompiler",
           "glew",
           "ThinkGear",
        }
