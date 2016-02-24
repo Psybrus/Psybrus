@@ -62,6 +62,7 @@ if PsyProjectExternalLib( "assimp", "C++" ) then
 			"ASSIMP_BUILD_NO_TERRAGEN_IMPORTER",
 			"ASSIMP_BUILD_NO_CSM_IMPORTER",
 			"ASSIMP_BUILD_NO_3D_IMPORTER",
+			"ASSIMP_BUILD_NO_3DS_IMPORTER",
 			"ASSIMP_BUILD_NO_LWS_IMPORTER",
 			"ASSIMP_BUILD_NO_OGRE_IMPORTER",
 			"ASSIMP_BUILD_NO_MS3D_IMPORTER",
@@ -69,12 +70,56 @@ if PsyProjectExternalLib( "assimp", "C++" ) then
 			"ASSIMP_BUILD_NO_Q3BSP_IMPORTER",
 			"ASSIMP_BUILD_NO_NDO_IMPORTER",
 			"ASSIMP_BUILD_NO_IFC_IMPORTER",
-			"ASSIMP_BUILD_NO_XGL_IMPORTER"
+			"ASSIMP_BUILD_NO_XGL_IMPORTER",
+			"ASSIMP_BUILD_NO_BLEND_IMPORTER",
+			"ASSIMP_BUILD_NO_DXF_IMPORTER",
+			"ASSIMP_BUILD_NO_STL_IMPORTER",
+			"ASSIMP_BUILD_NO_SMD_IMPORTER",
+			"ASSIMP_BUILD_NO_PLY_IMPORTER",
+			"ASSIMP_BUILD_NO_ASE_IMPORTER"
+
+			-- "ASSIMP_BUILD_NO_OBJ_IMPORTER",
+			-- "ASSIMP_BUILD_NO_MD5_IMPORTER",
+			-- "ASSIMP_BUILD_NO_FBX_IMPORTER",
 		}
 
 		excludes { 
 			-- Remove ogre, has compile issues.
 			"./assimp/code/Ogre**.*",
+
+			-- Exclude all importers we don't want.
+			"./assimp/code/XFile*.*",
+			"./assimp/code/MD3*.*",
+			"./assimp/code/MDL*.*",
+			"./assimp/code/MD2*.*",
+			"./assimp/code/HMP*.*",
+			"./assimp/code/MDC*.*",
+			"./assimp/code/LWO*.*",
+			"./assimp/code/NFF*.*",
+			"./assimp/code/RAW*.*",
+			"./assimp/code/OFF*.*",
+			"./assimp/code/AC*.*",
+			"./assimp/code/BVH*.*",
+			"./assimp/code/IRR*.*",
+			"./assimp/code/Q3D*.*",
+			"./assimp/code/B3D*.*",
+			"./assimp/code/Collada*.*",
+			"./assimp/code/Terragen*.*",
+			"./assimp/code/CSM*.*",
+			"./assimp/code/Unreal*.*",
+			"./assimp/code/3DS*.*",
+			"./assimp/code/LWS*.*",
+			"./assimp/code/Ogr*.*",
+			"./assimp/code/Q3*.*",
+			"./assimp/code/NDO*.*",
+			"./assimp/code/IFC*.*",
+			"./assimp/code/XGL*.*",
+			"./assimp/code/Blender*.*",
+			"./assimp/code/DXF*.*",
+			"./assimp/code/STL*.*",
+			"./assimp/code/SMD*.*",
+			"./assimp/code/PLY*.*",
+			"./assimp/code/ASE*.*"
 		}
 
 	configuration "vs*"
