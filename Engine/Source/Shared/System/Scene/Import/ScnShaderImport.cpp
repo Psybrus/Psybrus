@@ -455,7 +455,7 @@ BcBool ScnShaderImport::newPipeline()
 	// Read in sources.
 	for( auto& SourcePair : Sources_ )
 	{
-		PSY_LOG( "- Source: %u - %s", SourcePair.first, SourcePair.second.c_str() );
+		PSY_LOG( "Source: %s - %s", (*ReManager::GetEnumValueName( SourcePair.first )).c_str(), SourcePair.second.c_str() );
 
 		BcFile SourceFile;
 		if( SourceFile.open( SourcePair.second.c_str(), bcFM_READ ) )
@@ -464,9 +464,7 @@ BcBool ScnShaderImport::newPipeline()
 			BcMemZero( FileData.data(), FileData.size() );
 			SourceFile.read( FileData.data(), FileData.size() );
 			SourcesFileData_[ SourcePair.first ] = FileData.data();
-
 			CodeTypes_.push_back( SourcePair.first );
-			PSY_LOG( "- - Added code type %u", SourcePair.first );
 			addDependency( SourcePair.second.c_str() );
 		}
 		else
@@ -488,6 +486,8 @@ BcBool ScnShaderImport::newPipeline()
 		Permutations_.push_back( Permutation );
 	}
 
+	PSY_LOG( "Total permutations per backend: %u, total: %u", Permutations_.size(), Permutations_.size() * CodeTypes_.size() );
+
 	// Sort input types from lowest to highest.
 	std::sort( CodeTypes_.begin(), CodeTypes_.end(), 
 		[]( RsShaderCodeType A, RsShaderCodeType B )
@@ -495,7 +495,7 @@ BcBool ScnShaderImport::newPipeline()
 			return A < B;
 		} );
 
-	// Kick off all permutation building jobs.
+	// Kick off all permutation building j-obs.
 	for( auto& Permutation : Permutations_ )
 	{
 		for( const auto& InputCodeType : CodeTypes_ )
@@ -569,7 +569,7 @@ BcBool ScnShaderImport::newPipeline()
 					++PendingPermutations_;
 
 					SysKernel::pImpl()->pushFunctionJob( 
-						BcErrorCode,
+						0,
 						[ this, JobParams ]()
 						{
 							if( buildPermutation( JobParams ) == BcFalse )

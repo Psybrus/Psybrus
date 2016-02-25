@@ -1246,10 +1246,13 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
-#if 1 
 				// Run glsl-optimizer for ES (Only GLSL_ES_100)
 				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
 				{
+					// HACK: glsl-optimizer is not thread safe.
+					static std::mutex Mutex;
+					std::lock_guard< std::mutex > Lock( Mutex );
+
 					auto GlslOptContext = glslopt_initialize( kGlslTargetOpenGLES20 );
 					glslopt_set_max_unroll_iterations( GlslOptContext, 64 );
 
@@ -1290,12 +1293,14 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						RetVal = BcFalse;
 					}
 
+#if PSY_DEBUG
 					int ApproxMath, ApproxTex, ApproxFlow;
 					glslopt_shader_get_stats(
 						GlslOptShader,
 						&ApproxMath, &ApproxTex, &ApproxFlow );
 					PSY_LOG( "glsl-optimizer shader stats (approx): %u math, %u tex, %u flow.",
 						ApproxMath, ApproxTex, ApproxFlow );
+#endif
 
 					glslopt_cleanup( GlslOptContext );
 
@@ -1312,39 +1317,45 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						}
 					}
 				}
-#endif
-				// Attempt to compile.
-				TBuiltInResource Resources = GetDefaultResource();
 
-				const char* ShaderSources[] = { ProcessedSourceData.c_str() };
-				glslang::TShader* Shader( new glslang::TShader( Language[ (int)Entry.Type_ ] ) );
-
-				Shader->setStrings( ShaderSources, 1 );
-
-				if( !Shader->parse( &Resources, 100, false, EShMsgDefault ) )
 				{
-					PSY_LOG( "Compile errors:" );
-					std::istringstream Stream( Shader->getInfoLog() );
-					std::string Line;
-					while( std::getline( Stream, Line ) )
+					// HACK: glslang is not thread safe.
+					static std::mutex Mutex;
+					std::lock_guard< std::mutex > Lock( Mutex );
+
+					// Attempt to compile.
+					TBuiltInResource Resources = GetDefaultResource();
+
+					const char* ShaderSources[] = { ProcessedSourceData.c_str() };
+					glslang::TShader* Shader( new glslang::TShader( Language[ (int)Entry.Type_ ] ) );
+
+					Shader->setStrings( ShaderSources, 1 );
+
+					if( !Shader->parse( &Resources, 100, false, EShMsgDefault ) )
 					{
-						PSY_LOG( "%s", Line.c_str() );
+						PSY_LOG( "Compile errors:" );
+						std::istringstream Stream( Shader->getInfoLog() );
+						std::string Line;
+						while( std::getline( Stream, Line ) )
+						{
+							PSY_LOG( "%s", Line.c_str() );
+						}
+
+						logSource( ProcessedSourceData );
+						RetVal = BcFalse;
 					}
+					else
+					{
+						Shaders.push_back( Shader );
+						Program->addShader( Shader );
 
-					logSource( ProcessedSourceData );
-					RetVal = BcFalse;
-				}
-				else
-				{
-					Shaders.push_back( Shader );
-					Program->addShader( Shader );
-
-					// Shader code straight in.
-					BuiltShaderGLSL.ShaderType_ = Entry.Type_;
-					BuiltShaderGLSL.CodeType_ = Params.OutputCodeType_;
-					BuiltShaderGLSL.Code_ = std::move( BcBinaryData( (void*)ProcessedSourceData.c_str(), ProcessedSourceData.size() + 1, BcTrue ) );
-					BuiltShaderGLSL.Hash_ = generateShaderHash( BuiltShaderGLSL );
-					RetVal = BcTrue;
+						// Shader code straight in.
+						BuiltShaderGLSL.ShaderType_ = Entry.Type_;
+						BuiltShaderGLSL.CodeType_ = Params.OutputCodeType_;
+						BuiltShaderGLSL.Code_ = std::move( BcBinaryData( (void*)ProcessedSourceData.c_str(), ProcessedSourceData.size() + 1, BcTrue ) );
+						BuiltShaderGLSL.Hash_ = generateShaderHash( BuiltShaderGLSL );
+						RetVal = BcTrue;
+					}
 				}
 			}
 			catch( const CsImportException& Exception )
@@ -1381,6 +1392,10 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	// Test linkage if compilation was successful.
 	if( RetVal != BcFalse )
 	{
+		// HACK: glslang is not thread safe.
+		static std::mutex Mutex;
+		std::lock_guard< std::mutex > Lock( Mutex );
+
 		if( Program->link( BuildSPIRV ? EShMsgVulkanRules : EShMsgDefault ) )
 		{
 			// Build reflection info for shader.
