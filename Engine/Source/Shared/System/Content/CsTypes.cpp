@@ -23,8 +23,12 @@
 // Paths
 #if PLATFORM_LINUX | PLATFORM_WINDOWS | PLATFORM_OSX
 const BcPath CsPaths::PACKED_CONTENT( "PackedContent/pc" );
+const BcPath CsPaths::INTERMEDIATE( "Intermediate/pc" );
+const BcPath CsPaths::CONTENT( "Content" );
 #else
 const BcPath CsPaths::PACKED_CONTENT( "PackedContent" );
+const BcPath CsPaths::INTERMEDIATE( "Intermediate" );
+const BcPath CsPaths::CONTENT( "Content" );
 #endif
 
 //////////////////////////////////////////////////////////////////////////

@@ -36,6 +36,8 @@ struct CsPackageDependencies
 
 	CsPackageDependencies(){};
 
+	bool haveChanged() const;
+
 	typedef std::set< CsDependency > TDependencyList;
 	
 	TDependencyList Dependencies_;

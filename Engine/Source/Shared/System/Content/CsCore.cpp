@@ -12,8 +12,15 @@
 **************************************************************************/
 
 #include "System/Content/CsCore.h"
+#include "System/Content/CsSerialiserPackageObjectCodec.h"
 #include "System/Content/CsRedirector.h"
+
 #include "System/File/FsCore.h"
+
+#include "Serialisation/SeJsonReader.h"
+
+#include <filesystem>
+namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
 
 SYS_CREATOR( CsCore );
 
@@ -247,10 +254,106 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 			(*Package).c_str() );
 	}
 
-
 	// Check for a packed package.
 	BcPath PackedPackage( *CsPaths::PACKED_CONTENT + "/" + *Package + ".pak" );
 	BcBool PackageExists = FsCore::pImpl()->fileExists( PackedPackage.c_str() );
+
+#if (PLATFORM_WINDOWS || PLATFORM_LINUX || PLATFORM_OSX) && !PSY_PRODUCTION
+	// Non production builds should launch importer after a dependency check.
+	bool ShouldImport = false;
+
+	// Read in dependencies.
+	FsStats Stats;
+	BcPath OutputDependencies( *CsPaths::INTERMEDIATE + "/" + *Package + ".pak/deps.json" );
+
+	// Import package & output dependencies changed?
+	if( PackageExists )
+	{
+		if(	std::filesystem::exists( OutputDependencies.c_str() ) )
+		{
+			CsPackageDependencies Dependencies;
+			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
+			SeJsonReader Reader( &ObjectCodec );
+			Reader.load( OutputDependencies.c_str() );
+			Reader << Dependencies;
+			ShouldImport |= Dependencies.haveChanged();
+		}
+		else
+		{
+			ShouldImport = true;
+		}
+	}
+	else
+	{
+		ShouldImport = true;
+	}
+
+	// 
+	if( ShouldImport )
+	{
+#if PSY_DEBUG
+		const char* ImporterName = "Importer-Debug";
+#endif
+#if PSY_RELEASE
+		const char* ImporterName = "Importer-Release";
+#endif
+
+#if PLATFORM_WINDOWS
+		const char* Prefix = "";
+		const char* Suffix = ".exe";
+#else
+		const char* Prefix = "./";
+		const char* Suffix = "";
+#endif
+
+		bool Success = false;
+		while( !Success )
+		{
+			// Grab log time.
+			std::array< char, 1024 > LogTime;
+			LogTime.fill( 0 );
+			auto Time = std::time( nullptr );
+			auto LocalTime = *std::localtime( &Time );
+			strftime( LogTime.data(), LogTime.size(), "%Y-%m-%d-%H-%M-%S.png", &LocalTime );
+
+			// Log filename.
+			std::array< char, 1024 > LogFilename;
+			LogFilename.fill( 0 );
+			BcSPrintf( LogFilename.data(), LogFilename.size(), "%s_%s.log", ImporterName, LogTime.data() );
+
+			// Build commandline.
+			std::array< char, 1024 > CommandLine;
+			CommandLine.fill( 0 );
+			BcSPrintf( CommandLine.data(), CommandLine.size(), "%s%s%s -p %s/%s.pkg >> %s", 
+				Prefix, ImporterName, Suffix, CsPaths::CONTENT.c_str(), (*Package).c_str(),
+				LogFilename.data());
+
+			PSY_LOG( "Launching importer for package \"%s\" with commandline: %s", (*Package).c_str(), CommandLine.data() );
+			int RetCode = std::system( CommandLine.data() );
+			if( RetCode != 0 )
+			{
+				std::array< char, 1024 > Message;
+				Message.fill( 0 );
+				BcSPrintf( Message.data(), Message.size(), "Importer failed.\nSee log \"%s\" for details.\n\nWould you like to re-run?", LogFilename.data() );
+				auto RetVal = BcMessageBox( "ERROR", Message.data(), bcMBT_YESNOCANCEL, bcMBI_ERROR );
+
+				if( RetVal == bcMBR_NO )
+				{
+					break;
+				}
+				else if( RetVal == bcMBR_CANCEL )
+				{
+					exit( RetCode );
+				}
+			}
+			else
+			{
+				std::filesystem::remove( LogFilename.data() );
+				Success = true;
+			}
+		}
+	}
+#endif
 
 	// If it exists, create it. Internally it will trigger it's own load.
 	if( PackageExists )

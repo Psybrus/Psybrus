@@ -35,6 +35,8 @@ class CsPaths
 {
 public:
 	static const BcPath PACKED_CONTENT;
+	static const BcPath INTERMEDIATE;
+	static const BcPath CONTENT;
 };
 
 //////////////////////////////////////////////////////////////////////////

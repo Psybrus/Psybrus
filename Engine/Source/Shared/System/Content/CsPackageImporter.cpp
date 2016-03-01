@@ -117,6 +117,21 @@ void CsPackageDependencies::StaticRegisterClass()
 	ReRegisterClass< CsPackageDependencies >( Fields );
 };
 
+//////////////////////////////////////////////////////////////////////////
+// haveChanged
+bool CsPackageDependencies::haveChanged() const
+{
+	for( const auto& Dependency : Dependencies_ )
+	{
+		if( Dependency.hasChanged() )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
 #if PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////

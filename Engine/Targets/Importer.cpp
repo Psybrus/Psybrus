@@ -75,31 +75,13 @@ std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::
 			if(	std::filesystem::exists( OutputDependencies ) )
 			{
 				PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
-				PSY_LOGSCOPEDINDENT;
 
 				CsPackageDependencies Dependencies;
 				CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 				SeJsonReader Reader( &ObjectCodec );
 				Reader.load( OutputDependencies.c_str() );
 				Reader << Dependencies;
-
-				// Check other dependencies.
-				if( !ShouldImport )
-				{
-					for( const auto& Dependency : Dependencies.Dependencies_ )
-					{
-						if( Dependency.hasChanged() )
-						{
-							PSY_LOG( "WARNING: \"%s\" has changed.\n", Dependency.getFileName().c_str() );
-							ShouldImport = BcTrue;
-							break;
-						}
-						else
-						{
-							PSY_LOG( "\"%s\" has not changed.\n", Dependency.getFileName().c_str() );						
-						}
-					}
-				}
+				ShouldImport |= Dependencies.haveChanged();
 			}
 			else
 			{
