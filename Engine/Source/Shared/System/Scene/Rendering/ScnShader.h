@@ -70,6 +70,9 @@ private:
 
 	RsShader* getShader( BcU32 Hash, TShaderMap& ShaderMap );
 	
+	void createProgram( ProgramData& ProgramData );
+	void createShader( ShaderData& ShaderData );
+
 private:
 	void fileReady() override;
 	void fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData ) override;

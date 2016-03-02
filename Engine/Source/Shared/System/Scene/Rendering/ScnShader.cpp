@@ -125,64 +125,10 @@ RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 	{
 		auto& ProgramData = BestIter->second;
 
+		// If we don't have program, create it.
 		if( ProgramData.Program_ == nullptr )
 		{
-			std::vector< RsShader* > Shaders;
-			Shaders.reserve( (size_t)RsShaderType::MAX );
-		
-			for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-			{
-				if( ProgramData.Header_->ShaderHashes_[ Idx ] != 0 )
-				{
-					auto& ShaderMapping( ShaderMappings_[ Idx ] );
-					RsShader* pShader = getShader( ProgramData.Header_->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
-					BcAssertMsg( pShader != nullptr, "Shader for permutation %x is invalid in ScnShader %s\n", ProgramData.Header_->ProgramPermutationFlags_, getFullName().c_str() );
-					Shaders.push_back( pShader );
-				}
-			}
-
-			// Shrink to fit.
-			Shaders.shrink_to_fit();
-
-#if PSY_DEBUG
-			if( Shaders.size() == 0)
-			{
-				PSY_LOG( "Unable to find shaders:" );
-				for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
-				{
-					PSY_LOG( " - Shader %u: %x", Idx, ProgramData.Header_->ShaderHashes_[ Idx ] != 0 );
-				}
-			}
-#endif
-
-			RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( ProgramData.Header_ + 1 );
-			RsProgramVertexAttributeList VertexAttributes;
-			VertexAttributes.reserve( ProgramData.Header_->NoofVertexAttributes_ );
-			for( BcU32 Idx = 0; Idx < ProgramData.Header_->NoofVertexAttributes_; ++Idx )
-			{
-				VertexAttributes.push_back( VertexAttributes_[ Idx ] );
-			}
-
-			RsProgramParameter* Parameters_ = (RsProgramParameter*)( VertexAttributes_ + ProgramData.Header_->NoofVertexAttributes_ );
-			RsProgramParameterList Parameters;
-			Parameters.reserve( ProgramData.Header_->NoofParameters_ );
-			for( BcU32 Idx = 0; Idx < ProgramData.Header_->NoofParameters_; ++Idx )
-			{
-				Parameters.push_back( Parameters_[ Idx ] );
-			}
-
-			// Create program.
-#if PSY_DEBUG
-			std::string Flags;
-			ReManager::GetEnum( "ScnShaderPermutationFlags" )->getTypeSerialiser()->serialiseToString( &ProgramData.Header_->ProgramPermutationFlags_, Flags );
-			PSY_LOG( "Creating program: %s %s (%x)", (*getName()).c_str(), Flags.c_str(), ProgramData.Header_->ProgramPermutationFlags_ );
-#endif // PSY_DEBUG
-			RsProgramUPtr Program = RsCore::pImpl()->createProgram( 
-				std::move( Shaders ), 
-				std::move( VertexAttributes ),
-				std::move( Parameters ),
-				getFullName().c_str() );			
-			ProgramData.Program_ = Program.release();
+			createProgram( ProgramData );
 		}
 
 		return ProgramData.Program_;
@@ -204,33 +150,106 @@ RsShader* ScnShader::getShader( BcU32 Hash, ScnShader::TShaderMap& ShaderMap )
 		auto& ShaderData = BestIter->second;
 		if( ShaderData.Shader_ == nullptr )
 		{
-			// Check for file loading.
-			BcU32* pFileLoadTag = (BcU32*)ShaderData.Data_;
-			BcBool FreeShaderData = BcFalse;
-			BcUnusedVar( pFileLoadTag );
-			BcUnusedVar( FreeShaderData );
-#if !defined( PSY_PRODUCTION )
-			if( *pFileLoadTag == ScnShader::LOAD_FROM_FILE_TAG )
-			{
-				BcFile InputFile;
-				auto Filename = (const char*)( pFileLoadTag + 1 );
-				InputFile.open( Filename );
-				ShaderData.Size_ = static_cast< BcU32 >( InputFile.size() );
-				ShaderData.Data_ = InputFile.readAllBytes().release();
-				FreeShaderData = BcTrue;
-			}
-#endif
-			RsShaderUPtr Shader = RsCore::pImpl()->createShader(
-				RsShaderDesc( ShaderData.Header_->ShaderType_, ShaderData.Header_->ShaderCodeType_ ), 
-				ShaderData.Data_, ShaderData.Size_,
-				getFullName().c_str() );
-			ShaderData.Shader_ = Shader.release();
+			createShader( ShaderData );
 		}
 
 		return ShaderData.Shader_;
 	}
 	
 	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createProgram
+void ScnShader::createProgram( ProgramData& ProgramData )
+{
+	BcAssert( ProgramData.Program_ == nullptr );
+
+	std::vector< RsShader* > Shaders;
+	Shaders.reserve( (size_t)RsShaderType::MAX );
+		
+	for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+	{
+		if( ProgramData.Header_->ShaderHashes_[ Idx ] != 0 )
+		{
+			auto& ShaderMapping( ShaderMappings_[ Idx ] );
+			RsShader* pShader = getShader( ProgramData.Header_->ShaderHashes_[ Idx ], ShaderMapping.Shaders_ );
+			BcAssertMsg( pShader != nullptr, "Shader for permutation %x is invalid in ScnShader %s\n", ProgramData.Header_->ProgramPermutationFlags_, getFullName().c_str() );
+			Shaders.push_back( pShader );
+		}
+	}
+
+	// Shrink to fit.
+	Shaders.shrink_to_fit();
+
+#if PSY_DEBUG
+	if( Shaders.size() == 0)
+	{
+		PSY_LOG( "Unable to find shaders:" );
+		for( BcU32 Idx = 0; Idx < (BcU32)RsShaderType::MAX; ++Idx )
+		{
+			PSY_LOG( " - Shader %u: %x", Idx, ProgramData.Header_->ShaderHashes_[ Idx ] != 0 );
+		}
+	}
+#endif
+
+	RsProgramVertexAttribute* VertexAttributes_ = (RsProgramVertexAttribute*)( ProgramData.Header_ + 1 );
+	RsProgramVertexAttributeList VertexAttributes;
+	VertexAttributes.reserve( ProgramData.Header_->NoofVertexAttributes_ );
+	for( BcU32 Idx = 0; Idx < ProgramData.Header_->NoofVertexAttributes_; ++Idx )
+	{
+		VertexAttributes.push_back( VertexAttributes_[ Idx ] );
+	}
+
+	RsProgramParameter* Parameters_ = (RsProgramParameter*)( VertexAttributes_ + ProgramData.Header_->NoofVertexAttributes_ );
+	RsProgramParameterList Parameters;
+	Parameters.reserve( ProgramData.Header_->NoofParameters_ );
+	for( BcU32 Idx = 0; Idx < ProgramData.Header_->NoofParameters_; ++Idx )
+	{
+		Parameters.push_back( Parameters_[ Idx ] );
+	}
+
+	// Create program.
+#if PSY_DEBUG
+	std::string Flags;
+	ReManager::GetEnum( "ScnShaderPermutationFlags" )->getTypeSerialiser()->serialiseToString( &ProgramData.Header_->ProgramPermutationFlags_, Flags );
+	PSY_LOG( "Creating program: %s %s (%x)", (*getName()).c_str(), Flags.c_str(), ProgramData.Header_->ProgramPermutationFlags_ );
+#endif // PSY_DEBUG
+	RsProgramUPtr Program = RsCore::pImpl()->createProgram( 
+		std::move( Shaders ), 
+		std::move( VertexAttributes ),
+		std::move( Parameters ),
+		getFullName().c_str() );			
+	ProgramData.Program_ = Program.release();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createShader
+void ScnShader::createShader( ShaderData& ShaderData )
+{	
+	BcAssert( ShaderData.Shader_ == nullptr );
+
+	// Check for file loading.
+	BcU32* pFileLoadTag = (BcU32*)ShaderData.Data_;
+	BcBool FreeShaderData = BcFalse;
+	BcUnusedVar( pFileLoadTag );
+	BcUnusedVar( FreeShaderData );
+#if !defined( PSY_PRODUCTION )
+	if( *pFileLoadTag == ScnShader::LOAD_FROM_FILE_TAG )
+	{
+		BcFile InputFile;
+		auto Filename = (const char*)( pFileLoadTag + 1 );
+		InputFile.open( Filename );
+		ShaderData.Size_ = static_cast< BcU32 >( InputFile.size() );
+		ShaderData.Data_ = InputFile.readAllBytes().release();
+		FreeShaderData = BcTrue;
+	}
+#endif
+	RsShaderUPtr Shader = RsCore::pImpl()->createShader(
+		RsShaderDesc( ShaderData.Header_->ShaderType_, ShaderData.Header_->ShaderCodeType_ ), 
+		ShaderData.Data_, ShaderData.Size_,
+		getFullName().c_str() );
+	ShaderData.Shader_ = Shader.release();
 }
 
 //////////////////////////////////////////////////////////////////////////
