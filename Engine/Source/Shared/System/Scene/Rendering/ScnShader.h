@@ -46,11 +46,23 @@ public:
 	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
 	
 private:
-	typedef std::map< BcU32, RsShader* > TShaderMap;
-	typedef std::map< ScnShaderPermutationFlags, RsProgram* > TProgramMap;
-	typedef TShaderMap::iterator TShaderMapIterator;
-	typedef TProgramMap::iterator TProgramMapIterator;
+	struct ShaderData
+	{
+		ScnShaderUnitHeader* Header_;
+		void* Data_;
+		BcU32 Size_;
+		RsShader* Shader_;
+	};
 
+	struct ProgramData
+	{
+		ScnShaderProgramHeader* Header_;
+		RsProgram* Program_;
+	};
+
+	typedef std::map< BcU32, ShaderData > TShaderMap;
+	typedef std::map< ScnShaderPermutationFlags, ProgramData > TProgramMap;
+	
 	struct ShaderContainer
 	{
 		TShaderMap Shaders_;

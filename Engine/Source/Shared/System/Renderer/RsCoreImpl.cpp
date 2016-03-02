@@ -484,15 +484,19 @@ RsProgramUPtr RsCoreImpl::createProgram(
 	Resource->setDebugName( DebugName );
 
 	// Call create on render thread.
+	SysFence Fence;
+	Fence.increment();
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
-		[ Context, Resource = Resource.get() ]
+		[ Context, Resource = Resource.get(), &Fence ]
 		{
 			if( !Context->createProgram( Resource ) )
 			{
 				PSY_LOG( "Failed RsProgram creation: %s", Resource->getDebugName() );
 			}
+			Fence.decrement();
 		} );
+	Fence.wait();
 
 #if !PSY_PRODUCTION
 	std::lock_guard< std::mutex > Lock( AliveLock_ );
