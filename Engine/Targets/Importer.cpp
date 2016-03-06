@@ -9,12 +9,16 @@
 #include "Serialisation/SeJsonReader.h"
 
 #include "Base/BcCommandLine.h"
+#include "Base/BcFile.h"
 
 #include <vector>
 #include <iostream>
 
+#if PLATFORM_LINUX || PLATFORM_OSX
+#include <dirent.h>
+#elif PLATFORM_WINDOWS
 #include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // GPsySetupParams
@@ -26,7 +30,24 @@ std::vector< BcPath > FindPackages( const CsPlatformParams& Params )
 {
 	std::vector< BcPath > FoundPackages;
 
-	using namespace std::filesystem;
+#if PLATFORM_LINUX || PLATFORM_OSX
+	if( DIR* SearchDir = opendir( "Content" ) )
+	{
+		dirent Data;
+		dirent* FoundEntry = nullptr;
+		while( readdir_r( SearchDir, &Data, &FoundEntry ) == 0 && FoundEntry != nullptr )
+		{
+			if( strstr( FoundEntry->d_name, ".pkg" ) )
+			{
+				std::array< char, 256 > FullPath;
+				BcSPrintf( FullPath.data(), FullPath.size(), "Content/%s", FoundEntry->d_name );
+				FoundPackages.emplace_back( FullPath.data() );
+			}
+		}
+		closedir(SearchDir);
+	}
+#elif PLATFORM_WINDOWS
+	using namespace std::experimental::filesystem;
 	path Path( "Content/" );
 
 	auto It = directory_iterator( Path );
@@ -40,9 +61,10 @@ std::vector< BcPath > FindPackages( const CsPlatformParams& Params )
 		}
 		++It;
 	}
+#endif
 
 	PSY_LOG( "Found %u packages.", FoundPackages.size() );
-
+	
 	return FoundPackages;
 }
 
@@ -64,15 +86,15 @@ std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::
 		std::string OutputDependencies = *Params.getPackageIntermediatePath( PackageName ) + "/deps.json";
 
 		// Import package if it doesn't exist.
-		if( !std::filesystem::exists( PackedPackage ) )
+		if( !BcFileSystemExists( PackedPackage.c_str() ) )
 		{
 			ShouldImport = BcTrue;
 		}
 
 		// Import package & output dependencies changed?
-		if( std::filesystem::exists( *PackagePath ) )
+		if( BcFileSystemExists( (*PackagePath).c_str() ) )
 		{
-			if(	std::filesystem::exists( OutputDependencies ) )
+			if(	BcFileSystemExists( OutputDependencies.c_str() ) )
 			{
 				PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
 
@@ -171,7 +193,7 @@ void PsyToolMain()
 	}
 
 	// Try loading params file.
-	if( std::filesystem::exists( ConfigFile ) )
+	if( BcFileSystemExists( ConfigFile.c_str() ) )
 	{
 		CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 		SeJsonReader Reader( &ObjectCodec );

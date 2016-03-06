@@ -39,16 +39,12 @@ BcU32 GResolutionHeight = 720;
 #include "Import/Img/gif.h"
 
 #include "Base/BcBuildInfo.h"
+#include "Base/BcFile.h"
 #include "Base/BcProfiler.h"
 
 #include "System/SysProfilerChromeTracing.h"
 
 #define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
-
-#if SEARCH_FOR_CORRECT_PATH
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-#endif
 
 #include <chrono>
 
@@ -404,44 +400,32 @@ void MainShared()
 #endif
 
 #if SEARCH_FOR_CORRECT_PATH
-	// Search each level up from the executable until we hit either a "PackedContent" folder,
-	// or we hit a "Dist" folder in non-production builds. This will allow executables to be
-	// subfoldered by platform or similar.
-	using namespace std::filesystem;
-	path SearchPath( canonical( SysExePath_ ).parent_path() );
-	path CurrentPath( canonical( current_path() ) );
-
-	// Search up the path to find where we should be.
 	bool FoundRoot = false;
-	while( FoundRoot == false && SearchPath.has_filename() )
+	bool Success = true;
+	while( !FoundRoot && Success )
 	{
-		auto It = directory_iterator( SearchPath );
-		while( It != directory_iterator() )
+		// Check for PackedContent
+		if( BcFileSystemExists( "PackedContent" ) )
 		{
-			directory_entry Entry = *It;
-			if( Entry.path().filename() == "PackedContent" )
-			{
-				CurrentPath = SearchPath;
-				FoundRoot = true;
-				break;
-			}
-#if !PSY_PRODUCTION
-			else if( Entry.path().filename() == "Dist" )
-			{
-				CurrentPath = Entry;
-				FoundRoot = true;
-				break;
-			}
-#endif
-			++It;
+			FoundRoot = true;
 		}
-		SearchPath = SearchPath.remove_filename();
+#if !PSY_PRODUCTION
+		else if( BcFileSystemExists( "Dist" ) )
+		{
+			FoundRoot = true;
+			BcFileSystemChangeDirectory( "Dist" );
+		}
+#endif
+		else
+		{
+			Success = BcFileSystemChangeDirectory( ".." );
+		}
 	}
 
-	// Change to found path.
-	if( FoundRoot )
+	if( !Success )
 	{
-		current_path( CurrentPath );
+		PSY_LOG( "ERROR: Can't find working directory containing PackedContent." );
+		exit(1);
 	}
 #endif
 

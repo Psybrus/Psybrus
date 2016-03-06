@@ -71,6 +71,14 @@ std::string BcPath::operator * () const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getParent
+std::string BcPath::getParent() const
+{
+	std::string::size_type PathPosition = InternalValue_.rfind( Seperator );
+	return InternalValue_.substr( 0, PathPosition );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getFileName
 std::string BcPath::getFileName() const
 {

@@ -22,6 +22,8 @@
 #include "System/Scene/Import/ScnShaderImport.h"
 #endif
 
+#define LAZY_SHADER_CREATION ( 1 )
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnShader );
@@ -125,11 +127,15 @@ RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 	{
 		auto& ProgramData = BestIter->second;
 
+#if LAZY_SHADER_CREATION
 		// If we don't have program, create it.
 		if( ProgramData.Program_ == nullptr )
 		{
 			createProgram( ProgramData );
 		}
+#else
+		BcAssert( ProgramData.Program_ );
+#endif
 
 		return ProgramData.Program_;
 	}
@@ -148,10 +154,14 @@ RsShader* ScnShader::getShader( BcU32 Hash, ScnShader::TShaderMap& ShaderMap )
 	if( BestIter != ShaderMap.end() )
 	{
 		auto& ShaderData = BestIter->second;
+#if LAZY_SHADER_CREATION
 		if( ShaderData.Shader_ == nullptr )
 		{
 			createShader( ShaderData );
 		}
+#else
+		BcAssert( ShaderData.Shader_ );
+#endif
 
 		return ShaderData.Shader_;
 	}
@@ -323,6 +333,9 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 
 		if( ShaderData.Header_->ShaderCodeType_ == TargetCodeType_ )
 		{
+#if !LAZY_SHADER_CREATION
+			createShader( ShaderData );
+#endif
 			ShaderMappings_[ (BcU32)ShaderData.Header_->ShaderType_ ].Shaders_[ ShaderData.Header_->ShaderHash_ ] = ShaderData;
 		}
 	}
@@ -332,8 +345,12 @@ void ScnShader::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		ProgramData.Header_ = (ScnShaderProgramHeader*)pData;
 		ProgramData.Program_ = nullptr;
 		++TotalProgramsLoaded_;
+
 		if( ProgramData.Header_->ShaderCodeType_ == TargetCodeType_ )
 		{
+#if !LAZY_SHADER_CREATION
+			createProgram( ProgramData );
+#endif
 			ProgramMap_[ ProgramData.Header_->ProgramPermutationFlags_ ] = ProgramData;
 		}
 	}

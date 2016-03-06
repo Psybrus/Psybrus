@@ -19,9 +19,6 @@
 
 #include "Serialisation/SeJsonReader.h"
 
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-
 SYS_CREATOR( CsCore );
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,7 +266,7 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 	// Import package & output dependencies changed?
 	if( PackageExists )
 	{
-		if(	std::filesystem::exists( OutputDependencies.c_str() ) )
+		if(	BcFileSystemExists( OutputDependencies.c_str() ) )
 		{
 			CsPackageDependencies Dependencies;
 			CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
@@ -348,7 +345,7 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 			}
 			else
 			{
-				std::filesystem::remove( LogFilename.data() );
+				BcFileSystemRemove( LogFilename.data() );
 				Success = true;
 			}
 		}

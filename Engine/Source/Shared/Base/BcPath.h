@@ -35,6 +35,7 @@ public:
 
 	const char* c_str() const;
 	std::string operator * () const;
+	std::string getParent() const;
 	std::string getFileName() const;
 	std::string getExtension() const;
 	std::string getFileNameNoExtension() const;

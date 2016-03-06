@@ -17,6 +17,13 @@
 #include "Base/BcMemory.h"
 
 #include <fcntl.h>
+#include <sys/stat.h>
+
+#if PLATFORM_LINUX || PLATFORM_OSX
+#include <dirent.h>
+#elif PLATFORM_WINDOWS
+#include <filesystem>
+#endif
 
 #if COMPILER_MSVC
 
@@ -37,7 +44,6 @@
 #elif COMPILER_GCC || COMPILER_LLVM
 //////////////////////////////////////////////////////////////////////////
 // *nix Includes
-#include <sys/stat.h>
 #include <unistd.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,6 +56,109 @@
 #define streamClose			fclose
 
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+// BcFileSystemExists
+bool BcFileSystemExists( const char* Path )
+{
+#if PLATFORM_LINUX || PLATFORM_OSX
+	struct stat Stat;
+	if (stat(Path, &Stat) == 0)
+	{
+		return true;
+	}
+#elif PLATFORM_WINDOWS
+	return std::experimental::filesystem::exists( Path );
+#endif
+    return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcFileSystemRemove
+bool BcFileSystemRemove( const char* Path )
+{
+#if PLATFORM_LINUX || PLATFORM_OSX
+	return remove( Path ) == 0;
+#elif PLATFORM_WINDOWS
+	return std::experimental::filesystem::remove( Path );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcFileSystemRename
+bool BcFileSystemRename( const char* SrcPath, const char* DestPath )
+{
+#if PLATFORM_LINUX || PLATFORM_OSX
+	return rename( SrcPath, DestPath ) == 0;
+#elif PLATFORM_WINDOWS
+	std::experimental::filesystem::rename( SrcPath, DestPath );
+	return true;
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcFileSystemCreateDirectories
+bool BcFileSystemCreateDirectories( const char* Path )
+{
+#if PLATFORM_LINUX || PLATFORM_OSX
+	std::array< char, 256 > TempPath;
+
+	// Copy into temp path.
+	BcStrCopy( TempPath.data(), TempPath.size(), Path );
+	char* FoundSeparator = nullptr;
+	char* NextSearchPosition = TempPath.data();
+	do
+	{
+		// Find separator.
+		FoundSeparator = strstr( NextSearchPosition, "/" );
+		if( FoundSeparator == nullptr )
+		{
+			FoundSeparator = strstr( NextSearchPosition, "\\" );
+		}
+
+		// If found, null terminate.
+		char SeparatorChar = 0;
+		if( FoundSeparator != nullptr )
+		{
+			SeparatorChar = *FoundSeparator;
+			*FoundSeparator = '\0';
+		}
+
+		// Attempt to create the path if it doesn't exist.
+		if( BcFileSystemExists( TempPath.data() ) == false )
+		{
+			int RetVal = mkdir( TempPath.data(), 0755 );
+			if( RetVal )
+			{
+				return false;
+			}
+		}
+
+		// Put separator back.
+		if( SeparatorChar )
+		{
+			*FoundSeparator = SeparatorChar;
+			NextSearchPosition = FoundSeparator + 1;
+		}
+	}
+	while( FoundSeparator != nullptr );
+
+	return true;
+#elif PLATFORM_WINDOWS
+	std::experimental::filesystem::create_directories( Path );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcFileSystemChangeDirectory
+bool BcFileSystemChangeDirectory( const char* Path )
+{
+#if PLATFORM_LINUX || PLATFORM_OSX
+	return chdir( Path ) == 0;
+#elif PLATFORM_WINDOWS
+	return Path != std::experimental::filesystem::current_path( Path );
+#endif
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor & Dtor
@@ -91,7 +200,7 @@ void BcFile::calcFileSize( void )
 		FileSize_ = _stat.st_size;
 	}
 
-#endif
+#endif 
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -1,13 +1,9 @@
 #include "System/Content/CsPlatformParams.h"
 
+#include "Base/BcFile.h"
 #include "Base/BcHash.h"
 
 #include <regex>
-
-#if PSY_IMPORT_PIPELINE
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-#endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
 // Regex
@@ -69,7 +65,7 @@ BcPath CsPlatformParams::getPackageIntermediatePath( const BcName& Package ) con
 	}
 
 #if PSY_IMPORT_PIPELINE
-	std::filesystem::create_directories( *Path );
+	BcFileSystemCreateDirectories( (*Path).c_str() );
 #endif // PSY_IMPORT_PIPELINE
 
 	return Path;
