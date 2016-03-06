@@ -145,7 +145,7 @@ bool BcFileSystemCreateDirectories( const char* Path )
 
 	return true;
 #elif PLATFORM_WINDOWS
-	std::experimental::filesystem::create_directories( Path );
+	return std::experimental::filesystem::create_directories( Path );
 #endif
 }
 
@@ -156,7 +156,8 @@ bool BcFileSystemChangeDirectory( const char* Path )
 #if PLATFORM_LINUX || PLATFORM_OSX
 	return chdir( Path ) == 0;
 #elif PLATFORM_WINDOWS
-	return Path != std::experimental::filesystem::current_path( Path );
+	std::experimental::filesystem::current_path( Path );
+	return true;
 #endif
 }
 
