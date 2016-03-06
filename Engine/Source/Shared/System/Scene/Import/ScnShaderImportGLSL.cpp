@@ -408,6 +408,11 @@ namespace
 			BcU32 ReturnBinding = *FoundBinding;
 			if( FoundIt == Container->end() )
 			{
+				if( UseFoundBindings_ && InObject.ParameterType_.Binding_ == 0xff )
+				{
+					InObject.ParameterType_.Binding_ = (*FoundBinding)++;
+				}
+
 				Container->emplace_back( InObject );	
 			}
 			else
@@ -434,7 +439,7 @@ namespace
 
 		bool UseFoundBindings_ = false;
 
-		BcU32 UniformBlockBinding_ = 4;
+		BcU32 UniformBlockBinding_ = 0;
 		BcU32 UniformBinding_ = 0;
 		BcU32 SamplerBinding_ = 0;
 		BcU32 BufferBinding_ = 0;
@@ -1417,22 +1422,26 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						auto PSTypeOffset = Uniform.Name_.find( "PS_" );
 						if( VSTypeOffset != std::string::npos || PSTypeOffset != std::string::npos )
 						{
+							GLSLReflection::Object PseudoUniformBlock = Uniform;
+
 							// Terminate.
 							if( VSTypeOffset != std::string::npos )
 							{
-								Uniform.Name_ = Uniform.Name_.substr( 0, VSTypeOffset );
+								PseudoUniformBlock.Name_ = Uniform.Name_.substr( 0, VSTypeOffset );
 							}
 							else if( PSTypeOffset != std::string::npos )
 							{
-								Uniform.Name_ = Uniform.Name_.substr( 0, PSTypeOffset );
+								PseudoUniformBlock.Name_ = Uniform.Name_.substr( 0, PSTypeOffset );
 							}
 
 							// Add as uniform buffer object with the names stripped.
-							Uniform.ParameterType_.Value_ = 0;
-							Uniform.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM_BLOCK;
-							Uniform.Size_ = 0;
-							Uniform.Enabled_ = true;
-							Reflection.addObject( Uniform, nullptr );
+							PseudoUniformBlock.ParameterType_.Value_ = 0;
+							PseudoUniformBlock.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM_BLOCK;
+							PseudoUniformBlock.ParameterType_.Binding_ = 0xff;
+							PseudoUniformBlock.Size_ = 0;
+							PseudoUniformBlock.Enabled_ = true;
+							
+							Reflection.addObject( PseudoUniformBlock, nullptr );
 						}
 					}
 				}
