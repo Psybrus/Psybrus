@@ -26,9 +26,6 @@
 
 #include <rapidxml.hpp>
 
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-
 extern "C"
 {
 	#include "b64/cdecode.h"
@@ -323,15 +320,14 @@ void ScnTileMapImport::parseImage(
 
 			if( Image->TextureRef_ == CSCROSSREFID_INVALID )
 			{
-				using namespace std::filesystem;
-				path TMXSourcePath = Source_;
-				path TexSourcePath = TMXSourcePath.parent_path() / path( ChildAttrib->value() );
+				BcPath TexSourcePath;
+				TexSourcePath.join( BcPath( Source_ ).getParent(), ChildAttrib->value() );
 
 				// Create texture importer.
 				auto TextureImporter = CsResourceImporterUPtr(
 					new ScnTextureImport( 
-						TexSourcePath.string(), "ScnTextureAtlas",
-						TexSourcePath.string(), RsTextureFormat::R8G8B8A8,
+						TexSourcePath.c_str(), "ScnTextureAtlas",
+						TexSourcePath.c_str(), RsTextureFormat::R8G8B8A8,
 						TileSet->TileWidth_,
 						TileSet->TileHeight_ ) );
 

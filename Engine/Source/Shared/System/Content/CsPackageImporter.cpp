@@ -24,8 +24,9 @@
 #include "Serialisation/SeJsonWriter.h"
 #include "Serialisation/SeJsonReader.h"
 
-#include "Base/BcStream.h"
 #include "Base/BcCompression.h"
+#include "Base/BcFile.h"
+#include "Base/BcStream.h"
 
 #include "Base/BcMath.h"
 
@@ -34,11 +35,6 @@
 #include <regex>
 #include <iostream>
 #include <sstream>
-
-#if PSY_IMPORT_PIPELINE
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-#endif // PSY_IMPORT_PIPELINE
 
 #undef ERROR
 
@@ -300,9 +296,9 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 	// Create target folder.
 	const auto& PackedPath = Params_.PackedContentPath_;
 
-	if( !std::filesystem::exists( PackedPath.c_str() ) )
+	if( !BcFileSystemExists( PackedPath.c_str() ) )
 	{
-		std::filesystem::create_directories( PackedPath.c_str() );
+		BcFileSystemCreateDirectories( PackedPath.c_str() );
 	}
 
 	// Open package output.
@@ -410,11 +406,11 @@ BcBool CsPackageImporter::save( const BcPath& Path )
 		File_.close();
 
 		// Rename.
-		if( std::filesystem::exists( *Path ) )
+		if( BcFileSystemExists( (*Path).c_str() ) )
 		{
-			std::filesystem::remove( *Path );
+			BcFileSystemRemove( (*Path).c_str() );
 		}
-		std::filesystem::rename( *TempFile, *Path );
+		BcFileSystemRename( (*TempFile).c_str(), (*Path).c_str() );
 
 		//
 		return BcTrue;
@@ -778,7 +774,7 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		{
 			0,
 			0,
-			std::stoi( ResourceId ),
+			static_cast< BcU32 >( std::stoi( ResourceId ) ),
 			BcFalse,
 			BcTrue
 		};

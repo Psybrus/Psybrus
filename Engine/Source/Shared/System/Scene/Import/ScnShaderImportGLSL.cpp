@@ -48,9 +48,6 @@ extern "C"
 #include <sstream>
 #include <algorithm>
 
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-
 #undef DOMAIN // This is defined somewhere in a core header.
 
 namespace

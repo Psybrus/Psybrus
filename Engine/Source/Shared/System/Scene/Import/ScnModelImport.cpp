@@ -29,9 +29,6 @@
 #include "assimp/mesh.h"
 #include "assimp/postprocess.h"
 
-#include <filesystem>
-namespace std { namespace filesystem { using namespace std::experimental::filesystem; } }
-
 // TODO: Remove dup from ScnPhysicsMeshImport.
 namespace
 {
@@ -925,15 +922,12 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 	if( Material->GetTexture( (aiTextureType)Type, Idx, &Path,
 			&TextureMapping, &UVIndex, &Blend, &TextureOp, &TextureMapMode ) == aiReturn_SUCCESS )
 	{
-		std::filesystem::path TexturePath;
-		TexturePath = std::filesystem::path( Source_ ).remove_filename();
+		BcPath TexturePath = BcPath( Source_ ).getParent();
 		std::string FixedPath = Path.C_Str();
 		std::replace( FixedPath.begin(), FixedPath.end(), '\\', '/');
-		TexturePath.append( FixedPath.c_str() );
+		TexturePath.join( FixedPath.c_str() );
 
-		TexturePath = TexturePath.make_preferred();
-		auto Native = TexturePath.native();
-		if( std::filesystem::exists( TexturePath ) )
+		if( BcFileSystemExists( TexturePath.c_str() ) )
 		{
 			RsSamplerStateDesc SamplerState;
 
@@ -963,13 +957,13 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			auto TextureImporter = CsResourceImporterUPtr(
 				new ScnTextureImport(
 					Path.C_Str(), "ScnTexture",
-					TexturePath.string(), RsTextureFormat::UNKNOWN ) );
+					TexturePath.c_str(), RsTextureFormat::UNKNOWN ) );
 			TextureRef = addImport( std::move( TextureImporter ) );
 			MaterialImport->addTexture( Name, TextureRef, SamplerState );
 		}
 		else
 		{
-			addMessage( CsMessageCategory::WARNING, "Unable to find texture " + TexturePath.string() );
+			addMessage( CsMessageCategory::WARNING, "Unable to find texture " + *TexturePath );
 		}
 	}
 

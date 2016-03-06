@@ -170,7 +170,7 @@ BcBool ScnShaderImport::compileShader(
 	if( RetCode == 0 )
 	{
 		BcFile ByteCodeFile;
-		if( ByteCodeFile.open( ( BytecodeFilename ).c_str(), bcFM_READ ) )
+		if( ByteCodeFile.open( BytecodeFilename.data(), bcFM_READ ) )
 		{
 			auto ByteCode = ByteCodeFile.readAllBytes();
 			ShaderByteCode = std::move( BcBinaryData( ByteCode.get(), ByteCodeFile.size(), BcTrue ) );

@@ -361,6 +361,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
        PsyAddExternalLinks {
           "assimp",
           "assimp_contrib",
+          "fcpp",
           "glslang",
           "glsl-optimizer",
           "glew",

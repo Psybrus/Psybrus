@@ -24,6 +24,28 @@
 
 const BcU32 MAX_LINE_LENGTH = 1024;
 
+/////////////////////////////////////////////////
+// BcFileSystemExists
+bool BcFileSystemExists( const char* Path );
+
+/////////////////////////////////////////////////
+// BcFileSystemRemove
+bool BcFileSystemRemove( const char* Path );
+
+/////////////////////////////////////////////////
+// BcFileSystemRename
+bool BcFileSystemRename( const char* SrcPath, const char* DestPath );
+
+/////////////////////////////////////////////////
+// BcFileSystemCreateDirectories
+bool BcFileSystemCreateDirectories( const char* Path );
+
+/////////////////////////////////////////////////
+// BcFileSystemChangeDirectory
+bool BcFileSystemChangeDirectory( const char* Path );
+
+/////////////////////////////////////////////////
+// File mode.
 enum eBcFileMode
 {
 	bcFM_READ = 0,
@@ -32,7 +54,7 @@ enum eBcFileMode
 };
 
 /////////////////////////////////////////////////
-// class
+// BcFile
 class BcFile
 {
 public:
