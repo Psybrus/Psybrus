@@ -9,6 +9,10 @@ def getPathFromRoot( targetPath ):
 	return ( psybrusSdkRoot + "/" + targetPath).replace( "\\", "/" )
 
 
+def log( string ):
+	#print string
+	pass
+
 # (Engine\/Source\/Shared\/|Engine\/Source\/Platforms\/.*?\/)
 incStripPattern = "(.*?Engine\/Source\/Shared\/|.*?Engine\/Source\/Platforms\/.*?\/|.*?Source\/)(.*)"
 incStripProg = re.compile( incStripPattern )
@@ -16,7 +20,7 @@ incStripProg = re.compile( incStripPattern )
 declPattern = "\s*(REFLECTION_DECLARE_BASIC_MANUAL_NOINIT\(|REFLECTION_DECLARE_BASE_MANUAL_NOINIT\(|REFLECTION_DECLARE_DERIVED_MANUAL_NOINIT\(|DECLARE_RESOURCE\(|REFLECTION_DECLARE_BASIC\(|REFLECTION_DECLARE_BASE\(|REFLECTION_DECLARE_DERIVED\()\s*(.*?)(,|\s*\))"
 declProg = re.compile( declPattern )
 def recurse( startPath, call ):
-	print "Searching: ", startPath
+	log("Searching: " + startPath)
 	paths = glob.glob( startPath + "/*" )
 	paths.sort()
 	for path in paths:
@@ -28,7 +32,7 @@ def recurse( startPath, call ):
 
 def printPath( path ):
 	if path.endswith( ".h" ):
-		print path
+		log(path)
 
 types = []
 includes = []
@@ -37,7 +41,7 @@ includes = []
 def parseReflection( path ):
 	if path.endswith( ".h" ):
 		with open( path ) as f:
-			print " - " + path
+			log(" - " + path)
 			global types
 			global includes
 			lines = f.readlines()
@@ -45,7 +49,7 @@ def parseReflection( path ):
 				match = declProg.match( line )
 				if match != None:
 					reflectionType = match.group(2)
-					print " - - FOUND: " + reflectionType
+					log(" - - FOUND: " + reflectionType)
 					if reflectionType.startswith( "_" ) == False:
 						types.append( reflectionType )
 						pathMatch = incStripProg.match( path )
