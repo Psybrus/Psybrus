@@ -36,6 +36,8 @@
 #define  LOG_TAG    "Psybrus"
 #endif
 
+#define EXTENDED_LOG_OUTPUT ( 0 )
+
 //////////////////////////////////////////////////////////////////////////
 // Colours.
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -81,13 +83,19 @@ private:
 
 		static BcChar OutputBuffer[ 1024 * 64 ] = { 0 };
 		// Format for output.
+#if EXTENDED_LOG_OUTPUT
 		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%5.5f][%x][%s] %s %s\n", 
 			Entry.Time_,
 			Entry.ThreadId_,
 			Entry.Category_.c_str(),
 			Indent.c_str(),
 			NewText.c_str() );
-
+#else
+		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%5.5f] %s %s\n", 
+			Entry.Time_,
+			Indent.c_str(),
+			NewText.c_str() );
+#endif
 		internalWrite( OutputBuffer );
 	}
 
