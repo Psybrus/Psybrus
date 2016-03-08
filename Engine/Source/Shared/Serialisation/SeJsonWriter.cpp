@@ -343,7 +343,8 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField, BcU
 			Json::Value ClassValue;
 			if( ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0 )
 			{
-				ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, true ); // TODO: Only if pointer type.
+				bool IsPointerType = ( pField->getValueFlags() & bcRFF_SIMPLE_DEREF ) == 0;
+				ClassValue = serialiseClass( pValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags, !IsPointerType );
 			}
 			else
 			{
