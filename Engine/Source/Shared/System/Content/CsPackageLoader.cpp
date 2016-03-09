@@ -47,23 +47,12 @@ CsPackageLoader::CsPackageLoader( CsPackage* pPackage, const BcPath& Path ):
 {
 	if( File_.open( (*Path).c_str(), fsFM_READ ) )
 	{
-#if !PSY_PRODUCTION
-		// Load in package header synchronously to catch errors.
-		BcU32 Bytes = sizeof( Header_ );
-		++PendingCallbackCount_;
-		File_.read( DataPosition_, &Header_, Bytes );
-		DataPosition_ += Bytes;
-
-		// Call on header.
-		onHeaderLoaded( &Header_, Bytes );
-#else
 		// Load in package header asynchronously.
 		BcU32 Bytes = sizeof( Header_ );
 		++PendingCallbackCount_;
 		File_.readAsync( DataPosition_, &Header_, Bytes, 
 			std::bind( &CsPackageLoader::onHeaderLoaded, this, _1, _2 ) );
 		DataPosition_ += Bytes;
-#endif
 	}
 	else
 	{
