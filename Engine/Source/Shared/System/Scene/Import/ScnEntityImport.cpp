@@ -86,6 +86,9 @@ BcBool ScnEntityImport::import(
 					getResourceName().c_str() );
 				Class = ComponentObj[ "type" ];
 			}
+
+			// Add dependency.
+			CsResourceImporter::addDependency( ReManager::GetClass( Class.asCString() ) );
 			
 			// Create a vaguely unique name.
 			if( ComponentObj.get( "name", Json::nullValue ).type() == Json::nullValue )

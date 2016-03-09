@@ -40,6 +40,11 @@ public:
 	 */
     const std::vector< const ReEnumConstant* >& getEnumConstants() const;
 
+	/**
+	 * Get a hash of this class.
+	 */
+	BcU32 getHash() const override;
+
 protected:
     std::vector< const ReEnumConstant* > EnumConstants_;
 };

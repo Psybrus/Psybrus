@@ -45,7 +45,6 @@
 #define __REFLECTION_DECLARE_BASE( _Type )										\
 	__REFLECTION_DECLARE_BASIC( _Type )											\
 	virtual BcName getTypeName() const;											\
-	virtual BcU32 getTypeHash() const;											\
 	virtual const ReClass* getClass() const;									\
 	virtual BcBool isType( BcName Type ) const;									\
 	virtual BcBool isTypeOf( const ReClass* pClass ) const;						\
@@ -59,7 +58,6 @@
 #define __REFLECTION_DECLARE_BASE_OVERRIDE( _Type )								\
 	__REFLECTION_DECLARE_BASIC( _Type )											\
 	BcName getTypeName() const override;										\
-	BcU32 getTypeHash() const override;											\
 	const ReClass* getClass() const override;									\
 	BcBool isType( BcName Type ) const override;								\
 	BcBool isTypeOf( const ReClass* pClass ) const override;					\
@@ -160,11 +158,6 @@
  */
 #define REFLECTION_DEFINE_BASE( _Type )											\
 	__REFLECTION_DEFINE_BASE( _Type )											\
-	BcU32 _Type::getTypeHash() const											\
-	{																			\
-		return _Type::StaticGetTypeNameHash();									\
-	}																			\
-																				\
 	BcBool _Type::isType( BcName Type ) const									\
 	{																			\
 		return _Type::StaticGetTypeName() == Type;								\
@@ -220,12 +213,7 @@
  * Should be put in the cpp.
  */
 #define REFLECTION_DEFINE_DERIVED( _Type )										\
-	__REFLECTION_DEFINE_BASE( _Type )										\
-	BcU32 _Type::getTypeHash() const											\
-	{																			\
-		return _Type::StaticGetTypeNameHash();									\
-	}																			\
-																				\
+	__REFLECTION_DEFINE_BASE( _Type )											\
 	BcBool _Type::isType( BcName Type ) const									\
 	{																			\
 		return  _Type::StaticGetTypeName() == Type;								\

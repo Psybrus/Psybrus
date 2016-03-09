@@ -100,7 +100,7 @@ public:
 		setFields( std::move( FieldVector ) );
 	}
 
-	/*
+	/**
 	 * Get field.
 	 */
 	const ReField* getField( size_t Idx ) const;
@@ -114,6 +114,11 @@ public:
 	 * Get fields
 	 */
 	const ReFieldVector& getFields() const;
+
+	/**
+	 * Get a hash of this class.
+	 */
+	virtual BcU32 getHash() const;
 
 	/**
 	 * Validate.

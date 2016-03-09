@@ -78,3 +78,16 @@ const std::vector< const ReEnumConstant* >& ReEnum::getEnumConstants() const
 	return EnumConstants_;
 }
 
+BcU32 ReEnum::getHash() const
+{
+	BcU32 CRC32 = ReClass::getHash();
+	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
+	{
+		const std::string EnumConstantName = *EnumConstants_[ Idx ]->getName();
+		const BcU32 EnumConstantValue = EnumConstants_[ Idx ]->getValue();
+		CRC32 = BcHash::GenerateCRC32( CRC32, EnumConstantName.data(), EnumConstantName.size() );
+		CRC32 = BcHash::GenerateCRC32( CRC32, &EnumConstantValue, sizeof( EnumConstantValue ) );
+	}
+	return CRC32;
+}
+

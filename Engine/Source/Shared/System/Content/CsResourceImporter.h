@@ -172,6 +172,12 @@ protected:
 		const BcChar* pFileName );
 
 	/**
+	 * Add dependency.
+	 */
+	void addDependency( 
+		const ReClass* Class );
+
+	/**
 	 * Get intermediate path.
 	 */
 	std::string getIntermediatePath();

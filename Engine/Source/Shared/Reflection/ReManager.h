@@ -9,54 +9,54 @@ class ReManager
 {
 public:
     /**
-	* @brief Initialise.
-	*/
+	 * @brief Initialise.
+	 */
     static void Init();
 
     /**
-	* @brief Finalise.
-	*/
+	 * @brief Finalise.
+	 */
     static void Fini();
 
     /**
-	* @brief Get Type. Will not return if one does not exist.
-	* @param InName Name of type.
-	* @return
-	*/
+	 * @brief Get Type. Will not return if one does not exist.
+	 * @param InName Name of type.
+	 * @return
+	 */
     static ReClass* GetType( BcName InName );
 
     /**
-	* @brief Get Class. Will always return, will add a new empty class if it does not exist.
-	* @param InName Name of class.
-	* @return
-	*/
+	 * @brief Get Class. Will always return, will add a new empty class if it does not exist.
+	 * @param InName Name of class.
+	 * @return
+	 */
     static ReClass* GetClass( BcName InName );
 
     /**
-	* @brief Get Classes
-	* @return
-	*/
+	 * @brief Get Classes
+	 * @return
+	 */
     static std::vector< ReClass* > GetClasses();
 
 
 	/**
-	* @brief Get Enum. Will always return, will add a new empty enum if it does not exist.
-	* @param InName Name of enum.
-	* @return
-	*/
+	 * @brief Get Enum. Will always return, will add a new empty enum if it does not exist.
+	 * @param InName Name of enum.
+	 * @return
+	 */
     static ReEnum* GetEnum( BcName InName );
 
 	/**
-	* @brief Get Enums.
-	* @return
-	*/
+	 * @brief Get Enums.
+	 * @return
+	 */
     static std::vector< ReEnum* > GetEnums();
 
 	/**
-	* @brief Get enum value name.
-	* @param EnumValue Enum Value.
-	* @return Name of enum value. BcName::INVALID if not found.
-	*/
+	 * @brief Get enum value name.
+	 * @param EnumValue Enum Value.
+	 * @return Name of enum value. BcName::INVALID if not found.
+	 */
 	template< typename _Ty >
     static BcName GetEnumValueName( _Ty EnumValue )
 	{
@@ -73,10 +73,10 @@ public:
 	}
 	
 	/**
-	* @brief Get Class. Will always return, will add a new empty class if it does not exist.
-	* @param _Ty Type of class, autogens name.
-	* @return
-	*/
+	 * @brief Get Class. Will always return, will add a new empty class if it does not exist.
+	 * @param _Ty Type of class, autogens name.
+	 * @return
+	 */
     template< typename _Ty >
     static ReClass* GetClass()
     {
@@ -91,15 +91,15 @@ public:
     }
 
     /**
-	* @brief Get Classes of a base.
-	* @return Pointer to class, or nullptr if out of range.
-	*/
+	 * @brief Get Classes of a base.
+	 * @return Pointer to class, or nullptr if out of range.
+	 */
 	static void GetClassesOfBase( std::vector< const ReClass* >& OutClasses, const ReClass* Base );
 
     /**
-	* @brief Get Classes of a base.
-	* @return Pointer to class, or nullptr if out of range.
-	*/
+	 * @brief Get Classes of a base.
+	 * @return Pointer to class, or nullptr if out of range.
+	 */
     template< typename _Ty >
     static void GetClassesOfBase( std::vector< const ReClass* >& OutClasses )
     {

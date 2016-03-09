@@ -97,7 +97,8 @@ std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::
 			if(	BcFileSystemExists( OutputDependencies.c_str() ) )
 			{
 				PSY_LOG( "Found dependency info \"%s\", checking if we need to build.\n", OutputDependencies.c_str() );
-
+				PSY_LOGSCOPEDINDENT;
+				
 				CsPackageDependencies Dependencies;
 				CsSerialiserPackageObjectCodec ObjectCodec( nullptr, (BcU32)bcRFF_ALL, (BcU32)bcRFF_TRANSIENT, 0 );
 				SeJsonReader Reader( &ObjectCodec );
@@ -225,7 +226,7 @@ void PsyToolMain()
 	}
 	else
 	{
-		PSY_LOG( "ERROR: Unable to load config %s", ConfigFile.c_str() );
+		PSY_LOG( "ERROR: Unable to load config %s.", ConfigFile.c_str() );
 		exit( 1 );
 	}
 
@@ -245,6 +246,13 @@ void PsyToolMain()
 
 	// Check packages, filter out what we don't want, or what doesn't need updating.
 	Packages = CheckPackages( Params, Packages );
+
+	// Log.
+	for( const auto& Package : Packages )
+	{
+		PSY_LOG( "INFO: Reimporting %s.", Package.c_str() );
+
+	}
 
 	// Import all packages to pass check phase.
 	ImportPackages( Params, Packages );

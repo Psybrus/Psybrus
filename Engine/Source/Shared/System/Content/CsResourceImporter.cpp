@@ -354,6 +354,17 @@ void CsResourceImporter::addDependency(
 
 //////////////////////////////////////////////////////////////////////////
 // addDependency
+void CsResourceImporter::addDependency( 
+	const ReClass* Class )
+{
+#if PSY_IMPORT_PIPELINE
+	BcAssert( Importer_ != nullptr );
+	return Importer_->addDependency( Class );
+#endif // PSY_IMPORT_PIPELINE
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addDependency
 std::string CsResourceImporter::getIntermediatePath()
 {
 #if PSY_IMPORT_PIPELINE

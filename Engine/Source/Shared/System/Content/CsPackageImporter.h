@@ -36,11 +36,15 @@ struct CsPackageDependencies
 
 	CsPackageDependencies(){};
 
+	void addClass( const ReClass* Class );
+
 	bool haveChanged() const;
 
 	typedef std::set< CsDependency > TDependencyList;
+	typedef std::map< BcName, BcU32 > TClassHashMap;
 	
 	TDependencyList Dependencies_;
+	TClassHashMap ClassDependencies_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,6 +148,12 @@ public:
 	void addDependency( 
 		const BcChar* pFileName );
 	
+	/**
+	 * Add dependency.
+	 */
+	void addDependency( 
+		const ReClass* Class );
+
 	/**
 	 * Search through Json value hierarchy
 	 * and add all package crossrefs.
