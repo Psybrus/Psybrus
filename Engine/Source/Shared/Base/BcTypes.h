@@ -245,7 +245,7 @@ typedef std::size_t					BcSize;
 #define BcTrue						BcBool( 1 )
 #define BcFalse						BcBool( 0 )
 
-#if PSY_DEBUG
+#if !PSY_PRODUCTION
 #define BcBreakpoint				emscripten_debugger()
 #else
 #define BcBreakpoint				

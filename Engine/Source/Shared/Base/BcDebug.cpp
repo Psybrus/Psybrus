@@ -16,6 +16,7 @@
 #include <mutex>
 
 #include <cstdarg>
+#include <sstream>
 
 #if PLATFORM_WINDOWS
 #include <Windows.h>
@@ -88,6 +89,22 @@ BcBool BcAssertInternal( const BcChar* pMessage, const BcChar* pFile, int Line, 
 	vsprintf( MessageBuffer, pMessage, ArgList );
 #endif
 	va_end( ArgList );
+
+#if PLATFORM_HTML5
+	std::array<char, 4096> StackBuffer;
+	emscripten_get_callstack( EM_LOG_C_STACK | EM_LOG_DEMANGLE, StackBuffer.data(), StackBuffer.size() );
+
+	std::stringstream StackStream( StackBuffer.data() );
+	std::string StackLine;
+	PSY_LOG( "Callstack:" );
+	while( std::getline( StackStream, StackLine, '\n' ) )
+	{
+		if( StackLine.size() > 0 )
+		{
+			PSY_LOG( " - %s", StackLine.c_str() );
+		}
+	}
+#endif
 
 	// Check for assert handler.
 	if( AssertHandler_ )
