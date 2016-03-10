@@ -535,7 +535,7 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 	// Allocate render side vertex buffer.
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsBufferType::VERTEX,
+			RsResourceBindFlags::VERTEX_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			NoofVertices_ * sizeof( ScnDebugRenderComponentVertex ) ),
 		getFullName().c_str() );
@@ -548,7 +548,7 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 	// Allocate uniform buffer object.
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsBufferType::UNIFORM,
+			RsResourceBindFlags::UNIFORM_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			sizeof( ScnShaderObjectUniformBlockData ) ),
 		getFullName().c_str() );

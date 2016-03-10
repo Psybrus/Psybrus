@@ -315,7 +315,7 @@ void ScnDeferredLightingComponent::recreateResources()
 		BcU32 VertexBufferSize = 4 * VertexDeclaration_->getDesc().getMinimumStride();
 		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsBufferType::VERTEX,
+				RsResourceBindFlags::VERTEX_BUFFER,
 				RsResourceCreationFlags::STREAM, 
 				VertexBufferSize ),
 			getFullName().c_str() );
@@ -324,7 +324,7 @@ void ScnDeferredLightingComponent::recreateResources()
 	if( UniformBuffer_ == nullptr )
 	{
 		auto BufferDesc = RsBufferDesc( 
-			RsBufferType::UNIFORM, RsResourceCreationFlags::STREAM, sizeof( ScnShaderLightUniformBlockData ) );
+			RsResourceBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::STREAM, sizeof( ScnShaderLightUniformBlockData ) );
 		UniformBuffer_ = RsCore::pImpl()->createBuffer( BufferDesc, getFullName().c_str() );
 	}
 

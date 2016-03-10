@@ -158,7 +158,7 @@ void ScnModel::create()
 	// Create large VB + IBs.
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsBufferType::VERTEX, 
+			RsResourceBindFlags::VERTEX_BUFFER, 
 			RsResourceCreationFlags::STATIC,
 			VertexBufferSize ),
 		getFullName().c_str() );
@@ -176,7 +176,7 @@ void ScnModel::create()
 
 	IndexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsBufferType::INDEX, 
+				RsResourceBindFlags::INDEX_BUFFER, 
 				RsResourceCreationFlags::STATIC, 
 				IndexBufferSize ),
 			getFullName().c_str() );

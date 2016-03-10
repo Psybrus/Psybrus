@@ -20,30 +20,6 @@ RsBufferDesc::RsBufferDesc()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// RsBufferDesc
-RsBufferDesc::RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, size_t SizeBytes ):
-	BindFlags_( RsResourceBindFlags::NONE ),
-	Flags_( Flags ),
-	SizeBytes_( SizeBytes ),
-	StructureStride_( 0 )
-{
-	switch( Type )
-	{
-	case RsBufferType::INDEX:
-		BindFlags_ = RsResourceBindFlags::INDEX_BUFFER;
-		break;
-	case RsBufferType::VERTEX:
-		BindFlags_ = RsResourceBindFlags::VERTEX_BUFFER;
-		break;
-	case RsBufferType::UNIFORM:
-		BindFlags_ = RsResourceBindFlags::UNIFORM_BUFFER;
-		break;
-	default:
-		BcBreakpoint;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // Ctor
 RsBufferDesc::RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride ):
 	BindFlags_( BindFlags ),

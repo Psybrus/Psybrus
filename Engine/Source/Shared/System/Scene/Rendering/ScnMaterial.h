@@ -172,9 +172,6 @@ public:
 	 */
 	ScnMaterialRef getMaterial();
 	
-	[[deprecated]]
-	void bind( class RsFrame* pFrame, class RsRenderSort& Sort, BcBool Stateless = BcFalse );
-
 public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;

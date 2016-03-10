@@ -120,7 +120,6 @@ function PsyProjectCommon( _name, _lang )
 		[ "C++" ] = "C++",
 		[ "C++11" ] = "C++",
 		[ "C++14" ] = "C++",
-		[ "C++1z" ] = "C++",
 		[ "C++17" ] = "C++"
 	}
 
@@ -128,8 +127,7 @@ function PsyProjectCommon( _name, _lang )
 		[ "C" ] = {},
 		[ "C++" ] = {},
 		[ "C++11" ] = { "-std=c++11" },
-		[ "C++14" ] = { "-std=c++14" },
-		[ "C++1z" ] = { "-std=c++1z" },
+		[ "C++14" ] = { "-std=c++1z" },
 		[ "C++17" ] = { "-std=c++17" }
 	}
 
@@ -138,7 +136,6 @@ function PsyProjectCommon( _name, _lang )
 		[ "C++" ] = { "-stdlib=libc++" },
 		[ "C++11" ] = { "-stdlib=libc++", "-std=c++11" },
 		[ "C++14" ] = { "-stdlib=libc++", "-std=c++14" },
-		[ "C++1z" ] = { "-stdlib=libc++", "-std=c++1z" },
 		[ "C++17" ] = { "-stdlib=libc++", "-std=c++17" }
 	}
 
@@ -157,18 +154,14 @@ end
 
 -- Common engine project.
 function PsyProjectCommonEngine( _name )
-	PsyProjectCommon( _name, "C++11" )
+	PsyProjectCommon( _name, "C++14" )
 
-	-- Enable C++11.
 	configuration { "gmake", "linux-* or osx-*" }
-		buildoptions { "-std=c++11" }
-		buildoptions { "-stdlib=libc++" }
 		links {
 			"c++"
 		}
 
 	configuration { "gmake", "android-*" }
-		buildoptions { "-std=c++11" }
 		links {
 			--"c++_shared"
 		}

@@ -23,9 +23,6 @@ struct RsBufferDesc
 {
 	RsBufferDesc();
 	RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride = 0 );
-
-	PSY_DEPRECATED( "Please use constructor which takes RsResourceBindFlags." )
-	RsBufferDesc( RsBufferType Type, RsResourceCreationFlags Flags, size_t SizeBytes );
 	
 	RsResourceBindFlags BindFlags_ = RsResourceBindFlags::NONE;
 	RsResourceCreationFlags Flags_ = RsResourceCreationFlags::NONE;

@@ -118,7 +118,7 @@ void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
-			RsBufferType::UNIFORM,
+			RsResourceBindFlags::UNIFORM_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			sizeof( ViewUniformBlock_ ) ),
 		getFullName().c_str() );

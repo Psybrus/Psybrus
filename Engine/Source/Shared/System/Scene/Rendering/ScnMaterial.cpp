@@ -611,36 +611,6 @@ ScnMaterialRef ScnMaterialComponent::getMaterial()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// bind
-struct ScnMaterialComponentRenderData
-{
-	// Texture binding block.
-	BcU32 NoofTextures_;
-	BcU32* TextureHandles_;
-	RsTexture** ppTextures_;
-	RsSamplerState** ppSamplerStates_;
-
-	// Uniform blocks.
-	BcU32 NoofUniformBlocks_;
-	BcU32* pUniformBlockIndices_;
-	RsBuffer** ppUniformBuffers_;
-
-	// State.
-	RsRenderState* RenderState_;
-
-	// Program.
-	RsProgram* pProgram_;
-	
-	// For debugging.
-	ScnMaterialComponent* pMaterial_;
-};
-
-void ScnMaterialComponent::bind( RsFrame* pFrame, RsRenderSort& Sort, BcBool Stateless )
-{
-	BcAssertMsg( isAttached(), "Material \"%s\" needs to be attached to an entity!", (*getName()).c_str() );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // onAttach
 //virtual
 void ScnMaterialComponent::onAttach( ScnEntityWeakRef Parent )

@@ -630,17 +630,6 @@ DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceUpdateFlags, & );
 
 //////////////////////////////////////////////////////////////////////////
 // Buffer stuff
-enum class RsBufferType
-{
-	UNKNOWN = 0,
-	VERTEX,
-	INDEX,
-	UNIFORM,
-	UNORDERED_ACCESS,
-	DRAW_INDIRECT,
-	STREAM_OUT,
-};
-
 struct RsBufferLock
 {
 	void* Buffer_;

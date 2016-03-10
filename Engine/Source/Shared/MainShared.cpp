@@ -312,7 +312,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 					BUILD_DATE,
 					BUILD_TIME );
 				ImGui::Text( "Worker count: %u", 
-					SysKernel::pImpl()->workerCount() );
+					(BcU32)SysKernel::pImpl()->workerCount() );
 				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
 					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
 				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
@@ -350,7 +350,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 					}
 				}
 
-				ImGui::Text( "Capture frames processing: %u", ScreenshotUtil::TotalFramesRemaining.load() );
+				ImGui::Text( "Capture frames processing: %u", (BcU32)ScreenshotUtil::TotalFramesRemaining.load() );
 			}
 			ImGui::End();
 		} );

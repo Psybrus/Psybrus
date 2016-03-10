@@ -1213,7 +1213,7 @@ void ScnFontComponent::onAttach( ScnEntityWeakRef Parent )
 
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
-			RsBufferType::UNIFORM,
+			RsResourceBindFlags::UNIFORM_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			sizeof( FontUniformData_ ) ),
 		getFullName().c_str() );

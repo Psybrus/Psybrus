@@ -683,7 +683,7 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 	// Allocate render resources.
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsBufferType::VERTEX,
+			RsResourceBindFlags::VERTEX_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			NoofVertices_ * sizeof( ScnCanvasComponentVertex ) ),
 		getFullName().c_str() );

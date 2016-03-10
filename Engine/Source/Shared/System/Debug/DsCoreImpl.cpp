@@ -402,7 +402,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 		Class = Object->getClass();
 		Name = *Object->getName() + " (" + *Class->getName() + ")";
 	}
-	ImGui::BulletText( Name.c_str() );
+	ImGui::BulletText( "%s", Name.c_str() );
 	ImGui::ScopedID ScopedIDData( Data );
 	ImGui::ScopedID ScopedIDClass( Class );
 	ImGui::ScopedIndent ScopedIndent;
@@ -431,7 +431,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 					{
 						if ( FieldEditor )
 						{
-							if ( ImGui::TreeNode( Value, ( *Field->getName() ).c_str() ) )
+							if ( ImGui::TreeNode( Value, "%s", ( *Field->getName() ).c_str() ) )
 							{
 								FieldEditor->onEdit( " ", Value, UpperFieldType,
 									ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
@@ -442,7 +442,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 				}
 				else
 				{
-					if ( ImGui::TreeNode( Field, ( *Field->getName() ).c_str() ) )
+					if ( ImGui::TreeNode( Field, "%s", ( *Field->getName() ).c_str() ) )
 					{
 						if ( Field->getKeyType() == nullptr )
 						{
@@ -888,7 +888,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 		{
 			MaQuat* Value = ( MaQuat* ) Object;
 			float Array[ 4 ] = { Value->x(), Value->y(), Value->z(), Value->w() };
-			ImGui::Text( Name.c_str() );
+			ImGui::Text( "%s", Name.c_str() );
 			if ( ImGui::InputFloat4( "Values", Array ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
 			{
 				Value->x( Array[ 0 ] );

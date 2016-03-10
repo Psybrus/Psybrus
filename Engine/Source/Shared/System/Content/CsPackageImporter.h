@@ -19,6 +19,7 @@
 #include "System/Content/CsPackageFileData.h"
 #include "System/Content/CsResource.h"
 #include "System/Content/CsResourceImporter.h"
+#include "System/Content/CsPackageDependencies.h"
 #include "System/Content/CsPlatformParams.h"
 #include "System/SysFence.h"
 
@@ -27,25 +28,6 @@
 //////////////////////////////////////////////////////////////////////////
 // Enable threaded importing.
 #define THREADED_IMPORTING ( 0 )
-
-//////////////////////////////////////////////////////////////////////////
-// CsPackageDependencies
-struct CsPackageDependencies
-{
-	REFLECTION_DECLARE_BASIC( CsPackageDependencies );
-
-	CsPackageDependencies(){};
-
-	void addClass( const ReClass* Class );
-
-	bool haveChanged() const;
-
-	typedef std::set< CsDependency > TDependencyList;
-	typedef std::map< BcName, BcU32 > TClassHashMap;
-	
-	TDependencyList Dependencies_;
-	TClassHashMap ClassDependencies_;
-};
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageImporter

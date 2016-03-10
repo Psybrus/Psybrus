@@ -457,14 +457,14 @@ namespace Psybrus
 
 		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsBufferType::VERTEX,
+				RsResourceBindFlags::VERTEX_BUFFER,
 				RsResourceCreationFlags::STREAM, 
 				65536 * VertexDeclaration_->getDesc().getMinimumStride() ),
 			"DsImGui" );
 
 		IndexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsBufferType::INDEX,
+				RsResourceBindFlags::INDEX_BUFFER,
 				RsResourceCreationFlags::STREAM, 
 				128 * 1024 * sizeof( BcU16 ) ),
 			"DsImGui" );
@@ -477,7 +477,7 @@ namespace Psybrus
 
 		UniformBuffer_ = RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
-				RsBufferType::UNIFORM,
+				RsResourceBindFlags::UNIFORM_BUFFER,
 				RsResourceCreationFlags::STREAM,
 				sizeof( UniformBlock_ ) ),
 			"DsImGui" );
