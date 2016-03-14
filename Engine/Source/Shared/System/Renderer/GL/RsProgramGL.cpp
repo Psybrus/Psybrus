@@ -102,7 +102,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	{
 		RsProgramParameterTypeValueGL InternalType;
 		InternalType.Value_ = Parameter.InternalType_;
-		switch( InternalType.Storage_ )
+		switch( (RsProgramParameterStorageGL)InternalType.Storage_ )
 		{
 		case RsProgramParameterStorageGL::UNIFORM:
 			{
