@@ -38,7 +38,9 @@ end
 
 -- Android.
 if _OPTIONS[ "toolchain" ] == "android-gcc-arm" or
-   _OPTIONS[ "toolchain" ] == "android-gcc-x86" then
+   _OPTIONS[ "toolchain" ] == "android-gcc-x86" or
+   _OPTIONS[ "toolchain" ] == "android-clang-arm" or
+   _OPTIONS[ "toolchain" ] == "android-clang-x86" then
 	WITH_OSS = 0
 	WITH_WINMM = 0
 	WITH_WASAPI = 0

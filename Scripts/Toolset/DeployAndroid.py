@@ -42,7 +42,9 @@ class DeployAndroid( Deploy ):
 
 		self.abis = {
 			"android-gcc-arm" : "armeabi-v7a",
-			"android-gcc-x86" : "x86"
+			"android-gcc-x86" : "x86",
+			#"android-clang-arm" : "armeabi-v7a",
+			#"android-clang-x86" : "x86"
 		}
 
 		Deploy.package_build( self, _config )

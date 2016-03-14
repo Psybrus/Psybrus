@@ -127,8 +127,8 @@ function PsyProjectCommon( _name, _lang )
 		[ "C" ] = {},
 		[ "C++" ] = {},
 		[ "C++11" ] = { "-std=c++11" },
-		[ "C++14" ] = { "-std=c++1z" },
-		[ "C++17" ] = { "-std=c++17" }
+		[ "C++14" ] = { "-std=c++11" }, -- TODO: C++14.
+		[ "C++17" ] = { "-std=c++11" }  -- TODO: C++17.
 	}
 
 	clangLanguageOptions = {
@@ -142,7 +142,7 @@ function PsyProjectCommon( _name, _lang )
 	configuration "*"
 		language( languageOptions[ _lang ] )
 
-	configuration "*-gcc"
+	configuration "*-gcc or *-gcc-*"
 		buildoptions( gccLanguageOptions[ _lang ] )
 
 	configuration "*-clang or html5-clang-*"

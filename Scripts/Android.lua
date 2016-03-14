@@ -7,7 +7,9 @@ function SetupAndroidProject()
 	local suffix = _OPTIONS["toolchain"]
 
 	if _OPTIONS["toolchain"] == "android-gcc-arm" or 
-	   _OPTIONS["toolchain"] == "android-gcc-x86" then
+	   _OPTIONS["toolchain"] == "android-gcc-x86" or
+	   _OPTIONS["toolchain"] == "android-clang-arm" or 
+	   _OPTIONS["toolchain"] == "android-clang-x86" then
 		kind "SharedLib"
 		flags { "NoImportLib" }
 		--kind "ConsoleApp"
@@ -28,7 +30,9 @@ end
 
 function LLVMcxxabiProject()
 	if _OPTIONS["toolchain"] == "android-gcc-arm" or 
-	   _OPTIONS["toolchain"] == "android-gcc-x86" then
+	   _OPTIONS["toolchain"] == "android-gcc-x86" or
+	   _OPTIONS["toolchain"] == "android-clang-arm" or 
+	   _OPTIONS["toolchain"] == "android-clang-x86" then
 		project( "llvmcxxabi" )
 			language( "C++" )
 			configuration "*"
