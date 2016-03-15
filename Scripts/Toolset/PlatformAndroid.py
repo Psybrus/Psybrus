@@ -15,7 +15,7 @@ android_plaform_arm_clang = Platform(
 	[] )
 
 PLATFORMS.append( android_plaform_arm_gcc )
-#PLATFORMS.append( android_plaform_arm_clang )
+PLATFORMS.append( android_plaform_arm_clang )
 
 android_plaform_x86_gcc = Platform( 
 	"android-gcc-x86", "Android x86 (GCC 4.9)", "android",
@@ -30,4 +30,4 @@ android_plaform_x86_clang = Platform(
 	[] )
 
 PLATFORMS.append( android_plaform_x86_gcc )
-#PLATFORMS.append( android_plaform_x86_clang )
+PLATFORMS.append( android_plaform_x86_clang )

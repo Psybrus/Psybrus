@@ -102,110 +102,19 @@ function PsySetupToolchain()
 				print "Toolchain does not exist for host OS"
 				os.exit(1)
 			end
-		end
 
-		-- android-gcc-arm
-		if _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
-			local sdkVersion = "android-" .. GAME.android.ndk_version
-
-			toolchainPath = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt"
-			sysRoot = "$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
-			SetupAndroidCompiler( toolchainPath, sysRoot, "arm-linux-androideabi-gcc", "arm-linux-androideabi-g++", "arm-linux-androideabi-ar" )
-			location ( "Projects/" .. _ACTION .. "-android-gcc-arm" )
-
-			buildoptions { 
-				"-march=armv7-a",
-				"-mfpu=vfp",
-				"-mfloat-abi=softfp"
+			defines {
+				"ANDROID_SDK_VERSION=" .. GAME.android.sdk_version,
+				"ANDROID_NDK_VERSION=" .. GAME.android.ndk_version
 			}
 
-			linkoptions { 
-				"-Wl,--fix-cortex-a8",
-				--"-Wl,--no-warn-mismatch",
-			}
-
-			-- Add default include paths.
 			configuration( "*" )
-				defines {
-					"_NDK_MATH_NO_SOFTFP=1"
-				}
-
 				links {
 					"c",
 					"m",
 					"dl",
 					"android",
 					"log"
-				}
-
-				defines {
-					"ANDROID_SDK_VERSION=" .. GAME.android.sdk_version,
-					"ANDROID_NDK_VERSION=" .. GAME.android.ndk_version
-				}
-
-
-				-- LLVM libc++
-				links {
-					"c++_static",
-				}
-
-				includedirs {
-					"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libcxxabi/include",
-					"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libcxx/include",
-				}
-
-				libdirs {
-					"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++abi/libs/armeabi-v7a",
-					"$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a",
-				}
-
-				includedirs {
-					toolchainPath .. "/linux-x86_64/include",
-					sysRoot .. "/usr/include",
-					"$(ANDROID_NDK)/sources/android/support/include",
-				}
-
-				libdirs {
-					toolchainPath .. "/linux-x86_64/lib",
-					sysRoot .. "/arch-arm/usr/lib",
-			}
-
-		end
-
-		-- android-clang-arm
-		if _OPTIONS[ "toolchain" ] == "android-gcc-x86" then
-			local sdkVersion = "android-" .. GAME.android.ndk_version
-
-			toolchainPath = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt"
-			sysRoot = "$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
-			SetupAndroidCompiler( toolchainPath, sysRoot, "i686-linux-android-gcc", "i686-linux-android-g++", "i686-linux-android-ar" )
-			location ( "Projects/" .. _ACTION .. "-android-gcc-x86" )
-
-			buildoptions { 
-				--"-march=i686",
-				--"-mlong-double-128"
-			}
-
-			linkoptions { 
-				--"-Wl,--no-warn-mismatch",
-			}
-
-			-- Add default include paths.
-			configuration( "*" )
-				defines {
-				}
-
-				links {
-					"c",
-					"m",
-					"dl",
-					"android",
-					"log"
-				}
-
-				defines {
-					"ANDROID_SDK_VERSION=" .. GAME.android.sdk_version,
-					"ANDROID_NDK_VERSION=" .. GAME.android.ndk_version
 				}
 
 				-- LLVM libc++
@@ -231,9 +140,82 @@ function PsySetupToolchain()
 
 				libdirs {
 					toolchainPath .. "/linux-x86_64/lib",
-					sysRoot .. "/arch-x86/usr/lib",
+					sysRoot .. "/usr/lib",
+				}
+		end
+
+		-- GCC 4.9
+		if _OPTIONS[ "toolchain" ] == "android-gcc-arm" then
+			local sdkVersion = "android-" .. GAME.android.ndk_version
+
+			toolchainPath = "$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.9/prebuilt"
+			sysRoot = "$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
+			SetupAndroidCompiler( toolchainPath, sysRoot, "arm-linux-androideabi-gcc", "arm-linux-androideabi-g++", "arm-linux-androideabi-ar" )
+			location ( "Projects/" .. _ACTION .. "-android-gcc-arm" )
+
+			buildoptions { 
+				"-march=armv7-a",
+				"-mfpu=vfp",
+				"-mfloat-abi=softfp"
 			}
 
+			linkoptions { 
+				"-Wl,--fix-cortex-a8",
+				--"-Wl,--no-warn-mismatch",
+			}
+
+			-- Add default include paths.
+			configuration( "*" )
+				defines {
+					"_NDK_MATH_NO_SOFTFP=1"
+				}
+		end
+
+		if _OPTIONS[ "toolchain" ] == "android-gcc-x86" then
+			local sdkVersion = "android-" .. GAME.android.ndk_version
+
+			toolchainPath = "$(ANDROID_NDK)/toolchains/x86-4.9/prebuilt"
+			sysRoot = "$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+			SetupAndroidCompiler( toolchainPath, sysRoot, "i686-linux-android-gcc", "i686-linux-android-g++", "i686-linux-android-ar" )
+			location ( "Projects/" .. _ACTION .. "-android-gcc-x86" )
+		end
+
+
+		-- Clang 3.6
+		if _OPTIONS[ "toolchain" ] == "android-clang-arm" then
+			local sdkVersion = "android-" .. GAME.android.ndk_version
+
+			toolchainPath = "$(ANDROID_NDK)/toolchains/llvm-3.6/prebuilt"
+			sysRoot = "$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-arm"
+			SetupAndroidCompiler( toolchainPath, sysRoot, "clang", "clang++", "ld" )
+
+			location ( "Projects/" .. _ACTION .. "-android-clang-arm" )
+
+			buildoptions { 
+				"-arch arm",
+				--"-mfpu=vfp",
+				--"-mfloat-abi=softfp"
+			}
+
+			linkoptions { 
+				"-Wl,--fix-cortex-a8",
+				--"-Wl,--no-warn-mismatch",
+			}
+
+			-- Add default include paths.
+			configuration( "*" )
+				defines {
+					"_NDK_MATH_NO_SOFTFP=1"
+				}
+		end
+
+		if _OPTIONS[ "toolchain" ] == "android-clang-x86" then
+			local sdkVersion = "android-" .. GAME.android.ndk_version
+
+			toolchainPath = "$(ANDROID_NDK)/toolchains/llvm-3.6/prebuilt"
+			sysRoot = "$(ANDROID_NDK)/platforms/" .. sdkVersion .. "/arch-x86"
+			SetupAndroidCompiler( toolchainPath, sysRoot, "clang", "clang++", "ld" )
+			location ( "Projects/" .. _ACTION .. "-android-clang-x86" )
 		end
 
 		-- Configurations
@@ -279,6 +261,14 @@ function PsySetupToolchain()
 			objdir ( "Build/" .. _ACTION .. "-android-gcc-arm/obj" )
 
 		configuration { "android-gcc-x86" }
+			targetdir ( "Build/" .. _ACTION .. "-android-gcc-x86/bin" )
+			objdir ( "Build/" .. _ACTION .. "-android-gcc-x86/obj" )
+
+		configuration { "android-clang-arm" }
+			targetdir ( "Build/" .. _ACTION .. "-android-gcc-arm/bin" )
+			objdir ( "Build/" .. _ACTION .. "-android-gcc-arm/obj" )
+
+		configuration { "android-clang-x86" }
 			targetdir ( "Build/" .. _ACTION .. "-android-gcc-x86/bin" )
 			objdir ( "Build/" .. _ACTION .. "-android-gcc-x86/obj" )
 	end
