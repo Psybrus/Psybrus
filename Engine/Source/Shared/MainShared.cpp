@@ -400,6 +400,9 @@ void MainShared()
 #endif
 
 #if SEARCH_FOR_CORRECT_PATH
+	// Change to executable root.
+	BcFileSystemChangeDirectory( BcPath( SysExePath_ ).getParent().c_str() );
+
 	bool FoundRoot = false;
 	bool Success = true;
 	while( !FoundRoot && Success )
