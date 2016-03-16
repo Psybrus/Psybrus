@@ -178,7 +178,7 @@
   */
   
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
-	_o = _v + float4( mul( getFloat3x3(InverseViewTransform_), SEMANTIC_TANGENT.xyz ), 1.0 )
+	_o = _v + float4( mul( getFloat3x3(InverseViewTransform_), SEMANTIC_TANGENT.xyz ), 0.0 )
 
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
 	_o = _v
