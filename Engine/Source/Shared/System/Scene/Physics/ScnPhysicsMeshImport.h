@@ -36,7 +36,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( const Json::Value& ) override;
+	BcBool import() override;
 
 private:
 	ScnPhysicsMeshShapeType ShapeType_;

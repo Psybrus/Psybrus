@@ -79,7 +79,7 @@ ScnTileMapImport::~ScnTileMapImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnTileMapImport::import( const Json::Value& )
+BcBool ScnTileMapImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	BcBool CanImport = BcTrue;

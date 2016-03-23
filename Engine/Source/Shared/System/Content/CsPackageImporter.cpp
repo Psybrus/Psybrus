@@ -450,7 +450,7 @@ BcBool CsPackageImporter::importResource(
 	try
 	{
 		PSY_LOGSCOPEDINDENT;
-		SuccessfulImport = Importer->import( Resource );
+		SuccessfulImport = Importer->import();
 
 		// Check for error + critical messages.
 		SuccessfulImport &= Importer->getMessageCount( CsMessageCategory::ERROR ) == 0;

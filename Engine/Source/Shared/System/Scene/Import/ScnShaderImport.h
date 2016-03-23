@@ -145,7 +145,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( const Json::Value& Object ) override;
+	BcBool import() override;
 
 	void addDependency( const BcChar* Dependency );
 

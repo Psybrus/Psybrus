@@ -160,7 +160,7 @@ ScnAnimationImport::~ScnAnimationImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnAnimationImport::import( const Json::Value& )
+BcBool ScnAnimationImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() )

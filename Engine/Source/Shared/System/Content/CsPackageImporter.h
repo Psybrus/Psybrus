@@ -93,7 +93,7 @@ public:
 	BcU32 addImport( 
 		const Json::Value& Resource, 
 		BcBool IsCrossRef = BcTrue );
-	
+
 	/**
 	 * Add import.
 	 */

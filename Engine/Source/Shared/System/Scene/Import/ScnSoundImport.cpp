@@ -67,8 +67,7 @@ ScnSoundImport::~ScnSoundImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnSoundImport::import(
-		const Json::Value& Object )
+BcBool ScnSoundImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	// Check file type.

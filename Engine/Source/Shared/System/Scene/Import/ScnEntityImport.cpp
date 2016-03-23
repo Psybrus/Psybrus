@@ -76,8 +76,7 @@ ScnEntityImport::~ScnEntityImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnEntityImport::import(
-		const Json::Value& Object )
+BcBool ScnEntityImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	if( Components_.size() > 0 )

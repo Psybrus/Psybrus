@@ -37,7 +37,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( const Json::Value& Object ) override;
+	BcBool import() override;
 
 private:
 	ImgImageUPtr makeImageForGlyphMono( struct FT_GlyphRec_* Glyph, BcU32 BorderSize );

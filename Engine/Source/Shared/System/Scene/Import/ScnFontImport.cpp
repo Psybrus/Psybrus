@@ -65,8 +65,7 @@ ScnFontImport::~ScnFontImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnFontImport::import(
-	const Json::Value& )
+BcBool ScnFontImport::import()
 {
 	BcBool RetVal = BcFalse;
 #if PSY_IMPORT_PIPELINE

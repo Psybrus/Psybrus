@@ -35,7 +35,7 @@ public:
 	/**
 	 * Import.
 	 */
-	BcBool import( const Json::Value& Object ) override;
+	BcBool import() override;
 
 private:
 	std::string Source_;

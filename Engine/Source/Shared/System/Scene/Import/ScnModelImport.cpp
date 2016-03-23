@@ -201,7 +201,7 @@ ScnModelImport::~ScnModelImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnModelImport::import( const Json::Value& )
+BcBool ScnModelImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	BcBool CanImport = BcTrue;

@@ -53,7 +53,7 @@ CsRedirectorImport::~CsRedirectorImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool CsRedirectorImport::import( const Json::Value& )
+BcBool CsRedirectorImport::import()
 {
 	BcBool RetVal = BcFalse;
 #ifdef PSY_IMPORT_PIPELINE

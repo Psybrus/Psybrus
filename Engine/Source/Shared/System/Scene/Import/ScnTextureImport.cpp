@@ -183,8 +183,7 @@ ScnTextureImport::~ScnTextureImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnTextureImport::import(
-		const Json::Value& )
+BcBool ScnTextureImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	ImgColour ClearColour = { 0, 0, 0, 0 };

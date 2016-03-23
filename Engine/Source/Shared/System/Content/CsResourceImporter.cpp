@@ -48,7 +48,7 @@ void CsResourceImporter::StaticRegisterClass()
 		new ReField( "Importer_", &CsResourceImporter::Importer_, bcRFF_TRANSIENT ),
 	};
 	
-	ReRegisterClass< CsResourceImporter, Super >( Fields );
+	ReRegisterAbstractClass< CsResourceImporter, Super >( Fields );
 }
 
 CsResourceImporterAttribute::CsResourceImporterAttribute():
@@ -136,16 +136,6 @@ void CsResourceImporter::initialise(
 }
 
 //////////////////////////////////////////////////////////////////////////
-// import
-//virtual
-BcBool CsResourceImporter::import( 
-	const Json::Value& Object )
-{
-	BcBreakpoint;
-	return BcFalse;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // getPackageName
 std::string CsResourceImporter::getPackageName() const
 {
@@ -217,20 +207,6 @@ size_t CsResourceImporter::getMessageCount( CsMessageCategory Category ) const
 	return MessageCount_[ CategoryIdx ];
 }
 	
-//////////////////////////////////////////////////////////////////////////
-// addImport_DEPRECATED
-BcU32 CsResourceImporter::addImport_DEPRECATED( 
-	const Json::Value& Resource, 
-	BcBool IsCrossRef )
-{
-#if PSY_IMPORT_PIPELINE
-	BcAssert( Importer_ != nullptr );
-	return Importer_->addImport( Resource, IsCrossRef );
-#else
-	return BcErrorCode;
-#endif // PSY_IMPORT_PIPELINE
-}
-
 //////////////////////////////////////////////////////////////////////////
 // addImport
 BcU32 CsResourceImporter::addImport( 

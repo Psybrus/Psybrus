@@ -66,8 +66,7 @@ ScnMaterialImport::~ScnMaterialImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnMaterialImport::import(
-		const Json::Value& )
+BcBool ScnMaterialImport::import()
 {	
 #if PSY_IMPORT_PIPELINE
 	// Export material.

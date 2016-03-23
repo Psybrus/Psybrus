@@ -71,8 +71,7 @@ ScnComponentImport::~ScnComponentImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnComponentImport::import(
-		const Json::Value& Object )
+BcBool ScnComponentImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	BcAssertMsg( Component_, "ScnComponentImport needs to be constructed with a component." );

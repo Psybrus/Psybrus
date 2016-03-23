@@ -141,7 +141,7 @@ ScnPhysicsMeshImport::~ScnPhysicsMeshImport()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-BcBool ScnPhysicsMeshImport::import( const Json::Value& )
+BcBool ScnPhysicsMeshImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	BcBool CanImport = BcTrue;

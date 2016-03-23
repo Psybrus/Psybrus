@@ -190,7 +190,7 @@ ScnShaderImport::~ScnShaderImport()
 
 //////////////////////////////////////////////////////////////////////////
 // import
-BcBool ScnShaderImport::import( const Json::Value& )
+BcBool ScnShaderImport::import()
 {
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() && Sources_.empty() )
