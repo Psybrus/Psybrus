@@ -23,17 +23,12 @@
 
 #include "System/Renderer/Null/RsContextNull.h"
 
-#if !PLATFORM_WINPHONE
+#if WITH_GL
 #include "System/Renderer/GL/RsContextGL.h"
 #endif
 
-#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
-#include "System/Renderer/D3D11/RsContextD3D11.h"
-
 #if WITH_DX12
 #include "System/Renderer/D3D12/RsContextD3D12.h"
-#endif
-
 #endif
 
 #if WITH_VK
@@ -167,35 +162,56 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 		if( pClient != NULL )
 		{
 			RsContext* pResource = nullptr;
-#if PLATFORM_WINDOWS || PLATFORM_WINPHONE
-			if( SysArgs_.find( "-d3d11" ) != std::string::npos)
+
+			// Order of priority:
+			// - OpenGL.
+			// - D3D12. (disable, unstable)
+			// - Vulkan. (disabled, incomplete)
+			RsAPI API = RsAPI::OPENGL;
+
+			if( SysArgs_.find( "-null_renderer" ) != std::string::npos)
 			{
-				pResource = new RsContextD3D11( pClient, nullptr );
+				API = RsAPI::NULL_RENDERER;
 			}
-#if WITH_DX12
 			else if( SysArgs_.find( "-d3d12" ) != std::string::npos)
 			{
-				pResource = new RsContextD3D12( pClient, nullptr );
+				API = RsAPI::D3D12;
 			}
-#endif
-			else
-#endif
-			if( SysArgs_.find( "-null" ) != std::string::npos)
-			{
-				pResource = new RsContextNull( pClient, nullptr );
-			}
-#if WITH_VK
 			else if( SysArgs_.find( "-vk" ) != std::string::npos)
 			{
-				pResource = new RsContextVK( pClient, nullptr );
+				API = RsAPI::VULKAN;
 			}
-#endif
-#if !PLATFORM_WINPHONE
-			else
+			else if( SysArgs_.find( "-gl" ) != std::string::npos)
 			{
-				pResource = new RsContextGL( pClient, nullptr );
+				API = RsAPI::OPENGL;
 			}
+
+			switch( API )
+			{
+			case RsAPI::NULL_RENDERER:
+				pResource = new RsContextNull( pClient, nullptr );
+				break;
+#if WITH_GL
+			case RsAPI::OPENGL:
+				pResource = new RsContextGL( pClient, nullptr );
+				break;
 #endif
+#if WITH_DX12
+			case RsAPI::D3D12:
+				pResource = new RsContextD3D12( pClient, nullptr );
+				break;
+#endif
+#if WITH_VK
+			case RsAPI::VULKAN:
+				pResource = new RsContextVK( pClient, nullptr );
+				break;
+#endif
+			default:
+				BcAssertMsg( false, "Invalid renderer selected. Check it has been built in, or valid for platform." );
+				break;
+			}
+
+
 			createResource( pResource );
 
 			// If we have no default context, set it.

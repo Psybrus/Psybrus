@@ -49,6 +49,9 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Platforms/Linux/",
       }
 
+      defines { "WITH_GL=1" }
+
+
   configuration "osx-*"
       files {
           "./Shared/System/Renderer/GL/*.h", 
@@ -60,6 +63,8 @@ PsyProjectEngineLib( "System_Renderer" )
           "/usr/local/Cellar/sdl2/2.0.3/include" 
       }
 
+      defines { "WITH_GL=1" }
+
   configuration "android-*"
     files {
           "./Shared/System/Renderer/GL/*.h", 
@@ -69,6 +74,8 @@ PsyProjectEngineLib( "System_Renderer" )
     includedirs {
         "./Platforms/Android/",
     }
+
+      defines { "WITH_GL=1" }
 
   configuration "html5-clang-asmjs"
       files {
@@ -80,19 +87,21 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Platforms/HTML5/",
       }
 
+      defines { "WITH_GL=1" }
+
   configuration "windows-*"
       files {
           "./Shared/System/Renderer/GL/*.h", 
           "./Shared/System/Renderer/GL/*.inl", 
           "./Shared/System/Renderer/GL/*.cpp", 
-          "./Shared/System/Renderer/D3D11/*.h", 
-          "./Shared/System/Renderer/D3D11/*.inl", 
-          "./Shared/System/Renderer/D3D11/*.cpp", 
       }
 
       includedirs {
             "./Platforms/Windows/",
       }
+
+      defines { "WITH_GL=1" }
+
 
 
 if _OPTIONS["with-dx12"] then
@@ -133,9 +142,6 @@ end
 
   configuration "winphone-*"
       files {
-          "./Shared/System/Renderer/D3D11/*.h", 
-          "./Shared/System/Renderer/D3D11/*.inl", 
-          "./Shared/System/Renderer/D3D11/*.cpp", 
       }
 
       includedirs {

@@ -427,6 +427,19 @@ enum class RsUnorderedAccessType : BcU32
 };
 
 //////////////////////////////////////////////////////////////////////////
+// RsAPI
+enum class RsAPI : BcU32
+{
+	NULL_RENDERER,
+	OPENGL,
+	D3D12,
+	VULKAN,
+
+	MAX,
+	INVALID = BcErrorCode
+};
+
+//////////////////////////////////////////////////////////////////////////
 // RsShaderBackendType
 enum class RsShaderBackendType : BcU32
 {
