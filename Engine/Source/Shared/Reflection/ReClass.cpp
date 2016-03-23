@@ -140,31 +140,6 @@ const ReFieldVector& ReClass::getFields() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getHash
-BcU32 ReClass::getHash() const
-{
-	const std::string ClassName = *getName();
-
-	BcU32 CRC32 = Super_ ? Super_->getHash() : 0;
-	CRC32 = BcHash::GenerateCRC32( CRC32, ClassName.data(), ClassName.size() );
-	CRC32 = BcHash::GenerateCRC32( CRC32, &Size_, sizeof( Size_ ) );
-	CRC32 = BcHash::GenerateCRC32( CRC32, &ClassFlags_, sizeof( ClassFlags_ ) );
-
-	for( auto Field : Fields_ )
-	{
-		const std::string FieldName = *Field->getName();
-		const std::string FieldTypeName = *Field->getType()->getName();
-		const size_t FieldSize = Field->getSize();
-
-		CRC32 = BcHash::GenerateCRC32( CRC32, FieldName.data(), FieldName.size() );
-		CRC32 = BcHash::GenerateCRC32( CRC32, FieldTypeName.data(), FieldTypeName.size() );
-		CRC32 = BcHash::GenerateCRC32( CRC32, &FieldSize, sizeof( FieldSize ) );
-	}
-
-	return CRC32;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // validate
 BcBool ReClass::validate() const
 {

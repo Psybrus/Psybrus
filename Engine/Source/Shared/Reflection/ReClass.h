@@ -116,11 +116,6 @@ public:
 	const ReFieldVector& getFields() const;
 
 	/**
-	 * Get a hash of this class.
-	 */
-	virtual BcU32 getHash() const;
-
-	/**
 	 * Validate.
 	 */
 	BcBool validate() const;
