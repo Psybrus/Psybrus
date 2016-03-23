@@ -522,8 +522,8 @@ function PsyProjectExternalLib( _name, _lang )
 	PsyProjectCommon( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
-	--configuration "Debug"
-	--	flags { "DebugRuntime", "Optimize"}
+	configuration "Debug"
+		flags { "DebugRuntime", "Optimize"}
 
 	configuration "Release or Profile or Production"
 		flags { "ReleaseRuntime", "Optimize"}

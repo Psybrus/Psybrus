@@ -15,6 +15,7 @@ public:
 		SeISerialiserObjectCodec* ObjectCodec );
     virtual ~SeJsonWriter();
 	void save( std::string FileName );
+	const Json::Value& getValue() const { return RootValue_; }
     virtual BcU32 getVersion() const;
     virtual BcU32 getFileVersion() const;
 

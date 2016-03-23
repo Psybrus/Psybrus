@@ -486,7 +486,6 @@ void ScnEntity::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	if( ChunkID == BcHash( "header" ) )
 	{
-		pJsonObject_ = nullptr;
 		pHeader_ = reinterpret_cast< const ScnEntityHeader* >( pData );
 
 		LocalTransform_ = pHeader_->LocalTransform_;
@@ -508,7 +507,6 @@ void ScnEntity::setupComponents()
 		auto Basis = static_cast< ScnEntity* >( getBasis() );
 		const ScnEntityHeader* Header = pHeader_ == nullptr ? Basis->pHeader_ : pHeader_;
 		const BcU32* ComponentCrossRefs = reinterpret_cast< const BcU32* >( Header + 1 );
-
 		for( BcU32 Idx = 0; Idx < Header->NoofComponents_; ++Idx )
 		{
 			// We are a basis.

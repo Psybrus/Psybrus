@@ -526,7 +526,8 @@ void ScnFont::StaticRegisterClass()
 // Ctor
 ScnFont::ScnFont():
 	pHeader_( nullptr ),
-	pGlyphDescs_( nullptr )
+	pGlyphDescs_( nullptr ),
+	Texture_( nullptr )
 {
 
 }

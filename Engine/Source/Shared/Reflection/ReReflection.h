@@ -53,6 +53,14 @@ _Ty* ReConstructObject(
 }
 
 /**
+ * @brief Visit everything owned by @a InData as InClass and all children by calling @a InFunc.
+ */
+void ReVisitRecursively(
+	void* InData,
+	const ReClass* InClass,
+	std::function< void( void*, const ReClass* InClass ) > InFunc );
+
+/**
  * @brief Register a new class. Will get as usual, but setup what we need.
  * @param _Class Class type.
  * @param Fields Array of fields to add to class.

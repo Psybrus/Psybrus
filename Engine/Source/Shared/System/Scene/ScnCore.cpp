@@ -433,7 +433,7 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 	// Get package and acquire.
 	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Params.Package_ );
 
-	if(pPackage->isReady())
+	if( pPackage->isReady() )
 	{
 		return internalSpawnEntity( Params );
 	}

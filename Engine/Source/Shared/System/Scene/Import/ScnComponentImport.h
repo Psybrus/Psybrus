@@ -27,6 +27,7 @@ public:
 
 public:
 	ScnComponentImport();
+	ScnComponentImport( class ScnComponent* Component );
 	ScnComponentImport( ReNoInit );
 	virtual ~ScnComponentImport();
 
@@ -36,7 +37,7 @@ public:
 	BcBool import( const Json::Value& Object ) override;
 
 private:
-	
+	class ScnComponent* Component_;
 };
 
 #endif

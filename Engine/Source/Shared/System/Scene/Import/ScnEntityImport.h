@@ -29,6 +29,7 @@ public:
 
 public:
 	ScnEntityImport();
+	ScnEntityImport( class ScnEntity* Entity );
 	ScnEntityImport( ReNoInit );
 	virtual ~ScnEntityImport();
 
@@ -39,6 +40,7 @@ public:
 
 private:
 	MaMat4d LocalTransform_;
+	std::vector< class ScnComponent* > Components_;
 };
 
 #endif

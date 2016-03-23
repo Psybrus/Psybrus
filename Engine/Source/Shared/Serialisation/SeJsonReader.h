@@ -13,11 +13,15 @@ class SeJsonReader:
 public:
 	SeJsonReader( 
 		SeISerialiserObjectCodec* ObjectCodec );
+	void setRootValue( const Json::Value& Value );
 	BcBool load( std::string FileName );
 	virtual ~SeJsonReader();
 
 	virtual BcU32 getVersion() const;
 	virtual BcU32 getFileVersion() const;
+
+	void setMemberMismatchIsError( bool MemberMismatchIsError ){ MemberMismatchIsError_ = MemberMismatchIsError; }
+	BcU32 getNoofMemberMismatchErrors() const { return NoofMemberMismatchErrors_; }
 
 protected:
 	virtual void* internalSerialise( void* pData, const ReClass* pType );
@@ -62,6 +66,9 @@ private:
 	BcU32 FileVersion_;
 	std::list< SerialiseClass > SerialiseClasses_;	///!< Classes to serialise.
 	std::vector< Json::Value > InputValues_;		///!< Values to read int.
+
+	BcBool MemberMismatchIsError_;
+	BcU32 NoofMemberMismatchErrors_;
 };
 
 #endif

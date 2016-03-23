@@ -23,7 +23,9 @@
 // Ctor
 SeJsonReader::SeJsonReader( 
 		SeISerialiserObjectCodec* ObjectCodec ) :
-	ObjectCodec_( ObjectCodec )
+	ObjectCodec_( ObjectCodec ),
+	MemberMismatchIsError_( BcFalse ),
+	NoofMemberMismatchErrors_( 0 )
 {
 
 }
@@ -34,6 +36,13 @@ SeJsonReader::SeJsonReader(
 SeJsonReader::~SeJsonReader()
 {
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setRootValue
+void SeJsonReader::setRootValue( const Json::Value& Value )
+{
+	RootValue_ = Value;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,14 +153,6 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 	auto Serialiser = pClass->getTypeSerialiser();
 	std::string OutString;
 
-	if( *pClass->getName() == "ScnViewComponent" )
-	{
-		int a = 0;++a;
-	}
-	if( *pClass->getName() == "ScnShaderPermutationFlags" )
-	{
-		int a = 0;++a;
-	}
 	BcBool Success = false;
 	// Attempt conversion to string.
 	if( Serialiser != nullptr )
@@ -167,14 +168,7 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 		{
 			SE_LOG( " - %f", (float)InputValue.asDouble() );
 
-			// std::to_string(float/double) have issues on Android. Don't use.
-#if 0 && PLATFORM_ANDROID
-			BcChar StringBuffer[ 128 ] = { 0 };
-			snprintf( StringBuffer, 127, "%.16f", BcF32( InputValue.asDouble() ) );
-			Success = Serialiser->serialiseFromString( pData, StringBuffer );
-#else			
 			Success = Serialiser->serialiseFromString( pData, std::to_string( InputValue.asDouble() ) );
-#endif
 		}
 		// Attempt conversion to uint via string.
 		else if( InputValue.type() == Json::uintValue )
@@ -258,46 +252,47 @@ void SeJsonReader::serialiseClass( void* pData, const ReClass* pClass, const Jso
 //virtual
 void SeJsonReader::serialiseClassMembers( void* pData, const ReClass* pClass, const Json::Value& MemberValues, BcU32 ParentFlags )
 {
-	// Iterate over members to add, all supers too.
-	const ReClass* pProcessingClass = pClass;
-	while( pProcessingClass != nullptr )
+	// Iterate over members to add, search through for match, and serialise field when hit.
+	auto Members = MemberValues.getMemberNames();
+	for( const auto& Member : Members )
 	{
-		// If this class has fields, then iterate over them.
-		if( pProcessingClass->getNoofFields() > 0 )
+		const ReClass* SearchClass = pClass;
+		const ReField* FoundField = nullptr;
+		while( SearchClass != nullptr && FoundField == nullptr )
 		{
-			SE_LOG( "Class: %s", (*pClass->getName()).c_str() );
-			SE_LOGSCOPEDINDENT;
-			for( BcU32 Idx = 0; Idx < pProcessingClass->getNoofFields(); ++Idx )
+			auto FieldIt = std::find_if( SearchClass->getFields().begin(), SearchClass->getFields().end(), 
+				[ this, Member ]( const ReField* Field )
+				{
+					return ObjectCodec_->isMatchingField( Field, Member );
+				} );
+			if( FieldIt != SearchClass->getFields().end() )
 			{
-				const ReField* pField = pProcessingClass->getField( Idx );
-				auto Members = MemberValues.getMemberNames();
-				auto FoundMember = std::find_if( Members.begin(), Members.end(), 
-					[ this, pField ]( const std::string& Member )
-					{
-						return ObjectCodec_->isMatchingField( pField, Member );
-					} );
-
-				SE_LOG( "Field: %s", (*pField->getName()).c_str() );
-				SE_LOGSCOPEDINDENT;
-				if( ObjectCodec_->shouldSerialiseField( 
-					pData, ParentFlags, pField ) )
-				{
-					if( FoundMember != Members.end() )
-					{
-						serialiseField( pData, pField, MemberValues[ *FoundMember ], ParentFlags );
-					}
-					else
-					{
-						SE_LOG( "- No data" );
-					}
-				}
-				else
-				{
-					SE_LOG( "- Should not serialise." );
-				}
+				FoundField = *FieldIt;
+			}
+			else
+			{
+				SearchClass = SearchClass->getSuper();
 			}
 		}
-		pProcessingClass = pProcessingClass->getSuper();
+
+		if( FoundField != nullptr )
+		{
+			BcAssert( SearchClass );
+			SE_LOG( "Class: %s", (*SearchClass->getName()).c_str() );
+			SE_LOG( "Field: %s", (*pField->getName()).c_str() );
+			SE_LOGSCOPEDINDENT;
+			if( ObjectCodec_->shouldSerialiseField( 
+				pData, ParentFlags, FoundField ) )
+			{
+				serialiseField( pData, FoundField, MemberValues[ Member ], ParentFlags );
+			}
+		}
+		else if( Member[0] != '$' && MemberMismatchIsError_ )
+		{
+			PSY_LOG( "ERROR: Member \"%s\" does not exist in class \"%s\".", 
+				Member.c_str(), (*pClass->getName()).c_str() );
+			++NoofMemberMismatchErrors_;
+		}
 	}
 }
 
@@ -349,7 +344,7 @@ void SeJsonReader::serialisePointer( void*& pData, const ReClass* pClass, BcU32 
 	SeJsonReader::SerialiseClass ClassToSerialise( "", nullptr, nullptr );
 
 	// Check input type.
-	if( InputValue.type() == Json::intValue )
+	if( InputValue.type() == Json::intValue || InputValue.type() == Json::uintValue )
 	{
 		ClassToSerialise = getSerialiseClass( InputValue.asUInt(), pClass );
 	}
@@ -517,6 +512,9 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
 		{
 			RetVal = *FoundClass;
 		}
+		else
+		{
+		}
 	}
 
 	return RetVal;
@@ -526,6 +524,7 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
 // getSerialiseClass
 SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( const Json::Value& Value, const ReClass* pType )
 {
+	BcAssert( Value[ ClassString ] != Json::nullValue );
 	auto ClassType( ReManager::GetClass( Value[ ClassString ].asString() ) );
 	SeJsonReader::SerialiseClass ClassToSerialise( "", nullptr, ClassType );
 	ClassToSerialise.pData_ = ClassType->create< void >();

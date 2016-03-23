@@ -136,6 +136,7 @@ protected:
 public:
 	void								internalAddResource( CsResource* Resource );
 	void								internalAddResourceForProcessing( CsResource* Resource );
+	void								internalForceDestroy( CsResource* Resource );
 	BcBool								internalCreateResource( const BcName& Name, const ReClass* Class, BcU32 Index, CsPackage* pPackage, ReObjectRef< CsResource >& Handle );
 	BcBool								internalRequestResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );
 	BcBool								internalFindResource( const BcName& Package, const BcName& Name, const ReClass* Class, ReObjectRef< CsResource >& Handle );

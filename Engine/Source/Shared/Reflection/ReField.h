@@ -79,48 +79,48 @@ public:
 	}
 
 	/**
-		* Set type.
-		*/
+	 * Set type.
+	 */
     void							setType( const ReClass* pType );
 
 	/**
-		* Get type.
-		*/
+	 * Get type.
+	 */
     const ReClass*					getType() const;
 
 	/**
-		* Set size.
-		*/
+	 * Set size.
+	 */
     void							setSize( BcSize Size );
 
 	/**
-		* Get size.
-		*/
+	 * Get size.
+	 */
     BcSize							getSize() const;
 
 	/**
-		* Set offset.
-		*/
+	 * Set offset.
+	 */
 	void							setOffset( BcSize Offset );
 
 	/**
-		* Get offset.
-		*/
+	 * Get offset.
+	 */
 	BcSize							getOffset() const;
 
 	/**
-		* Set flags.
-		*/
+	 * Set flags.
+	 */
 	void							setFlags( BcU32 Flags );
 
 	/**
-		* Get flags.
-		*/
+	 * Get flags.
+	 */
 	BcU32							getFlags() const;
 
 	/**
-		* Get data from source pointer.
-		*/
+	 * Get data from source pointer.
+	 */
 	template< typename _Ty >
 	_Ty*							getData( void* pObjectData ) const
 	{
@@ -136,43 +136,43 @@ public:
 	}
 
 	/**
-		* @brief Is this field a container?
-		*/
+	 * @brief Is this field a container?
+	 */
 	bool							isContainer() const;
 
 	/**
-		* @brief Is this field a pointer type?
-		*/
+	 * @brief Is this field a pointer type?
+	 */
 	bool							isPointerType() const;
 
 	/**
-		* Get type.
-		*/
+	 * Get type.
+	 */
     const ReClass*						getKeyType() const;
 
 	/**
-		* Get type.
-		*/
+	 * Get type.
+	 */
     const ReClass*						getValueType() const;
 
 	/**
-		* Get flags.
-		*/
+	 * Get flags.
+	 */
 	BcU32								getKeyFlags() const;
 
 	/**
-		* Get flags.
-		*/
+	 * Get flags.
+	 */
 	BcU32								getValueFlags() const;
 
 	/**
-		* @brief New write iterator. Returns nullptr if it's not a container. Owner must delete.
-		*/
+	 * @brief New write iterator. Returns nullptr if it's not a container. Owner must delete.
+	 */
 	ReContainerAccessor::WriteIterator* newWriteIterator( void* pContainerData ) const;
 
 	/**
-		* @brief New read iterator. Returns nullptr if it's not a container. Owner must delete.
-		*/
+	 * @brief New read iterator. Returns nullptr if it's not a container. Owner must delete.
+	 */
 	ReContainerAccessor::ReadIterator* newReadIterator( void* pContainerData ) const;
 
 protected:

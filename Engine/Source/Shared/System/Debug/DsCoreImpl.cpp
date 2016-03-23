@@ -513,7 +513,7 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 
 								if ( Key != nullptr && Value != nullptr )
 								{
-									auto UpperKeyType = FieldAccessor.getKeyUpperClass( Value );
+									auto UpperKeyType = FieldAccessor.getKeyUpperClass( Key );
 									auto KeyType = UpperKeyType;
 									auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
 									auto ValueType = UpperValueType;

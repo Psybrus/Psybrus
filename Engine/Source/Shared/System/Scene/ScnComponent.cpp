@@ -37,7 +37,6 @@ void ScnComponent::StaticRegisterClass()
 	{
 		new ReField( "ComponentFlags_", &ScnComponent::ComponentFlags_, bcRFF_TRANSIENT ),
 		new ReField( "ParentEntity_", &ScnComponent::ParentEntity_, bcRFF_SHALLOW_COPY ),
-		new ReField( "pJsonObject_", &ScnComponent::pJsonObject_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA )
 	};
 	
 	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
@@ -54,8 +53,7 @@ void ScnComponent::StaticRegisterClass()
 // Ctor
 ScnComponent::ScnComponent():
 	ComponentFlags_( 0 ),
-	ParentEntity_( nullptr ),
-	pJsonObject_( nullptr )
+	ParentEntity_( nullptr )
 {
 }
 
@@ -63,8 +61,7 @@ ScnComponent::ScnComponent():
 // Ctor
 ScnComponent::ScnComponent( ReNoInit ):
 	ComponentFlags_( 0 ),
-	ParentEntity_( nullptr ),
-	pJsonObject_( nullptr )
+	ParentEntity_( nullptr )
 {
 }
 
@@ -240,21 +237,20 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 {
 	if( ChunkID == BcHash( "object" ) )
 	{
-		pJsonObject_ = reinterpret_cast< const BcChar* >( pData );
+		auto JsonObject = reinterpret_cast< const BcChar* >( pData );
 
 		// Initialise json object.
-	    Json::Value Root;
-	    Json::Reader Reader;
-	    if( Reader.parse( pJsonObject_, Root ) )
+		Json::Value Root;
+		Json::Reader Reader;
+		if( Reader.parse( JsonObject, Root ) )
 		{
-			// New way.
+			// Serialise from json.
+			// TODO: Serialise from binary.
 			CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 			SeJsonReader Reader( &ObjectCodec );
-
-			PSY_LOGSCOPEDINDENT;
-			Reader.serialiseClassMembers( this, this->getClass(), Root, 0 );
-
-
+			Reader.setRootValue( Root );
+			Reader.serialise( this, getClass() );
+			
 			// Now reinitialise.
 			initialise();
 		}

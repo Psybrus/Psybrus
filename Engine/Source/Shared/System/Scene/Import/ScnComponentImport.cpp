@@ -39,14 +39,24 @@ void ScnComponentImport::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnComponentImport::ScnComponentImport()
+ScnComponentImport::ScnComponentImport():
+	Component_( nullptr )
 {
 
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnComponentImport::ScnComponentImport( ReNoInit )
+ScnComponentImport::ScnComponentImport( ScnComponent* Component ):
+	CsResourceImporter( *Component->getName(), *Component->getTypeName() ),
+	Component_( Component )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnComponentImport::ScnComponentImport( ReNoInit ):
+	Component_( nullptr )
 {
 
 }
@@ -65,45 +75,41 @@ BcBool ScnComponentImport::import(
 		const Json::Value& Object )
 {
 #if PSY_IMPORT_PIPELINE
-	// Check we have a valid type to serialise in.
-	if( Object[ "type" ].type() != Json::stringValue )
-	{
-		return BcFalse;
-	}
-	class ReClass* ComponentClass = ReManager::GetClass( Object[ "type" ].asCString() );
-	if( ComponentClass == nullptr )
-	{
-		return BcFalse;
-	}
-
-	// Need to finish this code path off.
-	// - Need to ensure the resource created is destroyed,
-	//   otherwise it will crash in CsCore.
-	// - Need to save as string, or better yet - binary.
-#if 0
-	// Create the component + initialise it.
-	auto Component = 
-		std::unique_ptr< ScnComponent >( ComponentClass->create< ScnComponent >() );
-	Component->initialise();
-
-	// Serialise object onto component.
-	// TODO: Pointer types. We should be able to spawn them,
-	//       but we only want their names cached.
-	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_ALL, bcRFF_TRANSIENT );
-	SeJsonReader Reader( &ObjectCodec );
-	Reader.serialiseClassMembers( Component.get(), Component->getClass(), Object );
+	BcAssertMsg( Component_, "ScnComponentImport needs to be constructed with a component." );
 	
+	// Write Json out.
+	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 	SeJsonWriter Writer( &ObjectCodec );
-	Writer.serialise( Component.get(), Component->getClass() );
+	Writer.serialise( Component_, Component_->getClass() );
 	Writer.save( "test_component.json" );
-#endif
 
 	// Write out object to be used later.
 	Json::FastWriter JsonWriter;
-	std::string JsonData = JsonWriter.write( Object );
+	std::string JsonData = JsonWriter.write( Writer.getValue() );
 	
 	//
 	CsResourceImporter::addChunk( BcHash( "object" ), JsonData.c_str(), JsonData.size() + 1 );
+
+	// Destroy all cross refs.
+	std::set< CsResource* > CrossRefs;
+	ReVisitRecursively( Component_, Component_->getClass(),
+		[ &CrossRefs ]( void* InData, const ReClass* InClass )
+		{
+			if( InClass->hasBaseClass( CsResource::StaticGetClass() ) )
+			{
+				CsResource* Resource = static_cast< CsResource* >( InData );
+				if( Resource->getName().getValue() == "$CrossRef" )
+				{
+					CrossRefs.insert( Resource );
+				}
+			}
+		} );
+	for( auto Resource : CrossRefs )
+	{
+		CsCore::pImpl()->internalForceDestroy( Resource );
+	}
+	CsCore::pImpl()->internalForceDestroy( Component_ );
+
 	return BcTrue;
 #else
 	return BcFalse;

@@ -575,7 +575,14 @@ BcU32 CsPackageImporter::addImport( const Json::Value& Resource, BcBool IsCrossR
 	// Serialise resource onto importer.
 	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 	SeJsonReader Reader( &ObjectCodec );
+	Reader.setMemberMismatchIsError( true );
 	Reader.serialiseClassMembers( ResourceImporter.get(), ResourceImporter->getClass(), Resource, 0 );
+
+	// Check for mismatch member errors.
+	if( Reader.getNoofMemberMismatchErrors() > 0 )
+	{
+		throw CsImportException( "", "Member mismatch errors. See above." );
+	}
 
 	// Add import with importer.
 	return addImport( std::move( ResourceImporter ), Resource, IsCrossRef );
@@ -769,6 +776,8 @@ BcU32 CsPackageImporter::addPackageCrossRef( const BcChar* pFullName )
 		{
 			PackageCrossRefList_.push_back( CrossRef );
 			FoundIdx = static_cast< BcU32 >( PackageCrossRefList_.size() - 1 );
+
+			PSY_LOG( "Adding crossref %u: %s\n", FoundIdx, pFullName );
 		}
 
 		// Resource index to the package cross ref.
@@ -886,7 +895,6 @@ void CsPackageImporter::addAllPackageCrossRefs( Json::Value& Root )
 			// If we find it, replace string reference with a cross ref index.
 			if( RefIndex != BcErrorCode )
 			{
-				PSY_LOG("Adding crossref %u: %s\n", RefIndex, Root.asCString() );
 				Root = Json::Value( RefIndex );
 			}
 		}

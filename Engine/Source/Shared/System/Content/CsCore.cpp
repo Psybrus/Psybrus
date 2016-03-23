@@ -347,6 +347,7 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 			{
 				BcFileSystemRemove( LogFilename.data() );
 				Success = true;
+				PackageExists = true;
 			}
 		}
 	}
@@ -428,10 +429,7 @@ void CsCore::processResources()
 
 		case CsResource::INIT_STAGE_DESTROY:
 			{
-				auto FoundIt = std::find( Resources_.begin(), Resources_.end(), Resource );
-				BcAssert( FoundIt != Resources_.end() );
-				Resources_.erase( FoundIt );
-				delete Resource;
+				internalForceDestroy( Resource );
 			}
 			break;
 		}
@@ -489,6 +487,16 @@ void CsCore::internalAddResourceForProcessing( CsResource* Resource )
 	{
 		ProcessingResources_.push_back( Resource );
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// internalForceDestroy
+void CsCore::internalForceDestroy( CsResource* Resource )
+{
+	auto FoundIt = std::find( Resources_.begin(), Resources_.end(), Resource );
+	BcAssert( FoundIt != Resources_.end() );
+	Resources_.erase( FoundIt );
+	delete Resource;
 }
 
 //////////////////////////////////////////////////////////////////////////

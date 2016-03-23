@@ -92,9 +92,6 @@ public:
 	 */
 	std::string getFullName();
 
-	// temp.
-	const BcChar* getJsonObject() const{ return pJsonObject_; }
-
 public:
 	// ScnEntity utilities.
 
@@ -165,8 +162,6 @@ private:
 protected:
 	BcU32 ComponentFlags_;
 	ScnEntityWeakRef ParentEntity_;
-	const BcChar* pJsonObject_;
-
 };
 
 #endif

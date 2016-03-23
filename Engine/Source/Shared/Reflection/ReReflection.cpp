@@ -434,3 +434,75 @@ ReObject* ReConstructObject(
 			
 	return NewObject;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// ReVisitRecursively
+void ReVisitRecursively(
+	void* InData,
+	const ReClass* InClass,
+	std::function< void( void*, const ReClass* InClass ) > InFunc )
+{
+	InFunc( InData, InClass );
+	while( InClass != nullptr )
+	{
+		for( BcU32 Idx = 0; Idx < InClass->getNoofFields(); ++Idx )
+		{
+			const ReField* Field = InClass->getField( Idx );
+			ReFieldAccessor FieldAccessor( InData, Field );
+
+			if( Field->isContainer() )
+			{
+				BcU32 ItIdx = 0;
+				auto It = Field->newReadIterator( Field->getData< void >( InData ) );
+				while( It->isValid() )
+				{
+					void* Key = nullptr;
+					void* Value = nullptr;
+					if ( FieldAccessor.isContainerOfPointerKeys() )
+					{
+						Key = *reinterpret_cast< void** >( It->getKey() );
+					}
+					else
+					{
+						Key = It->getKey();
+					}
+
+					if ( FieldAccessor.isContainerOfPointerValues() )
+					{
+						Value = *reinterpret_cast< void** >( It->getValue() );
+					}
+					else
+					{
+						Value = It->getValue();
+					}
+
+					if( Key )
+					{
+						auto UpperKeyType = FieldAccessor.getKeyUpperClass( Key );
+						ReVisitRecursively( Key, UpperKeyType, InFunc );
+					}
+
+					if( Value )
+					{
+						auto UpperValueType = FieldAccessor.getValueUpperClass( Value );
+						ReVisitRecursively( Value, UpperValueType, InFunc );
+					}
+
+					It->next();
+				}
+
+				delete It;
+
+			}
+			else
+			{
+				if( FieldAccessor.getData() != nullptr )
+				{
+					ReVisitRecursively( FieldAccessor.getData(), FieldAccessor.getUpperClass(), InFunc );
+				}
+			}
+		}
+
+		InClass = InClass->getSuper();
+	}
+}
