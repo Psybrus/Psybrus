@@ -39,7 +39,7 @@ static OsClientSDL* GMainWindow = nullptr;
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
 	GMainWindow = new OsClientSDL();
-	std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + SysArgs_ + std::string( ")" ) );
+	std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + GCommandLine_.c_str() + std::string( ")" ) );
 	
 	if( GMainWindow->create( Title.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
@@ -65,38 +65,9 @@ eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 	return evtRET_REMOVE;
 }
 
-int main(int argc, char** argv)
+int main(int argc, const char* argv[])
 {
-	// Start.
-	std::string CommandLine;
-
-	for( int Idx = 0; Idx < argc; ++Idx )
-	{
-		if( strstr( argv[ Idx ], " " ) )
-		{
-			CommandLine += std::string( "\"" ) + argv[ Idx ] + std::string( "\"" );	
-		}
-		else
-		{
-			CommandLine += argv[ Idx ];
-		}
-
-		if( Idx != argc - 1 )
-		{
-			CommandLine += " ";
-		}
-	}
-
-	GInstance_ = (BcHandle)0;
-
-	// Set exe path.
-	SysExePath_ = argv[ 0 ];
-
-	// Set command line params.
-	SysArgs_ = CommandLine;
-
-	// HACK: Append a space to sys args for find to work.
-	SysArgs_ += " ";
+	GCommandLine_ = BcCommandLine( argc, argv );
 	
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
@@ -121,7 +92,7 @@ int main(int argc, char** argv)
 	ReManager::Init();
 
 	// Unit tests prior to full kernel initialisation.
-	if( SysArgs_.find( "-unittest " ) != std::string::npos )
+	if( GCommandLine_.hasArg( '\0', "unittest" ) )
 	{
 		extern void MainUnitTests();
 		MainUnitTests();

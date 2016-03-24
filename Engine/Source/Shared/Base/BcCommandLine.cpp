@@ -116,6 +116,10 @@ bool BcCommandLine::hasArg( const char Short, const char* Long ) const
 // getArg
 bool BcCommandLine::getArg( const char Short, const char* Long, std::string& Out ) const
 {
+	if( Args_.size() <= 2 )
+	{
+		return false;
+	}
 	for( size_t Idx = 0; Idx < Args_.size() - 1; ++Idx )
 	{
 		const auto& Arg0( Args_[ Idx ] );

@@ -148,6 +148,7 @@ public:
 	 * Will create a new program binding if it needs to.
 	 * @return Program binding that represents this material component.
 	 */
+	PSY_DEPRECATED( "Use the ScnRenderableComponent::createViewRenderData callback to create program bindings ahead of time." )
 	RsProgramBinding* getProgramBinding();
 	
 	/**

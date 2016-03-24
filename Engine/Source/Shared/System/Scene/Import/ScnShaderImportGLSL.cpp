@@ -945,14 +945,18 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::GLSL_ES, "Expecting GLSL or GLSL_ES code input." );
 
 	// Initialise GLSLang
-	// TODO: Move out of here.
+	// TODO: Move out of here. Nasty code.
 	static bool InitialisedGLSLang = false;
-	if( !InitialisedGLSLang )
 	{
-		ShInitialize();
-		InitialisedGLSLang = true;
+		static std::mutex Mutex;
+		std::lock_guard< std::mutex > Lock( Mutex );
+		if( !InitialisedGLSLang )
+		{
+			InitialisedGLSLang = true;
+			ShInitialize();
+		}
 	}
-
+		
 	// Setup initial header.
 	ScnShaderProgramHeader ProgramHeaderGLSL = {};
 	ProgramHeaderGLSL.ProgramPermutationFlags_ = Params.Permutation_.Flags_;
