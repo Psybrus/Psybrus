@@ -13,9 +13,11 @@ typedef std::function< void( const char* ) > BcProcessLogFunc;
 /**
  * Launch process.
  * Calls to @a Logfunc come from a background thread.
- * @param Commandline Command line to launch.
+ * @param Path Path to executable.
+ * @param Arguments Arguments for executable.
  * @return Future with return code.
  */
 std::future< int > BcProcessLaunch(
-	const char* Commandline,
+	const char* Path,
+	const char* Arguments,
 	BcProcessLogFunc LogFunc );
