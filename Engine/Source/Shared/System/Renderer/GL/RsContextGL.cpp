@@ -52,6 +52,7 @@
 #endif
 
 #include <algorithm>
+#include <regex>
 
 #define ENABLE_DEBUG_OUTPUT ( 1 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 && !PLATFORM_ANDROID )
 
@@ -389,9 +390,22 @@ void RsContextGL::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 //virtual
 void RsContextGL::create()
 {
-	bool WantGLES = SysArgs_.find( "-gles" ) != std::string::npos;
+	// Extract profile & version from command line.
+	std::string VersionString;
+	bool WantGLVersion = GCommandLine_.getArg( '\0', "gl", VersionString );
+	bool WantGLESVersion = GCommandLine_.getArg( '\0', "gles", VersionString );
+	BcU32 VersionMajor = 0;
+	BcU32 VersionMinor = 0;
+	std::regex VersionRegex( "(\\d)\\.(\\d)" );
+	std::cmatch Match;
+	if( std::regex_match( VersionString.c_str(), Match, VersionRegex ) )
+	{
+		VersionMajor = BcStrAtoi( Match[ 1 ].str().c_str() );
+		VersionMinor = BcStrAtoi( Match[ 2 ].str().c_str() );
+	}
 
 	// Attempt to create core profile.
+	bool ProfileCreated = false;
 	RsOpenGLVersion Versions[] = 
 	{
 		RsOpenGLVersion( 4, 5, RsOpenGLType::CORE, RsShaderCodeType::GLSL_450 ),
@@ -463,9 +477,24 @@ void RsContextGL::create()
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
 	for( auto Version : Versions )
 	{
-		if( WantGLES && Version.Type_ != RsOpenGLType::ES )
+		// Check profile.
+		if( WantGLVersion && Version.Type_ != RsOpenGLType::CORE )
 		{
 			continue;
+		}
+
+		if( WantGLESVersion && Version.Type_ != RsOpenGLType::ES )
+		{
+			continue;
+		}
+		
+		// Check version.
+		if( VersionMajor != 0 )
+		{
+			if( VersionMajor != Version.Major_ || VersionMinor != Version.Minor_ )
+			{
+				continue;
+			}
 		}
 
 		if( createProfile( Version, ParentContext ) )
@@ -476,6 +505,7 @@ void RsContextGL::create()
 				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
 				Version.Minor_ );
+			ProfileCreated = true;
 			break;
 		}
 	}
@@ -516,9 +546,24 @@ void RsContextGL::create()
 	bool Success = false;
 	for( auto Version : Versions )
 	{
-		if( WantGLES && Version.Type_ != RsOpenGLType::ES )
+		// Check profile.
+		if( WantGLVersion && Version.Type_ != RsOpenGLType::CORE )
 		{
 			continue;
+		}
+
+		if( WantGLESVersion && Version.Type_ != RsOpenGLType::ES )
+		{
+			continue;
+		}
+		
+		// Check version.
+		if( VersionMajor != 0 )
+		{
+			if( VersionMajor != Version.Major_ || VersionMinor != Version.Minor_ )
+			{
+				continue;
+			}
 		}
 
 		if( createProfile( Version, Window ) )
@@ -529,6 +574,7 @@ void RsContextGL::create()
 				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
 				Version.Minor_ );
+			ProfileCreated = true;
 			break;
 		}
 	}
@@ -664,12 +710,19 @@ void RsContextGL::create()
 		Version_.Type_ == RsOpenGLType::CORE ? "Core" : ( Version_.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 		Version_.Major_, 
 		Version_.Minor_ );
+	ProfileCreated = true;
 
 #  if PLATFORM_HTML5
 	auto RTFormat = RsTextureFormat::R8G8B8A8;
 	auto DSFormat = RsTextureFormat::D24S8;
 #  endif
 #endif
+
+	if( ProfileCreated == false )
+	{
+		PSY_LOG( "ERROR: No GL profile created." );
+		exit(1);
+	}
 
 	// Debug output extension.	
 #if ENABLE_DEBUG_OUTPUT

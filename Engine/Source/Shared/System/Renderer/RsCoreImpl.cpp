@@ -53,7 +53,7 @@ void RsCoreImpl::StaticRegisterClass()
 RsCoreImpl::RsCoreImpl():
 	FrameTime_( 0.0f )
 {
-	if( SysArgs_.find( "-norenderthread " ) != std::string::npos )
+	if( GCommandLine_.hasArg( '\0', "norenderthread" ) )
 	{
 		RsCore::JOB_QUEUE_ID = -1;
 	}
@@ -169,19 +169,19 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			// - Vulkan. (disabled, incomplete)
 			RsAPI API = RsAPI::OPENGL;
 
-			if( SysArgs_.find( "-null_renderer" ) != std::string::npos)
+			if( GCommandLine_.hasArg( '\0', "null_renderer" ) )
 			{
 				API = RsAPI::NULL_RENDERER;
 			}
-			else if( SysArgs_.find( "-d3d12" ) != std::string::npos)
+			else if( GCommandLine_.hasArg( '\0', "d3d12" ) )
 			{
 				API = RsAPI::D3D12;
 			}
-			else if( SysArgs_.find( "-vk" ) != std::string::npos)
+			else if( GCommandLine_.hasArg( '\0', "vk" ) )
 			{
 				API = RsAPI::VULKAN;
 			}
-			else if( SysArgs_.find( "-gl" ) != std::string::npos)
+			else if( GCommandLine_.hasArg( '\0', "gl" ) || GCommandLine_.hasArg( '\0', "gles" )  )
 			{
 				API = RsAPI::OPENGL;
 			}

@@ -140,14 +140,11 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Set exe path.
 	char ModuleFileName[ 4096 ] = { 0 };
 	::GetModuleFileNameA( ::GetModuleHandle( nullptr ), ModuleFileName, sizeof( ModuleFileName ) - 1 );
-	SysExePath_ = ModuleFileName;
+	GExePath_ = ModuleFileName;
 #endif
 
 	// Set command line params.
-	SysArgs_ = lpCmdLine;
-
-	// HACK: Append a space to sys args for find to work.
-	SysArgs_ += " ";
+	GCommandLine_ = BcCommandLine( lpCmdLine );
 
 	// If we have no log, setup a default one.
 #if !PSY_PRODUCTION
@@ -174,7 +171,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ReManager::Init();
 
 	// Unit tests prior to full kernel initialisation.
-	if( SysArgs_.find( "-unittest " ) != std::string::npos )
+	if( GCommandLine_.hasArg( 'u', "unittest" ) )
 	{
 		extern void MainUnitTests();
 		MainUnitTests();

@@ -156,6 +156,11 @@ struct RsOpenGLVersion
 	 */
 	BcBool isShaderCodeTypeSupported( RsShaderCodeType CodeType ) const;
 
+	/**
+	 * Get combined shader version.
+	 */
+	BcU32 getCombinedVersion() const { return Major_ << 16 | Minor_; }
+
 	bool operator < ( const RsOpenGLVersion& Other ) const 
 	{
 		return std::make_tuple( Major_, Minor_, Type_, MaxCodeType_ ) < std::make_tuple( Other.Major_, Minor_, Type_, MaxCodeType_ );

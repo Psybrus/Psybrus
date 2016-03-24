@@ -31,7 +31,7 @@ SYS_CREATOR( FsCoreImplWindows );
 // Ctor
 FsCoreImplWindows::FsCoreImplWindows()
 {
-	if( SysArgs_.find( "-nofilethread " ) != std::string::npos )
+	if( GCommandLine_.hasArg( '\0', "nofilethread" ) )
 	{
 		FsCore::JOB_QUEUE_ID = -1;
 	}

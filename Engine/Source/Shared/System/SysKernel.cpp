@@ -12,6 +12,7 @@
 **************************************************************************/
 
 #include "System/SysKernel.h"
+
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 #include "Base/BcRandom.h"
@@ -138,8 +139,8 @@ size_t SysKernel::DEFAULT_JOB_QUEUE_ID = (size_t)-1;
 
 //////////////////////////////////////////////////////////////////////////
 // Command line
-std::string SysExePath_;
-std::string SysArgs_;
+std::string GExePath_;
+BcCommandLine GCommandLine_;
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor

@@ -95,7 +95,7 @@ void SsCoreImplSoLoud::StaticRegisterClass()
 SsCoreImplSoLoud::SsCoreImplSoLoud():
 	SoLoudCore_( nullptr )
 {
-	if( SysArgs_.find( "-nosoundthread ") != std::string::npos )
+	if( GCommandLine_.hasArg( '\0', "nosoundthread" ) )
 	{
 		SsCore::JOB_QUEUE_ID = -1;
 	}

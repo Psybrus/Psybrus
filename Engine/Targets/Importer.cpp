@@ -181,10 +181,8 @@ void PsyToolMain()
 {
 	CsPlatformParams Params;
 
-	BcCommandLine CmdLine( SysArgs_.c_str() );
-
 	std::string ConfigFile;
-	if( !CmdLine.getArg( 'c', "config-file", ConfigFile ) )
+	if( !GCommandLine_.getArg( 'c', "config-file", ConfigFile ) )
 	{
 		PrintUsage();
 
@@ -234,7 +232,7 @@ void PsyToolMain()
 
 	// If no package is specified, then search.
 	std::string PackageName;
-	if( CmdLine.getArg( 'p', "package-file", PackageName ) )
+	if( GCommandLine_.getArg( 'p', "package-file", PackageName ) )
 	{
 		Packages.emplace_back( PackageName );
 

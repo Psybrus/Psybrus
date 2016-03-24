@@ -401,7 +401,7 @@ void MainShared()
 
 #if SEARCH_FOR_CORRECT_PATH
 	// Change to executable root.
-	BcFileSystemChangeDirectory( BcPath( SysExePath_ ).getParent().c_str() );
+	BcFileSystemChangeDirectory( BcPath( GExePath_ ).getParent().c_str() );
 
 	bool FoundRoot = false;
 	bool Success = true;
@@ -432,32 +432,19 @@ void MainShared()
 	}
 #endif
 
-	// Parse command line params for disabling systems.
-	if( SysArgs_.find( "-noremote " ) != std::string::npos )
-	{
-		GPsySetupParams.Flags_ &= ~psySF_REMOTE;
-	}
-
-
-	if( SysArgs_.find( "-norender " ) != std::string::npos )
+	if( GCommandLine_.hasArg( '\0', "norender" ) )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_RENDER;
 	}
 
-	if( SysArgs_.find( "-nosound " ) != std::string::npos )
+	if( GCommandLine_.hasArg( '\0', "nosound" ) )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
 	
-	// HACK: If we are importing packages, disable renderer and sound systems.
-	if( SysArgs_.find( "ImportPackages" ) != std::string::npos )
-	{
-		GPsySetupParams.Flags_ &= ~( psySF_RENDER | psySF_SOUND );
-	}
-
 	// Start profiler.
 #if PSY_USE_PROFILER
-	if( SysArgs_.find( "-profile " ) != std::string::npos )
+	if( GCommandLine_.hasArg( 'p', "profile" ) )
 	{
 		new SysProfilerChromeTracing();
 	}
@@ -508,7 +495,7 @@ void MainShared()
 	// Log kernel information.
 	PSY_LOG( "============================================================================\n" );
 	PSY_LOG( "MainShared:\n" );
-	PSY_LOG( " - Command line: %s\n", SysArgs_.c_str() );
+	PSY_LOG( " - Command line: %s\n", GCommandLine_.c_str() );
 	PSY_LOG( " - Setup Flags: 0x%x\n", GPsySetupParams.Flags_ );
 	PSY_LOG( " - Name: %s\n", GPsySetupParams.Name_.c_str() );
 	PSY_LOG( " - Tick Rate: 1.0/%.1f\n", 1.0f / GPsySetupParams.TickRate_ );

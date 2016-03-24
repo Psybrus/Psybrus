@@ -149,7 +149,7 @@ void PsyAndroidMain( struct android_app* State )
 		[]( EvtID, const EvtBaseEvent& )
 		{
 			GMainWindow = new OsClientAndroid( GAndroidApp );
-			std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + SysArgs_ + std::string( ")" ) );
+			std::string Title = ( GPsySetupParams.Name_ + std::string( " (" ) + GCommandLine_.c_str() + std::string( ")" ) );
 			
 			if( GMainWindow->create( Title.c_str() ) == BcFalse )
 			{

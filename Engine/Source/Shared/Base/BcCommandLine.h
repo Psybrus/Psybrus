@@ -37,6 +37,12 @@ public:
 	 */
 	bool getArg( const char Short, const char* Long, std::string& Out ) const;
 
+	/**
+	 * @return Command line as a c string.
+	 */
+	const char* c_str() const { return FullCommandline_.c_str(); }
+
 private:
+	std::string FullCommandline_;
 	std::vector< std::string > Args_;
 };

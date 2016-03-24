@@ -71,8 +71,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 	case RsOpenGLType::CORE:
 		// 3.0
-		if( Major_ >= 3 &&
-			Minor_ >= 0 )
+		if( getCombinedVersion() >= 0x00030000 )
 		{
 			Features_.MRT_ = true;
 
@@ -134,53 +133,45 @@ void RsOpenGLVersion::setupFeatureSupport()
 		}
 
 		// 3.1
-		if( Major_ >= 3 &&
-			Minor_ >= 1 )
+		if( getCombinedVersion() >= 0x00030001 )
 		{
 			SupportUniformBuffers_ = true;
 			SupportGeometryShaders_ = true;
 		}
 
 		// 3.2
-		if( Major_ >= 3 &&
-			Minor_ >= 2 )
+		if( getCombinedVersion() >= 0x00030002 )
 		{
 			SupportDrawElementsBaseVertex_ = true;
 		}
 
 		// 3.3
-		if( Major_ >= 3 &&
-			Minor_ >= 3 )
+		if( getCombinedVersion() >= 0x00030003 )
 		{
-
 			SupportSamplerStates_ = true;
 			SupportBlitFrameBuffer_ = true;
 		}
 
 		// 4.0
-		if( Major_ >= 4 &&
-			Minor_ >= 0 )
+		if( getCombinedVersion() >= 0x00040000 )
 		{
 			Features_.SeparateBlendState_ = true;
 			SupportTesselationShaders_ = true;
 		}
 
 		// 4.1
-		if( Major_ >= 4 &&
-			Minor_ >= 1 )
+		if( getCombinedVersion() >= 0x00040001 )
 		{
 		}
 
 		// 4.2
-		if( Major_ >= 4 &&
-			Minor_ >= 2 )
+		if( getCombinedVersion() >= 0x00040002 )
 		{
 			SupportImageLoadStore_ = true;
 		}
 
 		// 4.3
-		if( Major_ >= 4 &&
-			Minor_ >= 3 )
+		if( getCombinedVersion() >= 0x00040003 )
 		{
 			SupportComputeShaders_ = true;
 			SupportShaderStorageBufferObjects_ = true;
@@ -191,8 +182,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		break;
 
 	case RsOpenGLType::ES:
-		if( Major_ >= 2 &&
-			Minor_ >= 0 )
+		if( getCombinedVersion() >= 0x00020000 )
 		{
 			Features_.MRT_ |=
 				HaveExtension( "WEBGL_draw_buffers" ) |

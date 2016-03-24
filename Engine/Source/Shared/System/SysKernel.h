@@ -14,6 +14,7 @@
 #ifndef __SYSKERNEL_H__
 #define __SYSKERNEL_H__
 
+#include "Base/BcCommandLine.h"
 #include "Base/BcGlobal.h"
 #include "Base/BcName.h"
 #include "Base/BcTimer.h"
@@ -31,8 +32,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Command line params
-extern std::string SysExePath_;
-extern std::string SysArgs_;
+extern std::string GExePath_;
+extern BcCommandLine GCommandLine_;
 
 //////////////////////////////////////////////////////////////////////////
 // SysKernel
