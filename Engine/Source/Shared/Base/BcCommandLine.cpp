@@ -116,7 +116,7 @@ bool BcCommandLine::hasArg( const char Short, const char* Long ) const
 // getArg
 bool BcCommandLine::getArg( const char Short, const char* Long, std::string& Out ) const
 {
-	if( Args_.size() <= 2 )
+	if( Args_.size() < 2 )
 	{
 		return false;
 	}
