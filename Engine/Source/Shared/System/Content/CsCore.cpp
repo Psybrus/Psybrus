@@ -18,6 +18,7 @@
 #include "System/File/FsCore.h"
 
 #include "Serialisation/SeJsonReader.h"
+#include "Base/BcProcess.h"
 
 SYS_CREATOR( CsCore );
 
@@ -306,32 +307,23 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 		bool Success = false;
 		while( !Success )
 		{
-			// Grab log time.
-			std::array< char, 1024 > LogTime;
-			LogTime.fill( 0 );
-			auto Time = std::time( nullptr );
-			auto LocalTime = *std::localtime( &Time );
-			strftime( LogTime.data(), LogTime.size(), "%Y-%m-%d-%H-%M-%S.png", &LocalTime );
-
-			// Log filename.
-			std::array< char, 1024 > LogFilename;
-			LogFilename.fill( 0 );
-			BcSPrintf( LogFilename.data(), LogFilename.size(), "%s_%s.log", ImporterName, LogTime.data() );
-
 			// Build commandline.
 			std::array< char, 1024 > CommandLine;
 			CommandLine.fill( 0 );
-			BcSPrintf( CommandLine.data(), CommandLine.size(), "%s%s%s -p %s/%s.pkg >> %s", 
-				Prefix, ImporterName, Suffix, CsPaths::CONTENT.c_str(), (*Package).c_str(),
-				LogFilename.data());
+			BcSPrintf( CommandLine.data(), CommandLine.size(), "%s%s%s -p %s/%s.pkg", 
+				Prefix, ImporterName, Suffix, CsPaths::CONTENT.c_str(), (*Package).c_str() );
 
 			PSY_LOG( "Launching importer for package \"%s\" with commandline: %s", (*Package).c_str(), CommandLine.data() );
-			int RetCode = std::system( CommandLine.data() );
-			if( RetCode != 0 )
+			auto RetCode = BcProcessLaunch( CommandLine.data(),
+				[]( const char* Line )
+				{
+					PSY_LOG( "%s", Line );
+				} );
+			if( RetCode.get() != 0 )
 			{
 				std::array< char, 1024 > Message;
 				Message.fill( 0 );
-				BcSPrintf( Message.data(), Message.size(), "Importer failed.\nSee log \"%s\" for details.\n\nWould you like to re-run?", LogFilename.data() );
+				BcSPrintf( Message.data(), Message.size(), "Importer failed.\n\nWould you like to re-run?" );
 				auto RetVal = BcMessageBox( "ERROR", Message.data(), bcMBT_YESNOCANCEL, bcMBI_ERROR );
 
 				if( RetVal == bcMBR_NO )
@@ -340,12 +332,11 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 				}
 				else if( RetVal == bcMBR_CANCEL )
 				{
-					exit( RetCode );
+					exit( RetCode.get() );
 				}
 			}
 			else
 			{
-				BcFileSystemRemove( LogFilename.data() );
 				Success = true;
 				PackageExists = true;
 			}
