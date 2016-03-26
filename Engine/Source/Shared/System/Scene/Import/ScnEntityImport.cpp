@@ -79,48 +79,45 @@ ScnEntityImport::~ScnEntityImport()
 BcBool ScnEntityImport::import()
 {
 #if PSY_IMPORT_PIPELINE
-	if( Components_.size() > 0 )
+	BcStream Stream;
+	ScnEntityHeader Header;
+	Header.LocalTransform_ = LocalTransform_;
+	Header.NoofComponents_ = Components_.size();
+	Stream << Header;
+	for( auto * Component : Components_ )
 	{
-		BcStream Stream;
-		ScnEntityHeader Header;
-		Header.LocalTransform_ = LocalTransform_;
-		Header.NoofComponents_ = Components_.size();
-		Stream << Header;
-		for( auto * Component : Components_ )
-		{
-			// Visit and assign names to any objects without.
-			ReVisitRecursively( Component, Component->getClass(),
-				[]( void* InData, const ReClass* InClass )
+		// Visit and assign names to any objects without.
+		ReVisitRecursively( Component, Component->getClass(),
+			[]( void* InData, const ReClass* InClass )
+			{
+				if( InClass->hasBaseClass( ReObject::StaticGetClass() ) )
 				{
-					if( InClass->hasBaseClass( ReObject::StaticGetClass() ) )
+					ReObject* Object = static_cast< ReObject* >( InData );
+					if( Object->getName() == BcName::INVALID )
 					{
-						ReObject* Object = static_cast< ReObject* >( InData );
-						if( Object->getName() == BcName::INVALID )
-						{
-							Object->setName( Object->getClass()->getName().getUnique() );
-						}
+						Object->setName( Object->getClass()->getName().getUnique() );
 					}
-				} );
+				}
+			} );
 
-			// If component is an entity, create entity importer.
-			if( Component->isTypeOf< ScnEntity >() )
-			{
-				// Create entity importer for component.
-				CsResourceImporterUPtr ResourceImporter( new ScnEntityImport( static_cast< ScnEntity* >( Component ) ) );
-				BcU32 CrossRef = CsResourceImporter::addImport( std::move( ResourceImporter ), BcTrue );
-				Stream << CrossRef;
-			}
-			else
-			{
-				// Create component importer for component.
-				CsResourceImporterUPtr ResourceImporter( new ScnComponentImport( Component ) );
-				BcU32 CrossRef = CsResourceImporter::addImport( std::move( ResourceImporter ), BcTrue );
-				Stream << CrossRef;
-			}
+		// If component is an entity, create entity importer.
+		if( Component->isTypeOf< ScnEntity >() )
+		{
+			// Create entity importer for component.
+			CsResourceImporterUPtr ResourceImporter( new ScnEntityImport( static_cast< ScnEntity* >( Component ) ) );
+			BcU32 CrossRef = CsResourceImporter::addImport( std::move( ResourceImporter ), BcTrue );
+			Stream << CrossRef;
 		}
-		Components_.clear();
-		CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
+		else
+		{
+			// Create component importer for component.
+			CsResourceImporterUPtr ResourceImporter( new ScnComponentImport( Component ) );
+			BcU32 CrossRef = CsResourceImporter::addImport( std::move( ResourceImporter ), BcTrue );
+			Stream << CrossRef;
+		}
 	}
+	Components_.clear();
+	CsResourceImporter::addChunk( BcHash( "header" ), Stream.pData(), Stream.dataSize() );
 
 	return BcTrue;
 #else
