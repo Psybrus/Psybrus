@@ -152,6 +152,7 @@ void ImportPackages( const CsPlatformParams& Params, const std::vector< BcPath >
 			PSY_LOG( "ERROR: Failure importing %s (%s):\t%s:\n %s", 
 				PackageName.c_str(), PackagePath.c_str(), 
 				Exception.file(), Exception.error() );
+				exit( 1 );
 		}
 	}
 }

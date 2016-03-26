@@ -90,25 +90,25 @@ public:
 	BcFixed operator *(BcF32 a) const { return BcFixed(RAW, (g>>BPhalf) * (BcFixed(a).g>>BPhalf) ); }
 	BcFixed operator /(BcF32 a) const { return BcFixed(RAW, int( (((long long)g << BP2) / (long long)(BcFixed(a).g)) >> BP) ); }
 
-	BcFixed& operator +=(BcFixed a) { return *this = *this + a; return *this; }
-	BcFixed& operator -=(BcFixed a) { return *this = *this - a; return *this; }
-	BcFixed& operator *=(BcFixed a) { return *this = *this * a; return *this; }
-	BcFixed& operator /=(BcFixed a) { return *this = *this / a; return *this; }
+	BcFixed& operator +=(BcFixed a) { *this = *this + a; return *this; }
+	BcFixed& operator -=(BcFixed a) { *this = *this - a; return *this; }
+	BcFixed& operator *=(BcFixed a) { *this = *this * a; return *this; }
+	BcFixed& operator /=(BcFixed a) { *this = *this / a; return *this; }
 
-	BcFixed& operator +=(int a) { return *this = *this + (BcFixed)a; return *this; }
-	BcFixed& operator -=(int a) { return *this = *this - (BcFixed)a; return *this; }
-	BcFixed& operator *=(int a) { return *this = *this * (BcFixed)a; return *this; }
-	BcFixed& operator /=(int a) { return *this = *this / (BcFixed)a; return *this; }
+	BcFixed& operator +=(int a) { *this = *this + (BcFixed)a; return *this; }
+	BcFixed& operator -=(int a) { *this = *this - (BcFixed)a; return *this; }
+	BcFixed& operator *=(int a) { *this = *this * (BcFixed)a; return *this; }
+	BcFixed& operator /=(int a) { *this = *this / (BcFixed)a; return *this; }
 
-	BcFixed& operator +=(long a) { return *this = *this + (BcFixed)a; return *this; }
-	BcFixed& operator -=(long a) { return *this = *this - (BcFixed)a; return *this; }
-	BcFixed& operator *=(long a) { return *this = *this * (BcFixed)a; return *this; }
-	BcFixed& operator /=(long a) { return *this = *this / (BcFixed)a; return *this; }
+	BcFixed& operator +=(long a) { *this = *this + (BcFixed)a; return *this; }
+	BcFixed& operator -=(long a) { *this = *this - (BcFixed)a; return *this; }
+	BcFixed& operator *=(long a) { *this = *this * (BcFixed)a; return *this; }
+	BcFixed& operator /=(long a) { *this = *this / (BcFixed)a; return *this; }
 
-	BcFixed& operator +=(BcF32 a) { return *this = *this + a; return *this; }
-	BcFixed& operator -=(BcF32 a) { return *this = *this - a; return *this; }
-	BcFixed& operator *=(BcF32 a) { return *this = *this * a; return *this; }
-	BcFixed& operator /=(BcF32 a) { return *this = *this / a; return *this; }
+	BcFixed& operator +=(BcF32 a) { *this = *this + a; return *this; }
+	BcFixed& operator -=(BcF32 a) { *this = *this - a; return *this; }
+	BcFixed& operator *=(BcF32 a) { *this = *this * a; return *this; }
+	BcFixed& operator /=(BcF32 a) { *this = *this / a; return *this; }
 
 	bool operator ==(const BcFixed& a) const { return g == a.g; }
 	bool operator !=(const BcFixed& a) const { return g != a.g; }

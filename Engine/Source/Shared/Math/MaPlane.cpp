@@ -62,7 +62,7 @@ MaPlane::eClassify MaPlane::classify( const MaVec3d& Point, BcF32 Radius ) const
 BcBool MaPlane::lineIntersection( const MaVec3d& Point, const MaVec3d& Dir, BcF32& Distance ) const
 {
 	const BcF32 Dist = ( Normal_.dot( Point ) ) + D_;
-	const BcF32 Ndiv = Normal_.dot( Dir );
+	const BcF32 Ndiv = Normal_.dot( -Dir );
 
 	if( BcAbs( Ndiv ) > 0.0f )
 	{
@@ -78,9 +78,10 @@ BcBool MaPlane::lineIntersection( const MaVec3d& Point, const MaVec3d& Dir, BcF3
 BcBool MaPlane::lineIntersection( const MaVec3d& A, const MaVec3d& B, BcF32& Distance, MaVec3d& Intersection ) const
 {
 	BcBool RetVal = BcFalse;
-	if( lineIntersection( A, A - B, Distance ) && Distance >= 0.0f && Distance <= 1.0f )
+	MaVec3d Dir = B - A;
+	if( lineIntersection( A, Dir, Distance ) && Distance >= 0.0f && Distance <= 1.0f )
 	{
-		Intersection = A + ( ( B - A ) * Distance );
+		Intersection = A + ( Dir * Distance );
 		RetVal = BcTrue;
 	}
 	return RetVal;

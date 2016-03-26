@@ -243,7 +243,9 @@ void ScnDebugRenderComponent::drawGrid( const MaVec3d& Position, const MaVec3d& 
 {
 	BcU32 NoofAxis = ( Size.x() > 0 ? 1 : 0  ) + ( Size.y() > 0 ? 1 : 0  ) + ( Size.z() > 0 ? 1 : 0 );
 	BcAssertMsg( NoofAxis == 2, "Only supports 2 axis in the grid!" );
+	BcAssert( SubDivideMultiple > 1.0f );
 	BcUnusedVar( NoofAxis );
+	
 	
 	// Determine which axis to draw along.
 	MaVec3d XAxis;

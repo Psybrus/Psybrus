@@ -65,6 +65,11 @@ static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum s
 static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam )
 #endif
 {
+	if( type != GL_DEBUG_TYPE_ERROR )
+	{
+		return;
+	}
+
 	const char* SeverityStr = "";
 	switch( severity )
 	{

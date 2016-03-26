@@ -107,11 +107,13 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		case RsProgramParameterStorageGL::UNIFORM:
 			{
 				auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
+#if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
 				BcAssertMsg( Location != -1,
 					"Invalid uniform in RsProgram \"%s\". Unable to find \"%s\"",
 					Parent_->getDebugName(),
 					Parameter.Name_ );
-			}
+#endif
+		}
 			break;
 		case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 			{
@@ -119,10 +121,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				{
 #if !defined( RENDER_USE_GLES )
 					auto Index = GL( GetUniformBlockIndex( Handle_, Parameter.Name_ ) );
+#if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
 					BcAssertMsg( Index != -1,
 						"Invalid uniform block in RsProgram \"%s\". Unable to find \"%s\"",
 						Parent_->getDebugName(),
 						Parameter.Name_ );
+#endif
 					if( Index != -1 )
 					{
 						auto Class = ReManager::GetClass( Parameter.Name_ );
@@ -260,10 +264,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		case RsProgramParameterStorageGL::SAMPLER:
 			{
 				auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
-				BcAssertMsg( Location != -1,
+#if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
+					BcAssertMsg( Location != -1,
 					"Invalid sampler in RsProgram \"%s\". Unable to find \"%s\"",
 					Parent_->getDebugName(),
 					Parameter.Name_ );
+#endif
 				if( Location != -1 )
 				{
 					RsTextureType TextureType = RsTextureType::UNKNOWN;
@@ -311,10 +317,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				{
 					BcAssert( Version_.SupportProgramInterfaceQuery_ );
 					auto Index = GL( GetProgramResourceIndex( Handle_, GL_SHADER_STORAGE_BLOCK, Parameter.Name_ ) );
+#if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
 					BcAssertMsg( Index != -1,
 						"Invalid shader storage buffer in RsProgram \"%s\". Unable to find \"%s\"",
 						Parent_->getDebugName(),
 						Parameter.Name_ );
+#endif
 					if( Index != -1 )
 					{
 						if( InternalType.ReadOnly_ )
@@ -341,10 +349,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				if( Version_.SupportImageLoadStore_ )
 				{
 					auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
+#if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
 					BcAssertMsg( Location != -1,
 						"Invalid image in RsProgram \"%s\". Unable to find \"%s\"",
 						Parent_->getDebugName(),
 						Parameter.Name_ );
+#endif
 					if( Location != -1 )
 					{
 						RsTextureType TextureType = RsTextureType::UNKNOWN;
