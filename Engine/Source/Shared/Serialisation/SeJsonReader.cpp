@@ -524,8 +524,11 @@ SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( std::string ID, co
 // getSerialiseClass
 SeJsonReader::SerialiseClass SeJsonReader::getSerialiseClass( const Json::Value& Value, const ReClass* pType )
 {
-	BcAssert( Value[ ClassString ] != Json::nullValue );
-	auto ClassType( ReManager::GetClass( Value[ ClassString ].asString() ) );
+	if( Value[ ClassString ] != Json::nullValue )
+	{
+		pType = ReManager::GetClass( Value[ ClassString ].asString() );
+	}
+	auto ClassType( pType );
 	SeJsonReader::SerialiseClass ClassToSerialise( "", nullptr, ClassType );
 	ClassToSerialise.pData_ = ClassType->create< void >();
 	return ClassToSerialise;

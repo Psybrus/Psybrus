@@ -1,4 +1,7 @@
 #include "Reflection/ReReflection.h"
+
+#include "Base/BcProfiler.h"
+
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
@@ -378,6 +381,7 @@ public:
 // CopyClass
 void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssert( DstObject != nullptr );
 	BcAssert( SrcObject != nullptr );
 	BcAssert( InClass != nullptr );
@@ -405,6 +409,7 @@ ReObject* ReConstructObject(
 	ReObject* InOwner, 
 	ReObject* InBasis )
 {
+	PSY_PROFILE_FUNCTION;
 	BcAssert( InClass != nullptr );
 
 	PSY_LOGSCOPEDCATEGORY( "Reflection" );

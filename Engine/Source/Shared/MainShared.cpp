@@ -135,7 +135,7 @@ namespace ScreenshotUtil
 #endif
 		const BcU32 W = OsCore::pImpl()->getClient( 0 )->getWidth();
 		const BcU32 H = OsCore::pImpl()->getClient( 0 )->getHeight();
-		GifBegin( &Writer, FileName, W / 2, H / 2, 1, 8, false );
+		GifBegin( &Writer, FileName, W, H, 1, 8, false );
 
 		// Mark capturing.
 		ScreenCapturing = BcTrue;
@@ -157,12 +157,10 @@ namespace ScreenshotUtil
 					SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
 						[ W, H, IsScreenCapturing, Image ]()->void
 						{
-							auto ImageDiv2 = Image->resize( W / 2, H / 2, 1.0f );
 							GifWriteFrame(
 								&Writer,
-								reinterpret_cast< const uint8_t* >( ImageDiv2->getImageData() ), 
-								W / 2, H / 2, 0, 8, false );
-
+								reinterpret_cast< const uint8_t* >( Image->getImageData() ), 
+								W, H, 0, 8, false );
 							if( IsScreenCapturing == BcFalse )
 							{
 								GifEnd( &Writer );

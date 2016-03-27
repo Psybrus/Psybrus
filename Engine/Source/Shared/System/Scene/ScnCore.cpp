@@ -395,6 +395,8 @@ void ScnCore::removeAllEntities()
 // createEntity
 ScnEntityRef ScnCore::createEntity( const BcName& Package, const BcName& Name, const BcName& InstanceName )
 {
+	PSY_PROFILE_FUNCTION;
+
 	ScnEntityRef Entity;
 	ScnEntityRef TemplateEntity;
 
@@ -428,6 +430,8 @@ ScnEntityRef ScnCore::createEntity( const BcName& Package, const BcName& Name, c
 // spawnEntity
 ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 {
+	PSY_PROFILE_FUNCTION;
+
 	BcAssert( BcIsGameThread() );
 
 	// Get package and acquire.
@@ -656,6 +660,8 @@ void ScnCore::processPendingComponents()
 ScnEntity* ScnCore::internalSpawnEntity( 
 	ScnEntitySpawnParams Params )
 {
+	PSY_PROFILE_FUNCTION;
+
 	// Create entity.
 	ScnEntity* Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
 
@@ -675,34 +681,38 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	}
 
 	// Visit hierarchy and attach all components.
-	Entity->visitHierarchy(
-		ScnComponentVisitType::BOTTOM_UP,
-		Params.Parent_,
-		[ this, &Params ]( ScnComponent* Component, ScnEntity* Parent )
-		{
-			BcAssert( Component->getBasis() );
-			PSY_LOG( "Component \"%s\" has package \"%s\"", 
-				(*Component->getName()).c_str(),
-				(*Component->getPackage()->getName()).c_str() );
-			if( Parent != nullptr )
+	{
+		PSY_PROFILER_SECTION( Root, "Visit hierarchy" );
+		Entity->visitHierarchy(
+			ScnComponentVisitType::BOTTOM_UP,
+			Params.Parent_,
+			[ this, &Params ]( ScnComponent* Component, ScnEntity* Parent )
 			{
-				PSY_LOG( "Component's parent \"%s\" has package \"%s\"", 
-					(*Parent->getName()).c_str(),
-					(*Parent->getPackage()->getName()).c_str() );
-			}
+				BcAssert( Component->getBasis() );
+				PSY_LOG( "Component \"%s\" has package \"%s\"", 
+					(*Component->getName()).c_str(),
+					(*Component->getPackage()->getName()).c_str() );
+				if( Parent != nullptr )
+				{
+					PSY_LOG( "Component's parent \"%s\" has package \"%s\"", 
+						(*Parent->getName()).c_str(),
+						(*Parent->getPackage()->getName()).c_str() );
+				}
 			
-			Component->initialise();
-			Component->postInitialise();
+				Component->initialise();
+				Component->postInitialise();
 
-			if( Parent != nullptr )
-			{
-				Parent->attach( Component );
-			}
-		} );
+				if( Parent != nullptr )
+				{
+					Parent->attach( Component );
+				}
+			} );
+	}
 
 	// Call on spawn callback.
 	if( Params.OnSpawn_ != nullptr )
 	{
+		PSY_PROFILER_SECTION( Root, "On spawn" );
 		Params.OnSpawn_( Entity );
 	}
 

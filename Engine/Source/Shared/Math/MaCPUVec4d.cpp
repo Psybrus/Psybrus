@@ -82,7 +82,7 @@ MaCPUVec4d::MaCPUVec4d( const MaCPUVec2d& Rhs ):
 	X_( Rhs.x() ), 
 	Y_( Rhs.y() ),
 	Z_( 0.0f ),
-	W_( 0.0f )
+	W_( 1.0f )
 {
 
 }
