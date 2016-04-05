@@ -905,6 +905,13 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 //virtual
 class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewComponent* View )
 {
+#if !PSY_PRODUCTION
+	const std::string DebugName = getFullName();
+	const char* DebugNameCStr = DebugName.c_str();
+#else
+	const char* DebugNameCStr = nullptr;
+#endif
+
 	ScnModelViewRenderData* ViewRenderData = new ScnModelViewRenderData();
 
 	// Setup program binding for all materials.
@@ -912,7 +919,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 	ViewRenderData->MaterialBindings_.resize( MeshRuntimes.size() );
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
-		const auto& PerComponentMeshData = PerComponentMeshDataList_[ Idx ];
+		auto& PerComponentMeshData = PerComponentMeshDataList_[ Idx ];
 		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
 		auto Material = pMeshRuntime->MaterialRef_;
@@ -962,12 +969,22 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				}
 			}
 
-			if( PerComponentMeshData.LightingUniformBuffer_ )
 			{
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
 				if( Slot != BcErrorCode )
 				{	
+					// Try create lighting uniform buffer if we need to.
+					if( PerComponentMeshData.LightingUniformBuffer_ == nullptr )
+					{
+						PerComponentMeshData.LightingUniformBuffer_ = Material->createUniformBuffer< ScnShaderLightUniformBlockData >( DebugNameCStr );
+					}
+
 					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.LightingUniformBuffer_.get() );
+				}
+				else
+				{
+					// No binding, reset buffer.
+					PerComponentMeshData.LightingUniformBuffer_.reset();
 				}
 			}
 
@@ -1039,9 +1056,6 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 		{
 			ComponentData.ObjectUniformBuffer_ = Material->createUniformBuffer< ScnShaderObjectUniformBlockData >( DebugNameCStr );
 		}
-
-		// Try create lighting uniform buffer.
-		ComponentData.LightingUniformBuffer_ = Material->createUniformBuffer< ScnShaderLightUniformBlockData >( DebugNameCStr );
 
 		//
 		PerComponentMeshDataList_.emplace_back( std::move( ComponentData ) );

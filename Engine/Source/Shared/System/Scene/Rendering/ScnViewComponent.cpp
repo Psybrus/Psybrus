@@ -463,6 +463,8 @@ void ScnViewComponent::renderViews( const ScnComponentList& Components )
 
 			ScnRenderingVisitor Visitor( RenderContext );
 
+			Visitor.render();
+
 			// Increment viewport.
 			Sort.Viewport_++;
 		}

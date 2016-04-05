@@ -28,8 +28,12 @@ public:
 
 	virtual void visit( class ScnRenderableComponent* pComponent );
 
+	void render();
+
 private:
 	class ScnRenderContext & RenderContext_;
+
+	std::vector< ScnRenderableComponent* > VisibleComponents_;
 };
 
 #endif
