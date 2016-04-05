@@ -22,6 +22,12 @@
 #include "rg_etc1.h"
 #include <algorithm>
 
+// Enable optimisation. This code rarely needs to be debugged, so force it to
+// be optimised for speed.
+#if COMPILER_MSVC
+#pragma optimize( "t", on )
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ImgImage::ImgImage()

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		SysProfilerChromeTracing.cpp
+* File:		DsProfilerChromeTracing.cpp
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,7 +11,7 @@
 * 
 **************************************************************************/
 
-#include "System/SysProfilerChromeTracing.h"
+#include "System/Debug/DsProfilerChromeTracing.h"
 
 #include "System/SysKernel.h"
 
@@ -27,7 +27,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-SysProfilerChromeTracing::SysProfilerChromeTracing():
+DsProfilerChromeTracing::DsProfilerChromeTracing():
 	Allocator_( 1024 * 1024 * MAX_PROFILER_ALLOCATOR_MB )
 {
 	ProfilerSections_.resize( MAX_EVENTS );
@@ -38,7 +38,7 @@ SysProfilerChromeTracing::SysProfilerChromeTracing():
 //////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
-SysProfilerChromeTracing::~SysProfilerChromeTracing()
+DsProfilerChromeTracing::~DsProfilerChromeTracing()
 {
 
 }
@@ -46,7 +46,7 @@ SysProfilerChromeTracing::~SysProfilerChromeTracing()
 //////////////////////////////////////////////////////////////////////////
 // setThreadName
 //virtual
-void SysProfilerChromeTracing::setThreadName( BcThreadId ThreadId, const char* Name )
+void DsProfilerChromeTracing::setThreadName( BcThreadId ThreadId, const char* Name )
 {
 	std::lock_guard< std::mutex > Lock( InternalMutex_ );
 	ThreadNames_[ ThreadId ] = Name;
@@ -55,7 +55,7 @@ void SysProfilerChromeTracing::setThreadName( BcThreadId ThreadId, const char* N
 //////////////////////////////////////////////////////////////////////////
 // beginProfiling
 //virtual
-void SysProfilerChromeTracing::beginProfiling()
+void DsProfilerChromeTracing::beginProfiling()
 {
 	if( BeginCount_++ == 0 )
 	{
@@ -84,7 +84,7 @@ void SysProfilerChromeTracing::beginProfiling()
 //////////////////////////////////////////////////////////////////////////
 // endProfiling
 //virtual
-void SysProfilerChromeTracing::endProfiling()
+void DsProfilerChromeTracing::endProfiling()
 {
 	if( --BeginCount_ == 0 )
 	{	
@@ -159,7 +159,7 @@ void SysProfilerChromeTracing::endProfiling()
 //////////////////////////////////////////////////////////////////////////
 // enterSection
 //virtual
-void SysProfilerChromeTracing::enterSection( const char* Tag )
+void DsProfilerChromeTracing::enterSection( const char* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -178,7 +178,7 @@ void SysProfilerChromeTracing::enterSection( const char* Tag )
 //////////////////////////////////////////////////////////////////////////
 // exitSection
 //virtual
-void SysProfilerChromeTracing::exitSection( const char* Tag )
+void DsProfilerChromeTracing::exitSection( const char* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -197,7 +197,7 @@ void SysProfilerChromeTracing::exitSection( const char* Tag )
 //////////////////////////////////////////////////////////////////////////
 // startAsync
 //virtual
-void SysProfilerChromeTracing::startAsync( const char* Tag, void* Data )
+void DsProfilerChromeTracing::startAsync( const char* Tag, void* Data )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -217,7 +217,7 @@ void SysProfilerChromeTracing::startAsync( const char* Tag, void* Data )
 //////////////////////////////////////////////////////////////////////////
 // stepAsync
 //virtual
-void SysProfilerChromeTracing::stepAsync( const char* Tag, void* Data )
+void DsProfilerChromeTracing::stepAsync( const char* Tag, void* Data )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -237,7 +237,7 @@ void SysProfilerChromeTracing::stepAsync( const char* Tag, void* Data )
 //////////////////////////////////////////////////////////////////////////
 // endAsync
 //virtual
-void SysProfilerChromeTracing::endAsync( const char* Tag, void* Data )
+void DsProfilerChromeTracing::endAsync( const char* Tag, void* Data )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -257,7 +257,7 @@ void SysProfilerChromeTracing::endAsync( const char* Tag, void* Data )
 //////////////////////////////////////////////////////////////////////////
 // instantEvent
 //virtual
-void SysProfilerChromeTracing::instantEvent( const char* Tag )
+void DsProfilerChromeTracing::instantEvent( const char* Tag )
 {
 	if( ProfilingActive_ == 1 )
 	{
@@ -275,7 +275,7 @@ void SysProfilerChromeTracing::instantEvent( const char* Tag )
 
 //////////////////////////////////////////////////////////////////////////
 // allocEvent
-SysProfilerChromeTracing::TProfilerEvent* SysProfilerChromeTracing::allocEvent( const char* Tag )
+DsProfilerChromeTracing::TProfilerEvent* DsProfilerChromeTracing::allocEvent( const char* Tag )
 {
 	auto Idx = ProfilerSectionIdx_++;
 

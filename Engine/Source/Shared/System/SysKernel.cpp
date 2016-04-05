@@ -17,9 +17,10 @@
 #include "Base/BcProfiler.h"
 #include "Base/BcRandom.h"
 
-#include "System/SysProfilerChromeTracing.h"
 #include "System/SysJobQueue.h"
 #include "System/SysJobWorker.h"
+
+#include "Base/BcProfiler.h"
 
 #if PLATFORM_WINDOWS
 #include "Base/BcWindows.h"

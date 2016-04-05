@@ -42,7 +42,7 @@ BcU32 GResolutionHeight = 720;
 #include "Base/BcFile.h"
 #include "Base/BcProfiler.h"
 
-#include "System/SysProfilerChromeTracing.h"
+#include "System/Debug/DsProfilerChromeTracing.h"
 
 #define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
 
@@ -440,13 +440,14 @@ void MainShared()
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
 	
-	// Start profiler.
-#if PSY_USE_PROFILER
-	if( GCommandLine_.hasArg( 'p', "profile" ) )
-	{
-		new SysProfilerChromeTracing();
-	}
+	// Start debug system if not a production build.
+#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
 #endif
+
+//#if !defined( PSY_PRODUCTION )
+	SysKernel::pImpl()->startSystem( "DsCore" );
+//#endif
 
 	// Start workers.
 	SysKernel::pImpl()->startWorkers();
@@ -474,15 +475,6 @@ void MainShared()
 
 	// Start content system, depending on startup flags.
 	SysKernel::pImpl()->startSystem( "CsCore" );
-
-	// Start debug system if not a production build.
-#if !defined( PSY_PRODUCTION )
-	SysKernel::pImpl()->startSystem( "DsCoreLogging" );
-#endif
-
-//#if !defined( PSY_PRODUCTION )
-	SysKernel::pImpl()->startSystem( "DsCore" );
-//#endif
 
 	// Init screenshot.
 	ScreenshotUtil::Init();

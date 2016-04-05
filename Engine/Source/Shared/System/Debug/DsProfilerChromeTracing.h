@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* File:		SysProfilerChromeTracing.h
+* File:		DsProfilerChromeTracing.h
 * Author:	Neil Richardson 
 * Ver/Date:	
 * Description:
@@ -11,8 +11,8 @@
 * 
 **************************************************************************/
 
-#ifndef __SysProfilerChromeTracing_H__
-#define __SysProfilerChromeTracing_H__
+#ifndef __DsProfilerChromeTracing_H__
+#define __DsProfilerChromeTracing_H__
 
 #include "Base/BcLinearAllocator.h"
 #include "Base/BcProfiler.h"
@@ -29,12 +29,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 // BcProfiler
-class SysProfilerChromeTracing:
+class DsProfilerChromeTracing:
 	public BcProfiler
 {
 public:
-	SysProfilerChromeTracing();
-	virtual ~SysProfilerChromeTracing();
+	DsProfilerChromeTracing();
+	virtual ~DsProfilerChromeTracing();
 
 	void setThreadName( BcThreadId ThreadId, const char* Name ) override;
 	void beginProfiling() override;
@@ -96,4 +96,4 @@ private:
 
 
 
-#endif // __SysProfilerChromeTracing_H__
+#endif // __DsProfilerChromeTracing_H__

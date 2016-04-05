@@ -3,6 +3,7 @@
 #include "System/Debug/DsImGui.h"
 #include "System/Debug/DsImGuiFieldEditor.h"
 #include "System/Debug/DsTemplate.h"
+#include "System/Debug/DsProfilerChromeTracing.h"
 
 #include "Base/BcFile.h"
 #include "Base/BcHtml.h"
@@ -42,6 +43,15 @@ PageFunctions_(),
 ButtonFunctions_(),
 NextHandle_( 0 )
 {
+	// Start profiler.
+#if PSY_USE_PROFILER
+	if( GCommandLine_.hasArg( 'p', "profile" ) )
+	{
+		new DsProfilerChromeTracing();
+	}
+#endif
+
+
 	using namespace std::placeholders;
 
 	registerPage( "", { }, std::bind( &DsCoreImpl::cmdMenu, this, _1, _2, _3 ) );
@@ -121,23 +131,39 @@ void DsCoreImpl::open()
 #endif
 
 	// Setup init/deinit hooks.
-	if( OsCore::pImpl()->getClient( 0 ) )
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
+		[ this ]( EvtID, const EvtBaseEvent& )
 	{
-		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
-			[ this ]( EvtID, const EvtBaseEvent& )
-		{
-			ImGui::Psybrus::Init();
-			return evtRET_REMOVE;
-		} );
+		ImGui::Psybrus::Init();
+		return evtRET_REMOVE;
+	} );
 
-		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
-			[ this ]( EvtID, const EvtBaseEvent& )
-		{
-			ImGui::Psybrus::Shutdown();
-			return evtRET_REMOVE;
-		} );
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )
+	{
+		ImGui::Psybrus::Shutdown();
+		return evtRET_REMOVE;
+	} );
 
-		DrawPanels_ = BcFalse;
+	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )
+	{
+		PSY_PROFILER_SECTION( UpdateImGui, "ImGui" );
+
+		if ( ImGui::Psybrus::NewFrame() )
+		{
+			if ( DrawPanels_ )
+			{
+				for ( auto& Panel : PanelFunctions_ )
+				{
+					Panel.Function_( Panel.Handle_ );
+				}
+			}
+		}
+		return evtRET_PASS;
+	} );
+
+	DrawPanels_ = BcFalse;
 #if PLATFORM_HTML5
 		DrawPanels_ = BcTrue;
 #endif
@@ -148,7 +174,6 @@ void DsCoreImpl::open()
 		Style.FramePadding.y *= 2.0f;
 		Style.GrabMinSize *= 2.0f;
 #endif
-	}
 
 	// Setup toggle of debug panels.
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
@@ -181,21 +206,6 @@ void DsCoreImpl::update()
 		WebbyServerUpdate( Servers_[ Idx ] );
 	}
 #endif // USE_WEBBY
-	if( OsCore::pImpl() && OsCore::pImpl()->getClient( 0 ) )
-	{
-		PSY_PROFILER_SECTION( UpdateWebby, "ImGui" );
-
-		if ( ImGui::Psybrus::NewFrame() )
-		{
-			if ( DrawPanels_ )
-			{
-				for ( auto& Panel : PanelFunctions_ )
-				{
-					Panel.Function_( Panel.Handle_ );
-				}
-			}
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
