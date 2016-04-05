@@ -399,8 +399,8 @@ void RsContextGL::create()
 	std::string VersionString;
 	bool WantGLVersion = GCommandLine_.getArg( '\0', "gl", VersionString );
 	bool WantGLESVersion = GCommandLine_.getArg( '\0', "gles", VersionString );
-	BcU32 VersionMajor = 0;
-	BcU32 VersionMinor = 0;
+	BcS32 VersionMajor = 0;
+	BcS32 VersionMinor = 0;
 	std::regex VersionRegex( "(\\d)\\.(\\d)" );
 	std::cmatch Match;
 	if( std::regex_match( VersionString.c_str(), Match, VersionRegex ) )
@@ -1156,7 +1156,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	};
 	BcAssertMsg( Desc.RenderTargets_.size() <= 8,
 		"Too many render targets in RsFrameBuffer \"%s\". Max of 8.", FrameBuffer->getDebugName() );
-	GL( DrawBuffers( Desc.RenderTargets_.size(), Targets ) );
+	GL( DrawBuffers( GLsizei( Desc.RenderTargets_.size() ), Targets ) );
 
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
@@ -1642,7 +1642,8 @@ void RsContextGL::drawPrimitives(
 		const RsFrameBuffer* FrameBuffer,
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
-		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices )
+		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
@@ -1670,7 +1671,23 @@ void RsContextGL::drawPrimitives(
 	// TODO: Add memory barrier to the binding object.
 	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
-	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
+	if( NoofInstances > 1 || FirstInstance > 0 )
+	{
+		if( FirstInstance > 0 )
+		{
+			BcAssert( Version_.SupportDrawInstancedBaseInstance_ );
+			GL( DrawArraysInstancedBaseInstance( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices, NoofInstances, FirstInstance ) );
+		}
+		else
+		{
+			BcAssert( Version_.SupportDrawInstanced_ );
+			GL( DrawArraysInstanced( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices, NoofInstances ) );
+		}
+	}
+	else
+	{
+		GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
+	}
 
 #if !defined( RENDER_USE_GLES )
 	if( MemoryBarrier_ )
@@ -1690,7 +1707,8 @@ void RsContextGL::drawIndexedPrimitives(
 		const RsFrameBuffer* FrameBuffer,
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
-		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
@@ -1752,19 +1770,38 @@ void RsContextGL::drawIndexedPrimitives(
 	BcAssert( GeometryBinding->getDesc().IndexBuffer_.Buffer_ );
 	BcAssert( ( IndexOffset + ( NoofIndices * GeometryBindingDesc.IndexBuffer_.Stride_ ) ) <= GeometryBindingDesc.IndexBuffer_.Buffer_->getDesc().SizeBytes_ );
 
-	if( VertexOffset == 0 )
+	if( NoofInstances > 1 || FirstInstance > 0 )
 	{
-		GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ) ) );
-	}
 #if !defined( RENDER_USE_GLES )
-	else if( Version_.SupportDrawElementsBaseVertex_ )
-	{
-		GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), VertexOffset ) );
-	}
+		if( Version_.SupportDrawInstancedBaseInstance_ )
+		{
+			GL( DrawElementsInstancedBaseVertexBaseInstance( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), NoofInstances, VertexOffset, FirstInstance ) );
+		}
+		else
 #endif
+		if( Version_.SupportDrawInstanced_ )
+		{
+			BcAssert( VertexOffset == 0 );
+			GL( DrawElementsInstanced( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), NoofInstances ) );
+		}
+		else
+		{
+			BcBreakpoint;
+		}
+	}
 	else
 	{
-		BcBreakpoint;
+#if !defined( RENDER_USE_GLES )
+		if( Version_.SupportDrawElementsBaseVertex_ )
+		{
+			GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), VertexOffset ) );
+		}
+		else
+#endif
+		{
+			BcAssert( VertexOffset == 0 );
+			GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ) ) );
+		}
 	}
 
 #if !defined( RENDER_USE_GLES )
@@ -2825,7 +2862,7 @@ void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum Bin
 		BindingInfo.Resource_ = Buffer;
 		BindingInfo.Buffer_ = Handle;
 		BindingInfo.Offset_ = Offset;
-		BindingInfo.Size_ = BindSize;
+		BindingInfo.Size_ = GLsizei( BindSize );
 	}
 }
 

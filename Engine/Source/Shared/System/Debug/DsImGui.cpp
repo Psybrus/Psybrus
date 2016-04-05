@@ -300,7 +300,7 @@ namespace
 								RsTopologyType::TRIANGLE_LIST,
 								IndexOffset,
 								Cmd->ElemCount,
-								0 );
+								0, 0, 1 );
 						}
 						IndexOffset += Cmd->ElemCount;
 					}

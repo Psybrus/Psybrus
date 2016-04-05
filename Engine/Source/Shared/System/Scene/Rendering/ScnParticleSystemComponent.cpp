@@ -333,7 +333,8 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer,
 					&Viewport,
 					nullptr,
-					RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
+					RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6,
+					0, 1 );
 			} );
 	}
 }

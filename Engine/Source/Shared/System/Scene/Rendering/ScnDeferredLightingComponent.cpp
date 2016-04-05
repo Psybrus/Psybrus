@@ -287,7 +287,7 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer,
 					&Viewport,
 					nullptr,
-					RsTopologyType::TRIANGLE_STRIP, 0, 4 );
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
 			} );
 	}
 

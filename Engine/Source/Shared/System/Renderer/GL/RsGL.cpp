@@ -39,6 +39,8 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportTesselationShaders_( false ),
 	SupportComputeShaders_( false ),
 	SupportDrawElementsBaseVertex_( false ),
+	SupportDrawInstanced_( false ),
+	SupportDrawInstancedBaseInstance_( false ),
 	SupportBlitFrameBuffer_( false ),
 	SupportCopyImageSubData_( false ),
 	MaxTextureSlots_( 0 ),
@@ -137,6 +139,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		{
 			SupportUniformBuffers_ = true;
 			SupportGeometryShaders_ = true;
+			SupportDrawInstanced_ = true;
 		}
 
 		// 3.2
@@ -168,6 +171,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( getCombinedVersion() >= 0x00040002 )
 		{
 			SupportImageLoadStore_ = true;
+			SupportDrawInstancedBaseInstance_ = true;
 		}
 
 		// 4.3
@@ -295,6 +299,14 @@ void RsOpenGLVersion::setupFeatureSupport()
 			SupportVAOs_ |= HaveExtension( "OES_vertex_array_object" );
 
 			SupportDrawElementsBaseVertex_ |= HaveExtension( "EXT_draw_elements_base_vertex" );
+
+			SupportDrawInstanced_ |= 
+				HaveExtension( "ANGLE_instanced_arrays" ) ||
+				HaveExtension( "OES_instanced_arrays" );
+
+			SupportDrawInstancedBaseInstance_ |= 
+				HaveExtension( "ARB_base_instance" ) ||
+				HaveExtension( "ARB_base_instance" );
 		}
 
 		break;

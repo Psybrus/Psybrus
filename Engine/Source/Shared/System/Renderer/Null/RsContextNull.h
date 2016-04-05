@@ -56,7 +56,8 @@ public:
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 IndexOffset, BcU32 NoofIndices ) override;
+		BcU32 IndexOffset, BcU32 NoofIndices,
+		BcU32 FirstInstance, BcU32 NoofInstances ) override;
 	void drawIndexedPrimitives( 
 		const RsGeometryBinding* GeometryBinding, 
 		const RsProgramBinding* ProgramBinding, 
@@ -65,7 +66,8 @@ public:
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances ) override;
 
 	bool createRenderState(
 		RsRenderState* RenderState ) override;

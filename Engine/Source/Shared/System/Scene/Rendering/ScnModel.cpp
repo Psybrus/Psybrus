@@ -1141,7 +1141,8 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 					&Viewport,
 					nullptr,
 					PrimitiveType,
-					IndexBuffereOffset, NoofIndices, VertexBufferOffset );
+					IndexBuffereOffset, NoofIndices, VertexBufferOffset,
+					0, 1 );
 			} );
 	}
 }

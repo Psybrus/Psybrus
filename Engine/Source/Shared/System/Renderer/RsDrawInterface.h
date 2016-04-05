@@ -49,6 +49,8 @@ public:
 	 * @param PrimitiveType Type of primitive to draw.
 	 * @param VertexOffset How many vertices to start rendering in from.
 	 * @param NoofVertices How many vertices to draw.
+	 * @param FirstInstance First instance to draw.
+	 * @param NoofInstances Number of instances to draw.
 	 */
 	virtual void drawPrimitives( 
 		const class RsGeometryBinding* GeometryBinding, 
@@ -58,7 +60,8 @@ public:
 		const struct RsViewport* Viewport,
 		const struct RsScissorRect* ScissorRect,
 		RsTopologyType PrimitiveType, 
-		BcU32 VertexOffset, BcU32 NoofVertices ) { BcBreakpoint; };
+		BcU32 VertexOffset, BcU32 NoofVertices,
+		BcU32 FirstInstance, BcU32 NoofInstances ) { BcBreakpoint; };
 
 	/**
 	 * Draw indexed primitives.
@@ -72,6 +75,8 @@ public:
 	 * @param IndexOffset How many indices to start rendering in from.
 	 * @param NoofIndices How many indices to draw.
 	 * @param VertexOffset Base vertex offset to index from.
+	 * @param FirstInstance First instance to draw.
+	 * @param NoofInstances Number of instances to draw.
 	 */
 	virtual void drawIndexedPrimitives( 
 		const class RsGeometryBinding* GeometryBinding, 
@@ -81,7 +86,8 @@ public:
 		const struct RsViewport* Viewport,
 		const struct RsScissorRect* ScissorRect,
 		RsTopologyType PrimitiveType, 
-		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) { BcBreakpoint; };
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances ) { BcBreakpoint; };
 
 	/**
 	 * Copy texture to another texture.

@@ -320,7 +320,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer.get(),
 					nullptr,
 					nullptr,
-					RsTopologyType::TRIANGLE_STRIP, 0, 4 );
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
 			}
 
 			// Copy back to FB.

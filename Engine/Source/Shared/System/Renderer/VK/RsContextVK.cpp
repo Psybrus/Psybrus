@@ -1024,7 +1024,8 @@ void RsContextVK::drawPrimitives(
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 VertexOffset, BcU32 NoofVertices )
+		BcU32 VertexOffset, BcU32 NoofVertices,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
@@ -1036,7 +1037,7 @@ void RsContextVK::drawPrimitives(
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect, 0, nullptr );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding, RenderState, FrameBuffer );
-	vkCmdDraw( getCommandBuffer(), NoofVertices, 1, VertexOffset, 0 );
+	vkCmdDraw( getCommandBuffer(), NoofVertices, NumInstances, VertexOffset, FirstInstance );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1049,7 +1050,8 @@ void RsContextVK::drawIndexedPrimitives(
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 
@@ -1061,7 +1063,7 @@ void RsContextVK::drawIndexedPrimitives(
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect, 0, nullptr );
 	bindGraphicsPSO( TopologyType, GeometryBinding, ProgramBinding, RenderState, FrameBuffer );
-	vkCmdDrawIndexed( getCommandBuffer(), NoofIndices, 1, IndexOffset, VertexOffset, 0 );
+	vkCmdDrawIndexed( getCommandBuffer(), NoofIndices, NumInstances, IndexOffset, VertexOffset, FirstInstance );
 }
 
 //////////////////////////////////////////////////////////////////////////

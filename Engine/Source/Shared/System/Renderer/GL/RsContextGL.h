@@ -137,7 +137,8 @@ public:
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 VertexOffset, BcU32 NoofVertices ) override;
+		BcU32 VertexOffset, BcU32 NoofVertices,
+		BcU32 FirstInstance, BcU32 NoofInstances ) override;
 	void drawIndexedPrimitives( 
 		const RsGeometryBinding* GeometryBinding, 
 		const RsProgramBinding* ProgramBinding, 
@@ -146,7 +147,8 @@ public:
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset ) override;
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances ) override;
 	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;

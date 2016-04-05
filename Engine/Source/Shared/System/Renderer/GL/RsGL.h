@@ -187,6 +187,8 @@ struct RsOpenGLVersion
 	bool SupportTesselationShaders_;
 	bool SupportComputeShaders_;
 	bool SupportDrawElementsBaseVertex_;
+	bool SupportDrawInstanced_;
+	bool SupportDrawInstancedBaseInstance_;
 	bool SupportBlitFrameBuffer_;
 	bool SupportCopyImageSubData_;
 	GLint MaxTextureSlots_;
