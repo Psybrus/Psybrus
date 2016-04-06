@@ -21,6 +21,7 @@
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
+#include "System/Scene/Rendering/ScnViewProcessor.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Scene/ScnComponentProcessor.h"
@@ -70,12 +71,7 @@ void ScnViewComponent::StaticRegisterClass()
 	
 	using namespace std::placeholders;
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor(		{
-			ScnComponentProcessFuncEntry(
-				"Render Views",
-				ScnComponentPriority::VIEW_RENDER,
-				std::bind( &ScnViewComponent::renderViews, _1 ) ),
-		} ) );
+		.addAttribute( new ScnViewProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -409,72 +405,5 @@ void ScnViewComponent::recreateFrameBuffer()
 		}
 
 		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc, getFullName().c_str() );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// renderViews
-//static
-void ScnViewComponent::renderViews( const ScnComponentList& Components )
-{
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnViewComponent::renderViews" ) );
-
-	// TODO: Have things register with RsCore to be rendered maybe?
-
-	// Get context.
-	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
-
-	// Check for native window handle, and a size greater than 0.
-	// Don't want to render at all if none of those conditions are met.
-	auto Client = pContext->getClient();
-	if( Client->getWindowHandle() != 0 &&
-		Client->getWidth() > 0 &&
-		Client->getHeight() > 0 )
-	{
-		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-		RsRenderSort Sort( 0 );
-		
-		// Check viewport count.
-		if( Components.size() > RS_SORT_VIEWPORT_MAX )
-		{
-			PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
-		}
-
-#if 0 && PSY_DEBUG
-		// Clear to an ugly colour in debug.
-		pFrame->queueRenderNode( Sort,
-			[]( RsContext* Context )
-			{
-				Context->clear( nullptr, RsColour::PURPLE, BcTrue, BcTrue, BcTrue );
-			} );
-#endif
-
-		// Iterate over all view components.
-		for( auto Component : Components )
-		{
-			BcAssert( Component->isTypeOf< ScnViewComponent >() );
-			auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
-	
-			ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
-
-			ViewComponent->bind( pFrame, Sort );
-
-			ScnRenderingVisitor Visitor( RenderContext );
-
-			Visitor.render();
-
-			// Increment viewport.
-			Sort.Viewport_++;
-		}
-
-		// TODO: Move completely to DsCore.
-		//       Probably depends on registration with RsCore.
-		// Render ImGui.
-		ImGui::Psybrus::Render( pContext, pFrame );
-
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( pFrame );
 	}
 }
