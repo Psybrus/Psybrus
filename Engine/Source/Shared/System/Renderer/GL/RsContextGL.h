@@ -162,8 +162,8 @@ public:
 	void bindSamplerStates( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
 	void bindUniformBuffers( const RsProgram* Program, const RsProgramBindingDesc& Bindings );
 	void bindTexture( BcU32 Slot, const RsTexture* Texture );
-	void bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset );
-	void bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset );
+	void bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer );
+	void bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer );
 	void unbindResource( const RsResource* Resource );
 
 	const RsOpenGLVersion& getOpenGLVersion() const;

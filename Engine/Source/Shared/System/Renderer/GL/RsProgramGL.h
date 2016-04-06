@@ -3,6 +3,8 @@
 #include "System/Renderer/GL/RsGL.h"
 #include "System/Renderer/GL/RsProgramFileDataGL.h"
 
+#include "System/Renderer/RsProgramBinding.h"
+
 //////////////////////////////////////////////////////////////////////////
 // RsProgramBindTypeGL
 enum class RsProgramBindTypeGL
@@ -50,7 +52,7 @@ public:
 	 * Copy data from uniform buffers into the uniforms.
 	 * @pre Currently bound program is this one.
 	 */
-	void copyUniformBuffersToUniforms( size_t NoofBuffers, const class RsBuffer* const * Buffers );
+	void copyUniformBuffersToUniforms( size_t NoofBuffers, const RsUBSlot* UBSlots );
 
 
 	GLuint getHandle() const { return Handle_; }
@@ -92,6 +94,8 @@ private:
 
 		// Used for redundancy checks.
 		const class RsBuffer* Buffer_ = nullptr;
+		BcU32 SlotOffset_ = 0;
+		BcU32 SlotSize_ = 0;
 		BcU32 Version_ = 0;
 	};
 

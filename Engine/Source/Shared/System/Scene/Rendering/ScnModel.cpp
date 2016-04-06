@@ -940,7 +940,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				auto Slot = Program->findUniformBufferSlot( Uniform.Name_.c_str() );
 				if( Slot != BcErrorCode )
 				{
-					ProgramBindingDesc.setUniformBuffer( Slot, Uniform.Buffer_.get() );
+					ProgramBindingDesc.setUniformBuffer( Slot, Uniform.Buffer_.get(), 0, Uniform.Buffer_->getDesc().SizeBytes_ );
 				}
 			}
 
@@ -949,7 +949,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderBoneUniformBlockData" );
 				if( Slot != BcErrorCode )
 				{
-					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get() );
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get(), 0, sizeof( ScnShaderBoneUniformBlockData ) );
 				}
 			}
 			else
@@ -957,7 +957,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
 				if( Slot != BcErrorCode )
 				{
-					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get() );
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get(), 0, sizeof( ScnShaderObjectUniformBlockData ) );
 				}
 			}
 
@@ -965,7 +965,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 				if( Slot != BcErrorCode )
 				{
-					ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer() );
+					ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
 				}
 			}
 
@@ -979,7 +979,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 						PerComponentMeshData.LightingUniformBuffer_ = Material->createUniformBuffer< ScnShaderLightUniformBlockData >( DebugNameCStr );
 					}
 
-					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.LightingUniformBuffer_.get() );
+					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ) );
 				}
 				else
 				{

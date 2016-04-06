@@ -179,7 +179,9 @@ struct RsOpenGLVersion
 	bool SupportPolygonMode_;
 	bool SupportVAOs_;
 	bool SupportSamplerStates_;
+	bool SupportBindBufferRange_;
 	bool SupportUniformBuffers_;
+	bool SupportUniformBufferOffset_;
 	bool SupportImageLoadStore_;
 	bool SupportShaderStorageBufferObjects_;
 	bool SupportProgramInterfaceQuery_;

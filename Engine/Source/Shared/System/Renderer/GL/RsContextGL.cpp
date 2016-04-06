@@ -1300,7 +1300,7 @@ bool RsContextGL::updateBuffer(
 		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.BindFlags_ );
 
 		// Bind buffer.
-		bindBuffer( TypeGL, Buffer, 0 );
+		bindBuffer( TypeGL, Buffer );
 
 		// Get usage flags for GL.
 		GLuint UsageFlagsGL = 0;
@@ -2172,7 +2172,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 				GLuint VertexHandle = VertexBufferGL->getHandle();
 				if( BoundVertexHandle != VertexHandle )
 				{
-					bindBuffer( GL_ARRAY_BUFFER, VertexBuffer, 0 );
+					bindBuffer( GL_ARRAY_BUFFER, VertexBuffer );
 					BoundVertexHandle = VertexHandle;
 				}
 
@@ -2211,7 +2211,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 		}
 
 		// Bind indices.
-		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, Desc.IndexBuffer_.Buffer_, 0 );
+		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, Desc.IndexBuffer_.Buffer_ );
 	}
 }
 
@@ -2751,23 +2751,22 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 	{
 		for( BcU32 Idx = 0; Idx < ProgramGL->getUniformBufferBindCount(); ++Idx )
 		{
-			const auto& UniformBuffer = Bindings.UniformBuffers_[ Idx ];
-			if( UniformBuffer )
+			const auto& UniformSlot = Bindings.UniformBuffers_[ Idx ];
+			if( UniformSlot.Buffer_ )
 			{
-				// TODO: Redundant state checking.
 				const auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
-				RsBufferGL* BufferGL = UniformBuffer->getHandle< RsBufferGL* >();
+				RsBufferGL* BufferGL = UniformSlot.Buffer_->getHandle< RsBufferGL* >();
 				auto& BindingInfo = UniformBufferBindingInfo_[ UniformBufferSlotGL.Binding_ ];
-				if( BindingInfo.Resource_ != UniformBuffer ||
+				if( BindingInfo.Resource_ != UniformSlot.Buffer_ ||
 					BindingInfo.Buffer_ != BufferGL->getHandle() ||
-					BindingInfo.Offset_ != 0 ||
-					BindingInfo.Size_ != (GLsizei)UniformBuffer->getDesc().SizeBytes_ )
+					BindingInfo.Offset_ != UniformSlot.Offset_ ||
+					BindingInfo.Size_ != (GLsizei)UniformSlot.Size_ )
 				{
-					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Binding_, BufferGL->getHandle(), 0, UniformBuffer->getDesc().SizeBytes_ ) );
-					BindingInfo.Resource_ = UniformBuffer;
+					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Binding_, BufferGL->getHandle(), UniformSlot.Offset_, UniformSlot.Size_ ) );
+					BindingInfo.Resource_ = UniformSlot.Buffer_;
 					BindingInfo.Buffer_ = BufferGL->getHandle();
-					BindingInfo.Offset_ = 0;
-					BindingInfo.Size_ = (GLsizei)UniformBuffer->getDesc().SizeBytes_;
+					BindingInfo.Offset_ = UniformSlot.Offset_;
+					BindingInfo.Size_ = (GLsizei)UniformSlot.Size_;
 				}
 			}
 		}
@@ -2804,25 +2803,23 @@ void RsContextGL::bindTexture( BcU32 Slot, const RsTexture* Texture )
 
 //////////////////////////////////////////////////////////////////////////
 // bindBuffer
-void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset )
+void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer )
 {
 	switch( BindTypeGL )
 	{
 	case GL_ARRAY_BUFFER:
 		{
-			BcAssert( Offset == 0 );
-			bindBufferInternal( VertexBufferBindingInfo_, GL_ARRAY_BUFFER, Buffer, 0 );
+			bindBufferInternal( VertexBufferBindingInfo_, GL_ARRAY_BUFFER, Buffer );
 		}
 		break;
 	case GL_ELEMENT_ARRAY_BUFFER:
 		{
-			BcAssert( Offset == 0 );
-			bindBufferInternal( IndexBufferBindingInfo_, GL_ELEMENT_ARRAY_BUFFER, Buffer, 0 );
+			bindBufferInternal( IndexBufferBindingInfo_, GL_ELEMENT_ARRAY_BUFFER, Buffer );
 		}
 		break;
 	case GL_UNIFORM_BUFFER:
 		{
-			bindBufferInternal( UniformBufferBindingInfoSingle_, GL_UNIFORM_BUFFER, Buffer, Offset );
+			bindBufferInternal( UniformBufferBindingInfoSingle_, GL_UNIFORM_BUFFER, Buffer );
 
 			// Binding of uniform buffers mean we potentially need to rebind program bindings.
 			BoundProgramBinding_ = nullptr;
@@ -2835,33 +2832,21 @@ void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 O
 
 //////////////////////////////////////////////////////////////////////////
 // bindBufferInternal
-void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset )
+void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer )
 {
 	RsBufferGL* BufferGL = Buffer ? Buffer->getHandle< RsBufferGL* >() : nullptr;
 	const auto Size = Buffer ? Buffer->getDesc().SizeBytes_ : 0;
-	const auto BindSize = Size - Offset;
-	BcAssert( Offset == 0 || Offset < Size );
+	const auto BindSize = Size;
 	auto Handle = BufferGL ? BufferGL->getHandle() : 0;
 	if( BindingInfo.Resource_ != Buffer ||
 		BindingInfo.Buffer_ != Handle ||
-		BindingInfo.Offset_ != Offset ||
+		BindingInfo.Offset_ != -1 ||
 		BindingInfo.Size_ != BindSize )
 	{
-		if( Offset == 0 )
-		{
-			GL( BindBuffer( BindTypeGL, Handle ) );
-		}
-		else
-		{
-#if !defined( RENDER_USE_GLES )
-			GL( BindBufferRange( BindTypeGL, 0, Handle, Offset, BindSize ) );
-#else
-			BcAssertMsg( BcFalse, "No support for glBindBufferRange." );
-#endif
-		}
+		GL( BindBuffer( BindTypeGL, Handle ) );
 		BindingInfo.Resource_ = Buffer;
 		BindingInfo.Buffer_ = Handle;
-		BindingInfo.Offset_ = Offset;
+		BindingInfo.Offset_ = -1;
 		BindingInfo.Size_ = GLsizei( BindSize );
 	}
 }
@@ -2912,17 +2897,17 @@ void RsContextGL::unbindResource( const RsResource* Resource )
 
 	if( IndexBufferBindingInfo_.Resource_ == Resource )
 	{
-		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, nullptr, 0 );
+		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, nullptr );
 	}
 
 	if( VertexBufferBindingInfo_.Resource_ == Resource )
 	{
-		bindBuffer( GL_ARRAY_BUFFER, nullptr, 0 );
+		bindBuffer( GL_ARRAY_BUFFER, nullptr );
 	}
 
 	if( UniformBufferBindingInfoSingle_.Resource_ == Resource )
 	{
-		bindBuffer( GL_UNIFORM_BUFFER, nullptr, 0 );
+		bindBuffer( GL_UNIFORM_BUFFER, nullptr );
 	}
 }
 

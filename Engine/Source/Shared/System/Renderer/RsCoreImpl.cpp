@@ -712,7 +712,7 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 
 				for( const auto& UniformBuffer : Desc.UniformBuffers_ )
 				{
-					BcAssertMsg( UniformBuffer != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a uniform buffer.", 
+					BcAssertMsg( UniformBuffer.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a uniform buffer.", 
 						Buffer->getDebugName(),
 						ProgramBinding->getDebugName() );
 				}

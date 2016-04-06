@@ -234,7 +234,7 @@ RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags P
 		BcU32 Slot = Program->findUniformBufferSlot( (*UniformBufferName).c_str() );
 		if( Slot != BcErrorCode )
 		{
-			ProgramBindingDesc.setUniformBuffer( Slot, Buffer );
+			ProgramBindingDesc.setUniformBuffer( Slot, Buffer, 0, Buffer->getDesc().SizeBytes_ );
 		}
 	}
 
@@ -514,7 +514,7 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Slot, RsBuffer* UniformBuffer 
 {
 	if( Slot != BcErrorCode )
 	{
-		if( ProgramBindingDesc_.setUniformBuffer( Slot, UniformBuffer ) )
+		if( ProgramBindingDesc_.setUniformBuffer( Slot, UniformBuffer, 0, UniformBuffer->getDesc().SizeBytes_ ) )
 		{
 			ProgramBinding_.reset();
 		}

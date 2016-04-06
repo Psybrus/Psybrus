@@ -887,11 +887,11 @@ void RsContextD3D12::bindDescriptorHeap(
 		}
 	}
 
-	for( const auto* UniformBuffer : ProgramBindingDesc.UniformBuffers_ )
+	for( const auto& UniformSlot : ProgramBindingDesc.UniformBuffers_ )
 	{
-		if( UniformBuffer != nullptr )
+		if( UniformSlot.Buffer_ != nullptr )
 		{
-			auto Resource = UniformBuffer->getHandle< RsResourceD3D12* >();
+			auto Resource = UniformSlot.Buffer_->getHandle< RsResourceD3D12* >();
 			BcAssert( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) != 0 );
 		}
 	} 

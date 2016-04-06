@@ -435,7 +435,7 @@ void ScnPostProcessComponent::recreateResources()
 			auto BufferDesc = RsBufferDesc( 
 				RsResourceBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::DYNAMIC, BlockData.getDataSize() );
 			RsBufferUPtr Buffer( RsCore::pImpl()->createBuffer( BufferDesc, getFullName().c_str() ) );
-			ProgramBindingDesc.setUniformBuffer( Slot, Buffer.get() );
+			ProgramBindingDesc.setUniformBuffer( Slot, Buffer.get(), 0, Buffer->getDesc().SizeBytes_ );
 			Uniforms.Buffer_ = Buffer.get();
 			UniformBuffers_.emplace_back( std::move( Buffer ) );
 

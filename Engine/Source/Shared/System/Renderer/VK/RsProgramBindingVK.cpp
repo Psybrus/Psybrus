@@ -68,15 +68,15 @@ RsProgramBindingVK::RsProgramBindingVK( class RsProgramBinding* Parent, VkDevice
 	// Setup uniform buffers.
 	for( size_t Idx = 0; Idx < Desc.UniformBuffers_.size(); ++Idx )
 	{
-		auto UniformBuffer = Desc.UniformBuffers_[ Idx ];
-		if( UniformBuffer )
+		auto UniformSlot = Desc.UniformBuffers_[ Idx ];
+		if( UniformSlot.Buffer_ )
 		{
 			auto BindInfo = ProgramVK->getUniformBufferBindInfo( Idx );
 			auto& DescInfo = UniformBufferInfos[ BindInfo.Binding_ ];
-			auto BufferVK = UniformBuffer->getHandle< const RsBufferVK* >();
+			auto BufferVK = UniformSlot.Buffer_->->getHandle< const RsBufferVK* >();
 			DescInfo.buffer = BufferVK->getBuffer();
-			DescInfo.offset = 0;
-			DescInfo.range = UniformBuffer->getDesc().SizeBytes_;
+			DescInfo.offset = UniformSlot.Offset_;
+			DescInfo.range = UniformSlot.Size_;
 
 			MaxUniformBuffer = std::max( MaxUniformBuffer, BindInfo.Binding_ + 1 );
 		}

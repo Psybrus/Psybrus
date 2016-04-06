@@ -128,14 +128,14 @@ class ScnViewRenderData* ScnDeferredLightingComponent::createViewRenderData( cla
 			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
 			if( UniformSlot != BcErrorCode )
 			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get() );
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ) );
 			}
 		}
 		{
 			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 			if( UniformSlot != BcErrorCode )
 			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, View->getViewUniformBuffer() );
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
 			}
 		}
 

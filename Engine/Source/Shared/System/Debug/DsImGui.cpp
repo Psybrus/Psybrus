@@ -266,7 +266,7 @@ namespace
 										RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
 										RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 									}
-									RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+									RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData )  );
 								}
 							}
 							else
@@ -276,7 +276,7 @@ namespace
 									RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
 									RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
 								}
-								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get() );
+								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData ) );
 							}
 							if( RecreateProgramBinding && ProgramBinding_ )
 							{

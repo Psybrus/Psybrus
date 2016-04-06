@@ -59,7 +59,7 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 		// Attempt to update it.
 		if( Handle_ != 0 )
 		{
-			ContextGL->bindBuffer( TypeGL, Parent_, 0 );
+			ContextGL->bindBuffer( TypeGL, Parent_ );
 			GL( BufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL ) );
 		}
 	}

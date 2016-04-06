@@ -125,14 +125,14 @@ RsProgramBindingD3D12::RsProgramBindingD3D12( class RsProgramBinding* Parent, ID
 
 			for( INT Idx = 0; Idx < Desc.UniformBuffers_.size(); ++Idx )
 			{
-				auto& UniformBuffer = Desc.UniformBuffers_[ Idx ];
+				auto& UniformSlot = Desc.UniformBuffers_[ Idx ];
 				BcU32 UniformBufferSlotIdx = ProgramD3D12->getCBSlot( ShaderType, Idx );
-				if( UniformBuffer != nullptr && UniformBufferSlotIdx != BcErrorCode )
+				if( UniformSlot.Buffer_ != nullptr && UniformBufferSlotIdx != BcErrorCode )
 				{
 					BcAssert( UniformBufferSlotIdx < RsDescriptorHeapConstantsD3D12::MAX_CBVS );
 					CD3DX12_CPU_DESCRIPTOR_HANDLE SlotDHHandle( ShaderDHHandle, RsDescriptorHeapConstantsD3D12::CBV_START + UniformBufferSlotIdx, DescriptorSize );
-					auto CBVResource = UniformBuffer->getHandle< RsResourceD3D12* >();
-					auto CBVDesc = getDefaultCBVDesc( UniformBuffer, 0 );
+					auto CBVResource = UniformSlot.Buffer_->getHandle< RsResourceD3D12* >();
+					auto CBVDesc = getDefaultCBVDesc( UniformSlot.Buffer_, UniformSlot.Offset_, UniformSlot.Size_ );
 					Device_->CreateConstantBufferView( &CBVDesc, SlotDHHandle );
 					ResourceStateTransitions_.emplace_back( std::make_pair( CBVResource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) );
 				}
@@ -314,7 +314,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsProgramBindingD3D12::getDefaultSRVDesc( class 
 
 //////////////////////////////////////////////////////////////////////////
 // getDefaultCBVDesc
-D3D12_CONSTANT_BUFFER_VIEW_DESC RsProgramBindingD3D12::getDefaultCBVDesc( class RsBuffer* Buffer, size_t Offset )
+D3D12_CONSTANT_BUFFER_VIEW_DESC RsProgramBindingD3D12::getDefaultCBVDesc( class RsBuffer* Buffer, size_t Offset, size_t Size )
 {
 	D3D12_CONSTANT_BUFFER_VIEW_DESC OutDesc;
 	BcMemZero( &OutDesc, sizeof( OutDesc ) );
@@ -323,7 +323,7 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC RsProgramBindingD3D12::getDefaultCBVDesc( class 
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
 	auto D3DResource = Resource->getInternalResource().Get();
 	OutDesc.BufferLocation = D3DResource->GetGPUVirtualAddress() + Offset;
-	OutDesc.SizeInBytes = static_cast< UINT >( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ) );
+	OutDesc.SizeInBytes = static_cast< UINT >( BcPotRoundUp( Size, 256 ) );
 	return OutDesc;
 }
 

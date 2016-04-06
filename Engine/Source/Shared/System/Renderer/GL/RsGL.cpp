@@ -32,6 +32,7 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportVAOs_( false ),
 	SupportSamplerStates_( false ),
 	SupportUniformBuffers_( false ),
+	SupportUniformBufferOffset_( false ),
 	SupportImageLoadStore_( false ),
 	SupportShaderStorageBufferObjects_( false ),
 	SupportProgramInterfaceQuery_( false ),
@@ -132,6 +133,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			SupportPolygonMode_ = true;
 			SupportVAOs_ = true;
+			SupportBindBufferRange_ = true;
 		}
 
 		// 3.1
@@ -151,6 +153,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		// 3.3
 		if( getCombinedVersion() >= 0x00030003 )
 		{
+			SupportUniformBufferOffset_ = true;
 			SupportSamplerStates_ = true;
 			SupportBlitFrameBuffer_ = true;
 		}
