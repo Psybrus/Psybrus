@@ -22,6 +22,12 @@ ScnViewProcessor::ScnViewProcessor():
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Dtor
+ScnViewProcessor::~ScnViewProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
 // renderViews
 void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 {
@@ -68,16 +74,22 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 	
 			ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
 
+			// Gather all visible.
+			RenderingVisitor_.gatherVisible( RenderContext );
+
+			// Bind view.
 			ViewComponent->bind( pFrame, Sort );
+			
+			// Render view.
+			RenderingVisitor_.render( RenderContext );
 
-			ScnRenderingVisitor Visitor( RenderContext );
-
-			Visitor.render();
+			// Clear gathered.
+			RenderingVisitor_.clear();
 
 			// Increment viewport.
 			Sort.Viewport_++;
 		}
-
+		
 		// TODO: Move completely to DsCore.
 		//       Probably depends on registration with RsCore.
 		// Render ImGui.

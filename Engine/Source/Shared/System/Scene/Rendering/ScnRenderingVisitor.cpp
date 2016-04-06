@@ -22,10 +22,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnRenderingVisitor::ScnRenderingVisitor( ScnRenderContext & RenderContext ):
-	RenderContext_( RenderContext )
+ScnRenderingVisitor::ScnRenderingVisitor()
 {
-	ScnCore::pImpl()->visitView( this, RenderContext_.pViewComponent_ );
+	// Reserve 32k visible components upfront to reduce chance of reallocation.
+	VisibleComponents_.reserve( 1024 * 32 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,21 +37,20 @@ ScnRenderingVisitor::~ScnRenderingVisitor()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// visit
-//virtual
-void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
+// gatherVisible
+void ScnRenderingVisitor::gatherVisible( class ScnRenderContext & RenderContext )
 {
-	if( RenderContext_.pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
-	{
-		PSY_LOGSCOPEDCATEGORY( *pComponent->getClass()->getName() );
-		BcAssert( pComponent->isReady() );
-
-		VisibleComponents_.push_back( pComponent );
-	}
+	BcAssert( RenderContext_ == nullptr );
+	RenderContext_ = &RenderContext;
+	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
+	RenderContext_ = nullptr;
 }
 
-void ScnRenderingVisitor::render()
+//////////////////////////////////////////////////////////////////////////
+// render
+void ScnRenderingVisitor::render( class ScnRenderContext & RenderContext )
 {
+	BcAssert( RenderContext_ == nullptr );
 	{
 		PSY_PROFILER_SECTION( RootSort, "Sort visible components by type" );
 
@@ -69,13 +68,34 @@ void ScnRenderingVisitor::render()
 		// Iterate over components.
 		for( auto Component : VisibleComponents_ )
 		{
-			auto* ViewRenderData = Component->getViewRenderData( RenderContext_.pViewComponent_ );
+			auto* ViewRenderData = Component->getViewRenderData( RenderContext.pViewComponent_ );
 			if( ViewRenderData )
 			{
-				RenderContext_.ViewRenderData_ = ViewRenderData;
-				RenderContext_.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
-				Component->render( RenderContext_ );
+				RenderContext.ViewRenderData_ = ViewRenderData;
+				RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
+				Component->render( RenderContext );
 			}
 		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// clear
+void ScnRenderingVisitor::clear()
+{
+	VisibleComponents_.clear();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// visit
+//virtual
+void ScnRenderingVisitor::visit( class ScnRenderableComponent* pComponent )
+{
+	if( RenderContext_->pViewComponent_->getRenderMask() & pComponent->getRenderMask() )
+	{
+		PSY_LOGSCOPEDCATEGORY( *pComponent->getClass()->getName() );
+		BcAssert( pComponent->isReady() );
+
+		VisibleComponents_.push_back( pComponent );
 	}
 }

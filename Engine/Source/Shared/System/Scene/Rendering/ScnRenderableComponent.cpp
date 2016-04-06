@@ -109,7 +109,7 @@ class ScnViewRenderData* ScnRenderableComponent::getViewRenderData( class ScnVie
 			{
 				ViewRenderData->setSortPassType( SortPassType );
 			}
-		}	
+		}
 		ViewRenderData_.insert( std::make_pair( ViewComponent, ViewRenderData ) );
 		return ViewRenderData;
 	}

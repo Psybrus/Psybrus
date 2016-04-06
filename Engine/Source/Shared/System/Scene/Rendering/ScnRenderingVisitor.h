@@ -23,15 +23,17 @@ class ScnRenderingVisitor:
 	public ScnVisitor
 {
 public:
-	ScnRenderingVisitor( class ScnRenderContext & RenderContext );
+	ScnRenderingVisitor();
 	virtual ~ScnRenderingVisitor();
 
 	virtual void visit( class ScnRenderableComponent* pComponent );
 
-	void render();
+	void gatherVisible( class ScnRenderContext & RenderContext );
+	void render( class ScnRenderContext & RenderContext );
+	void clear();
 
 private:
-	class ScnRenderContext & RenderContext_;
+	class ScnRenderContext* RenderContext_ = nullptr;
 
 	std::vector< ScnRenderableComponent* > VisibleComponents_;
 };
