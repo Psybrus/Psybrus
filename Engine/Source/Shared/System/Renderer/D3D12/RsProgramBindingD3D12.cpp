@@ -237,7 +237,14 @@ D3D12_SAMPLER_DESC RsProgramBindingD3D12::getSamplerDesc( class RsSamplerState* 
 	else if( Desc.MinFilter_ == RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR &&
 		Desc.MagFilter_ == RsTextureFilteringMode::LINEAR )
 	{
-		OutDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		if( Desc.MaxAnisotropy_ > 1 )
+		{
+			OutDesc.Filter = D3D12_FILTER_ANISOTROPIC;
+		}
+		else
+		{
+			OutDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+		}
 	}
 	else
 	{
@@ -248,15 +255,15 @@ D3D12_SAMPLER_DESC RsProgramBindingD3D12::getSamplerDesc( class RsSamplerState* 
 	OutDesc.AddressU = RsUtilsD3D12::GetTextureAddressMode( Desc.AddressU_ );
 	OutDesc.AddressV = RsUtilsD3D12::GetTextureAddressMode( Desc.AddressV_ );
 	OutDesc.AddressW = RsUtilsD3D12::GetTextureAddressMode( Desc.AddressW_ );
-	OutDesc.MipLODBias = 0.0f;
-	OutDesc.MaxAnisotropy = 1;
+	OutDesc.MipLODBias = Desc.MipLODBias_;
+	OutDesc.MaxAnisotropy = Desc.MaxAnisotropy_;
 	OutDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-	OutDesc.BorderColor[ 0 ] = 0.0f;
-	OutDesc.BorderColor[ 1 ] = 0.0f;
-	OutDesc.BorderColor[ 2 ] = 0.0f;
-	OutDesc.BorderColor[ 3 ] = 0.0f;
-	OutDesc.MinLOD = 0;
-	OutDesc.MaxLOD = FLT_MAX;
+	OutDesc.BorderColor[ 0 ] = Desc.BorderColour_.r();
+	OutDesc.BorderColor[ 1 ] = Desc.BorderColour_.g();
+	OutDesc.BorderColor[ 2 ] = Desc.BorderColour_.b();
+	OutDesc.BorderColor[ 3 ] = Desc.BorderColour_.a();
+	OutDesc.MinLOD = Desc.MinLOD_;
+	OutDesc.MaxLOD = Desc.MaxLOD_;
 
 	return OutDesc;
 }
@@ -319,7 +326,6 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC RsProgramBindingD3D12::getDefaultCBVDesc( class 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC OutDesc;
 	BcMemZero( &OutDesc, sizeof( OutDesc ) );
 
-	const auto& BufferDesc = Buffer->getDesc();
 	auto Resource = Buffer->getHandle< RsResourceD3D12* >();
 	auto D3DResource = Resource->getInternalResource().Get();
 	OutDesc.BufferLocation = D3DResource->GetGPUVirtualAddress() + Offset;

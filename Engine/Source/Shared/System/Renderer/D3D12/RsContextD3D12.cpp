@@ -1054,7 +1054,7 @@ bool RsContextD3D12::createBuffer(
 	const auto& BufferDesc = Buffer->getDesc();
 
 	CD3DX12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_DEFAULT );
-	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_FLAG_NONE) );
+	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ), D3D12_RESOURCE_FLAG_NONE) );
 
 	// Determine appropriate resource usage.
 	const auto Flags = BufferDesc.BindFlags_;
