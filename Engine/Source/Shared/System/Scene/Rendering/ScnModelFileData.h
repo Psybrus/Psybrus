@@ -81,12 +81,10 @@ struct ScnModelMeshRuntime
 	size_t VertexBufferOffset_ = 0;
 	size_t IndexBufferOffset_ = 0;
 	ScnMaterialRef MaterialRef_ = nullptr; // TODO: Don't use ref, just use pointer.
-	MaAABB AABB_;
 };
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelMeshRuntimeList: TODO: Just change to a static array in code.
 typedef std::vector< ScnModelMeshRuntime > ScnModelMeshRuntimeList;
-
 
 #endif

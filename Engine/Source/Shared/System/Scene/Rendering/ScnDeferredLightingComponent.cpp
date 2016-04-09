@@ -14,8 +14,6 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
 #include "System/Debug/DsCore.h"
 
 #include "Base/BcMath.h"
@@ -243,7 +241,8 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 			}
 		} );	
 	
-		// Gather lights that intersect with our view.
+	// TODO: Use ScnLightProcessor when implemented.
+	// Gather lights that intersect with our view.
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
 	// Render all lights.

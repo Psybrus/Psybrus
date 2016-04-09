@@ -763,7 +763,7 @@ void ScnModelComponent::updateModels( const ScnComponentList& Components )
 
 //////////////////////////////////////////////////////////////////////////
 // updateNodes
-void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
+void ScnModelComponent::updateNodes( const MaMat4d& RootMatrix )
 {
 	PSY_PROFILE_FUNCTION;
 
@@ -775,13 +775,13 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
 	{
+		const ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ NodeIdx ];
 		ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ NodeIdx ];
-		ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ NodeIdx ];
 
 		// Check parent index and process.
 		if( pNodePropertyData->ParentIndex_ != BcErrorCode )
 		{
-			ScnModelNodeTransformData* pParentScnModelNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
+			const ScnModelNodeTransformData* pParentScnModelNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
 			
 			pNodeTransformData->WorldTransform_ = pNodeTransformData->LocalTransform_ * pParentScnModelNodeTransformData->WorldTransform_;
 		}
@@ -796,15 +796,17 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
 		ScnModelMeshRuntime* pNodeMeshRuntime = &Model_->MeshRuntimes_[ PrimitiveIdx ];
-		ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		const ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 
 		// Special case the skinned models for now.
 		if( pNodeMeshData->IsSkinned_ == BcFalse )
 		{
-			ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
+			const ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
 			
-			pNodeMeshRuntime->AABB_ = pNodeMeshData->AABB_.transform( pNodeTransformData->WorldTransform_ );
-			FullAABB.expandBy( pNodeMeshRuntime->AABB_ );
+			MaAABB AABB = pNodeMeshData->AABB_.transform( pNodeTransformData->WorldTransform_ );
+			FullAABB.expandBy( AABB );
+			PerComponentMeshData.AABB_ = AABB;
 		}
 		else
 		{
@@ -815,27 +817,30 @@ void ScnModelComponent::updateNodes( MaMat4d RootMatrix )
 				if( BoneIndex != BcErrorCode )
 				{
 					// Get the distance from the parent bone, and make an AABB that size.
-					ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ BoneIndex ];
-					if( pNodePropertyData->ParentIndex_ != BcErrorCode && pNodePropertyData->IsBone_ )
+					const ScnModelNodePropertyData* pNodePropertyData = &Model_->pNodePropertyData_[ BoneIndex ];
+					if( pNodePropertyData->ParentIndex_ != BcErrorCode )
 					{
-						ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ BoneIndex ];
-						ScnModelNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
-						MaAABB NewAABB( pNodeTransformData->WorldTransform_.translation(), pParentNodeTransformData->WorldTransform_.translation() );
-
-						//
+						const ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ BoneIndex ];
+						const ScnModelNodeTransformData* pParentNodeTransformData = &pNodeTransformData_[ pNodePropertyData->ParentIndex_ ];
+						MaAABB NewAABB;
+						NewAABB.expandBy( pNodeTransformData->WorldTransform_.translation() );
+						NewAABB.expandBy( pParentNodeTransformData->WorldTransform_.translation() );
 						SkeletalAABB.expandBy( NewAABB );
 					}
 				}
 			}
 
-			// HACK: Expand AABB slightly to cover skin. Should calculate bone sizes and pack them really.
-			MaVec3d Centre = SkeletalAABB.centre();
-			MaVec3d Dimensions = SkeletalAABB.dimensions() * 0.75f;	// 1.5 x size.
-			SkeletalAABB.min( Centre - Dimensions );
-			SkeletalAABB.max( Centre + Dimensions );
+			if( !SkeletalAABB.isEmpty() )
+			{
+				// HACK: Expand AABB slightly to cover skin. Should calculate bone sizes and pack them really.
+				MaVec3d Centre = SkeletalAABB.centre();
+				MaVec3d Dimensions = SkeletalAABB.dimensions() * 0.75f;	// 1.5 x size.
+				SkeletalAABB.min( Centre - Dimensions );
+				SkeletalAABB.max( Centre + Dimensions );
 
-			//
-			FullAABB.expandBy( SkeletalAABB );
+				FullAABB.expandBy( SkeletalAABB );
+				PerComponentMeshData.AABB_ = SkeletalAABB;
+			}
 		}
 	}
 
@@ -1108,7 +1113,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 			TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 			if( PerComponentMeshData.LightingUniformBuffer_ )
 			{
-				ScnLightingVisitor LightingVisitor( pMeshRuntime->AABB_ );
+				ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
 				RsCore::pImpl()->updateBuffer( 
 					PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
 					RsResourceUpdateFlags::ASYNC,

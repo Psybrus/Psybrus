@@ -23,6 +23,68 @@
 #include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Processor
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnRenderableProcessor::ScnRenderableProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnRenderableProcessor::~ScnRenderableProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnRenderableProcessor::initialise()
+{
+	ScnViewProcessor::pImpl()->registerRenderInterface( ScnRenderableComponent::StaticGetClass(), this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shutdown
+void ScnRenderableProcessor::shutdown()
+{
+	ScnViewProcessor::pImpl()->deregisterRenderInterface( ScnRenderableComponent::StaticGetClass(), this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+class ScnViewRenderData* ScnRenderableProcessor::createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View )
+{
+	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+	return static_cast< ScnRenderableComponent* >( Component )->createViewRenderData( View );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyViewRenderData
+void ScnRenderableProcessor::destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData )
+{
+	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+	static_cast< ScnRenderableComponent* >( Component )->destroyViewRenderData( ViewRenderData );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// render
+void ScnRenderableProcessor::render( class ScnComponent* Component, class ScnRenderContext & RenderContext )
+{
+	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+	static_cast< ScnRenderableComponent* >( Component )->render( RenderContext );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+MaAABB ScnRenderableProcessor::getAABB( class ScnComponent* Component )
+{
+	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+	return static_cast< ScnRenderableComponent* >( Component )->getAABB();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnRenderableComponent );
 
@@ -37,7 +99,7 @@ void ScnRenderableComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor() );
+		.addAttribute( new ScnRenderableProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -104,7 +166,7 @@ class ScnViewRenderData* ScnRenderableComponent::getViewRenderData( class ScnVie
 		auto SortPassType = getSortPassType( ViewComponent );
 		if( SortPassType != RsRenderSortPassType::INVALID )
 		{
-			ViewRenderData = createViewRenderData( ViewComponent );
+			ViewRenderData = ScnRenderableProcessor::pImpl()->createViewRenderData( this, ViewComponent );
 			if( ViewRenderData )
 			{
 				ViewRenderData->setSortPassType( SortPassType );
@@ -124,7 +186,7 @@ void ScnRenderableComponent::resetViewRenderData( ScnViewComponent* ViewComponen
 	{
 		if( ViewComponent == nullptr || ViewRenderDataIt->first == ViewComponent )
 		{
-			destroyViewRenderData( ViewRenderDataIt->second );
+			ScnRenderableProcessor::pImpl()->destroyViewRenderData( this, ViewRenderDataIt->second );
 			ViewRenderDataIt = ViewRenderData_.erase( ViewRenderDataIt );
 		}
 		else
@@ -140,6 +202,14 @@ void ScnRenderableComponent::resetViewRenderData( ScnViewComponent* ViewComponen
 void ScnRenderableComponent::render( ScnRenderContext & RenderContext )
 {
 	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+//virtual
+MaAABB ScnRenderableComponent::getAABB() const
+{
+	return MaAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////

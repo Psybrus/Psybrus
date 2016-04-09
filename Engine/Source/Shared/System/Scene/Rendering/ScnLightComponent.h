@@ -16,7 +16,7 @@
 
 #include "System/Renderer/RsCore.h"
 #include "System/Scene/ScnTypes.h"
-#include "System/Scene/ScnSpatialComponent.h"
+#include "System/Scene/ScnComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnLightType
@@ -31,11 +31,10 @@ enum ScnLightType
 //////////////////////////////////////////////////////////////////////////
 // ScnLightComponent
 class ScnLightComponent:
-	public ScnSpatialComponent
+	public ScnComponent
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnLightComponent, ScnSpatialComponent );
-	DECLARE_VISITABLE( ScnLightComponent );
+	REFLECTION_DECLARE_DERIVED( ScnLightComponent, ScnComponent );
 
 public:
 	ScnLightComponent();
@@ -73,11 +72,6 @@ public:
 	 *	Set light uniform block data.
 	 */
 	void setLightUniformBlockData( BcU32 LightIndex, struct ScnShaderLightUniformBlockData& OutLightData );
-
-	/**
-	 *	Get light AABB.
-	 */
-	MaAABB getAABB() const override;
 
 private:
 	ScnLightType Type_;

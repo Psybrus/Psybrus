@@ -16,9 +16,11 @@
 
 #include "System/Renderer/RsCore.h"
 #include "System/Renderer/RsRenderNode.h"
+#include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnCoreCallback.h"
-#include "System/Scene/ScnSpatialComponent.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
+#include "System/Scene/Rendering/ScnViewRenderInterface.h"
 
 #include <unordered_map>
 
@@ -44,14 +46,38 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnRenderableProcessor
+class ScnRenderableProcessor : 
+	public BcGlobal< ScnRenderableProcessor >,
+	public ScnComponentProcessor,
+	public ScnViewRenderInterface
+{
+public:
+	ScnRenderableProcessor();
+	virtual ~ScnRenderableProcessor();
+
+	/// ScnComponentProcessor
+	void initialise() override;
+	void shutdown() override;
+
+	/// ScnViewRenderInterface
+	class ScnViewRenderData* createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View ) override;
+	void destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData ) override;
+	void render( class ScnComponent* Component, class ScnRenderContext & RenderContext ) override;
+	MaAABB getAABB( class ScnComponent* Component ) override;
+
+private:
+};
+
+
+//////////////////////////////////////////////////////////////////////////
 // ScnRenderableComponent
 class ScnRenderableComponent:
-	public ScnSpatialComponent,
+	public ScnComponent,
 	public ScnCoreCallback
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnRenderableComponent, ScnSpatialComponent );
-	DECLARE_VISITABLE( ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnRenderableComponent, ScnComponent );
 
 public:
 	ScnRenderableComponent();
@@ -68,20 +94,6 @@ public:
 	void onDetachComponent( class ScnComponent* Component ) override;
 
 	/**
-	 * Create view render data.
-	 * Should return a new @a ScnViewRenderData or derived type if rendering if required. nullptr if not.
-	 * If overridden, no need to call this function from the override.
-	 */
-	virtual class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View );
-
-	/**
-	 * Destroy view render data.
-	 * Will delete @a ViewRenderData by default. Optional to overload.
-	 * If overridden, no need to call this function from the override.
-	 */
-	virtual void destroyViewRenderData( ScnViewRenderData* ViewRenderData );
-
-	/**
 	 * Get view render data.
 	 * Will call @a createViewRenderData if it needs to.
 	 */
@@ -95,6 +107,8 @@ public:
 	void resetViewRenderData( ScnViewComponent* ViewComponent );
 	
 	virtual void render( ScnRenderContext & RenderContext );
+	virtual MaAABB getAABB() const;
+
 	void setRenderMask( BcU32 RenderMask );
 	const BcU32 getRenderMask() const;
 
@@ -138,6 +152,23 @@ public:
 	 * Get sort pass flags.
 	 */
 	RsRenderSortPassFlags getPasses() const { return Passes_; }
+
+protected:
+	friend class ScnRenderableProcessor;
+
+	/**
+	 * Create view render data.
+	 * Should return a new @a ScnViewRenderData or derived type if rendering if required. nullptr if not.
+	 * If overridden, no need to call this function from the override.
+	 */
+	virtual class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View );
+
+	/**
+	 * Destroy view render data.
+	 * Will delete @a ViewRenderData by default. Optional to overload.
+	 * If overridden, no need to call this function from the override.
+	 */
+	virtual void destroyViewRenderData( ScnViewRenderData* ViewRenderData );
 
 private:
 	/// Used to specify what kind of object it is for selectively rendering with certain views.

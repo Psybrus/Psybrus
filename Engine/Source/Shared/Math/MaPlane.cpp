@@ -145,6 +145,11 @@ BcBool MaPlane::operator == (const MaPlane& Other ) const
 	return ( Other.normal() == normal() && Other.d() == d() );
 }
 
+BcBool MaPlane::operator != (const MaPlane& Other ) const
+{
+	return ( Other.normal() != normal() || Other.d() != d() );
+}
+
 MaPlane MaPlane::operator -() const
 {
 	return MaPlane( -Normal_, D_ );

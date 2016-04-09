@@ -19,7 +19,7 @@
 
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnVisitor.h"
-#include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/ScnViewVisibilityTree.h"
 
 #include <json/json.h>
 

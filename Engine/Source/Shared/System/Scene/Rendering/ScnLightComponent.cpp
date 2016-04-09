@@ -181,6 +181,7 @@ void ScnLightComponent::setLightUniformBlockData( BcU32 LightIndex, ScnShaderLig
 	OutLightData.LightAttn_[ LightIndex ] = MaVec4d( AttnC_, AttnL_, AttnQ_, 0.0f );
 }
 
+#if 0
 //////////////////////////////////////////////////////////////////////////
 // getAABB
 MaAABB ScnLightComponent::getAABB() const
@@ -190,3 +191,5 @@ MaAABB ScnLightComponent::getAABB() const
 	const MaVec3d MaxDistanceVec3( MaxDistance, MaxDistance, MaxDistance );
 	return MaAABB( -MaxDistanceVec3, MaxDistanceVec3 );
 }
+#endif
+

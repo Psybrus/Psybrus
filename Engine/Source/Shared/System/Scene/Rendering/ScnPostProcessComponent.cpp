@@ -14,8 +14,6 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 

@@ -128,7 +128,7 @@ public:
 	static BcU32 recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence );
 	static void updateModels( const ScnComponentList& Components );
 	void updateModel( BcF32 Tick, SysFence* Fence );
-	void updateNodes( MaMat4d RootMatrix );
+	void updateNodes( const MaMat4d& RootMatrix );
 	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
@@ -150,11 +150,11 @@ protected:
 	SysFence UploadFence_;
 
 	MaAABB AABB_;
-
 	struct TPerComponentMeshData
 	{
 		RsBufferUPtr ObjectUniformBuffer_;
 		RsBufferUPtr LightingUniformBuffer_;
+		MaAABB AABB_;
 	};
 	
 	typedef std::vector< TPerComponentMeshData > TPerComponentMeshDataList;	

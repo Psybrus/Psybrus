@@ -26,11 +26,9 @@
 #include "System/Scene/ScnCoreCallback.h"
 #include "System/Debug/DsCore.h"
 
-#include "System/Scene/ScnSpatialTree.h"
+#include "System/Scene/ScnViewVisibilityTree.h"
+#include "System/Scene/Rendering/ScnLightComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
-
-#include "System/Scene/ScnSpatialComponent.h"
-#include "System/Scene/Rendering/ScnRenderingVisitor.h"
 
 #include "Reflection/ReReflection.h"
 
@@ -48,7 +46,6 @@ SYS_CREATOR( ScnCore );
 // Ctor
 ScnCore::ScnCore()
 {
-	pSpatialTree_ = NULL;
 	UpdateEnabled_ = BcTrue;
 	StepSingleUpdate_ = BcFalse;
 	EntitySpawnID_ = 0;
@@ -66,13 +63,6 @@ ScnCore::~ScnCore()
 //virtual
 void ScnCore::open()
 {
-	// Create spacial tree.
-	pSpatialTree_ = new ScnSpatialTree();
-
-	// Create root node for spatial tree.
-	MaVec3d HalfBounds( MaVec3d( 16.0f, 16.0f, 16.0f ) * 1024.0f );
-	pSpatialTree_->createRoot( MaAABB( -HalfBounds, HalfBounds ) );
-
 	// Look up all component classes and create update lists for them.
 	std::vector< ReClass* > ComponentClasses;
 
@@ -323,10 +313,6 @@ void ScnCore::close()
 			Attr->shutdown();
 		}
 	}
-
-	// Destroy spacial tree.
-	delete pSpatialTree_;
-	pSpatialTree_ = nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -521,14 +507,36 @@ void ScnCore::queueComponentForDetach( ScnComponentRef Component )
 // visitView
 void ScnCore::visitView( ScnVisitor* pVisitor, const class ScnViewComponent* View )
 {
+#if 0
 	pSpatialTree_->visitView( pVisitor, View );
+#else
+	// HACK
+	auto Idx = ComponentClassIndexMap_[ ScnLightComponent::StaticGetClass() ];
+	auto& ComponentList = ComponentLists_[ Idx ];
+	for( auto& Component : ComponentList )
+	{
+		auto* LightComponent = static_cast< ScnLightComponent* >( Component.get() );
+		pVisitor->visit( LightComponent );
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // visitBounds
 void ScnCore::visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds )
 {
+#if 0
 	pSpatialTree_->visitBounds( pVisitor, Bounds );
+#else
+	// HACK
+	auto Idx = ComponentClassIndexMap_[ ScnLightComponent::StaticGetClass() ];
+	auto& ComponentList = ComponentLists_[ Idx ];
+	for( auto& Component : ComponentList )
+	{
+		auto* LightComponent = static_cast< ScnLightComponent* >( Component.get() );
+		pVisitor->visit( LightComponent );
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -545,11 +553,17 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 		{
 			Callback->onAttachComponent( Component );
 		} );
-	
-	// Add spatial components to the spatial tree. (TODO: Use flags or something)
-	if( Component->isTypeOf< ScnSpatialComponent >() )
+
+	// Call all processor onAttach.
+	const ReClass* Class = Component->getClass();
+	while( Class->hasBaseClass( ScnComponent::StaticGetClass() ) )
 	{
-		pSpatialTree_->addComponent( static_cast< ScnSpatialComponent* >( Component ) );
+		auto* Attr = Class->getAttribute< ScnComponentProcessor >();
+		if( Attr != nullptr )
+		{
+			Attr->onAttach( Component );
+		}
+		Class = Class->getSuper();
 	}
 
 	// All go into the appropriate list.
@@ -561,18 +575,23 @@ void ScnCore::onAttachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 // onDetachComponent
 void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Component )
 {
+	// Handle all callbacks.
 	std::for_each( Callbacks_.begin(), Callbacks_.end(),
 		[ Component ]( ScnCoreCallback* Callback )
 		{
 			Callback->onDetachComponent( Component );
 		} );
 
-	// TODO: Move this to be callback based. Perhaps have a base scene
-	//       component instead of doing too much work in ScnCore?
-	// Add spatial components to the spatial tree.
-	if( Component->isTypeOf< ScnSpatialComponent >() )
+	// Call all processor onDetach.
+	const ReClass* Class = Component->getClass();
+	while( Class->hasBaseClass( ScnComponent::StaticGetClass() ) )
 	{
-		pSpatialTree_->removeComponent( static_cast< ScnSpatialComponent* >( Component ) );
+		auto* Attr = Class->getAttribute< ScnComponentProcessor >();
+		if( Attr != nullptr )
+		{
+			Attr->onDetach( Component );
+		}
+		Class = Class->getSuper();
 	}
 
 	// Erase from component list.
