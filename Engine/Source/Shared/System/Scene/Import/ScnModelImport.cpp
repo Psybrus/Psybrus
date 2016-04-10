@@ -165,6 +165,7 @@ void ScnModelImport::StaticRegisterClass()
 	{
 		new ReField( "Source_", &ScnModelImport::Source_, bcRFF_IMPORTER ),
 		new ReField( "Materials_", &ScnModelImport::Materials_, bcRFF_IMPORTER ),
+		new ReField( "FlattenHierarchy_", &ScnModelImport::FlattenHierarchy_, bcRFF_IMPORTER ),
 		new ReField( "VertexFormat_", &ScnModelImport::VertexFormat_, bcRFF_IMPORTER ),
 		new ReField( "DefaultTextures_", &ScnModelImport::DefaultTextures_, bcRFF_IMPORTER ),
 	};
@@ -238,12 +239,18 @@ BcBool ScnModelImport::import()
 	aiAttachLogStream( &AssimpLogger );
 
 	// TODO: Intercept file io to track dependencies.
-	Scene_ = aiImportFileExWithProperties( 
-		Source_.c_str(), 
-		aiProcessPreset_TargetRealtime_MaxQuality | 
+	int Flags = aiProcessPreset_TargetRealtime_MaxQuality | 
 			aiProcess_SplitByBoneCount |
 			aiProcess_LimitBoneWeights |
-			aiProcess_ConvertToLeftHanded,
+			aiProcess_ConvertToLeftHanded;
+	if( FlattenHierarchy_ )
+	{
+		Flags |= aiProcess_OptimizeGraph;
+	}
+
+	Scene_ = aiImportFileExWithProperties( 
+		Source_.c_str(), 
+		Flags,
 		nullptr, 
 		PropertyStore );
 

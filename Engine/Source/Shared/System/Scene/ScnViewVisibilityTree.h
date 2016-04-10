@@ -9,7 +9,8 @@
 struct ScnViewVisibilityLeaf
 {
 	class ScnViewVisibilityTreeNode* Node_ = nullptr;
-	ScnComponent* Component_ = nullptr;
+	class ScnComponent* Component_ = nullptr;
+	class ScnViewRenderInterface* RenderInterface_ = nullptr;
 	MaAABB AABB_;
 };
 
@@ -29,7 +30,7 @@ public:
 	/**
 	 * Gather view.
 	 */
-	void gatherView( const class ScnViewComponent* View, ScnComponentList& OutComponents );
+	void gatherView( const class ScnViewComponent* View, std::vector< ScnViewVisibilityLeaf* >& OutLeaves );
 
 private:
 	std::vector< ScnViewVisibilityLeaf* > LeafList_;
@@ -47,7 +48,7 @@ public:
 	
 	void addLeaf( ScnViewVisibilityLeaf* Leaf );
 	void removeLeaf( ScnViewVisibilityLeaf* Leaf );
-	void gatherView( const class ScnViewComponent* View, ScnComponentList& OutComponents );
+	void gatherView( const class ScnViewComponent* View, std::vector< ScnViewVisibilityLeaf* >& OutComponents );
 	
 private:
 	virtual MaOctTreeNode* createNode( const MaAABB& AABB );

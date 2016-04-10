@@ -70,18 +70,26 @@ void ScnRenderableProcessor::destroyViewRenderData( class ScnComponent* Componen
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnRenderableProcessor::render( class ScnComponent* Component, class ScnRenderContext & RenderContext )
+void ScnRenderableProcessor::render( class ScnComponent** Components, BcU32 NoofComponents, class ScnRenderContext & RenderContext )
 {
-	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
-	static_cast< ScnRenderableComponent* >( Component )->render( RenderContext );
+	for( BcU32 Idx = 0; Idx< NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[Idx];
+		BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+		static_cast< ScnRenderableComponent* >( Component )->render( RenderContext );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getAABB
-MaAABB ScnRenderableProcessor::getAABB( class ScnComponent* Component )
+void ScnRenderableProcessor::getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents )
 {
-	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
-	return static_cast< ScnRenderableComponent* >( Component )->getAABB();
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[Idx];
+		BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+		OutAABBs[Idx] = static_cast< ScnRenderableComponent* >( Component )->getAABB();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

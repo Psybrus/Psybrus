@@ -26,10 +26,10 @@ public:
 	/**
 	 * Get AABB.
 	 */
-	virtual MaAABB getAABB( class ScnComponent* Component ) = 0;
+	virtual void getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents ) = 0;
 	
 	/**
 	 * Do render.
 	 */
-	virtual void render( class ScnComponent* Component, class ScnRenderContext & RenderContext ) = 0;
+	virtual void render( class ScnComponent** Components, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) = 0;
 };

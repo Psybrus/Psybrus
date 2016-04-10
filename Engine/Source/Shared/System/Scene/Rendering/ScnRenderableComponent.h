@@ -63,8 +63,8 @@ public:
 	/// ScnViewRenderInterface
 	class ScnViewRenderData* createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View ) override;
 	void destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData ) override;
-	void render( class ScnComponent* Component, class ScnRenderContext & RenderContext ) override;
-	MaAABB getAABB( class ScnComponent* Component ) override;
+	void render( class ScnComponent** Components, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) override;
+	void getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents ) override;
 
 private:
 };

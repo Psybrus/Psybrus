@@ -118,6 +118,7 @@ private:
 private:
 	std::string Source_;
 	std::vector< ScnModelMaterialDesc > Materials_;
+	BcBool FlattenHierarchy_ = BcFalse;
 
 	std::map< std::string, CsCrossRefId > AddedMaterials_;
 

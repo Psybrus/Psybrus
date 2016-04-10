@@ -71,7 +71,16 @@ private:
 	ScnViewRenderInterface* getRenderInterface( const ReClass* Class );
 
 	std::unique_ptr< class ScnViewVisibilityTree > SpatialTree_;
-	ScnComponentList GatheredComponents_;
+	std::vector< ScnViewVisibilityLeaf* > GatheredVisibleLeaves_;
+
+	struct ProcessingGroup
+	{
+		class ScnViewRenderInterface* RenderInterface_ = nullptr;
+		BcU32 BaseComponent_ = 0;
+		BcU32 NoofComponents_ = 0;
+	};
+
+	std::vector< ProcessingGroup > ProcessingGroups_;
 
 	std::unordered_map< const ReClass*, ScnViewRenderInterface* > RenderInterfaces_;
 	std::unordered_map< ScnComponent*, ScnViewVisibilityLeaf* > VisibilityLeaves_;

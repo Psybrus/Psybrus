@@ -96,11 +96,11 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 		{
 			auto* Leaf = It.second;
 			BcAssert( Leaf->Node_ );
-			auto AABB = getRenderInterface( Leaf->Component_->getClass() )->getAABB( Leaf->Component_ );
+			BcAssert( Leaf->Component_ );
+			MaAABB AABB;
+			Leaf->RenderInterface_->getAABB( &AABB, &Leaf->Component_, 1 );
 			if( Leaf->AABB_.min() != AABB.min() || Leaf->AABB_.max() != AABB.max() )
 			{
-				int a = 0; ++a;
-				Leaf->AABB_ = AABB;
 				Leaf->Node_->reinsertLeaf( Leaf );
 			}
 		}
@@ -161,33 +161,56 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 
 			if( DoGather )
 			{
-				PSY_PROFILER_SECTION( RootSort, "Gather all visible components." );
+				PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
 
-				GatheredComponents_.clear();
-				ScnComponentList BroadGather;
+				GatheredVisibleLeaves_.clear();
+				std::vector< ScnViewVisibilityLeaf* > BroadGather;
 				SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather );
 
 				// Trim down based on render mask.
-				for( auto Component : BroadGather )
+				for( auto Leaf : BroadGather )
 				{
-					auto* RenderableComponent = static_cast< ScnRenderableComponent* >( Component.get() );
+					auto* RenderableComponent = static_cast< ScnRenderableComponent* >( Leaf->Component_ );
 					if( RenderContext.pViewComponent_->getRenderMask() & RenderableComponent->getRenderMask() )
 					{
-						GatheredComponents_.push_back( RenderableComponent );
+						GatheredVisibleLeaves_.push_back( Leaf );
 					}
 				}
 			}
 
 			{
-				PSY_PROFILER_SECTION( RootSort, "Sort visible components by type" );
+				PSY_PROFILER_SECTION( RootSort, "Sort visible components by render interface" );
 
-				// Sort by type.
+				// Sort by render interface.
 				// TODO: Put into correct buckets by type.
-				std::sort( GatheredComponents_.begin(), GatheredComponents_.end(),
-					[]( const ScnComponent* A, const ScnComponent* B )
+				std::sort( GatheredVisibleLeaves_.begin(), GatheredVisibleLeaves_.end(),
+					[ this ]( const ScnViewVisibilityLeaf* A, const ScnViewVisibilityLeaf* B )
 					{
-						return A->getClass() < B->getClass();
+						return A->RenderInterface_ < B->RenderInterface_;
 					} );
+			}
+
+			{
+				PSY_PROFILER_SECTION( RootSort, "Build processing list." );
+
+				ProcessingGroups_.clear();
+				if( GatheredVisibleLeaves_.size() > 0 )
+				{
+					ProcessingGroup Group;
+					Group.RenderInterface_ = getRenderInterface( GatheredVisibleLeaves_[ 0 ]->Component_->getClass() );
+					for( BcU32 Idx = 0; Idx < GatheredVisibleLeaves_.size(); ++Idx )
+					{
+						auto* Leaf = GatheredVisibleLeaves_[ Idx ];
+						Group.NoofComponents_++;
+						if( Group.RenderInterface_ != Leaf->RenderInterface_ )
+						{
+							ProcessingGroups_.push_back( Group );
+							Group.RenderInterface_ = Leaf->RenderInterface_;
+							Group.BaseComponent_ = Idx;
+						}
+					}
+					ProcessingGroups_.push_back( Group );
+				}
 			}
 
 			{
@@ -199,10 +222,10 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 				PSY_PROFILER_SECTION( RootSort, "Render visible components" );
 
 				// Iterate over components.
-				for( auto BaseComponent : GatheredComponents_ )
+				for( auto Leaf : GatheredVisibleLeaves_ )
 				{
-					BcAssert( BaseComponent->isTypeOf< ScnRenderableComponent >() );
-					auto RenderableComponent = static_cast< ScnRenderableComponent* >( BaseComponent.get() );
+					BcAssert( Leaf->Component_->isTypeOf< ScnRenderableComponent >() );
+					auto RenderableComponent = static_cast< ScnRenderableComponent* >( Leaf->Component_ );
 					auto* ViewRenderData = RenderableComponent->getViewRenderData( RenderContext.pViewComponent_ );
 					if( ViewRenderData )
 					{
@@ -284,9 +307,10 @@ void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
 	if( auto RenderInterface = getRenderInterface( Component->getClass() ) )
 	{
 		auto Leaf = new ScnViewVisibilityLeaf();
-		Leaf->Component_ = Component;
 		Leaf->Node_ = nullptr;
-		Leaf->AABB_ = RenderInterface->getAABB( Component );
+		Leaf->Component_ = Component;
+		Leaf->RenderInterface_ = RenderInterface;
+		RenderInterface->getAABB( &Leaf->AABB_, &Component, 1 );
 		VisibilityLeaves_[ Component ] = Leaf;
 		SpatialTree_->addLeaf( Leaf );
 		BcAssert( Leaf->Node_ );

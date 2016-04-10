@@ -130,7 +130,7 @@ void ScnViewVisibilityTreeNode::removeLeaf( ScnViewVisibilityLeaf* Leaf )
 
 //////////////////////////////////////////////////////////////////////////
 // gatherView
-void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, ScnComponentList& OutComponents )
+void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, std::vector< ScnViewVisibilityLeaf* >& OutLeaves )
 {
 	PSY_PROFILE_FUNCTION;
 
@@ -140,7 +140,7 @@ void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, 
 		if( Leaf->AABB_.isEmpty() ||
 			getAABB().classify( Leaf->AABB_ ) != MaAABB::bcBC_OUTSIDE )
 		{
-			OutComponents.push_back( Leaf->Component_ );
+			OutLeaves.push_back( Leaf );
 		}
 	}
 
@@ -152,7 +152,7 @@ void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, 
 			ScnViewVisibilityTreeNode* ChildNode = static_cast< ScnViewVisibilityTreeNode* >( pChild( i ) );
 			if( View->intersect( ChildNode->getAABB() ) )
 			{
-				ChildNode->gatherView( View, OutComponents );
+				ChildNode->gatherView( View, OutLeaves );
 			}
 		}
 	}
@@ -207,9 +207,9 @@ void ScnViewVisibilityTree::removeLeaf( ScnViewVisibilityLeaf* Leaf )
 
 //////////////////////////////////////////////////////////////////////////
 // gatherView
-void ScnViewVisibilityTree::gatherView( const ScnViewComponent* View, ScnComponentList& OutComponents )
+void ScnViewVisibilityTree::gatherView( const ScnViewComponent* View, std::vector< ScnViewVisibilityLeaf* >& OutLeaves )
 {
 	ScnViewVisibilityTreeNode* pRoot = static_cast< ScnViewVisibilityTreeNode* >( pRootNode() );
 	
-	pRoot->gatherView( View, OutComponents );
+	pRoot->gatherView( View, OutLeaves );
 }

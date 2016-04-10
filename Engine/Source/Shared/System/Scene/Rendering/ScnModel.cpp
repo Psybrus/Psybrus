@@ -896,8 +896,10 @@ void ScnModelComponent::updateNodes( const MaMat4d& RootMatrix )
 					// Normal matrix.
 					ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
 					ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
+#if 0 // Normal when using non-uniform scaling are broken without this. Consider implementing it as optional?
 					ObjectUniformBlock->NormalTransform_.inverse();
 					ObjectUniformBlock->NormalTransform_.transpose();
+#endif
 
 					UploadFence_.decrement();
 				} );
