@@ -367,6 +367,7 @@ class ScnViewRenderData* ScnParticleSystemComponent::createViewRenderData( class
 	ViewRenderData->ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 	ViewRenderData->RenderState_ = Material_->getRenderState();
 
+	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 

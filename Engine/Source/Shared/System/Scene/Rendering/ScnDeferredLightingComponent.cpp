@@ -140,6 +140,7 @@ class ScnViewRenderData* ScnDeferredLightingComponent::createViewRenderData( cla
 		ViewRenderData->ProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 	}
 
+	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 

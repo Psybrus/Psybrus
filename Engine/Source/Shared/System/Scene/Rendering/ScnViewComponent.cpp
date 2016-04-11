@@ -194,22 +194,38 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 				PSY_PROFILER_SECTION( RootSort, "Build processing list." );
 
 				ProcessingGroups_.clear();
+				ViewComponentRenderDatas_.clear();
 				if( GatheredVisibleLeaves_.size() > 0 )
 				{
 					ProcessingGroup Group;
-					Group.RenderInterface_ = getRenderInterface( GatheredVisibleLeaves_[ 0 ]->Component_->getClass() );
+					Group.RenderInterface_ = GatheredVisibleLeaves_[ 0 ]->RenderInterface_;
 					for( BcU32 Idx = 0; Idx < GatheredVisibleLeaves_.size(); ++Idx )
 					{
+						ScnViewComponentRenderData ComponentRenderData;
 						auto* Leaf = GatheredVisibleLeaves_[ Idx ];
-						Group.NoofComponents_++;
-						if( Group.RenderInterface_ != Leaf->RenderInterface_ )
+						ComponentRenderData.Component_ = Leaf->Component_;
+
+						// Find view render data.
+						auto It = ViewData->ViewRenderData_.find( Leaf->Component_ );
+						if( It != ViewData->ViewRenderData_.end() )
 						{
-							ProcessingGroups_.push_back( Group );
-							Group.RenderInterface_ = Leaf->RenderInterface_;
-							Group.BaseComponent_ = Idx;
+							ComponentRenderData.ViewRenderData_ = It->second;
+							Group.Noof_++;
+							if( Group.RenderInterface_ != Leaf->RenderInterface_ )
+							{
+								ProcessingGroups_.push_back( Group );
+								Group.RenderInterface_ = Leaf->RenderInterface_;
+								Group.Base_ = Idx;
+							}
+
+							ViewComponentRenderDatas_.push_back( ComponentRenderData );
 						}
 					}
-					ProcessingGroups_.push_back( Group );
+
+					if( Group.Noof_ > 0 )
+					{
+						ProcessingGroups_.push_back( Group );
+					}
 				}
 			}
 
@@ -222,17 +238,9 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 				PSY_PROFILER_SECTION( RootSort, "Render visible components" );
 
 				// Iterate over components.
-				for( auto Leaf : GatheredVisibleLeaves_ )
+				for( auto Group : ProcessingGroups_ )
 				{
-					BcAssert( Leaf->Component_->isTypeOf< ScnRenderableComponent >() );
-					auto RenderableComponent = static_cast< ScnRenderableComponent* >( Leaf->Component_ );
-					auto* ViewRenderData = RenderableComponent->getViewRenderData( RenderContext.pViewComponent_ );
-					if( ViewRenderData )
-					{
-						RenderContext.ViewRenderData_ = ViewRenderData;
-						RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
-						RenderableComponent->render( RenderContext );
-					}
+					Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
 				}
 			}
 
@@ -276,6 +284,7 @@ void ScnViewProcessor::onAttach( ScnComponent* Component )
 	// Setup view data.
 	std::unique_ptr< ViewData > ViewData( new ViewData );
 	ViewData->View_ = static_cast< ScnViewComponent* >( Component );
+#if 0
 	ViewData->ClassData_.reserve( RenderInterfaces_.size() );
 	for( auto It : RenderInterfaces_ )
 	{
@@ -283,6 +292,22 @@ void ScnViewProcessor::onAttach( ScnComponent* Component )
 		ClassData.Class_ = It.first;
 		ViewData->ClassData_.emplace_back( std::move( ClassData ) );
 	}
+#endif
+
+	// Create view render data for all components.
+	for( auto& It : VisibilityLeaves_ )
+	{
+		auto ViewRenderData = It.second->RenderInterface_->createViewRenderData( It.second->Component_, ViewData->View_ );
+		if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+		{
+			ViewData->ViewRenderData_[ It.second->Component_ ] = ViewRenderData;
+		}
+		else
+		{
+			It.second->RenderInterface_->destroyViewRenderData( It.second->Component_, ViewRenderData );
+		}
+	}
+
 	ViewData_.emplace_back( std::move( ViewData ) );
 }
 
@@ -297,6 +322,14 @@ void ScnViewProcessor::onDetach( ScnComponent* Component )
 			return ViewData->View_ == Component;
 		} );
 	BcAssert( It != ViewData_.end() );
+
+	// Destroy view render data for all components.
+	for( auto& VisibilityLeaf : VisibilityLeaves_ )
+	{
+		auto* ViewRenderData = (*It)->ViewRenderData_[ VisibilityLeaf.second->Component_ ];
+		VisibilityLeaf.second->RenderInterface_->destroyViewRenderData( VisibilityLeaf.second->Component_, ViewRenderData );
+	}
+
 	ViewData_.erase( It );
 }
 
@@ -314,6 +347,20 @@ void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
 		VisibilityLeaves_[ Component ] = Leaf;
 		SpatialTree_->addLeaf( Leaf );
 		BcAssert( Leaf->Node_ );
+
+		// Create view render data for each view.
+		for( auto& ViewData : ViewData_ )
+		{
+			auto ViewRenderData = RenderInterface->createViewRenderData( Component, ViewData->View_ );
+			if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+			{
+				ViewData->ViewRenderData_[ Component ] = ViewRenderData;
+			}
+			else
+			{
+				RenderInterface->destroyViewRenderData( Component, ViewRenderData );
+			}
+		}
 	}
 }
 
@@ -326,6 +373,17 @@ void ScnViewProcessor::onDetachComponent( ScnComponent* Component )
 		auto It = VisibilityLeaves_.find( Component );
 		SpatialTree_->removeLeaf( It->second );
 		VisibilityLeaves_.erase( It );
+
+		// Setup view render data for each view.
+		for( auto& ViewData : ViewData_ )
+		{
+			auto ViewRenderDataIt = ViewData->ViewRenderData_.find( Component );
+			if( ViewRenderDataIt != ViewData->ViewRenderData_.end() )
+			{
+				RenderInterface->destroyViewRenderData( Component, ViewRenderDataIt->second );
+				ViewData->ViewRenderData_.erase( ViewRenderDataIt );
+			}
+		}
 	}
 }
 

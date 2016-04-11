@@ -63,7 +63,7 @@ public:
 	/// ScnViewRenderInterface
 	class ScnViewRenderData* createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View ) override;
 	void destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData ) override;
-	void render( class ScnComponent** Components, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) override;
+	void render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) override;
 	void getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents ) override;
 
 private:
@@ -73,8 +73,7 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // ScnRenderableComponent
 class ScnRenderableComponent:
-	public ScnComponent,
-	public ScnCoreCallback
+	public ScnComponent
 {
 public:
 	REFLECTION_DECLARE_DERIVED( ScnRenderableComponent, ScnComponent );
@@ -82,22 +81,6 @@ public:
 public:
 	ScnRenderableComponent();
 	virtual ~ScnRenderableComponent();
-
-	/**
-	 * Called when component is attached to the scene.
-	 */
-	void onAttachComponent( class ScnComponent* Component ) override;
-
-	/**
-	 * Called when component is detached from the scene.
-	 */
-	void onDetachComponent( class ScnComponent* Component ) override;
-
-	/**
-	 * Get view render data.
-	 * Will call @a createViewRenderData if it needs to.
-	 */
-	class ScnViewRenderData* getViewRenderData( class ScnViewComponent* ViewComponent );
 
 	/**
 	 * Reset all view render data associated with this renderable.
@@ -179,9 +162,6 @@ private:
 	ScnShaderPermutationFlags RenderPermutations_;
 	/// Sort pass flags that this renderable supports.
 	RsRenderSortPassFlags Passes_;
-
-	// TODO: Look at a smarter way to store + look up ScnViewRenderData structures.
-	std::unordered_map< class ScnViewComponent*, class ScnViewRenderData* > ViewRenderData_; /// View render data.
 };
 
 #endif

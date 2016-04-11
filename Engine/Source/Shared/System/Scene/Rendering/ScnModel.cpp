@@ -999,6 +999,8 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
 		}
 	}
+
+	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 

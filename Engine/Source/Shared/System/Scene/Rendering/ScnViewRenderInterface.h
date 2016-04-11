@@ -1,6 +1,14 @@
 #pragma once
 
 //////////////////////////////////////////////////////////////////////////
+// ScnViewComponentRenderData
+struct ScnViewComponentRenderData
+{
+	class ScnComponent* Component_ = nullptr;
+	class ScnViewRenderData* ViewRenderData_ = nullptr;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnViewRenderInterface
 class ScnViewRenderInterface
 {
@@ -31,5 +39,5 @@ public:
 	/**
 	 * Do render.
 	 */
-	virtual void render( class ScnComponent** Components, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) = 0;
+	virtual void render( const ScnViewComponentRenderData* ComponentRenderData, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) = 0;
 };

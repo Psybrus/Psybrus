@@ -72,12 +72,12 @@ private:
 
 	std::unique_ptr< class ScnViewVisibilityTree > SpatialTree_;
 	std::vector< ScnViewVisibilityLeaf* > GatheredVisibleLeaves_;
-
+	std::vector< ScnViewComponentRenderData > ViewComponentRenderDatas_;
 	struct ProcessingGroup
 	{
 		class ScnViewRenderInterface* RenderInterface_ = nullptr;
-		BcU32 BaseComponent_ = 0;
-		BcU32 NoofComponents_ = 0;
+		BcU32 Base_ = 0;
+		BcU32 Noof_ = 0;
 	};
 
 	std::vector< ProcessingGroup > ProcessingGroups_;
@@ -89,7 +89,9 @@ private:
 	{
 		/// View.
 		class ScnViewComponent* View_ = nullptr;
+		std::unordered_map< ScnComponent*, ScnViewRenderData* > ViewRenderData_;
 
+#if 0
 		/// Data to be stored per component.
 		struct ComponentData
 		{
@@ -106,9 +108,11 @@ private:
 		};
 
 		std::vector< ClassData > ClassData_;
+#endif
 	};
 
 	std::vector< std::unique_ptr< ViewData > > ViewData_;
+	std::vector< ScnComponent* > RenderableComponents_;
 };
 
 //////////////////////////////////////////////////////////////////////////
