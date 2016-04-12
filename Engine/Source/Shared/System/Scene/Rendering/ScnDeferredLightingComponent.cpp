@@ -357,5 +357,6 @@ void ScnDeferredLightingComponent::recreateResources()
 	DepthStencilState.DepthWriteEnable_ = false;
 	RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 
-	resetViewRenderData( nullptr );
+	// Reset view render data.
+	ScnViewProcessor::pImpl()->resetViewRenderData( this );
 }

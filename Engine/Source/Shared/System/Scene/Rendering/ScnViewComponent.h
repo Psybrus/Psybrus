@@ -73,6 +73,9 @@ private:
 	std::unique_ptr< class ScnViewVisibilityTree > SpatialTree_;
 	std::vector< ScnViewVisibilityLeaf* > GatheredVisibleLeaves_;
 	std::vector< ScnViewComponentRenderData > ViewComponentRenderDatas_;
+
+	std::set< ScnComponent* > PendingViewDataReset_;
+
 	struct ProcessingGroup
 	{
 		class ScnViewRenderInterface* RenderInterface_ = nullptr;

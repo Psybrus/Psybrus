@@ -156,13 +156,6 @@ void ScnRenderableComponent::destroyViewRenderData( ScnViewRenderData* ViewRende
 }
 
 //////////////////////////////////////////////////////////////////////////
-// resetViewRenderData
-void ScnRenderableComponent::resetViewRenderData( ScnViewComponent* ViewComponent )
-{
-	ScnViewProcessor::pImpl()->resetViewRenderData( this );
-}
-
-//////////////////////////////////////////////////////////////////////////
 // render
 //virtual
 void ScnRenderableComponent::render( ScnRenderContext & RenderContext )
@@ -197,14 +190,6 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 //virtual
 void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	// HACK: Subscribe for resize event to reset bindings incase anything needs to be rebound.
-	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
-		{
-			resetViewRenderData( nullptr );
-			return evtRET_PASS;
-		} );
-
 	Super::onAttach( Parent );
 }
 
@@ -213,11 +198,6 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	OsCore::pImpl()->unsubscribeAll( this );
-
-	// Reset all view render data.
-	resetViewRenderData( nullptr );
-
 	Super::onDetach( Parent );
 }
 

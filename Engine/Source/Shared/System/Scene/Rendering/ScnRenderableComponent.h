@@ -81,13 +81,6 @@ public:
 public:
 	ScnRenderableComponent();
 	virtual ~ScnRenderableComponent();
-
-	/**
-	 * Reset all view render data associated with this renderable.
-	 * Called if it needs to be recreated due to, for example, a material change.
-	 * @param ViewComponent Reset all render data for this view only. nullptr for any view.
-	 */
-	void resetViewRenderData( ScnViewComponent* ViewComponent );
 	
 	virtual void render( ScnRenderContext & RenderContext );
 	virtual MaAABB getAABB() const;

@@ -552,7 +552,7 @@ void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* Un
 		FoundIt = Uniforms_.end() - 1;
 
 		// May need to rebind, so reset view data.
-		ScnRenderableComponent::resetViewRenderData( nullptr );
+		ScnViewProcessor::pImpl()->resetViewRenderData( this );
 	}
 
 	// Copy into intermedate.
