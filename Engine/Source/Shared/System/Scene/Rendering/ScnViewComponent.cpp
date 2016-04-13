@@ -92,13 +92,13 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 	if( PendingViewDataReset_.size() > 0 )
 	{
 		PSY_PROFILER_SECTION( RootSort, "Pending view data resets." );
-		for( auto Component : PendingViewDataReset_ )
+		auto PendingViewDataReset = std::move( PendingViewDataReset_ );
+		for( auto Component : PendingViewDataReset )
 		{
 			// Perform detach/attach to recreate the view data.
 			onDetachComponent( Component );
 			onAttachComponent( Component );	
 		}
-		PendingViewDataReset_.clear();
 	}
 
 	{
@@ -363,30 +363,33 @@ void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
 {
 	if( auto RenderInterface = getRenderInterface( Component->getClass() ) )
 	{
-		auto It = VisibilityLeaves_.find( Component );
-		BcAssert( It == VisibilityLeaves_.end() );
+		auto It = PendingViewDataReset_.find( Component );
+		if( It != PendingViewDataReset_.end() )
 		{
-			auto Leaf = new ScnViewVisibilityLeaf();
-			Leaf->Node_ = nullptr;
-			Leaf->Component_ = Component;
-			Leaf->RenderInterface_ = RenderInterface;
-			RenderInterface->getAABB( &Leaf->AABB_, &Component, 1 );
-			VisibilityLeaves_[ Component ] = Leaf;
-			SpatialTree_->addLeaf( Leaf );
-			BcAssert( Leaf->Node_ );
+			PendingViewDataReset_.erase( It );
+		}
 
-			// Create view render data for each view.
-			for( auto& ViewData : ViewData_ )
+		BcAssert( VisibilityLeaves_.find( Component ) == VisibilityLeaves_.end() );
+		auto Leaf = new ScnViewVisibilityLeaf();
+		Leaf->Node_ = nullptr;
+		Leaf->Component_ = Component;
+		Leaf->RenderInterface_ = RenderInterface;
+		RenderInterface->getAABB( &Leaf->AABB_, &Component, 1 );
+		VisibilityLeaves_[ Component ] = Leaf;
+		SpatialTree_->addLeaf( Leaf );
+		BcAssert( Leaf->Node_ );
+
+		// Create view render data for each view.
+		for( auto& ViewData : ViewData_ )
+		{
+			auto ViewRenderData = RenderInterface->createViewRenderData( Component, ViewData->View_ );
+			if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
 			{
-				auto ViewRenderData = RenderInterface->createViewRenderData( Component, ViewData->View_ );
-				if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
-				{
-					ViewData->ViewRenderData_[ Component ] = ViewRenderData;
-				}
-				else
-				{
-					RenderInterface->destroyViewRenderData( Component, ViewRenderData );
-				}
+				ViewData->ViewRenderData_[ Component ] = ViewRenderData;
+			}
+			else
+			{
+				RenderInterface->destroyViewRenderData( Component, ViewRenderData );
 			}
 		}
 	}
@@ -398,21 +401,25 @@ void ScnViewProcessor::onDetachComponent( ScnComponent* Component )
 {
 	if( auto RenderInterface = getRenderInterface( Component->getClass() ) )
 	{
-		auto It = VisibilityLeaves_.find( Component );
-		BcAssert( It != VisibilityLeaves_.end() );
+		auto It = PendingViewDataReset_.find( Component );
+		if( It != PendingViewDataReset_.end() )
 		{
-			SpatialTree_->removeLeaf( It->second );
-			VisibilityLeaves_.erase( It );
+			PendingViewDataReset_.erase( It );
+		}
 
-			// Setup view render data for each view.
-			for( auto& ViewData : ViewData_ )
+		auto LeafIt = VisibilityLeaves_.find( Component );
+		BcAssert( LeafIt != VisibilityLeaves_.end() );
+		SpatialTree_->removeLeaf( LeafIt->second );
+		VisibilityLeaves_.erase( LeafIt );
+
+		// Setup view render data for each view.
+		for( auto& ViewData : ViewData_ )
+		{
+			auto ViewRenderDataIt = ViewData->ViewRenderData_.find( Component );
+			if( ViewRenderDataIt != ViewData->ViewRenderData_.end() )
 			{
-				auto ViewRenderDataIt = ViewData->ViewRenderData_.find( Component );
-				if( ViewRenderDataIt != ViewData->ViewRenderData_.end() )
-				{
-					RenderInterface->destroyViewRenderData( Component, ViewRenderDataIt->second );
-					ViewData->ViewRenderData_.erase( ViewRenderDataIt );
-				}
+				RenderInterface->destroyViewRenderData( Component, ViewRenderDataIt->second );
+				ViewData->ViewRenderData_.erase( ViewRenderDataIt );
 			}
 		}
 	}
