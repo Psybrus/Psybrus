@@ -93,25 +93,6 @@ private:
 		/// View.
 		class ScnViewComponent* View_ = nullptr;
 		std::unordered_map< ScnComponent*, ScnViewRenderData* > ViewRenderData_;
-
-#if 0
-		/// Data to be stored per component.
-		struct ComponentData
-		{
-			class ScnComponent* Component_;
-			class ScnViewRenderData* ViewRenderData_;
-			MaAABB CullingAABB_;
-		};
-
-		/// Data to be stored per class.
-		struct ClassData
-		{
-			const ReClass* Class_;
-			std::vector< ComponentData > ComponentData_;
-		};
-
-		std::vector< ClassData > ClassData_;
-#endif
 	};
 
 	std::vector< std::unique_ptr< ViewData > > ViewData_;
