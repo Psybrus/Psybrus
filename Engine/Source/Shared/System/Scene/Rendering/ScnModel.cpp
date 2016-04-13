@@ -60,6 +60,216 @@ ScnModelUniforms::ScnModelUniforms():
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Processor
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnModelProcessor::ScnModelProcessor():
+	ScnComponentProcessor( {
+		ScnComponentProcessFuncEntry(
+			"Model Update",
+			ScnComponentPriority::MODEL_UPDATE,
+			std::bind( &ScnModelProcessor::updateModels, this, std::placeholders::_1 ) ) } )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnModelProcessor::~ScnModelProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnModelProcessor::initialise()
+{
+	ScnViewProcessor::pImpl()->registerRenderInterface( ScnModelComponent::StaticGetClass(), this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shutdown
+void ScnModelProcessor::shutdown()
+{
+	ScnViewProcessor::pImpl()->deregisterRenderInterface( ScnModelComponent::StaticGetClass(), this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View )
+{
+	BcAssert( Component->isTypeOf< ScnModelComponent >() );
+	return static_cast< ScnModelComponent* >( Component )->createViewRenderData( View );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyViewRenderData
+void ScnModelProcessor::destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData )
+{
+	BcAssert( Component->isTypeOf< ScnModelComponent >() );
+	delete ViewRenderData;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// render
+void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext & RenderContext )
+{
+	for( BcU32 Idx = 0; Idx< NoofComponents; ++Idx )
+	{
+		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas[ Idx ] );
+		ScnComponent* Component = ComponentRenderData.Component_;
+		BcAssert( Component->isTypeOf< ScnModelComponent >() );
+		auto RenderableComponent = static_cast< ScnModelComponent* >( Component );
+		auto* ViewRenderData = ComponentRenderData.ViewRenderData_;
+		if( ViewRenderData )
+		{
+			RenderContext.ViewRenderData_ = ViewRenderData;
+			RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
+			RenderableComponent->render( RenderContext );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+void ScnModelProcessor::getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents )
+{
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[ Idx ];
+		BcAssert( Component->isTypeOf< ScnModelComponent >() );
+		OutAABBs[ Idx ] = static_cast< ScnModelComponent* >( Component )->getAABB();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderMask
+void ScnModelProcessor::getRenderMask( BcU32* OutRenderMasks, class ScnComponent** Components, BcU32 NoofComponents )
+{
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[ Idx ];
+		BcAssert( Component->isTypeOf< ScnModelComponent >() );
+		OutRenderMasks[ Idx ] = static_cast< ScnModelComponent* >( Component )->RenderMask_;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// recursiveModelUpdate
+BcU32 ScnModelProcessor::recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence )
+{
+	// Calculate number of nodes.
+	BcU32 NoofNodes = 0;
+	for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
+	{
+		auto Component = Components[ Idx ];
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+		NoofNodes += ModelComponent->Model_->pHeader_->NoofNodes_;
+	}
+
+	// Check if we're updating a single component, hit node limit, or have no node limit.
+	const BcU32 NoofComponents = ( EndIdx - StartIdx );
+	if( NoofComponents == 1 || NoofNodes <= MaxNodesPerJob || MaxNodesPerJob == 0 )
+	{
+		for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
+		{
+			auto Component = Components[ Idx ];
+			auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+			
+			MaMat4d Matrix = ModelComponent->BaseTransform_ * ModelComponent->getParentEntity()->getWorldMatrix();
+			ModelComponent->updateNodes( Matrix );
+		}
+
+		Fence->decrement( NoofComponents );
+	}
+	else
+	{
+		using namespace std::placeholders;
+
+		BcU32 MidIdx = ( StartIdx + EndIdx ) / 2;
+
+		if( MidIdx > StartIdx )
+		{
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				[ this, &Components, StartIdx, MidIdx, MaxNodesPerJob, Fence ]()
+				{
+					recursiveModelUpdate( Components, StartIdx, MidIdx, MaxNodesPerJob, Fence );
+				} );
+		}
+
+		if( EndIdx > MidIdx )
+		{
+			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
+				[ this, &Components, MidIdx, EndIdx, MaxNodesPerJob, Fence ]()
+				{
+					recursiveModelUpdate( Components, MidIdx, EndIdx, MaxNodesPerJob, Fence );
+				} );
+		}
+	}
+
+	return NoofNodes;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// updateModels
+void ScnModelProcessor::updateModels( const ScnComponentList& Components )
+{
+	PSY_PROFILE_FUNCTION;
+
+	static bool UseJobs = true;
+
+	PSY_PROFILER_INSTANT_EVENT( "Updating models", nullptr );
+
+	BcTimer Timer;
+	Timer.mark();
+
+	auto Tick = SysKernel::pImpl()->getFrameTime();
+	SysFence Fence;
+
+	// Wait for all uploads to complete.
+	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
+	{
+		auto Component = Components[ Idx ];
+		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+					
+		ModelComponent->UploadFence_.wait();
+	}
+	
+	// Recursive model update func.
+	static BcU32 MaxNodesPerJob = 64;
+	Fence.increment( Components.size() );
+	BcU32 NoofNodes = recursiveModelUpdate( Components, 0, Components.size(), UseJobs ? MaxNodesPerJob : 0, &Fence );
+	Fence.wait();
+
+#if !PSY_PRODUCTION
+	if ( ImGui::Begin( "Engine Debug" ) )
+	{
+		if( ImGui::TreeNode( "ScnModelComponent" ) )
+		{
+			const BcF32 UpdateTime = Timer.time() * 1000.0f;
+			ImGui::Checkbox( "Enable jobs", &UseJobs );
+			ImGui::Text( "Time: %f ms", UpdateTime );
+			ImGui::Text( "Components: %u", Components.size() );
+			ImGui::Text( "Nodes: %u", NoofNodes );
+
+			static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+			static int GraphPointIdx = 0;
+			GraphPoints[ GraphPointIdx ] = UpdateTime;
+			GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+			ImGui::PlotLines( "", GraphPoints.data(), GraphPoints.size(), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+
+
+			ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob );
+			ImGui::Separator();
+			ImGui::TreePop();
+		}
+	}
+	ImGui::End();
+#endif
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnModel );
 
@@ -385,6 +595,7 @@ public:
 	std::vector< MaterialBinding > MaterialBindings_; 
 };
 
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource.
 REFLECTION_DEFINE_DERIVED( ScnModelComponent );
@@ -401,20 +612,18 @@ void ScnModelComponent::StaticRegisterClass()
 		new ReField( "Uniforms_", &ScnModelComponent::Uniforms_, bcRFF_IMPORTER ),
 
 		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
+		new ReField( "RenderMask_", &ScnModelComponent::RenderMask_, bcRFF_IMPORTER ),
+		new ReField( "IsLit_", &ScnModelComponent::IsLit_, bcRFF_IMPORTER ),
+		new ReField( "RenderPermutations_", &ScnModelComponent::RenderPermutations_, bcRFF_IMPORTER | bcRFF_FLAGS ),
+		new ReField( "Passes_", &ScnModelComponent::Passes_, bcRFF_IMPORTER | bcRFF_FLAGS ),
+
 		new ReField( "UploadFence_", &ScnModelComponent::UploadFence_, bcRFF_TRANSIENT ),
 		new ReField( "pNodeTransformData_", &ScnModelComponent::pNodeTransformData_, bcRFF_TRANSIENT ),
 		new ReField( "AABB_", &ScnModelComponent::AABB_, bcRFF_TRANSIENT ),
 	};
 
-	using namespace std::placeholders;
 	ReRegisterClass< ScnModelComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor( 
-			{
-				ScnComponentProcessFuncEntry(
-					"Update",
-					ScnComponentPriority::MODEL_UPDATE,
-					std::bind( &ScnModelComponent::updateModels, _1 ) )
-			} ) );
+		.addAttribute( new ScnModelProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -425,6 +634,10 @@ ScnModelComponent::ScnModelComponent():
 	Position_( 0.0f, 0.0f, 0.0f ),
 	Scale_( 1.0f, 1.0f, 1.0f ),
 	Rotation_( 0.0f, 0.0f, 0.0f ),
+	RenderMask_( 1 ),
+	IsLit_( BcFalse ),
+	RenderPermutations_( ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::RENDER_DEFERRED | ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
+	Passes_( RsRenderSortPassFlags::DEPTH | RsRenderSortPassFlags::OPAQUE | RsRenderSortPassFlags::SHADOW ),
 	pNodeTransformData_( nullptr ),
 	UploadFence_(),
 	AABB_(),
@@ -576,55 +789,6 @@ BcU32 ScnModelComponent::getNoofNodes() const
 	return NoofNodes;
 }
 
-#if 0
-//////////////////////////////////////////////////////////////////////////
-// getMaterialComponent
-ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( BcU32 Index )
-{
-	if( Index < PerComponentMeshDataList_.size() )
-	{
-		return PerComponentMeshDataList_[ Index ].MaterialComponentRef_;
-	}
-	
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getMaterialComponent
-ScnMaterialComponentRef ScnModelComponent::getMaterialComponent( const BcName& MaterialName )
-{
-	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
-	{
-		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
-		{
-			return PerComponentMeshDataList_[ Idx ].MaterialComponentRef_;
-		}
-	}
-
-	return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getMaterialComponents
-ScnMaterialComponentList ScnModelComponent::getMaterialComponents( const BcName& MaterialName )
-{
-	ScnMaterialComponentList MaterialComponents;
-
-	// Pessemistic reserve to ensure only 1 allocation.
-	MaterialComponents.reserve( PerComponentMeshDataList_.size() );
-
-	// Find all.
-	for( BcU32 Idx = 0; Idx < PerComponentMeshDataList_.size(); ++Idx )
-	{
-		if( MaterialName == PerComponentMeshDataList_[ Idx ].MaterialComponentRef_->getName() )
-		{
-			MaterialComponents.emplace_back( PerComponentMeshDataList_[ Idx ].MaterialComponentRef_ );
-		}
-	}
-
-	return std::move( MaterialComponents );
-}
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // setBaseTransform
@@ -641,124 +805,6 @@ void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d
 	BaseTransform_.rotation( Rotation_ );
 	BaseTransform_ = BaseTransform_ * ScaleMatrix;
 	BaseTransform_.translation( Position_ );
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-// recursiveModelUpdate
-//static 
-BcU32 ScnModelComponent::recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence )
-{
-	// Calculate number of nodes.
-	BcU32 NoofNodes = 0;
-	for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
-	{
-		auto Component = Components[ Idx ];
-		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
-		NoofNodes += ModelComponent->Model_->pHeader_->NoofNodes_;
-	}
-
-	// Check if we're updating a single component, hit node limit, or have no node limit.
-	const BcU32 NoofComponents = ( EndIdx - StartIdx );
-	if( NoofComponents == 1 || NoofNodes <= MaxNodesPerJob || MaxNodesPerJob == 0 )
-	{
-		for( BcU32 Idx = StartIdx; Idx < EndIdx; ++Idx )
-		{
-			auto Component = Components[ Idx ];
-			auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
-			
-			MaMat4d Matrix = ModelComponent->BaseTransform_ * ModelComponent->getParentEntity()->getWorldMatrix();
-			ModelComponent->updateNodes( Matrix );
-		}
-
-		Fence->decrement( NoofComponents );
-	}
-	else
-	{
-		using namespace std::placeholders;
-
-		BcU32 MidIdx = ( StartIdx + EndIdx ) / 2;
-
-		if( MidIdx > StartIdx )
-		{
-			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
-				[ &Components, StartIdx, MidIdx, MaxNodesPerJob, Fence ]()
-				{
-					ScnModelComponent::recursiveModelUpdate( Components, StartIdx, MidIdx, MaxNodesPerJob, Fence );
-				} );
-		}
-
-		if( EndIdx > MidIdx )
-		{
-			SysKernel::pImpl()->pushFunctionJob( SysKernel::DEFAULT_JOB_QUEUE_ID,
-				[ &Components, MidIdx, EndIdx, MaxNodesPerJob, Fence ]()
-				{
-					ScnModelComponent::recursiveModelUpdate( Components, MidIdx, EndIdx, MaxNodesPerJob, Fence );
-				} );
-		}
-	}
-
-	return NoofNodes;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// updateModels
-//static
-void ScnModelComponent::updateModels( const ScnComponentList& Components )
-{
-	PSY_PROFILE_FUNCTION;
-
-	static bool UseJobs = true;
-
-	PSY_PROFILER_INSTANT_EVENT( "Updating models", nullptr );
-
-	BcTimer Timer;
-	Timer.mark();
-
-	auto Tick = SysKernel::pImpl()->getFrameTime();
-	SysFence Fence;
-
-	// Wait for all uploads to complete.
-	for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
-	{
-		auto Component = Components[ Idx ];
-		auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
-					
-		ModelComponent->UploadFence_.wait();
-	}
-	
-	// Recursive model update func.
-	static BcU32 MaxNodesPerJob = 64;
-	Fence.increment( Components.size() );
-	BcU32 NoofNodes = recursiveModelUpdate( Components, 0, Components.size(), UseJobs ? MaxNodesPerJob : 0, &Fence );
-	Fence.wait();
-
-#if !PSY_PRODUCTION
-	if ( ImGui::Begin( "Engine Debug" ) )
-	{
-		if( ImGui::TreeNode( "ScnModelComponent" ) )
-		{
-			const BcF32 UpdateTime = Timer.time() * 1000.0f;
-			ImGui::Checkbox( "Enable jobs", &UseJobs );
-			ImGui::Text( "Time: %f ms", UpdateTime );
-			ImGui::Text( "Components: %u", Components.size() );
-			ImGui::Text( "Nodes: %u", NoofNodes );
-
-			static std::array< BcF32, 256 > GraphPoints = { 0.0f };
-			static int GraphPointIdx = 0;
-			GraphPoints[ GraphPointIdx ] = UpdateTime;
-			GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
-			ImGui::PlotLines( "", GraphPoints.data(), GraphPoints.size(), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
-
-
-			ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob );
-			ImGui::Separator();
-			ImGui::TreePop();
-		}
-	}
-	ImGui::End();
-#endif
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -936,7 +982,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 			BcAssert( Material.isValid() && Material->isReady() );
 
 			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-			ShaderPermutation |= isLit() ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
+			ShaderPermutation |= IsLit_ ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
 			ShaderPermutation |= View->getRenderPermutation();
 
 			auto Program = Material->getProgram( ShaderPermutation );
@@ -1000,7 +1046,7 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 		}
 	}
 
-	ViewRenderData->setSortPassType( getSortPassType( View ) );
+	ViewRenderData->setSortPassType( View->getSortPassType( Passes_, RenderPermutations_ ) );
 	return ViewRenderData;
 }
 
@@ -1098,8 +1144,6 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 {
 	PSY_PROFILE_FUNCTION;
 
-	Super::render( RenderContext );
-
 	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
 	auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( RenderContext.ViewRenderData_ );
@@ -1109,7 +1153,7 @@ void ScnModelComponent::render( ScnRenderContext & RenderContext )
 	Sort.Layer_ = Layer_;
 
 	// Lighting visitors.
-	if( isLit() )
+	if( IsLit_ )
 	{
 		for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 		{

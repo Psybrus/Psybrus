@@ -101,6 +101,18 @@ void ScnRenderableProcessor::getAABB( MaAABB* OutAABBs, class ScnComponent** Com
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getRenderMask
+void ScnRenderableProcessor::getRenderMask( BcU32* OutRenderMasks, class ScnComponent** Components, BcU32 NoofComponents )
+{
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[ Idx ];
+		BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+		OutRenderMasks[ Idx ] = static_cast< ScnRenderableComponent* >( Component )->getRenderMask();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnRenderableComponent );
 

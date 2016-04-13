@@ -159,7 +159,12 @@ public:
 	const RsViewport& getViewport() const;
 	bool compare( const ScnViewComponent* Other ) const;
 
-	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
+	/**
+	 * Determine the sort pass type for a given set of @a SortPassFlags & @a PermutationFlags.
+	 */
+	RsRenderSortPassType getSortPassType( RsRenderSortPassFlags SortPassFlags, ScnShaderPermutationFlags PermutationFlags ) const;
+
+virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
 	const BcU32 getRenderMask() const { return RenderMask_; }

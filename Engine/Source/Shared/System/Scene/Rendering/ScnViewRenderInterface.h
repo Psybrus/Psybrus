@@ -35,6 +35,11 @@ public:
 	 * Get AABB.
 	 */
 	virtual void getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents ) = 0;
+
+	/**
+	 * Get render mask.
+	 */
+	virtual void getRenderMask( BcU32* OutRenderMasks, class ScnComponent** Components, BcU32 NooComponents ) = 0;
 	
 	/**
 	 * Do render.

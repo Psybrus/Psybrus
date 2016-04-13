@@ -42,6 +42,36 @@ struct ScnModelUniforms
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelProcessor
+class ScnModelProcessor : 
+	public BcGlobal< ScnModelProcessor >,
+	public ScnComponentProcessor,
+	public ScnViewRenderInterface
+{
+public:
+	ScnModelProcessor();
+	virtual ~ScnModelProcessor();
+
+	/// ScnComponentProcessor
+	void initialise() override;
+	void shutdown() override;
+
+	/// ScnViewRenderInterface
+	class ScnViewRenderData* createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View ) override;
+	void destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData ) override;
+	void render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) override;
+	void getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents ) override;
+	void getRenderMask( BcU32* OutRenderMasks, class ScnComponent** Components, BcU32 NoofComponents ) override;
+
+	///
+	BcU32 recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence );
+	void updateModels( const ScnComponentList& Components );
+
+private:
+
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnModel
 class ScnModel:
 	public CsResource
@@ -61,6 +91,7 @@ private:
 	
 protected:
 	friend class ScnModelComponent;
+	friend class ScnModelProcessor;
 	
 	// Cached pointers for internal use.
 	ScnModelHeader* pHeader_;
@@ -81,18 +112,16 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 // ScnModelComponent
 class ScnModelComponent:
-	public ScnRenderableComponent
+	public ScnComponent
 {
 public:
-	REFLECTION_DECLARE_DERIVED( ScnModelComponent, ScnRenderableComponent );
+	REFLECTION_DECLARE_DERIVED( ScnModelComponent, ScnComponent );
 
 	ScnModelComponent();
 	ScnModelComponent( ScnModelRef Model );
 	virtual ~ScnModelComponent();
 
 	void initialise() override;
-
-	MaAABB getAABB() const override;
 
 	BcU32 findNodeIndexByName( const BcName& Name ) const;
 	const BcName& findNodeNameByIndex( BcU32 NodeIdx ) const;
@@ -116,25 +145,31 @@ public:
 		setUniforms( _Ty::StaticGetClass(), &UniformData );
 	}
 
-#if 0
-	ScnMaterialComponentRef getMaterialComponent( BcU32 Index );
-	ScnMaterialComponentRef getMaterialComponent( const BcName& MaterialName );
-	ScnMaterialComponentList getMaterialComponents( const BcName& MaterialName );
-#endif
+	/**
+	 * Is this model component lit?
+	 */
+	bool isLit() const { return IsLit_; }
+
+	/**
+	 * Set if model is lit.
+	 */
+	void setLit( bool Lit ) { IsLit_ = Lit; }
 
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
 public:
-	static BcU32 recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence );
-	static void updateModels( const ScnComponentList& Components );
 	void updateModel( BcF32 Tick, SysFence* Fence );
 	void updateNodes( const MaMat4d& RootMatrix );
-	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
-	void render( ScnRenderContext & RenderContext ) override;
-	
+
+	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View );
+	void render( ScnRenderContext & RenderContext );
+	MaAABB getAABB() const;
+
 protected:
+	friend class ScnModelProcessor;
+
 	ScnModelRef Model_;
 	BcU32 Layer_;
 
@@ -142,6 +177,15 @@ protected:
 	MaVec3d Scale_;
 	MaVec3d Rotation_;
 	MaMat4d BaseTransform_;
+
+	/// Used to specify what kind of object it is for selectively rendering with certain views.
+	BcU32 RenderMask_;
+	/// Does this need to be lit?
+	bool IsLit_;
+	/// Render permutation flags that this renderable supports.
+	ScnShaderPermutationFlags RenderPermutations_;
+	/// Sort pass flags that this renderable supports.
+	RsRenderSortPassFlags Passes_;
 
 	typedef std::vector< ScnModelUniforms > TMaterialUniforms;
 	TMaterialUniforms Uniforms_;

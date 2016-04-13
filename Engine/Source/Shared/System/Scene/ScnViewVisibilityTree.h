@@ -11,6 +11,7 @@ struct ScnViewVisibilityLeaf
 	class ScnViewVisibilityTreeNode* Node_ = nullptr;
 	class ScnComponent* Component_ = nullptr;
 	class ScnViewRenderInterface* RenderInterface_ = nullptr;
+	BcU32 RenderMask_ = 0;
 	MaAABB AABB_;
 };
 

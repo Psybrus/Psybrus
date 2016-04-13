@@ -181,8 +181,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 				// Trim down based on render mask.
 				for( auto Leaf : BroadGather )
 				{
-					auto* RenderableComponent = static_cast< ScnRenderableComponent* >( Leaf->Component_ );
-					if( RenderContext.pViewComponent_->getRenderMask() & RenderableComponent->getRenderMask() )
+					if( RenderContext.pViewComponent_->getRenderMask() & Leaf->RenderMask_ )
 					{
 						GatheredVisibleLeaves_.push_back( Leaf );
 					}
@@ -221,13 +220,14 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 						if( It != ViewData->ViewRenderData_.end() )
 						{
 							ComponentRenderData.ViewRenderData_ = It->second;
-							Group.Noof_++;
 							if( Group.RenderInterface_ != Leaf->RenderInterface_ )
 							{
 								ProcessingGroups_.push_back( Group );
 								Group.RenderInterface_ = Leaf->RenderInterface_;
-								Group.Base_ = Idx;
+								Group.Base_ = ViewComponentRenderDatas_.size();
+								Group.Noof_ = 0;
 							}
+							Group.Noof_++;
 
 							ViewComponentRenderDatas_.push_back( ComponentRenderData );
 						}
@@ -375,6 +375,7 @@ void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
 		Leaf->Component_ = Component;
 		Leaf->RenderInterface_ = RenderInterface;
 		RenderInterface->getAABB( &Leaf->AABB_, &Component, 1 );
+		RenderInterface->getRenderMask( &Leaf->RenderMask_, &Component, 1 );
 		VisibilityLeaves_[ Component ] = Leaf;
 		SpatialTree_->addLeaf( Leaf );
 		BcAssert( Leaf->Node_ );
@@ -662,6 +663,23 @@ bool ScnViewComponent::compare( const ScnViewComponent* Other ) const
 		return false;
 	}
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSortPassType
+RsRenderSortPassType ScnViewComponent::getSortPassType( RsRenderSortPassFlags SortPassFlags, ScnShaderPermutationFlags PermutationFlags ) const
+{
+	RsRenderSortPassType RetVal = RsRenderSortPassType::INVALID;
+	if( BcContainsAnyFlags( RenderPermutation_, PermutationFlags ) )
+	{
+		const auto CombinedFlags = Passes_ & SortPassFlags;
+		const auto LeadingZeros = BcCountLeadingZeros( static_cast< BcU32 >( CombinedFlags ) );
+		if( LeadingZeros < 32 )
+		{
+			RetVal = static_cast< RsRenderSortPassType >( 31 - LeadingZeros );
+		}
+	}
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
