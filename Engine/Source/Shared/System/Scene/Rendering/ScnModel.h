@@ -64,10 +64,11 @@ public:
 	void getRenderMask( BcU32* OutRenderMasks, class ScnComponent** Components, BcU32 NoofComponents ) override;
 
 	///
-	BcU32 recursiveModelUpdate( const ScnComponentList& Components, BcU32 StartIdx, BcU32 EndIdx, BcU32 MaxNodesPerJob, SysFence* Fence );
+	size_t recursiveModelUpdate( const ScnComponentList& Components, size_t StartIdx, size_t EndIdx, size_t MaxNodesPerJob, SysFence* Fence );
 	void updateModels( const ScnComponentList& Components );
 
 private:
+	std::vector< ScnViewComponentRenderData > ComponentRenderDatas_;
 
 };
 

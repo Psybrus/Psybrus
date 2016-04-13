@@ -118,6 +118,22 @@ static BcU32 gVertexDataSize[] =
 #endif // PSY_IMPORT_PIPELINE
 
 //////////////////////////////////////////////////////////////////////////
+// ScnModelMaterialDesc
+ScnModelMaterialDesc::ScnModelMaterialDesc( ScnModelMaterialDesc&& Other )
+{
+	using std::swap;
+	swap( Regex_, Other.Regex_ );
+	swap( TemplateMaterial_, Other.TemplateMaterial_ );
+	swap( Material_, Other.Material_ );
+}
+
+ScnModelMaterialDesc::~ScnModelMaterialDesc()
+{ 
+	delete TemplateMaterial_;
+	TemplateMaterial_ = nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Reflection
 REFLECTION_DEFINE_BASIC( ScnModelVertexFormat );
 
