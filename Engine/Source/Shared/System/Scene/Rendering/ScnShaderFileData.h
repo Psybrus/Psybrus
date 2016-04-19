@@ -144,6 +144,23 @@ struct ScnShaderProgramHeader
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderDataAttribute
+class ScnShaderDataAttribute:
+	public ReAttribute
+{
+public:
+	REFLECTION_DECLARE_DERIVED( ScnShaderDataAttribute, ReAttribute );
+
+	ScnShaderDataAttribute( BcBool IsInstancable = BcFalse );
+	virtual ~ScnShaderDataAttribute();
+
+	BcBool isInstancable() const { return IsInstancable_; }
+
+private:
+	BcBool IsInstancable_ = false;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderViewUniformBlockData
 struct ScnShaderViewUniformBlockData
 {
@@ -194,7 +211,7 @@ struct ScnShaderMaterialUniformBlockData
 	BcF32 MaterialMetallic_ = 1.0f;
 	BcF32 MaterialSpecular_ = 1.0f;
 	BcF32 MaterialRoughness_ = 1.0f;
-	BcF32 MaterialUnused_[ 1 ];
+	BcF32 MaterialUnused_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,7 +286,7 @@ struct ScnShaderPostProcessBlurBlockData
 	BcF32 Radius_ = 1.0f;
 
 	/// Unued.
-	BcF32 Unused_ = 0.0f;
+	BcF32 BlurUnused_ = 0.0f;
 };
 
 #endif

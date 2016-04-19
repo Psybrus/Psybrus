@@ -1,3 +1,4 @@
+#if 0
 #ifndef __PSYBRUSUNIFORMS_PSH__
 #define __PSYBRUSUNIFORMS_PSH__
 
@@ -36,6 +37,10 @@
 #endif
 
 ////////////////////////////////////////////////////////////////////////
+// MAX_INSTANCES
+#define MAX_INSTANCES 256
+
+////////////////////////////////////////////////////////////////////////
 // ScnShaderViewUniformBlockData
 BEGIN_CBUFFER( ScnShaderViewUniformBlockData )
 	ENTRY( ScnShaderViewUniformBlockData, float4x4, InverseProjectionTransform_ )
@@ -62,15 +67,6 @@ END_CBUFFER
 #  define NearFar_ ScnShaderViewUniformBlockDataVS_XNearFar_ 
 
 #endif
-
-float3 getViewPosition()
-{
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
-	return float3( InverseViewTransform_[0].w, InverseViewTransform_[1].w, InverseViewTransform_[2].w );
-#else
-	return InverseViewTransform_[3].xyz;
-#endif
-}
 
 ////////////////////////////////////////////////////////////////////////
 // ScnShaderLightUniformBlockData
@@ -123,6 +119,20 @@ END_CBUFFER
 
 #  define WorldTransform_ ScnShaderObjectUniformBlockDataVS_XWorldTransform_
 #  define NormalTransform_ ScnShaderObjectUniformBlockDataVS_XNormalTransform_
+
+#endif
+
+////////////////////////////////////////////////////////////////////////
+// ScnShaderObjectInstancedUniformBlockData
+BEGIN_CBUFFER( ScnShaderObjectInstancedUniformBlockData )
+	ENTRY( ScnShaderObjectInstancedUniformBlockData, float4x4, InstancedWorldTransform_[ MAX_INSTANCES ]  )
+	ENTRY( ScnShaderObjectInstancedUniformBlockData, float4x4, InstancedNormalTransform_[ MAX_INSTANCES ] )
+END_CBUFFER
+
+#if !PSY_USE_CBUFFER
+
+#  define InstancedWorldTransform_ ScnShaderObjectUniformBlockDataVS_XInstancedWorldTransform_
+#  define InstancedNormalTransform_ ScnShaderObjectUniformBlockDataVS_XInstancedNormalTransform_
 
 #endif
 
@@ -219,3 +229,4 @@ END_CBUFFER
 #endif
 
 #endif // __PSYBRUSUNIFORMS_PSH__
+#endif

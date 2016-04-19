@@ -229,9 +229,9 @@ void ScnFontUniformBlockData::StaticRegisterClass()
 		new ReField( "ShadowColour_", &ScnFontUniformBlockData::ShadowColour_ ),
 	};
 	
-	ReRegisterClass< ScnFontUniformBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnFontUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 // Font draw params.

@@ -6,8 +6,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Input attributes for GLSL
-#define VsPosition gl_Position
-
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
 
 #  define DECLARE_IN( _Ty, _Name, _Semantic )			_Ty _Name : _Semantic
@@ -23,7 +21,7 @@
 #  define VS_OUT_BEGIN struct VS_OUTPUT { float4 Position_ : SV_POSITION; 
 #  define VS_OUT_END };
 
-#  define VS_MAIN( _Name ) VS_OUTPUT _Name( VS_INPUT i )
+#  define VS_MAIN( _Name ) VS_OUTPUT _Name( VS_INPUT i, uint GInstanceID : SV_INSTANCEID )
 #  define VS_ENTER VS_OUTPUT o = (VS_OUTPUT)0
 #  define VS_EXIT return o
 
@@ -48,6 +46,8 @@
 
 
 #elif ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES )
+#  define VsPosition gl_Position
+#  define GInstanceID gl_InstanceID
 
 #  define DECLARE_IN( _Ty, _Name, _Semantic ) in _Ty _Name : _Semantic
 #  define DECLARE_OUT( _Ty, _Name, _Semantic ) out _Ty _Name : _Semantic
@@ -191,10 +191,17 @@
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
   */
+#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
 	_o = mul( WorldTransform_, _v )
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
 	_o = normalize( mul( NormalTransform_, _v ) )
+#else
+#  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
+	_o = mul( WorldTransform_, _v )
+#  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
+	_o = normalize( mul( NormalTransform_, _v ) )
+#endif
 
 #endif
 

@@ -1045,6 +1045,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 
 				// Setup include paths.
 				Preprocessor.addInclude( "." );
+				Preprocessor.addInclude( "./Content/Engine" );
 				Preprocessor.addInclude( "../Psybrus/Dist/Content/Engine" );
 
 				Preprocessor.preprocess();
