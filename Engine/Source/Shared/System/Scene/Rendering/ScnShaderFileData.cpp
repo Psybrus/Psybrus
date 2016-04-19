@@ -13,7 +13,6 @@
 
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
-
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderDataAttribute
 REFLECTION_DEFINE_DERIVED( ScnShaderDataAttribute, ReAttribute );
@@ -30,9 +29,10 @@ void ScnShaderDataAttribute::StaticRegisterClass()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnShaderDataAttribute::ScnShaderDataAttribute( BcBool IsInstancable ):
+ScnShaderDataAttribute::ScnShaderDataAttribute( BcName Name, BcBool IsInstancable ):
 	IsInstancable_( IsInstancable )
 {
+	setName( Name );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ void ScnShaderViewUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderViewUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "View", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -83,7 +83,7 @@ void ScnShaderLightUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderLightUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "Light", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -103,7 +103,7 @@ void ScnShaderMaterialUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderMaterialUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcTrue ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "Material", BcTrue ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -120,7 +120,7 @@ void ScnShaderObjectUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderObjectUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcTrue ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "Object", BcTrue ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -136,7 +136,7 @@ void ScnShaderBoneUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderBoneUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "Bone", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -152,7 +152,7 @@ void ScnShaderAlphaTestUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderAlphaTestUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "AlphaTest", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -169,7 +169,7 @@ void ScnShaderPostProcessConfigData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderPostProcessConfigData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessConfig", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -185,7 +185,7 @@ void ScnShaderPostProcessCopyBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderPostProcessCopyBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessCopy", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -203,6 +203,6 @@ void ScnShaderPostProcessBlurBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderPostProcessBlurBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessBlur", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }

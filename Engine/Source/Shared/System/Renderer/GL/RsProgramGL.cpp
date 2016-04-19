@@ -113,7 +113,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 					Parent_->getDebugName(),
 					Parameter.Name_ );
 #endif
-		}
+			}
 			break;
 		case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 			{
@@ -129,16 +129,8 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 #endif
 					if( Index != -1 )
 					{
-						auto Class = ReManager::GetClass( Parameter.Name_ );
-						BcAssertMsg( Class->getSize() == (size_t)Parameter.Size_,
-							"Size mismatch in RsProgram \"%s\". Uniform block \"%s\" is of size %u, expecting %u",
-							Parent_->getDebugName(),
-							Parameter.Name_,
-							Parameter.Size_, 
-							Class->getSize() );
-
 						BcU32 UBSlot = BcU32( UniformBufferBindInfo_.size() );
-						Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+						Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );
 						UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
 						GL( UniformBlockBinding( Handle_, Index, InternalType.Binding_ ) );				
 					}
@@ -146,10 +138,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				}
 				else
 				{
-					const ReClass* Class = ReManager::GetClass( Parameter.Name_ );
 					BcU32 UBSlot = BcU32( UniformBufferBindInfo_.size() );
-					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );
 					UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
+
+					// TODO: Package uniform info straight into the shader data instead of using reflection.
+					const ReClass* Class = ReManager::GetClass( Parameter.Name_ );
 					if( Class != nullptr )
 					{
 						// Statically cache the types.

@@ -230,7 +230,7 @@ void ScnFontUniformBlockData::StaticRegisterClass()
 	};
 	
 	auto& Class = ReRegisterClass< ScnFontUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "Font", BcFalse ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -187,12 +187,10 @@ RsProgramD3D12::RsProgramD3D12( class RsProgram* Parent, ID3D12Device* Device ):
 	for( const auto& CB : CBBindings )
 	{
 		auto Size = CBSizes[ CB.first ];
-		auto Class = ReManager::GetClass( CB.first );
-		BcAssert( Class->getSize() == Size );
 		Parent_->addUniformBufferSlot(
 			CB.first,
 			CBIdx,
-			Class );
+			Size );
 		CBSlots_[ CBIdx++ ] = CB.second;
 	}
 }

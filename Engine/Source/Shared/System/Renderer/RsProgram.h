@@ -40,8 +40,6 @@ public:
 	const char* getUnorderedAccessSlotName( BcU32 Slot ) const;
 	const char* getUniformBufferSlotName( BcU32 Slot ) const;
 
-	const ReClass* getUniformBufferClass( BcU32 Handle );
-
 	const std::vector< class RsShader* >& getShaders() const;
 	const RsProgramVertexAttributeList& getVertexAttributeList() const;
 	const RsProgramParameterList& getParameterList() const;
@@ -58,7 +56,7 @@ public:
 	void addSamplerSlot( std::string Name, BcU32 Handle );
 	void addShaderResource( std::string Name, RsShaderResourceType Type, BcU32 Handle );
 	void addUnorderedAccess( std::string Name, RsUnorderedAccessType Type, BcU32 Handle );
-	void addUniformBufferSlot( std::string Name, BcU32 Handle, const ReClass* Class );
+	void addUniformBufferSlot( std::string Name, BcU32 Handle, BcU32 Size );
 
 private:
 	struct TSampler
@@ -85,7 +83,7 @@ private:
 	{
 		std::string Name_;
 		BcU32 Handle_;
-		const ReClass* Class_;
+		BcU32 Size_;
 	};
 
 	typedef std::vector< TSampler > TSamplerList;

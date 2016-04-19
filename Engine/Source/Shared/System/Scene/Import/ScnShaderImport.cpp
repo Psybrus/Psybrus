@@ -348,7 +348,7 @@ void ScnShaderImport::regenerateShaderDataHeader()
 	std::array< BcChar, 1024 > OutBuffer;
 
 	// Check if we can bail out.
-	static std::atomic<bool> RegeneratedShaderData( false );
+	static std::atomic< bool > RegeneratedShaderData( false );
 	if( RegeneratedShaderData.exchange( true ) == true )
 	{
 		return;
@@ -369,10 +369,13 @@ void ScnShaderImport::regenerateShaderDataHeader()
 	std::vector< const ReClass* > ShaderDataClasses;
 	CsResourceImporter::addDependency( ScnShaderDataAttribute::StaticGetClass() );
 	auto Classes = ReManager::GetClasses();
+	std::set< BcName > FoundNames;
 	for( const auto* Class : Classes )
 	{
-		if( Class->getAttribute< ScnShaderDataAttribute >() )
+		if( auto Attribute = Class->getAttribute< ScnShaderDataAttribute >() )
 		{
+			BcAssertMsg( Attribute->getName() != BcName::INVALID, "ScnShaderDataAttribute missing name." );
+			BcAssertMsg( FoundNames.find( Attribute->getName() ) == FoundNames.end(), "ScnShaderDataAttribute \"%s\" already taken.", (*Attribute->getName()).c_str() );
 			ShaderDataClasses.push_back( Class );
 			BcAssert( Class->getFlags() & bcRFF_POD );
 			CsResourceImporter::addDependency( Class );
@@ -400,6 +403,9 @@ void ScnShaderImport::regenerateShaderDataHeader()
 		"cbuffer",
 	};
 
+	// TODO: Calculate max.
+	const int MAX_INSTANCES = 128;
+
 	for( size_t Idx = 0; Idx < OutputBackends.size(); ++Idx )
 	{
 		auto OutputBackend = OutputBackends[ Idx ];
@@ -415,52 +421,70 @@ void ScnShaderImport::regenerateShaderDataHeader()
 			CsResourceImporter::addDependency( Class );
 			const auto* Attribute = Class->getAttribute< ScnShaderDataAttribute >();
 
-			if( UniformBufferDecl )
+			switch( OutputBackend )
 			{
-				OutString += std::string( UniformBufferDecl ) + " " + (*Class->getName()) + "\n";
-				OutString += "{\n";
-
-				for( const auto* Field : Class->getFields() )
+				case RsShaderBackendType::D3D11:
+				case RsShaderBackendType::GLSL:
 				{
-					writeField( OutString, Class, Field, "\t", OutputBackend );
+					BcAssert( UniformBufferDecl );
+
+					{
+						OutString += std::string( UniformBufferDecl ) + " " + (*Class->getName()) + "\n";
+						OutString += "{\n";
+
+						for( const auto* Field : Class->getFields() )
+						{
+							writeField( OutString, Class, Field, "\t", OutputBackend );
+						}
+
+						OutString += "};\n\n";
+					}
+
+					if( Attribute->isInstancable() )
+					{
+						OutString += "struct " + (*Class->getName()) + "Instance\n";
+						OutString += "{\n";
+
+						for( const auto* Field : Class->getFields() )
+						{
+							writeField( OutString, Class, Field, "\t", OutputBackend );
+						}
+
+						OutString += "};\n\n";
+
+						OutString += std::string( UniformBufferDecl ) + " " + (*Class->getName()) + "Instanced\n";
+						OutString += "{\n";
+
+						BcSPrintf( OutBuffer.data(), OutBuffer.size(), "\t%sInstance %sInstances_[%u];\n",
+							(*Class->getName()).c_str(),
+							(*Attribute->getName()).c_str(),
+							MAX_INSTANCES );
+						OutString += OutBuffer.data();
+
+						OutString += "};\n\n";
+					}
 				}
+				break;
 
-				OutString += "};\n\n";
-
-#if 0
-				if( Attribute->isInstancable() )
+				case RsShaderBackendType::GLSL_ES:
 				{
-					OutString += std::string( UniformBufferDecl ) + " " + (*Class->getName()) + "Instanced\n";
-					OutString += "{\n";
-					OutString += "\tstruct\n";
-					OutString += "\t{\n";
-
 					for( const auto* Field : Class->getFields() )
 					{
-						writeField( OutString, Class, Field, "\t\t", OutputBackend );
+						writeField( OutString, Class, Field, "\t", OutputBackend );
+
+						BcSPrintf( OutBuffer.data(), OutBuffer.size(), "#define %s %sVS_X%s\n",
+							(*Field->getName()).c_str(),
+							(*Class->getName()).c_str(),
+							(*Field->getName()).c_str() );
+						OutString += OutBuffer.data();
 					}
-					
-					BcSPrintf( OutBuffer.data(), OutBuffer.size(), "\t} %sInstanced_[128];\n",
-						(*Class->getName()).c_str() );
-					OutString += OutBuffer.data();
-					OutString += "};\n\n";
-				}
-#endif
-			}
-			else
-			{
-				for( const auto* Field : Class->getFields() )
-				{
-					writeField( OutString, Class, Field, "\t", OutputBackend );
 
-					BcSPrintf( OutBuffer.data(), OutBuffer.size(), "#define %s %sVS_X%s\n",
-						(*Field->getName()).c_str(),
-						(*Class->getName()).c_str(),
-						(*Field->getName()).c_str() );
-					OutString += OutBuffer.data();
+					OutString += "\n\n";	
 				}
+				break;
 
-				OutString += "\n\n";
+				default:
+					BcBreakpoint;
 			}
 		}
 		OutString += "#endif\n\n";
@@ -517,11 +541,13 @@ void ScnShaderImport::writeField( std::string& OutString, const ReClass* InClass
 	std::array< BcChar, 1024 > OutBuffer;
 	OutBuffer.fill( 0 );
 
+	const auto* InAttribute = InClass->getAttribute< ScnShaderDataAttribute >();
+
 	// Check if it's a base type.
 	auto It = ShaderClassMapping_.find( InField->getType() );
 	if( It == ShaderClassMapping_.end() )
 	{
-		BcAssertMsg( OutputBackend != RsShaderBackendType::GLSL_ES, "Structs not supported in GLSL ES by Psybrus." );
+		BcAssertMsg( false, "Nested structs not supported by Psybrus for any current shading language." );
 
 		OutString += Indentation + "struct\n";
 		OutString += Indentation + "{\n";

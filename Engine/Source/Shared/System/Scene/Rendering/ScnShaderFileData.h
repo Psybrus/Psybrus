@@ -151,7 +151,7 @@ class ScnShaderDataAttribute:
 public:
 	REFLECTION_DECLARE_DERIVED( ScnShaderDataAttribute, ReAttribute );
 
-	ScnShaderDataAttribute( BcBool IsInstancable = BcFalse );
+	ScnShaderDataAttribute( BcName Name = BcName::INVALID, BcBool IsInstancable = BcFalse );
 	virtual ~ScnShaderDataAttribute();
 
 	BcBool isInstancable() const { return IsInstancable_; }
