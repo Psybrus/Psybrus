@@ -99,7 +99,25 @@ void ScnModelProcessor::shutdown()
 class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View )
 {
 	BcAssert( Component->isTypeOf< ScnModelComponent >() );
-	return static_cast< ScnModelComponent* >( Component )->createViewRenderData( View );
+	auto* ModelComponent = static_cast< ScnModelComponent* >( Component );
+
+#if 0 // Setup instancing data to pack into view render data.
+	auto Model = ModelComponent->Model_;	
+	for( BcU32 Idx = 0; Idx < Model->MeshRuntimes_.size(); ++Idx )
+	{
+		auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];
+		ScnModelMeshData* pMeshData = &Model->pMeshData_[ Idx ];
+		ScnModelMeshRuntime* pMeshRuntime = &Model->MeshRuntimes_[ Idx ];
+		auto Material = pMeshRuntime->MaterialRef_;
+
+		if( Material.isValid() )
+		{
+			//
+		}
+	}
+#endif
+
+	return ModelComponent->createViewRenderData( View );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1033,6 +1051,13 @@ class ScnViewRenderData* ScnModelComponent::createViewRenderData( class ScnViewC
 				if( Slot != BcErrorCode )
 				{
 					ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get(), 0, sizeof( ScnShaderObjectUniformBlockData ) );
+				}
+				{
+					auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
+					if( Slot != BcErrorCode )
+					{
+						ProgramBindingDesc.setUniformBuffer( Slot, PerComponentMeshData.ObjectUniformBuffer_.get(), 0, sizeof( ScnShaderObjectUniformBlockData ) );
+					}
 				}
 			}
 
