@@ -114,8 +114,8 @@ function PsyProjectCommon( _name, _lang )
 	configuration { "windows-* or linux-* or android-* or osx-*", "Production" }
 		flags { "Optimize" }
 
-	configuration { "vs*"}
-		defines { "_ITERATOR_DEBUG_LEVEL=0" }
+	configuration { "Debug", "vs*"}
+		defines { "_ITERATOR_DEBUG_LEVEL=1" }
 
 	-- Setup language specific support.
 	languageOptions = {
