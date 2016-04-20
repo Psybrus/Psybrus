@@ -173,8 +173,6 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
-	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View );
-	void render( ScnRenderContext & RenderContext );
 	MaAABB getAABB() const;
 
 protected:

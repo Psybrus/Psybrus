@@ -413,13 +413,91 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 	for( BcU32 Idx = 0; Idx < ComponentRenderDatas_.size(); ++Idx )
 	{
 		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ Idx ] );
-		auto* ViewRenderData = ComponentRenderData.ViewRenderData_;
-		ScnComponent* InComponent = ComponentRenderData.Component_;
-		BcAssert( InComponent->isTypeOf< ScnModelComponent >() );
-		auto Component = static_cast< ScnModelComponent* >( InComponent );
+		BcAssert( ComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
+		auto Component = static_cast< ScnModelComponent* >( ComponentRenderData.Component_ );
+		auto Model = Component->Model_.get();
+
+		// Determine if we can instance.
+		auto ViewModelPair = std::make_pair( RenderContext.pViewComponent_, Model );
+		auto InstancingDataIt = InstancingData_.find( ViewModelPair );
+		if( InstancingDataIt != InstancingData_.end() )
+		{
+			// TODO: Instancing path!
+			// Iterate until end, then draw.
+			int a = 0; ++a;
+		}
+
+
+		auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( ComponentRenderData.ViewRenderData_ );
 		RenderContext.ViewRenderData_ = ViewRenderData;
 		RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
-		Component->render( RenderContext );
+
+		ScnModelMeshRuntimeList& MeshRuntimes = Component->Model_->MeshRuntimes_;
+		ScnModelMeshData* pMeshDatas = Model->pMeshData_;
+
+		// Set layer.
+		RsRenderSort Sort = RenderContext.Sort_;
+		Sort.Layer_ = Component->Layer_;
+
+		// Lighting visitors.
+		if( Component->IsLit_ )
+		{
+			for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+			{
+				ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+				if( PerComponentMeshData.LightingUniformBuffer_ )
+				{
+					ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+					RsCore::pImpl()->updateBuffer( 
+						PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
+						RsResourceUpdateFlags::ASYNC,
+						[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
+						( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+						{
+							BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
+							BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
+								sizeof( LightUniformBlockData ) );
+						} );
+				}
+			}
+		}
+
+		for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+		{
+			ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
+			ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
+			auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
+		
+			// Render primitive.
+			RenderContext.pFrame_->queueRenderNode( Sort,
+				[
+					GeometryBinding = pMeshRuntime->GeometryBinding_,
+					DrawProgramBinding = MaterialBinding.ProgramBinding_,
+					RenderState = MaterialBinding.RenderState_,
+					FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+					Viewport = RenderContext.pViewComponent_->getViewport(),
+					PrimitiveType = pMeshData->Type_,
+					NoofIndices = pMeshData->NoofIndices_,
+					IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
+					VertexBufferOffset = pMeshRuntime->VertexBufferOffset_
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+					Context->drawIndexedPrimitives(
+						GeometryBinding,
+						DrawProgramBinding, 
+						RenderState, 
+						FrameBuffer, 
+						&Viewport,
+						nullptr,
+						PrimitiveType,
+						static_cast< BcU32 >( IndexBuffereOffset ), 
+						static_cast< BcU32 >( NoofIndices ), 
+						static_cast< BcU32 >( VertexBufferOffset ),
+						0, 1 );
+				} );
+		}
 	}
 }
 
@@ -1309,79 +1387,4 @@ void ScnModelComponent::onDetach( ScnEntityWeakRef Parent )
 
 	//
 	Super::onDetach( Parent );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// render
-void ScnModelComponent::render( ScnRenderContext & RenderContext )
-{
-	PSY_PROFILE_FUNCTION;
-
-	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
-	ScnModelMeshData* pMeshDatas = Model_->pMeshData_;
-	auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( RenderContext.ViewRenderData_ );
-
-	// Set layer.
-	RsRenderSort Sort = RenderContext.Sort_;
-	Sort.Layer_ = Layer_;
-
-	// Lighting visitors.
-	if( IsLit_ )
-	{
-		for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
-		{
-			TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
-			if( PerComponentMeshData.LightingUniformBuffer_ )
-			{
-				ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
-				RsCore::pImpl()->updateBuffer( 
-					PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
-					RsResourceUpdateFlags::ASYNC,
-					[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
-					( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-					{
-						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
-						BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
-							sizeof( LightUniformBlockData ) );
-					} );
-			}
-		}
-	}
-
-	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
-	{
-		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
-		ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
-		auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
-		
-		// Render primitive.
-		RenderContext.pFrame_->queueRenderNode( Sort,
-			[
-				GeometryBinding = pMeshRuntime->GeometryBinding_,
-				DrawProgramBinding = MaterialBinding.ProgramBinding_,
-				RenderState = MaterialBinding.RenderState_,
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-				Viewport = RenderContext.pViewComponent_->getViewport(),
-				PrimitiveType = pMeshData->Type_,
-				NoofIndices = pMeshData->NoofIndices_,
-				IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
-				VertexBufferOffset = pMeshRuntime->VertexBufferOffset_
-			]
-			( RsContext* Context )
-			{
-				PSY_PROFILE_FUNCTION;
-				Context->drawIndexedPrimitives(
-					GeometryBinding,
-					DrawProgramBinding, 
-					RenderState, 
-					FrameBuffer, 
-					&Viewport,
-					nullptr,
-					PrimitiveType,
-					static_cast< BcU32 >( IndexBuffereOffset ), 
-					static_cast< BcU32 >( NoofIndices ), 
-					static_cast< BcU32 >( VertexBufferOffset ),
-					0, 1 );
-			} );
-	}
 }
