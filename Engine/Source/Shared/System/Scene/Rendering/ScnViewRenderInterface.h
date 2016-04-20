@@ -27,9 +27,10 @@ public:
 	 * Will delete @a ViewRenderData by default. Optional to overload.
 	 * If overridden, no need to call this function from the override.
 	 * @param Component Component to destroy view render data for.
+	 * @param View View that this render data is associated with.
 	 * @param ViewRenderData View render data to destroy.
 	 */
-	virtual void destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData ) = 0;
+	virtual void destroyViewRenderData( class ScnComponent* Component, class ScnViewComponent* View, ScnViewRenderData* ViewRenderData ) = 0;
 
 	/**
 	 * Get AABB.

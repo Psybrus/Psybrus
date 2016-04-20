@@ -557,6 +557,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveProgramBindings_.insert( Resource.get() );
 #endif
+
 	return Resource;
 }
 

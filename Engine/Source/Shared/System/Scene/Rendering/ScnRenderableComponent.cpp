@@ -62,10 +62,10 @@ class ScnViewRenderData* ScnRenderableProcessor::createViewRenderData( class Scn
 
 //////////////////////////////////////////////////////////////////////////
 // destroyViewRenderData
-void ScnRenderableProcessor::destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData )
+void ScnRenderableProcessor::destroyViewRenderData( class ScnComponent* Component, class ScnViewComponent* View, ScnViewRenderData* ViewRenderData )
 {
 	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
-	static_cast< ScnRenderableComponent* >( Component )->destroyViewRenderData( ViewRenderData );
+	static_cast< ScnRenderableComponent* >( Component )->destroyViewRenderData( View, ViewRenderData );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewCo
 //////////////////////////////////////////////////////////////////////////
 // destroyViewRenderData
 //virtual
-void ScnRenderableComponent::destroyViewRenderData( ScnViewRenderData* ViewRenderData )
+void ScnRenderableComponent::destroyViewRenderData( class ScnViewComponent* View, ScnViewRenderData* ViewRenderData )
 {
 	delete ViewRenderData;
 }

@@ -328,7 +328,7 @@ void ScnViewProcessor::onAttach( ScnComponent* Component )
 		}
 		else
 		{
-			It.second->RenderInterface_->destroyViewRenderData( It.second->Component_, ViewRenderData );
+			It.second->RenderInterface_->destroyViewRenderData( It.second->Component_, ViewData->View_, ViewRenderData );
 		}
 	}
 
@@ -351,7 +351,7 @@ void ScnViewProcessor::onDetach( ScnComponent* Component )
 	for( auto& VisibilityLeaf : VisibilityLeaves_ )
 	{
 		auto* ViewRenderData = (*It)->ViewRenderData_[ VisibilityLeaf.second->Component_ ];
-		VisibilityLeaf.second->RenderInterface_->destroyViewRenderData( VisibilityLeaf.second->Component_, ViewRenderData );
+		VisibilityLeaf.second->RenderInterface_->destroyViewRenderData( VisibilityLeaf.second->Component_, (*It)->View_, ViewRenderData );
 	}
 
 	ViewData_.erase( It );
@@ -390,7 +390,7 @@ void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
 			}
 			else
 			{
-				RenderInterface->destroyViewRenderData( Component, ViewRenderData );
+				RenderInterface->destroyViewRenderData( Component, ViewData->View_, ViewRenderData );
 			}
 		}
 	}
@@ -419,7 +419,7 @@ void ScnViewProcessor::onDetachComponent( ScnComponent* Component )
 			auto ViewRenderDataIt = ViewData->ViewRenderData_.find( Component );
 			if( ViewRenderDataIt != ViewData->ViewRenderData_.end() )
 			{
-				RenderInterface->destroyViewRenderData( Component, ViewRenderDataIt->second );
+				RenderInterface->destroyViewRenderData( Component, ViewData->View_, ViewRenderDataIt->second );
 				ViewData->ViewRenderData_.erase( ViewRenderDataIt );
 			}
 		}

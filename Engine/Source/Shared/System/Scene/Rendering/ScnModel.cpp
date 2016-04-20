@@ -74,7 +74,7 @@ public:
 		// Free MaterialBindings, but not InstancedMaterialBindings.
 		for( auto& MaterialBinding : MaterialBindings_ )
 		{
-			delete MaterialBinding.ProgramBinding_;
+			RsCore::pImpl()->destroyResource( MaterialBinding.ProgramBinding_ );
 		}
 	}
 
@@ -141,10 +141,12 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 	auto* ViewRenderData = new ScnModelViewRenderData();
 	auto* ModelComponent = static_cast< ScnModelComponent* >( Component );
 	auto* Model = ModelComponent->Model_.get();
+	auto ViewModelPair = std::make_pair( View, Model );
 
 	// Setup program binding for all materials.
 	ScnModelMeshRuntimeList& MeshRuntimes = ModelComponent->Model_->MeshRuntimes_;
 	ViewRenderData->MaterialBindings_.resize( MeshRuntimes.size() );
+	BcBool IsInstancable = BcTrue;
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
 		auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];
@@ -156,7 +158,6 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 		{
 			BcAssert( Material->isReady() );
 
-			BcBool IsInstancable = BcTrue;
 			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
 			ShaderPermutation |= ModelComponent->IsLit_ ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
 			ShaderPermutation |= View->getRenderPermutation();
@@ -231,95 +232,115 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 			}
 
 			// Create program binding for non-instanced rendering.
-			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() ).release();
+			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, DebugNameCStr ).release();
 			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
+		}
 
-			// Create program binding for instanced rendering.
-			if( IsInstancable )
+		if( IsInstancable )
+		{
+			ViewRenderData->InstancedMaterialBindings_.resize( MeshRuntimes.size() );
+			for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 			{
-				if( BcContainsAnyFlags( ScnShaderPermutationFlags::MESH_STATIC_3D, ShaderPermutation ) )
+				auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];
+				ScnModelMeshData* pMeshData = &Model->pMeshData_[ Idx ];
+				ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+				auto Material = pMeshRuntime->MaterialRef_;
+
+				// Find model instancing data, and add if it's missing.
+				if( InstancingData_.find( ViewModelPair ) == InstancingData_.end() )
 				{
-					ShaderPermutation &= ~ScnShaderPermutationFlags::MESH_STATIC_3D;
-					ShaderPermutation |= ScnShaderPermutationFlags::MESH_INSTANCED_3D;
+					InstancingData_.insert( std::make_pair( ViewModelPair, InstancingData() ) );
+				}
+				auto& InstancingData = InstancingData_.find( ViewModelPair )->second;
+				InstancingData.RefCount_++;
 
-					auto InstancedProgram = Material->getProgram( ShaderPermutation );
-					if( InstancedProgram )
+				if( Material.isValid() )
+				{
+					BcAssert( Material->isReady() );
+
+					ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
+					ShaderPermutation |= ModelComponent->IsLit_ ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
+					ShaderPermutation |= View->getRenderPermutation();
+
+					// Create program binding for instanced rendering.
+					if( BcContainsAnyFlags( ScnShaderPermutationFlags::MESH_STATIC_3D, ShaderPermutation ) )
 					{
-						auto InstancedProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
+						ShaderPermutation &= ~ScnShaderPermutationFlags::MESH_STATIC_3D;
+						ShaderPermutation |= ScnShaderPermutationFlags::MESH_INSTANCED_3D;
 
-						// Find model instancing data, and add if it's missing.
-						if( InstancingData_.find( Model ) == InstancingData_.end() )
+						auto InstancedProgram = Material->getProgram( ShaderPermutation );
+						if( InstancedProgram )
 						{
-							InstancingData_.insert( std::make_pair( Model, InstancingData() ) );
-						}
-						auto& InstancingData = InstancingData_.find( Model )->second;
-						InstancingData.RefCount_++;
+							auto InstancedProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
 
-						RsBuffer* UniformBuffer = nullptr;
-						auto& UniformBuffers = InstancingData.UniformBuffers_;
+							RsBuffer* UniformBuffer = nullptr;
+							auto& UniformBuffers = InstancingData.UniformBuffers_;
 
-						// Setup instanced uniform buffers.
-						for( const auto& Uniform : ModelComponent->Uniforms_ )
-						{
-							auto Slot = InstancedProgram->findUniformBufferSlot( (*Uniform.Class_->getName() + "Instanced").c_str() );
-							if( Slot != BcErrorCode )
+							// Setup instanced uniform buffers.
+							for( const auto& Uniform : ModelComponent->Uniforms_ )
 							{
-								BcU32 Size = static_cast< BcU32 >( Uniform.Class_->getSize() ) * 128;
-								if( UniformBuffers.find( Uniform.Class_ ) == UniformBuffers.end() ) 
+								auto Slot = InstancedProgram->findUniformBufferSlot( (*Uniform.Class_->getName() + "Instanced").c_str() );
+								if( Slot != BcErrorCode )
 								{
-									UniformBuffer = RsCore::pImpl()->createBuffer(
-										RsBufferDesc(
-											RsResourceBindFlags::UNIFORM_BUFFER,
-											RsResourceCreationFlags::STREAM,
-											Size ), DebugNameCStr ).release();
-									UniformBuffers.insert( std::make_pair( Uniform.Class_, UniformBuffer ) );
+									BcU32 Size = static_cast< BcU32 >( Uniform.Class_->getSize() ) * 128;
+									if( UniformBuffers.find( Uniform.Class_ ) == UniformBuffers.end() ) 
+									{
+										UniformBuffer = RsCore::pImpl()->createBuffer(
+											RsBufferDesc(
+												RsResourceBindFlags::UNIFORM_BUFFER,
+												RsResourceCreationFlags::STREAM,
+												Size ), DebugNameCStr ).release();
+										UniformBuffers.insert( std::make_pair( Uniform.Class_, UniformBuffer ) );
+									}
+									UniformBuffer = UniformBuffers.find( Uniform.Class_ )->second;
+									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer, 0, Size );
+
+									auto* Attribute = Uniform.Class_->getAttribute< ScnShaderDataAttribute >();
+									BcAssert( Attribute->isInstancable() );
 								}
-								UniformBuffer = UniformBuffers.find( Uniform.Class_ )->second;
-
-								InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer, 0, Size );
-
-
-
-								auto* Attribute = Uniform.Class_->getAttribute< ScnShaderDataAttribute >();
-								BcAssert( Attribute->isInstancable() );
 							}
-						}
 
-						BcAssert( !pMeshData->IsSkinned_ );
-						{
-							auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderObjectUniformBlockDataInstanced" );
-							if( Slot != BcErrorCode )
+							BcAssert( !pMeshData->IsSkinned_ );
 							{
-								const ReClass* Class = ScnShaderObjectUniformBlockData::StaticGetClass();
-								BcU32 Size = static_cast< BcU32 >( sizeof( ScnShaderObjectUniformBlockData ) ) * 128;
-								if( UniformBuffers.find( Class ) == UniformBuffers.end() ) 
+								auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderObjectUniformBlockDataInstanced" );
+								if( Slot != BcErrorCode )
 								{
-									UniformBuffer = RsCore::pImpl()->createBuffer(
-										RsBufferDesc(
-											RsResourceBindFlags::UNIFORM_BUFFER,
-											RsResourceCreationFlags::STREAM,
-											Size ), DebugNameCStr ).release();
-									UniformBuffers.insert( std::make_pair( Class, UniformBuffer ) );
+									const ReClass* Class = ScnShaderObjectUniformBlockData::StaticGetClass();
+									BcU32 Size = static_cast< BcU32 >( sizeof( ScnShaderObjectUniformBlockData ) ) * 128;
+									if( UniformBuffers.find( Class ) == UniformBuffers.end() ) 
+									{
+										UniformBuffer = RsCore::pImpl()->createBuffer(
+											RsBufferDesc(
+												RsResourceBindFlags::UNIFORM_BUFFER,
+												RsResourceCreationFlags::STREAM,
+												Size ), DebugNameCStr ).release();
+										UniformBuffers.insert( std::make_pair( Class, UniformBuffer ) );
+									}
+									UniformBuffer = UniformBuffers.find( Class )->second;
+
+									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer, 0, Size );
+
+									auto* Attribute = ScnShaderObjectUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
+									BcAssert( Attribute->isInstancable() );
 								}
-								UniformBuffer = UniformBuffers.find( Class )->second;
-
-								InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer, 0, Size );
-
-								auto* Attribute = ScnShaderObjectUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
-								BcAssert( Attribute->isInstancable() );
 							}
-						}
 
-						// Setup view uniform buffer.
-						{
-							auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-							if( Slot != BcErrorCode )
+							// Setup view uniform buffer.
 							{
-								InstancedProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+								auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+								if( Slot != BcErrorCode )
+								{
+									InstancedProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+								}
 							}
-						}
+						
+							// Create program binding for non-instanced rendering.
+							auto ProgramBinding = RsCore::pImpl()->createProgramBinding( InstancedProgram, InstancedProgramBindingDesc, DebugNameCStr ).release();
+							InstancingData.ProgramBindings_.push_back( ProgramBinding );
 
-						///
+							ViewRenderData->InstancedMaterialBindings_[ Idx ].ProgramBinding_ = ProgramBinding;
+							ViewRenderData->InstancedMaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
+						}
 					}
 				}
 			}
@@ -332,24 +353,30 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 
 //////////////////////////////////////////////////////////////////////////
 // destroyViewRenderData
-void ScnModelProcessor::destroyViewRenderData( class ScnComponent* Component, ScnViewRenderData* ViewRenderData )
+void ScnModelProcessor::destroyViewRenderData( class ScnComponent* Component, class ScnViewComponent* View, ScnViewRenderData* ViewRenderData )
 {
 	BcAssert( Component->isTypeOf< ScnModelComponent >() );
 
 	auto* ModelViewRenderData = static_cast< ScnModelViewRenderData* >( ViewRenderData );
 	auto* ModelComponent = static_cast< ScnModelComponent* >( Component );
-	auto InstancingDataIt = InstancingData_.find( ModelComponent->Model_.get() );
-	auto& InstancingData = InstancingDataIt->second;
-	if( --InstancingData.RefCount_ == 0 )
+	auto ViewModelPair = std::make_pair( View, ModelComponent->Model_.get() );
+	auto InstancingDataIt = InstancingData_.find( ViewModelPair );
+	if( InstancingDataIt != InstancingData_.end() )
 	{
-		// TODO: destroyResources.
-
-		InstancingData_.erase( InstancingDataIt );
-	}
-
-	for( auto& MaterialBinding : ModelViewRenderData->MaterialBindings_ )
-	{
-		RsCore::pImpl()->destroyResource( MaterialBinding.ProgramBinding_ );
+		auto& InstancingData = InstancingDataIt->second;
+		if( --InstancingData.RefCount_ == 0 )
+		{
+			for( auto ProgramBinding : InstancingData.ProgramBindings_ )
+			{
+				RsCore::pImpl()->destroyResource( ProgramBinding );
+			}
+		
+			for( auto Buffer : InstancingData.UniformBuffers_ )
+			{
+				RsCore::pImpl()->destroyResource( Buffer.second );
+			}
+			InstancingData_.erase( InstancingDataIt );
+		}
 	}
 
 	delete ViewRenderData;
@@ -363,9 +390,9 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 	// TODO: Per frame allocator, or pass up as non-const?
 	ComponentRenderDatas_.clear();
 	ComponentRenderDatas_.reserve( NoofComponents );
-	for( BcU32 Idx = 0; Idx< NoofComponents; ++Idx )
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
 	{
-		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ Idx ] );
+		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas[ Idx ] );
 		auto* ViewRenderData = ComponentRenderData.ViewRenderData_;
 		if( ViewRenderData )
 		{
