@@ -200,6 +200,8 @@ RsProgram* ScnMaterial::getProgram( ScnShaderPermutationFlags PermutationFlags )
 RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags PermutationFlags )
 {
 	auto* Program = Shader_->getProgram( PermutationFlags );
+	BcAssert( Program );
+
 	RsProgramBindingDesc ProgramBindingDesc;
 
 	for( auto Iter( TextureMap_.begin() ); Iter != TextureMap_.end(); ++Iter )

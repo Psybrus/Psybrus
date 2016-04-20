@@ -110,6 +110,7 @@ enum class ScnShaderPermutationFlags : BcU32
 
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, | );
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, & );
+DEFINE_ENUM_CLASS_UNARY_FLAG_OPERATOR( ScnShaderPermutationFlags, ~ );
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader

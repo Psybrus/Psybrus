@@ -36,7 +36,7 @@ struct ScnModelUniforms
 	REFLECTION_DECLARE_BASIC( ScnModelUniforms );
 	ScnModelUniforms();
 
-	std::string Name_;
+	const ReClass* Class_;
 	BcBinaryData Data_;
 	RsBufferUPtr Buffer_;
 };
@@ -70,6 +70,16 @@ public:
 private:
 	std::vector< ScnViewComponentRenderData > ComponentRenderDatas_;
 
+	struct InstancingData
+	{
+		BcU32 RefCount_ = 0;
+		std::unordered_map< const ReClass*, RsBuffer* > UniformBuffers_;
+		std::vector< RsProgramBinding* > ProgramBindings_; 
+	};
+
+	std::unordered_map< ScnModel*, InstancingData > InstancingData_;
+
+	
 };
 
 //////////////////////////////////////////////////////////////////////////
