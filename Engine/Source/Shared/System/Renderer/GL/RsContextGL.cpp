@@ -1037,6 +1037,12 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 		GLuint SamplerObject = (GLuint)-1;
 		GL( GenSamplers( 1, &SamplerObject ) );
 		
+#if !defined( RENDER_USE_GLES )
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() );
+		}
+#endif
 
 		// Setup sampler parmeters.
 		const auto& SamplerStateDesc = SamplerState->getDesc();
@@ -1325,7 +1331,7 @@ bool RsContextGL::updateBuffer(
 		}
 		else
 		{
-			GL( BufferSubData( TypeGL, Offset, Size, BufferData ) );
+			GL( BufferSubData( TypeGL, Offset, Size, BufferData + Offset ) );
 		}
 	}
 
@@ -1431,6 +1437,12 @@ bool RsContextGL::createShader( RsShader* Shader )
 	// Create handle for shader.
 	GLuint Handle = GL( CreateShader( ShaderType ) );
 	
+#if !defined( RENDER_USE_GLES )
+	if( GLEW_KHR_debug )
+	{
+		glObjectLabel( GL_SHADER, Handle, BcStrLength( Shader->getDebugName() ), Shader->getDebugName() );
+	}
+#endif
 	//
 	const GLchar* ShaderData[] = 
 	{

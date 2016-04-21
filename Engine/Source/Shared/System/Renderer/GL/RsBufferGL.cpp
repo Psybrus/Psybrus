@@ -56,6 +56,13 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 		// Generate buffer.
 		GL( GenBuffers( 1, &Handle_ ) );
 
+#if !defined( RENDER_USE_GLES )
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_BUFFER, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
+		}
+#endif
+
 		// Attempt to update it.
 		if( Handle_ != 0 )
 		{

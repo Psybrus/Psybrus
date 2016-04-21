@@ -24,7 +24,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 
 	// Create program.
 	Handle_ = GL( CreateProgram() );
-	
+
+	if( GLEW_KHR_debug )
+	{
+		glObjectLabel( GL_PROGRAM, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
+	}
+
 	// Attach shaders.
 	for( auto* Shader : Shaders )
 	{
