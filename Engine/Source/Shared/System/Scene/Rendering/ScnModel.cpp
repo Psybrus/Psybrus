@@ -32,6 +32,7 @@
 #endif
 
 #define DEBUG_RENDER_NODES ( 0 )
+#define MAX_INSTANCES ( 128 )
 
 #if DEBUG_RENDER_NODES
 #include "System/Scene/Rendering/ScnDebugRenderComponent.h"
@@ -282,7 +283,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 								auto Slot = InstancedProgram->findUniformBufferSlot( (*Uniform.Class_->getName() + "Instanced").c_str() );
 								if( Slot != BcErrorCode )
 								{
-									BcU32 Size = static_cast< BcU32 >( Uniform.Class_->getSize() ) * 128;
+									BcU32 Size = static_cast< BcU32 >( Uniform.Class_->getSize() ) * MAX_INSTANCES;
 									if( UniformBuffers.find( Uniform.Class_ ) == UniformBuffers.end() ) 
 									{
 										UniformBuffer = RsCore::pImpl()->createBuffer(
@@ -306,7 +307,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 								if( Slot != BcErrorCode )
 								{
 									const ReClass* Class = ScnShaderObjectUniformBlockData::StaticGetClass();
-									BcU32 Size = static_cast< BcU32 >( sizeof( ScnShaderObjectUniformBlockData ) ) * 128;
+									BcU32 Size = static_cast< BcU32 >( sizeof( ScnShaderObjectUniformBlockData ) ) * MAX_INSTANCES;
 									if( UniformBuffers.find( Class ) == UniformBuffers.end() ) 
 									{
 										UniformBuffer = RsCore::pImpl()->createBuffer(
@@ -406,97 +407,241 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 		{
 			BcAssert( A.Component_->isTypeOf< ScnModelComponent >() );
 			BcAssert( B.Component_->isTypeOf< ScnModelComponent >() );
-			return static_cast< ScnModelComponent* >( A.Component_ )->Model_ < static_cast< ScnModelComponent* >( B.Component_ )->Model_;
+			return static_cast< ScnModelComponent* >( A.Component_ )->Model_->getName() < static_cast< ScnModelComponent* >( B.Component_ )->Model_->getName();
 		} );
 
 	// Render.
-	for( BcU32 Idx = 0; Idx < ComponentRenderDatas_.size(); ++Idx )
+	ScnModel* LastModel = nullptr;
+	for( BcU32 IdxA = 0; IdxA < ComponentRenderDatas_.size(); ++IdxA )
 	{
-		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ Idx ] );
+		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ IdxA ] );
 		BcAssert( ComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 		auto Component = static_cast< ScnModelComponent* >( ComponentRenderData.Component_ );
 		auto Model = Component->Model_.get();
 
-		// Determine if we can instance.
-		auto ViewModelPair = std::make_pair( RenderContext.pViewComponent_, Model );
-		auto InstancingDataIt = InstancingData_.find( ViewModelPair );
-		if( InstancingDataIt != InstancingData_.end() )
+		BcBool DrawNonInstanced = BcTrue;
+		if( Model != LastModel )
 		{
-			// TODO: Instancing path!
-			// Iterate until end, then draw.
-			int a = 0; ++a;
-		}
+			LastModel = Model;
 
-
-		auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( ComponentRenderData.ViewRenderData_ );
-		RenderContext.ViewRenderData_ = ViewRenderData;
-		RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
-
-		ScnModelMeshRuntimeList& MeshRuntimes = Component->Model_->MeshRuntimes_;
-		ScnModelMeshData* pMeshDatas = Model->pMeshData_;
-
-		// Set layer.
-		RsRenderSort Sort = RenderContext.Sort_;
-		Sort.Layer_ = Component->Layer_;
-
-		// Lighting visitors.
-		if( Component->IsLit_ )
-		{
-			for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+			// Determine if we can instance.
+			auto ViewModelPair = std::make_pair( RenderContext.pViewComponent_, Model );
+			auto InstancingDataIt = InstancingData_.find( ViewModelPair );
+			if( InstancingDataIt != InstancingData_.end() )
 			{
-				ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
-				if( PerComponentMeshData.LightingUniformBuffer_ )
+				auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( ComponentRenderData.ViewRenderData_ );
+				RenderContext.ViewRenderData_ = ViewRenderData;
+				RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
+
+				ScnModelMeshRuntimeList& MeshRuntimes = Model->MeshRuntimes_;
+				ScnModelMeshData* pMeshDatas = Model->pMeshData_;
+
+				BcU32 NoofInstances = 0;
+
+				for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 				{
-					ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
-					RsCore::pImpl()->updateBuffer( 
-						PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
-						RsResourceUpdateFlags::ASYNC,
-						[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
-						( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+					ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
+					ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
+					auto& InstancedMaterialBinding = ViewRenderData->InstancedMaterialBindings_[ PrimitiveIdx ];
+
+					// Set layer.
+					RsRenderSort Sort = RenderContext.Sort_;
+					Sort.Layer_ = Component->Layer_;
+
+					// Iterate until end, then draw.
+					NoofInstances = 0;
+					for( BcU32 IdxB = IdxA; IdxB < ComponentRenderDatas_.size(); ++IdxB )
+					{
+						const ScnViewComponentRenderData& InstancedComponentRenderData( ComponentRenderDatas_[ IdxB ] );
+						BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
+						auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
+						auto InstancedModel = InstancedComponent->Model_.get();
+						if( InstancedModel != LastModel || NoofInstances >= MAX_INSTANCES )
 						{
-							BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
-							BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
-								sizeof( LightUniformBlockData ) );
-						} );
+							break;
+						}
+						LastModel = InstancedModel;
+
+						// TODO: Batch updates.
+						auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
+						for( BcU32 UniformIdx = 0; UniformIdx < InstancedComponent->Uniforms_.size(); ++UniformIdx )
+						{
+							auto& Uniform = InstancedComponent->Uniforms_[ UniformIdx ];
+							auto UniformBufferIt = UniformBuffers.find( Uniform.Class_ );
+							if( UniformBufferIt != UniformBuffers.end() )
+							{
+								auto Size = Uniform.Class_->getSize();
+								auto Offset = Size * NoofInstances;
+
+								RsCore::pImpl()->updateBuffer(
+									UniformBufferIt->second, Offset, Size, 
+									RsResourceUpdateFlags::ASYNC,
+									[ Size, Data = Uniform.Data_.getData< BcU8 >() ]
+									( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+									{
+										BcMemCopy( BufferLock.Buffer_, Data, sizeof( Size ) );
+									} );
+							}
+						}
+
+						// Do object uniform.
+						{
+							auto UniformBufferIt = UniformBuffers.find( ScnShaderObjectUniformBlockData::StaticGetClass() );
+							if( UniformBufferIt != UniformBuffers.end() )
+							{
+								auto Size = sizeof( ScnShaderObjectUniformBlockData );
+								auto Offset = Size * NoofInstances;
+
+								ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIndex_ ];
+
+								RenderContext.pFrame_->queueRenderNode( Sort,
+									[
+										Buffer = UniformBufferIt->second, 
+										Offset, 
+										Size, 
+										pNodeTransformData
+									]
+									( RsContext* Context )
+									{
+										Context->updateBuffer( Buffer, Offset, Size,
+											RsResourceUpdateFlags::ASYNC,
+											[ pNodeTransformData ]
+											( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+											{
+												PSY_PROFILE_FUNCTION;
+												ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( BufferLock.Buffer_ );
+										
+												// World matrix.
+												ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
+
+												// Normal matrix.
+												ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
+												ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
+#if 0 // Normal when using non-uniform scaling are broken without this. Consider implementing it as optional?
+												ObjectUniformBlock->NormalTransform_.inverse();
+												ObjectUniformBlock->NormalTransform_.transpose();
+#endif
+											} );
+									} );
+							}
+						}
+
+						NoofInstances++;
+					}
+
+					if( NoofInstances > 0 )
+					{
+						// Render primitive.
+						RenderContext.pFrame_->queueRenderNode( Sort,
+							[
+								GeometryBinding = pMeshRuntime->GeometryBinding_,
+								DrawProgramBinding = InstancedMaterialBinding.ProgramBinding_,
+								RenderState = InstancedMaterialBinding.RenderState_,
+								FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+								Viewport = RenderContext.pViewComponent_->getViewport(),
+								PrimitiveType = pMeshData->Type_,
+								NoofIndices = pMeshData->NoofIndices_,
+								IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
+								VertexBufferOffset = pMeshRuntime->VertexBufferOffset_,
+								NoofInstances
+							]
+							( RsContext* Context )
+							{
+								PSY_PROFILE_FUNCTION;
+								Context->drawIndexedPrimitives(
+									GeometryBinding,
+									DrawProgramBinding, 
+									RenderState, 
+									FrameBuffer, 
+									&Viewport,
+									nullptr,
+									PrimitiveType,
+									static_cast< BcU32 >( IndexBuffereOffset ), 
+									static_cast< BcU32 >( NoofIndices ), 
+									static_cast< BcU32 >( VertexBufferOffset ),
+									0, NoofInstances );
+							} );
+						DrawNonInstanced = BcFalse;
+					}
 				}
+
+				BcAssert( NoofInstances > 0 );
+				IdxA += NoofInstances - 1;
 			}
 		}
 
-		for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+		if( DrawNonInstanced )
 		{
-			ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
-			ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
-			auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
-		
-			// Render primitive.
-			RenderContext.pFrame_->queueRenderNode( Sort,
-				[
-					GeometryBinding = pMeshRuntime->GeometryBinding_,
-					DrawProgramBinding = MaterialBinding.ProgramBinding_,
-					RenderState = MaterialBinding.RenderState_,
-					FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-					Viewport = RenderContext.pViewComponent_->getViewport(),
-					PrimitiveType = pMeshData->Type_,
-					NoofIndices = pMeshData->NoofIndices_,
-					IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
-					VertexBufferOffset = pMeshRuntime->VertexBufferOffset_
-				]
-				( RsContext* Context )
+			auto* ViewRenderData = static_cast< ScnModelViewRenderData* >( ComponentRenderData.ViewRenderData_ );
+			RenderContext.ViewRenderData_ = ViewRenderData;
+			RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
+
+			ScnModelMeshRuntimeList& MeshRuntimes = Component->Model_->MeshRuntimes_;
+			ScnModelMeshData* pMeshDatas = Model->pMeshData_;
+
+			// Set layer.
+			RsRenderSort Sort = RenderContext.Sort_;
+			Sort.Layer_ = Component->Layer_;
+
+			// Lighting visitors.
+			if( Component->IsLit_ )
+			{
+				for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 				{
-					PSY_PROFILE_FUNCTION;
-					Context->drawIndexedPrimitives(
-						GeometryBinding,
-						DrawProgramBinding, 
-						RenderState, 
-						FrameBuffer, 
-						&Viewport,
-						nullptr,
-						PrimitiveType,
-						static_cast< BcU32 >( IndexBuffereOffset ), 
-						static_cast< BcU32 >( NoofIndices ), 
-						static_cast< BcU32 >( VertexBufferOffset ),
-						0, 1 );
-				} );
+					ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+					if( PerComponentMeshData.LightingUniformBuffer_ )
+					{
+						ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+						RsCore::pImpl()->updateBuffer( 
+							PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
+							RsResourceUpdateFlags::ASYNC,
+							[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
+							( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+							{
+								BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
+								BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
+									sizeof( LightUniformBlockData ) );
+							} );
+					}
+				}
+			}
+
+			for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+			{
+				ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
+				ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
+				auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
+		
+				// Render primitive.
+				RenderContext.pFrame_->queueRenderNode( Sort,
+					[
+						GeometryBinding = pMeshRuntime->GeometryBinding_,
+						DrawProgramBinding = MaterialBinding.ProgramBinding_,
+						RenderState = MaterialBinding.RenderState_,
+						FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+						Viewport = RenderContext.pViewComponent_->getViewport(),
+						PrimitiveType = pMeshData->Type_,
+						NoofIndices = pMeshData->NoofIndices_,
+						IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
+						VertexBufferOffset = pMeshRuntime->VertexBufferOffset_
+					]
+					( RsContext* Context )
+					{
+						PSY_PROFILE_FUNCTION;
+						Context->drawIndexedPrimitives(
+							GeometryBinding,
+							DrawProgramBinding, 
+							RenderState, 
+							FrameBuffer, 
+							&Viewport,
+							nullptr,
+							PrimitiveType,
+							static_cast< BcU32 >( IndexBuffereOffset ), 
+							static_cast< BcU32 >( NoofIndices ), 
+							static_cast< BcU32 >( VertexBufferOffset ),
+							0, 1 );
+					} );
+			}
 		}
 	}
 }

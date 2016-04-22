@@ -1037,7 +1037,7 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 		GLuint SamplerObject = (GLuint)-1;
 		GL( GenSamplers( 1, &SamplerObject ) );
 		
-#if !defined( RENDER_USE_GLES )
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
 		if( GLEW_KHR_debug )
 		{
 			glObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() );
@@ -1124,6 +1124,13 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	GLuint Handle;
 	GL( GenFramebuffers( 1, &Handle ) );
 	FrameBuffer->setHandle( Handle );
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+	if( GLEW_KHR_debug )
+	{
+		glObjectLabel( GL_FRAMEBUFFER, Handle, BcStrLength( FrameBuffer->getDebugName() ), FrameBuffer->getDebugName() );
+	}
+#endif
 
 	// Bind.
 	GL( BindFramebuffer( GL_FRAMEBUFFER, Handle ) );
@@ -1437,12 +1444,13 @@ bool RsContextGL::createShader( RsShader* Shader )
 	// Create handle for shader.
 	GLuint Handle = GL( CreateShader( ShaderType ) );
 	
-#if !defined( RENDER_USE_GLES )
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
 	if( GLEW_KHR_debug )
 	{
 		glObjectLabel( GL_SHADER, Handle, BcStrLength( Shader->getDebugName() ), Shader->getDebugName() );
 	}
 #endif
+
 	//
 	const GLchar* ShaderData[] = 
 	{
@@ -1666,8 +1674,16 @@ void RsContextGL::drawPrimitives(
 	bindProgram( Program );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 
-	bindGeometry( Program, GeometryBinding, 0 );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+	if( GLEW_KHR_debug )
+	{
+		glPushDebugGroup( GL_DEBUG_SOURCE_APPLICATION, 0, BcStrLength( GeometryBinding->getDebugName() ), GeometryBinding->getDebugName() );
+	}
+#endif
+
+	bindGeometry( Program, GeometryBinding, 0 );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
 		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
@@ -1708,6 +1724,13 @@ void RsContextGL::drawPrimitives(
 		MemoryBarrier_ = 0;
 	}
 #endif // !defined( RENDER_USE_GLES )
+
+#if !defined( RENDER_USE_GLES )
+	if( GLEW_KHR_debug )
+	{
+		glPopDebugGroup();
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1728,6 +1751,15 @@ void RsContextGL::drawIndexedPrimitives(
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
 	const auto* Program = ProgramBinding->getProgram();
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+	if( GLEW_KHR_debug )
+	{
+		glPushDebugGroup( GL_DEBUG_SOURCE_APPLICATION, 0, BcStrLength( GeometryBinding->getDebugName() ), GeometryBinding->getDebugName() );
+	}
+#endif
+
 	bindProgram( Program );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 
@@ -1740,7 +1772,6 @@ void RsContextGL::drawIndexedPrimitives(
 		bindGeometry( Program, GeometryBinding, VertexOffset );
 		VertexOffset = 0;
 	}
-	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
 		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
@@ -1823,6 +1854,13 @@ void RsContextGL::drawIndexedPrimitives(
 		MemoryBarrier_ = 0;
 	}
 #endif // !defined( RENDER_USE_GLES )	
+
+#if !defined( RENDER_USE_GLES )
+	if( GLEW_KHR_debug )
+	{
+		glPopDebugGroup();
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
