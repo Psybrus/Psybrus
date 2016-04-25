@@ -46,10 +46,6 @@
 
 #elif ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES )
 #  define VsPosition gl_Position
-#  define GInstanceID gl_InstanceID
-
-#elif ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES )
-#  define VsPosition gl_Position
 #  if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 #    define GInstanceID 0
 #  else
@@ -202,12 +198,15 @@
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
 	_o = mul( WorldTransform_, _v )
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = normalize( mul( NormalTransform_, _v ) )
+	_o = mul( NormalTransform_, _v ); \
+	_o.xyz = normalize( _o.xyz )
+
 #else
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
 	_o = mul( ObjectInstances_[ GInstanceID ].WorldTransform_, _v )
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \
-	_o = normalize( mul( ObjectInstances_[ GInstanceID ].NormalTransform_, _v ) )
+	_o = mul( ObjectInstances_[ GInstanceID ].NormalTransform_, _v ); \
+	_o.xyz = normalize( _o.xyz )
 #endif
 
 #endif

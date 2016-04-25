@@ -64,6 +64,11 @@ public:
 	ScnTextureRef getTexture( BcName Name );
 
 	/**
+	 * Check if material has permutation.
+	 */
+	bool hasPermutation( ScnShaderPermutationFlags PermutationFlags );
+
+	/**
 	 * Get program.
 	 */
 	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );

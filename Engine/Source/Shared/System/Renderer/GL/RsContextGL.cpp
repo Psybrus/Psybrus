@@ -1036,13 +1036,6 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 	{
 		GLuint SamplerObject = (GLuint)-1;
 		GL( GenSamplers( 1, &SamplerObject ) );
-		
-#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
-		if( GLEW_KHR_debug )
-		{
-			glObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() );
-		}
-#endif
 
 		// Setup sampler parmeters.
 		const auto& SamplerStateDesc = SamplerState->getDesc();
@@ -1059,6 +1052,13 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 		
+				
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() );
+		}
+#endif
 
 		++NoofSamplerStates_;
 
@@ -1290,7 +1290,7 @@ bool RsContextGL::updateBuffer(
 	BcAssert( BufferGL );
 
 	// If buffer is backed in main memory, use its own buffer for staging.
-	BcU8* BufferData = BufferGL->getBufferData();
+	BcU8* BufferData = BufferGL->getBufferData() + Offset;
 	std::unique_ptr< BcU8[] > LocalBufferData;
 	if( BufferData == nullptr )
 	{
@@ -1301,7 +1301,7 @@ bool RsContextGL::updateBuffer(
 	// Call update func to fill data.
 	RsBufferLock Lock =
 	{
-		BufferData + Offset
+		BufferData
 	};
 	UpdateFunc( Buffer, Lock );
 
@@ -1332,13 +1332,13 @@ bool RsContextGL::updateBuffer(
 			UsageFlagsGL |= GL_STREAM_DRAW;
 		}
 
-		if( Size == BufferDesc.SizeBytes_ )
+		if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
 		{
 			GL( BufferData( TypeGL, Size, BufferData, UsageFlagsGL ) );
 		}
 		else
 		{
-			GL( BufferSubData( TypeGL, Offset, Size, BufferData + Offset ) );
+			GL( BufferSubData( TypeGL, Offset, Size, BufferData ) );
 		}
 	}
 
@@ -1675,14 +1675,7 @@ void RsContextGL::drawPrimitives(
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
-
-#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
-	if( GLEW_KHR_debug )
-	{
-		glPushDebugGroup( GL_DEBUG_SOURCE_APPLICATION, 0, BcStrLength( GeometryBinding->getDebugName() ), GeometryBinding->getDebugName() );
-	}
-#endif
-
+	
 	bindGeometry( Program, GeometryBinding, 0 );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
@@ -1724,13 +1717,6 @@ void RsContextGL::drawPrimitives(
 		MemoryBarrier_ = 0;
 	}
 #endif // !defined( RENDER_USE_GLES )
-
-#if !defined( RENDER_USE_GLES )
-	if( GLEW_KHR_debug )
-	{
-		glPopDebugGroup();
-	}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1752,13 +1738,6 @@ void RsContextGL::drawIndexedPrimitives(
 	const auto* Program = ProgramBinding->getProgram();
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
-
-#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
-	if( GLEW_KHR_debug )
-	{
-		glPushDebugGroup( GL_DEBUG_SOURCE_APPLICATION, 0, BcStrLength( GeometryBinding->getDebugName() ), GeometryBinding->getDebugName() );
-	}
-#endif
 
 	bindProgram( Program );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
@@ -1854,13 +1833,6 @@ void RsContextGL::drawIndexedPrimitives(
 		MemoryBarrier_ = 0;
 	}
 #endif // !defined( RENDER_USE_GLES )	
-
-#if !defined( RENDER_USE_GLES )
-	if( GLEW_KHR_debug )
-	{
-		glPopDebugGroup();
-	}
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

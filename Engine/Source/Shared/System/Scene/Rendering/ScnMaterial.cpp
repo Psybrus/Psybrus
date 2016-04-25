@@ -189,6 +189,13 @@ ScnTextureRef ScnMaterial::getTexture( BcName Name )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// hasPermutation
+bool ScnMaterial::hasPermutation( ScnShaderPermutationFlags PermutationFlags )
+{
+	return Shader_->hasPermutation( PermutationFlags );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getProgram
 RsProgram* ScnMaterial::getProgram( ScnShaderPermutationFlags PermutationFlags )
 {

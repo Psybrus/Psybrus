@@ -39,13 +39,6 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceT
 
 		GL( GenTextures( 1, &Handle_ ) );
 
-#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
-		if( GLEW_KHR_debug )
-		{
-			glObjectLabel( GL_TEXTURE, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
-		}
-#endif
-
 		// Bind texture.
 		ContextGL->bindTexture( 0, Parent_ );
 		
@@ -106,7 +99,15 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceT
 				}
 			}
 		}
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_TEXTURE, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
+		}
+#endif
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////

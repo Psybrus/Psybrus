@@ -101,6 +101,20 @@ void ScnShader::destroy()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// hasPermutation
+bool ScnShader::hasPermutation( ScnShaderPermutationFlags PermutationFlags )
+{
+	for( auto It : ProgramMap_ )
+	{
+		if( BcContainsAllFlags( It.first, PermutationFlags ) )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getProgram
 RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 {

@@ -163,6 +163,8 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 			ShaderPermutation |= ModelComponent->IsLit_ ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
 			ShaderPermutation |= View->getRenderPermutation();
 
+			IsInstancable &= Material->hasPermutation( ScnShaderPermutationFlags::MESH_INSTANCED_3D );
+
 			auto Program = Material->getProgram( ShaderPermutation );
 			BcAssert( Program );
 			auto ProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
@@ -420,7 +422,8 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 		auto Model = Component->Model_.get();
 
 		BcBool DrawNonInstanced = BcTrue;
-		if( Model != LastModel )
+		static bool DoInstancing = true;
+		if( DoInstancing )
 		{
 			LastModel = Model;
 
@@ -456,73 +459,76 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 						BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 						auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
 						auto InstancedModel = InstancedComponent->Model_.get();
-						if( InstancedModel != LastModel || NoofInstances >= MAX_INSTANCES )
+						if( InstancedModel != LastModel )
 						{
 							break;
 						}
+
 						LastModel = InstancedModel;
-
-						// TODO: Batch updates.
-						auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
-						for( BcU32 UniformIdx = 0; UniformIdx < InstancedComponent->Uniforms_.size(); ++UniformIdx )
+						if( NoofInstances < MAX_INSTANCES )
 						{
-							auto& Uniform = InstancedComponent->Uniforms_[ UniformIdx ];
-							auto UniformBufferIt = UniformBuffers.find( Uniform.Class_ );
-							if( UniformBufferIt != UniformBuffers.end() )
+							// TODO: Batch updates.
+							auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
+							for( BcU32 UniformIdx = 0; UniformIdx < InstancedComponent->Uniforms_.size(); ++UniformIdx )
 							{
-								auto Size = Uniform.Class_->getSize();
-								auto Offset = Size * NoofInstances;
+								auto& Uniform = InstancedComponent->Uniforms_[ UniformIdx ];
+								auto UniformBufferIt = UniformBuffers.find( Uniform.Class_ );
+								if( UniformBufferIt != UniformBuffers.end() )
+								{
+									auto Size = Uniform.Class_->getSize();
+									auto Offset = Size * NoofInstances;
 
-								RsCore::pImpl()->updateBuffer(
-									UniformBufferIt->second, Offset, Size, 
-									RsResourceUpdateFlags::ASYNC,
-									[ Size, Data = Uniform.Data_.getData< BcU8 >() ]
-									( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-									{
-										BcMemCopy( BufferLock.Buffer_, Data, sizeof( Size ) );
-									} );
+									RsCore::pImpl()->updateBuffer(
+										UniformBufferIt->second, Offset, Size, 
+										RsResourceUpdateFlags::ASYNC,
+										[ Size, Data = Uniform.Data_.getData< BcU8 >() ]
+										( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+										{
+											BcMemCopy( BufferLock.Buffer_, Data, Size );
+										} );
+								}
 							}
-						}
 
-						// Do object uniform.
-						{
-							auto UniformBufferIt = UniformBuffers.find( ScnShaderObjectUniformBlockData::StaticGetClass() );
-							if( UniformBufferIt != UniformBuffers.end() )
+							// Do object uniform.
 							{
-								auto Size = sizeof( ScnShaderObjectUniformBlockData );
-								auto Offset = Size * NoofInstances;
+								auto UniformBufferIt = UniformBuffers.find( ScnShaderObjectUniformBlockData::StaticGetClass() );
+								if( UniformBufferIt != UniformBuffers.end() )
+								{
+									auto Size = sizeof( ScnShaderObjectUniformBlockData );
+									auto Offset = Size * NoofInstances;
 
-								ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIndex_ ];
+									ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIndex_ ];
 
-								RenderContext.pFrame_->queueRenderNode( Sort,
-									[
-										Buffer = UniformBufferIt->second, 
-										Offset, 
-										Size, 
-										pNodeTransformData
-									]
-									( RsContext* Context )
-									{
-										Context->updateBuffer( Buffer, Offset, Size,
-											RsResourceUpdateFlags::ASYNC,
-											[ pNodeTransformData ]
-											( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-											{
-												PSY_PROFILE_FUNCTION;
-												ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( BufferLock.Buffer_ );
+									RenderContext.pFrame_->queueRenderNode( Sort,
+										[
+											Buffer = UniformBufferIt->second, 
+											Offset, 
+											Size, 
+											pNodeTransformData
+										]
+										( RsContext* Context )
+										{
+											Context->updateBuffer( Buffer, Offset, Size,
+												RsResourceUpdateFlags::ASYNC,
+												[ pNodeTransformData ]
+												( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+												{
+													PSY_PROFILE_FUNCTION;
+													ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( BufferLock.Buffer_ );
 										
-												// World matrix.
-												ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
+													// World matrix.
+													ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
 
-												// Normal matrix.
-												ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
-												ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
+													// Normal matrix.
+													ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
+													ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
 #if 0 // Normal when using non-uniform scaling are broken without this. Consider implementing it as optional?
-												ObjectUniformBlock->NormalTransform_.inverse();
-												ObjectUniformBlock->NormalTransform_.transpose();
+													ObjectUniformBlock->NormalTransform_.inverse();
+													ObjectUniformBlock->NormalTransform_.transpose();
 #endif
-											} );
-									} );
+												} );
+										} );
+								}
 							}
 						}
 
