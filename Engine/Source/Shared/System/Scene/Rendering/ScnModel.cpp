@@ -459,7 +459,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 						BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 						auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
 						auto InstancedModel = InstancedComponent->Model_.get();
-						if( InstancedModel != LastModel )
+						if( InstancedModel != LastModel || NoofInstances >= MAX_INSTANCES )
 						{
 							break;
 						}
@@ -477,14 +477,25 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 								{
 									auto Size = Uniform.Class_->getSize();
 									auto Offset = Size * NoofInstances;
+									auto Buffer = UniformBufferIt->second;
 
-									RsCore::pImpl()->updateBuffer(
-										UniformBufferIt->second, Offset, Size, 
-										RsResourceUpdateFlags::ASYNC,
-										[ Size, Data = Uniform.Data_.getData< BcU8 >() ]
-										( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+									// TODO: Copy data into queue?
+									RenderContext.pFrame_->queueRenderNode( Sort,
+										[
+											Buffer,
+											Offset, 
+											Size,
+											Data = Uniform.Data_.getData< BcU8 >()
+										]
+										( RsContext* Context )
 										{
-											BcMemCopy( BufferLock.Buffer_, Data, Size );
+											Context->updateBuffer( Buffer, Offset, Size, 
+												RsResourceUpdateFlags::ASYNC,
+												[ Size, Data ]
+												( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+												{
+													BcMemCopy( BufferLock.Buffer_, Data, Size );
+												} );
 										} );
 								}
 							}
@@ -499,6 +510,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 
 									ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIndex_ ];
 
+									// TODO: Copy pNodeTransformData into queue?
 									RenderContext.pFrame_->queueRenderNode( Sort,
 										[
 											Buffer = UniformBufferIt->second, 
