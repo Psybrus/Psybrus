@@ -404,16 +404,23 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 	}
 
 	// Sort.
-	std::sort( ComponentRenderDatas_.begin(), ComponentRenderDatas_.end(), 
-		[]( const ScnViewComponentRenderData& A, const ScnViewComponentRenderData& B )
-		{
-			BcAssert( A.Component_->isTypeOf< ScnModelComponent >() );
-			BcAssert( B.Component_->isTypeOf< ScnModelComponent >() );
-			return static_cast< ScnModelComponent* >( A.Component_ )->Model_->getName() < static_cast< ScnModelComponent* >( B.Component_ )->Model_->getName();
-		} );
+	if( SortingEnabled_ )
+	{
+		BcTimer Time;
+		Time.mark();
+		std::sort( ComponentRenderDatas_.begin(), ComponentRenderDatas_.end(), 
+			[]( const ScnViewComponentRenderData& A, const ScnViewComponentRenderData& B )
+			{
+				BcAssert( A.Component_->isTypeOf< ScnModelComponent >() );
+				BcAssert( B.Component_->isTypeOf< ScnModelComponent >() );
+				return static_cast< ScnModelComponent* >( A.Component_ )->Model_->getName() < static_cast< ScnModelComponent* >( B.Component_ )->Model_->getName();
+			} );
+		SortingTime_ += Time.time();
+	}
 
 	// Render.
 	ScnModel* LastModel = nullptr;
+	ModelsRendered_ += ComponentRenderDatas_.size();
 	for( BcU32 IdxA = 0; IdxA < ComponentRenderDatas_.size(); ++IdxA )
 	{
 		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ IdxA ] );
@@ -422,8 +429,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 		auto Model = Component->Model_.get();
 
 		BcBool DrawNonInstanced = BcTrue;
-		static bool DoInstancing = true;
-		if( DoInstancing )
+		if( InstancingEnabled_ )
 		{
 			LastModel = Model;
 
@@ -579,6 +585,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 									static_cast< BcU32 >( VertexBufferOffset ),
 									0, NoofInstances );
 							} );
+						++DrawCalls_;
 						DrawNonInstanced = BcFalse;
 					}
 				}
@@ -659,6 +666,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 							static_cast< BcU32 >( VertexBufferOffset ),
 							0, 1 );
 					} );
+				++DrawCalls_;
 			}
 		}
 	}
@@ -779,22 +787,47 @@ void ScnModelProcessor::updateModels( const ScnComponentList& Components )
 #if !PSY_PRODUCTION
 	if ( ImGui::Begin( "Engine Debug" ) )
 	{
-		if( ImGui::TreeNode( "ScnModelComponent" ) )
+		if( ImGui::TreeNode( "ScnModelProcessor" ) )
 		{
 			const BcF32 UpdateTime = static_cast< BcF32 >( Timer.time() ) * 1000.0f;
-			ImGui::Checkbox( "Enable jobs", &UseJobs );
-			ImGui::Text( "Time: %f ms", UpdateTime );
+			if( ImGui::TreeNode( "Update", "Update Time: %f ms", UpdateTime ) )
+			{
+				static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+				static int GraphPointIdx = 0;
+				GraphPoints[ GraphPointIdx ] = UpdateTime;
+				GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+				ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+				ImGui::TreePop();
+			}
+			const BcF32 SortTime = static_cast< BcF32 >( SortingTime_ * 1000.0 );
+			if( ImGui::TreeNode( "Sort", "Sort Time: %f ms", SortTime ) )
+			{
+				static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+				static int GraphPointIdx = 0;
+				GraphPoints[ GraphPointIdx ] = SortTime;
+				GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+				ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+				ImGui::TreePop();
+			}
 			ImGui::Text( "Components: %u", Components.size() );
 			ImGui::Text( "Nodes: %u", NoofNodes );
+			ImGui::Text( "Models Rendered: %u", ModelsRendered_ );
+			ImGui::Text( "Total Draw Calls: %u", DrawCalls_ );
 
-			static std::array< BcF32, 256 > GraphPoints = { 0.0f };
-			static int GraphPointIdx = 0;
-			GraphPoints[ GraphPointIdx ] = UpdateTime;
-			GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
-			ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
-
-
+			ImGui::Checkbox( "Enable Jobs", &UseJobs );
 			ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob );
+			
+			bool SortingEnabled = !!SortingEnabled_;
+			bool InstancingEnabled = !!InstancingEnabled_;
+			if( ImGui::Checkbox( "Sorting Enabled", &SortingEnabled ) )
+			{
+				SortingEnabled_ = SortingEnabled;
+			}
+			if( ImGui::Checkbox( "Instancing Enabled", &InstancingEnabled ) )
+			{
+				InstancingEnabled_ = InstancingEnabled;
+			}
+
 			ImGui::Separator();
 			ImGui::TreePop();
 		}
@@ -802,6 +835,9 @@ void ScnModelProcessor::updateModels( const ScnComponentList& Components )
 	ImGui::End();
 #endif
 
+	ModelsRendered_ = 0;
+	DrawCalls_ = 0;
+	SortingTime_ = 0.0f;
 }
 
 //////////////////////////////////////////////////////////////////////////

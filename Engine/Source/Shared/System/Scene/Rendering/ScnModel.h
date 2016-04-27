@@ -79,6 +79,12 @@ private:
 
 	// TODO: Better container.
 	std::map< std::pair< const ScnViewComponent*, const ScnModel* >, InstancingData > InstancingData_;	
+
+	BcBool SortingEnabled_ = BcTrue;
+	BcBool InstancingEnabled_ = BcTrue;
+	BcU32 ModelsRendered_ = 0;
+	BcU32 DrawCalls_ = 0;
+	BcF64 SortingTime_ = 0.0;
 };
 
 //////////////////////////////////////////////////////////////////////////
