@@ -87,6 +87,11 @@ public:
 	RsRenderState* getRenderState();
 
 	/**
+	 * Get all automatic uniforms.
+	 */
+	std::vector< BcName > getAutomaticUniforms() const;
+
+	/**
 	 * Create uniform buffer.
 	 * @return Uniform buffer. If nullptr, then material doesn't have uniform buffer.
 	 */

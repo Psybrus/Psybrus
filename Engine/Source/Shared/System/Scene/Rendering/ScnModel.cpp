@@ -1279,8 +1279,15 @@ void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* Un
 		ScnViewProcessor::pImpl()->resetViewRenderData( this );
 	}
 
-	// Copy into intermedate.
-	memcpy( FoundIt->Data_.getData< BcU8 >(), UniformData, Size );
+	// Copy into intermedate, or construct default.
+	if( UniformData != nullptr )
+	{
+		memcpy( FoundIt->Data_.getData< BcU8 >(), UniformData, Size );
+	}
+	else
+	{
+		UniformClass->construct< BcU8 >( FoundIt->Data_.getData< BcU8 >() );
+	}
 	UniformData = FoundIt->Data_.getData< BcU8 >();
 
 	// Copy into buffer.
@@ -1483,6 +1490,34 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	pNodeTransformData_ = new ScnModelNodeTransformData[ NoofNodes ];
 	BcMemCopy( pNodeTransformData_, Model_->pNodeTransformData_, sizeof( ScnModelNodeTransformData ) * NoofNodes );
 
+	// Create automatic uniform buffers from all materials where they haven't
+	// been set already.
+	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
+	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
+	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
+	{
+		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
+		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+		auto Material = pMeshRuntime->MaterialRef_;
+
+		auto AutomaticUniforms = Material->getAutomaticUniforms();
+		for( auto AutomaticUniform : AutomaticUniforms )
+		{
+			const ReClass* UniformClass = ReManager::GetClass( AutomaticUniform );
+			auto FoundIt = std::find_if( Uniforms_.begin(), Uniforms_.end(),
+				[ UniformClass ]( const ScnModelUniforms& Uniform )
+			{
+				return Uniform.Class_ == UniformClass;
+			} );
+
+			if( FoundIt == Uniforms_.end() )
+			{
+				// TODO: Don't use nullptr (default), but get from material?
+				setUniforms( UniformClass, nullptr );
+			}
+		}
+	}
+
 	// Create uniform buffers.
 	for( auto& Uniform : Uniforms_ )
 	{
@@ -1506,7 +1541,6 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	}
 
 	// Create material instances to render with.
-	ScnModelMeshRuntimeList& MeshRuntimes = Model_->MeshRuntimes_;
 	ScnMaterialComponentRef MaterialComponentRef;
 	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )

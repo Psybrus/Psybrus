@@ -258,6 +258,19 @@ RsRenderState* ScnMaterial::getRenderState()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getAutomaticUniforms
+std::vector< BcName > ScnMaterial::getAutomaticUniforms() const
+{
+	std::vector< BcName > Uniforms;
+	Uniforms.reserve( AutomaticUniformBlocks_.size() );
+	for( auto It : AutomaticUniformBlocks_ )
+	{
+		Uniforms.emplace_back( It.first );
+	}
+	return Uniforms;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // createUniformBuffer
 RsBufferUPtr ScnMaterial::createUniformBuffer( const ReClass* UniformBuffer, const BcChar* DebugName ) const
 {
