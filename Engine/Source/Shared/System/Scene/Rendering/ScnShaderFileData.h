@@ -212,7 +212,7 @@ struct ScnShaderMaterialUniformBlockData
 	BcF32 MaterialMetallic_ = 1.0f;
 	BcF32 MaterialSpecular_ = 1.0f;
 	BcF32 MaterialRoughness_ = 1.0f;
-	BcF32 MaterialUnused_;
+	BcF32 MaterialUnused_ = 0.0f;
 };
 
 //////////////////////////////////////////////////////////////////////////
