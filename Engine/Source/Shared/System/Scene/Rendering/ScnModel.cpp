@@ -276,7 +276,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 						{
 							auto InstancedProgramBindingDesc = Material->getProgramBinding( ShaderPermutation );
 
-							RsBuffer* UniformBuffer = nullptr;
+							InstancingData::UniformBuffer UniformBuffer;
 							auto& UniformBuffers = InstancingData.UniformBuffers_;
 
 							// Setup instanced uniform buffers.
@@ -288,7 +288,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 									BcU32 Size = static_cast< BcU32 >( Uniform.Class_->getSize() ) * MAX_INSTANCES;
 									if( UniformBuffers.find( Uniform.Class_ ) == UniformBuffers.end() ) 
 									{
-										UniformBuffer = RsCore::pImpl()->createBuffer(
+										UniformBuffer.Buffer_ = RsCore::pImpl()->createBuffer(
 											RsBufferDesc(
 												RsResourceBindFlags::UNIFORM_BUFFER,
 												RsResourceCreationFlags::STREAM,
@@ -296,7 +296,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 										UniformBuffers.insert( std::make_pair( Uniform.Class_, UniformBuffer ) );
 									}
 									UniformBuffer = UniformBuffers.find( Uniform.Class_ )->second;
-									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer, 0, Size );
+									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer.Buffer_, 0, Size );
 
 									auto* Attribute = Uniform.Class_->getAttribute< ScnShaderDataAttribute >();
 									BcAssert( Attribute->isInstancable() );
@@ -312,7 +312,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 									BcU32 Size = static_cast< BcU32 >( sizeof( ScnShaderObjectUniformBlockData ) ) * MAX_INSTANCES;
 									if( UniformBuffers.find( Class ) == UniformBuffers.end() ) 
 									{
-										UniformBuffer = RsCore::pImpl()->createBuffer(
+										UniformBuffer.Buffer_ = RsCore::pImpl()->createBuffer(
 											RsBufferDesc(
 												RsResourceBindFlags::UNIFORM_BUFFER,
 												RsResourceCreationFlags::STREAM,
@@ -321,7 +321,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 									}
 									UniformBuffer = UniformBuffers.find( Class )->second;
 
-									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer, 0, Size );
+									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer.Buffer_, 0, Size );
 
 									auto* Attribute = ScnShaderObjectUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
 									BcAssert( Attribute->isInstancable() );
@@ -376,7 +376,7 @@ void ScnModelProcessor::destroyViewRenderData( class ScnComponent* Component, cl
 		
 			for( auto Buffer : InstancingData.UniformBuffers_ )
 			{
-				RsCore::pImpl()->destroyResource( Buffer.second );
+				RsCore::pImpl()->destroyResource( Buffer.second.Buffer_ );
 			}
 			InstancingData_.erase( InstancingDataIt );
 		}
@@ -459,6 +459,15 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 
 					// Iterate until end, then draw.
 					NoofInstances = 0;
+
+					// Allocate memory on frame for uniform uploads.
+					auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
+					for( auto& UniformBufferIt : UniformBuffers )
+					{
+						auto BufferSize = UniformBufferIt.second.Buffer_->getDesc().SizeBytes_;
+						UniformBufferIt.second.UploadBuffer_ = reinterpret_cast< BcU8* >( RenderContext.pFrame_->allocMem( BufferSize ) );
+					}
+
 					for( BcU32 IdxB = IdxA; IdxB < ComponentRenderDatas_.size(); ++IdxB )
 					{
 						const ScnViewComponentRenderData& InstancedComponentRenderData( ComponentRenderDatas_[ IdxB ] );
@@ -471,6 +480,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 						}
 
 						LastModel = InstancedModel;
+
 						if( NoofInstances < MAX_INSTANCES )
 						{
 							// TODO: Batch updates.
@@ -483,26 +493,10 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 								{
 									auto Size = Uniform.Class_->getSize();
 									auto Offset = Size * NoofInstances;
-									auto Buffer = UniformBufferIt->second;
+									auto UniformBuffer = UniformBufferIt->second;
 
-									// TODO: Copy data into queue?
-									RenderContext.pFrame_->queueRenderNode( Sort,
-										[
-											Buffer,
-											Offset, 
-											Size,
-											Data = Uniform.Data_.getData< BcU8 >()
-										]
-										( RsContext* Context )
-										{
-											Context->updateBuffer( Buffer, Offset, Size, 
-												RsResourceUpdateFlags::ASYNC,
-												[ Size, Data ]
-												( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-												{
-													BcMemCopy( BufferLock.Buffer_, Data, Size );
-												} );
-										} );
+									BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, Uniform.Data_.getData< BcU8 >(), Size );
+									int a = 0; ++a;
 								}
 							}
 
@@ -513,41 +507,40 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 								{
 									auto Size = sizeof( ScnShaderObjectUniformBlockData );
 									auto Offset = Size * NoofInstances;
+									auto UniformBuffer = UniformBufferIt->second;
 
+									ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( UniformBuffer.UploadBuffer_ + Offset );
 									ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIndex_ ];
 
-									// TODO: Copy pNodeTransformData into queue?
-									RenderContext.pFrame_->queueRenderNode( Sort,
-										[
-											Buffer = UniformBufferIt->second, 
-											Offset, 
-											Size, 
-											pNodeTransformData
-										]
-										( RsContext* Context )
-										{
-											Context->updateBuffer( Buffer, Offset, Size,
-												RsResourceUpdateFlags::ASYNC,
-												[ pNodeTransformData ]
-												( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-												{
-													PSY_PROFILE_FUNCTION;
-													ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( BufferLock.Buffer_ );
-										
-													// World matrix.
-													ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
+									// World matrix.
+									ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
 
-													// Normal matrix.
-													ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
-													ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
+									// Normal matrix.
+									ObjectUniformBlock->NormalTransform_ = pNodeTransformData->WorldTransform_;
+									ObjectUniformBlock->NormalTransform_.translation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
 #if 0 // Normal when using non-uniform scaling are broken without this. Consider implementing it as optional?
-													ObjectUniformBlock->NormalTransform_.inverse();
-													ObjectUniformBlock->NormalTransform_.transpose();
+									ObjectUniformBlock->NormalTransform_.inverse();
+									ObjectUniformBlock->NormalTransform_.transpose();
 #endif
-												} );
-										} );
 								}
 							}
+
+							// Do lighting uniform.
+							if( InstancedComponent->IsLit_ )
+							{
+								auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
+								if( UniformBufferIt != UniformBuffers.end() )
+								{
+									auto Size = sizeof( ScnShaderLightUniformBlockData );
+									auto Offset = Size * NoofInstances;
+									auto UniformBuffer = UniformBufferIt->second;
+
+									ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+									ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+									BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
+								}
+							}
+
 						}
 
 						NoofInstances++;
@@ -555,6 +548,31 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 
 					if( NoofInstances > 0 )
 					{
+						// Upload all uniforms.
+						auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
+						for( auto& UniformBufferIt : UniformBuffers )
+						{
+							auto UniformBuffer = UniformBufferIt.second;
+							auto Size = UniformBuffer.Buffer_->getDesc().SizeBytes_;
+							auto Data = UniformBuffer.UploadBuffer_;
+
+							RenderContext.pFrame_->queueRenderNode( Sort,
+								[
+									Buffer = UniformBuffer.Buffer_,
+									Size, Data
+								]
+								( RsContext* Context )
+								{
+									Context->updateBuffer( Buffer, 0, Size, 
+										RsResourceUpdateFlags::ASYNC,
+										[ Size, Data ]
+										( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+										{
+											BcMemCopy( BufferLock.Buffer_, Data, Size );
+										} );
+								} );
+						}
+
 						// Render primitive.
 						RenderContext.pFrame_->queueRenderNode( Sort,
 							[

@@ -72,8 +72,14 @@ private:
 
 	struct InstancingData
 	{
+		struct UniformBuffer
+		{
+			RsBuffer* Buffer_ = nullptr;
+			BcU8* UploadBuffer_ = nullptr;
+		};
+
 		BcU32 RefCount_ = 0;
-		std::unordered_map< const ReClass*, RsBuffer* > UniformBuffers_;
+		std::unordered_map< const ReClass*, UniformBuffer > UniformBuffers_;
 		std::vector< RsProgramBinding* > ProgramBindings_; 
 	};
 
