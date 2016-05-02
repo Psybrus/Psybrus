@@ -2,7 +2,14 @@
 #define __PSYBRUSVERTICES_PSH__
 
 #include <PsybrusUtility.psh>
-#include <PsybrusUniforms.psh>
+
+// Generated headers.
+#include <UniformView.psh>
+#if defined( PERM_MESH_STATIC_3D ) || defined( PERM_MESH_INSTANCED_3D )
+#  include <UniformObject.psh>
+#elif defined( PERM_MESH_SKINNED_3D )
+#  include <UniformBone.psh>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Input attributes for GLSL

@@ -303,8 +303,9 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 								}
 							}
 
-							BcAssert( !pMeshData->IsSkinned_ );
+							// Object uniforms.
 							{
+								BcAssert( !pMeshData->IsSkinned_ );
 								auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderObjectUniformBlockDataInstanced" );
 								if( Slot != BcErrorCode )
 								{
@@ -327,6 +328,32 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 									BcAssert( Attribute->isInstancable() );
 								}
 							}
+
+							// Light uniforms.
+							{
+								auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderLightUniformBlockDataInstanced" );
+								if( Slot != BcErrorCode )
+								{
+									const ReClass* Class = ScnShaderLightUniformBlockData::StaticGetClass();
+									BcU32 Size = static_cast< BcU32 >( sizeof( ScnShaderLightUniformBlockData ) ) * MAX_INSTANCES;
+									if( UniformBuffers.find( Class ) == UniformBuffers.end() ) 
+									{
+										UniformBuffer.Buffer_ = RsCore::pImpl()->createBuffer(
+											RsBufferDesc(
+												RsResourceBindFlags::UNIFORM_BUFFER,
+												RsResourceCreationFlags::STREAM,
+												Size ), DebugNameCStr ).release();
+										UniformBuffers.insert( std::make_pair( Class, UniformBuffer ) );
+									}
+									UniformBuffer = UniformBuffers.find( Class )->second;
+
+									InstancedProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer.Buffer_, 0, Size );
+
+									auto* Attribute = ScnShaderLightUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
+									BcAssert( Attribute->isInstancable() );
+								}
+							}
+
 
 							// Setup view uniform buffer.
 							{

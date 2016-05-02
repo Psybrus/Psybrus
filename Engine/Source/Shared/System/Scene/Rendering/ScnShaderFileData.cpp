@@ -15,7 +15,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderDataAttribute
-REFLECTION_DEFINE_DERIVED( ScnShaderDataAttribute, ReAttribute );
+REFLECTION_DEFINE_DERIVED( ScnShaderDataAttribute );
 
 void ScnShaderDataAttribute::StaticRegisterClass()
 {
@@ -83,7 +83,7 @@ void ScnShaderLightUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderLightUniformBlockData >( Fields );
-	Class.addAttribute( new ScnShaderDataAttribute( "Light", BcFalse ) );
+	Class.addAttribute( new ScnShaderDataAttribute( "Light", BcTrue ) );
 	Class.setFlags( bcRFF_POD );
 }
 

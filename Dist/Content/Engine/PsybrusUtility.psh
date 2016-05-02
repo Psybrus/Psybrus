@@ -2,7 +2,9 @@
 #define __PSYBRUSUTILITY_PSH__
 
 #include <PsybrusVersion.psh>
-#include <PsybrusUniforms.psh>
+
+// Generated header.
+#include <UniformView.psh>
 
 //////////////////////////////////////////////////////////////////////////
 // transpose & mul

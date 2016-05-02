@@ -1,7 +1,8 @@
 #ifndef __PSYBRUSLIGHTING_PSH__
 #define __PSYBRUSLIGHTING_PSH__
 
-#include <PsybrusUniforms.psh>
+// Generated header.
+#include <UniformLight.psh>
 
 #define LIGHTING_EPSILON  ( 1e-6 )
 
