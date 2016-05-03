@@ -175,7 +175,7 @@ public:
 	/**
 	 * Set if model is lit.
 	 */
-	void setLit( bool Lit ) { IsLit_ = Lit; updateInstancingHash(); }
+	void setLit( bool Lit ) { IsLit_ = Lit; }
 
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
@@ -186,11 +186,9 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	MaAABB getAABB() const { return AABB_; }
-	BcU32 getInstancingHash() const { return InstancingHash_; }
 	bool isInstancingMatch( const ScnModelComponent& Other ) const
 	{
-		return getInstancingHash() == Other.getInstancingHash() &&
-			Model_ == Other.Model_ &&
+		return Model_ == Other.Model_ &&
 			Layer_ == Other.Layer_ &&
 			IsLit_ == Other.IsLit_;
 	}
@@ -211,13 +209,11 @@ protected:
 	/// Used to specify what kind of object it is for selectively rendering with certain views.
 	BcU32 RenderMask_;
 	/// Does this need to be lit?
-	bool IsLit_;
+	BcBool IsLit_;
 	/// Render permutation flags that this renderable supports.
 	ScnShaderPermutationFlags RenderPermutations_;
 	/// Sort pass flags that this renderable supports.
 	RsRenderSortPassFlags Passes_;
-	/// Hash to sort and mark for instancing.
-	BcU32 InstancingHash_;
 
 	typedef std::vector< ScnModelUniforms > TMaterialUniforms;
 	TMaterialUniforms Uniforms_;

@@ -442,8 +442,8 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 				BcAssert( B.Component_->isTypeOf< ScnModelComponent >() );
 				const auto* ComponentA = static_cast< ScnModelComponent* >( A.Component_ );
 				const auto* ComponentB = static_cast< ScnModelComponent* >( B.Component_ );
-				return std::make_tuple( ComponentA->getInstancingHash(), ComponentA->Model_ ) < 
-					std::make_tuple( ComponentB->getInstancingHash(), ComponentB->Model_ );
+				return std::make_tuple( ComponentA->Layer_, ComponentA->IsLit_, ComponentA->Model_ ) < 
+					std::make_tuple( ComponentB->Layer_, ComponentB->IsLit_, ComponentB->Model_ );
 			} );
 		SortingTime_ += Time.time();
 	}
@@ -1269,24 +1269,6 @@ void ScnModelComponent::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// updateInstancingHash
-//virtual
-void ScnModelComponent::updateInstancingHash()
-{
-	BcU32 InstancingHash = 0;
-
-	std::string NameValue = Model_->getName().getValue();
-	BcU32 NameID = Model_->getName().getID();
-	BcHash::GenerateCRC32( InstancingHash, NameValue.c_str(), NameValue.size() );
-	BcHash::GenerateCRC32( InstancingHash, &NameID, sizeof( NameID ) );
-	
-	BcHash::GenerateCRC32( InstancingHash, &Layer_, sizeof( Layer_ ) );
-	BcHash::GenerateCRC32( InstancingHash, &IsLit_, sizeof( IsLit_ ) );
-
-	InstancingHash_ = InstancingHash;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // findNodeIndexByName
 BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 {
@@ -1664,9 +1646,6 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Update nodes.
 	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
-
-	// Update instancing hash.
-	updateInstancingHash();
 }
 
 //////////////////////////////////////////////////////////////////////////
