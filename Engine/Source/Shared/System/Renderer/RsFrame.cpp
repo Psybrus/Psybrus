@@ -22,7 +22,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsFrame::RsFrame( RsContext* pContext, BcU32 NoofNodes, BcU32 NodeMem )
+RsFrame::RsFrame( RsContext* pContext, BcU32 NoofNodes, BcSize NodeMem )
 {
 	pContext_ = pContext;
 
@@ -131,7 +131,7 @@ void* RsFrame::allocMem( BcSize Bytes )
 	Bytes = BcCalcAlignment( static_cast< BcU64 >( Bytes ), static_cast< BcU64 >( 64 ) );
 	BcU8* pMem = pCurrFrameMem_;
 	pCurrFrameMem_ += Bytes;
-	BcAssertMsg( BcU32( pCurrFrameMem_ - pMem ) < FrameBytes_, "RsFrame: Out of memory." );
+	BcAssertMsg( BcSize( pCurrFrameMem_ - pFrameMem_ ) < FrameBytes_, "RsFrame: Out of memory." );
 	return pMem;
 }
 
