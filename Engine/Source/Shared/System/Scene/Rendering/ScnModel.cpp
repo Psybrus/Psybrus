@@ -440,25 +440,28 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 			{
 				BcAssert( A.Component_->isTypeOf< ScnModelComponent >() );
 				BcAssert( B.Component_->isTypeOf< ScnModelComponent >() );
-				return static_cast< ScnModelComponent* >( A.Component_ )->Model_->getName() < static_cast< ScnModelComponent* >( B.Component_ )->Model_->getName();
+				const auto* ComponentA = static_cast< ScnModelComponent* >( A.Component_ );
+				const auto* ComponentB = static_cast< ScnModelComponent* >( B.Component_ );
+				return std::make_tuple( ComponentA->getInstancingHash(), ComponentA->Model_ ) < 
+					std::make_tuple( ComponentB->getInstancingHash(), ComponentB->Model_ );
 			} );
 		SortingTime_ += Time.time();
 	}
 
 	// Render.
-	ScnModel* LastModel = nullptr;
+	ScnModelComponent* LastModelComponent = nullptr;
 	ModelsRendered_ += ComponentRenderDatas_.size();
 	for( BcU32 IdxA = 0; IdxA < ComponentRenderDatas_.size(); ++IdxA )
 	{
 		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ IdxA ] );
 		BcAssert( ComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 		auto Component = static_cast< ScnModelComponent* >( ComponentRenderData.Component_ );
-		auto Model = Component->Model_.get();
+		auto Model = Component->Model_;
 
 		BcBool DrawNonInstanced = BcTrue;
 		if( InstancingEnabled_ )
 		{
-			LastModel = Model;
+			LastModelComponent = Component;
 
 			// Determine if we can instance.
 			auto ViewModelPair = std::make_pair( RenderContext.pViewComponent_, Model );
@@ -487,29 +490,40 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 					// Iterate until end, then draw.
 					NoofInstances = 0;
 
-					// Allocate memory on frame for uniform uploads.
-					auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
-					for( auto& UniformBufferIt : UniformBuffers )
-					{
-						auto BufferSize = UniformBufferIt.second.Buffer_->getDesc().SizeBytes_;
-						UniformBufferIt.second.UploadBuffer_ = reinterpret_cast< BcU8* >( RenderContext.pFrame_->allocMem( BufferSize ) );
-					}
-
 					for( BcU32 IdxB = IdxA; IdxB < ComponentRenderDatas_.size(); ++IdxB )
 					{
 						const ScnViewComponentRenderData& InstancedComponentRenderData( ComponentRenderDatas_[ IdxB ] );
 						BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 						auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
 						auto InstancedModel = InstancedComponent->Model_.get();
-						if( InstancedModel != LastModel || NoofInstances >= MAX_INSTANCES )
+						if( !LastModelComponent->isInstancingMatch( *InstancedComponent ) || NoofInstances >= MAX_INSTANCES )
 						{
 							break;
 						}
 
-						LastModel = InstancedModel;
+						LastModelComponent = InstancedComponent;
+						NoofInstances++;
+					}
 
-						if( NoofInstances < MAX_INSTANCES )
+					if( NoofInstances > 0 )
+					{
+						// Allocate memory on frame for uniform uploads.
+						auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
+						for( auto& UniformBufferIt : UniformBuffers )
 						{
+							auto BufferSize = UniformBufferIt.second.Buffer_->getDesc().SizeBytes_;
+							BufferSize = ( BufferSize / MAX_INSTANCES ) * NoofInstances; 
+							UniformBufferIt.second.UploadBuffer_ = reinterpret_cast< BcU8* >( RenderContext.pFrame_->allocMem( BufferSize ) );
+						}
+
+						for( BcU32 IdxB = 0; IdxB < NoofInstances; ++IdxB )
+						{
+							
+							const ScnViewComponentRenderData& InstancedComponentRenderData( ComponentRenderDatas_[ IdxA + IdxB ] );
+							BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
+							auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
+							auto InstancedModel = InstancedComponent->Model_.get();
+
 							// TODO: Batch updates.
 							auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
 							for( BcU32 UniformIdx = 0; UniformIdx < InstancedComponent->Uniforms_.size(); ++UniformIdx )
@@ -519,11 +533,10 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 								if( UniformBufferIt != UniformBuffers.end() )
 								{
 									auto Size = Uniform.Class_->getSize();
-									auto Offset = Size * NoofInstances;
+									auto Offset = Size * IdxB;
 									auto UniformBuffer = UniformBufferIt->second;
 
 									BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, Uniform.Data_.getData< BcU8 >(), Size );
-									int a = 0; ++a;
 								}
 							}
 
@@ -533,7 +546,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 								if( UniformBufferIt != UniformBuffers.end() )
 								{
 									auto Size = sizeof( ScnShaderObjectUniformBlockData );
-									auto Offset = Size * NoofInstances;
+									auto Offset = Size * IdxB;
 									auto UniformBuffer = UniformBufferIt->second;
 
 									ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( UniformBuffer.UploadBuffer_ + Offset );
@@ -550,37 +563,31 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 									ObjectUniformBlock->NormalTransform_.transpose();
 #endif
 								}
-							}
 
-							// Do lighting uniform.
-							if( InstancedComponent->IsLit_ )
-							{
-								auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
-								if( UniformBufferIt != UniformBuffers.end() )
+								// Do lighting uniform.
+								if( InstancedComponent->IsLit_ )
 								{
-									auto Size = sizeof( ScnShaderLightUniformBlockData );
-									auto Offset = Size * NoofInstances;
-									auto UniformBuffer = UniformBufferIt->second;
+									auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
+									if( UniformBufferIt != UniformBuffers.end() )
+									{
+										auto Size = sizeof( ScnShaderLightUniformBlockData );
+										auto Offset = Size * IdxB;
+										auto UniformBuffer = UniformBufferIt->second;
 
-									ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
-									ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
-									BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
+										ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+										ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+										BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
+									}
 								}
-							}
 
+							}
 						}
 
-						NoofInstances++;
-					}
-
-					if( NoofInstances > 0 )
-					{
 						// Upload all uniforms.
-						auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
 						for( auto& UniformBufferIt : UniformBuffers )
 						{
 							auto UniformBuffer = UniformBufferIt.second;
-							auto Size = UniformBuffer.Buffer_->getDesc().SizeBytes_;
+							auto Size = ( UniformBuffer.Buffer_->getDesc().SizeBytes_ / MAX_INSTANCES ) * NoofInstances;
 							auto Data = UniformBuffer.UploadBuffer_;
 
 							RenderContext.pFrame_->queueRenderNode( Sort,
@@ -1262,11 +1269,21 @@ void ScnModelComponent::initialise()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getAABB
+// updateInstancingHash
 //virtual
-MaAABB ScnModelComponent::getAABB() const
+void ScnModelComponent::updateInstancingHash()
 {
-	return AABB_;
+	BcU32 InstancingHash = 0;
+
+	std::string NameValue = Model_->getName().getValue();
+	BcU32 NameID = Model_->getName().getID();
+	BcHash::GenerateCRC32( InstancingHash, NameValue.c_str(), NameValue.size() );
+	BcHash::GenerateCRC32( InstancingHash, &NameID, sizeof( NameID ) );
+	
+	BcHash::GenerateCRC32( InstancingHash, &Layer_, sizeof( Layer_ ) );
+	BcHash::GenerateCRC32( InstancingHash, &IsLit_, sizeof( IsLit_ ) );
+
+	InstancingHash_ = InstancingHash;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1647,6 +1664,9 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Update nodes.
 	updateNodes( BaseTransform_ * getParentEntity()->getWorldMatrix() );
+
+	// Update instancing hash.
+	updateInstancingHash();
 }
 
 //////////////////////////////////////////////////////////////////////////

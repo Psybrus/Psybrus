@@ -81,8 +81,8 @@ void ScnViewVisibilityTreeNode::reinsertLeaf( ScnViewVisibilityLeaf* Leaf )
 			for( BcU32 i = 0; i < 8; ++i )
 			{
 				ScnViewVisibilityTreeNode* ChildNode = static_cast< ScnViewVisibilityTreeNode* >( pChild( i ) );
-
-				MaAABB::eClassify Classification = ChildNode->getAABB().classify( Leaf->AABB_ );
+				const MaAABB ChildAABB = ChildNode->getAABB();
+				MaAABB::eClassify Classification = ChildAABB.classify( Leaf->AABB_ );
 
 				// If its spanning, don't attempt any other children.
 				if( Classification == MaAABB::bcBC_SPANNING )
@@ -138,7 +138,7 @@ void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, 
 	for( auto* Leaf : LeafList_ )
 	{
 		if( Leaf->AABB_.isEmpty() ||
-			getAABB().classify( Leaf->AABB_ ) != MaAABB::bcBC_OUTSIDE )
+			View->intersect( Leaf->AABB_ ) )
 		{
 			OutLeaves.push_back( Leaf );
 		}

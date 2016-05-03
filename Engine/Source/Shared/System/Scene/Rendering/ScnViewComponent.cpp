@@ -112,6 +112,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 			Leaf->RenderInterface_->getAABB( &AABB, &Leaf->Component_, 1 );
 			if( Leaf->AABB_.min() != AABB.min() || Leaf->AABB_.max() != AABB.max() )
 			{
+				Leaf->AABB_ = AABB;
 				Leaf->Node_->reinsertLeaf( Leaf );
 			}
 		}
