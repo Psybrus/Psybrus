@@ -170,12 +170,12 @@ public:
 	/**
 	 * Is this model component lit?
 	 */
-	bool isLit() const { return IsLit_; }
+	BcBool isLit() const { return IsLit_; }
 
 	/**
 	 * Set if model is lit.
 	 */
-	void setLit( bool Lit ) { IsLit_ = Lit; }
+	void setLit( BcBool Lit ) { IsLit_ = Lit; }
 
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
