@@ -360,6 +360,7 @@ void RsContextD3D12::create()
 	Features_.Texture3D_ = true;
 	Features_.TextureCube_ = true;
 	Features_.ComputeShaders_ = true;
+	Features_.Instancing_ = true;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
