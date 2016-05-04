@@ -144,10 +144,12 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 	auto* Model = ModelComponent->Model_.get();
 	auto ViewModelPair = std::make_pair( View, Model );
 
+	const auto & Features = RsCore::pImpl()->getContext( nullptr )->getFeatures();
+
 	// Setup program binding for all materials.
 	ScnModelMeshRuntimeList& MeshRuntimes = ModelComponent->Model_->MeshRuntimes_;
 	ViewRenderData->MaterialBindings_.resize( MeshRuntimes.size() );
-	BcBool IsInstancable = BcTrue;
+	BcBool IsInstancable = Features.Instancing_;
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
 		auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];

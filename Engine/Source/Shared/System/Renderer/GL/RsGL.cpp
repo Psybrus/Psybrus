@@ -78,6 +78,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( getCombinedVersion() >= 0x00030000 )
 		{
 			Features_.MRT_ = true;
+			Features_.Instancing_ = true;
 
 			Features_.Texture1D_ = true;
 			Features_.Texture2D_ = true;
