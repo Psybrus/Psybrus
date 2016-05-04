@@ -171,6 +171,11 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 				}
 			}
 
+			{
+				PSY_PROFILER_SECTION( RootSort, "Setup view" );
+				ViewData->View_->setup( pFrame, Sort );
+			}
+
 			if( DoGather )
 			{
 				PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
@@ -239,11 +244,6 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 						ProcessingGroups_.push_back( Group );
 					}
 				}
-			}
-
-			{
-				PSY_PROFILER_SECTION( RootSort, "Bind view" );
-				ViewData->View_->bind( pFrame, Sort );
 			}
 
 			{
@@ -684,8 +684,8 @@ RsRenderSortPassType ScnViewComponent::getSortPassType( RsRenderSortPassFlags So
 }
 
 //////////////////////////////////////////////////////////////////////////
-// bind
-void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
+// setup
+void ScnViewComponent::setup( RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Calculate the viewport.
 	BcF32 Width = static_cast< BcF32 >( pFrame->getBackBufferWidth() );

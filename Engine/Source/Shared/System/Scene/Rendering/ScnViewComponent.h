@@ -145,7 +145,7 @@ public:
 	 */
 	RsRenderSortPassType getSortPassType( RsRenderSortPassFlags SortPassFlags, ScnShaderPermutationFlags PermutationFlags ) const;
 
-virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
+	void setup( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
 	const BcU32 getRenderMask() const { return RenderMask_; }
