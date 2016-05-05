@@ -8,7 +8,6 @@ local WITH_XAUDIO2 = 0
 local WITH_WINMM = 0
 local WITH_WASAPI = 0
 local WITH_OSS = 0
-local WITH_LIBMODPLUG = 0
 local WITH_PORTMIDI = 0
 local WITH_TOOLS = 0
 local WITH_NULL = 1
@@ -81,11 +80,6 @@ local buildroot = ""
 
 if PsyProjectExternalLib( "SoLoud", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
-
-	defines { "MODPLUG_STATIC" }
-if (WITH_LIBMODPLUG == 1) then
-	defines { "WITH_MODPLUG" }
-end		
 
 	configuration { "osx-*" }
 		flags {	"EnableSSE2" }
