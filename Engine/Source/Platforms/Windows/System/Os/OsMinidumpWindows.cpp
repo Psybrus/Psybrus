@@ -158,7 +158,7 @@ LONG OsMinidumpWindows::writeMiniDump( _EXCEPTION_POINTERS* pExceptionInfo )
 	delete BcLog::pImpl();
 
 	//
-	::TerminateProcess( GetCurrentProcess(), 0 );
+	::TerminateProcess( GetCurrentProcess(), 1 );
 
 	return RetVal;
 }
