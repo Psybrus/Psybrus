@@ -99,7 +99,15 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceT
 				}
 			}
 		}
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_TEXTURE, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
+		}
+#endif
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////

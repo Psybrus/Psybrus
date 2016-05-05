@@ -189,6 +189,13 @@ ScnTextureRef ScnMaterial::getTexture( BcName Name )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// hasPermutation
+bool ScnMaterial::hasPermutation( ScnShaderPermutationFlags PermutationFlags )
+{
+	return Shader_->hasPermutation( PermutationFlags );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getProgram
 RsProgram* ScnMaterial::getProgram( ScnShaderPermutationFlags PermutationFlags )
 {
@@ -200,6 +207,8 @@ RsProgram* ScnMaterial::getProgram( ScnShaderPermutationFlags PermutationFlags )
 RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags PermutationFlags )
 {
 	auto* Program = Shader_->getProgram( PermutationFlags );
+	BcAssert( Program );
+
 	RsProgramBindingDesc ProgramBindingDesc;
 
 	for( auto Iter( TextureMap_.begin() ); Iter != TextureMap_.end(); ++Iter )
@@ -234,7 +243,7 @@ RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags P
 		BcU32 Slot = Program->findUniformBufferSlot( (*UniformBufferName).c_str() );
 		if( Slot != BcErrorCode )
 		{
-			ProgramBindingDesc.setUniformBuffer( Slot, Buffer );
+			ProgramBindingDesc.setUniformBuffer( Slot, Buffer, 0, Buffer->getDesc().SizeBytes_ );
 		}
 	}
 
@@ -246,6 +255,19 @@ RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags P
 RsRenderState* ScnMaterial::getRenderState()
 {
 	return RenderState_.get();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAutomaticUniforms
+std::vector< BcName > ScnMaterial::getAutomaticUniforms() const
+{
+	std::vector< BcName > Uniforms;
+	Uniforms.reserve( AutomaticUniformBlocks_.size() );
+	for( auto It : AutomaticUniformBlocks_ )
+	{
+		Uniforms.emplace_back( It.first );
+	}
+	return Uniforms;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -514,7 +536,7 @@ void ScnMaterialComponent::setUniformBlock( BcU32 Slot, RsBuffer* UniformBuffer 
 {
 	if( Slot != BcErrorCode )
 	{
-		if( ProgramBindingDesc_.setUniformBuffer( Slot, UniformBuffer ) )
+		if( ProgramBindingDesc_.setUniformBuffer( Slot, UniformBuffer, 0, UniformBuffer->getDesc().SizeBytes_ ) )
 		{
 			ProgramBinding_.reset();
 		}

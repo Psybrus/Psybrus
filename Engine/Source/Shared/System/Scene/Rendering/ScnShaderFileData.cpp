@@ -14,6 +14,36 @@
 #include "System/Scene/Rendering/ScnShaderFileData.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderDataAttribute
+REFLECTION_DEFINE_DERIVED( ScnShaderDataAttribute );
+
+void ScnShaderDataAttribute::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "IsInstancable_", &ScnShaderDataAttribute::IsInstancable_ ),
+	};
+		
+	ReRegisterClass< ScnShaderDataAttribute >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnShaderDataAttribute::ScnShaderDataAttribute( BcName Name, BcBool IsInstancable ):
+	IsInstancable_( IsInstancable )
+{
+	setName( Name );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnShaderDataAttribute::~ScnShaderDataAttribute()
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderViewUniformBlockData
 REFLECTION_DEFINE_BASIC( ScnShaderViewUniformBlockData );
 
@@ -32,7 +62,9 @@ void ScnShaderViewUniformBlockData::StaticRegisterClass()
 		new ReField( "NearFar_", &ScnShaderViewUniformBlockData::NearFar_ ),
 	};
 		
-	ReRegisterClass< ScnShaderViewUniformBlockData >( Fields );
+	auto& Class = ReRegisterClass< ScnShaderViewUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "View", BcFalse ) );
+	Class.setFlags( bcRFF_POD );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,6 +83,7 @@ void ScnShaderLightUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderLightUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "Light", BcTrue ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -66,9 +99,11 @@ void ScnShaderMaterialUniformBlockData::StaticRegisterClass()
 		new ReField( "MaterialMetallic_", &ScnShaderMaterialUniformBlockData::MaterialMetallic_ ),
 		new ReField( "MaterialSpecular_", &ScnShaderMaterialUniformBlockData::MaterialSpecular_ ),
 		new ReField( "MaterialRoughness_", &ScnShaderMaterialUniformBlockData::MaterialRoughness_ ),
+		new ReField( "MaterialUnused_", &ScnShaderMaterialUniformBlockData::MaterialUnused_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderMaterialUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "Material", BcTrue ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -85,6 +120,7 @@ void ScnShaderObjectUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderObjectUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "Object", BcTrue ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -100,6 +136,7 @@ void ScnShaderBoneUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderBoneUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "Bone", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -115,6 +152,7 @@ void ScnShaderAlphaTestUniformBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderAlphaTestUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "AlphaTest", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -131,6 +169,7 @@ void ScnShaderPostProcessConfigData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderPostProcessConfigData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessConfig", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -146,6 +185,7 @@ void ScnShaderPostProcessCopyBlockData::StaticRegisterClass()
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderPostProcessCopyBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessCopy", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
@@ -159,8 +199,10 @@ void ScnShaderPostProcessBlurBlockData::StaticRegisterClass()
 	{
 		new ReField( "TextureDimensions_", &ScnShaderPostProcessBlurBlockData::TextureDimensions_ ),
 		new ReField( "Radius_", &ScnShaderPostProcessBlurBlockData::Radius_ ),
+		new ReField( "BlurUnused_", &ScnShaderPostProcessBlurBlockData::BlurUnused_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderPostProcessBlurBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessBlur", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }

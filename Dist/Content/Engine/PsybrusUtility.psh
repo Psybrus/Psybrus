@@ -2,7 +2,9 @@
 #define __PSYBRUSUTILITY_PSH__
 
 #include <PsybrusVersion.psh>
-#include <PsybrusTypes.psh>
+
+// Generated header.
+#include <UniformView.psh>
 
 //////////////////////////////////////////////////////////////////////////
 // transpose & mul
@@ -211,5 +213,18 @@ float linearDepth( float DepthSample, float Near, float Far )
 	DepthSample = 2.0 * DepthSample - 1.0;
 	return ( 2.0 * ( Near * Far ) ) / ( ( Near + Far ) - DepthSample * ( Far - Near ) );
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// Misc.
+float3 getViewPosition()
+{
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+	return float3( InverseViewTransform_[0].w, InverseViewTransform_[1].w, InverseViewTransform_[2].w );
+#else
+	return InverseViewTransform_[3].xyz;
+#endif
+}
+
 
 #endif // __PSYBRUSUTILITY_PSH__

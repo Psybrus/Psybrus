@@ -274,6 +274,7 @@ RsRenderStateUPtr RsCoreImpl::createRenderState(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createRenderState: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	RsRenderStateUPtr Resource( new RsRenderState( Context, Desc ) );
@@ -301,6 +302,7 @@ RsSamplerStateUPtr RsCoreImpl::createSamplerState(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createSamplerState: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	RsSamplerStateUPtr Resource( new RsSamplerState( Context, Desc ) );
@@ -328,6 +330,7 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createFrameBuffer: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	RsFrameBufferUPtr Resource( new RsFrameBuffer( Context, Desc ) );
@@ -363,6 +366,7 @@ RsTextureUPtr RsCoreImpl::createTexture(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createTexture: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	const auto& Features = Context->getFeatures();
@@ -400,6 +404,7 @@ RsVertexDeclarationUPtr RsCoreImpl::createVertexDeclaration(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createVertexDeclaration: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	RsVertexDeclarationUPtr Resource( new RsVertexDeclaration( Context, Desc ) );
@@ -428,6 +433,7 @@ RsBufferUPtr RsCoreImpl::createBuffer(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createBuffer: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	RsBufferUPtr Resource( new RsBuffer( Context, Desc ) );
@@ -457,6 +463,7 @@ RsShaderUPtr RsCoreImpl::createShader(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createShader: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 	RsShaderUPtr Resource( new RsShader( Context, Desc, pShaderData, ShaderDataSize ) );
@@ -487,6 +494,7 @@ RsProgramUPtr RsCoreImpl::createProgram(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createProgram: %s", DebugName );
 
 	auto Context = getContext( nullptr );
 
@@ -532,6 +540,8 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createProgramBinding: %s", DebugName );
+
 	auto Context = getContext( nullptr );
 
 	BcAssert( Program );
@@ -557,6 +567,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 	std::lock_guard< std::mutex > Lock( AliveLock_ );
 	AliveProgramBindings_.insert( Resource.get() );
 #endif
+
 	return Resource;
 }
 
@@ -569,6 +580,8 @@ RsGeometryBindingUPtr RsCoreImpl::createGeometryBinding(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createGeometryBinding: %s", DebugName );
+
 	auto Context = getContext( nullptr );
 
 	RsGeometryBindingUPtr Resource( new RsGeometryBinding(
@@ -712,7 +725,7 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 
 				for( const auto& UniformBuffer : Desc.UniformBuffers_ )
 				{
-					BcAssertMsg( UniformBuffer != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a uniform buffer.", 
+					BcAssertMsg( UniformBuffer.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a uniform buffer.", 
 						Buffer->getDebugName(),
 						ProgramBinding->getDebugName() );
 				}

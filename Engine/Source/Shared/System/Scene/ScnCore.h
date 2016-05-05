@@ -132,8 +132,6 @@ private:
 	const ScnComponentList& getComponentList( const ReClass* Class ) const;
 
 private:
-	class ScnSpatialTree* pSpatialTree_;
-
 	/// Do we perform an update?
 	BcBool UpdateEnabled_;
 	/// Should we step a single update?

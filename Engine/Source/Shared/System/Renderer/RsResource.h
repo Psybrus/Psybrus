@@ -57,7 +57,7 @@ public:
 	virtual ~RsResource();
 
 	/**
-	 * Gt resource type.
+	 * Get resource type.
 	 */
 	RsResourceType getResourceType() const { return ResourceType_; }
 

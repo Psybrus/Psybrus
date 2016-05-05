@@ -32,6 +32,7 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportVAOs_( false ),
 	SupportSamplerStates_( false ),
 	SupportUniformBuffers_( false ),
+	SupportUniformBufferOffset_( false ),
 	SupportImageLoadStore_( false ),
 	SupportShaderStorageBufferObjects_( false ),
 	SupportProgramInterfaceQuery_( false ),
@@ -39,8 +40,11 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportTesselationShaders_( false ),
 	SupportComputeShaders_( false ),
 	SupportDrawElementsBaseVertex_( false ),
+	SupportDrawInstanced_( false ),
+	SupportDrawInstancedBaseInstance_( false ),
 	SupportBlitFrameBuffer_( false ),
 	SupportCopyImageSubData_( false ),
+	MaxVaryingFloats_( 0 ),
 	MaxTextureSlots_( 0 ),
 	MaxTextureAnisotropy_( 0.0f )
 {
@@ -74,6 +78,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( getCombinedVersion() >= 0x00030000 )
 		{
 			Features_.MRT_ = true;
+			Features_.Instancing_ = true;
 
 			Features_.Texture1D_ = true;
 			Features_.Texture2D_ = true;
@@ -130,6 +135,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			SupportPolygonMode_ = true;
 			SupportVAOs_ = true;
+			SupportBindBufferRange_ = true;
 		}
 
 		// 3.1
@@ -137,6 +143,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		{
 			SupportUniformBuffers_ = true;
 			SupportGeometryShaders_ = true;
+			SupportDrawInstanced_ = true;
 		}
 
 		// 3.2
@@ -148,6 +155,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		// 3.3
 		if( getCombinedVersion() >= 0x00030003 )
 		{
+			SupportUniformBufferOffset_ = true;
 			SupportSamplerStates_ = true;
 			SupportBlitFrameBuffer_ = true;
 		}
@@ -168,6 +176,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 		if( getCombinedVersion() >= 0x00040002 )
 		{
 			SupportImageLoadStore_ = true;
+			SupportDrawInstancedBaseInstance_ = true;
 		}
 
 		// 4.3
@@ -295,6 +304,14 @@ void RsOpenGLVersion::setupFeatureSupport()
 			SupportVAOs_ |= HaveExtension( "OES_vertex_array_object" );
 
 			SupportDrawElementsBaseVertex_ |= HaveExtension( "EXT_draw_elements_base_vertex" );
+
+			SupportDrawInstanced_ |= 
+				HaveExtension( "ANGLE_instanced_arrays" ) ||
+				HaveExtension( "OES_instanced_arrays" );
+
+			SupportDrawInstancedBaseInstance_ |= 
+				HaveExtension( "ARB_base_instance" ) ||
+				HaveExtension( "ARB_base_instance" );
 		}
 
 		break;
@@ -303,6 +320,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 	// General shared.
 	Features_.ComputeShaders_ = SupportComputeShaders_;
 
+
+	glGetIntegerv( GL_MAX_VARYING_FLOATS, &MaxVaryingFloats_ );
+	PSY_LOG( "GL_MAX_VARYING_FLOATS: %u", MaxVaryingFloats_ );
 
 	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &MaxTextureSlots_ );
 	PSY_LOG( "GL_MAX_TEXTURE_IMAGE_UNITS: %u", MaxTextureSlots_ );

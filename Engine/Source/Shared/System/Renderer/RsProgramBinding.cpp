@@ -6,14 +6,16 @@
 // Ctor
 RsProgramBindingDesc::RsProgramBindingDesc()
 {
-	UniformBuffers_.fill( nullptr );
 	SamplerStates_.fill( nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setUniformBuffer
-bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer )
+bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer, BcU32 Offset, BcU32 Size )
 {
+	BcAssert( Size > 0 );
+	BcAssert( ( Offset + Size ) <= Buffer->getDesc().SizeBytes_ );
+
 	bool RetVal = false;
 	if( Slot < UniformBuffers_.size() )
 	{
@@ -21,8 +23,10 @@ bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer 
 		{
 			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE );
 		}
-		RetVal |= UniformBuffers_[ Slot ] != Buffer;
-		UniformBuffers_[ Slot ] = Buffer;
+		RetVal |= UniformBuffers_[ Slot ].Buffer_ != Buffer || UniformBuffers_[ Slot ].Offset_ != Offset || UniformBuffers_[ Slot ].Size_ != Size;
+		UniformBuffers_[ Slot ].Buffer_ = Buffer;
+		UniformBuffers_[ Slot ].Offset_ = Offset;
+		UniformBuffers_[ Slot ].Size_ = Size;
 	}
 	else
 	{

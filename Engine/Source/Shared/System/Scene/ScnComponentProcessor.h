@@ -122,6 +122,16 @@ public:
 	virtual void shutdown();
 
 	/**
+	 * When component is attached to scene.
+	 */
+	virtual void onAttach( ScnComponent* Component );
+
+	/**
+	 * When component is detached from scene.
+	 */
+	virtual void onDetach( ScnComponent* Component );
+
+	/**
 	 * Called to get the process funcs.
 	 * By default it will register preUpdate, update, and postUpdate
 	 * calls to emulate the original. Override to implement your own.

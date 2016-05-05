@@ -333,7 +333,8 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer,
 					&Viewport,
 					nullptr,
-					RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6 );
+					RsTopologyType::TRIANGLE_LIST, 0, NoofParticlesToRender * 6,
+					0, 1 );
 			} );
 	}
 }
@@ -353,19 +354,20 @@ class ScnViewRenderData* ScnParticleSystemComponent::createViewRenderData( class
 		auto Slot = Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockData" );
 		if( Slot != BcErrorCode )
 		{	
-			ProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer_.get() );
+			ProgramBindingDesc.setUniformBuffer( Slot, UniformBuffer_.get(), 0, sizeof( ScnShaderObjectUniformBlockData ) );
 		}
 	}
 	{
 		auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 		if( Slot != BcErrorCode )
 		{	
-			ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer() );
+			ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
 		}
 	}
 	ViewRenderData->ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 	ViewRenderData->RenderState_ = Material_->getRenderState();
 
+	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 

@@ -43,6 +43,7 @@ public:
 	void create() override;
 	void destroy() override;
 	
+	bool hasPermutation( ScnShaderPermutationFlags PermutationFlags );
 	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
 	
 private:

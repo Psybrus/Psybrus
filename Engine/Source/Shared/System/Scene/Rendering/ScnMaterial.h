@@ -64,6 +64,11 @@ public:
 	ScnTextureRef getTexture( BcName Name );
 
 	/**
+	 * Check if material has permutation.
+	 */
+	bool hasPermutation( ScnShaderPermutationFlags PermutationFlags );
+
+	/**
 	 * Get program.
 	 */
 	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
@@ -80,6 +85,11 @@ public:
 	 * @return Render state from this material component.
 	 */
 	RsRenderState* getRenderState();
+
+	/**
+	 * Get all automatic uniforms.
+	 */
+	std::vector< BcName > getAutomaticUniforms() const;
 
 	/**
 	 * Create uniform buffer.

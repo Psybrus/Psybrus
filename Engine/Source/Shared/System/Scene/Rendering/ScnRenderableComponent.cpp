@@ -23,6 +23,96 @@
 #include "System/Renderer/RsCore.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Processor
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnRenderableProcessor::ScnRenderableProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnRenderableProcessor::~ScnRenderableProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnRenderableProcessor::initialise()
+{
+	ScnViewProcessor::pImpl()->registerRenderInterface( ScnRenderableComponent::StaticGetClass(), this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shutdown
+void ScnRenderableProcessor::shutdown()
+{
+	ScnViewProcessor::pImpl()->deregisterRenderInterface( ScnRenderableComponent::StaticGetClass(), this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createViewRenderData
+class ScnViewRenderData* ScnRenderableProcessor::createViewRenderData( class ScnComponent* Component, class ScnViewComponent* View )
+{
+	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+	return static_cast< ScnRenderableComponent* >( Component )->createViewRenderData( View );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyViewRenderData
+void ScnRenderableProcessor::destroyViewRenderData( class ScnComponent* Component, class ScnViewComponent* View, ScnViewRenderData* ViewRenderData )
+{
+	BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+	static_cast< ScnRenderableComponent* >( Component )->destroyViewRenderData( View, ViewRenderData );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// render
+void ScnRenderableProcessor::render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext & RenderContext )
+{
+	for( BcU32 Idx = 0; Idx< NoofComponents; ++Idx )
+	{
+		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas[ Idx ] );
+		ScnComponent* Component = ComponentRenderData.Component_;
+		BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+		auto RenderableComponent = static_cast< ScnRenderableComponent* >( Component );
+		auto* ViewRenderData = ComponentRenderData.ViewRenderData_;
+		if( ViewRenderData )
+		{
+			RenderContext.ViewRenderData_ = ViewRenderData;
+			RenderContext.Sort_.Pass_ = BcU64( ViewRenderData->getSortPassType() );
+			RenderableComponent->render( RenderContext );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+void ScnRenderableProcessor::getAABB( MaAABB* OutAABBs, class ScnComponent** Components, BcU32 NoofComponents )
+{
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[ Idx ];
+		BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+		OutAABBs[ Idx ] = static_cast< ScnRenderableComponent* >( Component )->getAABB();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderMask
+void ScnRenderableProcessor::getRenderMask( BcU32* OutRenderMasks, class ScnComponent** Components, BcU32 NoofComponents )
+{
+	for( BcU32 Idx = 0; Idx < NoofComponents; ++Idx )
+	{
+		ScnComponent* Component = Components[ Idx ];
+		BcAssert( Component->isTypeOf< ScnRenderableComponent >() );
+		OutRenderMasks[ Idx ] = static_cast< ScnRenderableComponent* >( Component )->getRenderMask();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnRenderableComponent );
 
@@ -37,7 +127,7 @@ void ScnRenderableComponent::StaticRegisterClass()
 	};
 	
 	ReRegisterClass< ScnRenderableComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor() );
+		.addAttribute( new ScnRenderableProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,78 +150,21 @@ ScnRenderableComponent::~ScnRenderableComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// onAttachComponent
-void ScnRenderableComponent::onAttachComponent( class ScnComponent* Component )
-{
-
-}
-
-//////////////////////////////////////////////////////////////////////////
-// onDetachComponent
-void ScnRenderableComponent::onDetachComponent( class ScnComponent* Component )
-{
-	if( Component->isTypeOf< ScnViewComponent >() )
-	{
-		auto* ViewComponent = static_cast< ScnViewComponent* >( Component );
-		resetViewRenderData( ViewComponent );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
 // createViewRenderData
 //virtual
 ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewComponent* View )
 {
-	return new ScnViewRenderData();
+	auto RetVal = new ScnViewRenderData();
+	RetVal->setSortPassType( getSortPassType( View ) );
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyViewRenderData
 //virtual
-void ScnRenderableComponent::destroyViewRenderData( ScnViewRenderData* ViewRenderData )
+void ScnRenderableComponent::destroyViewRenderData( class ScnViewComponent* View, ScnViewRenderData* ViewRenderData )
 {
 	delete ViewRenderData;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getViewRenderData
-class ScnViewRenderData* ScnRenderableComponent::getViewRenderData( class ScnViewComponent* ViewComponent )
-{
-	auto FoundIt = ViewRenderData_.find( ViewComponent );
-	if( FoundIt == ViewRenderData_.end() )
-	{
-		ScnViewRenderData* ViewRenderData = nullptr;
-		auto SortPassType = getSortPassType( ViewComponent );
-		if( SortPassType != RsRenderSortPassType::INVALID )
-		{
-			ViewRenderData = createViewRenderData( ViewComponent );
-			if( ViewRenderData )
-			{
-				ViewRenderData->setSortPassType( SortPassType );
-			}
-		}	
-		ViewRenderData_.insert( std::make_pair( ViewComponent, ViewRenderData ) );
-		return ViewRenderData;
-	}
-	return FoundIt->second;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// resetViewRenderData
-void ScnRenderableComponent::resetViewRenderData( ScnViewComponent* ViewComponent )
-{
-	for( auto ViewRenderDataIt = ViewRenderData_.begin(); ViewRenderDataIt != ViewRenderData_.end(); )
-	{
-		if( ViewComponent == nullptr || ViewRenderDataIt->first == ViewComponent )
-		{
-			destroyViewRenderData( ViewRenderDataIt->second );
-			ViewRenderDataIt = ViewRenderData_.erase( ViewRenderDataIt );
-		}
-		else
-		{
-			++ViewRenderDataIt;
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,6 +173,14 @@ void ScnRenderableComponent::resetViewRenderData( ScnViewComponent* ViewComponen
 void ScnRenderableComponent::render( ScnRenderContext & RenderContext )
 {
 	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getAABB
+//virtual
+MaAABB ScnRenderableComponent::getAABB() const
+{
+	return MaAABB();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,17 +202,6 @@ const BcU32 ScnRenderableComponent::getRenderMask() const
 //virtual
 void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	// TODO: Add type of component to callback.
-	ScnCore::pImpl()->addCallback( this );
-
-	// HACK: Subscribe for resize event to reset bindings incase anything needs to be rebound.
-	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
-		{
-			resetViewRenderData( nullptr );
-			return evtRET_PASS;
-		} );
-
 	Super::onAttach( Parent );
 }
 
@@ -180,12 +210,6 @@ void ScnRenderableComponent::onAttach( ScnEntityWeakRef Parent )
 //virtual
 void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 {
-	OsCore::pImpl()->unsubscribeAll( this );
-	ScnCore::pImpl()->removeCallback( this );
-
-	// Reset all view render data.
-	resetViewRenderData( nullptr );
-
 	Super::onDetach( Parent );
 }
 

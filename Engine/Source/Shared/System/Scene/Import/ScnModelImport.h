@@ -48,18 +48,8 @@ class ScnModelMaterialDesc
 	REFLECTION_DECLARE_BASIC( ScnModelMaterialDesc );
 
 	ScnModelMaterialDesc(){}
-	ScnModelMaterialDesc( ScnModelMaterialDesc&& Other )
-	{
-		using std::swap;
-		swap( Regex_, Other.Regex_ );
-		swap( TemplateMaterial_, Other.TemplateMaterial_ );
-		swap( Material_, Other.Material_ );
-	}
-	~ScnModelMaterialDesc()
-	{ 
-		delete TemplateMaterial_;
-		TemplateMaterial_ = nullptr;
-	}
+	ScnModelMaterialDesc( ScnModelMaterialDesc&& Other );
+	~ScnModelMaterialDesc();
 
 	std::string Regex_;
 	class ScnMaterialImport* TemplateMaterial_ = nullptr;
@@ -118,6 +108,7 @@ private:
 private:
 	std::string Source_;
 	std::vector< ScnModelMaterialDesc > Materials_;
+	BcBool FlattenHierarchy_ = BcFalse;
 
 	std::map< std::string, CsCrossRefId > AddedMaterials_;
 

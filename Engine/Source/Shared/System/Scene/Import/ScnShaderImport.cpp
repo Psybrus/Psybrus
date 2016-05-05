@@ -18,6 +18,9 @@
 #include "System/SysKernel.h"
 
 #include "Base/BcStream.h"
+#include "Math/MaQuat.h"
+
+#include "System/Renderer/RsTypes.h"
 
 #define EXCLUDE_PSTDINT
 #include <glsl/glsl_optimizer.h>
@@ -74,10 +77,10 @@ namespace
 		ScnShaderPermutationGroup( GPermutationsLightingType ),
 	};
 
-	static BcU32 GNoofPermutationGroups = ( sizeof( GPermutationGroups ) / sizeof( GPermutationGroups[ 0 ] ) );
+	static const BcU32 GNoofPermutationGroups = ( sizeof( GPermutationGroups ) / sizeof( GPermutationGroups[ 0 ] ) );
 
 	// NOTE: Put these in the order that HLSLCC needs to build them.
-	static ScnShaderLevelEntry GShaderLevelEntries[] =
+	static const ScnShaderLevelEntry GShaderLevelEntries[] =
 	{
 		{ "ps_4_0_level_9_1", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_1 },
 		{ "ps_4_0_level_9_2", RsShaderType::PIXEL, RsShaderCodeType::D3D11_4_0_LEVEL_9_2 },
@@ -106,7 +109,8 @@ namespace
 		{ "cs_5_0", RsShaderType::COMPUTE, RsShaderCodeType::D3D11_5_0 },
 	};
 
-	static BcU32 GNoofShaderLevelEntries = ( sizeof( GShaderLevelEntries ) / sizeof( GShaderLevelEntries[ 0 ] ) ); 
+	static const BcU32 GNoofShaderLevelEntries = ( sizeof( GShaderLevelEntries ) / sizeof( GShaderLevelEntries[ 0 ] ) ); 
+
 }
 
 #endif // PSY_IMPORT_PIPELINE
@@ -192,6 +196,9 @@ ScnShaderImport::~ScnShaderImport()
 // import
 BcBool ScnShaderImport::import()
 {
+	// Regenerate shader data header.
+	regenerateShaderDataHeader();
+
 #if PSY_IMPORT_PIPELINE
 	if( Source_.empty() && Sources_.empty() )
 	{
@@ -217,11 +224,13 @@ BcBool ScnShaderImport::import()
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( ".\\" );
+	IncludePaths_.push_back( ".\\Content\\Engine\\" );
 	IncludePaths_.push_back( "..\\Psybrus\\Dist\\Content\\Engine\\" );
 #elif PLATFORM_LINUX || PLATFORM_OSX
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( "./" );
+	IncludePaths_.push_back( "./Content/Engine/" );
 	IncludePaths_.push_back( "../Psybrus/Dist/Content/Engine/" );
 #endif
 	
@@ -333,6 +342,305 @@ BcBool ScnShaderImport::import()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// regenerateShaderDataHeader
+void ScnShaderImport::regenerateShaderDataHeader()
+{
+	// Check if we can bail out.
+	static std::atomic< bool > RegeneratedShaderData( false );
+	if( RegeneratedShaderData.exchange( true ) == true )
+	{
+		return;
+	}
+	
+	// Setup class-psf type mapping.
+	ShaderClassMapping_[ ReManager::GetClass< BcU32 >() ] = "uint";
+	ShaderClassMapping_[ ReManager::GetClass< BcS32 >() ] = "int";
+	ShaderClassMapping_[ ReManager::GetClass< BcF32 >() ] = "float";
+	ShaderClassMapping_[ ReManager::GetClass< MaVec2d >() ] = "float2";
+	ShaderClassMapping_[ ReManager::GetClass< MaVec3d >() ] = "float3";
+	ShaderClassMapping_[ ReManager::GetClass< MaVec4d >() ] = "float4";
+	ShaderClassMapping_[ ReManager::GetClass< MaMat4d >() ] = "float4x4";
+	ShaderClassMapping_[ ReManager::GetClass< MaQuat >() ] = "float4";
+	ShaderClassMapping_[ ReManager::GetClass< RsColour >() ] = "float4";
+
+	// Find all classes with the ScnShaderDataAttribute.
+	std::vector< const ReClass* > ShaderDataClasses;
+	CsResourceImporter::addDependency( ScnShaderDataAttribute::StaticGetClass() );
+	auto Classes = ReManager::GetClasses();
+	std::set< BcName > FoundNames;
+	for( const auto* Class : Classes )
+	{
+		if( auto Attribute = Class->getAttribute< ScnShaderDataAttribute >() )
+		{
+			BcAssertMsg( Attribute->getName() != BcName::INVALID, "ScnShaderDataAttribute missing name." );
+			BcAssertMsg( FoundNames.find( Attribute->getName() ) == FoundNames.end(), "ScnShaderDataAttribute \"%s\" already taken.", (*Attribute->getName()).c_str() );
+			ShaderDataClasses.push_back( Class );
+			BcAssert( Class->getFlags() & bcRFF_POD );
+			CsResourceImporter::addDependency( Class );
+		}
+	}
+
+	auto writeShaderClass = [ this ]( RsShaderBackendType OutputBackend, const ReClass* Class, BcU32 MaxInstances, std::string& OutString )
+	{
+		std::array< BcChar, 1024 > OutBuffer;
+		static std::array< const char*, 5 > UniformBufferDecls =
+		{
+			"layout(std140) uniform",
+			nullptr,
+			"cbuffer",
+			"cbuffer",
+			"layout(std140) uniform",
+		};
+
+		auto UniformBufferDecl = UniformBufferDecls[ (int)OutputBackend ];
+
+		const auto* Attribute = Class->getAttribute< ScnShaderDataAttribute >();
+		switch( OutputBackend )
+		{
+			case RsShaderBackendType::D3D11:
+			case RsShaderBackendType::GLSL:
+			{
+				BcAssert( UniformBufferDecl );
+
+				{
+					OutString += std::string( UniformBufferDecl ) + " " + (*Class->getName()) + "\n";
+					OutString += "{\n";
+
+					for( const auto* Field : Class->getFields() )
+					{
+						writeField( OutString, Class, Field, "\t", OutputBackend );
+					}
+
+					OutString += "};\n\n";
+				}
+
+				if( Attribute->isInstancable() )
+				{
+					OutString += "struct " + (*Class->getName()) + "Instance\n";
+					OutString += "{\n";
+
+					for( const auto* Field : Class->getFields() )
+					{
+						writeField( OutString, Class, Field, "\t", OutputBackend );
+					}
+
+					OutString += "};\n\n";
+
+					OutString += std::string( UniformBufferDecl ) + " " + (*Class->getName()) + "Instanced\n";
+					OutString += "{\n";
+
+					BcSPrintf( OutBuffer.data(), OutBuffer.size(), "\t%sInstance %sInstances_[%u];\n",
+						(*Class->getName()).c_str(),
+						(*Attribute->getName()).c_str(),
+						MaxInstances );
+					OutString += OutBuffer.data();
+
+					OutString += "};\n\n";
+				}
+			}
+			break;
+
+			case RsShaderBackendType::GLSL_ES:
+			{
+				for( const auto* Field : Class->getFields() )
+				{
+					writeField( OutString, Class, Field, "\t", OutputBackend );
+
+					BcSPrintf( OutBuffer.data(), OutBuffer.size(), "#define %s %sVS_X%s\n",
+						(*Field->getName()).c_str(),
+						(*Class->getName()).c_str(),
+						(*Field->getName()).c_str() );
+					OutString += OutBuffer.data();
+				}
+
+				OutString += "\n\n";	
+			}
+			break;
+
+			default:
+				BcBreakpoint;
+		}
+	};
+
+	auto writeShaderHeader = [ this, &writeShaderClass ]( const ReClass* Class )
+	{
+		std::array< RsShaderBackendType, 3 > OutputBackends = 
+		{
+			RsShaderBackendType::GLSL_ES,
+			RsShaderBackendType::GLSL,
+			RsShaderBackendType::D3D11,
+		};
+
+		// TODO: Calculate max.
+		const int MAX_INSTANCES = 128;
+
+		std::array< BcChar, 1024 > OutBuffer;
+
+		const auto* Attribute = Class->getAttribute< ScnShaderDataAttribute >();
+
+		// Write out some shaders.
+		std::string OutString;
+		OutString += "// DO NOT MODIFY. Autogenerated by ScnShaderImport::regenerateShaderDataHeader.\n";
+
+		BcSPrintf( OutBuffer.data(), OutBuffer.size(), "#ifndef __Uniform%s_PSH__\n", (*Attribute->getName()).c_str() );
+		OutString += OutBuffer.data();
+		BcSPrintf( OutBuffer.data(), OutBuffer.size(), "#define __Uniform%s_PSH__\n", (*Attribute->getName()).c_str() );
+		OutString += OutBuffer.data();
+
+		OutString += "#include <PsybrusTypes.psh>\n\n";
+
+		CsResourceImporter::addDependency( Class );
+		for( size_t Idx = 0; Idx < OutputBackends.size(); ++Idx )
+		{
+			auto OutputBackend = OutputBackends[ Idx ];
+
+			auto BackendTypeString = RsShaderBackendTypeToString( OutputBackend );
+			BcSPrintf( OutBuffer.data(),  OutBuffer.size(), "#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_%s\n", 
+				BackendTypeString.data() );
+			OutString += OutBuffer.data();
+
+			writeShaderClass( OutputBackend, Class, MAX_INSTANCES, OutString );
+
+			OutString += "#endif\n\n";
+		}
+
+		OutString += "#endif // include guard\n";
+
+		// Check output folder exists.
+		bool ShouldExport = false;
+		if( !BcFileSystemExists( "./Content/Engine" ) )
+		{
+			BcFileSystemCreateDirectories( "./Content/Engine" );
+			ShouldExport = true;
+		}
+
+		// Check if file currently exists.
+		BcSPrintf( OutBuffer.data(), OutBuffer.size(), "./Content/Engine/Uniform%s.psh", (*Attribute->getName()).c_str() );
+		const std::string FileName = OutBuffer.data();
+		if( BcFileSystemExists( FileName.c_str() ) )
+		{
+			BcFile ExistingHeader;
+			if( ExistingHeader.open( FileName.c_str(), bcFM_READ ) )
+			{
+				auto FileData = ExistingHeader.readAllBytes();
+				std::string ExistingString =  reinterpret_cast< const char* >( FileData.get() );
+				ExistingString = BcStrReplace( ExistingString, "\r\n", "\n" ); // Silly windows line endings.
+				if( OutString != ExistingString )
+				{
+					ShouldExport = true;
+				}
+			}
+		}
+		else
+		{
+			ShouldExport = true;
+		}
+
+		if( ShouldExport )
+		{
+			BcFile OutputHeader;
+			if( OutputHeader.open( FileName.c_str(), bcFM_WRITE_TEXT ) )
+			{
+				OutputHeader.write( OutString.data(), OutString.size() );
+			}
+		}
+	};
+
+	// Write out shader headers.
+	for( auto ShaderClass : ShaderDataClasses )
+	{
+		writeShaderHeader( ShaderClass );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// writeField
+void ScnShaderImport::writeField( std::string& OutString, const ReClass* InClass, const ReField* InField, std::string Indentation, RsShaderBackendType OutputBackend )
+{
+	BcU32 FieldSize = static_cast< BcU32 >( InField->getSize() );
+	BcU32 ClassSize = static_cast< BcU32 >( InField->getType()->getSize() );
+	BcU32 NumElements = FieldSize / ClassSize;
+	std::array< BcChar, 1024 > OutBuffer;
+	OutBuffer.fill( 0 );
+
+	// Check if it's a base type.
+	auto It = ShaderClassMapping_.find( InField->getType() );
+	if( It == ShaderClassMapping_.end() )
+	{
+		BcAssertMsg( false, "Nested structs not supported by Psybrus for any current shading language." );
+
+		OutString += Indentation + "struct\n";
+		OutString += Indentation + "{\n";
+		for( const auto* Field : InField->getType()->getFields() )
+		{
+			writeField( OutString, InField->getClass(), Field, Indentation + "\t", OutputBackend );
+		}
+		if( NumElements == 1 )
+		{
+			BcSPrintf( OutBuffer.data(), OutBuffer.size(), 
+				"%s} %s;\n",
+				Indentation.c_str(), 
+				(*InField->getName()).c_str() );
+			OutString += OutBuffer.data();
+		}
+		else
+		{
+			BcSPrintf( OutBuffer.data(), OutBuffer.size(), 
+				"%s} %s[%u];\n",
+				Indentation.c_str(), 
+				(*InField->getName()).c_str(),
+				NumElements );
+			OutString += OutBuffer.data();
+		}
+	}
+	else
+	{
+		if( OutputBackend == RsShaderBackendType::GLSL_ES )
+		{
+			if( NumElements == 1 )
+			{
+				BcSPrintf( OutBuffer.data(), OutBuffer.size(), 
+					"uniform %s %sVS_X%s;\n",
+					It->second.c_str(),
+					(*InClass->getName()).c_str(),
+					(*InField->getName()).c_str() );
+			}
+			else
+			{
+				BcSPrintf( OutBuffer.data(), OutBuffer.size(), 
+					"uniform %s %sVS_X%s[%u];\n",
+					It->second.c_str(),
+					(*InClass->getName()).c_str(),
+					(*InField->getName()).c_str(),
+					NumElements );
+			}
+		}
+		else
+		{
+			if( NumElements == 1 )
+			{
+				BcSPrintf( OutBuffer.data(), OutBuffer.size(), 
+					"%s%s %s;\n",
+					Indentation.c_str(),
+					It->second.c_str(),
+					(*InField->getName()).c_str() );
+			}
+			else
+			{
+				BcSPrintf( OutBuffer.data(), OutBuffer.size(), 
+					"%s%s %s[%u];\n",
+					Indentation.c_str(),
+					It->second.c_str(),
+					(*InField->getName()).c_str(),
+					NumElements );
+			}
+		}
+
+		OutString += OutBuffer.data();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // oldPipeline
 BcBool ScnShaderImport::oldPipeline()
 {
@@ -357,10 +665,8 @@ BcBool ScnShaderImport::oldPipeline()
 		return BcFalse;
 	}
 
-	auto Permutation = getDefaultPermutation();
-
 	// Generate permutations.
-	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
+	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, getDefaultPermutation() );
 
 	// Sort input types from lowest to highest.
 	std::sort( CodeTypes_.begin(), CodeTypes_.end(), 
@@ -471,16 +777,16 @@ BcBool ScnShaderImport::newPipeline()
 	}
 
 	// Generate permutation.
-	auto Permutation = getDefaultPermutation();
+	auto DefaultPermutation = getDefaultPermutation();
 
 	// Generate permutations if required.
 	if( UsePermutations_ )
 	{
-		generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, Permutation );
+		generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, DefaultPermutation );
 	}
 	else
 	{
-		Permutations_.push_back( Permutation );
+		Permutations_.push_back( DefaultPermutation );
 	}
 
 	PSY_LOG( "Total permutations per backend: %u, total: %u", Permutations_.size(), Permutations_.size() * CodeTypes_.size() );
@@ -972,9 +1278,13 @@ RsProgramVertexAttribute ScnShaderImport::semanticToVertexAttribute( BcU32 Chann
 	{
 		VertexAttribute.Usage_ = RsVertexUsage::SAMPLE;
 	}
+	else if( Name == "SV_INSTANCEID" )
+	{
+		VertexAttribute.Usage_ = RsVertexUsage::INVALID;
+	}
 	else
 	{
-		BcBreakpoint;
+		BcAssertMsg( false, "Unknown vertex attribute \"%s\"", Name.c_str() );
 	}
 
 	return VertexAttribute;

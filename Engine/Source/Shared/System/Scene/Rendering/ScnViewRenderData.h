@@ -18,6 +18,6 @@ public:
 private:
 	friend class ScnViewComponent;
 
-	RsRenderSortPassType SortPassType_;
+	RsRenderSortPassType SortPassType_ = RsRenderSortPassType::INVALID;
 
 };

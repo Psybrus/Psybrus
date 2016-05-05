@@ -56,6 +56,7 @@ public:
 
 	// Operator
 	BcBool operator == (const MaPlane& Other ) const;
+	BcBool operator != (const MaPlane& Other ) const;
 	MaPlane operator -() const;
 
 	// Utility

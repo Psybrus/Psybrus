@@ -272,6 +272,7 @@ MaAABB MaAABB::transform( const MaMat4d& Transform ) const
 	NewAABB.expandBy( corner( 6 ) * Transform );
 	NewAABB.expandBy( corner( 7 ) * Transform );
 
+	BcAssert( !NewAABB.isEmpty() );
 	return NewAABB;
 }
 
@@ -343,6 +344,7 @@ void MaAABB::expandBy( const MaVec3d& Point )
 
 void MaAABB::expandBy( const MaAABB& AABB )
 {
+	BcAssert( !AABB.isEmpty() );
 	Min_.x( BcMin( Min_.x(), AABB.Min_.x() ) );
 	Min_.y( BcMin( Min_.y(), AABB.Min_.y() ) );
 	Min_.z( BcMin( Min_.z(), AABB.Min_.z() ) );

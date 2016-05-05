@@ -504,7 +504,8 @@ void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer,
 					&Viewport,
 					nullptr,
-					PrimitiveSection.Type_, PrimitiveSection.VertexIndex_, PrimitiveSection.NoofVertices_ );
+					PrimitiveSection.Type_, PrimitiveSection.VertexIndex_, PrimitiveSection.NoofVertices_,
+					0, 1 );
 			} );
 	}
 	

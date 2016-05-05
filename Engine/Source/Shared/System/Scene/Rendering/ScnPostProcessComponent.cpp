@@ -14,8 +14,6 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
@@ -320,7 +318,7 @@ void ScnPostProcessComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer.get(),
 					nullptr,
 					nullptr,
-					RsTopologyType::TRIANGLE_STRIP, 0, 4 );
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
 			}
 
 			// Copy back to FB.
@@ -435,7 +433,7 @@ void ScnPostProcessComponent::recreateResources()
 			auto BufferDesc = RsBufferDesc( 
 				RsResourceBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::DYNAMIC, BlockData.getDataSize() );
 			RsBufferUPtr Buffer( RsCore::pImpl()->createBuffer( BufferDesc, getFullName().c_str() ) );
-			ProgramBindingDesc.setUniformBuffer( Slot, Buffer.get() );
+			ProgramBindingDesc.setUniformBuffer( Slot, Buffer.get(), 0, Buffer->getDesc().SizeBytes_ );
 			Uniforms.Buffer_ = Buffer.get();
 			UniformBuffers_.emplace_back( std::move( Buffer ) );
 

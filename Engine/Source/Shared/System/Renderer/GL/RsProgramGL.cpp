@@ -24,7 +24,14 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 
 	// Create program.
 	Handle_ = GL( CreateProgram() );
-	
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+	if( GLEW_KHR_debug ) 
+	{
+		glObjectLabel( GL_PROGRAM, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
+	}
+#endif
+
 	// Attach shaders.
 	for( auto* Shader : Shaders )
 	{
@@ -106,14 +113,14 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		{
 		case RsProgramParameterStorageGL::UNIFORM:
 			{
-				auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
 #if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
+				auto Location = GL( GetUniformLocation( Handle_, Parameter.Name_ ) );
 				BcAssertMsg( Location != -1,
 					"Invalid uniform in RsProgram \"%s\". Unable to find \"%s\"",
 					Parent_->getDebugName(),
 					Parameter.Name_ );
 #endif
-		}
+			}
 			break;
 		case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 			{
@@ -129,16 +136,8 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 #endif
 					if( Index != -1 )
 					{
-						auto Class = ReManager::GetClass( Parameter.Name_ );
-						BcAssertMsg( Class->getSize() == (size_t)Parameter.Size_,
-							"Size mismatch in RsProgram \"%s\". Uniform block \"%s\" is of size %u, expecting %u",
-							Parent_->getDebugName(),
-							Parameter.Name_,
-							Parameter.Size_, 
-							Class->getSize() );
-
-						BcU32 UBSlot = UniformBufferBindInfo_.size();
-						Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+						BcU32 UBSlot = BcU32( UniformBufferBindInfo_.size() );
+						Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );
 						UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
 						GL( UniformBlockBinding( Handle_, Index, InternalType.Binding_ ) );				
 					}
@@ -146,10 +145,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 				}
 				else
 				{
-					const ReClass* Class = ReManager::GetClass( Parameter.Name_ );
-					BcU32 UBSlot = UniformBufferBindInfo_.size();
-					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Class );
+					BcU32 UBSlot = BcU32( UniformBufferBindInfo_.size() );
+					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );
 					UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
+
+					// TODO: Package uniform info straight into the shader data instead of using reflection.
+					const ReClass* Class = ReManager::GetClass( Parameter.Name_ );
 					if( Class != nullptr )
 					{
 						// Statically cache the types.
@@ -298,11 +299,11 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 							Parent->getDebugName() );
 					}
 
-					BcU32 SamplerSlot = SamplerBindInfo_.size();
+					BcU32 SamplerSlot = BcU32( SamplerBindInfo_.size() );
 					Parent_->addSamplerSlot( Parameter.Name_, SamplerSlot );
 					SamplerBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SAMPLER, TextureType, InternalType.Binding_ ) );
 
-					BcU32 SRVSlot = SRVBindInfo_.size();
+					BcU32 SRVSlot = BcU32( SRVBindInfo_.size() );
 					Parent_->addShaderResource( Parameter.Name_, RsShaderResourceType::TEXTURE, SRVSlot );
 					SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::TEXTURE, TextureType, InternalType.Binding_ ) );
 
@@ -327,13 +328,13 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 					{
 						if( InternalType.ReadOnly_ )
 						{
-							BcU32 SRVSlot = SRVBindInfo_.size();
+							BcU32 SRVSlot = BcU32( SRVBindInfo_.size() );
 							Parent_->addShaderResource( Parameter.Name_, RsShaderResourceType::BUFFER, SRVSlot );
 							SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, InternalType.Binding_ ) );
 						}
 						else
 						{
-							BcU32 UAVSlot = UAVBindInfo_.size();
+							BcU32 UAVSlot = BcU32( UAVBindInfo_.size() );
 							Parent_->addUnorderedAccess( Parameter.Name_, RsUnorderedAccessType::BUFFER, UAVSlot );
 							UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT, InternalType.Binding_ ) );
 						}
@@ -397,13 +398,13 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 
 						if( InternalType.ReadOnly_ )
 						{
-							BcU32 SRVSlot = SRVBindInfo_.size();
+							BcU32 SRVSlot = BcU32( SRVBindInfo_.size() );
 							Parent->addShaderResource( Parameter.Name_, RsShaderResourceType::TEXTURE, SRVSlot );
 							SRVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, InternalType.Binding_ ) );
 						}
 						else
 						{
-							BcU32 UAVSlot = UAVBindInfo_.size();
+							BcU32 UAVSlot = BcU32( UAVBindInfo_.size() );
 							Parent->addUnorderedAccess( Parameter.Name_, RsUnorderedAccessType::TEXTURE, UAVSlot );
 							UAVBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::IMAGE, TextureType, InternalType.Binding_ ) );
 						}
@@ -456,7 +457,7 @@ RsProgramGL::~RsProgramGL()
 
 //////////////////////////////////////////////////////////////////////////
 // copyUniformBuffersToUniforms
-void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuffer* const * Buffers )
+void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsUBSlot* UBSlots )
 {
 #if PSY_DEBUG
 	if( UniformEntries_.size() > 0 )
@@ -469,25 +470,29 @@ void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsBuff
 
 	for( auto& UniformEntry : UniformEntries_ )
 	{
-		const RsBuffer* Buffer = Buffers[ UniformEntry.BindingPoint_ ];
-		if( Buffer != nullptr )
+		const auto UBSlot = UBSlots[ UniformEntry.BindingPoint_ ];
+		if( UBSlot.Buffer_ != nullptr )
 		{
-			const auto BufferGL = Buffer->getHandle< RsBufferGL* >();
+			const auto BufferGL = UBSlot.Buffer_->getHandle< RsBufferGL* >();
 			BcAssert( BufferGL );
 
 			// Check if we have buffer data.
 			if( BufferGL->getBufferData() != nullptr )
 			{
 				// Check version, if equal, then don't update uniform.
-				if( UniformEntry.Buffer_ != Buffer ||
+				if( UniformEntry.Buffer_ != UBSlot.Buffer_ ||
+					UniformEntry.SlotOffset_ != UBSlot.Offset_ ||
+					UniformEntry.SlotSize_ != UBSlot.Size_ ||
 					UniformEntry.Version_ != BufferGL->getVersion() )
 				{
 					// Update buffer & version.
-					UniformEntry.Buffer_ = Buffer;
+					UniformEntry.Buffer_ = UBSlot.Buffer_;
+					UniformEntry.SlotOffset_ = UBSlot.Offset_;
+					UniformEntry.SlotSize_ = UBSlot.Size_;
 					UniformEntry.Version_ = BufferGL->getVersion();
 
 					// Setup uniforms.
-					const auto* UniformData = BufferGL->getBufferData() + UniformEntry.Offset_;
+					const auto* UniformData = BufferGL->getBufferData() + UniformEntry.Offset_ + UBSlot.Offset_;
 					auto* CachedUniformData = CachedUniforms_.get() + UniformEntry.CachedOffset_;
 
 					// Check if value has changed.

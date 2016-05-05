@@ -20,6 +20,10 @@
 #define fmod mod
 #endif
 
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#define uint int
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////
 // Matrix casting

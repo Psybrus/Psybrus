@@ -203,7 +203,10 @@ RsProgramVertexAttributeList ScnShaderImport::extractShaderVertexAttributes(
 		if( SUCCEEDED( ShaderReflection->GetInputParameterDesc( Idx, &Desc ) ) )
 		{
 			auto VertexAttribute = semanticToVertexAttribute( ChannelIdx++, Desc.SemanticName, Desc.SemanticIndex ); 
-			VertexAttributeList.push_back( VertexAttribute );
+			if( VertexAttribute.Usage_ != RsVertexUsage::INVALID )
+			{
+				VertexAttributeList.push_back( VertexAttribute );
+			}
 		}
 	}
 #endif // PLATFORM_WINDOWS

@@ -36,7 +36,7 @@ public:
 private:
 	D3D12_SAMPLER_DESC getSamplerDesc( class RsSamplerState* SamplerState );
 	D3D12_SHADER_RESOURCE_VIEW_DESC getDefaultSRVDesc( class RsTexture* Texture );
-	D3D12_CONSTANT_BUFFER_VIEW_DESC getDefaultCBVDesc( class RsBuffer* Buffer, size_t Offset );
+	D3D12_CONSTANT_BUFFER_VIEW_DESC getDefaultCBVDesc( class RsBuffer* Buffer, size_t Offset, size_t Size );
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC getDefaultUAVDesc( class RsBuffer* Buffer );
 	D3D12_UNORDERED_ACCESS_VIEW_DESC getDefaultUAVDesc( class RsTexture* Texture );

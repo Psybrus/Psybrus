@@ -18,10 +18,86 @@
 #include "System/Renderer/RsBuffer.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Scene/ScnComponent.h"
+#include "System/Scene/ScnComponentProcessor.h"
+#include "System/Scene/ScnCoreCallback.h"
 #include "System/Scene/Rendering/ScnTexture.h"
 #include "System/Scene/Rendering/ScnShaderFileData.h"
+#include "System/Scene/Rendering/ScnViewRenderInterface.h"
 
 #include <unordered_map>
+
+//////////////////////////////////////////////////////////////////////////
+// ScnViewProcessor
+class ScnViewProcessor : 
+	public BcGlobal< ScnViewProcessor >,
+	public ScnComponentProcessor,
+	public ScnCoreCallback
+{
+public:
+	ScnViewProcessor();
+	virtual ~ScnViewProcessor();
+
+	/**
+	 * Register render interface.
+	 */
+	void registerRenderInterface( const ReClass* Class, ScnViewRenderInterface* Interface );
+
+	/**
+	 * Deregister render interface.
+	 */
+	void deregisterRenderInterface( const ReClass* Class, ScnViewRenderInterface* Interface );
+
+	/**
+	 * Reset view render data.
+	 */
+	void resetViewRenderData( class ScnComponent* Component );
+
+	/**
+	 * Will render everything visible to all views.
+	 */
+	void renderViews( const ScnComponentList& Components );	
+
+protected:
+	void initialise() override;
+	void shutdown() override;
+
+	void onAttach( ScnComponent* Component ) override;
+	void onDetach( ScnComponent* Component ) override;
+
+	void onAttachComponent( ScnComponent* Component ) override;
+	void onDetachComponent( ScnComponent* Component ) override;
+
+private:
+	ScnViewRenderInterface* getRenderInterface( const ReClass* Class );
+
+	std::unique_ptr< class ScnViewVisibilityTree > SpatialTree_;
+	std::vector< ScnViewVisibilityLeaf* > GatheredVisibleLeaves_;
+	std::vector< ScnViewComponentRenderData > ViewComponentRenderDatas_;
+
+	std::set< ScnComponent* > PendingViewDataReset_;
+
+	struct ProcessingGroup
+	{
+		class ScnViewRenderInterface* RenderInterface_ = nullptr;
+		BcU32 Base_ = 0;
+		BcU32 Noof_ = 0;
+	};
+
+	std::vector< ProcessingGroup > ProcessingGroups_;
+
+	std::unordered_map< const ReClass*, ScnViewRenderInterface* > RenderInterfaces_;
+	std::unordered_map< ScnComponent*, ScnViewVisibilityLeaf* > VisibilityLeaves_;
+
+	struct ViewData
+	{
+		/// View.
+		class ScnViewComponent* View_ = nullptr;
+		std::unordered_map< ScnComponent*, ScnViewRenderData* > ViewRenderData_;
+	};
+
+	std::vector< std::unique_ptr< ViewData > > ViewData_;
+	std::vector< ScnComponent* > RenderableComponents_;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // ScnViewComponentRef
@@ -62,8 +138,14 @@ public:
 
 	RsFrameBuffer* getFrameBuffer() const;
 	const RsViewport& getViewport() const;
+	bool compare( const ScnViewComponent* Other ) const;
 
-	virtual void bind( class RsFrame* pFrame, RsRenderSort Sort );
+	/**
+	 * Determine the sort pass type for a given set of @a SortPassFlags & @a PermutationFlags.
+	 */
+	RsRenderSortPassType getSortPassType( RsRenderSortPassFlags SortPassFlags, ScnShaderPermutationFlags PermutationFlags ) const;
+
+	void setup( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
 	const BcU32 getRenderMask() const { return RenderMask_; }
@@ -72,8 +154,6 @@ public:
 
 private:
 	void recreateFrameBuffer();
-
-	static void renderViews( const ScnComponentList& Components );	
 
 private:
 	// Viewport. Values relative to the size of the client being rendered into.

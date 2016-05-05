@@ -59,9 +59,16 @@ RsBufferGL::RsBufferGL( RsBuffer* Parent, const RsOpenGLVersion& Version ):
 		// Attempt to update it.
 		if( Handle_ != 0 )
 		{
-			ContextGL->bindBuffer( TypeGL, Parent_, 0 );
+			ContextGL->bindBuffer( TypeGL, Parent_ );
 			GL( BufferData( TypeGL, BufferDesc.SizeBytes_, nullptr, UsageFlagsGL ) );
 		}
+
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_BUFFER, Handle_, BcStrLength( Parent->getDebugName() ), Parent->getDebugName() );
+		}
+#endif
 	}
 }
 

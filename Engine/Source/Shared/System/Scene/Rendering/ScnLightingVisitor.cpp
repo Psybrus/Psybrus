@@ -53,6 +53,7 @@ private:
 ScnLightingVisitor::ScnLightingVisitor( const MaAABB& AABB )
 {
 	PSY_PROFILE_FUNCTION;
+	// TODO: Use ScnLightingProcessor when implemented.
 	ScnCore::pImpl()->visitBounds( this, AABB );
 
 	// Sort by light strength

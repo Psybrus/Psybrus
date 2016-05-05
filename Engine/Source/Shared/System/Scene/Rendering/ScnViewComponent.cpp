@@ -27,14 +27,421 @@
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
 #include "System/Debug/DsImGui.h"
 
 #include "System/SysKernel.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Processor
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnViewProcessor::ScnViewProcessor():
+	ScnComponentProcessor( {
+		ScnComponentProcessFuncEntry(
+			"Render Views",
+			ScnComponentPriority::VIEW_RENDER,
+			std::bind( &ScnViewProcessor::renderViews, this, std::placeholders::_1 ) ) } )
+{
+	SpatialTree_.reset( new ScnViewVisibilityTree() );
+
+	// Create root node for spatial tree.
+	MaVec3d HalfBounds( MaVec3d( 32.0f, 32.0f, 32.0f ) * 1024.0f );
+	SpatialTree_->createRoot( MaAABB( -HalfBounds, HalfBounds ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+ScnViewProcessor::~ScnViewProcessor()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerRenderInterface
+void ScnViewProcessor::registerRenderInterface( const ReClass* Class, ScnViewRenderInterface* Interface )
+{
+	BcAssert( RenderInterfaces_.find( Class ) == RenderInterfaces_.end() );
+	RenderInterfaces_.insert( std::make_pair( Class, Interface ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterRenderInterface
+void ScnViewProcessor::deregisterRenderInterface( const ReClass* Class, ScnViewRenderInterface* Interface )
+{
+	BcAssert( RenderInterfaces_.find( Class ) != RenderInterfaces_.end() );
+	BcAssert( RenderInterfaces_.find( Class )->second == Interface );
+	RenderInterfaces_.erase( RenderInterfaces_.find( Class ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// resetViewRenderData
+void ScnViewProcessor::resetViewRenderData( class ScnComponent* Component )
+{
+	PendingViewDataReset_.insert( Component );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderViews
+void ScnViewProcessor::renderViews( const ScnComponentList& Components )
+{
+	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnViewProcessor::renderViews" ) );
+
+	if( PendingViewDataReset_.size() > 0 )
+	{
+		PSY_PROFILER_SECTION( RootSort, "Pending view data resets." );
+		auto PendingViewDataReset = std::move( PendingViewDataReset_ );
+		for( auto Component : PendingViewDataReset )
+		{
+			// Perform detach/attach to recreate the view data.
+			onDetachComponent( Component );
+			onAttachComponent( Component );	
+		}
+	}
+
+	{
+		PSY_PROFILER_SECTION( RootSort, "Update all components in visibility tree" );
+		for( auto It : VisibilityLeaves_ )
+		{
+			auto* Leaf = It.second;
+			BcAssert( Leaf->Node_ );
+			BcAssert( Leaf->Component_ );
+			MaAABB AABB;
+			Leaf->RenderInterface_->getAABB( &AABB, &Leaf->Component_, 1 );
+			if( Leaf->AABB_.min() != AABB.min() || Leaf->AABB_.max() != AABB.max() )
+			{
+				Leaf->AABB_ = AABB;
+				Leaf->Node_->reinsertLeaf( Leaf );
+			}
+		}
+	}
+
+	// Get context.
+	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
+
+	// Check for native window handle, and a size greater than 0.
+	// Don't want to render at all if none of those conditions are met.
+	auto Client = pContext->getClient();
+	if( Client->getWindowHandle() != 0 &&
+		Client->getWidth() > 0 &&
+		Client->getHeight() > 0 )
+	{
+		// Allocate a frame to render using default context.
+		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+
+		RsRenderSort Sort( 0 );
+		
+		// Check viewport count.
+		if( Components.size() > RS_SORT_VIEWPORT_MAX )
+		{
+			PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
+		}
+
+		// If we have no views, clear to black.
+		if( Components.size() == 0 )
+		{
+			pFrame->queueRenderNode( Sort,
+				[]( RsContext* Context )
+				{
+					Context->clear( nullptr, RsColour::BLACK, BcTrue, BcTrue, BcTrue );
+				} );
+		}
+
+		// Iterate over all view components.
+		BcAssert( Components.size() == ViewData_.size() );
+		ScnViewComponent* LastView = nullptr;
+
+		for( auto& ViewData : ViewData_ )
+		{
+			ScnRenderContext RenderContext( ViewData->View_, pFrame, Sort );
+			bool DoGather = true;
+
+			{
+				PSY_PROFILER_SECTION( RootSort, "Check last view component for reuse." );
+
+				if( LastView != nullptr && ViewData->View_ != LastView )
+				{
+					// Check current view
+					if( LastView->compare( ViewData->View_ ) )
+					{
+						DoGather = false;
+					}
+				}
+			}
+
+			{
+				PSY_PROFILER_SECTION( RootSort, "Setup view" );
+				ViewData->View_->setup( pFrame, Sort );
+			}
+
+			if( DoGather )
+			{
+				PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
+
+				GatheredVisibleLeaves_.clear();
+				std::vector< ScnViewVisibilityLeaf* > BroadGather;
+				SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather );
+
+				// Trim down based on render mask.
+				for( auto Leaf : BroadGather )
+				{
+					if( RenderContext.pViewComponent_->getRenderMask() & Leaf->RenderMask_ )
+					{
+						GatheredVisibleLeaves_.push_back( Leaf );
+					}
+				}
+			}
+
+			{
+				PSY_PROFILER_SECTION( RootSort, "Sort visible components by render interface" );
+
+				// Sort by render interface.
+				// TODO: Put into correct buckets by type.
+				std::sort( GatheredVisibleLeaves_.begin(), GatheredVisibleLeaves_.end(),
+					[ this ]( const ScnViewVisibilityLeaf* A, const ScnViewVisibilityLeaf* B )
+					{
+						return A->RenderInterface_ < B->RenderInterface_;
+					} );
+			}
+
+			{
+				PSY_PROFILER_SECTION( RootSort, "Build processing list." );
+
+				ProcessingGroups_.clear();
+				ViewComponentRenderDatas_.clear();
+				if( GatheredVisibleLeaves_.size() > 0 )
+				{
+					ProcessingGroup Group;
+					Group.RenderInterface_ = GatheredVisibleLeaves_[ 0 ]->RenderInterface_;
+					for( BcU32 Idx = 0; Idx < GatheredVisibleLeaves_.size(); ++Idx )
+					{
+						ScnViewComponentRenderData ComponentRenderData;
+						auto* Leaf = GatheredVisibleLeaves_[ Idx ];
+						ComponentRenderData.Component_ = Leaf->Component_;
+
+						// Find view render data.
+						auto It = ViewData->ViewRenderData_.find( Leaf->Component_ );
+						if( It != ViewData->ViewRenderData_.end() )
+						{
+							ComponentRenderData.ViewRenderData_ = It->second;
+							if( Group.RenderInterface_ != Leaf->RenderInterface_ )
+							{
+								ProcessingGroups_.push_back( Group );
+								Group.RenderInterface_ = Leaf->RenderInterface_;
+								Group.Base_ = ViewComponentRenderDatas_.size();
+								Group.Noof_ = 0;
+							}
+							Group.Noof_++;
+
+							ViewComponentRenderDatas_.push_back( ComponentRenderData );
+						}
+					}
+
+					if( Group.Noof_ > 0 )
+					{
+						ProcessingGroups_.push_back( Group );
+					}
+				}
+			}
+
+			{
+				PSY_PROFILER_SECTION( RootSort, "Render visible components" );
+
+				// Iterate over components.
+				for( auto Group : ProcessingGroups_ )
+				{
+					Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
+				}
+			}
+
+			// Increment viewport.
+			Sort.Viewport_++;
+
+			// Set last view.
+			LastView = ViewData->View_;
+		}
+		
+		// TODO: Move completely to DsCore.
+		//       Probably depends on registration with RsCore.
+		// Render ImGui.
+		ImGui::Psybrus::Render( pContext, pFrame );
+
+		// Queue frame for render.
+		RsCore::pImpl()->queueFrame( pFrame );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialise
+void ScnViewProcessor::initialise()
+{
+	ScnCore::pImpl()->addCallback( this );
+
+	// Subscribe for resize event to reset bindings incase anything needs to be rebound.
+	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+		{
+			auto VisibilityLeaves = VisibilityLeaves_;
+			for( auto It : VisibilityLeaves )
+			{
+				ScnViewProcessor::pImpl()->resetViewRenderData( It.first );
+			}
+			return evtRET_PASS;
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shutdown
+void ScnViewProcessor::shutdown()
+{
+	OsCore::pImpl()->unsubscribeAll( this );
+	ScnCore::pImpl()->removeCallback( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttach
+void ScnViewProcessor::onAttach( ScnComponent* Component )
+{
+	BcAssert( Component->isTypeOf< ScnViewComponent >() );
+
+	// Setup view data.
+	std::unique_ptr< ViewData > ViewData( new ViewData );
+	ViewData->View_ = static_cast< ScnViewComponent* >( Component );
+#if 0
+	ViewData->ClassData_.reserve( RenderInterfaces_.size() );
+	for( auto It : RenderInterfaces_ )
+	{
+		ViewData::ClassData ClassData;
+		ClassData.Class_ = It.first;
+		ViewData->ClassData_.emplace_back( std::move( ClassData ) );
+	}
+#endif
+
+	// Create view render data for all components.
+	for( auto& It : VisibilityLeaves_ )
+	{
+		auto ViewRenderData = It.second->RenderInterface_->createViewRenderData( It.second->Component_, ViewData->View_ );
+		if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+		{
+			ViewData->ViewRenderData_[ It.second->Component_ ] = ViewRenderData;
+		}
+		else
+		{
+			It.second->RenderInterface_->destroyViewRenderData( It.second->Component_, ViewData->View_, ViewRenderData );
+		}
+	}
+
+	ViewData_.emplace_back( std::move( ViewData ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+void ScnViewProcessor::onDetach( ScnComponent* Component )
+{
+	// Find and remove view data.
+	auto It = std::find_if( ViewData_.begin(), ViewData_.end(), 
+		[ Component ]( const std::unique_ptr< ViewData >& ViewData )
+		{
+			return ViewData->View_ == Component;
+		} );
+	BcAssert( It != ViewData_.end() );
+
+	// Destroy view render data for all components.
+	for( auto& VisibilityLeaf : VisibilityLeaves_ )
+	{
+		auto* ViewRenderData = (*It)->ViewRenderData_[ VisibilityLeaf.second->Component_ ];
+		VisibilityLeaf.second->RenderInterface_->destroyViewRenderData( VisibilityLeaf.second->Component_, (*It)->View_, ViewRenderData );
+	}
+
+	ViewData_.erase( It );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onAttachComponent
+void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
+{
+	if( auto RenderInterface = getRenderInterface( Component->getClass() ) )
+	{
+		auto It = PendingViewDataReset_.find( Component );
+		if( It != PendingViewDataReset_.end() )
+		{
+			PendingViewDataReset_.erase( It );
+		}
+
+		BcAssert( VisibilityLeaves_.find( Component ) == VisibilityLeaves_.end() );
+		auto Leaf = new ScnViewVisibilityLeaf();
+		Leaf->Node_ = nullptr;
+		Leaf->Component_ = Component;
+		Leaf->RenderInterface_ = RenderInterface;
+		RenderInterface->getAABB( &Leaf->AABB_, &Component, 1 );
+		RenderInterface->getRenderMask( &Leaf->RenderMask_, &Component, 1 );
+		VisibilityLeaves_[ Component ] = Leaf;
+		SpatialTree_->addLeaf( Leaf );
+		BcAssert( Leaf->Node_ );
+
+		// Create view render data for each view.
+		for( auto& ViewData : ViewData_ )
+		{
+			auto ViewRenderData = RenderInterface->createViewRenderData( Component, ViewData->View_ );
+			if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+			{
+				ViewData->ViewRenderData_[ Component ] = ViewRenderData;
+			}
+			else
+			{
+				RenderInterface->destroyViewRenderData( Component, ViewData->View_, ViewRenderData );
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetachComponent
+void ScnViewProcessor::onDetachComponent( ScnComponent* Component )
+{
+	if( auto RenderInterface = getRenderInterface( Component->getClass() ) )
+	{
+		auto It = PendingViewDataReset_.find( Component );
+		if( It != PendingViewDataReset_.end() )
+		{
+			PendingViewDataReset_.erase( It );
+		}
+
+		auto LeafIt = VisibilityLeaves_.find( Component );
+		BcAssert( LeafIt != VisibilityLeaves_.end() );
+		SpatialTree_->removeLeaf( LeafIt->second );
+		VisibilityLeaves_.erase( LeafIt );
+
+		// Setup view render data for each view.
+		for( auto& ViewData : ViewData_ )
+		{
+			auto ViewRenderDataIt = ViewData->ViewRenderData_.find( Component );
+			if( ViewRenderDataIt != ViewData->ViewRenderData_.end() )
+			{
+				RenderInterface->destroyViewRenderData( Component, ViewData->View_, ViewRenderDataIt->second );
+				ViewData->ViewRenderData_.erase( ViewRenderDataIt );
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderInterface
+ScnViewRenderInterface* ScnViewProcessor::getRenderInterface( const ReClass* Class )
+{
+	while( Class != nullptr )
+	{
+		decltype(RenderInterfaces_)::iterator It;
+		if( ( It = RenderInterfaces_.find( Class ) ) != RenderInterfaces_.end() )
+		{
+			return It->second;
+		}
+		Class = Class->getSuper();
+	}
+	return nullptr;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
@@ -70,12 +477,7 @@ void ScnViewComponent::StaticRegisterClass()
 	
 	using namespace std::placeholders;
 	ReRegisterClass< ScnViewComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor(		{
-			ScnComponentProcessFuncEntry(
-				"Render Views",
-				ScnComponentPriority::VIEW_RENDER,
-				std::bind( &ScnViewComponent::renderViews, _1 ) ),
-		} ) );
+		.addAttribute( new ScnViewProcessor() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -250,8 +652,40 @@ const RsViewport& ScnViewComponent::getViewport() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// bind
-void ScnViewComponent::bind( RsFrame* pFrame, RsRenderSort Sort )
+// compareFrustum
+bool ScnViewComponent::compare( const ScnViewComponent* Other ) const
+{
+	if( getRenderMask() != Other->getRenderMask() ||
+		ViewUniformBlock_.ClipTransform_.row0() != Other->ViewUniformBlock_.ClipTransform_.row0() ||
+		ViewUniformBlock_.ClipTransform_.row1() != Other->ViewUniformBlock_.ClipTransform_.row1() ||
+		ViewUniformBlock_.ClipTransform_.row2() != Other->ViewUniformBlock_.ClipTransform_.row2() ||
+		ViewUniformBlock_.ClipTransform_.row3() != Other->ViewUniformBlock_.ClipTransform_.row3() )
+	{
+		return false;
+	}
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getSortPassType
+RsRenderSortPassType ScnViewComponent::getSortPassType( RsRenderSortPassFlags SortPassFlags, ScnShaderPermutationFlags PermutationFlags ) const
+{
+	RsRenderSortPassType RetVal = RsRenderSortPassType::INVALID;
+	if( BcContainsAnyFlags( RenderPermutation_, PermutationFlags ) )
+	{
+		const auto CombinedFlags = Passes_ & SortPassFlags;
+		const auto LeadingZeros = BcCountLeadingZeros( static_cast< BcU32 >( CombinedFlags ) );
+		if( LeadingZeros < 32 )
+		{
+			RetVal = static_cast< RsRenderSortPassType >( 31 - LeadingZeros );
+		}
+	}
+	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setup
+void ScnViewComponent::setup( RsFrame* pFrame, RsRenderSort Sort )
 {
 	// Calculate the viewport.
 	BcF32 Width = static_cast< BcF32 >( pFrame->getBackBufferWidth() );
@@ -397,7 +831,7 @@ void ScnViewComponent::recreateFrameBuffer()
 
 	if( AnyValid )
 	{
-		RsFrameBufferDesc FrameBufferDesc( RenderTarget_.size() );
+		RsFrameBufferDesc FrameBufferDesc( static_cast< BcU32 >( RenderTarget_.size() ) );
 		BcU32 RTIdx = 0;
 		for( auto RT : RenderTarget_ )
 		{
@@ -409,70 +843,5 @@ void ScnViewComponent::recreateFrameBuffer()
 		}
 
 		FrameBuffer_ = RsCore::pImpl()->createFrameBuffer( FrameBufferDesc, getFullName().c_str() );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// renderViews
-//static
-void ScnViewComponent::renderViews( const ScnComponentList& Components )
-{
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnViewComponent::renderViews" ) );
-
-	// TODO: Have things register with RsCore to be rendered maybe?
-
-	// Get context.
-	RsContext* pContext = RsCore::pImpl()->getContext( nullptr );
-
-	// Check for native window handle, and a size greater than 0.
-	// Don't want to render at all if none of those conditions are met.
-	auto Client = pContext->getClient();
-	if( Client->getWindowHandle() != 0 &&
-		Client->getWidth() > 0 &&
-		Client->getHeight() > 0 )
-	{
-		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
-
-		RsRenderSort Sort( 0 );
-		
-		// Check viewport count.
-		if( Components.size() > RS_SORT_VIEWPORT_MAX )
-		{
-			PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
-		}
-
-#if 0 && PSY_DEBUG
-		// Clear to an ugly colour in debug.
-		pFrame->queueRenderNode( Sort,
-			[]( RsContext* Context )
-			{
-				Context->clear( nullptr, RsColour::PURPLE, BcTrue, BcTrue, BcTrue );
-			} );
-#endif
-
-		// Iterate over all view components.
-		for( auto Component : Components )
-		{
-			BcAssert( Component->isTypeOf< ScnViewComponent >() );
-			auto* ViewComponent = static_cast< ScnViewComponent* >( Component.get() );
-	
-			ScnRenderContext RenderContext( ViewComponent, pFrame, Sort );
-
-			ViewComponent->bind( pFrame, Sort );
-
-			ScnRenderingVisitor Visitor( RenderContext );
-
-			// Increment viewport.
-			Sort.Viewport_++;
-		}
-
-		// TODO: Move completely to DsCore.
-		//       Probably depends on registration with RsCore.
-		// Render ImGui.
-		ImGui::Psybrus::Render( pContext, pFrame );
-
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( pFrame );
 	}
 }

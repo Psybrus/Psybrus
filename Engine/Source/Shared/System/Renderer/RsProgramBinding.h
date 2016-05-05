@@ -4,15 +4,38 @@
 #include "System/Renderer/RsResource.h"
 
 //////////////////////////////////////////////////////////////////////////
-// RsProgramSRVDesc
-struct RsProgramSRVDesc
+// RsSRVSlot
+struct RsSRVSlot
 {
+	RsShaderResourceType Type_ = RsShaderResourceType::INVALID;
+	union
+	{
+		class RsResource* Resource_ = nullptr;
+		class RsBuffer* Buffer_;
+		class RsTexture* Texture_;
+	};
 };
 
 //////////////////////////////////////////////////////////////////////////
-// RsProgramUAVDesc
-struct RsProgramUAVDesc
+// RsUAVSlot
+struct RsUAVSlot
 {
+	RsUnorderedAccessType Type_ = RsUnorderedAccessType::INVALID;
+	union
+	{
+		class RsResource* Resource_ = nullptr;
+		class RsBuffer* Buffer_;
+		class RsTexture* Texture_;
+	};
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsUBSlot
+struct RsUBSlot
+{
+	class RsBuffer* Buffer_ = nullptr;
+	BcU32 Offset_ = 0;
+	BcU32 Size_ = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,7 +49,7 @@ public:
 	 * Set uniform buffer.
 	 * @return true if slot has changed, false if not.
 	 */
-	bool setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer );
+	bool setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer, BcU32 Offset, BcU32 Size );
 
 	/**
 	 * Set sampler state.
@@ -58,32 +81,11 @@ public:
  	 */
 	bool setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture );
 
-	struct SRVSlot
-	{
-		RsShaderResourceType Type_ = RsShaderResourceType::INVALID;
-		union
-		{
-			class RsResource* Resource_ = nullptr;
-			class RsBuffer* Buffer_;
-			class RsTexture* Texture_;
-		};
-	};
-
-	struct UAVSlot
-	{
-		RsUnorderedAccessType Type_ = RsUnorderedAccessType::INVALID;
-		union
-		{
-			class RsResource* Resource_ = nullptr;
-			class RsBuffer* Buffer_;
-			class RsTexture* Texture_;
-		};
-	};
 
 	/// Slots.
-	std::array< SRVSlot, 32 > ShaderResourceSlots_;
-	std::array< UAVSlot, 32 > UnorderedAccessSlots_;
-	std::array< class RsBuffer*, 32 > UniformBuffers_;
+	std::array< RsSRVSlot, 32 > ShaderResourceSlots_;
+	std::array< RsUAVSlot, 32 > UnorderedAccessSlots_;
+	std::array< RsUBSlot, 32 > UniformBuffers_;
 	std::array< class RsSamplerState*, 32 > SamplerStates_;
 };
 

@@ -132,7 +132,7 @@ void DsCoreImpl::open()
 
 	// Setup init/deinit hooks.
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
+		[]( EvtID, const EvtBaseEvent& )
 	{
 		if( OsCore::pImpl()->getClient( 0 ) )
 		{
@@ -142,7 +142,7 @@ void DsCoreImpl::open()
 	} );
 
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
+		[]( EvtID, const EvtBaseEvent& )
 	{
 		if( OsCore::pImpl()->getClient( 0 ) )
 		{

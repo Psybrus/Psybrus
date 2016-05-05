@@ -399,8 +399,8 @@ void RsContextGL::create()
 	std::string VersionString;
 	bool WantGLVersion = GCommandLine_.getArg( '\0', "gl", VersionString );
 	bool WantGLESVersion = GCommandLine_.getArg( '\0', "gles", VersionString );
-	BcU32 VersionMajor = 0;
-	BcU32 VersionMinor = 0;
+	BcS32 VersionMajor = 0;
+	BcS32 VersionMinor = 0;
 	std::regex VersionRegex( "(\\d)\\.(\\d)" );
 	std::cmatch Match;
 	if( std::regex_match( VersionString.c_str(), Match, VersionRegex ) )
@@ -1036,7 +1036,6 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 	{
 		GLuint SamplerObject = (GLuint)-1;
 		GL( GenSamplers( 1, &SamplerObject ) );
-		
 
 		// Setup sampler parmeters.
 		const auto& SamplerStateDesc = SamplerState->getDesc();
@@ -1053,6 +1052,13 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 		GL( SamplerParameteri( SamplerObject, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL ) );
 		
+				
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+		if( GLEW_KHR_debug )
+		{
+			glObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() );
+		}
+#endif
 
 		++NoofSamplerStates_;
 
@@ -1119,6 +1125,13 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	GL( GenFramebuffers( 1, &Handle ) );
 	FrameBuffer->setHandle( Handle );
 
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+	if( GLEW_KHR_debug )
+	{
+		glObjectLabel( GL_FRAMEBUFFER, Handle, BcStrLength( FrameBuffer->getDebugName() ), FrameBuffer->getDebugName() );
+	}
+#endif
+
 	// Bind.
 	GL( BindFramebuffer( GL_FRAMEBUFFER, Handle ) );
 
@@ -1156,7 +1169,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	};
 	BcAssertMsg( Desc.RenderTargets_.size() <= 8,
 		"Too many render targets in RsFrameBuffer \"%s\". Max of 8.", FrameBuffer->getDebugName() );
-	GL( DrawBuffers( Desc.RenderTargets_.size(), Targets ) );
+	GL( DrawBuffers( GLsizei( Desc.RenderTargets_.size() ), Targets ) );
 
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
@@ -1277,7 +1290,7 @@ bool RsContextGL::updateBuffer(
 	BcAssert( BufferGL );
 
 	// If buffer is backed in main memory, use its own buffer for staging.
-	BcU8* BufferData = BufferGL->getBufferData();
+	BcU8* BufferData = BufferGL->getBufferData() + Offset;
 	std::unique_ptr< BcU8[] > LocalBufferData;
 	if( BufferData == nullptr )
 	{
@@ -1288,7 +1301,7 @@ bool RsContextGL::updateBuffer(
 	// Call update func to fill data.
 	RsBufferLock Lock =
 	{
-		BufferData + Offset
+		BufferData
 	};
 	UpdateFunc( Buffer, Lock );
 
@@ -1300,7 +1313,7 @@ bool RsContextGL::updateBuffer(
 		auto TypeGL = RsUtilsGL::GetBufferType( BufferDesc.BindFlags_ );
 
 		// Bind buffer.
-		bindBuffer( TypeGL, Buffer, 0 );
+		bindBuffer( TypeGL, Buffer );
 
 		// Get usage flags for GL.
 		GLuint UsageFlagsGL = 0;
@@ -1319,7 +1332,7 @@ bool RsContextGL::updateBuffer(
 			UsageFlagsGL |= GL_STREAM_DRAW;
 		}
 
-		if( Size == BufferDesc.SizeBytes_ )
+		if( Offset == 0 && Size == BufferDesc.SizeBytes_ )
 		{
 			GL( BufferData( TypeGL, Size, BufferData, UsageFlagsGL ) );
 		}
@@ -1431,6 +1444,13 @@ bool RsContextGL::createShader( RsShader* Shader )
 	// Create handle for shader.
 	GLuint Handle = GL( CreateShader( ShaderType ) );
 	
+#if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
+	if( GLEW_KHR_debug )
+	{
+		glObjectLabel( GL_SHADER, Handle, BcStrLength( Shader->getDebugName() ), Shader->getDebugName() );
+	}
+#endif
+
 	//
 	const GLchar* ShaderData[] = 
 	{
@@ -1642,7 +1662,8 @@ void RsContextGL::drawPrimitives(
 		const RsFrameBuffer* FrameBuffer,
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
-		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices )
+		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
@@ -1653,8 +1674,9 @@ void RsContextGL::drawPrimitives(
 	bindProgram( Program );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 
-	bindGeometry( Program, GeometryBinding, 0 );
 	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
+	
+	bindGeometry( Program, GeometryBinding, 0 );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
 		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
@@ -1670,7 +1692,23 @@ void RsContextGL::drawPrimitives(
 	// TODO: Add memory barrier to the binding object.
 	bindUAVs( Program, ProgramBinding->getDesc(), MemoryBarrier_ );
 
-	GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
+	if( NoofInstances > 1 || FirstInstance > 0 )
+	{
+		if( FirstInstance > 0 )
+		{
+			BcAssert( Version_.SupportDrawInstancedBaseInstance_ );
+			GL( DrawArraysInstancedBaseInstance( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices, NoofInstances, FirstInstance ) );
+		}
+		else
+		{
+			BcAssert( Version_.SupportDrawInstanced_ );
+			GL( DrawArraysInstanced( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices, NoofInstances ) );
+		}
+	}
+	else
+	{
+		GL( DrawArrays( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices ) );
+	}
 
 #if !defined( RENDER_USE_GLES )
 	if( MemoryBarrier_ )
@@ -1690,7 +1728,8 @@ void RsContextGL::drawIndexedPrimitives(
 		const RsFrameBuffer* FrameBuffer,
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
-		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
 	++NoofDrawCalls_;
@@ -1698,6 +1737,8 @@ void RsContextGL::drawIndexedPrimitives(
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
 	const auto* Program = ProgramBinding->getProgram();
 	RsProgramGL* ProgramGL = Program->getHandle< RsProgramGL* >();
+	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
+
 	bindProgram( Program );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 
@@ -1710,7 +1751,6 @@ void RsContextGL::drawIndexedPrimitives(
 		bindGeometry( Program, GeometryBinding, VertexOffset );
 		VertexOffset = 0;
 	}
-	bindFrameBuffer( FrameBuffer, Viewport, ScissorRect );
 	if( BoundRenderStateHash_ != RenderState->getHandle< BcU64 >() )
 	{
 		bindRenderStateDesc( RenderState->getDesc(), BcFalse );
@@ -1752,19 +1792,38 @@ void RsContextGL::drawIndexedPrimitives(
 	BcAssert( GeometryBinding->getDesc().IndexBuffer_.Buffer_ );
 	BcAssert( ( IndexOffset + ( NoofIndices * GeometryBindingDesc.IndexBuffer_.Stride_ ) ) <= GeometryBindingDesc.IndexBuffer_.Buffer_->getDesc().SizeBytes_ );
 
-	if( VertexOffset == 0 )
+	if( NoofInstances > 1 || FirstInstance > 0 )
 	{
-		GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ) ) );
-	}
 #if !defined( RENDER_USE_GLES )
-	else if( Version_.SupportDrawElementsBaseVertex_ )
-	{
-		GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), VertexOffset ) );
-	}
+		if( Version_.SupportDrawInstancedBaseInstance_ )
+		{
+			GL( DrawElementsInstancedBaseVertexBaseInstance( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), NoofInstances, VertexOffset, FirstInstance ) );
+		}
+		else
 #endif
+		if( Version_.SupportDrawInstanced_ )
+		{
+			BcAssert( VertexOffset == 0 );
+			GL( DrawElementsInstanced( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), NoofInstances ) );
+		}
+		else
+		{
+			BcBreakpoint;
+		}
+	}
 	else
 	{
-		BcBreakpoint;
+#if !defined( RENDER_USE_GLES )
+		if( Version_.SupportDrawElementsBaseVertex_ )
+		{
+			GL( DrawElementsBaseVertex( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), VertexOffset ) );
+		}
+		else
+#endif
+		{
+			BcAssert( VertexOffset == 0 );
+			GL( DrawElements( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ) ) );
+		}
 	}
 
 #if !defined( RENDER_USE_GLES )
@@ -2135,7 +2194,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 				GLuint VertexHandle = VertexBufferGL->getHandle();
 				if( BoundVertexHandle != VertexHandle )
 				{
-					bindBuffer( GL_ARRAY_BUFFER, VertexBuffer, 0 );
+					bindBuffer( GL_ARRAY_BUFFER, VertexBuffer );
 					BoundVertexHandle = VertexHandle;
 				}
 
@@ -2174,7 +2233,7 @@ void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBindin
 		}
 
 		// Bind indices.
-		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, Desc.IndexBuffer_.Buffer_, 0 );
+		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, Desc.IndexBuffer_.Buffer_ );
 	}
 }
 
@@ -2714,23 +2773,22 @@ void RsContextGL::bindUniformBuffers( const RsProgram* Program, const RsProgramB
 	{
 		for( BcU32 Idx = 0; Idx < ProgramGL->getUniformBufferBindCount(); ++Idx )
 		{
-			const auto& UniformBuffer = Bindings.UniformBuffers_[ Idx ];
-			if( UniformBuffer )
+			const auto& UniformSlot = Bindings.UniformBuffers_[ Idx ];
+			if( UniformSlot.Buffer_ )
 			{
-				// TODO: Redundant state checking.
 				const auto& UniformBufferSlotGL = ProgramGL->getUniformBufferBindInfo( Idx );
-				RsBufferGL* BufferGL = UniformBuffer->getHandle< RsBufferGL* >();
+				RsBufferGL* BufferGL = UniformSlot.Buffer_->getHandle< RsBufferGL* >();
 				auto& BindingInfo = UniformBufferBindingInfo_[ UniformBufferSlotGL.Binding_ ];
-				if( BindingInfo.Resource_ != UniformBuffer ||
+				if( BindingInfo.Resource_ != UniformSlot.Buffer_ ||
 					BindingInfo.Buffer_ != BufferGL->getHandle() ||
-					BindingInfo.Offset_ != 0 ||
-					BindingInfo.Size_ != (GLsizei)UniformBuffer->getDesc().SizeBytes_ )
+					BindingInfo.Offset_ != UniformSlot.Offset_ ||
+					BindingInfo.Size_ != (GLsizei)UniformSlot.Size_ )
 				{
-					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Binding_, BufferGL->getHandle(), 0, UniformBuffer->getDesc().SizeBytes_ ) );
-					BindingInfo.Resource_ = UniformBuffer;
+					GL( BindBufferRange( GL_UNIFORM_BUFFER, UniformBufferSlotGL.Binding_, BufferGL->getHandle(), UniformSlot.Offset_, UniformSlot.Size_ ) );
+					BindingInfo.Resource_ = UniformSlot.Buffer_;
 					BindingInfo.Buffer_ = BufferGL->getHandle();
-					BindingInfo.Offset_ = 0;
-					BindingInfo.Size_ = (GLsizei)UniformBuffer->getDesc().SizeBytes_;
+					BindingInfo.Offset_ = UniformSlot.Offset_;
+					BindingInfo.Size_ = (GLsizei)UniformSlot.Size_;
 				}
 			}
 		}
@@ -2767,25 +2825,23 @@ void RsContextGL::bindTexture( BcU32 Slot, const RsTexture* Texture )
 
 //////////////////////////////////////////////////////////////////////////
 // bindBuffer
-void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset )
+void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer )
 {
 	switch( BindTypeGL )
 	{
 	case GL_ARRAY_BUFFER:
 		{
-			BcAssert( Offset == 0 );
-			bindBufferInternal( VertexBufferBindingInfo_, GL_ARRAY_BUFFER, Buffer, 0 );
+			bindBufferInternal( VertexBufferBindingInfo_, GL_ARRAY_BUFFER, Buffer );
 		}
 		break;
 	case GL_ELEMENT_ARRAY_BUFFER:
 		{
-			BcAssert( Offset == 0 );
-			bindBufferInternal( IndexBufferBindingInfo_, GL_ELEMENT_ARRAY_BUFFER, Buffer, 0 );
+			bindBufferInternal( IndexBufferBindingInfo_, GL_ELEMENT_ARRAY_BUFFER, Buffer );
 		}
 		break;
 	case GL_UNIFORM_BUFFER:
 		{
-			bindBufferInternal( UniformBufferBindingInfoSingle_, GL_UNIFORM_BUFFER, Buffer, Offset );
+			bindBufferInternal( UniformBufferBindingInfoSingle_, GL_UNIFORM_BUFFER, Buffer );
 
 			// Binding of uniform buffers mean we potentially need to rebind program bindings.
 			BoundProgramBinding_ = nullptr;
@@ -2798,34 +2854,22 @@ void RsContextGL::bindBuffer( GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 O
 
 //////////////////////////////////////////////////////////////////////////
 // bindBufferInternal
-void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer, BcU32 Offset )
+void RsContextGL::bindBufferInternal( BufferBindingInfo& BindingInfo, GLenum BindTypeGL, const RsBuffer* Buffer )
 {
 	RsBufferGL* BufferGL = Buffer ? Buffer->getHandle< RsBufferGL* >() : nullptr;
 	const auto Size = Buffer ? Buffer->getDesc().SizeBytes_ : 0;
-	const auto BindSize = Size - Offset;
-	BcAssert( Offset == 0 || Offset < Size );
+	const auto BindSize = Size;
 	auto Handle = BufferGL ? BufferGL->getHandle() : 0;
 	if( BindingInfo.Resource_ != Buffer ||
 		BindingInfo.Buffer_ != Handle ||
-		BindingInfo.Offset_ != Offset ||
+		BindingInfo.Offset_ != -1 ||
 		BindingInfo.Size_ != BindSize )
 	{
-		if( Offset == 0 )
-		{
-			GL( BindBuffer( BindTypeGL, Handle ) );
-		}
-		else
-		{
-#if !defined( RENDER_USE_GLES )
-			GL( BindBufferRange( BindTypeGL, 0, Handle, Offset, BindSize ) );
-#else
-			BcAssertMsg( BcFalse, "No support for glBindBufferRange." );
-#endif
-		}
+		GL( BindBuffer( BindTypeGL, Handle ) );
 		BindingInfo.Resource_ = Buffer;
 		BindingInfo.Buffer_ = Handle;
-		BindingInfo.Offset_ = Offset;
-		BindingInfo.Size_ = BindSize;
+		BindingInfo.Offset_ = -1;
+		BindingInfo.Size_ = GLsizei( BindSize );
 	}
 }
 
@@ -2875,17 +2919,17 @@ void RsContextGL::unbindResource( const RsResource* Resource )
 
 	if( IndexBufferBindingInfo_.Resource_ == Resource )
 	{
-		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, nullptr, 0 );
+		bindBuffer( GL_ELEMENT_ARRAY_BUFFER, nullptr );
 	}
 
 	if( VertexBufferBindingInfo_.Resource_ == Resource )
 	{
-		bindBuffer( GL_ARRAY_BUFFER, nullptr, 0 );
+		bindBuffer( GL_ARRAY_BUFFER, nullptr );
 	}
 
 	if( UniformBufferBindingInfoSingle_.Resource_ == Resource )
 	{
-		bindBuffer( GL_UNIFORM_BUFFER, nullptr, 0 );
+		bindBuffer( GL_UNIFORM_BUFFER, nullptr );
 	}
 }
 

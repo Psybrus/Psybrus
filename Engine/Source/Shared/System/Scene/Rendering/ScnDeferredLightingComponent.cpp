@@ -14,8 +14,6 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnRenderingVisitor.h"
-
 #include "System/Debug/DsCore.h"
 
 #include "Base/BcMath.h"
@@ -128,20 +126,21 @@ class ScnViewRenderData* ScnDeferredLightingComponent::createViewRenderData( cla
 			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
 			if( UniformSlot != BcErrorCode )
 			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get() );
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ) );
 			}
 		}
 		{
 			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
 			if( UniformSlot != BcErrorCode )
 			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, View->getViewUniformBuffer() );
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
 			}
 		}
 
 		ViewRenderData->ProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 	}
 
+	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 
@@ -243,7 +242,8 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 			}
 		} );	
 	
-		// Gather lights that intersect with our view.
+	// TODO: Use ScnLightProcessor when implemented.
+	// Gather lights that intersect with our view.
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
 	// Render all lights.
@@ -287,7 +287,7 @@ void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
 					FrameBuffer,
 					&Viewport,
 					nullptr,
-					RsTopologyType::TRIANGLE_STRIP, 0, 4 );
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
 			} );
 	}
 
@@ -357,5 +357,6 @@ void ScnDeferredLightingComponent::recreateResources()
 	DepthStencilState.DepthWriteEnable_ = false;
 	RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 
-	resetViewRenderData( nullptr );
+	// Reset view render data.
+	ScnViewProcessor::pImpl()->resetViewRenderData( this );
 }

@@ -360,6 +360,7 @@ void RsContextD3D12::create()
 	Features_.Texture3D_ = true;
 	Features_.TextureCube_ = true;
 	Features_.ComputeShaders_ = true;
+	Features_.Instancing_ = true;
 
 	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
 	{
@@ -542,7 +543,8 @@ void RsContextD3D12::drawPrimitives(
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 VertexOffset, BcU32 NoofVertices )
+		BcU32 VertexOffset, BcU32 NoofVertices,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -559,7 +561,7 @@ void RsContextD3D12::drawPrimitives(
 	bindDescriptorHeap( ProgramBinding );
 
 	auto CommandList = getCurrentCommandList();
-	CommandList->DrawInstanced( NoofVertices, 1, VertexOffset, 0 );
+	CommandList->DrawInstanced( NoofVertices, NoofInstances, VertexOffset, FirstInstance );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -572,7 +574,8 @@ void RsContextD3D12::drawIndexedPrimitives(
 		const RsViewport* Viewport,
 		const RsScissorRect* ScissorRect,
 		RsTopologyType TopologyType, 
-		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
@@ -589,7 +592,7 @@ void RsContextD3D12::drawIndexedPrimitives(
 	bindDescriptorHeap( ProgramBinding );
 	
 	auto CommandList = getCurrentCommandList();
-	CommandList->DrawIndexedInstanced( NoofIndices, 1, IndexOffset, VertexOffset, 0 );
+	CommandList->DrawIndexedInstanced( NoofIndices, NoofInstances, IndexOffset, VertexOffset, FirstInstance );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -885,11 +888,11 @@ void RsContextD3D12::bindDescriptorHeap(
 		}
 	}
 
-	for( const auto* UniformBuffer : ProgramBindingDesc.UniformBuffers_ )
+	for( const auto& UniformSlot : ProgramBindingDesc.UniformBuffers_ )
 	{
-		if( UniformBuffer != nullptr )
+		if( UniformSlot.Buffer_ != nullptr )
 		{
-			auto Resource = UniformBuffer->getHandle< RsResourceD3D12* >();
+			auto Resource = UniformSlot.Buffer_->getHandle< RsResourceD3D12* >();
 			BcAssert( ( Resource->resourceUsage() & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER ) != 0 );
 		}
 	} 
@@ -1052,7 +1055,7 @@ bool RsContextD3D12::createBuffer(
 	const auto& BufferDesc = Buffer->getDesc();
 
 	CD3DX12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_DEFAULT );
-	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( BufferDesc.SizeBytes_, D3D12_RESOURCE_FLAG_NONE) );
+	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( BcPotRoundUp( BufferDesc.SizeBytes_, 256 ), D3D12_RESOURCE_FLAG_NONE) );
 
 	// Determine appropriate resource usage.
 	const auto Flags = BufferDesc.BindFlags_;

@@ -179,7 +179,9 @@ struct RsOpenGLVersion
 	bool SupportPolygonMode_;
 	bool SupportVAOs_;
 	bool SupportSamplerStates_;
+	bool SupportBindBufferRange_;
 	bool SupportUniformBuffers_;
+	bool SupportUniformBufferOffset_;
 	bool SupportImageLoadStore_;
 	bool SupportShaderStorageBufferObjects_;
 	bool SupportProgramInterfaceQuery_;
@@ -187,8 +189,11 @@ struct RsOpenGLVersion
 	bool SupportTesselationShaders_;
 	bool SupportComputeShaders_;
 	bool SupportDrawElementsBaseVertex_;
+	bool SupportDrawInstanced_;
+	bool SupportDrawInstancedBaseInstance_;
 	bool SupportBlitFrameBuffer_;
 	bool SupportCopyImageSubData_;
+	GLint MaxVaryingFloats_;
 	GLint MaxTextureSlots_;
 	GLfloat MaxTextureAnisotropy_;
 

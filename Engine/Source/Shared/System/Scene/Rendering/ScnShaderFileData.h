@@ -110,6 +110,7 @@ enum class ScnShaderPermutationFlags : BcU32
 
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, | );
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, & );
+DEFINE_ENUM_CLASS_UNARY_FLAG_OPERATOR( ScnShaderPermutationFlags, ~ );
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader
@@ -141,6 +142,23 @@ struct ScnShaderProgramHeader
 	BcU32 NoofVertexAttributes_;
 	BcU32 NoofParameters_;
 	BcU32 ShaderHashes_[ (BcU32)RsShaderType::MAX ];
+};
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderDataAttribute
+class ScnShaderDataAttribute:
+	public ReAttribute
+{
+public:
+	REFLECTION_DECLARE_DERIVED( ScnShaderDataAttribute, ReAttribute );
+
+	ScnShaderDataAttribute( BcName Name = BcName::INVALID, BcBool IsInstancable = BcFalse );
+	virtual ~ScnShaderDataAttribute();
+
+	BcBool isInstancable() const { return IsInstancable_; }
+
+private:
+	BcBool IsInstancable_ = false;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -194,7 +212,7 @@ struct ScnShaderMaterialUniformBlockData
 	BcF32 MaterialMetallic_ = 1.0f;
 	BcF32 MaterialSpecular_ = 1.0f;
 	BcF32 MaterialRoughness_ = 1.0f;
-	BcF32 MaterialUnused_[ 1 ];
+	BcF32 MaterialUnused_ = 0.0f;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,7 +287,7 @@ struct ScnShaderPostProcessBlurBlockData
 	BcF32 Radius_ = 1.0f;
 
 	/// Unued.
-	BcF32 Unused_ = 0.0f;
+	BcF32 BlurUnused_ = 0.0f;
 };
 
 #endif

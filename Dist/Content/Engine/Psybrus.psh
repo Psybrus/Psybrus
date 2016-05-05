@@ -4,7 +4,6 @@
 #include <PsybrusVersion.psh>
 #include <PsybrusTypes.psh>
 #include <PsybrusUtility.psh>
-#include <PsybrusUniforms.psh>
 #include <PsybrusVertices.psh>
 #include <PsybrusSamplers.psh>
 

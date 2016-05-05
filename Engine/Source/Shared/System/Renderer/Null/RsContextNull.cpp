@@ -172,7 +172,8 @@ void RsContextNull::drawPrimitives(
 	const RsFrameBuffer* FrameBuffer, 
 	const RsViewport* Viewport,
 	const RsScissorRect* ScissorRect,
-	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices )
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices,
+	BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcUnusedVar( PrimitiveType );
@@ -189,7 +190,8 @@ void RsContextNull::drawIndexedPrimitives(
 	const RsFrameBuffer* FrameBuffer, 
 	const RsViewport* Viewport,
 	const RsScissorRect* ScissorRect,
-	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset )
+	RsTopologyType PrimitiveType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
+	BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcUnusedVar( PrimitiveType );

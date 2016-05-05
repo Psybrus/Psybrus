@@ -29,7 +29,7 @@ public:
 	RsFrame( 
 		class RsContext* pContext, 
 		BcU32 NoofNodes = 32 * 1024, 
-		BcU32 NodeMem = 1024 * 1024 );
+		BcSize NodeMem = 1024 * 1024 );
 	~RsFrame();
 
 	/**
@@ -105,7 +105,7 @@ private:
 private:
 	BcU8* pFrameMem_;
 	BcU8* pCurrFrameMem_;
-	BcU32 FrameBytes_;
+	BcSize FrameBytes_;
 
 };
 
@@ -115,6 +115,8 @@ template < typename _CallableType >
 inline void RsFrame::queueRenderNode( RsRenderSort Sort, _CallableType&& Callable )
 {
 	static_assert( std::is_trivially_destructible< _CallableType >::value, "Must be trivially destructible" );
+
+	BcAssertMsg( CurrNode_ < NoofNodes_, "Out of render nodes." );
 
 	// Grab call function.
 	auto CallFunc = &_CallableType::operator();

@@ -150,6 +150,9 @@ public:
 	void addDependency( const BcChar* Dependency );
 
 private:
+	void regenerateShaderDataHeader();
+	void writeField( std::string& OutString, const ReClass* InClass, const ReField* Field, std::string Indentation, RsShaderBackendType OutputBackend );
+
 	BcBool oldPipeline();
 	BcBool newPipeline();
 	ScnShaderPermutation getDefaultPermutation();
@@ -215,6 +218,8 @@ private:
 	std::atomic< BcU32 > GotErrorBuilding_;
 	std::atomic< BcU32 > PendingPermutations_;
 	std::string IntermediatePath_;
+
+	std::unordered_map< const ReClass*, std::string > ShaderClassMapping_;
 };
 
 #endif // __SCNSHADERIMPORT_H__

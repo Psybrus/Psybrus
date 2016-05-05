@@ -48,6 +48,22 @@ void ScnComponentProcessor::shutdown()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// onAttach
+//virtual
+void ScnComponentProcessor::onAttach( ScnComponent* Component )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onDetach
+//virtual
+void ScnComponentProcessor::onDetach( ScnComponent* Component )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getProcessFuncs
 //virtual
 const ScnComponentProcessFuncEntryList& ScnComponentProcessor::getProcessFuncs()
