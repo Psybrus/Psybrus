@@ -134,14 +134,20 @@ void DsCoreImpl::open()
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
 		[ this ]( EvtID, const EvtBaseEvent& )
 	{
-		ImGui::Psybrus::Init();
+		if( OsCore::pImpl()->getClient( 0 ) )
+		{
+			ImGui::Psybrus::Init();
+		}
 		return evtRET_REMOVE;
 	} );
 
 	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
 		[ this ]( EvtID, const EvtBaseEvent& )
 	{
-		ImGui::Psybrus::Shutdown();
+		if( OsCore::pImpl()->getClient( 0 ) )
+		{
+			ImGui::Psybrus::Shutdown();
+		}
 		return evtRET_REMOVE;
 	} );
 
@@ -149,14 +155,16 @@ void DsCoreImpl::open()
 		[ this ]( EvtID, const EvtBaseEvent& )
 	{
 		PSY_PROFILER_SECTION( UpdateImGui, "ImGui" );
-
-		if ( ImGui::Psybrus::NewFrame() )
+		if( OsCore::pImpl()->getClient( 0 ) )
 		{
-			if ( DrawPanels_ )
+			if ( ImGui::Psybrus::NewFrame() )
 			{
-				for ( auto& Panel : PanelFunctions_ )
+				if ( DrawPanels_ )
 				{
-					Panel.Function_( Panel.Handle_ );
+					for ( auto& Panel : PanelFunctions_ )
+					{
+						Panel.Function_( Panel.Handle_ );
+					}
 				}
 			}
 		}
