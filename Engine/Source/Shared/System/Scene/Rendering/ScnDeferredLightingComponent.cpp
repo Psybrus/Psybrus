@@ -98,7 +98,14 @@ ScnDeferredLightingComponent::~ScnDeferredLightingComponent()
 //virtual
 class ScnViewRenderData* ScnDeferredLightingComponent::createViewRenderData( class ScnViewComponent* View )
 {
+	auto SortPassType = View->getSortPassType( getPasses(), getRenderPermutations() );
+	if( SortPassType == RsRenderSortPassType::INVALID )
+	{
+		return nullptr;
+	}
+
 	ScnDeferredLightingViewRenderData* ViewRenderData = new ScnDeferredLightingViewRenderData();
+	ViewRenderData->setSortPassType( SortPassType );
 
 	const ScnShaderPermutationFlags Permutation = 
 		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
@@ -140,7 +147,6 @@ class ScnViewRenderData* ScnDeferredLightingComponent::createViewRenderData( cla
 		ViewRenderData->ProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 	}
 
-	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 

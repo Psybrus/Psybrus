@@ -154,9 +154,14 @@ ScnRenderableComponent::~ScnRenderableComponent()
 //virtual
 ScnViewRenderData* ScnRenderableComponent::createViewRenderData( class ScnViewComponent* View )
 {
-	auto RetVal = new ScnViewRenderData();
-	RetVal->setSortPassType( getSortPassType( View ) );
-	return RetVal;
+	auto SortPassType = View->getSortPassType( Passes_, RenderPermutations_ );
+	if( SortPassType != RsRenderSortPassType::INVALID )
+	{
+		auto RetVal = new ScnViewRenderData();
+		RetVal->setSortPassType( SortPassType );
+		return RetVal;
+	}
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -213,20 +218,3 @@ void ScnRenderableComponent::onDetach( ScnEntityWeakRef Parent )
 	Super::onDetach( Parent );
 }
 
-//////////////////////////////////////////////////////////////////////////
-// getSortPassType
-RsRenderSortPassType ScnRenderableComponent::getSortPassType( class ScnViewComponent* View ) const
-{
-	RsRenderSortPassType RetVal = RsRenderSortPassType::INVALID;
-	if( BcContainsAnyFlags( View->getRenderPermutation(), RenderPermutations_ ) )
-	{
-		const auto ViewPasses = View->getPasses();
-		const auto CombinedFlags = ViewPasses & Passes_;
-		const auto LeadingZeros = BcCountLeadingZeros( static_cast< BcU32 >( CombinedFlags ) );
-		if( LeadingZeros < 32 )
-		{
-			RetVal = static_cast< RsRenderSortPassType >( 31 - LeadingZeros );
-		}
-	}
-	return RetVal;
-}

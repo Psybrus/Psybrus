@@ -344,7 +344,14 @@ void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
 //virtual
 class ScnViewRenderData* ScnParticleSystemComponent::createViewRenderData( class ScnViewComponent* View )
 {
+	auto SortPassType = View->getSortPassType( getPasses(), getRenderPermutations() );
+	if( SortPassType == RsRenderSortPassType::INVALID )
+	{
+		return nullptr;
+	}
+
 	ScnParticleSystemViewRenderData* ViewRenderData = new ScnParticleSystemViewRenderData();
+	ViewRenderData->setSortPassType( SortPassType );
 
 	ScnShaderPermutationFlags ShaderPermutation = ScnShaderPermutationFlags::MESH_PARTICLE_3D;
 	ShaderPermutation |= View->getRenderPermutation();
@@ -366,8 +373,6 @@ class ScnViewRenderData* ScnParticleSystemComponent::createViewRenderData( class
 	}
 	ViewRenderData->ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 	ViewRenderData->RenderState_ = Material_->getRenderState();
-
-	ViewRenderData->setSortPassType( getSortPassType( View ) );
 	return ViewRenderData;
 }
 

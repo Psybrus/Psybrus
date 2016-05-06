@@ -93,14 +93,6 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
-	 * Get sort pass type.
-	 * This will get the highest matching type of sort pass for view.
-	 * I.e. if view + renderable both have OPAQUE + TRANSPARENT, then TRANSPARENT is returned.
-	 * @param View View to get sort pass type for.
-	 */
-	RsRenderSortPassType getSortPassType( class ScnViewComponent* View ) const;
-
-	/**
 	 * Is this renderable component lit?
 	 */
 	bool isLit() const { return IsLit_; }

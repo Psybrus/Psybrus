@@ -139,7 +139,6 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 	const char* DebugNameCStr = nullptr;
 #endif
 
-	auto* ViewRenderData = new ScnModelViewRenderData();
 	auto* ModelComponent = static_cast< ScnModelComponent* >( Component );
 	auto SortPassType = View->getSortPassType( ModelComponent->Passes_, ModelComponent->RenderPermutations_ );
 	if( SortPassType == RsRenderSortPassType::INVALID )
@@ -147,7 +146,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 		return nullptr;
 	}
 
-
+	auto* ViewRenderData = new ScnModelViewRenderData();
 	auto* Model = ModelComponent->Model_.get();
 	auto ViewModelPair = std::make_pair( View, Model );
 	const auto & Features = RsCore::pImpl()->getContext( nullptr )->getFeatures();
