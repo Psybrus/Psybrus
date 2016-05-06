@@ -323,13 +323,16 @@ void ScnViewProcessor::onAttach( ScnComponent* Component )
 	for( auto& It : VisibilityLeaves_ )
 	{
 		auto ViewRenderData = It.second->RenderInterface_->createViewRenderData( It.second->Component_, ViewData->View_ );
-		if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+		if( ViewRenderData )
 		{
-			ViewData->ViewRenderData_[ It.second->Component_ ] = ViewRenderData;
-		}
-		else
-		{
-			It.second->RenderInterface_->destroyViewRenderData( It.second->Component_, ViewData->View_, ViewRenderData );
+			if( ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+			{
+				ViewData->ViewRenderData_[ It.second->Component_ ] = ViewRenderData;
+			}
+			else
+			{
+				It.second->RenderInterface_->destroyViewRenderData( It.second->Component_, ViewData->View_, ViewRenderData );
+			}
 		}
 	}
 
@@ -352,7 +355,10 @@ void ScnViewProcessor::onDetach( ScnComponent* Component )
 	for( auto& VisibilityLeaf : VisibilityLeaves_ )
 	{
 		auto* ViewRenderData = (*It)->ViewRenderData_[ VisibilityLeaf.second->Component_ ];
-		VisibilityLeaf.second->RenderInterface_->destroyViewRenderData( VisibilityLeaf.second->Component_, (*It)->View_, ViewRenderData );
+		if( ViewRenderData )
+		{
+			VisibilityLeaf.second->RenderInterface_->destroyViewRenderData( VisibilityLeaf.second->Component_, (*It)->View_, ViewRenderData );
+		}
 	}
 
 	ViewData_.erase( It );
