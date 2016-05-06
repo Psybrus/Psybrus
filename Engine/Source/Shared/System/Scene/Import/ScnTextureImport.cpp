@@ -460,8 +460,9 @@ BcBool ScnTextureImport::import()
 		return BcTrue;
 	}
 
-#endif // PSY_IMPORT_PIPELINE
+#elif // PSY_IMPORT_PIPELINE
 	return BcFalse;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
