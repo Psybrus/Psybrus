@@ -148,7 +148,8 @@ public:
 	BcU32 findNodeIndexByName( const BcName& Name ) const;
 	const BcName& findNodeNameByIndex( BcU32 NodeIdx ) const;
 	void setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform );
-	const MaMat4d& getNode( BcU32 NodeIdx ) const;
+	const MaMat4d& getNodeLocalTransform( BcU32 NodeIdx ) const;
+	const MaMat4d& getNodeWorldTransform( BcU32 NodeIdx ) const;
 	BcU32 getNoofNodes() const;
 
 	/**

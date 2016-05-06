@@ -1319,13 +1319,27 @@ void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getNode
-const MaMat4d& ScnModelComponent::getNode( BcU32 NodeIdx ) const
+// getNodeLocalTransform
+const MaMat4d& ScnModelComponent::getNodeLocalTransform( BcU32 NodeIdx ) const
 {
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
 		return pNodeTransformData_[ NodeIdx ].LocalTransform_;
+	}
+
+	static MaMat4d Default;
+	return Default;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getNodeWorldTransform
+const MaMat4d& ScnModelComponent::getNodeWorldTransform( BcU32 NodeIdx ) const
+{
+	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
+	if( NodeIdx < NoofNodes )
+	{
+		return pNodeTransformData_[ NodeIdx ].WorldTransform_;
 	}
 
 	static MaMat4d Default;

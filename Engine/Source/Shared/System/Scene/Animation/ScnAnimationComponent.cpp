@@ -140,7 +140,7 @@ void ScnAnimationComponent::buildReferencePose()
 	ScnAnimationTransform Transform;
 	for( BcU32 Idx = 1; Idx < NoofNodes; ++Idx )
 	{
-		Transform.fromMatrix( Model_->getNode( Idx ) );
+		Transform.fromMatrix( Model_->getNodeLocalTransform( Idx ) );
 		pReferencePose_->setTransform( Idx - 1, Transform );
 	}
 
