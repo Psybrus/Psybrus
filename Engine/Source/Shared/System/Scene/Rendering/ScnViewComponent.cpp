@@ -385,13 +385,19 @@ void ScnViewProcessor::onAttachComponent( ScnComponent* Component )
 		for( auto& ViewData : ViewData_ )
 		{
 			auto ViewRenderData = RenderInterface->createViewRenderData( Component, ViewData->View_ );
-			if( ViewRenderData && ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+			if( ViewRenderData )
 			{
-				ViewData->ViewRenderData_[ Component ] = ViewRenderData;
-			}
-			else
-			{
-				RenderInterface->destroyViewRenderData( Component, ViewData->View_, ViewRenderData );
+				if( ViewRenderData->getSortPassType() != RsRenderSortPassType::INVALID )
+				{
+					ViewData->ViewRenderData_[ Component ] = ViewRenderData;
+				}
+				else
+				{
+					PSY_LOG( "ScnViewProcessor::onAttachComponent( %s ) called createViewRenderData, "
+						"but it returned a type with invalid sort pass type. Should return nullptr.",
+						Component->getFullName().c_str() );
+					RenderInterface->destroyViewRenderData( Component, ViewData->View_, ViewRenderData );
+				}
 			}
 		}
 	}

@@ -141,15 +141,22 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 
 	auto* ViewRenderData = new ScnModelViewRenderData();
 	auto* ModelComponent = static_cast< ScnModelComponent* >( Component );
+	auto SortPassType = View->getSortPassType( ModelComponent->Passes_, ModelComponent->RenderPermutations_ );
+	if( SortPassType == RsRenderSortPassType::INVALID )
+	{
+		return nullptr;
+	}
+
+
 	auto* Model = ModelComponent->Model_.get();
 	auto ViewModelPair = std::make_pair( View, Model );
-
 	const auto & Features = RsCore::pImpl()->getContext( nullptr )->getFeatures();
 
 	// Setup program binding for all materials.
 	ScnModelMeshRuntimeList& MeshRuntimes = ModelComponent->Model_->MeshRuntimes_;
 	ViewRenderData->MaterialBindings_.resize( MeshRuntimes.size() );
-	BcBool IsInstancable = Features.Instancing_;
+
+	bool IsInstancable = Features.Instancing_;
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
 		auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];
@@ -240,17 +247,20 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, DebugNameCStr ).release();
 			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
 		}
+	}
 
-		if( IsInstancable )
+	if( IsInstancable )
+	{
+		ViewRenderData->InstancedMaterialBindings_.resize( MeshRuntimes.size() );
+		for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 		{
-			ViewRenderData->InstancedMaterialBindings_.resize( MeshRuntimes.size() );
-			for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
-			{
-				auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];
-				ScnModelMeshData* pMeshData = &Model->pMeshData_[ Idx ];
-				ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
-				auto Material = pMeshRuntime->MaterialRef_;
+			auto& PerComponentMeshData = ModelComponent->PerComponentMeshDataList_[ Idx ];
+			ScnModelMeshData* pMeshData = &Model->pMeshData_[ Idx ];
+			ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
+			auto Material = pMeshRuntime->MaterialRef_;
 
+			if( Material.isValid() )
+			{
 				// Find model instancing data, and add if it's missing.
 				if( InstancingData_.find( ViewModelPair ) == InstancingData_.end() )
 				{
@@ -379,7 +389,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 		}
 	}
 
-	ViewRenderData->setSortPassType( View->getSortPassType( ModelComponent->Passes_, ModelComponent->RenderPermutations_ ) );
+	ViewRenderData->setSortPassType( SortPassType );
 	return ViewRenderData;
 }
 
@@ -389,7 +399,6 @@ void ScnModelProcessor::destroyViewRenderData( class ScnComponent* Component, cl
 {
 	BcAssert( Component->isTypeOf< ScnModelComponent >() );
 
-	auto* ModelViewRenderData = static_cast< ScnModelViewRenderData* >( ViewRenderData );
 	auto* ModelComponent = static_cast< ScnModelComponent* >( Component );
 	auto ViewModelPair = std::make_pair( View, ModelComponent->Model_.get() );
 	auto InstancingDataIt = InstancingData_.find( ViewModelPair );
@@ -453,7 +462,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 	// Render.
 	ScnModelComponent* LastModelComponent = nullptr;
 	ModelsRendered_ += ComponentRenderDatas_.size();
-	for( BcU32 IdxA = 0; IdxA < ComponentRenderDatas_.size(); ++IdxA )
+	for( size_t IdxA = 0; IdxA < ComponentRenderDatas_.size(); ++IdxA )
 	{
 		const ScnViewComponentRenderData& ComponentRenderData( ComponentRenderDatas_[ IdxA ] );
 		BcAssert( ComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
@@ -461,6 +470,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 		auto Model = Component->Model_;
 
 		BcBool DrawNonInstanced = BcTrue;
+
 		if( InstancingEnabled_ )
 		{
 			LastModelComponent = Component;
@@ -478,12 +488,13 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 				ScnModelMeshData* pMeshDatas = Model->pMeshData_;
 
 				BcU32 NoofInstances = 0;
-
 				for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 				{
 					ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
 					ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
 					auto& InstancedMaterialBinding = ViewRenderData->InstancedMaterialBindings_[ PrimitiveIdx ];
+					BcAssert( InstancedMaterialBinding.ProgramBinding_ );
+					BcAssert( InstancedMaterialBinding.RenderState_ );
 
 					// Set layer.
 					RsRenderSort Sort = RenderContext.Sort_;
@@ -492,12 +503,11 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 					// Iterate until end, then draw.
 					NoofInstances = 0;
 
-					for( BcU32 IdxB = IdxA; IdxB < ComponentRenderDatas_.size(); ++IdxB )
+					for( size_t IdxB = IdxA; IdxB < ComponentRenderDatas_.size(); ++IdxB )
 					{
 						const ScnViewComponentRenderData& InstancedComponentRenderData( ComponentRenderDatas_[ IdxB ] );
 						BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 						auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
-						auto InstancedModel = InstancedComponent->Model_.get();
 						if( !LastModelComponent->isInstancingMatch( *InstancedComponent ) || NoofInstances >= MAX_INSTANCES )
 						{
 							break;
@@ -524,10 +534,8 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 							const ScnViewComponentRenderData& InstancedComponentRenderData( ComponentRenderDatas_[ IdxA + IdxB ] );
 							BcAssert( InstancedComponentRenderData.Component_->isTypeOf< ScnModelComponent >() );
 							auto InstancedComponent = static_cast< ScnModelComponent* >( InstancedComponentRenderData.Component_ );
-							auto InstancedModel = InstancedComponent->Model_.get();
 
 							// TODO: Batch updates.
-							auto& UniformBuffers = InstancingDataIt->second.UniformBuffers_;
 							for( BcU32 UniformIdx = 0; UniformIdx < InstancedComponent->Uniforms_.size(); ++UniformIdx )
 							{
 								auto& Uniform = InstancedComponent->Uniforms_[ UniformIdx ];
@@ -565,23 +573,22 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 									ObjectUniformBlock->NormalTransform_.transpose();
 #endif
 								}
+							}
 
-								// Do lighting uniform.
-								if( InstancedComponent->IsLit_ )
+							// Do lighting uniform.
+							if( InstancedComponent->IsLit_ )
+							{
+								auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
+								if( UniformBufferIt != UniformBuffers.end() )
 								{
-									auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
-									if( UniformBufferIt != UniformBuffers.end() )
-									{
-										auto Size = sizeof( ScnShaderLightUniformBlockData );
-										auto Offset = Size * IdxB;
-										auto UniformBuffer = UniformBufferIt->second;
+									auto Size = sizeof( ScnShaderLightUniformBlockData );
+									auto Offset = Size * IdxB;
+									auto UniformBuffer = UniformBufferIt->second;
 
-										ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
-										ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
-										BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
-									}
+									ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+									ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+									BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
 								}
-
 							}
 						}
 
@@ -1578,7 +1585,6 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 	PerComponentMeshDataList_.reserve( MeshRuntimes.size() );
 	for( BcU32 Idx = 0; Idx < MeshRuntimes.size(); ++Idx )
 	{
-		ScnModelMeshData* pMeshData = &Model_->pMeshData_[ Idx ];
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
 		auto Material = pMeshRuntime->MaterialRef_;
 

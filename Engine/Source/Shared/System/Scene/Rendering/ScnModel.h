@@ -88,8 +88,8 @@ private:
 
 	BcBool SortingEnabled_ = BcTrue;
 	BcBool InstancingEnabled_ = BcTrue;
-	BcU32 ModelsRendered_ = 0;
-	BcU32 DrawCalls_ = 0;
+	size_t ModelsRendered_ = 0;
+	size_t DrawCalls_ = 0;
 	BcF64 SortingTime_ = 0.0;
 };
 

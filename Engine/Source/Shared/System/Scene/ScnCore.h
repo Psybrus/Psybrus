@@ -146,8 +146,8 @@ private:
 
 	// All components in the scene.
 	using ComponentProcessorList = std::vector< ScnComponentProcessor >;
-	using ComponentClassIndexMap = std::unordered_map< const ReClass*, BcU32 >;
-	using ComponentIndexClassMap = std::unordered_map< BcU32, const ReClass* >;
+	using ComponentClassIndexMap = std::unordered_map< const ReClass*, size_t >;
+	using ComponentIndexClassMap = std::unordered_map< size_t, const ReClass* >;
 	ComponentClassIndexMap ComponentClassIndexMap_;
 	ComponentIndexClassMap ComponentIndexClassMap_;
 	std::vector< ScnComponentList > ComponentLists_;

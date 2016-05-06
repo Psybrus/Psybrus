@@ -155,10 +155,10 @@ public:
 	ScnShaderDataAttribute( BcName Name = BcName::INVALID, BcBool IsInstancable = BcFalse );
 	virtual ~ScnShaderDataAttribute();
 
-	BcBool isInstancable() const { return IsInstancable_; }
+	bool isInstancable() const { return !!IsInstancable_; }
 
 private:
-	BcBool IsInstancable_ = false;
+	BcBool IsInstancable_ = BcFalse;
 };
 
 //////////////////////////////////////////////////////////////////////////

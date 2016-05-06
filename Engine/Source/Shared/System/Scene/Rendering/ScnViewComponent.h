@@ -79,8 +79,8 @@ private:
 	struct ProcessingGroup
 	{
 		class ScnViewRenderInterface* RenderInterface_ = nullptr;
-		BcU32 Base_ = 0;
-		BcU32 Noof_ = 0;
+		size_t Base_ = 0;
+		size_t Noof_ = 0;
 	};
 
 	std::vector< ProcessingGroup > ProcessingGroups_;

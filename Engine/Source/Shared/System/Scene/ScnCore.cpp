@@ -171,7 +171,6 @@ void ScnCore::open()
 					UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
 				}
 
-				bool StepSingleUpdate = !!StepSingleUpdate_;
 				if( ImGui::Button( "Step single update (F6)" ) )
 				{
 					StepSingleUpdate_ = BcTrue;
@@ -262,8 +261,6 @@ void ScnCore::update()
 	// Update scene only if we have focus.
 	if( OsCore::pImpl()->getClient( 0 )->isActive() )
 	{
-		BcF32 Tick = SysKernel::pImpl()->getFrameTime();
-
 		auto ShouldUpdateComponents = UpdateEnabled_ || StepSingleUpdate_;
 
 		// Iterate over all component process funcs.
@@ -363,7 +360,7 @@ void ScnCore::removeCallback( ScnCoreCallback* Callback )
 // removeAllEntities
 void ScnCore::removeAllEntities()
 {
-	BcU32 ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
+	size_t ComponentListIdx( ComponentClassIndexMap_[ ScnEntity::StaticGetClass() ] );
 	ScnComponentList& ComponentList( ComponentLists_[ ComponentListIdx ] );
 	for( auto It( ComponentList.rbegin() ); It != ComponentList.rend(); ++It )
 	{
