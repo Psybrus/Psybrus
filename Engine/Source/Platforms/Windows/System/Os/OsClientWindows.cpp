@@ -454,6 +454,13 @@ void OsClientWindows::setMouseLock( BcBool Enabled )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// maximise
+void OsClientWindows::maximise()
+{
+	::ShowWindow( hWnd_, SW_SHOWMAXIMIZED );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // centreWindow
 BcBool OsClientWindows::centreWindow( BcS32 SizeX, BcS32 SizeY )
 {

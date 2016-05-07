@@ -39,6 +39,7 @@ public:
 	bool isActive() const override;
 	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;
+	void maximise() override;
 
 	/**
 	 * Get Window ID.

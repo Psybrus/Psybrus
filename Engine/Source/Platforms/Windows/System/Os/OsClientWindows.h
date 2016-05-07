@@ -39,6 +39,7 @@ public:
 	bool isActive() const override;
 	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;
+	void maximise() override;
 
 	BcBool centreWindow( BcS32 SizeX, BcS32 SizeY );
 	MaVec2d getWindowCentre() const;

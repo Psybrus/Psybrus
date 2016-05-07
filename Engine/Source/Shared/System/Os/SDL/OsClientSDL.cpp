@@ -203,6 +203,13 @@ void OsClientSDL::setMouseLock( BcBool Enabled )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// maximise
+void OsClientSDL::maximise()
+{
+	PSY_LOG("OsClientSDL::maximise: UNIMPLEMENTED!" );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // handleEvent
 BcU32 OsClientSDL::getWindowId() const
 {

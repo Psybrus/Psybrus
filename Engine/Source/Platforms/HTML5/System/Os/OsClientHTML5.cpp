@@ -215,6 +215,13 @@ void OsClientHTML5::setMouseLock( BcBool Enabled )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// maximise
+void OsClientHTML5::maximise()
+{
+	PSY_LOG("OsClientHTML5::maximise: UNIMPLEMENTED!" );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // handleEvent
 void OsClientHTML5::handleEvent( const SDL_Event& SDLEvent )
 {

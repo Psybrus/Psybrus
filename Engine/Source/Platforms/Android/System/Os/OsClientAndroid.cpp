@@ -225,6 +225,13 @@ void OsClientAndroid::setMouseLock( BcBool Enabled )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// maximise
+void OsClientAndroid::maximise()
+{
+	PSY_LOG("OsClientAndroid::maximise: UNIMPLEMENTED!" );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setSize
 void OsClientAndroid::setSize( BcU32 Width, BcU32 Height )
 {

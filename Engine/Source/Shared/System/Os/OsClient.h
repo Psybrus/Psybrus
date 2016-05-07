@@ -66,6 +66,11 @@ public:
 	 */
 	virtual void setMouseLock( BcBool Enabled ) = 0;
 
+	/**
+	 * Maximise window.
+	 */
+	virtual void maximise() = 0;
+
 };
 
 #endif

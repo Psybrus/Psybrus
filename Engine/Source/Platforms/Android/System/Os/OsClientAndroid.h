@@ -38,6 +38,7 @@ public:
 	bool isActive() const override;
 	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;
+	void maximise() override;
 
 public:
 	void setSize( BcU32 Width, BcU32 Height );
