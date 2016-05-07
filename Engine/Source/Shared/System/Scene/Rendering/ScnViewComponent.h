@@ -152,6 +152,9 @@ public:
 	const ScnShaderPermutationFlags getRenderPermutation() const { return RenderPermutation_ & ScnShaderPermutationFlags::RENDER_ALL; }
 	const RsRenderSortPassFlags getPasses() const { return Passes_; }
 
+	ScnTextureRef getRenderTarget( BcU32 Idx ) { return RenderTarget_[ Idx ]; }
+	ScnTextureRef getDepthStencilTarget() { return DepthStencilTarget_; }
+
 private:
 	void recreateFrameBuffer();
 

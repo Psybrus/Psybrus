@@ -242,6 +242,16 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 				}
 			}
 
+			// Get depth texture if needed.
+			if( View->hasRenderTarget() )
+			{
+				auto Slot = Program->findShaderResourceSlot( "aDepthTex" );
+				if( Slot != BcErrorCode )
+				{
+					ProgramBindingDesc.setShaderResourceView( Slot, View->getDepthStencilTarget()->getTexture() );
+				}
+			}
+
 			// Create program binding for non-instanced rendering.
 			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, DebugNameCStr ).release();
 			ViewRenderData->MaterialBindings_[ Idx ].RenderState_ = Material->getRenderState();
