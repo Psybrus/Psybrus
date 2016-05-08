@@ -222,10 +222,11 @@ void ScnSoundEmitterComponent::stopAll( bool ForceFlush )
 			while( ChannelSoundMap_.size() > 0 )
 			{
 				auto It = ChannelSoundMap_.begin();
+				SsChannel* Channel = It->first;
 				ChannelSoundMutex_.unlock();
 		
 				// Stop channel.
-				SsCore::pImpl()->stopChannel( (*It).first, BcTrue );
+				SsCore::pImpl()->stopChannel( Channel, BcTrue );
 				ChannelSoundMutex_.lock();
 			}
 			ChannelSoundMutex_.unlock();
