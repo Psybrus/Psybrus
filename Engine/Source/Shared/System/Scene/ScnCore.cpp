@@ -301,8 +301,10 @@ void ScnCore::close()
 	processPendingComponents();
 
 	OsCore::pImpl()->unsubscribeAll( this );
-	SsCore::pImpl()->stopAllChannels();
-
+	if( SsCore::pImpl() )
+	{
+		SsCore::pImpl()->stopAllChannels();
+	}
 	ComponentLists_.clear();
 
 	// Shutdown all component processors.
