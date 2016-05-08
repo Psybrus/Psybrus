@@ -499,10 +499,30 @@ void SsCoreImplSoLoud::stopChannel(
 	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, stopChannelFunc );
 
 	// If we're flushing, wait.
-	if( ForceFlush )
+	FlushFence.wait();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// stopAllChannels
+void SsCoreImplSoLoud::stopAllChannels( BcBool ForceFlush )
+{
+
+	SysFence FlushFence;
+
+	// Stop source func.
+	auto stopChannelFunc = [ this, ForceFlush, &FlushFence ]()
 	{
-		FlushFence.wait();
-	}
+		SoLoudCore_->stopAll();
+		internalUpdate();
+		FlushFence.decrement();
+	};
+
+	// Increment and push stop channel.
+	FlushFence.increment();
+	SysKernel::pImpl()->pushFunctionJob( JOB_QUEUE_ID, stopChannelFunc );
+
+	// If we're flushing, wait.
+	FlushFence.wait();
 }
 
 //////////////////////////////////////////////////////////////////////////

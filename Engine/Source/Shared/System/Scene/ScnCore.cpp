@@ -24,7 +24,10 @@
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 
 #include "System/Scene/ScnCoreCallback.h"
+
 #include "System/Debug/DsCore.h"
+
+#include "System/Sound/SsCore.h"
 
 #include "System/Scene/ScnViewVisibilityTree.h"
 #include "System/Scene/Rendering/ScnLightComponent.h"
@@ -298,6 +301,7 @@ void ScnCore::close()
 	processPendingComponents();
 
 	OsCore::pImpl()->unsubscribeAll( this );
+	SsCore::pImpl()->stopAllChannels();
 
 	ComponentLists_.clear();
 

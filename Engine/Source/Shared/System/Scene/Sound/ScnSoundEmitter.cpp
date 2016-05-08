@@ -153,6 +153,45 @@ void ScnSoundEmitterComponent::play( ScnSoundRef Sound, bool ContinuousUpdate )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// playOneShot
+SsChannel* ScnSoundEmitterComponent::playOneShot( ScnSoundRef Sound )
+{
+	using namespace std::placeholders;
+
+	if( SsCore::pImpl() )
+	{
+		// Acquire before playing (callback is threaded)
+		Sound->getPackage()->acquire();
+
+		// Get source from sound.
+		SsSource* Source = Sound->getSource();
+		BcAssert( Source );
+
+		// Setup channel params for play.
+		SsChannelParams Params;
+		Params.Gain_ = Gain_;
+		Params.Pitch_ = Pitch_;
+		Params.Min_ = MinDistance_;
+		Params.Max_ = MaxDistance_;
+		Params.AttenuationModel_ = AttenuationModel_;
+		Params.RolloffFactor_ = RolloffFactor_;
+		Params.Position_ = Position_;
+		Params.Velocity_ = MaVec3d( 0.0f, 0.0f, 0.0f );
+
+		// Play sample.
+		SsChannel* Channel = SsCore::pImpl()->playSource( 
+			Source, 
+			Params,
+			[ Package = Sound->getPackage() ]( SsChannel* Channel )
+			{
+				Package->release();
+			} );
+		return Channel;
+	}
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // play
 bool ScnSoundEmitterComponent::play( BcName PackageName, BcName SoundName, bool ContinuousUpdate )
 {

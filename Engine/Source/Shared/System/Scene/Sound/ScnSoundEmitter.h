@@ -56,6 +56,15 @@ public:
 	bool play( BcName PackageName, BcName SoundName, bool ContinuousUpdate = false );
 
 	/**
+	 * Play one shot. Will not stop or update with emitter.
+	 * @param Sound Sound resource to begin playing.
+	 * @param ContinuousUpdate true if sound is to be updated
+	 *        whilst it plays (position, pitch, gain, etc).
+	 *        false if it is intended to only use current parameters.
+	 */
+	SsChannel* playOneShot( ScnSoundRef Sound );
+
+	/**
 	 * Stop all currently playing sounds on emitter.
 	 * @param ForceFlush true if this method should wait untl
 	 *        the audio threads are done processing, false

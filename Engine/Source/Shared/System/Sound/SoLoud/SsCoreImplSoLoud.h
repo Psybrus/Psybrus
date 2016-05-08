@@ -79,6 +79,8 @@ public:
 		SsChannel* Channel,
 		BcBool ForceFlush ) override;
 
+	void stopAllChannels( BcBool ForceFlush = BcFalse ) override;
+
 	void updateChannel(
 		SsChannel* Channel,
 		const SsChannelParams& Params ) override;

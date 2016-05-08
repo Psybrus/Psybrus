@@ -128,6 +128,14 @@ public:
 		BcBool ForceFlush = BcFalse ) = 0;
 
 	/**
+	 * Stop all channels.
+	 * @param ForceFlush True to wait for audio threads to stop sound.
+	 * @pre SsCore has been created.
+	 * @post All channels will stop playing.
+	 */
+	virtual void stopAllChannels( BcBool ForceFlush = BcFalse ) = 0;
+
+	/**
 	 * Update channel.
 	 * @param Channel Channel to update parameters for.
 	 * @param Params New channel parameters.
