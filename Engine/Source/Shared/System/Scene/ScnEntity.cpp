@@ -181,8 +181,10 @@ void ScnEntity::attach( ScnComponent* Component )
 // detach
 void ScnEntity::detach( ScnComponent* Component )
 {
-	if( Component->isFlagSet( scnCF_ATTACHED ) || Component->isFlagSet( scnCF_PENDING_ATTACH ) )
+	if( ( Component->isFlagSet( scnCF_ATTACHED ) || Component->isFlagSet( scnCF_PENDING_ATTACH ) ) &&
+		!Component->isFlagSet( scnCF_PENDING_DETACH ) )
 	{
+		
 		// If component is an entity, recurse down and detach everything first.
 		if( Component->isTypeOf< ScnEntity >() )
 		{
@@ -192,6 +194,7 @@ void ScnEntity::detach( ScnComponent* Component )
 
 		BcAssert( Component->getName() != BcName::INVALID );
 		ScnComponentListIterator It = std::find( Components_.begin(), Components_.end(), Component );
+		BcAssert( It != Components_.end() );
 		if( It != Components_.end() )
 		{
 			Components_.erase( It );	

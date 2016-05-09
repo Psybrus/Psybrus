@@ -333,15 +333,10 @@ void ScnCore::addEntity( ScnEntityRef Entity )
 void ScnCore::removeEntity( ScnEntityRef Entity )
 {
 	BcAssert( Entity->getName().isValid() );
-	if( Entity->getParentEntity() == nullptr )
+	if( ( Entity->isFlagSet( scnCF_PENDING_ATTACH ) || Entity->isFlagSet( scnCF_ATTACHED ) ) &&
+		!Entity->isFlagSet( scnCF_PENDING_DETACH ) )
 	{
-		Entity->detachAll();
-		Entity->setFlag( scnCF_PENDING_DETACH );
-		queueComponentForDetach( ScnComponentRef( Entity ) );
-	}
-	else
-	{
-		Entity->getParentEntity()->detach( Entity );
+		PendingEntityRemovalSet_.insert( Entity );
 	}
 }
 
@@ -607,6 +602,21 @@ void ScnCore::onDetachComponent( ScnEntityWeakRef Entity, ScnComponent* Componen
 // processPendingComponents
 void ScnCore::processPendingComponents()
 {
+	for( auto Entity : PendingEntityRemovalSet_ )
+	{
+		if( Entity->getParentEntity() == nullptr )
+		{
+			Entity->detachAll();
+			Entity->setFlag( scnCF_PENDING_DETACH );
+			queueComponentForDetach( ScnComponentRef( Entity ) );
+		}
+		else
+		{
+			Entity->getParentEntity()->detach( Entity );
+		}
+	}
+	PendingEntityRemovalSet_.clear();
+
 	while( PendingAttachComponentList_.size() > 0 )
 	{
 		//

@@ -137,9 +137,10 @@ private:
 	/// Should we step a single update?
 	BcBool StepSingleUpdate_;
 
-	// Pending components.
+	// Pending components + entities.
 	ScnComponentList PendingAttachComponentList_;
 	ScnComponentList PendingDetachComponentList_;
+	std::set< ScnEntity* > PendingEntityRemovalSet_;
 	
 	// Callbacks.
 	std::vector< class ScnCoreCallback* > Callbacks_;

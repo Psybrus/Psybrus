@@ -161,6 +161,7 @@ SsChannel* ScnSoundEmitterComponent::playOneShot( ScnSoundRef Sound )
 	if( SsCore::pImpl() )
 	{
 		// Acquire before playing (callback is threaded)
+		getPackage()->acquire();
 		Sound->getPackage()->acquire();
 
 		// Get source from sound.
@@ -182,10 +183,21 @@ SsChannel* ScnSoundEmitterComponent::playOneShot( ScnSoundRef Sound )
 		SsChannel* Channel = SsCore::pImpl()->playSource( 
 			Source, 
 			Params,
-			[ Package = Sound->getPackage() ]( SsChannel* Channel )
+			[
+				SoundPackage = Sound->getPackage(),
+				ComponentPackage = getPackage()
+			]
+			( SsChannel* Channel )
 			{
-				Package->release();
+				SoundPackage->release();
+				ComponentPackage->release();
 			} );
+
+		if( Channel == nullptr )
+		{
+			getPackage()->release();
+			Sound->getPackage()->release();
+		}
 		return Channel;
 	}
 	return nullptr;
