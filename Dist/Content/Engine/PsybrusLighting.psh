@@ -26,6 +26,13 @@ struct Material
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Pow5
+float Pow5( float Val )
+{
+	return Val * Val * Val * Val * Val;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // calculateAttenuation
 float calculateAttenuation( float Distance, float3 Attenuation )
 {
@@ -37,7 +44,7 @@ float calculateAttenuation( float Distance, float3 Attenuation )
 // RoughnessToSpecularPower
 float RoughnessToSpecularPower( float Roughness )
 {
-	return 1024.0 * pow( 1.0 - Roughness, 5.0 ) + 1.0;
+	return 1024.0 * Pow5( 1.0 - Roughness ) + 1.0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,7 +52,7 @@ float RoughnessToSpecularPower( float Roughness )
 
 float3 Fresnel_SchlickApproximation( float3 F0, float CosA )
 {
-	float Pow5OneMinusCosA = pow( 1.0 - CosA, 5.0 );
+	float Pow5OneMinusCosA = Pow5( 1.0 - CosA );
 	return F0 + ( float3( 1.0, 1.0, 1.0 ) - F0 ) * Pow5OneMinusCosA;
 }
 
