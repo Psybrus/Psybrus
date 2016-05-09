@@ -345,6 +345,7 @@ BcBool ScnShaderImport::import()
 // regenerateShaderDataHeader
 void ScnShaderImport::regenerateShaderDataHeader()
 {
+#if PSY_IMPORT_PIPELINE
 	// Check if we can bail out.
 	static std::atomic< bool > RegeneratedShaderData( false );
 	if( RegeneratedShaderData.exchange( true ) == true )
@@ -551,6 +552,7 @@ void ScnShaderImport::regenerateShaderDataHeader()
 	{
 		writeShaderHeader( ShaderClass );
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -132,6 +132,7 @@ std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::
 // ImportPackages
 void ImportPackages( const CsPlatformParams& Params, const std::vector< BcPath >& PackagePaths )
 {
+#if PSY_IMPORT_PIPELINE
 	for( const auto& PackagePath : PackagePaths )
 	{
 		auto PackageName = PackagePath.getFileNameNoExtension();
@@ -155,6 +156,7 @@ void ImportPackages( const CsPlatformParams& Params, const std::vector< BcPath >
 				exit( 1 );
 		}
 	}
+#endif // PSY_IMPORT_PIPELINE
 }
 
 //////////////////////////////////////////////////////////////////////////

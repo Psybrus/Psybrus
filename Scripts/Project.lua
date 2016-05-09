@@ -187,7 +187,7 @@ function PsyProjectCommonEngine( _name )
 		defines { "PSY_PRODUCTION" }
 
 	-- Import pipeline.
-	configuration "windows-* or linux-* or osx-*"
+	configuration( "Debug or Release", "windows-* or linux-* or osx-*" )
 		defines { "PSY_IMPORT_PIPELINE" }
 
 	-- Add default include paths.
