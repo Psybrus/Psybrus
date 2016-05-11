@@ -141,7 +141,7 @@ public:
 	 *	@param Desc Shader descriptor.
 	 *	@param pShaderData Shader data.
 	 *	@param ShaderDataSize Shader data size.
-		@param DebugName Name to use in debug message + assertions.
+	 *	@param DebugName Name to use in debug message + assertions.
 	 */
 	virtual RsShaderUPtr createShader( 
 		const RsShaderDesc& Desc, 
@@ -162,10 +162,11 @@ public:
 		const BcChar* DebugName ) = 0;
 
 	/**
-	 * Create program binding.
-	 * @param Program to create binding for.
-	 * @param ProgramBindingDesc Program binding descriptor.
-	 * @param DebugName Name used for debugging creation.
+	 *	Create program binding.
+	 *	@param Program to create binding for.
+	 *	@param ProgramBindingDesc Program binding descriptor.
+	 *	@param DebugName Name used for debugging creation.
+	 *	@pre @a ProgramBindingDesc has no null slots between first and last set slot.
 	 */
 	virtual RsProgramBindingUPtr createProgramBinding( 
 		RsProgram* Program,
@@ -226,6 +227,9 @@ public:
 	 *	@param Size Size to update in bytes. If 0, whole size of buffer is assumed.
 	 *	@param Flags Resource update flags.
 	 *	@param UpdateFunc Function to call for update.
+	 *	@pre @a Buffer is not nullptr.
+	 *	@pre @a Offset is < size of @a Buffer.
+	 *	@pre @a Offset + Size is <= the size of @a Buffer.
 	 */
 	virtual bool updateBuffer( 
 		class RsBuffer* Buffer,
@@ -236,6 +240,9 @@ public:
 
 	/**
 	 *	Update texture.
+	 *	@pre @a Texture bind flags do not contain RENDER_TARGET or DEPTH_STENCIL.
+	 *	@pre @a Slice points to level < the number of levels @a Texture has.
+	 *	@pre @a Slice points to face that @a Texture has.
 	 */
 	virtual bool updateTexture( 
 		class RsTexture* Texture,

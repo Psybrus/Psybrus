@@ -181,11 +181,11 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 				PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
 
 				GatheredVisibleLeaves_.clear();
-				std::vector< ScnViewVisibilityLeaf* > BroadGather;
-				SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather );
+				BroadGather_.clear();
+				SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather_ );
 
 				// Trim down based on render mask.
-				for( auto Leaf : BroadGather )
+				for( auto Leaf : BroadGather_ )
 				{
 					if( RenderContext.pViewComponent_->getRenderMask() & Leaf->RenderMask_ )
 					{

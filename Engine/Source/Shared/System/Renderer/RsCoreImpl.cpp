@@ -545,6 +545,68 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 	auto Context = getContext( nullptr );
 
 	BcAssert( Program );
+#if !PSY_PRODUCTION
+	// Check for holes in slots.
+	{
+		bool FoundNull = ProgramBindingDesc.ShaderResourceSlots_[0].Resource_ == nullptr;
+		for( size_t Idx = 0; Idx < ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
+		{
+			const auto& SRVSlot = ProgramBindingDesc.ShaderResourceSlots_[ Idx ]; 
+			if( FoundNull )
+			{
+				BcAssertMsg( SRVSlot.Resource_ == nullptr,
+					"Found empty SRV slot %u in RsProgramBinding \"%s\"",
+					Idx, DebugName );
+			}
+			FoundNull |= SRVSlot.Resource_ == nullptr;
+		}
+	}
+
+	{
+		bool FoundNull = ProgramBindingDesc.UnorderedAccessSlots_[0].Resource_ == nullptr;
+		for( size_t Idx = 0; Idx < ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
+		{
+			const auto& UAVSlot = ProgramBindingDesc.UnorderedAccessSlots_[ Idx ]; 
+			if( FoundNull )
+			{
+				BcAssertMsg( UAVSlot.Resource_ == nullptr,
+					"Found empty UAV slot %u in RsProgramBinding \"%s\"",
+					Idx, DebugName );
+			}
+			FoundNull |= UAVSlot.Resource_ == nullptr;
+		}
+	}
+
+	{
+		bool FoundNull = ProgramBindingDesc.UniformBuffers_[0].Buffer_ == nullptr;
+		for( size_t Idx = 0; Idx < ProgramBindingDesc.UniformBuffers_.size(); ++Idx )
+		{
+			const auto& UniformBufferSlot = ProgramBindingDesc.UniformBuffers_[ Idx ]; 
+			if( FoundNull )
+			{
+				BcAssertMsg( UniformBufferSlot.Buffer_ == nullptr,
+					"Found empty uniform buffer slot %u in RsProgramBinding \"%s\"",
+					Idx, DebugName );
+			}
+			FoundNull |= UniformBufferSlot.Buffer_ == nullptr;
+		}
+	}
+
+	{
+		bool FoundNull = ProgramBindingDesc.SamplerStates_[0] == nullptr;
+		for( size_t Idx = 0; Idx < ProgramBindingDesc.SamplerStates_.size(); ++Idx )
+		{
+			const auto& SamplerSlot = ProgramBindingDesc.SamplerStates_[ Idx ]; 
+			if( FoundNull )
+			{
+				BcAssertMsg( SamplerSlot == nullptr,
+					"Found empty uniform buffer slot %u in RsProgramBinding \"%s\"",
+					Idx, DebugName );
+			}
+			FoundNull |= SamplerSlot == nullptr;
+		}
+	}
+#endif
 
 	RsProgramBindingUPtr Resource( new RsProgramBinding(
 		Context, 
@@ -711,6 +773,10 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 				const auto& Desc = ProgramBinding->getDesc();
 				for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
 				{
+					if( SRVSlot.Resource_ == nullptr )
+					{
+						break;
+					}
 					BcAssertMsg( SRVSlot.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a SRV.", 
 						Buffer->getDebugName(),
 						ProgramBinding->getDebugName() );
@@ -718,6 +784,10 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 
 				for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
 				{
+					if( UAVSlot.Resource_ == nullptr )
+					{
+						break;
+					}
 					BcAssertMsg( UAVSlot.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a UAV.", 
 						Buffer->getDebugName(),
 						ProgramBinding->getDebugName() );
@@ -725,6 +795,10 @@ void RsCoreImpl::destroyResource( RsBuffer* Buffer )
 
 				for( const auto& UniformBuffer : Desc.UniformBuffers_ )
 				{
+					if( UniformBuffer.Buffer_ == nullptr )
+					{
+						break;
+					}
 					BcAssertMsg( UniformBuffer.Buffer_ != Buffer, "RsBuffer %s is currently being used in RsProgramBinding %s as a uniform buffer.", 
 						Buffer->getDebugName(),
 						ProgramBinding->getDebugName() );
@@ -772,6 +846,10 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 				const auto& Desc = ProgramBinding->getDesc();
 				for( const auto& SRVSlot : Desc.ShaderResourceSlots_ )
 				{
+					if( SRVSlot.Resource_ == nullptr )
+					{
+						break;
+					}
 					BcAssertMsg( SRVSlot.Texture_ != Texture, "RsTexture %s is currently being used in RsProgramBinding %s as a SRV.", 
 						Texture->getDebugName(),
 						ProgramBinding->getDebugName() );
@@ -779,6 +857,10 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 
 				for( const auto& UAVSlot : Desc.UnorderedAccessSlots_ )
 				{
+					if( UAVSlot.Resource_ == nullptr )
+					{
+						break;
+					}
 					BcAssertMsg( UAVSlot.Texture_ != Texture, "RsTexture %s is currently being used in RsProgramBinding %s as a UAV.", 
 						Texture->getDebugName(),
 						ProgramBinding->getDebugName() );
@@ -1039,6 +1121,8 @@ bool RsCoreImpl::updateTexture(
 	BcAssert( Texture != nullptr );
 	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE );
 	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE );
+	BcAssert( Slice.Level_ < Texture->getDesc().Levels_ );
+	BcAssert( Slice.Face_ == RsTextureFace::NONE || Texture->getDesc().Type_ == RsTextureType::TEXCUBE );
 
 	// Check if flags allow async.
 	if( ( Flags & RsResourceUpdateFlags::ASYNC ) == RsResourceUpdateFlags::NONE )
