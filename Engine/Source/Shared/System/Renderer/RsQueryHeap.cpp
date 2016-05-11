@@ -12,6 +12,7 @@ RsQueryHeapDesc::RsQueryHeapDesc( RsQueryType QueryType, size_t NoofQueries ):
 	QueryType_( QueryType ),
 	NoofQueries_( NoofQueries )
 {
+
 }
 
 //////////////////////////////////////////////////////////////////////////

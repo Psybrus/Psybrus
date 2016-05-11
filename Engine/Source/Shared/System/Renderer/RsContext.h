@@ -271,6 +271,20 @@ public:
 		class RsVertexDeclaration* VertexDeclaration  ) = 0;
 
 	/**
+	 * Create query heap.
+	 * @param QueryHeap Query heap to create from.
+	 */
+	virtual bool createQueryHeap(
+		class RsQueryHeap* QueryHeap ) = 0;
+
+	/**
+	 * Destroy query heap.
+	 * @param QueryHeap Query heap to destroy.
+	 */
+	virtual bool destroyQueryHeap( 
+		class RsQueryHeap* QueryHeap ) = 0;
+
+	/**
 	 * Clear.
 	 * @param FrameBuffer Frame buffer we wish to render to. nullptr for backbuffer.
 	 * @param Colour Colour to clear to.
@@ -358,8 +372,36 @@ public:
 	 */
 	virtual void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) { BcBreakpoint; };
 
+	/**
+	 * Begin query.
+	 * @param QueryHeap Query heap to use.
+	 * @param Idx Index of query within query heap.
+	 */
+	virtual void beginQuery( class RsQueryHeap* QueryHeap, size_t Idx ) { BcBreakpoint; }
 
+	/**
+	 * End query.
+	 * @param QueryHeap Query heap to use.
+	 * @param Idx Index of query within query heap.
+	 */
+	virtual void endQuery( class RsQueryHeap* QueryHeap, size_t Idx ) { BcBreakpoint; }
 
+	/**
+	 * Is query result availible?
+	 * @param QueryHeap Query heap to use.
+	 * @param Idx Index of query to check.
+	 * @return Is query result availible?
+	 */
+	virtual bool isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx ) { BcBreakpoint; return false; }
+
+	/**
+	 * Resolve queries.
+	 * @param QueryHeap Query heap to use.
+	 * @param Idx Index of query to begin resolving.
+	 * @param NoofQueries Number of queries to resolve.
+	 * @param OutData Pointer to output data.
+	 */
+	virtual void resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData ) { BcBreakpoint; }
 
 };
 

@@ -45,4 +45,5 @@ public:
 	static TextureFormat GetTextureFormat( RsTextureFormat V );
 	static GLenum GetImageFormat( RsTextureFormat Format );
 	static GLenum GetShaderType( RsShaderType V );
+	static GLenum GetQueryType( RsQueryType Query );
 };

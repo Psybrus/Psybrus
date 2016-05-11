@@ -123,7 +123,9 @@ public:
 	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
 	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
-	
+	bool createQueryHeap( class RsQueryHeap* QueryHeap ) override;
+	bool destroyQueryHeap( class RsQueryHeap* QueryHeap ) override;
+
 	void clear( 
 		const RsFrameBuffer* FrameBuffer,
 		const RsColour& Colour,
@@ -153,6 +155,11 @@ public:
 	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
+
+	void beginQuery( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	void endQuery( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	bool isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	void resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData ) override;
 
 	void bindProgram( const RsProgram* Program );
 	void bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding, BcU32 VertexOffset );

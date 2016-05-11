@@ -439,3 +439,17 @@ bool RsContextNull::destroyVertexDeclaration(
 {
 	return true;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// createQueryHeap
+bool RsContextNull::createQueryHeap( class RsQueryHeap* QueryHeap )
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyQueryHeap
+bool RsContextNull::destroyQueryHeap( class RsQueryHeap* QueryHeap )
+{
+	return true;
+}

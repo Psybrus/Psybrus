@@ -14,6 +14,7 @@
 #include "System/Renderer/GL/RsContextGL.h"
 #include "System/Renderer/GL/RsBufferGL.h"
 #include "System/Renderer/GL/RsProgramGL.h"
+#include "System/Renderer/GL/RsQueryHeapGL.h"
 #include "System/Renderer/GL/RsTextureGL.h"
 #include "System/Renderer/GL/RsUtilsGL.h"
 
@@ -22,6 +23,7 @@
 #include "System/Renderer/RsGeometryBinding.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsProgramBinding.h"
+#include "System/Renderer/RsQueryHeap.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
@@ -67,7 +69,7 @@ static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity,
 {
 	if( type != GL_DEBUG_TYPE_ERROR )
 	{
-		return;
+		//return;
 	}
 
 	const char* SeverityStr = "";
@@ -1610,6 +1612,30 @@ bool RsContextGL::destroyVertexDeclaration( class RsVertexDeclaration* VertexDec
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createQueryHeap
+bool RsContextGL::createQueryHeap( class RsQueryHeap* QueryHeap )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	new RsQueryHeapGL( QueryHeap, Version_ );
+
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyQueryHeap
+bool RsContextGL::destroyQueryHeap( class RsQueryHeap* QueryHeap )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
+	delete QueryHeapGL;
+	QueryHeap->setHandle< int >( 0 );
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // clear
 void RsContextGL::clear( 
 	const RsFrameBuffer* FrameBuffer,
@@ -2061,6 +2087,84 @@ void RsContextGL::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32
 		MemoryBarrier_ = 0;
 	}
 #endif // !defined( RENDER_USE_GLES )
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginQuery
+void RsContextGL::beginQuery( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
+	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
+	BcAssert( QueryType == GL_SAMPLES_PASSED || QueryType == GL_ANY_SAMPLES_PASSED );
+	GL( BeginQuery( QueryType, QueryHeapGL->getHandle( Idx ) ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endQuery
+void RsContextGL::endQuery( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
+	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
+
+	switch( QueryType )
+	{
+	case GL_SAMPLES_PASSED:
+	case GL_ANY_SAMPLES_PASSED:
+		GL( EndQuery( QueryType ) );
+		break;
+	case GL_TIMESTAMP:
+		GL( QueryCounter( QueryHeapGL->getHandle( Idx ), GL_TIMESTAMP ) );
+		break;
+	default:
+		BcBreakpoint;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isQueryResultAvailible
+bool RsContextGL::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
+	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
+
+	GLuint Handle = QueryHeapGL->getHandle( Idx );
+	GLint QueryAvailible = 0;
+	GL( GetQueryObjectiv( Handle, GL_QUERY_RESULT_AVAILABLE, &QueryAvailible ) );
+	return !!QueryAvailible;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// resolveQueries
+void RsContextGL::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
+	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
+
+	for( size_t Idx = 0; Idx < NoofQueries; ++Idx )
+	{
+		GLuint Handle = QueryHeapGL->getHandle( Offset + Idx );
+#if !PSY_PRODUCTION
+		GLint QueryAvailible = 0;
+		GL( GetQueryObjectiv( Handle, GL_QUERY_RESULT_AVAILABLE, &QueryAvailible ) );
+		BcAssert( QueryAvailible );
+#endif
+#if 0 
+		GLint QueryAvailible = 0;
+		while( QueryAvailible == 0 )
+		{
+			GL( GetQueryObjectiv( Handle, GL_QUERY_RESULT_AVAILABLE, &QueryAvailible ) );
+		}
+#endif
+		GL( GetQueryObjectui64v( Handle, GL_QUERY_RESULT, &OutData[ Idx ] ) );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

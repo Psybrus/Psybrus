@@ -687,18 +687,17 @@ RsQueryHeapUPtr RsCoreImpl::createQueryHeap(
 		QueryHeapDesc ) );
 	Resource->setDebugName( DebugName );
 
-#if 0 // TODO
 	// Call create on render thread.
 	SysKernel::pImpl()->pushFunctionJob(
 		RsCore::JOB_QUEUE_ID,
 		[ Context, Resource = Resource.get() ]
 		{
-			if( !Context->createGeometryBinding( Resource ) )
+			if( !Context->createQueryHeap( Resource ) )
 			{
 				PSY_LOG( "Failed RsGeometryBinding creation: %s", Resource->getDebugName() );
 			}
 		} );
-#endif
+
 	return Resource;
 }
 
@@ -1090,12 +1089,10 @@ void RsCoreImpl::destroyResource( RsQueryHeap* QueryHeap )
 	ResourceDeletionList_.push_back(
 		[ QueryHeap ]()
 		{
-#if 0 // TODO.
 			auto Context = QueryHeap->getContext();
 			auto RetVal = Context->destroyQueryHeap( QueryHeap );
-			BcUnusedVar( RetVal );
-#endif
 			delete QueryHeap;
+			BcUnusedVar( RetVal );
 		} );
 }
 

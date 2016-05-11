@@ -1481,6 +1481,20 @@ bool RsContextD3D12::destroyVertexDeclaration(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createQueryHeap
+bool RsContextD3D12::createQueryHeap( class RsQueryHeap* QueryHeap )
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// destroyQueryHeap
+bool RsContextD3D12::destroyQueryHeap( class RsQueryHeap* QueryHeap )
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // destroyResources
 void RsContextD3D12::destroyResources()
 {

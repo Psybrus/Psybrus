@@ -535,3 +535,22 @@ GLenum RsUtilsGL::GetShaderType( RsShaderType V )
 	}
 	return 0;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// GetShaderType
+GLenum RsUtilsGL::GetQueryType( RsQueryType Query )
+{
+	switch( Query )
+	{
+	case RsQueryType::OCCLUSION:
+		return GL_SAMPLES_PASSED;
+	case RsQueryType::OCCLUSION_BINARY:
+		return GL_ANY_SAMPLES_PASSED;
+	case RsQueryType::TIMESTAMP:
+		return GL_TIMESTAMP;
+	default:
+		BcBreakpoint;
+	}
+	return 0;
+}

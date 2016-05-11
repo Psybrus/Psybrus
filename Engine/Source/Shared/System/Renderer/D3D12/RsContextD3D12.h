@@ -140,6 +140,8 @@ public:
 	bool destroyGeometryBinding( class RsGeometryBinding* GeometryBinding ) override;
 	bool createVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
 	bool destroyVertexDeclaration( class RsVertexDeclaration* VertexDeclaration ) override;
+	bool createQueryHeap( class RsQueryHeap* QueryHeap ) override;
+	bool destroyQueryHeap( class RsQueryHeap* QueryHeap ) override;
 
 	/**
 	 * Delete resources for current frame.
