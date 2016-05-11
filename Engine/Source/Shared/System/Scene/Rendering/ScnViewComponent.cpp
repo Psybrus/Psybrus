@@ -139,6 +139,22 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 			PSY_LOG( "WARNING: More ScnViewComponents than there are availible slots. Reduce number of ScnViewComponents in scene or expect strange results." );
 		}
 
+		// Start time query.
+		pFrame->queueRenderNode( Sort,
+			[ 
+				this,
+				QueryIdx = FrameQueryIdx_,
+				ReadQueries = ReadQueries_
+			]
+			( RsContext* Context )
+			{
+				if( ReadQueries )
+				{
+					Context->resolveQueries( StartFrameQueryHeap_.get(), QueryIdx, 1, &StartFrameTime_ );
+				}
+				Context->endQuery( StartFrameQueryHeap_.get(), QueryIdx );
+			} );
+
 		// If we have no views, clear to black.
 		if( Components.size() == 0 )
 		{
@@ -268,8 +284,29 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 		// Render ImGui.
 		ImGui::Psybrus::Render( pContext, pFrame );
 
+		// End time query.
+		Sort.Value_ = static_cast< BcU64 >( -1 );
+		pFrame->queueRenderNode( Sort,
+			[ 
+				this,
+				QueryIdx = FrameQueryIdx_,
+				ReadQueries = ReadQueries_
+			]
+			( RsContext* Context )
+			{
+				if( ReadQueries )
+				{
+					Context->resolveQueries( EndFrameQueryHeap_.get(), QueryIdx, 1, &EndFrameTime_ );
+					FrameTime_ = static_cast< BcF64 >( EndFrameTime_ - StartFrameTime_ ) / 1000000000.0;
+				}
+				Context->endQuery( EndFrameQueryHeap_.get(), QueryIdx );
+			} );
+
 		// Queue frame for render.
 		RsCore::pImpl()->queueFrame( pFrame );
+
+		FrameQueryIdx_ = ( FrameQueryIdx_ + 1 ) % NOOF_FRAMES_TO_QUERY;
+		ReadQueries_ |= FrameQueryIdx_ == 0;
 	}
 }
 
@@ -290,6 +327,11 @@ void ScnViewProcessor::initialise()
 			}
 			return evtRET_PASS;
 		} );
+
+	StartFrameQueryHeap_ = RsCore::pImpl()->createQueryHeap(
+		RsQueryHeapDesc( RsQueryType::TIMESTAMP, NOOF_FRAMES_TO_QUERY ), "ScnViewProcessor" );
+	EndFrameQueryHeap_ = RsCore::pImpl()->createQueryHeap(
+		RsQueryHeapDesc( RsQueryType::TIMESTAMP, NOOF_FRAMES_TO_QUERY ), "ScnViewProcessor" );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -298,6 +340,9 @@ void ScnViewProcessor::shutdown()
 {
 	OsCore::pImpl()->unsubscribeAll( this );
 	ScnCore::pImpl()->removeCallback( this );
+
+	StartFrameQueryHeap_.reset();
+	EndFrameQueryHeap_.reset();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -309,15 +354,6 @@ void ScnViewProcessor::onAttach( ScnComponent* Component )
 	// Setup view data.
 	std::unique_ptr< ViewData > ViewData( new ViewData );
 	ViewData->View_ = static_cast< ScnViewComponent* >( Component );
-#if 0
-	ViewData->ClassData_.reserve( RenderInterfaces_.size() );
-	for( auto It : RenderInterfaces_ )
-	{
-		ViewData::ClassData ClassData;
-		ClassData.Class_ = It.first;
-		ViewData->ClassData_.emplace_back( std::move( ClassData ) );
-	}
-#endif
 
 	// Create view render data for all components.
 	for( auto& It : VisibilityLeaves_ )

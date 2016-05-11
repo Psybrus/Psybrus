@@ -34,6 +34,9 @@ class ScnViewProcessor :
 	public ScnCoreCallback
 {
 public:
+	static const size_t NOOF_FRAMES_TO_QUERY = 4;
+
+public:
 	ScnViewProcessor();
 	virtual ~ScnViewProcessor();
 
@@ -56,6 +59,11 @@ public:
 	 * Will render everything visible to all views.
 	 */
 	void renderViews( const ScnComponentList& Components );	
+
+	/**
+	 * Get frame time.
+	 */
+	BcF64 getFrameTime() const { return FrameTime_; }
 
 protected:
 	void initialise() override;
@@ -98,6 +106,15 @@ private:
 
 	std::vector< std::unique_ptr< ViewData > > ViewData_;
 	std::vector< ScnComponent* > RenderableComponents_;
+
+	RsQueryHeapUPtr StartFrameQueryHeap_;
+	RsQueryHeapUPtr EndFrameQueryHeap_;
+	size_t FrameQueryIdx_ = 0;
+	bool ReadQueries_ = false;
+
+	BcU64 StartFrameTime_ = 0;
+	BcU64 EndFrameTime_ = 0;
+	BcF64 FrameTime_ = 0.0f;
 };
 
 //////////////////////////////////////////////////////////////////////////

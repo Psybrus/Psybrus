@@ -33,6 +33,7 @@ BcU32 GResolutionHeight = 720;
 #include "System/Renderer/RsCore.h"
 #include "System/Sound/SsCore.h"
 #include "System/Scene/ScnCore.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/SysKernel.h"
 
 #include "Import/Img/Img.h"
@@ -236,9 +237,11 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 		{
 			static BcF32 GameTimeTotal = 0.0f;
 			static BcF32 RenderTimeTotal = 0.0f;
+			static BcF32 GPUTimeTotal = 0.0f;
 			static BcF32 FrameTimeTotal = 0.0f;
 			static BcF32 GameTimeAccum = 0.0f;
 			static BcF32 RenderTimeAccum = 0.0f;
+			static BcF32 GPUTimeAccum = 0.0f;
 			static BcF32 FrameTimeAccum = 0.0f;
 			static int CaptureAmount = 60;
 			static int CaptureAccum = 0;
@@ -246,6 +249,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			const BcU32 NOOF_POINTS = 128;
 			static std::array< BcF32, NOOF_POINTS > GameTimeGraphPoints = { 0.0f };
 			static std::array< BcF32, NOOF_POINTS > RenderTimeGraphPoints = { 0.0f };
+			static std::array< BcF32, NOOF_POINTS > GPUTimeGraphPoints = { 0.0f };
 			static std::array< BcF32, NOOF_POINTS > FrameTimeGraphPoints = { 0.0f };
 			static int GraphPointIdx = 0;
 
@@ -253,21 +257,25 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 			GameTimeAccum += SysKernel::pImpl()->getGameThreadTime();
 			RenderTimeAccum += RsCore::pImpl()->getFrameTime();
+			GPUTimeAccum += ScnViewProcessor::pImpl()->getFrameTime();
 			FrameTimeAccum += SysKernel::pImpl()->getFrameTime();
 			++CaptureAccum;
 			if( CaptureAccum >= CaptureAmount )
 			{
 				GameTimeTotal = GameTimeAccum / BcF32( CaptureAccum );
 				RenderTimeTotal = RenderTimeAccum / BcF32( CaptureAccum );
+				GPUTimeTotal = GPUTimeAccum / BcF32( CaptureAccum );
 				FrameTimeTotal = FrameTimeAccum / BcF32( CaptureAccum );
 				GameTimeAccum = 0.0f;
 				RenderTimeAccum = 0.0f;
+				GPUTimeAccum = 0.0f;
 				FrameTimeAccum = 0.0f;
 				CaptureAccum = 0;
 			}
 
 			GameTimeGraphPoints[ GraphPointIdx ] = SysKernel::pImpl()->getGameThreadTime() * 1000.0f;
 			RenderTimeGraphPoints[ GraphPointIdx ] = RsCore::pImpl()->getFrameTime() * 1000.0f;
+			GPUTimeGraphPoints[ GraphPointIdx ] = ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f;
 			FrameTimeGraphPoints[ GraphPointIdx ] = SysKernel::pImpl()->getFrameTime() * 1000.0f;
 			
 			GraphScale = std::max( GraphScale, 33.0f );
@@ -299,6 +307,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
 			static bool ShowOpened = true;
 			ImGui::SetNextWindowPos( WindowPos );
+			ImGui::SetNextWindowSize( MaVec2d( 300.0f, 400.0f ) );
 			if ( ImGui::Begin( "Engine", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
@@ -311,17 +320,34 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 					BUILD_TIME );
 				ImGui::Text( "Worker count: %u", 
 					(BcU32)SysKernel::pImpl()->workerCount() );
-				ImGui::Text( "Game time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f );
-				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
 
-				ImGui::Text( "Render time: %.2fms (%.2fms avg.)", 
-					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f );
-				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				if( ImGui::TreeNode( "Game", "Game time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f ) )
+				{
+					ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+					ImGui::TreePop();
+				}
 
-				ImGui::Text( "Frame time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f );
-				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				if( ImGui::TreeNode( "Render", "Render time: %.2fms (%.2fms avg.)", 
+					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f ) )
+				{
+					ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+					ImGui::TreePop();
+				}
+
+				if( ImGui::TreeNode( "GPU", "GPU time: %.2fms (%.2fms avg.)", 
+					ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f, GPUTimeTotal * 1000.0f ) )
+				{
+					ImGui::PlotLines( "", GPUTimeGraphPoints.data(), GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+					ImGui::TreePop();
+				}
+
+				if( ImGui::TreeNode( "Frame", "Frame time: %.2fms (%.2fms avg.)", 
+					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f ) )
+				{
+					ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+					ImGui::TreePop();
+				}
 
 
 				if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
