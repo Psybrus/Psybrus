@@ -724,4 +724,15 @@ struct RsScissorRect
 	BcS32 Height_ = 0;
 };
 
+//////////////////////////////////////////////////////////////////////////
+// RsQueryType
+enum class RsQueryType : BcU32
+{
+	UNKNOWN = 0,
+	OCCLUSION,
+	OCCLUSION_BINARY,
+	TIMESTAMP,
+};
+
+
 #endif

@@ -13,6 +13,7 @@ public:
 	void operator()( class RsGeometryBinding* Resource );
 	void operator()( class RsProgram* Resource );
 	void operator()( class RsProgramBinding* Resource );
+	void operator()( class RsQueryHeap* Resource );
 	void operator()( class RsRenderState* Resource );
 	void operator()( class RsSamplerState* Resource );
 	void operator()( class RsShader* Resource );
@@ -26,6 +27,7 @@ typedef std::unique_ptr< class RsFrameBuffer, RsResourceDeleters > RsFrameBuffer
 typedef std::unique_ptr< class RsGeometryBinding, RsResourceDeleters > RsGeometryBindingUPtr;
 typedef std::unique_ptr< class RsProgram, RsResourceDeleters > RsProgramUPtr;
 typedef std::unique_ptr< class RsProgramBinding, RsResourceDeleters > RsProgramBindingUPtr;
+typedef std::unique_ptr< class RsQueryHeap, RsResourceDeleters > RsQueryHeapUPtr;
 typedef std::unique_ptr< class RsRenderState, RsResourceDeleters > RsRenderStateUPtr;
 typedef std::unique_ptr< class RsSamplerState, RsResourceDeleters > RsSamplerStateUPtr;
 typedef std::unique_ptr< class RsShader, RsResourceDeleters > RsShaderUPtr;

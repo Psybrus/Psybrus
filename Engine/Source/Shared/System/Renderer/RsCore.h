@@ -24,12 +24,12 @@
 #include "System/Renderer/RsFrame.h"
 
 #include "System/Renderer/RsBuffer.h"
-#include "System/Renderer/RsComputeInterface.h"
 #include "System/Renderer/RsContext.h"
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsGeometryBinding.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsProgramBinding.h"
+#include "System/Renderer/RsQueryHeap.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
@@ -184,6 +184,15 @@ public:
 		const BcChar* DebugName ) = 0;
 
 	/**
+	 *	Create a query heap.
+	 *	@param Desc Descriptor object.
+	 *	@param DebugName Name to use in debug message + assertions.
+	 */
+	virtual RsQueryHeapUPtr createQueryHeap( 
+		const RsQueryHeapDesc& Desc, 
+		const BcChar* DebugName ) = 0;
+
+	/**
 	 *	Update resource. Work done on render thread.
 	 *	@param pResource Resource to update.
 	 */
@@ -216,6 +225,8 @@ public:
 		RsGeometryBinding* GeometryBinding ) = 0;
 	virtual void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) = 0;
+	virtual void destroyResource( 
+		RsQueryHeap* QueryHeap ) = 0;
 
 	//////////////////////////////////////////////////////////////////////
 	// New interfaces.

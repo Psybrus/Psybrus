@@ -670,6 +670,39 @@ RsGeometryBindingUPtr RsCoreImpl::createGeometryBinding(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// createQueryHeap
+//virtual
+RsQueryHeapUPtr RsCoreImpl::createQueryHeap( 
+		const RsQueryHeapDesc& QueryHeapDesc,
+		const BcChar* DebugName )
+{
+	BcAssert( BcIsGameThread() );
+	BcAssert( DebugName && DebugName[0] != '\0' );
+	PSY_LOG( "createQueryHeap: %s", DebugName );
+
+	auto Context = getContext( nullptr );
+
+	RsQueryHeapUPtr Resource( new RsQueryHeap(
+		Context, 
+		QueryHeapDesc ) );
+	Resource->setDebugName( DebugName );
+
+#if 0 // TODO
+	// Call create on render thread.
+	SysKernel::pImpl()->pushFunctionJob(
+		RsCore::JOB_QUEUE_ID,
+		[ Context, Resource = Resource.get() ]
+		{
+			if( !Context->createGeometryBinding( Resource ) )
+			{
+				PSY_LOG( "Failed RsGeometryBinding creation: %s", Resource->getDebugName() );
+			}
+		} );
+#endif
+	return Resource;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // destroyResource
 void RsCoreImpl::destroyResource( RsResource* pResource )
 {
@@ -1043,6 +1076,29 @@ void RsCoreImpl::destroyResource( RsVertexDeclaration* VertexDeclaration )
 			BcUnusedVar( RetVal );
 		} );
 }
+
+//////////////////////////////////////////////////////////////////////////
+// destroyResource
+void RsCoreImpl::destroyResource( RsQueryHeap* QueryHeap )
+{
+	BcAssert( BcIsGameThread() );
+	if( QueryHeap == nullptr )
+	{
+		return;
+	}
+
+	ResourceDeletionList_.push_back(
+		[ QueryHeap ]()
+		{
+#if 0 // TODO.
+			auto Context = QueryHeap->getContext();
+			auto RetVal = Context->destroyQueryHeap( QueryHeap );
+			BcUnusedVar( RetVal );
+#endif
+			delete QueryHeap;
+		} );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // updateResource

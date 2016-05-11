@@ -84,6 +84,9 @@ public:
 		const RsGeometryBindingDesc& GeometryBindingDesc,
 		const BcChar* DebugName ) override;
 
+	RsQueryHeapUPtr createQueryHeap( 
+		const RsQueryHeapDesc& Desc, 
+		const BcChar* DebugName ) override;
 
 	void destroyResource( 
 		RsResource* pResource ) override;
@@ -117,6 +120,9 @@ public:
 
 	void destroyResource( 
 		RsVertexDeclaration* VertexDeclaration ) override;
+
+	void destroyResource( 
+		RsQueryHeap* QueryHeap ) override;
 
 	void updateResource( 
 		RsResource* pResource ) override;

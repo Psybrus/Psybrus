@@ -57,6 +57,15 @@ void RsResourceDeleters::operator()( class RsProgramBinding* Resource )
 	}
 }
 
+void RsResourceDeleters::operator()( class RsQueryHeap* Resource )
+{
+	BcAssertMsg( RsCore::pImpl(), "Must be reset prior to renderer shutdown." )
+	if( RsCore::pImpl() )
+	{
+		RsCore::pImpl()->destroyResource( Resource );
+	}
+}
+
 void RsResourceDeleters::operator()( class RsRenderState* Resource )
 {
 	BcAssertMsg( RsCore::pImpl(), "Must be reset prior to renderer shutdown." )

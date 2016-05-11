@@ -34,3 +34,6 @@
 [submodule "External/fcpp"]
 	path = External/fcpp
 	url = https://github.com/Psybrus/fcpp
+[submodule "External/SDL"]
+	path = External/SDL
+	url = https://github.com/Psybrus/SDL-mirror

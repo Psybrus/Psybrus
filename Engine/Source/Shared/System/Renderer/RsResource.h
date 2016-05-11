@@ -44,6 +44,7 @@ enum class RsResourceType
 	TEXTURE,
 	PROGRAM,
 	PROGRAM_BINDING,
+	QUERY_HEAP,
 	VERTEX_DECLARATION,
 };
 
