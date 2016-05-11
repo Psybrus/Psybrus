@@ -69,7 +69,7 @@ static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity,
 {
 	if( type != GL_DEBUG_TYPE_ERROR )
 	{
-		//return;
+		return;
 	}
 
 	const char* SeverityStr = "";
@@ -2155,13 +2155,6 @@ void RsContextGL::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, s
 		GLint QueryAvailible = 0;
 		GL( GetQueryObjectiv( Handle, GL_QUERY_RESULT_AVAILABLE, &QueryAvailible ) );
 		BcAssert( QueryAvailible );
-#endif
-#if 0 
-		GLint QueryAvailible = 0;
-		while( QueryAvailible == 0 )
-		{
-			GL( GetQueryObjectiv( Handle, GL_QUERY_RESULT_AVAILABLE, &QueryAvailible ) );
-		}
 #endif
 		GL( GetQueryObjectui64v( Handle, GL_QUERY_RESULT, &OutData[ Idx ] ) );
 	}
