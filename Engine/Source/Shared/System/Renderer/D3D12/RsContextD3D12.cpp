@@ -16,6 +16,7 @@
 #include "System/Renderer/D3D12/RsProgramD3D12.h"
 #include "System/Renderer/D3D12/RsProgramBindingD3D12.h"
 #include "System/Renderer/D3D12/RsResourceD3D12.h"
+#include "System/Renderer/D3D12/RsQueryHeapD3D12.h"
 #include "System/Renderer/D3D12/RsUtilsD3D12.h"
 
 #include "System/Renderer/D3D12/Shaders/DefaultVS.h"
@@ -26,6 +27,7 @@
 #include "System/Renderer/RsGeometryBinding.h"
 #include "System/Renderer/RsProgram.h"
 #include "System/Renderer/RsProgramBinding.h"
+#include "System/Renderer/RsQueryHeap.h"
 #include "System/Renderer/RsRenderState.h"
 #include "System/Renderer/RsSamplerState.h"
 #include "System/Renderer/RsShader.h"
@@ -618,14 +620,110 @@ void RsContextD3D12::dispatchCompute( class RsProgramBinding* ProgramBinding, Bc
 }
 
 //////////////////////////////////////////////////////////////////////////
+// beginQuery
+void RsContextD3D12::beginQuery( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
+	auto QueryType = RsUtilsD3D12::GetQueryType( QueryHeap->getDesc().QueryType_ );
+	BcAssert( QueryType == D3D12_QUERY_TYPE_OCCLUSION || QueryType == D3D12_QUERY_TYPE_BINARY_OCCLUSION );
+
+	auto CommandList = getCurrentCommandList();
+	CommandList->BeginQuery( QueryHeapD3D12->getQueryHeap(), QueryType, static_cast< UINT >( Idx ) );
+	QueryHeapD3D12->setQueryEndFrame( Idx, FrameCounter_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// endQuery
+void RsContextD3D12::endQuery( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
+	auto QueryType = RsUtilsD3D12::GetQueryType( QueryHeap->getDesc().QueryType_ );
+
+	auto CommandList = getCurrentCommandList();
+	CommandList->EndQuery( QueryHeapD3D12->getQueryHeap(), QueryType, static_cast< UINT >( Idx ) );
+	QueryHeapD3D12->setQueryEndFrame( Idx, FrameCounter_ );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isQueryResultAvailible
+bool RsContextD3D12::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	PSY_PROFILE_FUNCTION;
+
+	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
+	auto EndFrame = QueryHeapD3D12->getQueryEndFrame( Idx );
+
+	return FrameCounter_ > ( EndFrame + CommandListDatas_.size() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// resolveQueries
+void RsContextD3D12::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData )
+{
+	PSY_PROFILE_FUNCTION;
+
+	// TODO: Make this resolve not hideously inefficient. Need to support readback to a buffer.
+
+	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
+	auto QueryType = RsUtilsD3D12::GetQueryType( QueryHeap->getDesc().QueryType_ );
+
+	// Allocate a readback heap.
+	// TODO: Need to use a buffer provided by the user.
+	// Setup heap properties.
+	size_t HeapSize = BcPotRoundUp( sizeof( BcU64 ) * NoofQueries, 256 );
+	CD3DX12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_READBACK );
+	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( HeapSize, D3D12_RESOURCE_FLAG_NONE, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT ) );
+
+	// Setup appropriate resource usage.
+	D3D12_RESOURCE_STATES ResourceUsage = D3D12_RESOURCE_STATE_COPY_DEST;
+
+	// Committed resource.
+	ComPtr< ID3D12Resource > Resource;
+	HRESULT RetVal = Device_->CreateCommittedResource( 
+		&HeapProperties, 
+		D3D12_HEAP_FLAG_NONE, 
+		&ResourceDesc,
+		ResourceUsage,
+		nullptr, IID_PPV_ARGS( Resource.GetAddressOf() ) );
+	BcAssert( SUCCEEDED( RetVal ) );
+
+	// Perform copy.
+	auto CommandList = getCurrentCommandList();
+	CommandList->ResolveQueryData( QueryHeapD3D12->getQueryHeap(), QueryType, 
+		static_cast< UINT >( Offset ),
+		static_cast< UINT >( NoofQueries ),
+		Resource.Get(), 0 );
+
+	// HACK: Flush all command lists.
+	// This will later be replaced with an asynchronous resolve and support for fences.
+	for( size_t Idx = 0; Idx < CommandListDatas_.size(); ++Idx )
+	{
+		flushCommandList( nullptr );
+	}
+
+	// Map and copy.
+	void* BaseAddress = nullptr;
+	D3D12_RANGE Range;
+	Range.Begin = 0,
+	Range.End = sizeof( BcU64 ) * NoofQueries;
+	if( SUCCEEDED( Resource->Map( 0, &Range, &BaseAddress ) ) )
+	{
+		memcpy( OutData, BaseAddress, sizeof( BcU64 ) * NoofQueries );
+		Resource->Unmap( 0, nullptr );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // bindFrameBuffer
 void RsContextD3D12::bindFrameBuffer( 
 		const RsFrameBuffer* FrameBuffer, 
 		const RsViewport* Viewport, 
 		const RsScissorRect* ScissorRect )
 {
-	auto CommandList = getCurrentCommandList();
-
 	// Determine frame buffer width + height.
 	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
 	BcAssert( RT );
@@ -635,7 +733,21 @@ void RsContextD3D12::bindFrameBuffer(
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
 
+	// Setup viewport if null.
+	Viewport = Viewport != nullptr ? Viewport : &FullViewport;
+
+	// Setup scissor rect if null.
+	ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
+
 	auto LastFrameBuffer = BoundFrameBuffer_;
+
+	// Flush command list on framebuffer change.
+	if( BoundFrameBuffer_ != FrameBuffer )
+	{
+		//flushCommandList( nullptr );
+	}
+
+	auto CommandList = getCurrentCommandList();
 
 	// Bind framebuffer.
 	auto FrameBufferD3D12 = FrameBuffer->getHandle< RsFrameBufferD3D12* >();
@@ -651,12 +763,6 @@ void RsContextD3D12::bindFrameBuffer(
 			D3DFrameBuffer->transitionToRead( CommandList );
 		}
 	}
-
-	// Setup viewport if null.
-	Viewport = Viewport != nullptr ? Viewport : &FullViewport;
-
-	// Setup scissor rect if null.
-	ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
 
 	if( BoundViewport_ != *Viewport )
 	{
@@ -1484,14 +1590,24 @@ bool RsContextD3D12::destroyVertexDeclaration(
 // createQueryHeap
 bool RsContextD3D12::createQueryHeap( class RsQueryHeap* QueryHeap )
 {
-	return false;
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	new RsQueryHeapD3D12( QueryHeap, Device_.Get() );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // destroyQueryHeap
 bool RsContextD3D12::destroyQueryHeap( class RsQueryHeap* QueryHeap )
 {
-	return false;
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+
+	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
+	delete QueryHeapD3D12;
+	QueryHeap->setHandle< int >( 0 );
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1742,8 +1858,8 @@ void RsContextD3D12::recreateBackBuffers( BcU32 Width, BcU32 Height )
 {
 	if( Width_ != Width || Height_ != Height )
 	{
-		// Flush command list in flight before recreating back buffer.
-		for( BcU32 Idx = 0; Idx < SwapChainDesc_.BufferCount; ++Idx )
+		// Flush all command lists in flight before recreating back buffer.
+		for( BcU32 Idx = 0; Idx < CommandListDatas_.size(); ++Idx )
 		{
 			flushCommandList( nullptr );
 		}

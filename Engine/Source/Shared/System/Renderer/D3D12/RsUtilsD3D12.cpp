@@ -415,3 +415,43 @@ LPCSTR RsUtilsD3D12::GetSemanticName( RsVertexUsage Usage )
 {
 	return GSemanticName[ (size_t)Usage ];
 }
+
+//////////////////////////////////////////////////////////////////////////
+// GetQueryHeapType
+//static
+D3D12_QUERY_HEAP_TYPE RsUtilsD3D12::GetQueryHeapType( RsQueryType QueryType )
+{
+	switch( QueryType )
+	{
+	case RsQueryType::OCCLUSION:
+		return D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+	case RsQueryType::OCCLUSION_BINARY:
+		return D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+	case RsQueryType::TIMESTAMP:
+		return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+	default:
+		BcBreakpoint;
+		break;
+	}
+	return D3D12_QUERY_HEAP_TYPE_OCCLUSION;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GetQueryType
+//static
+D3D12_QUERY_TYPE RsUtilsD3D12::GetQueryType( RsQueryType QueryType )
+{
+	switch( QueryType )
+	{
+	case RsQueryType::OCCLUSION:
+		return D3D12_QUERY_TYPE_OCCLUSION;
+	case RsQueryType::OCCLUSION_BINARY:
+		return D3D12_QUERY_TYPE_BINARY_OCCLUSION;
+	case RsQueryType::TIMESTAMP:
+		return D3D12_QUERY_TYPE_TIMESTAMP;
+	default:
+		BcBreakpoint;
+		break;
+	}
+	return D3D12_QUERY_TYPE_OCCLUSION;
+}

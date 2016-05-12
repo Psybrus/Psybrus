@@ -6,8 +6,8 @@
 // RsDescriptorHeapConstantsD3D12
 struct RsDescriptorHeapConstantsD3D12
 {
-	static const size_t MAX_SAMPLERS = 32;
-	static const size_t MAX_SRVS = 32;
+	static const size_t MAX_SAMPLERS = 16;
+	static const size_t MAX_SRVS = 16;
 	static const size_t MAX_CBVS = 14;
 	static const size_t MAX_UAVS = 8;
 	static const size_t MAX_RESOURCES = MAX_SRVS + MAX_CBVS;

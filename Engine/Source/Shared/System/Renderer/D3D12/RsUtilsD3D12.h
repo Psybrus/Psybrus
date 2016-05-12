@@ -33,4 +33,6 @@ public:
 	static const D3D12_BLEND_OP GetBlendOp( RsBlendOp BlendOp );
 	static const DXGI_FORMAT GetVertexElementFormat( RsVertexElement Element );
 	static LPCSTR GetSemanticName( RsVertexUsage Usage );
+	static D3D12_QUERY_HEAP_TYPE GetQueryHeapType( RsQueryType QueryType );
+	static D3D12_QUERY_TYPE GetQueryType( RsQueryType QueryType );
 };

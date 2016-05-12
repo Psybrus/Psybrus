@@ -77,6 +77,11 @@ public:
 
 	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups );
 
+	void beginQuery( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	void endQuery( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	bool isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	void resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData ) override;
+
 	void bindFrameBuffer( 
 		const RsFrameBuffer* FrameBuffer, 
 		const RsViewport* Viewport, 

@@ -1632,7 +1632,7 @@ bool RsContextGL::destroyQueryHeap( class RsQueryHeap* QueryHeap )
 	delete QueryHeapGL;
 	QueryHeap->setHandle< int >( 0 );
 
-	return false;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
