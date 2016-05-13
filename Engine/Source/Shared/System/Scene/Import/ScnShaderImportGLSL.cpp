@@ -1068,13 +1068,13 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					"\\s*#line\\s{1,}.*" );
 				
 				std::regex InOutAttributePattern( 
-					"\\s*(in|out)\\s{1,}.*" );
+					"\\s*(in|flat in|out|flat out)\\s{1,}.*" );
 
 				std::regex InOutAttributeFullPattern( 
-					"\\s*(in|out)\\s{1,}(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;.*" );
+					"\\s*(in|flat in|out|flat out)\\s{1,}(float|vec2|vec2|vec4|int|ivec2|ivec3|ivec4).*;.*" );
 
 				std::regex InOutAttributeExtendedPattern( 
-					"\\s*(in|out)\\s{1,}(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s{1,}([a-zA-Z_][a-zA-Z0-9_]*)\\s{1,}:\\s{1,}([a-zA-Z][a-zA-Z]*)([0-9])?.*;.*" );
+					"\\s*(in|flat in|out|flat out)\\s{1,}(float|vec2|vec3|vec4|int|ivec2|ivec3|ivec4)\\s{1,}([a-zA-Z_][a-zA-Z0-9_]*)\\s{1,}:\\s{1,}([a-zA-Z][a-zA-Z]*)([0-9])?.*;.*" );
 
 				// If we're parsing a vertex shader, try grab vertex attributes.
 				std::istringstream Stream( ProcessedSourceData );

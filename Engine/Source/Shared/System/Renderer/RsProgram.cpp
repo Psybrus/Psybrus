@@ -113,6 +113,11 @@ BcU32 RsProgram::findUniformBufferSlot( const BcChar* Name ) const
 // getSamplerSlotName
 const char* RsProgram::getSamplerSlotName( BcU32 Slot ) const
 {
+	if( Slot >= SamplerList_.size() )
+	{
+		return "UNUSED";
+	}
+
 	BcAssert( SamplerList_[ Slot ].Handle_ == Slot );
 	return SamplerList_[ Slot ].Name_.c_str();
 }
@@ -121,6 +126,11 @@ const char* RsProgram::getSamplerSlotName( BcU32 Slot ) const
 // getShaderResourceSlotName
 const char* RsProgram::getShaderResourceSlotName( BcU32 Slot ) const
 {
+	if( Slot >= ShaderResourceList_.size() )
+	{
+		return "UNUSED";
+	}
+
 	BcAssert( ShaderResourceList_[ Slot ].Handle_ == Slot );
 	return ShaderResourceList_[ Slot ].Name_.c_str();
 }
@@ -129,6 +139,11 @@ const char* RsProgram::getShaderResourceSlotName( BcU32 Slot ) const
 // getUnorderedAccessSlotName
 const char* RsProgram::getUnorderedAccessSlotName( BcU32 Slot ) const
 {
+	if( Slot >= UnorderedAccessList_.size() )
+	{
+		return "UNUSED";
+	}
+
 	BcAssert( UnorderedAccessList_[ Slot ].Handle_ == Slot );
 	return UnorderedAccessList_[ Slot ].Name_.c_str();
 }
@@ -137,6 +152,11 @@ const char* RsProgram::getUnorderedAccessSlotName( BcU32 Slot ) const
 // getUniformBufferSlotName
 const char* RsProgram::getUniformBufferSlotName( BcU32 Slot ) const
 {
+	if( Slot >= InternalUniformBlockList_.size() )
+	{
+		return "UNUSED";
+	}
+
 	BcAssert( InternalUniformBlockList_[ Slot ].Handle_ == Slot );
 	return InternalUniformBlockList_[ Slot ].Name_.c_str();
 }

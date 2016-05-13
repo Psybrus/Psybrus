@@ -144,7 +144,7 @@ public:
 	/**
 	 * Get view uniform buffer.
 	 */
-	class RsBuffer* getViewUniformBuffer(); 
+	class RsBuffer* getViewUniformBuffer() const; 
 
 	void setMaterialParameters( class ScnMaterialComponent* MaterialComponent ) const;
 	void getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d& Near, MaVec3d& Far ) const;
@@ -163,6 +163,11 @@ public:
 	 */
 	RsRenderSortPassType getSortPassType( RsRenderSortPassFlags SortPassFlags, ScnShaderPermutationFlags PermutationFlags ) const;
 
+	/**
+	 * Set view resources on program binding descriptor.
+	 */
+	void setViewResources( RsProgram* Program, RsProgramBindingDesc& ProgramBindingDesc ) const;
+
 	void setup( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
@@ -170,8 +175,10 @@ public:
 	const ScnShaderPermutationFlags getRenderPermutation() const { return RenderPermutation_ & ScnShaderPermutationFlags::RENDER_ALL; }
 	const RsRenderSortPassFlags getPasses() const { return Passes_; }
 
-	ScnTextureRef getRenderTarget( BcU32 Idx ) { return RenderTarget_[ Idx ]; }
-	ScnTextureRef getDepthStencilTarget() { return DepthStencilTarget_; }
+	ScnTextureRef getRenderTarget( BcU32 Idx ) const { return RenderTarget_[ Idx ]; }
+	ScnTextureRef getDepthStencilTarget() const { return DepthStencilTarget_; }
+	ScnTextureRef getReflectionCubemap() const { return ReflectionCubemap_; }
+
 
 private:
 	void recreateFrameBuffer();
@@ -215,6 +222,9 @@ private:
 	std::vector< ScnTextureRef > RenderTarget_;
 	ScnTextureRef DepthStencilTarget_;
 	RsFrameBufferUPtr FrameBuffer_;
+
+	// Reflection cubemap.
+	ScnTextureRef ReflectionCubemap_;
 };
 
 #endif

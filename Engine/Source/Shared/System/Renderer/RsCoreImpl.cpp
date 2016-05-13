@@ -555,8 +555,8 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 			if( FoundNull )
 			{
 				BcAssertMsg( SRVSlot.Resource_ == nullptr,
-					"Found empty SRV slot %u in RsProgramBinding \"%s\"",
-					Idx, DebugName );
+					"Found empty SRV slot %u (%s) in RsProgramBinding \"%s\"",
+					Idx - 1, Program->getShaderResourceSlotName( Idx - 1 ), DebugName );
 			}
 			FoundNull |= SRVSlot.Resource_ == nullptr;
 		}
@@ -570,8 +570,8 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 			if( FoundNull )
 			{
 				BcAssertMsg( UAVSlot.Resource_ == nullptr,
-					"Found empty UAV slot %u in RsProgramBinding \"%s\"",
-					Idx, DebugName );
+					"Found empty UAV slot %u (%s) in RsProgramBinding \"%s\"",
+					Idx - 1, Program->getUnorderedAccessSlotName( Idx - 1 ), DebugName );
 			}
 			FoundNull |= UAVSlot.Resource_ == nullptr;
 		}
@@ -585,8 +585,8 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 			if( FoundNull )
 			{
 				BcAssertMsg( UniformBufferSlot.Buffer_ == nullptr,
-					"Found empty uniform buffer slot %u in RsProgramBinding \"%s\"",
-					Idx, DebugName );
+					"Found empty uniform buffer slot %u (%s) in RsProgramBinding \"%s\"",
+					Idx - 1, Program->getUniformBufferSlotName( Idx - 1 ), DebugName );
 			}
 			FoundNull |= UniformBufferSlot.Buffer_ == nullptr;
 		}
@@ -600,8 +600,8 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 			if( FoundNull )
 			{
 				BcAssertMsg( SamplerSlot == nullptr,
-					"Found empty uniform buffer slot %u in RsProgramBinding \"%s\"",
-					Idx, DebugName );
+					"Found empty sampler slot %u (%s) in RsProgramBinding \"%s\"",
+					Idx - 1, Program->getSamplerSlotName( Idx - 1 ), DebugName );
 			}
 			FoundNull |= SamplerSlot == nullptr;
 		}

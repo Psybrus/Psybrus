@@ -519,6 +519,7 @@ void ScnViewComponent::StaticRegisterClass()
 		new ReField( "Passes_", &ScnViewComponent::Passes_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 		new ReField( "RenderTarget_", &ScnViewComponent::RenderTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 		new ReField( "DepthStencilTarget_", &ScnViewComponent::DepthStencilTarget_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
+		new ReField( "ReflectionCubemap_", &ScnViewComponent::ReflectionCubemap_, bcRFF_IMPORTER | bcRFF_SHALLOW_COPY ),
 
 		new ReField( "Viewport_", &ScnViewComponent::Viewport_ ),
 		new ReField( "ViewUniformBlock_", &ScnViewComponent::ViewUniformBlock_ ),
@@ -603,7 +604,7 @@ void ScnViewComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // getViewUniformBuffer
-class RsBuffer* ScnViewComponent::getViewUniformBuffer()
+class RsBuffer* ScnViewComponent::getViewUniformBuffer() const
 {
 	return ViewUniformBuffer_.get();
 }
@@ -732,6 +733,40 @@ RsRenderSortPassType ScnViewComponent::getSortPassType( RsRenderSortPassFlags So
 		}
 	}
 	return RetVal;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setViewResources
+void ScnViewComponent::setViewResources( RsProgram* Program, RsProgramBindingDesc& ProgramBindingDesc ) const
+{
+	// Setup view uniform buffer.
+	{
+		auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+		if( Slot != BcErrorCode )
+		{
+			ProgramBindingDesc.setUniformBuffer( Slot, getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+		}
+	}
+
+	// Get depth texture if needed.
+	if( hasRenderTarget() )
+	{
+		auto Slot = Program->findShaderResourceSlot( "aDepthTex" );
+		if( Slot != BcErrorCode )
+		{
+			ProgramBindingDesc.setShaderResourceView( Slot, getDepthStencilTarget()->getTexture() );
+		}
+	}
+
+	// Reflection cubemap from the view.
+	if( getReflectionCubemap() )
+	{
+		auto Slot = Program->findShaderResourceSlot( "aReflectionTex" );
+		if( Slot != BcErrorCode )
+		{
+			ProgramBindingDesc.setShaderResourceView( Slot, getReflectionCubemap()->getTexture() );
+		}		
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

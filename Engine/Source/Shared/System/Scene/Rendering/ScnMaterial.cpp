@@ -215,11 +215,13 @@ RsProgramBindingDesc ScnMaterial::getProgramBinding( ScnShaderPermutationFlags P
 	{
 		const BcName& SamplerName = (*Iter).first;
 		ScnTextureRef Texture = (*Iter).second;
-
-		BcU32 Slot = Program->findShaderResourceSlot( (*SamplerName).c_str() );
-		if( Slot != BcErrorCode )
+		if( Texture )
 		{
-			ProgramBindingDesc.setShaderResourceView( Slot, Texture->getTexture() );
+			BcU32 Slot = Program->findShaderResourceSlot( (*SamplerName).c_str() );
+			if( Slot != BcErrorCode )
+			{
+				ProgramBindingDesc.setShaderResourceView( Slot, Texture->getTexture() );
+			}
 		}
 	}
 

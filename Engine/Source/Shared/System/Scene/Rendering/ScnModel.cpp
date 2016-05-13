@@ -234,23 +234,8 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 				}
 			}
 
-			{
-				auto Slot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-				if( Slot != BcErrorCode )
-				{
-					ProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
-				}
-			}
-
-			// Get depth texture if needed.
-			if( View->hasRenderTarget() )
-			{
-				auto Slot = Program->findShaderResourceSlot( "aDepthTex" );
-				if( Slot != BcErrorCode )
-				{
-					ProgramBindingDesc.setShaderResourceView( Slot, View->getDepthStencilTarget()->getTexture() );
-				}
-			}
+			// Set view resources.
+			View->setViewResources( Program, ProgramBindingDesc );
 
 			// Create program binding for non-instanced rendering.
 			ViewRenderData->MaterialBindings_[ Idx ].ProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, DebugNameCStr ).release();
@@ -373,16 +358,9 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 							}
 						}
 
+						// Set view resources.
+						View->setViewResources( InstancedProgram, InstancedProgramBindingDesc );
 
-						// Setup view uniform buffer.
-						{
-							auto Slot = InstancedProgram->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-							if( Slot != BcErrorCode )
-							{
-								InstancedProgramBindingDesc.setUniformBuffer( Slot, View->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
-							}
-						}
-						
 						// Create program binding for non-instanced rendering.
 						auto ProgramBinding = RsCore::pImpl()->createProgramBinding( InstancedProgram, InstancedProgramBindingDesc, DebugNameCStr ).release();
 						InstancingData.ProgramBindings_.push_back( ProgramBinding );
