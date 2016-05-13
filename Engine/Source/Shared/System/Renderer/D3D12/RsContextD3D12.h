@@ -224,6 +224,7 @@ private:
 	/// Command queue.
 	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc_;
 	ComPtr< ID3D12CommandQueue > CommandQueue_;
+	BcU64 TimestampFrequency_;
 
 	/// CommandListData
 	/// TODO: Factor this stuff out into a new interface to allow for concurrency.

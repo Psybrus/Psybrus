@@ -328,10 +328,13 @@ void ScnViewProcessor::initialise()
 			return evtRET_PASS;
 		} );
 
-	StartFrameQueryHeap_ = RsCore::pImpl()->createQueryHeap(
-		RsQueryHeapDesc( RsQueryType::TIMESTAMP, NOOF_FRAMES_TO_QUERY ), "ScnViewProcessor" );
-	EndFrameQueryHeap_ = RsCore::pImpl()->createQueryHeap(
-		RsQueryHeapDesc( RsQueryType::TIMESTAMP, NOOF_FRAMES_TO_QUERY ), "ScnViewProcessor" );
+	if( RsCore::pImpl() )
+	{
+		StartFrameQueryHeap_ = RsCore::pImpl()->createQueryHeap(
+			RsQueryHeapDesc( RsQueryType::TIMESTAMP, NOOF_FRAMES_TO_QUERY ), "ScnViewProcessor" );
+		EndFrameQueryHeap_ = RsCore::pImpl()->createQueryHeap(
+			RsQueryHeapDesc( RsQueryType::TIMESTAMP, NOOF_FRAMES_TO_QUERY ), "ScnViewProcessor" );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -422,6 +422,8 @@ void RsContextD3D12::create()
 	RetVal = Device_->CreateCommandQueue( &CommandQueueDesc_, IID_PPV_ARGS( &CommandQueue_ ) );
 	BcAssert( SUCCEEDED( RetVal ) );
 
+	CommandQueue_->GetTimestampFrequency( &TimestampFrequency_ );
+
 	// Setup swap chain desc.
 	BcMemZero( &SwapChainDesc_, sizeof( SwapChainDesc_ ) );
 	SwapChainDesc_.BufferCount = NumSwapBuffers_;
@@ -645,7 +647,13 @@ void RsContextD3D12::endQuery( class RsQueryHeap* QueryHeap, size_t Idx )
 
 	auto CommandList = getCurrentCommandList();
 	CommandList->EndQuery( QueryHeapD3D12->getQueryHeap(), QueryType, static_cast< UINT >( Idx ) );
-	QueryHeapD3D12->setQueryEndFrame( Idx, FrameCounter_ );
+	CommandList->ResolveQueryData( QueryHeapD3D12->getQueryHeap(), QueryType, 
+		static_cast< UINT >( Idx ),
+		static_cast< UINT >( 1 ),
+		QueryHeapD3D12->getReadbackBuffer(),
+		static_cast< UINT64 >( Idx ) * sizeof( BcU64 ) );
+
+	QueryHeapD3D12->setQueryEndFrame( Idx, FrameCounter_ + CommandListDatas_.size() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -657,7 +665,7 @@ bool RsContextD3D12::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_
 	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
 	auto EndFrame = QueryHeapD3D12->getQueryEndFrame( Idx );
 
-	return FrameCounter_ > ( EndFrame + CommandListDatas_.size() );
+	return FrameCounter_ > ( EndFrame );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -666,54 +674,28 @@ void RsContextD3D12::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset
 {
 	PSY_PROFILE_FUNCTION;
 
-	// TODO: Make this resolve not hideously inefficient. Need to support readback to a buffer.
-
 	auto QueryHeapD3D12 = QueryHeap->getHandle< RsQueryHeapD3D12* >();
 	auto QueryType = RsUtilsD3D12::GetQueryType( QueryHeap->getDesc().QueryType_ );
-
-	// Allocate a readback heap.
-	// TODO: Need to use a buffer provided by the user.
-	// Setup heap properties.
-	size_t HeapSize = BcPotRoundUp( sizeof( BcU64 ) * NoofQueries, 256 );
-	CD3DX12_HEAP_PROPERTIES HeapProperties( D3D12_HEAP_TYPE_READBACK );
-	CD3DX12_RESOURCE_DESC ResourceDesc( CD3DX12_RESOURCE_DESC::Buffer( HeapSize, D3D12_RESOURCE_FLAG_NONE, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT ) );
-
-	// Setup appropriate resource usage.
-	D3D12_RESOURCE_STATES ResourceUsage = D3D12_RESOURCE_STATE_COPY_DEST;
-
-	// Committed resource.
-	ComPtr< ID3D12Resource > Resource;
-	HRESULT RetVal = Device_->CreateCommittedResource( 
-		&HeapProperties, 
-		D3D12_HEAP_FLAG_NONE, 
-		&ResourceDesc,
-		ResourceUsage,
-		nullptr, IID_PPV_ARGS( Resource.GetAddressOf() ) );
-	BcAssert( SUCCEEDED( RetVal ) );
-
-	// Perform copy.
-	auto CommandList = getCurrentCommandList();
-	CommandList->ResolveQueryData( QueryHeapD3D12->getQueryHeap(), QueryType, 
-		static_cast< UINT >( Offset ),
-		static_cast< UINT >( NoofQueries ),
-		Resource.Get(), 0 );
-
-	// HACK: Flush all command lists.
-	// This will later be replaced with an asynchronous resolve and support for fences.
-	for( size_t Idx = 0; Idx < CommandListDatas_.size(); ++Idx )
-	{
-		flushCommandList( nullptr );
-	}
 
 	// Map and copy.
 	void* BaseAddress = nullptr;
 	D3D12_RANGE Range;
-	Range.Begin = 0,
-	Range.End = sizeof( BcU64 ) * NoofQueries;
-	if( SUCCEEDED( Resource->Map( 0, &Range, &BaseAddress ) ) )
+	Range.Begin = Offset * sizeof( BcU64 ),
+	Range.End = Range.Begin + ( sizeof( BcU64 ) * NoofQueries );
+	if( SUCCEEDED( QueryHeapD3D12->getReadbackBuffer()->Map( 0, &Range, &BaseAddress ) ) )
 	{
 		memcpy( OutData, BaseAddress, sizeof( BcU64 ) * NoofQueries );
-		Resource->Unmap( 0, nullptr );
+		QueryHeapD3D12->getReadbackBuffer()->Unmap( 0, nullptr );
+
+		// Perform conversion for timestamp queries.
+		if( QueryType == D3D12_QUERY_HEAP_TYPE_TIMESTAMP )
+		{
+			BcF64 TimestampNS  = 1000000000.0 / BcF64( TimestampFrequency_ );
+			for( size_t Idx = 0; Idx < NoofQueries; ++Idx )
+			{
+				OutData[ Idx ] = BcU64( BcF64( OutData[ Idx ] ) * TimestampNS );
+			}
+		}
 	}
 }
 
