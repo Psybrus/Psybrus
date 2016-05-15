@@ -366,11 +366,11 @@ void MaQuat::inverse()
 
 
 // Quick speed up - needs optimising
-void MaQuat::rotateVector( MaVec3d& vec ) const
+MaVec3d MaQuat::rotateVector( const MaVec3d& vec ) const
 {	
 	const MaQuat& This = (*this);
 	const MaQuat OutVec = This * MaQuat( vec.x(), vec.y(), vec.z(), 1.0f ) * ~This;
 
-	vec.set( OutVec.x(), OutVec.y(), OutVec.z() );       		
+	return MaVec3d( OutVec.x(), OutVec.y(), OutVec.z() );       		
 }
 

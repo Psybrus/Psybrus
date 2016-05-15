@@ -45,8 +45,7 @@ public:
 	void lerp( const MaQuat& a, const MaQuat& b, BcF32 t );
 	void slerp( const MaQuat& a, const MaQuat& b, BcF32 t );
 	
-// Quick handy funk
-	void rotateVector( MaVec3d& ) const;
+	MaVec3d rotateVector( const MaVec3d& ) const;
 
 	//
 	void fromMatrix4d( const MaMat4d& Mat );

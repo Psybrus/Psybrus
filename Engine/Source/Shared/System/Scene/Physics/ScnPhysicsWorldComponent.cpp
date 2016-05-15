@@ -112,7 +112,6 @@ public:
 
 	void debugDraw( btIDebugDraw* debugDrawer ) override
 	{
-
 	}
 
 private:
@@ -358,8 +357,9 @@ void ScnPhysicsWorldComponent::registerWorldUpdateHandler( ScnIPhysicsWorldUpdat
 // deregisterWorldUpdateHandler
 void ScnPhysicsWorldComponent::deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler )
 {
-	std::remove( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler );
-	BcAssert( std::find( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler ) == WorldUpdateHandler_.end() );
+	auto It = std::find( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler );
+	BcAssert( It != WorldUpdateHandler_.end() );
+	WorldUpdateHandler_.erase( It );	
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -160,6 +160,13 @@ MaVec3d ScnPhysicsRigidBodyComponent::getAngularVelocity() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getVelocityInLocalPoint
+MaVec3d ScnPhysicsRigidBodyComponent::getVelocityInLocalPoint( const MaVec3d& LocalPoint )
+{
+	return ScnPhysicsFromBullet( RigidBody_->getVelocityInLocalPoint( ScnPhysicsToBullet( LocalPoint ) ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setMass
 void ScnPhysicsRigidBodyComponent::setMass( BcF32 Mass )
 {

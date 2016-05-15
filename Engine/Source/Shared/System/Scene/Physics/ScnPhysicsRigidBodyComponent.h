@@ -42,6 +42,8 @@ public:
 	void setAngularVelocity( const MaVec3d& Velocity );
 	MaVec3d getAngularVelocity() const;
 
+	MaVec3d getVelocityInLocalPoint( const MaVec3d& LocalPoint );
+
 	void setMass( BcF32 Mass );
 	BcF32 getMass() const;
 
