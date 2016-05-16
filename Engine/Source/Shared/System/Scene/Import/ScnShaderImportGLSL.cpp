@@ -336,6 +336,7 @@ namespace
 		{
 			std::string Name_ = "<INVALID>";
 			int Size_ = -1;
+			int Stride_ = -1;
 			RsProgramParameterTypeValueGL ParameterType_;
 			bool Enabled_ = false;
 
@@ -344,13 +345,13 @@ namespace
 				return 
 					std::make_tuple(  
 						ParameterType_.Storage_, /*ParameterType_.Binding_,*/
-						Name_, Size_,
+						Name_, Size_, Stride_,
 						ParameterType_.Coherent_, ParameterType_.Volatile_,
 						ParameterType_.Restrict_, ParameterType_.ReadOnly_, 
 						ParameterType_.WriteOnly_, ParameterType_.Type_ ) <
 					std::make_tuple( 
 						Other.ParameterType_.Storage_, /*Other.ParameterType_.Binding_,*/
-						Other.Name_, Other.Size_,
+						Other.Name_, Other.Size_, Other.Stride_,
 						Other.ParameterType_.Coherent_, Other.ParameterType_.Volatile_,
 						Other.ParameterType_.Restrict_, Other.ParameterType_.ReadOnly_, 
 						Other.ParameterType_.WriteOnly_, Other.ParameterType_.Type_ );
@@ -529,7 +530,7 @@ namespace
 					Object.ParameterType_.Storage_ = RsProgramParameterStorageGL::UNIFORM;
 					Object.ParameterType_.Type_ = mapUniformType( Base->getType() );
 					Object.Name_ = Base->getName().c_str();
-					Intermediate_.getBaseAlignment( Base->getType(), Object.Size_, true );
+					Intermediate_.getBaseAlignment( Base->getType(), Object.Size_, Object.Stride_, true, true );
 					Reflection_.addObject( Object, &Base->getQualifier() );
 					break;
 				}
@@ -597,10 +598,11 @@ namespace
 			}
 
 			int MemberSize = 0;
+			int MemberStride = 0;
 			int Offset = 0;
 			for( int MemberIdx = 0; MemberIdx <= Index; ++MemberIdx )
 			{
-				int MemberAlignment = Intermediate_.getBaseAlignment( *MemberList[ MemberIdx ].type, MemberSize, Type.getQualifier().layoutPacking == glslang::ElpStd140 );
+				int MemberAlignment = Intermediate_.getBaseAlignment( *MemberList[ MemberIdx ].type, MemberSize, MemberStride, Type.getQualifier().layoutPacking == glslang::ElpStd140, true );
 				Offset = BcPotRoundUp( Offset, MemberAlignment );
 				if( MemberIdx < Index )
 				{
@@ -620,7 +622,8 @@ namespace
 			int LastOffset = getOffset( BlockType, LastIndex );
 
 			int LastMemberSize = 0;
-			Intermediate_.getBaseAlignment( *MemberList[ LastIndex ].type, LastMemberSize, BlockType.getQualifier().layoutPacking == glslang::ElpStd140 );
+			int LastMemberStride = 0;
+			Intermediate_.getBaseAlignment( *MemberList[ LastIndex ].type, LastMemberSize, LastMemberStride, BlockType.getQualifier().layoutPacking == glslang::ElpStd140, true );
 
 			return LastOffset + LastMemberSize;
 		}
