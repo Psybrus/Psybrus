@@ -274,7 +274,7 @@ void ScnCore::update()
 			if( ShouldUpdateComponents || ComponentProcessFunc.Class_ == ScnViewComponent::StaticGetClass() )
 			{
 #if !PSY_PRODUCTION
-				PSY_LOGSCOPEDCATEGORY( "%s", (*ComponentProcessFunc.Class_->getName()).c_str() );
+				PSY_LOGSCOPEDCATEGORY( (*ComponentProcessFunc.Class_->getName()).c_str() );
 #endif
 				auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
 				auto& ComponentList = ComponentLists_[ ComponentListIdx ];

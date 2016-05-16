@@ -355,7 +355,7 @@ void ScnViewProcessor::onAttach( ScnComponent* Component )
 	BcAssert( Component->isTypeOf< ScnViewComponent >() );
 
 	// Setup view data.
-	std::unique_ptr< ViewData > ViewData( new ViewData );
+	std::unique_ptr< ViewData > ViewData( new struct ViewData() );
 	ViewData->View_ = static_cast< ScnViewComponent* >( Component );
 
 	// Create view render data for all components.
