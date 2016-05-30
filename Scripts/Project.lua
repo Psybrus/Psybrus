@@ -7,49 +7,49 @@ local EXTERNAL_PREFIX = "External_"
 function PsyPlatformIncludes()
 	configuration "*"
 
-    includedirs { 
-       "./", 
-       "../Psybrus/Engine/Source/Shared/", 
-    }
+	includedirs { 
+	   "./", 
+	   "../Psybrus/Engine/Source/Shared/", 
+	}
 
 	-- External includes.
 	includedirs { 
-       "../Psybrus/External/imgui", 
-       "../Psybrus/External/jsoncpp/include", 
-    }
+	   "../Psybrus/External/imgui", 
+	   "../Psybrus/External/jsoncpp/include", 
+	}
 
-    -- Platform includes.
-    configuration "html5-clang-asmjs"
-       includedirs {
-          "../Psybrus/Engine/Source/Platforms/HTML5/",
-       }
+	-- Platform includes.
+	configuration "html5-clang-asmjs"
+	   includedirs {
+		  "../Psybrus/Engine/Source/Platforms/HTML5/",
+	   }
 
-    configuration "linux-*"
-       includedirs {
-          "../Psybrus/Engine/Source/Platforms/Linux/",
-       }
+	configuration "linux-*"
+	   includedirs {
+		  "../Psybrus/Engine/Source/Platforms/Linux/",
+	   }
 
-    configuration "osx-*"
-       includedirs {
-          "../Psybrus/Engine/Source/Platforms/OSX/",
-       }
+	configuration "osx-*"
+	   includedirs {
+		  "../Psybrus/Engine/Source/Platforms/OSX/",
+	   }
 
-    configuration "android-*"
-       includedirs {
-          "../Psybrus/Engine/Source/Platforms/Android/",
-       }
+	configuration "android-*"
+	   includedirs {
+		  "../Psybrus/Engine/Source/Platforms/Android/",
+	   }
 
-    configuration "windows-*"
-       includedirs {
-          "../Psybrus/Engine/Source/Platforms/Windows/"
-       }
+	configuration "windows-*"
+	   includedirs {
+		  "../Psybrus/Engine/Source/Platforms/Windows/"
+	   }
 
-    configuration "winphone-*"
-       includedirs {
-          "../Psybrus/Engine/Source/Platforms/Windows/"
-       }
+	configuration "winphone-*"
+	   includedirs {
+		  "../Psybrus/Engine/Source/Platforms/Windows/"
+	   }
 
-    configuration "*"
+	configuration "*"
 end
 
 -- Common project setup.
@@ -311,64 +311,63 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	configuration "windows-* or linux-* or osx-*"
 		targetdir ( "../Dist" )
 
-    debugdir "../Dist"
+	debugdir "../Dist"
 
 	configuration "*"
 		links {
 			_name .. "Lib"
 		}
 
-    configuration "*"
-	    PsyAddEngineLinks {
-	       "Engine",
-	       "System_Sound",
-	       "System_Scene",
-	       "System_Renderer",
-	       "System_Os",
-	       "System_Network",
-	       "System_Debug",
-	       "System_Content",
-	       "System_File",
-	       "System",
-	       "Serialisation",
-	       "Reflection",
-	       "Math",
-	       "Import",
-	       "Events",
-	       "Base",
-	    }
+	configuration "*"
+		PsyAddEngineLinks {
+		   "System_Sound",
+		   "System_Scene",
+		   "System_Renderer",
+		   "System_Os",
+		   "System_Network",
+		   "System_Debug",
+		   "System_Content",
+		   "System_File",
+		   "System",
+		   "Serialisation",
+		   "Reflection",
+		   "Import",
+		   "Math",
+		   "Events",
+		   "Base",
+		}
 	   
-	    PsyAddExternalLinks {
-	       "BulletPhysics",
-	       "freetype",
-	       "imgui",
-	       "jsoncpp",
-	       "libb64",
-	       "png",
-	       "rg-etc1",
-	       "squish",
-	       "SoLoud",
-	       "zlib",
-	    }
+		PsyAddExternalLinks {
+		   "BulletPhysics",
+		   "freetype",
+		   "imgui",
+		   "jsoncpp",
+		   "libb64",
+		   "png",
+		   "rg-etc1",
+		   "squish",
+		   "SoLoud",
+		   "zlib",
+		}
 
 	PsyAddSystemLibs()
 
-    configuration { "windows-* or linux-* or osx-*" }
-       PsyAddExternalLinks {
-          "assimp",
-          "assimp_contrib",
-          "fcpp",
-          "glslang",
-          "glsl-optimizer",
-          "glew",
-          "ThinkGear",
-       }
+	configuration { "windows-* or linux-* or osx-*" }
+	   PsyAddExternalLinks {
+		  "assimp",
+		  "assimp_contrib",
+		  "fcpp",
+		  "glslang",
+		  "glsl-optimizer",
+		  "glew",
+		  "ThinkGear",
+	   }
 
-    configuration { "windows-* or linux-* or osx-* or android-*" }
-       PsyAddExternalLinks {
-          "RakNet",
-          "webby",
-       }
+	configuration { "windows-* or linux-* or osx-* or android-*" }
+	   PsyAddExternalLinks {
+		  "RakNet",
+		  "webby",
+	   }
 
 	-- asmjs post build.
 	configuration { "html5-clang-asmjs", "Debug" }
@@ -402,9 +401,9 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		}
 
    configuration "windows-*"
-      includedirs {
-         "../Psybrus/Engine/Source/Platforms/Windows/"
-      }
+	  includedirs {
+		 "../Psybrus/Engine/Source/Platforms/Windows/"
+	  }
 
 	-- Terminate project.
 	configuration "*"
@@ -455,6 +454,65 @@ function PsyProjectGameExe( _name )
 			"../Psybrus/Engine/Targets/Game.cpp" 
 		}
 
+	configuration "*"
+		files {
+			"../Psybrus/Engine/Source/Shared/*.h", 
+			"../Psybrus/Engine/Source/Shared/*.inl", 
+			"../Psybrus/Engine/Source/Shared/*.cpp", 
+		}
+
+	configuration "linux-*"
+		files {
+			"../Psybrus/Engine/Source/Platforms/Linux/*.h", 
+			"../Psybrus/Engine/Source/Platforms/Linux/*.inl", 
+			"../Psybrus/Engine/Source/Platforms/Linux/*.cpp", 
+		}
+		includedirs {
+			"../Psybrus/Engine/Source/Platforms/Linux/",
+		}
+
+	configuration "osx-*"
+		files {
+			"../Psybrus/Engine/Source/Platforms/OSX/*.h", 
+			"../Psybrus/Engine/Source/Platforms/OSX/*.inl", 
+			"../Psybrus/Engine/Source/Platforms/OSX/*.cpp", 
+			"../Psybrus/Engine/Source/Platforms/OSX/*.mm", 
+		}
+		includedirs {
+			"../Psybrus/Engine/Source/Platforms/OSX/",
+			"/usr/local/Cellar/sdl2/2.0.3/include" 
+		}
+
+	configuration "android-*"
+		files {
+			"../Psybrus/Engine/Source/Platforms/Android/*.h", 
+			"../Psybrus/Engine/Source/Platforms/Android/*.inl", 
+			"../Psybrus/Engine/Source/Platforms/Android/*.cpp"
+		}
+		includedirs {
+			"./Platforms/Android/",
+		}
+
+	configuration "html5-clang-asmjs"
+		files {
+			"../Psybrus/Engine/Source/Platforms/HTML5/*.h", 
+			"../Psybrus/Engine/Source/Platforms/HTML5/*.inl", 
+			"../Psybrus/Engine/Source/Platforms/HTML5/*.cpp", 
+		}
+		includedirs {
+			"../Psybrus/Engine/Source/Platforms/HTML5/",
+		}
+
+	configuration( "windows-* or winphone-*" )
+		files {
+			"../Psybrus/Engine/Source/Platforms/Windows/*.h", 
+			"../Psybrus/Engine/Source/Platforms/Windows/*.inl", 
+			"../Psybrus/Engine/Source/Platforms/Windows/*.cpp", 
+		}
+		includedirs {
+			"../Psybrus/Engine/Source/Platforms/Windows/",
+		}
+
 	-- Add natvis for VS.
 	configuration "vs2015"
 		files( "../Psybrus/Tools/VsVisualiser/Psybrus.natvis" )
@@ -477,6 +535,75 @@ function PsyProjectImporterExe( _name )
 
 			files { 
 				"../Psybrus/Engine/Targets/Importer.cpp" 
+			}
+
+		configuration "linux-*"
+			files {
+				"../Psybrus/Engine/Source/Platforms/Linux/*.h", 
+				"../Psybrus/Engine/Source/Platforms/Linux/*.inl", 
+				"../Psybrus/Engine/Source/Platforms/Linux/*.cpp", 
+			}
+			includedirs {
+				"../Psybrus/Engine/Source/Platforms/Linux/",
+				}
+
+		configuration "*"
+			files {
+				"../Psybrus/Engine/Source/Shared/*.h", 
+				"../Psybrus/Engine/Source/Shared/*.inl", 
+				"../Psybrus/Engine/Source/Shared/*.cpp", 
+			}
+
+		configuration "linux-*"
+			files {
+				"../Psybrus/Engine/Source/Platforms/Linux/*.h", 
+				"../Psybrus/Engine/Source/Platforms/Linux/*.inl", 
+				"../Psybrus/Engine/Source/Platforms/Linux/*.cpp", 
+			}
+			includedirs {
+				"../Psybrus/Engine/Source/Platforms/Linux/",
+			}
+
+		configuration "osx-*"
+			files {
+				"../Psybrus/Engine/Source/Platforms/OSX/*.h", 
+				"../Psybrus/Engine/Source/Platforms/OSX/*.inl", 
+				"../Psybrus/Engine/Source/Platforms/OSX/*.cpp", 
+				"../Psybrus/Engine/Source/Platforms/OSX/*.mm", 
+			}
+			includedirs {
+				"../Psybrus/Engine/Source/Platforms/OSX/",
+				"/usr/local/Cellar/sdl2/2.0.3/include" 
+			}
+
+		configuration "android-*"
+			files {
+				"../Psybrus/Engine/Source/Platforms/Android/*.h", 
+				"../Psybrus/Engine/Source/Platforms/Android/*.inl", 
+				"../Psybrus/Engine/Source/Platforms/Android/*.cpp"
+			}
+			includedirs {
+				"./Platforms/Android/",
+			}
+
+		configuration "html5-clang-asmjs"
+			files {
+				"../Psybrus/Engine/Source/Platforms/HTML5/*.h", 
+				"../Psybrus/Engine/Source/Platforms/HTML5/*.inl", 
+				"../Psybrus/Engine/Source/Platforms/HTML5/*.cpp", 
+			}
+			includedirs {
+				"../Psybrus/Engine/Source/Platforms/HTML5/",
+			}
+
+		configuration( "windows-* or winphone-*" )
+			files {
+				"../Psybrus/Engine/Source/Platforms/Windows/*.h", 
+				"../Psybrus/Engine/Source/Platforms/Windows/*.inl", 
+				"../Psybrus/Engine/Source/Platforms/Windows/*.cpp", 
+			}
+			includedirs {
+				"../Psybrus/Engine/Source/Platforms/Windows/",
 			}
 
 		-- Add natvis for VS.

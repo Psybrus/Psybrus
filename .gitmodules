@@ -4,12 +4,6 @@
 [submodule "External/SoLoud"]
     path = External/SoLoud
     url = https://github.com/Psybrus/SoLoud
-[submodule "External/HLSLCrossCompiler"]
-	path = External/HLSLCrossCompiler
-	url = https://github.com/Psybrus/HLSLCrossCompiler.git
-[submodule "External/hlsl2glslfork"]
-	path = External/hlsl2glslfork
-	url = https://github.com/Psybrus/hlsl2glslfork
 [submodule "External/glsl-optimizer"]
 	path = External/glsl-optimizer
 	url = https://github.com/Psybrus/glsl-optimizer

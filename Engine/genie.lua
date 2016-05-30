@@ -3,7 +3,6 @@ includedirs { "./Shared/", "./Platforms/Windows/" }
 
 -- All the sub libraries.
 dofile ("Source/Base_genie.lua")
-dofile ("Source/Engine_genie.lua")
 dofile ("Source/Events_genie.lua")
 dofile ("Source/Import_genie.lua")
 dofile ("Source/Math_genie.lua")

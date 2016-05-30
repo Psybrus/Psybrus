@@ -21,7 +21,7 @@ function PsySetupToolchain()
 			allowed = {
 				-- Linux targets
 				{ "linux-gcc",			"Linux (GCC compiler)"				},
-				{ "linux-clang",		"Linux (Clang 3.5 compiler)"		},
+				{ "linux-clang",		"Linux (Clang 3.7 compiler)"		},
 
 				-- OSX targets
 				{ "osx-clang",			"OSX (Clang compiler)"				},
@@ -49,8 +49,8 @@ function PsySetupToolchain()
 		-- Linux clang.
 		if _OPTIONS[ "toolchain" ] == "linux-clang" then
 			-- temporarily disabled ccache, issues with teamcity.
-			premake.gcc.cc = "clang-3.5 -Qunused-arguments -fcolor-diagnostics"
-			premake.gcc.cxx = "clang++-3.5 -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.cc = "clang-3.7 -Qunused-arguments -fcolor-diagnostics"
+			premake.gcc.cxx = "clang++-3.7 -Qunused-arguments -fcolor-diagnostics"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-clang" )
 		end
