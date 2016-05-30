@@ -119,7 +119,7 @@ BcU32 OsInputDeviceMouse::getNoofInputs() const
 // getInputName
 BcName OsInputDeviceMouse::getInputName( BcU32 ID ) const
 {
-	if( ID < Values_.size() )
+	if( ID < INPUT_MAX )
 	{
 		return InputNames_[ ID ];
 	}

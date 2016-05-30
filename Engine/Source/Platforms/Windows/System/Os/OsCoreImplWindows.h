@@ -18,6 +18,7 @@
 
 #include "System/Os/OsInputDeviceKeyboard.h"
 #include "System/Os/OsInputDeviceMouse.h"
+#include "System/Os/OsInputDeviceXInputWindows.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsCoreImplWindows
@@ -40,6 +41,8 @@ private:
 
 	std::unique_ptr< OsInputDeviceKeyboard > InputKeyboard_;
 	std::unique_ptr< OsInputDeviceMouse > InputMouse_;
+
+	std::array< std::unique_ptr< OsInputDeviceXInputWindows >, 4 > InputXInput_;
 };
 
 #endif
