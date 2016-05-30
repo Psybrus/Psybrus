@@ -53,7 +53,8 @@ namespace
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 OsInputDeviceXInputWindows::OsInputDeviceXInputWindows( BcU32 UserIdx ):
-	UserIdx_( UserIdx )
+	UserIdx_( UserIdx ),
+	IsConnected_( false )
 {
 	memset( &InputState_, 0, sizeof( InputState_ ) );
 }
@@ -70,6 +71,13 @@ OsInputDeviceXInputWindows::~OsInputDeviceXInputWindows()
 BcName OsInputDeviceXInputWindows::getTypeName() const
 {
 	return InputType_;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isConnected
+bool OsInputDeviceXInputWindows::isConnected() const
+{
+	return IsConnected_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,6 +212,11 @@ void OsInputDeviceXInputWindows::update()
 	if( RetVal == ERROR_DEVICE_NOT_CONNECTED )
 	{
 		memset( &InputState_, 0, sizeof( InputState_ ) );
+		IsConnected_ = false;
+	}
+	else
+	{
+		IsConnected_ = true;
 	}
 }
 

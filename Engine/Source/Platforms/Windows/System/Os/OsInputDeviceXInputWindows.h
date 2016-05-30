@@ -46,6 +46,7 @@ public:
 	virtual ~OsInputDeviceXInputWindows();
 
 	BcName getTypeName() const override;
+	bool isConnected() const override;
 	BcU32 getPlayerID() const override;
 	BcU32 getNoofInputs() const override;
 	BcName getInputName( BcU32 ID ) const override;
@@ -62,5 +63,6 @@ public:
 
 private:
 	BcU32 UserIdx_;
+	bool IsConnected_;
 	XINPUT_STATE InputState_;
 };

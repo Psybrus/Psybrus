@@ -39,6 +39,7 @@ public:
 	virtual ~OsInputDeviceMouse();
 
 	BcName getTypeName() const override;
+	bool isConnected() const override;
 	BcU32 getPlayerID() const override;
 	BcU32 getNoofInputs() const override;
 	BcName getInputName( BcU32 ID ) const override;

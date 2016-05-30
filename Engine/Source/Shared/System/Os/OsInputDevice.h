@@ -21,6 +21,11 @@ public:
 	virtual BcName getTypeName() const = 0;
 
 	/**
+	 * Is connected?
+	 */
+	virtual bool isConnected() const = 0;
+
+	/**
 	 * Get player ID.
 	 * Xbox or Playstation controllers have lights
 	 * indicate player ID. 0 = Player 1, 1 = Player 2, etc.

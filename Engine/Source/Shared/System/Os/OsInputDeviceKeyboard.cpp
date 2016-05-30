@@ -75,6 +75,13 @@ BcName OsInputDeviceKeyboard::getTypeName() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// isConnected
+bool OsInputDeviceKeyboard::isConnected() const
+{
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getPlayerID
 BcU32 OsInputDeviceKeyboard::getPlayerID() const
 {
