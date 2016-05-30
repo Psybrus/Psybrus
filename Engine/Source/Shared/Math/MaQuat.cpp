@@ -128,13 +128,13 @@ void MaQuat::slerp( const MaQuat& a, const MaQuat& b, BcF32 t)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// fromMatrix4d
-void MaQuat::fromMatrix4d( const MaMat4d& Mat )
+// fromAxis
+void MaQuat::fromAxis( const MaVec3d& X, const MaVec3d& Y, const MaVec3d& Z )
 {
-	BcF32 FourWSqMinus1 = Mat[0][0] + Mat[1][1] + Mat[2][2];
-	BcF32 FourXSqMinus1 = Mat[0][0] - Mat[1][1] - Mat[2][2];
-	BcF32 FourYSqMinus1 = Mat[1][1] - Mat[0][0] - Mat[2][2];
-	BcF32 FourZSqMinus1 = Mat[2][2] - Mat[0][0] - Mat[1][1];
+	BcF32 FourWSqMinus1 = X.x() + Y.y() + Z.z();
+	BcF32 FourXSqMinus1 = X.x() - Y.y() - Z.z();
+	BcF32 FourYSqMinus1 = Y.y() - X.x() - Z.z();
+	BcF32 FourZSqMinus1 = Z.z() - X.x() - Y.y();
 
 	BcU32 BiggestIndex = 0;
 	BcF32 FourBiggestSqMinus1 = FourWSqMinus1;
@@ -162,41 +162,50 @@ void MaQuat::fromMatrix4d( const MaMat4d& Mat )
 	case 0:
 		{
 			w( BiggestVal );
-			x( ( Mat[1][2] - Mat[2][1])  * Mult );
-			y( ( Mat[2][0] - Mat[0][2])  * Mult );
-			z( ( Mat[0][1] - Mat[1][0])  * Mult );
+			x( ( Y.z() - Z.y())  * Mult );
+			y( ( Z.x() - X.z())  * Mult );
+			z( ( X.y() - Y.x())  * Mult );
 		}
 		break;
 
 	case 1:
 		{
 			w( BiggestVal );
-			x( ( Mat[1][2] - Mat[2][1])  * Mult );
-			y( ( Mat[2][0] - Mat[0][2])  * Mult );
-			z( ( Mat[0][1] - Mat[1][0])  * Mult );
+			x( ( Y.z() - Z.y())  * Mult );
+			y( ( Z.x() - X.z())  * Mult );
+			z( ( X.y() - Y.x())  * Mult );
 		}
 		break;
 
 	case 2:
 		{
 			y( BiggestVal );
-			w( ( Mat[2][0] - Mat[1][3])  * Mult );
-			x( ( Mat[0][1] + Mat[1][0])  * Mult );
-			z( ( Mat[1][2] + Mat[2][1])  * Mult );
+			w( ( Z.x() - Y.z())  * Mult );
+			x( ( X.y() + Y.x())  * Mult );
+			z( ( Y.z() + Z.y())  * Mult );
 		}
 		break;
 
 	case 3:
 		{
 			z( BiggestVal );
-			w( ( Mat[0][1] - Mat[1][0])  * Mult );
-			x( ( Mat[2][0] + Mat[0][2])  * Mult );
-			y( ( Mat[1][2] + Mat[2][1])  * Mult );
+			w( ( X.y() - Y.x())  * Mult );
+			x( ( Z.x() + X.z())  * Mult );
+			y( ( Y.z() + Z.y())  * Mult );
 		}
 		break;
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// fromMatrix4d
+void MaQuat::fromMatrix4d( const MaMat4d& Mat )
+{
+	fromAxis( Mat.row0().xyz(), Mat.row1().xyz(), Mat.row2().xyz() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// asMatrix4d
 void MaQuat::asMatrix4d( MaMat4d& Matrix )  const
 {
 	// Multiply out the values and store in a variable

@@ -47,6 +47,8 @@ public:
 	
 	MaVec3d rotateVector( const MaVec3d& ) const;
 
+	void fromAxis( const MaVec3d& X, const MaVec3d& Y, const MaVec3d& Z );
+
 	//
 	void fromMatrix4d( const MaMat4d& Mat );
 	void asMatrix4d( MaMat4d& Matrix ) const;
