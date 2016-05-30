@@ -33,10 +33,16 @@ OsCore::~OsCore()
 //virtual
 void OsCore::update()
 {
-	// Update clients.
-	for( TClientListIterator It( ClientList_.begin() ); It != ClientList_.end(); ++It )
+	// Update input devices.
+	for( auto InputDevice : InputDeviceList_ )
 	{
-		(*It)->update();
+		InputDevice->update();
+	}
+
+	// Update clients.
+	for( auto Client : ClientList_ )
+	{
+		Client->update();
 	}
 }
 
@@ -51,11 +57,33 @@ void OsCore::registerClient( OsClient* pClient )
 // unregisterClient
 void OsCore::unregisterClient( OsClient* pClient )
 {
-	for( TClientListIterator It( ClientList_.begin() ); It != ClientList_.end(); ++It )
+	for( auto It( ClientList_.begin() ); It != ClientList_.end(); ++It )
 	{
 		if( (*It) == pClient )
 		{
 			ClientList_.erase( It );
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// registerInputDevice
+void OsCore::registerInputDevice( OsInputDevice* InputDevice )
+{
+	InputDeviceList_.push_back( InputDevice );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// unregisterInputDevice
+void OsCore::unregisterInputDevice( OsInputDevice* InputDevice )
+{
+	for( auto It( InputDeviceList_.begin() ); It != InputDeviceList_.end(); ++It )
+	{
+		if( (*It) == InputDevice )
+		{
+			InputDeviceList_.erase( It );
 			break;
 		}
 	}
@@ -69,13 +97,47 @@ size_t OsCore::getNoofClients() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getNoofInputDevices
+size_t OsCore::getNoofInputDevices() const
+{
+	return InputDeviceList_.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // getClient
-OsClient* OsCore::getClient( size_t Index )
+OsClient* OsCore::getClient( size_t Index ) const
 {
 	if( Index < ClientList_.size() )
 	{
 		return ClientList_[ Index ];
 	}
 
-	return NULL;
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInputDevice
+OsInputDevice* OsCore::getInputDevice( size_t Index ) const
+{
+	if( Index < InputDeviceList_.size() )
+	{
+		return InputDeviceList_[ Index ];
+	}
+
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getInputDevice
+OsInputDevice* OsCore::getInputDevice( BcName TypeName, BcU32 PlayerID ) const
+{
+	for( auto* InputDevice : InputDeviceList_ )
+	{
+		if( InputDevice->getTypeName() == TypeName && InputDevice->getPlayerID() == PlayerID )
+		{
+			return InputDevice;
+		}
+	}
+
+	return nullptr;
 }

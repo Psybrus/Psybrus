@@ -3,6 +3,8 @@
 #include "Base/BcName.h"
 
 #include "Events/EvtPublisher.h"
+#include "Math/MaVec2d.h"
+#include "Math/MaVec3d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsInputDevice
@@ -23,34 +25,62 @@ public:
 	 * Xbox or Playstation controllers have lights
 	 * indicate player ID. 0 = Player 1, 1 = Player 2, etc.
 	 */
-	virtual size_t getPlayerID() const = 0;
+	virtual BcU32 getPlayerID() const = 0;
 
 	/**
-	 * Get number of controls.
+	 * @return Number of inputs.
+	 * This may include some invalid inputs inside of its range.
 	 */
-	virtual size_t getNoofControls() const = 0;
+	virtual BcU32 getNoofInputs() const = 0;
 
 	/**
-	 * Get control name.
+	 * @return Input name. BcName::INVALID if ID not valid.
 	 */
-	virtual BcName getControlName( size_t ID ) const = 0;
+	virtual BcName getInputName( BcU32 ID ) const = 0;
 
 	/**
-	 * Get control ID.
+	 * Get input ID.
 	 */
-	virtual size_t getControlID( BcName Name ) const = 0;
+	virtual BcU32 getInputID( BcName Name ) const = 0;
 
 	/**
-	 * Get float value.
-	 * @param ID ID of control.
+	 * Get float input.
+	 * @param ID ID of input.
 	 */
-	virtual BcF32 getFloatValue( size_t ID ) const = 0;
+	virtual BcF32 getFloatInput( BcU32 ID ) const = 0;
 
 	/**
-	 * Get bool value.
-	 * @param ID ID of control.
+	 * Get vec2 input.
+	 * @param ID ID of first input.
+	 * @return Vector of (ID, ID + 1)
 	 */
-	virtual bool getBoolValue( size_t ID ) const = 0;
+	virtual MaVec2d getVec2Input( BcU32 ID ) const = 0;
+
+	/**
+	 * Get vec3 input.
+	 * @param ID ID of first input.
+	 * @return Vector of (ID, ID + 1, ID + 2)
+	 */
+	virtual MaVec3d getVec3Input( BcU32 ID ) const = 0;
+
+	/**
+	 * Get bool input.
+	 * @param ID ID of input.
+	 */
+	virtual bool getBoolInput( BcU32 ID ) const = 0;
+
+	/**
+	 * Get int input.
+	 * @param ID ID of input.
+	 */
+	virtual BcS64 getIntInput( BcU32 ID ) const = 0;
+
+	/**
+	 * Get text input. All accumulated since previous frame.
+	 * @param ID ID of input.
+	 * @return Pointer to string. Only valid until end of frame.
+	 */
+	virtual const char* getTextInput( BcU32 ID ) const = 0;
 
 	/**
 	 * Update input device.

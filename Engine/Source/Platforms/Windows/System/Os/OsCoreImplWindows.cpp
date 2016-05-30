@@ -39,7 +39,11 @@ OsCoreImplWindows::~OsCoreImplWindows()
 //virtual
 void OsCoreImplWindows::open()
 {
-
+	// Create default input devices.
+	InputKeyboard_.reset( new OsInputDeviceKeyboard() );	
+	InputMouse_.reset( new OsInputDeviceMouse() );	
+	registerInputDevice( InputKeyboard_.get() );
+	registerInputDevice( InputMouse_.get() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,5 +59,8 @@ void OsCoreImplWindows::update()
 //virtual
 void OsCoreImplWindows::close()
 {
-
+	unregisterInputDevice( InputKeyboard_.get() );
+	unregisterInputDevice( InputMouse_.get() );
+	InputKeyboard_.reset();
+	InputMouse_.reset();
 }

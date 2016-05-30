@@ -19,6 +19,7 @@
 
 #include "OsEvents.h"
 #include "OsClient.h"
+#include "OsInputDevice.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsCore
@@ -46,20 +47,40 @@ public:
 	void unregisterClient( OsClient* pClient );
 
 	/**
+	 * Register input device.
+	 */
+	void registerInputDevice( class OsInputDevice* InputDevice );
+	
+	/**
+	 * Unregister input device.
+	 */
+	void unregisterInputDevice( class OsInputDevice* InputDevice );
+
+	/**
  	 * Get number of clients.
 	 */
 	size_t getNoofClients() const;
 
 	/**
+ 	 * Get number of input devices.
+	 */
+	size_t getNoofInputDevices() const;
+
+	/**
 	 * Get client.
 	 */
-	OsClient* getClient( size_t Index );
+	OsClient* getClient( size_t Index ) const;
+
+	/**
+	 * Get input device.
+	 */
+	OsInputDevice* getInputDevice( size_t Index ) const;
+	OsInputDevice* OsCore::getInputDevice( BcName TypeName, BcU32 PlayerID ) const;
+
 
 protected:
-	typedef std::vector< OsClient* > TClientList;
-	typedef TClientList::iterator TClientListIterator;
-
-	TClientList ClientList_;
+	std::vector< OsInputDevice* > InputDeviceList_;
+	std::vector< OsClient* > ClientList_;
 
 };
 
