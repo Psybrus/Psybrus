@@ -433,8 +433,8 @@ void MainShared()
 	bool Success = true;
 	while( !FoundRoot && Success )
 	{
-		// Check for PackedContent
-		if( BcFileSystemExists( "PackedContent" ) )
+		// Check for Content or PackedContent.
+		if( BcFileSystemExists( "Content" ) || BcFileSystemExists( "PackedContent" ) )
 		{
 			FoundRoot = true;
 		}
