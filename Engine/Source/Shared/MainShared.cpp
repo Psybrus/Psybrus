@@ -235,7 +235,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
 	DsCore::pImpl()->registerPanel( 
-		"Engine Stats", []( BcU32 )->void
+		"Engine/Stat Overlay", []( BcU32 )->void
 		{
 			static BcF32 GameTimeTotal = 0.0f;
 			static BcF32 RenderTimeTotal = 0.0f;

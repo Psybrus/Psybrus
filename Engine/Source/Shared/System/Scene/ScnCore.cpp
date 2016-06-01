@@ -132,7 +132,7 @@ void ScnCore::open()
 		} );
 
 	DsCore::pImpl()->registerPanel(
-		"Scene Hierarchy", [ this ]( BcU32 )->void
+		"Scene/Hierarchy", [ this ]( BcU32 )->void
 		{
 			// Render scene hierarchy.
 			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
@@ -196,7 +196,7 @@ void ScnCore::open()
 		} );
 
 	DsCore::pImpl()->registerPanel(
-		"Component Editor", [ this ]( BcU32 )->void
+		"Scene/Component Editor", [ this ]( BcU32 )->void
 		{
 			if ( ImGui::Begin( "Component Editor" ) )
 			{
@@ -225,7 +225,7 @@ void ScnCore::open()
 		} );
 
 	DsCore::pImpl()->registerPanel(
-		"Component Process Funcs", [ this ]( BcU32 )->void
+		"Scene/Component Process Funcs", [ this ]( BcU32 )->void
 		{
 			if ( ImGui::Begin( "Component Process Funcs" ) )
 			{

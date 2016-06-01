@@ -164,13 +164,56 @@ void DsCoreImpl::open()
 					// Do main menu bar.
 					if( ImGui::BeginMainMenuBar() )
 					{
-						if( ImGui::BeginMenu( "Windows" ) )
+						// TODO: Presort the panels into arrays and don't use string shite everywhere.
+						// Categorised panels.
+						std::string LastCategory;
+						bool MenuOpen = false;
+						bool NonCategorisedItemsExist = false;
+						for ( auto& Panel : PanelFunctions_ )
+						{
+							size_t CategoryEndIdx = Panel.Name_.find( '/' );
+							if( CategoryEndIdx != std::string::npos )
+							{
+								std::string Category = Panel.Name_.substr( 0, CategoryEndIdx );
+								std::string Name = Panel.Name_.substr( CategoryEndIdx + 1, Panel.Name_.length() - CategoryEndIdx - 1 );
+								if( Category != LastCategory )
+								{
+									if( MenuOpen && !LastCategory.empty() )
+									{
+										ImGui::EndMenu();
+									}
+									MenuOpen = ImGui::BeginMenu( Category.c_str() );
+									LastCategory = Category;
+								}
+								if( MenuOpen )
+								{
+									if( ImGui::MenuItem( Name.c_str(), Panel.IsVisible_ ? "X" : " ", nullptr ) )
+									{
+										Panel.IsVisible_ = !Panel.IsVisible_; 
+									}
+								}
+							}
+							else
+							{
+								NonCategorisedItemsExist = true;
+							}
+						}
+						if( MenuOpen && !LastCategory.empty() )
+						{
+							ImGui::EndMenu();
+						}
+
+						// Uncategorised panels.
+						if( NonCategorisedItemsExist && ImGui::BeginMenu( "Panels" ) )
 						{
 							for ( auto& Panel : PanelFunctions_ )
 							{
-								if( ImGui::MenuItem( Panel.Name_.c_str(), nullptr, nullptr, &Panel.IsVisible_ ) )
+								if( Panel.Name_.find( '/' ) == std::string::npos )
 								{
-									Panel.IsVisible_ = !Panel.IsVisible_; 
+									if( ImGui::MenuItem( Panel.Name_.c_str(), nullptr, nullptr, Panel.IsVisible_ ) )
+									{
+										Panel.IsVisible_ = !Panel.IsVisible_; 
+									}
 								}
 							}
 							ImGui::EndMenu();
@@ -399,6 +442,12 @@ BcU32 DsCoreImpl::registerPanel( std::string Name, std::function < void( BcU32 )
 	BcAssert( BcIsGameThread() );
 	BcU32 Handle = ++NextHandle_;
 	PanelFunctions_.emplace_back( Name, Func, Handle );
+	std::sort( PanelFunctions_.begin(), PanelFunctions_.end(), 
+		[]( const DsPanelDefinition& A, const DsPanelDefinition& B ) 
+		{
+			return A.Name_ < B.Name_;
+		} );
+
 	PSY_LOG( "Function registered." );
 	PSY_LOG( "\t%s (%u)", Name.c_str(), Handle );
 	return Handle;
@@ -414,6 +463,7 @@ void DsCoreImpl::deregisterPanel( BcU32 Handle )
 	{
 		return PanelDef.Handle_ == Handle;
 	} );
+
 	if ( FoundIt != PanelFunctions_.end() )
 	{
 		PanelFunctions_.erase( FoundIt );
