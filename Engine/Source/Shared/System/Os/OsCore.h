@@ -17,8 +17,9 @@
 #include "Base/BcGlobal.h"
 #include "System/SysSystem.h"
 
-#include "OsEvents.h"
+#include "OsController.h"
 #include "OsClient.h"
+#include "OsEvents.h"
 #include "OsInputDevice.h"
 
 //////////////////////////////////////////////////////////////////////////

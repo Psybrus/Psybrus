@@ -187,7 +187,7 @@ MaVec3d OsInputDeviceXInputWindows::getVec3Input( BcU32 ID ) const
 // getBoolInput
 bool OsInputDeviceXInputWindows::getBoolInput( BcU32 ID ) const
 {
-	return getFloatInput( ID ) > 0.0f;
+	return getFloatInput( ID ) > 0.5f;
 }
 
 //////////////////////////////////////////////////////////////////////////
