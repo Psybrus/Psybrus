@@ -235,7 +235,7 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
 	DsCore::pImpl()->registerPanel( 
-		"Engine", []( BcU32 )->void
+		"Engine Stats", []( BcU32 )->void
 		{
 			static BcF32 GameTimeTotal = 0.0f;
 			static BcF32 RenderTimeTotal = 0.0f;
@@ -310,7 +310,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			static bool ShowOpened = true;
 			ImGui::SetNextWindowPos( WindowPos );
 			ImGui::SetNextWindowSize( MaVec2d( 300.0f, 400.0f ) );
-			if ( ImGui::Begin( "Engine", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+			if ( ImGui::Begin( "Engine Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
 				ImGui::Text( "Build: %s-%s-%s", 

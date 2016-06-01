@@ -34,14 +34,14 @@ SYS_CREATOR( DsCoreImpl );
 // Ctor
 DsCoreImpl::DsCoreImpl() :
 #if USE_WEBBY
-ConnectionCount_( 0 ),
-ws_connections(),
+	ConnectionCount_( 0 ),
+	ws_connections(),
 #endif // USE_WEBBY
-DrawPanels_( false ),
-PanelFunctions_(),
-PageFunctions_(),
-ButtonFunctions_(),
-NextHandle_( 0 )
+	DrawPanels_( false ),
+	PanelFunctions_(),
+	PageFunctions_(),
+	ButtonFunctions_(),
+	NextHandle_( 0 )
 {
 	// Start profiler.
 #if PSY_USE_PROFILER
@@ -161,9 +161,30 @@ void DsCoreImpl::open()
 			{
 				if ( DrawPanels_ )
 				{
+					// Do main menu bar.
+					if( ImGui::BeginMainMenuBar() )
+					{
+						if( ImGui::BeginMenu( "Windows" ) )
+						{
+							for ( auto& Panel : PanelFunctions_ )
+							{
+								if( ImGui::MenuItem( Panel.Name_.c_str(), nullptr, nullptr, &Panel.IsVisible_ ) )
+								{
+									Panel.IsVisible_ = !Panel.IsVisible_; 
+								}
+							}
+							ImGui::EndMenu();
+						}
+
+						ImGui::EndMainMenuBar();
+					}
+
 					for ( auto& Panel : PanelFunctions_ )
 					{
-						Panel.Function_( Panel.Handle_ );
+						if( Panel.IsVisible_ )
+						{
+							Panel.Function_( Panel.Handle_ );
+						}
 					}
 				}
 			}

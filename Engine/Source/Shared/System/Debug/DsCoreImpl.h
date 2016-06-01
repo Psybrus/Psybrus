@@ -24,12 +24,14 @@ struct DsPanelDefinition
 	DsPanelDefinition( std::string Name, std::function< void( BcU32 ) > Func, BcU32 Handle ) :
 		Name_( Name ),
 		Function_( Func ),
-		Handle_( Handle )
+		Handle_( Handle ),
+		IsVisible_( false )
 	{}
 
 	std::string Name_;
 	std::function< void( BcU32 ) > Function_;
 	BcU32 Handle_;
+	bool IsVisible_;
 };
 
 //////////////////////////////////////////////////////////////////////////
