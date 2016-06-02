@@ -37,7 +37,7 @@ DsCoreImpl::DsCoreImpl() :
 	ConnectionCount_( 0 ),
 	ws_connections(),
 #endif // USE_WEBBY
-	DrawPanels_( false ),
+	DrawMenu_( false ),
 	PanelFunctions_(),
 	PageFunctions_(),
 	ButtonFunctions_(),
@@ -65,6 +65,70 @@ DsCoreImpl::DsCoreImpl() :
 	registerPageNoHtml( "Json/(\\d*)", { "Id" }, std::bind( &DsCoreImpl::cmdJson, this, _1, _2, _3 ) );
 	registerPageNoHtml( "JsonSerialise/(\\d*)", { "Id" }, std::bind( &DsCoreImpl::cmdJsonSerialiser, this, _1, _2, _3 ) );
 	registerPageNoHtml( "Wadl", { }, std::bind( &DsCoreImpl::cmdWADL, this, _1, _2, _3 ) );
+
+	// Setup key lookup.
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F1 ] = "F1";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F2 ] = "F2";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F3 ] = "F3";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F4 ] = "F4";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F5 ] = "F5";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F6 ] = "F6";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F7 ] = "F7";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F8 ] = "F8";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F9 ] = "F9";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F10 ] = "F10";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F11 ] = "F11";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F12 ] = "F12";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F13 ] = "F13";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F14 ] = "F14";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F15 ] = "F15";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F16 ] = "F16";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F17 ] = "F17";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F18 ] = "F18";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F19 ] = "F19";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F20 ] = "F20";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F21 ] = "F21";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F22 ] = "F22";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F23 ] = "F23";
+	ShortcutLookup_[ OsEventInputKeyboard::KEYCODE_F24 ] = "F24";
+
+	ShortcutLookup_[ 'A' ] = "A";
+	ShortcutLookup_[ 'B' ] = "B";
+	ShortcutLookup_[ 'C' ] = "C";
+	ShortcutLookup_[ 'D' ] = "D";
+	ShortcutLookup_[ 'E' ] = "E";
+	ShortcutLookup_[ 'F' ] = "F";
+	ShortcutLookup_[ 'G' ] = "G";
+	ShortcutLookup_[ 'H' ] = "H";
+	ShortcutLookup_[ 'I' ] = "I";
+	ShortcutLookup_[ 'J' ] = "J";
+	ShortcutLookup_[ 'K' ] = "K";
+	ShortcutLookup_[ 'L' ] = "L";
+	ShortcutLookup_[ 'M' ] = "M";
+	ShortcutLookup_[ 'N' ] = "N";
+	ShortcutLookup_[ 'O' ] = "O";
+	ShortcutLookup_[ 'P' ] = "P";
+	ShortcutLookup_[ 'Q' ] = "Q";
+	ShortcutLookup_[ 'R' ] = "R";
+	ShortcutLookup_[ 'S' ] = "S";
+	ShortcutLookup_[ 'T' ] = "T";
+	ShortcutLookup_[ 'U' ] = "U";
+	ShortcutLookup_[ 'V' ] = "V";
+	ShortcutLookup_[ 'W' ] = "W";
+	ShortcutLookup_[ 'X' ] = "X";
+	ShortcutLookup_[ 'Y' ] = "Y";
+	ShortcutLookup_[ 'Z' ] = "Z";
+
+	ShortcutLookup_[ '0' ] = "0";
+	ShortcutLookup_[ '1' ] = "1";
+	ShortcutLookup_[ '2' ] = "2";
+	ShortcutLookup_[ '3' ] = "3";
+	ShortcutLookup_[ '4' ] = "4";
+	ShortcutLookup_[ '5' ] = "5";
+	ShortcutLookup_[ '6' ] = "6";
+	ShortcutLookup_[ '7' ] = "7";
+	ShortcutLookup_[ '8' ] = "8";
+	ShortcutLookup_[ '9' ] = "9";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,7 +136,7 @@ DsCoreImpl::DsCoreImpl() :
 //virtual
 DsCoreImpl::~DsCoreImpl()
 {
-
+	OsCore::pImpl()->unsubscribeAll( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -159,43 +223,31 @@ void DsCoreImpl::open()
 		{
 			if ( ImGui::Psybrus::NewFrame() )
 			{
-				if ( DrawPanels_ )
+				if ( DrawMenu_ )
 				{
 					// Do main menu bar.
 					if( ImGui::BeginMainMenuBar() )
 					{
-						// TODO: Presort the panels into arrays and don't use string shite everywhere.
 						// Categorised panels.
 						std::string LastCategory;
 						bool MenuOpen = false;
-						bool NonCategorisedItemsExist = false;
 						for ( auto& Panel : PanelFunctions_ )
 						{
-							size_t CategoryEndIdx = Panel.Name_.find( '/' );
-							if( CategoryEndIdx != std::string::npos )
+							if( Panel.Category_ != LastCategory )
 							{
-								std::string Category = Panel.Name_.substr( 0, CategoryEndIdx );
-								std::string Name = Panel.Name_.substr( CategoryEndIdx + 1, Panel.Name_.length() - CategoryEndIdx - 1 );
-								if( Category != LastCategory )
+								if( MenuOpen && !LastCategory.empty() )
 								{
-									if( MenuOpen && !LastCategory.empty() )
-									{
-										ImGui::EndMenu();
-									}
-									MenuOpen = ImGui::BeginMenu( Category.c_str() );
-									LastCategory = Category;
+									ImGui::EndMenu();
 								}
-								if( MenuOpen )
-								{
-									if( ImGui::MenuItem( Name.c_str(), Panel.IsVisible_ ? "X" : " ", nullptr ) )
-									{
-										Panel.IsVisible_ = !Panel.IsVisible_; 
-									}
-								}
+								MenuOpen = ImGui::BeginMenu( Panel.Category_.c_str() );
+								LastCategory = Panel.Category_;
 							}
-							else
+							if( MenuOpen )
 							{
-								NonCategorisedItemsExist = true;
+								if( ImGui::MenuItem( Panel.Name_.c_str(), Panel.Shortcut_.c_str(), nullptr ) )
+								{
+									Panel.IsVisible_ = !Panel.IsVisible_; 
+								}
 							}
 						}
 						if( MenuOpen && !LastCategory.empty() )
@@ -203,31 +255,15 @@ void DsCoreImpl::open()
 							ImGui::EndMenu();
 						}
 
-						// Uncategorised panels.
-						if( NonCategorisedItemsExist && ImGui::BeginMenu( "Panels" ) )
-						{
-							for ( auto& Panel : PanelFunctions_ )
-							{
-								if( Panel.Name_.find( '/' ) == std::string::npos )
-								{
-									if( ImGui::MenuItem( Panel.Name_.c_str(), nullptr, nullptr, Panel.IsVisible_ ) )
-									{
-										Panel.IsVisible_ = !Panel.IsVisible_; 
-									}
-								}
-							}
-							ImGui::EndMenu();
-						}
-
 						ImGui::EndMainMenuBar();
 					}
+				}
 
-					for ( auto& Panel : PanelFunctions_ )
+				for ( auto& Panel : PanelFunctions_ )
+				{
+					if( Panel.IsVisible_ )
 					{
-						if( Panel.IsVisible_ )
-						{
-							Panel.Function_( Panel.Handle_ );
-						}
+						Panel.Function_( Panel.Handle_ );
 					}
 				}
 			}
@@ -235,9 +271,9 @@ void DsCoreImpl::open()
 		return evtRET_PASS;
 	} );
 
-	DrawPanels_ = BcFalse;
+	DrawMenu_ = false;
 #if PLATFORM_HTML5
-		DrawPanels_ = BcTrue;
+	DrawMenu_ = true;
 #endif
 
 #if PLATFORM_ANDROID
@@ -249,15 +285,63 @@ void DsCoreImpl::open()
 
 	// Setup toggle of debug panels.
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
-		[ this ]( EvtID, const EvtBaseEvent& BaseEvent )
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )
 	{
-		const auto& Event = BaseEvent.get< OsEventInputKeyboard >();
+		const auto& Event = InEvent.get< OsEventInputKeyboard >();
+
+		// Handle toggling menu.
 		if ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F11 ||
 			Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_VOLUME_UP ||
 			Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_VOLUME_DOWN )
 		{
-			DrawPanels_ = !DrawPanels_;
+			DrawMenu_ = !DrawMenu_;
 		}
+
+		CtrlModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL ) ? 1 : 0;
+		AltModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT ) ? 1 : 0;
+		ShiftModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_SHIFT ) ? 1 : 0;
+
+		// Check if a shortcut combo has been pressed.
+		if( ShortcutLookup_.find( Event.KeyCode_ ) != ShortcutLookup_.end() )
+		{
+			// Check panels.
+			for ( auto& Panel : PanelFunctions_ )
+			{
+				bool CtrlRequired = Panel.Shortcut_.find( "Ctrl" ) != std::string::npos;
+				bool AltRequired = Panel.Shortcut_.find( "Alt" ) != std::string::npos;
+				bool ShiftRequired = Panel.Shortcut_.find( "Shift" ) != std::string::npos;
+			
+				if( CtrlRequired == !!CtrlModifier_ &&
+					AltRequired == !!AltModifier_ &&
+					ShiftRequired == !!ShiftModifier_ )
+				{
+					std::string Shortcut = ShortcutLookup_[ Event.KeyCode_ ];
+					if( CtrlRequired || AltRequired || ShiftRequired )
+					{
+						Shortcut = "+" + Shortcut;
+					}
+
+					PSY_LOG( "Shortcut: Ctrl %u, Alt %u, Shift %u, %s", CtrlModifier_, AltModifier_, ShiftModifier_, Panel.Shortcut_.c_str() );
+
+					if( Panel.Shortcut_.find( Shortcut ) == Panel.Shortcut_.length() - Shortcut.length() )
+					{
+						Panel.IsVisible_ = !Panel.IsVisible_;
+						return evtRET_BLOCK;
+					}
+				}
+			}
+		}
+
+		return evtRET_PASS;
+	} );
+
+	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )
+	{
+		auto Event = InEvent.get< OsEventInputKeyboard >();
+		CtrlModifier_ &= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL ) ? 0 : 1;
+		AltModifier_ &= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT ) ? 0 : 1;
+		ShiftModifier_ &= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_SHIFT ) ? 0 : 1;
 		return evtRET_PASS;
 	} );
 
@@ -437,19 +521,17 @@ std::vector< std::string > DsCoreImpl::getIPAddresses()
 
 //////////////////////////////////////////////////////////////////////////
 // registerPanel
-BcU32 DsCoreImpl::registerPanel( std::string Name, std::function < void( BcU32 )> Func )
+BcU32 DsCoreImpl::registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function < void( BcU32 )> Func )
 {
 	BcAssert( BcIsGameThread() );
 	BcU32 Handle = ++NextHandle_;
-	PanelFunctions_.emplace_back( Name, Func, Handle );
+	PanelFunctions_.emplace_back( Category, Name, Shortcut, Func, Handle );
 	std::sort( PanelFunctions_.begin(), PanelFunctions_.end(), 
 		[]( const DsPanelDefinition& A, const DsPanelDefinition& B ) 
 		{
 			return A.Name_ < B.Name_;
 		} );
 
-	PSY_LOG( "Function registered." );
-	PSY_LOG( "\t%s (%u)", Name.c_str(), Handle );
 	return Handle;
 
 }
@@ -467,16 +549,8 @@ void DsCoreImpl::deregisterPanel( BcU32 Handle )
 	if ( FoundIt != PanelFunctions_.end() )
 	{
 		PanelFunctions_.erase( FoundIt );
-		PSY_LOG( "Panel deregistered." );
-		PSY_LOG( "\t%s (%u)", FoundIt->Name_.c_str(), Handle );
-	}
-	else
-	{
-		PSY_LOG( "Panel deregister failed." );
-		PSY_LOG( "\tHandle: %u", Handle );
 	}
 	BcAssert( BcIsGameThread() );
-
 }
 
 //////////////////////////////////////////////////////////////////////////
