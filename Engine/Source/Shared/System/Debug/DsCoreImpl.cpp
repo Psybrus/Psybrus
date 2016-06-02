@@ -521,11 +521,11 @@ std::vector< std::string > DsCoreImpl::getIPAddresses()
 
 //////////////////////////////////////////////////////////////////////////
 // registerPanel
-BcU32 DsCoreImpl::registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function < void( BcU32 )> Func )
+BcU32 DsCoreImpl::registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function< void( BcU32 )> Func )
 {
 	BcAssert( BcIsGameThread() );
 	BcU32 Handle = ++NextHandle_;
-	PanelFunctions_.emplace_back( Category, Name, Shortcut, Func, Handle );
+	PanelFunctions_.emplace_back( Category, Name, Shortcut, std::move( Func ), Handle );
 	std::sort( PanelFunctions_.begin(), PanelFunctions_.end(), 
 		[]( const DsPanelDefinition& A, const DsPanelDefinition& B ) 
 		{

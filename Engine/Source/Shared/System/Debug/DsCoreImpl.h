@@ -105,7 +105,7 @@ public:
 	void update() override;
 	void close() override;
 
-	BcU32 registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function < void( BcU32 )> Func ) override;
+	BcU32 registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function< void( BcU32 )> Func ) override;
 
 	void deregisterPanel( BcU32 Handle ) override;
 	void drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) override;

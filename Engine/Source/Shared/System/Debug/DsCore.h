@@ -60,7 +60,7 @@ public:
 	 */
 	virtual BcU32 registerPanel( 
 		const char* Category, const char* Name, const char* Shortcut,
-		std::function < void( BcU32 )> Func ) = 0;
+		std::function< void( BcU32 )> Func ) = 0;
 
 	/**
 	 * Deregister panl.

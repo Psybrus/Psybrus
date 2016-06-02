@@ -115,6 +115,7 @@ class BcLogListener
 {
 public:
 	BcLogListener();
+	BcLogListener( const BcLogListener& Other );
 	virtual ~BcLogListener();
 
 	/**
