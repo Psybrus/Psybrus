@@ -136,7 +136,6 @@ DsCoreImpl::DsCoreImpl() :
 //virtual
 DsCoreImpl::~DsCoreImpl()
 {
-	OsCore::pImpl()->unsubscribeAll( this );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -369,6 +368,7 @@ void DsCoreImpl::update()
 //virtual
 void DsCoreImpl::close()
 {
+	OsCore::pImpl()->unsubscribeAll( this );
 
 #if USE_WEBBY
 	for ( unsigned int Idx = 0; Idx < ServerMemory_.size(); ++Idx )

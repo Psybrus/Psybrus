@@ -44,6 +44,10 @@ function PsySetupToolchain()
 			premake.gcc.cxx = "ccache g++"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-gcc" )
+
+			linkoptions {
+				"-Wl,-export-dynamic"
+			}
 		end
 
 		-- Linux clang.
@@ -53,6 +57,10 @@ function PsySetupToolchain()
 			premake.gcc.cxx = "clang++-3.7 -Qunused-arguments -fcolor-diagnostics"
 			premake.gcc.ar = "ar"
 			location ( "Projects/" .. _ACTION .. "-linux-clang" )
+
+			linkoptions {
+				"-Wl,-export-dynamic"
+			}
 		end
 
 		-- OSX clang.

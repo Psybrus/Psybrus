@@ -6,7 +6,6 @@
 // Static Data
 namespace
 {
-	BcName InputType_( "MOUSE" );
 	std::array< BcName, OsInputDeviceMouse::INPUT_MAX > InputNames_ =
 	{
 		"AXIS_X",
@@ -98,6 +97,7 @@ OsInputDeviceMouse::~OsInputDeviceMouse()
 // getTypeName
 BcName OsInputDeviceMouse::getTypeName() const
 {
+	static BcName InputType_( "MOUSE" );
 	return InputType_;
 }
 
