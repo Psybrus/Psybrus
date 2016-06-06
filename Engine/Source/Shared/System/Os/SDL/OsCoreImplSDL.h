@@ -16,6 +16,8 @@
 
 #include "System/Os/OsCore.h"
 #include "System/Os/SDL/OsSDL.h"
+#include "System/Os/OsInputDeviceKeyboard.h"
+#include "System/Os/OsInputDeviceMouse.h"
 
 //////////////////////////////////////////////////////////////////////////
 // OsCoreImplSDL
@@ -35,6 +37,9 @@ private:
 	OsEventCore EventCore_;
 	OsEventInputKeyboard EventInputKeyboard_;
 	OsEventInputMouse EventInputMouse_;
+
+	std::unique_ptr< OsInputDeviceKeyboard > InputKeyboard_;
+	std::unique_ptr< OsInputDeviceMouse > InputMouse_;
 };
 
 #endif

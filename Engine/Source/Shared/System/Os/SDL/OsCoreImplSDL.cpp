@@ -46,7 +46,11 @@ void OsCoreImplSDL::open()
 		BcBreakpoint;
 	}
 
-
+	// Create default input devices.
+	InputKeyboard_.reset( new OsInputDeviceKeyboard() );	
+	InputMouse_.reset( new OsInputDeviceMouse() );	
+	registerInputDevice( InputKeyboard_.get() );
+	registerInputDevice( InputMouse_.get() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,5 +96,10 @@ void OsCoreImplSDL::update()
 //virtual
 void OsCoreImplSDL::close()
 {
+	unregisterInputDevice( InputKeyboard_.get() );
+	unregisterInputDevice( InputMouse_.get() );
+	InputKeyboard_.reset();
+	InputMouse_.reset();
+
 	SDL_Quit();
 }

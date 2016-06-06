@@ -139,5 +139,13 @@ OsInputDevice* OsCore::getInputDevice( BcName TypeName, BcU32 PlayerID ) const
 		}
 	}
 
+	PSY_LOG( "No input device found by the name %s, player %s", (*TypeName).c_str(), PlayerID );
+	PSY_LOG( "Devices:" );
+	for( auto* InputDevice : InputDeviceList_ )
+	{
+		PSY_LOG( " - No input device found by the name %s, player %u", (*InputDevice->getTypeName()).c_str(), InputDevice->getPlayerID() );
+	}
+
+
 	return nullptr;
 }

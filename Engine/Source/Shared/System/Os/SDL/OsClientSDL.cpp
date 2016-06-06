@@ -258,7 +258,14 @@ void OsClientSDL::handleKeyEvent( const SDL_Event& SDLEvent )
 {
 	OsEventInputKeyboard Event;
 	Event.DeviceID_ = 0;
-	Event.KeyCode_ = SDLEvent.key.keysym.sym;
+	if( SDLEvent.key.keysym.sym >= 'a' && SDLEvent.key.keysym.sym <= 'z' )
+	{
+		Event.KeyCode_ = ::toupper( SDLEvent.key.keysym.sym );
+	}
+	else
+	{
+		Event.KeyCode_ = SDLEvent.key.keysym.sym;
+	}
 	Event.ScanCode_ = SDLEvent.key.keysym.scancode;
 	Event.AsciiCode_ = SDLEvent.key.keysym.sym; // TODO.
 

@@ -6,7 +6,6 @@
 // Static Data
 namespace
 {
-	BcName InputType_( "KEYBOARD" );
 
 }
 
@@ -71,6 +70,7 @@ OsInputDeviceKeyboard::~OsInputDeviceKeyboard()
 // getTypeName
 BcName OsInputDeviceKeyboard::getTypeName() const
 {
+	static BcName InputType_( "KEYBOARD" );
 	return InputType_;
 }
 
