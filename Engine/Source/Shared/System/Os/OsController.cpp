@@ -2,6 +2,8 @@
 #include "System/Os/OsCore.h"
 #include "System/Os/OsInputDevice.h"
 
+#include <cmath>
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 OsController::OsController()
@@ -27,7 +29,7 @@ OsController::OsController()
 				{
 					auto InputDevice = InputDevices_[ Binding.Secondary_.InputDeviceID_ ];
 					BcF32 Value = InputDevice->getFloatInput( Binding.Secondary_.InputID_ ) * Binding.Secondary_.Multiplier_;
-					if( std::abs( Value ) > std::abs( State.Curr_ ) )
+					if( std::fabs( Value ) > std::fabs( State.Curr_ ) )
 					{
 						State.Curr_ = Value;
 					}

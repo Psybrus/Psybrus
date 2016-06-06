@@ -76,7 +76,7 @@ public:
 	 * Get input device.
 	 */
 	OsInputDevice* getInputDevice( size_t Index ) const;
-	OsInputDevice* OsCore::getInputDevice( BcName TypeName, BcU32 PlayerID ) const;
+	OsInputDevice* getInputDevice( BcName TypeName, BcU32 PlayerID ) const;
 
 
 protected:
