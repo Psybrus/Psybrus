@@ -24,6 +24,16 @@ BcLogListener::BcLogListener()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+BcLogListener::BcLogListener( const BcLogListener& Other )
+{
+	if( BcLog::pImpl() )
+	{
+		BcLog::pImpl()->registerListener( this );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 BcLogListener::~BcLogListener()

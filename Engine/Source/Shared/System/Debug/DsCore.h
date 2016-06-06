@@ -54,10 +54,13 @@ public:
 
 	/**
 	 * Register for panel to be drawn.
+	 * @param Category Category panel is listed under.
+	 * @param Name Name of the panel.
+	 * @param Shortcut Keyboard shortcut for panel.
 	 */
 	virtual BcU32 registerPanel( 
-		std::string Name,
-		std::function < void( BcU32 )> Func ) = 0;
+		const char* Category, const char* Name, const char* Shortcut,
+		std::function< void( BcU32 )> Func ) = 0;
 
 	/**
 	 * Deregister panl.
