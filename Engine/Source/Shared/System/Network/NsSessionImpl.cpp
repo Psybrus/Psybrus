@@ -30,11 +30,25 @@ enum class NsSessionMessageChannel : BcU8
 };
 
 //////////////////////////////////////////////////////////////////////////
+// GUID conversion.
+NsGUID FromRakNet( RakNet::RakNetGUID GUID )
+{
+	return GUID.g;
+}
+
+RakNet::RakNetGUID ToRakNet( NsGUID GUID )
+{
+	return RakNet::RakNetGUID( GUID );
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // Ctor
 NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
 	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
 	Type_( NsSessionType::CLIENT ),
+	Port_( Port ),
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED )
 {
@@ -53,12 +67,14 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port ) :
+NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port, bool Advertise ) :
 	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
 	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
 	Type_( NsSessionType::SERVER ),
+	Port_( Port ),
 	Active_( 1 ),
-	State_( NsSessionState::DISCONNECTED )
+	State_( NsSessionState::DISCONNECTED ),
+	Advertise_( Advertise )
 {
 	PSY_LOGSCOPEDCATEGORY( "NsSession" );
 	PSY_LOG( "Starting worker thread, and trying to start server." );
@@ -85,6 +101,40 @@ NsSessionImpl::~NsSessionImpl()
 	RakNet::RakPeerInterface::DestroyInstance( PeerInterface_ );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// getNoofRemoteSessions
+BcU32 NsSessionImpl::getNoofRemoteSessions() const
+{
+	return PeerInterface_->NumberOfConnections();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRemoteGUIDByIndex
+NsGUID NsSessionImpl::getRemoteGUIDByIndex( BcU32 Index )
+{
+	return FromRakNet( PeerInterface_->GetGUIDFromIndex( Index ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// send
+void NsSessionImpl::send( 
+		NsGUID RemoteGUID, BcU8 Channel, const void* Data, size_t DataSize, 
+		NsPriority Priority, NsReliability Reliability )
+{
+	// TODO: Optimise this entire thing.
+	RakNet::BitStream BitStream;
+
+	auto RemoteSystemAddress = PeerInterface_->GetSystemAddressFromGuid( ToRakNet( RemoteGUID ) );
+	BitStream.Write( (BcU8)NsSessionMessageID::SESSION_MESSAGE );
+	BitStream.Write( Channel );
+	BitStream.Serialize( true, (char*)Data, DataSize );
+	PeerInterface_->Send( 
+		(const char*)BitStream.GetData(), BitStream.GetNumberOfBytesUsed(),
+		(PacketPriority)Priority, 
+		(PacketReliability)Reliability, Channel, 
+		RemoteSystemAddress,
+		true, 0 );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // broadcast
@@ -158,6 +208,9 @@ void NsSessionImpl::workerThread()
 	OwningThread_ = BcCurrentThreadId();
 
 	RakNet::BitStream BitStream;
+
+	BcTimer AdvertiseTimer;
+	AdvertiseTimer.mark();
 
 	while( Active_ )
 	{
@@ -290,6 +343,21 @@ void NsSessionImpl::workerThread()
 
 		// Sleep for little.
 		BcSleep( 0.005f );
+
+		// Advertise system.
+		// TEST CODE. PROPER SYSTEM REQUIRED LATER.
+		if( Advertise_ )
+		{
+			const BcF32 AdvertiseTime = 5.0f;
+			const char* AdvertiseAddress = "255.255.255.255"; // IPv6!?
+			if( AdvertiseTimer.time() > AdvertiseTime )
+			{
+				const char* AdvertiseData = "THIS IS A SERVER";
+
+				PeerInterface_->AdvertiseSystem( AdvertiseAddress, Port_, AdvertiseData, BcStrLength( AdvertiseData ) );
+				AdvertiseTimer.mark();
+			}
+		}
 	}
 }
 
