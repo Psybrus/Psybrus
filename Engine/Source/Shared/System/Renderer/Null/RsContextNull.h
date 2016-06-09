@@ -69,6 +69,13 @@ public:
 		BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
 		BcU32 FirstInstance, BcU32 NoofInstances ) override;
 
+	void copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture ) override;
+	void dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups ) override;
+	void beginQuery( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	void endQuery( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	bool isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx ) override;
+	void resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData ) override;
+
 	bool createRenderState(
 		RsRenderState* RenderState ) override;
 	bool destroyRenderState(

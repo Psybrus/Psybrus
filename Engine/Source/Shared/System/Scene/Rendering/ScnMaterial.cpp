@@ -479,6 +479,8 @@ BcU32 ScnMaterialComponent::findTextureSlot( const BcName& TextureName )
 // setTexture
 void ScnMaterialComponent::setTexture( BcU32 Slot, ScnTextureRef Texture )
 {
+	PSY_LOGSCOPEDCATEGORY( ScnMaterialComponent );
+
 	// Find the texture slot to put this in.
 	if( Slot != BcErrorCode )
 	{

@@ -699,7 +699,7 @@ void SysKernel::enqueueCallback( const std::function< void() >& Function )
 // debugLog
 void SysKernel::debugLog()
 {
-	PSY_LOGSCOPEDCATEGORY( "SysKernel" );
+	PSY_LOGSCOPEDCATEGORY( SysKernel );
 	PSY_LOG( "Job queues:" );
 	{
 		PSY_LOGSCOPEDINDENT;

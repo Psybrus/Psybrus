@@ -30,6 +30,7 @@ bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer,
 	}
 	else
 	{
+		PSY_LOGSCOPEDCATEGORY( RsProgramBindingDesc );
 		PSY_LOG( "ERROR: setUniformBuffer being called with invalid slot." );
 	}
 	return RetVal;
@@ -47,6 +48,7 @@ bool RsProgramBindingDesc::setSamplerState( BcU32 Slot, class RsSamplerState* Sa
 	}
 	else
 	{
+		PSY_LOGSCOPEDCATEGORY( RsProgramBindingDesc );
 		PSY_LOG( "ERROR: setSamplerState being called with invalid slot." );
 	}
 	return RetVal;
@@ -75,6 +77,7 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Bu
 	}
 	else
 	{
+		PSY_LOGSCOPEDCATEGORY( RsProgramBindingDesc );
 		PSY_LOG( "ERROR: setShaderResourceView being called with invalid slot." );
 	}
 	return RetVal;
@@ -103,6 +106,7 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* T
 	}
 	else
 	{
+		PSY_LOGSCOPEDCATEGORY( RsProgramBindingDesc );
 		PSY_LOG( "ERROR: setShaderResourceView being called with invalid slot." );
 	}
 	return RetVal;
@@ -131,6 +135,7 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* B
 	}
 	else
 	{
+		PSY_LOGSCOPEDCATEGORY( RsProgramBindingDesc );
 		PSY_LOG( "ERROR: setUnorderedAccessView being called with invalid slot." );
 	}
 	return RetVal;
@@ -159,6 +164,7 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* 
 	}
 	else
 	{
+		PSY_LOGSCOPEDCATEGORY( RsProgramBindingDesc );
 		PSY_LOG( "ERROR: setUnorderedAccessView being called with invalid slot." );
 	}
 	return RetVal;

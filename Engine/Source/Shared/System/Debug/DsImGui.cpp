@@ -118,7 +118,7 @@ namespace
 	 */
 	void RenderDrawLists( ImDrawData* DrawData )
 	{
-		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		PSY_LOGSCOPEDCATEGORY( ImGui );
 		BcAssert( DrawContext_ != nullptr );
 		BcAssert( DrawFrame_ != nullptr );
 		BcAssert( Package_ != nullptr );
@@ -447,7 +447,7 @@ namespace Psybrus
 {
 	bool Init()
 	{
-		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		PSY_LOGSCOPEDCATEGORY( ImGui );
 		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
 			RsVertexDeclarationDesc( 3 )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->pos),  2, RsVertexDataType::FLOAT32, RsVertexUsage::POSITION, 0 ) )
@@ -613,14 +613,14 @@ namespace Psybrus
 
 	void WaitFrame()
 	{
-		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		PSY_LOGSCOPEDCATEGORY( ImGui );
 		// Wait till render thread has done the last frame.
 		RenderThreadFence_.wait();
 	}
 
 	bool NewFrame()
 	{
-		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		PSY_LOGSCOPEDCATEGORY( ImGui );
 		if( Package_ != nullptr )
 		{
 			WaitFrame();
@@ -661,7 +661,7 @@ namespace Psybrus
 
 	void Render( RsContext* Context, RsFrame* Frame )
 	{
-		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		PSY_LOGSCOPEDCATEGORY( ImGui );
 		if( Program_ != nullptr )
 		{
 			RenderThreadFence_.wait();
@@ -673,7 +673,7 @@ namespace Psybrus
 
 	void Shutdown()
 	{
-		PSY_LOGSCOPEDCATEGORY( "ImGui" );
+		PSY_LOGSCOPEDCATEGORY( ImGui );
 		WaitFrame();
 		ImGui::Shutdown();
 

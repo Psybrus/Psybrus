@@ -84,15 +84,16 @@ private:
 		static BcChar OutputBuffer[ 1024 * 64 ] = { 0 };
 		// Format for output.
 #if EXTENDED_LOG_OUTPUT
-		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%5.5f][%x][%s] %s %s\n", 
+		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%6.3f][%x][%s] %s %s\n", 
 			Entry.Time_,
 			Entry.ThreadId_,
-			Entry.Category_.c_str(),
+			(*Entry.Category_).c_str(),
 			Indent.c_str(),
 			NewText.c_str() );
 #else
-		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%5.5f] %s %s\n", 
+		BcSPrintf( OutputBuffer, sizeof( OutputBuffer ) - 1, "[%6.3f][%s] %s %s\n", 
 			Entry.Time_,
+			(*Entry.Category_).c_str(),
 			Indent.c_str(),
 			NewText.c_str() );
 #endif
@@ -214,7 +215,7 @@ void BcLogImpl::flush()
 
 //////////////////////////////////////////////////////////////////////////
 // setCategorySuppression
-void BcLogImpl::setCategorySuppression( const std::string& Category, BcBool IsSuppressed )
+void BcLogImpl::setCategorySuppression( const BcName Category, BcBool IsSuppressed )
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
@@ -234,7 +235,7 @@ void BcLogImpl::setCategorySuppression( const std::string& Category, BcBool IsSu
 
 //////////////////////////////////////////////////////////////////////////
 // getCategorySuppression
-BcBool BcLogImpl::getCategorySuppression( const std::string& Category ) const
+BcBool BcLogImpl::getCategorySuppression( const BcName Category ) const
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 
@@ -268,7 +269,7 @@ void BcLogImpl::deregisterListener( class BcLogListener* Listener )
 
 //////////////////////////////////////////////////////////////////////////
 // setCategory
-void BcLogImpl::setCategory( const std::string& Category )
+void BcLogImpl::setCategory( const BcName Category )
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
@@ -277,7 +278,7 @@ void BcLogImpl::setCategory( const std::string& Category )
 
 //////////////////////////////////////////////////////////////////////////
 // getCategory
-std::string BcLogImpl::getCategory()
+BcName BcLogImpl::getCategory()
 {
 	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
 	auto ThreadId = BcCurrentThreadId();
@@ -312,7 +313,7 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 	static BcChar TextBuffer[ 1024 * 64 ];
 	auto ThreadId = BcCurrentThreadId();
 
-	std::string Category = Categories_[ ThreadId ];
+	BcName Category = Categories_[ ThreadId ];
 
 	if( getCategorySuppression( Category ) == BcFalse )
 	{
@@ -338,12 +339,4 @@ void BcLogImpl::privateWrite( const BcChar* pText, va_list Args )
 			Listener->onLog( Entry );
 		}
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getLogData
-std::vector< std::string > BcLogImpl::getLogData()
-{
-	std::lock_guard< std::recursive_mutex > Lock( Lock_ );
-	return std::vector< std::string >();
 }

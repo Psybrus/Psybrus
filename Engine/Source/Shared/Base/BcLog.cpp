@@ -47,7 +47,7 @@ BcLogListener::~BcLogListener()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-BcLogScopedCategory::BcLogScopedCategory( const std::string& Category )
+BcLogScopedCategory::BcLogScopedCategory( const BcName Category )
 {
 	if( BcLog::pImpl() )
 	{

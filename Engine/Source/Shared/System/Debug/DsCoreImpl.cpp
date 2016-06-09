@@ -306,26 +306,29 @@ void DsCoreImpl::open()
 			// Check panels.
 			for ( auto& Panel : PanelFunctions_ )
 			{
-				bool CtrlRequired = Panel.Shortcut_.find( "Ctrl" ) != std::string::npos;
-				bool AltRequired = Panel.Shortcut_.find( "Alt" ) != std::string::npos;
-				bool ShiftRequired = Panel.Shortcut_.find( "Shift" ) != std::string::npos;
-			
-				if( CtrlRequired == !!CtrlModifier_ &&
-					AltRequired == !!AltModifier_ &&
-					ShiftRequired == !!ShiftModifier_ )
+				if( Panel.Shortcut_.size() > 0 )
 				{
-					std::string Shortcut = ShortcutLookup_[ Event.KeyCode_ ];
-					if( CtrlRequired || AltRequired || ShiftRequired )
+					bool CtrlRequired = Panel.Shortcut_.find( "Ctrl" ) != std::string::npos;
+					bool AltRequired = Panel.Shortcut_.find( "Alt" ) != std::string::npos;
+					bool ShiftRequired = Panel.Shortcut_.find( "Shift" ) != std::string::npos;
+				
+					if( CtrlRequired == !!CtrlModifier_ &&
+						AltRequired == !!AltModifier_ &&
+						ShiftRequired == !!ShiftModifier_ )
 					{
-						Shortcut = "+" + Shortcut;
-					}
+						std::string Shortcut = ShortcutLookup_[ Event.KeyCode_ ];
+						if( CtrlRequired || AltRequired || ShiftRequired )
+						{
+							Shortcut = "+" + Shortcut;
+						}
 
-					PSY_LOG( "Shortcut: Ctrl %u, Alt %u, Shift %u, %s", CtrlModifier_, AltModifier_, ShiftModifier_, Panel.Shortcut_.c_str() );
+						PSY_LOG( "Shortcut: Ctrl %u, Alt %u, Shift %u, %s", CtrlModifier_, AltModifier_, ShiftModifier_, Panel.Shortcut_.c_str() );
 
-					if( Panel.Shortcut_.find( Shortcut ) == Panel.Shortcut_.length() - Shortcut.length() )
-					{
-						Panel.IsVisible_ = !Panel.IsVisible_;
-						return evtRET_BLOCK;
+						if( Panel.Shortcut_.find( Shortcut ) == Panel.Shortcut_.length() - Shortcut.length() )
+						{
+							Panel.IsVisible_ = !Panel.IsVisible_;
+							return evtRET_BLOCK;
+						}
 					}
 				}
 			}

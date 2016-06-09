@@ -41,6 +41,14 @@ BcBool BcStrCompare( const BcChar* pStr1, const BcChar* pStr2 );
 BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
 
 //////////////////////////////////////////////////////////////////////////
+// BcStrCompareCaseInsensitive
+BcBool BcStrCompareCaseInsensitive( const BcChar* pStr1, const BcChar* pStr2 );
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrCompareCaseInsensitiveN
+BcBool BcStrCompareCaseInsensitiveN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
+
+//////////////////////////////////////////////////////////////////////////
 // BcSPrintf
 #if PLATFORM_WINDOWS || PLATFORM_WINPHONE
 #define BcSPrintf		sprintf_s

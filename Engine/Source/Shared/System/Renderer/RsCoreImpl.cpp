@@ -169,7 +169,11 @@ RsContext* RsCoreImpl::getContext( OsClient* pClient )
 			// - Vulkan. (disabled, incomplete)
 			RsAPI API = RsAPI::OPENGL;
 
-			if( GCommandLine_.hasArg( '\0', "null_renderer" ) )
+			if( GCommandLine_.hasArg( '\0', "server" ) )
+			{
+				API = RsAPI::NULL_RENDERER;
+			}
+			else if( GCommandLine_.hasArg( '\0', "null_renderer" ) )
 			{
 				API = RsAPI::NULL_RENDERER;
 			}

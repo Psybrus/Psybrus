@@ -262,7 +262,7 @@ void ScnCore::update()
 	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnCore::update" ) );
 
 	// Update scene only if we have focus.
-	if( OsCore::pImpl()->getClient( 0 )->isActive() )
+	if( OsCore::pImpl()->getClient( 0 ) && OsCore::pImpl()->getClient( 0 )->isActive() )
 	{
 		auto ShouldUpdateComponents = UpdateEnabled_ || StepSingleUpdate_;
 
@@ -273,9 +273,8 @@ void ScnCore::update()
 			// TODO: Don't referenece ScnViewComponent in here, use some debug flag later on.
 			if( ShouldUpdateComponents || ComponentProcessFunc.Class_ == ScnViewComponent::StaticGetClass() )
 			{
-#if !PSY_PRODUCTION
-				PSY_LOGSCOPEDCATEGORY( (*ComponentProcessFunc.Class_->getName()).c_str() );
-#endif
+				BcLogScopedCategory ScopedCategory( ComponentProcessFunc.Class_->getName() );
+
 				auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
 				auto& ComponentList = ComponentLists_[ ComponentListIdx ];
 				ComponentProcessFunc.Func_( ComponentList );

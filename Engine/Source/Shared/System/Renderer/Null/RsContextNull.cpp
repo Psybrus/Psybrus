@@ -133,6 +133,12 @@ void RsContextNull::create()
 	// Get owning thread so we can check we are being called
 	// from the appropriate thread later.
 	OwningThread_ = BcCurrentThreadId();
+
+	// Setup formats to all be supported.
+	Features_.Texture2D_ = true;
+	Features_.TextureFormat_.fill( true );
+	Features_.RenderTargetFormat_.fill( true );
+	Features_.DepthStencilTargetFormat_.fill( true );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,6 +204,67 @@ void RsContextNull::drawIndexedPrimitives(
 	BcUnusedVar( IndexOffset );
 	BcUnusedVar( NoofIndices );
 	BcUnusedVar( VertexOffset );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderState
+void RsContextNull::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcUnusedVar( SourceTexture );
+	BcUnusedVar( DestTexture );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderState
+void RsContextNull::dispatchCompute( class RsProgramBinding* ProgramBinding, BcU32 XGroups, BcU32 YGroups, BcU32 ZGroups )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcUnusedVar( ProgramBinding );
+	BcUnusedVar( XGroups );
+	BcUnusedVar( YGroups );
+	BcUnusedVar( ZGroups );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderState
+void RsContextNull::beginQuery( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcUnusedVar( QueryHeap );
+	BcUnusedVar( Idx );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// createRenderState
+void RsContextNull::endQuery( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcUnusedVar( QueryHeap );
+	BcUnusedVar( Idx );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isQueryResultAvailible
+bool RsContextNull::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t Idx )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcUnusedVar( QueryHeap );
+	BcUnusedVar( Idx );
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// resolveQueries
+void RsContextNull::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, size_t NoofQueries, BcU64* OutData )
+{
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcUnusedVar( QueryHeap );
+	BcUnusedVar( Offset );
+	for( size_t Idx = 0; Idx < NoofQueries; ++Idx )
+	{
+		OutData[ Idx ] = 0;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -333,23 +400,34 @@ bool RsContextNull::updateTexture(
 	BcUnusedVar( Slice );
 	BcUnusedVar( Flags );
 	BcUnusedVar( UpdateFunc );
+
 	const auto& TextureDesc = Texture->getDesc();
 	std::unique_ptr< BcU8[] > TempBuffer;
-		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
-		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
-		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
-		BcU32 DataSize = RsTextureFormatSize( 
-			TextureDesc.Format_,
-			Width,
-			Height,
-			Depth,
-			1 );
+	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
+	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
+	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
+	BcU32 DataSize = RsTextureFormatSize( 
+		TextureDesc.Format_,
+		Width,
+		Height,
+		Depth,
+		1 );
+
+	BcU32 SlicePitch = RsTextureSlicePitch( 
+		TextureDesc.Format_,
+		Width,
+		Height );
+	BcU32 Pitch = RsTexturePitch( 
+		TextureDesc.Format_,
+		Width,
+		Height );
+
 	TempBuffer.reset( new BcU8[ DataSize ] );
 	RsTextureLock Lock = 
 	{
 		TempBuffer.get(),
-		TextureDesc.Width_,
-		TextureDesc.Width_ * TextureDesc.Height_
+		Pitch,
+		SlicePitch
 	};	
 	UpdateFunc( Texture, Lock );
 	return true;

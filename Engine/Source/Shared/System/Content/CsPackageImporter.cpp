@@ -143,7 +143,7 @@ CsPackageImporter::~CsPackageImporter()
 // import
 BcBool CsPackageImporter::import()
 {
-	PSY_LOGSCOPEDCATEGORY( "Import" );
+	PSY_LOGSCOPEDCATEGORY( Import );
 	PSY_LOG( "Importing %s...\n", Filename_.c_str() );
 
 	PSY_LOGSCOPEDINDENT;

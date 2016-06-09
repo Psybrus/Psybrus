@@ -64,7 +64,7 @@ const ReEnumConstant* ReEnum::getEnumConstant( const std::string& Name ) const
 {
 	for( BcU32 Idx = 0; Idx < EnumConstants_.size(); ++Idx )
 	{
-		if( BcStrCompare(  (*EnumConstants_[ Idx ]->getName()).c_str(), Name.c_str() ) )
+		if( BcStrCompareCaseInsensitive(  (*EnumConstants_[ Idx ]->getName()).c_str(), Name.c_str() ) )
 		{
 			return EnumConstants_[ Idx ];
 		}

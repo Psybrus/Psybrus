@@ -55,13 +55,29 @@ void BcStrCopy( BcChar* pDest, BcU32 DestSize, const BcChar* pSrc )
 // BcStrCompare
 BcBool BcStrCompare( const BcChar* pStr1, const BcChar* pStr2 )
 {
+	BcU32 Result = strcmp( pStr1, pStr2 );
+	return ( Result == 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrCompareN
+BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count )
+{
+	BcU32 Result = strncmp( pStr1, pStr2, Count );
+	return ( Result == 0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BcStrCompareCaseInsensitive
+BcBool BcStrCompareCaseInsensitive( const BcChar* pStr1, const BcChar* pStr2 )
+{
 	BcU32 Result = caseInsensitiveComparison( pStr1, pStr2 );
 	return ( Result == 0 );
 }
 
 //////////////////////////////////////////////////////////////////////////
-// BcStrNCompare
-BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count )
+// BcStrCompareCaseInsensitiveN
+BcBool BcStrCompareCaseInsensitiveN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count )
 {
 	BcU32 Result = safeCaseInsensitiveComparison( pStr1, pStr2, Count );
 	return ( Result == 0 );

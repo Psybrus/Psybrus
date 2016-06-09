@@ -554,6 +554,13 @@ void MainShared()
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
 	}
+
+	// Check if running as a server.
+	const bool IsServer = GCommandLine_.hasArg( '\0', "server" );
+	if( IsServer )
+	{
+		GPsySetupParams.Flags_ = psySF_SERVER;		
+	}
 	
 	// Start debug system if not a production build.
 #if !defined( PSY_PRODUCTION )

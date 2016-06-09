@@ -464,7 +464,7 @@ void RsContextVK::create()
 					const char*                         pMsg,
 					void*                               pUserData )->VkBool32
 				{
-					PSY_LOGSCOPEDCATEGORY( "Vulkan" );
+					PSY_LOGSCOPEDCATEGORY( Vulkan );
 
 					RsContextVK* Context = reinterpret_cast< RsContextVK* >( pUserData );
 					std::unique_ptr< char[] > Message( new char[ strlen( pMsg ) + 100 ] );

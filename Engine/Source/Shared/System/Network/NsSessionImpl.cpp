@@ -52,7 +52,7 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED )
 {
-	PSY_LOGSCOPEDCATEGORY( "NsSession" );
+	PSY_LOGSCOPEDCATEGORY( NsSession );
 	PSY_LOG( "Starting worker thread, and trying to connect to server." );
 
 	RakNet::SocketDescriptor Desc;
@@ -76,7 +76,7 @@ NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port, bool Adverti
 	State_( NsSessionState::DISCONNECTED ),
 	Advertise_( Advertise )
 {
-	PSY_LOGSCOPEDCATEGORY( "NsSession" );
+	PSY_LOGSCOPEDCATEGORY( NsSession );
 	PSY_LOG( "Starting worker thread, and trying to start server." );
 
 	RakNet::SocketDescriptor Desc( Port, 0 );
@@ -202,7 +202,7 @@ BcBool NsSessionImpl::deregisterMessageHandler( BcU8 Channel, NsSessionMessageHa
 // workerThread
 void NsSessionImpl::workerThread()
 {
-	PSY_LOGSCOPEDCATEGORY( "NsSession" );
+	PSY_LOGSCOPEDCATEGORY( NsSession );
 	PSY_LOG( "Starting to receive packets." );
 
 	OwningThread_ = BcCurrentThreadId();
