@@ -32,6 +32,23 @@ enum class NsSessionType
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Session handler.
+class NsSessionHandler
+{
+public:
+	NsSessionHandler(){}
+	virtual ~NsSessionHandler(){}
+
+	/**
+	 * Called when an advertised system is visible.
+	 * @param Name Name of remote system as c-string.
+	 * @param Address Address of remote system as c-string.
+	 * @param Port Port of remote system.
+	 */
+	virtual void onAdvertisedSystem( const char* Name, const char* Address, BcU16 Port ) = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Data handlers.
 class NsSessionMessageHandler
 {
@@ -93,11 +110,11 @@ public:
 	 * Register message handler.
 	 * @return Successfully registered.
 	 */
-	virtual BcBool registerMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler ) = 0;
+	virtual bool registerMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler ) = 0;
 
 	/**
 	 * Deregister message handler.
 	 * @return Successfully deregistered.
 	 */
-	virtual BcBool deregisterMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler ) = 0;
+	virtual bool deregisterMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler ) = 0;
 };

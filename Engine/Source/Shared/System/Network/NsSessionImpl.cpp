@@ -1,12 +1,16 @@
 #include "System/Network/NsSessionImpl.h"
 #include "System/SysKernel.h"
 
+#include "Base/BcString.h"
+
 #if !PLATFORM_HTML5 && !PLATFORM_WINPHONE
 
 #include "MessageIdentifiers.h"
 #include "RakPeer.h"
 #include "ConnectionGraph2.h"
 #include "BitStream.h"
+
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
 // NsSessionMessageID
@@ -44,13 +48,41 @@ RakNet::RakNetGUID ToRakNet( NsGUID GUID )
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
+NsSessionImpl::NsSessionImpl( Client, NsSessionHandler* Handler ) :
 	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
 	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
+	Handler_( Handler ),
 	Type_( NsSessionType::CLIENT ),
+	MaxClients_( 0 ),
+	Port_( 0 ),
+	Active_( 1 ),
+	State_( NsSessionState::DISCONNECTED ),
+	AdvertisePort_( 0 )
+{
+	PSY_LOGSCOPEDCATEGORY( NsSession );
+	PSY_LOG( "Starting worker thread, and trying to connect to server." );
+
+	RakNet::SocketDescriptor Desc;
+	PeerInterface_->AttachPlugin( ConnectionGraph_ );
+	PeerInterface_->Startup( 1, &Desc, 1 );
+
+	MessageHandlers_.fill( nullptr );
+
+	WorkerThread_ = std::thread( std::bind( &NsSessionImpl::workerThread, this ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+NsSessionImpl::NsSessionImpl( Client, NsSessionHandler* Handler, const std::string& Address, BcU16 Port ) :
+	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
+	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
+	Handler_( Handler ),
+	Type_( NsSessionType::CLIENT ),
+	MaxClients_( 0 ),
 	Port_( Port ),
 	Active_( 1 ),
-	State_( NsSessionState::DISCONNECTED )
+	State_( NsSessionState::DISCONNECTED ),
+	AdvertisePort_( 0 )
 {
 	PSY_LOGSCOPEDCATEGORY( NsSession );
 	PSY_LOG( "Starting worker thread, and trying to connect to server." );
@@ -67,21 +99,23 @@ NsSessionImpl::NsSessionImpl( Client, const std::string& Address, BcU16 Port ) :
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-NsSessionImpl::NsSessionImpl( Server, BcU32 MaxClients, BcU16 Port, bool Advertise ) :
+NsSessionImpl::NsSessionImpl( Server, NsSessionHandler* Handler, BcU32 MaxClients, BcU16 Port, BcU16 AdvertisePort ) :
 	PeerInterface_( RakNet::RakPeerInterface::GetInstance() ),
 	ConnectionGraph_( RakNet::ConnectionGraph2::GetInstance() ),
+	Handler_( Handler ),
 	Type_( NsSessionType::SERVER ),
+	MaxClients_( MaxClients ),
 	Port_( Port ),
 	Active_( 1 ),
 	State_( NsSessionState::DISCONNECTED ),
-	Advertise_( Advertise )
+	AdvertisePort_( AdvertisePort )
 {
 	PSY_LOGSCOPEDCATEGORY( NsSession );
 	PSY_LOG( "Starting worker thread, and trying to start server." );
 
 	RakNet::SocketDescriptor Desc( Port, 0 );
 	PeerInterface_->AttachPlugin( ConnectionGraph_ );
-	PeerInterface_->Startup( MaxClients, &Desc, 1 );
+	PeerInterface_->Startup( std::max( MaxClients, BcU32( 1 ) ), &Desc, 1 );
 	PeerInterface_->SetMaximumIncomingConnections( static_cast< unsigned short >( MaxClients ) );
 
 	MessageHandlers_.fill( nullptr );
@@ -172,7 +206,7 @@ void NsSessionImpl::broadcast(
 
 //////////////////////////////////////////////////////////////////////////
 // registerMessageHandler
-BcBool NsSessionImpl::registerMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler )
+bool NsSessionImpl::registerMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler )
 {
 	std::lock_guard< std::mutex > Lock( HandlerLock_ );
 	auto CanSet = MessageHandlers_[ Channel ] == nullptr;
@@ -186,7 +220,7 @@ BcBool NsSessionImpl::registerMessageHandler( BcU8 Channel, NsSessionMessageHand
 
 //////////////////////////////////////////////////////////////////////////
 // deregisterMessageHandler
-BcBool NsSessionImpl::deregisterMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler )
+bool NsSessionImpl::deregisterMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler )
 {
 	std::lock_guard< std::mutex > Lock( HandlerLock_ );
 	auto CanUnset = MessageHandlers_[ Channel ] == Handler;
@@ -271,7 +305,18 @@ void NsSessionImpl::workerThread()
 				break;
 
 			case ID_ADVERTISE_SYSTEM:
-				PSY_LOG( "ID_ADVERTISE_SYSTEM" );
+				CallbackFence_.increment();
+				SysKernel::pImpl()->enqueueCallback( [ this, Packet ]()
+					{
+						std::array< char, 128 > NameBuffer = { 0 }; 
+						BcStrCopy( NameBuffer.data(), std::min( NameBuffer.size(), size_t( Packet->length ) ), reinterpret_cast< char* >( Packet->data ) );
+						Handler_->onAdvertisedSystem( NameBuffer.data(), 
+							Packet->systemAddress.ToString( false ),
+							Packet->systemAddress.GetPort() );
+						PeerInterface_->DeallocatePacket( Packet );
+						CallbackFence_.decrement();						
+					} );
+				continue;
 				break;
 
 			case ID_DOWNLOAD_PROGRESS:
@@ -346,7 +391,7 @@ void NsSessionImpl::workerThread()
 
 		// Advertise system.
 		// TEST CODE. PROPER SYSTEM REQUIRED LATER.
-		if( Advertise_ )
+		if( AdvertisePort_ > 0 )
 		{
 			const BcF32 AdvertiseTime = 5.0f;
 			const char* AdvertiseAddress = "255.255.255.255"; // IPv6!?
@@ -354,7 +399,7 @@ void NsSessionImpl::workerThread()
 			{
 				const char* AdvertiseData = "THIS IS A SERVER";
 
-				PeerInterface_->AdvertiseSystem( AdvertiseAddress, Port_, AdvertiseData, BcStrLength( AdvertiseData ) );
+				PeerInterface_->AdvertiseSystem( AdvertiseAddress, AdvertisePort_, AdvertiseData, BcStrLength( AdvertiseData ) );
 				AdvertiseTimer.mark();
 			}
 		}
