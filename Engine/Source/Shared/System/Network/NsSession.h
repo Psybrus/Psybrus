@@ -44,8 +44,9 @@ public:
 	 * @param Name Name of remote system as c-string.
 	 * @param Address Address of remote system as c-string.
 	 * @param Port Port of remote system.
+	 * @param Ping Ping off remote system in ms.
 	 */
-	virtual void onAdvertisedSystem( const char* Name, const char* Address, BcU16 Port ) = 0;
+	virtual void onAdvertisedSystem( const char* Name, const char* Address, BcU16 Port, BcU32 Ping ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

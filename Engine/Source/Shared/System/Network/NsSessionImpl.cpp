@@ -300,23 +300,30 @@ void NsSessionImpl::workerThread()
 				PSY_LOG( "ID_TIMESTAMP" );
 				break;
 
+			case ID_CONNECTED_PONG:
+				PSY_LOG( "ID_CONNECTED_PONG" );
+				break;
+
 			case ID_UNCONNECTED_PONG:
 				PSY_LOG( "ID_UNCONNECTED_PONG" );
 				break;
 
 			case ID_ADVERTISE_SYSTEM:
-				CallbackFence_.increment();
-				SysKernel::pImpl()->enqueueCallback( [ this, Packet ]()
-					{
-						std::array< char, 128 > NameBuffer = { 0 }; 
-						BcStrCopy( NameBuffer.data(), std::min( NameBuffer.size(), size_t( Packet->length ) ), reinterpret_cast< char* >( Packet->data ) );
-						Handler_->onAdvertisedSystem( NameBuffer.data(), 
-							Packet->systemAddress.ToString( false ),
-							Packet->systemAddress.GetPort() );
-						PeerInterface_->DeallocatePacket( Packet );
-						CallbackFence_.decrement();						
-					} );
-				continue;
+				{
+					CallbackFence_.increment();
+					SysKernel::pImpl()->enqueueCallback( [ this, Packet ]()
+						{
+							std::array< char, 128 > NameBuffer = { 0 }; 
+							BcStrCopy( NameBuffer.data(), std::min( NameBuffer.size(), size_t( Packet->length ) ), reinterpret_cast< char* >( Packet->data + 1 ) );
+							Handler_->onAdvertisedSystem( NameBuffer.data(), 
+								Packet->systemAddress.ToString( false ),
+								Packet->systemAddress.GetPort(),
+								static_cast< BcU32 >( -1 ) );
+							PeerInterface_->DeallocatePacket( Packet );
+							CallbackFence_.decrement();
+						} );
+					continue;
+				}
 				break;
 
 			case ID_DOWNLOAD_PROGRESS:
@@ -378,7 +385,7 @@ void NsSessionImpl::workerThread()
 				break;
 
 			default:
-				PSY_LOG( "Unknown" );
+				PSY_LOG( "Unknown: %u", BcU32( PacketId ) );
 				break;
 			}
 

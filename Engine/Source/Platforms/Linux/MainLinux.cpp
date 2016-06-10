@@ -72,6 +72,9 @@ eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 
 int main(int argc, const char* argv[])
 {
+	BcTimer Time;
+	Time.mark();
+
 	// Start.
 	std::string CommandLine;
 
@@ -97,9 +100,12 @@ int main(int argc, const char* argv[])
 #endif
 
 	// Initialise RNG.
-#if !PSY_DEBUG
-	BcRandom::Global = BcRandom( 1337 ); // TODO LINUX
-#endif
+	timeval TimeVal;
+	auto RetVal = ::gettimeofday( &TimeVal, NULL );
+	BcAssert( RetVal != -1 );
+	auto Seed = static_cast< BcU32 >( TimeVal.tv_sec + TimeVal.tv_usec );
+	PSY_LOG( "Initialising random seed to %u", Seed );
+	BcRandom::Global = BcRandom( Seed );
 
 	// Additional input devices.
 	GInputMindwave_.reset( new OsInputMindwaveLinux() );
