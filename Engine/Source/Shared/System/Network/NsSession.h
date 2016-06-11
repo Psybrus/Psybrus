@@ -6,6 +6,12 @@
 #include "System/Network/NsForwardDeclarations.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Undef ERROR...sigh
+#ifdef ERROR
+#undef ERROR
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // States the session can be in.
 enum class NsSessionState
 {
@@ -44,9 +50,37 @@ public:
 	 * @param Name Name of remote system as c-string.
 	 * @param Address Address of remote system as c-string.
 	 * @param Port Port of remote system.
-	 * @param Ping Ping off remote system in ms.
+	 * @param Ping Ping of remote system in ms.
 	 */
 	virtual void onAdvertisedSystem( const char* Name, const char* Address, BcU16 Port, BcU32 Ping ) = 0;
+
+	/**
+	 * Called when connection has been accepted.
+	 */
+	virtual void onConnectionAccepted() = 0;
+
+	/**
+	 * Called when connection has failed.
+	 */
+	virtual void onConnectionFailed() = 0;
+
+	/**
+	 * Called when a system's connection is lost.
+	 * @param SystemGUID Remote system GUID that lost connection. Can be server or client.
+	 */
+	virtual void onSystemConnectionLost( NsGUID SystemGUID ) = 0;
+
+	/**
+	 * Called when system disconnects.
+	 * @param SessionGUID Remote system GUID that was disconnected. Can be server or client.
+	 */
+	virtual void onSystemDisconnect( NsGUID SystemGUID ) = 0;
+
+	/**
+	 * Called when system connects.
+	 * @param SessionGUID Remote system GUID that connected. Can be server or client.
+	 */
+	virtual void onSystemConnected( NsGUID SystemGUID ) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,13 +109,21 @@ public:
 	/**
 	 * Get number of remote sessions.
 	 */
-	virtual BcU32 getNoofRemoteSessions() const = 0;
+	virtual size_t getNoofRemoteSessions() const = 0;
 
 	/**
 	 * Get GUID of remote session by index.
 	 */
-	virtual NsGUID getRemoteGUIDByIndex( BcU32 Index ) = 0;
+	virtual NsGUID getRemoteGUIDByIndex( size_t Index ) = 0;
 
+	/**
+	 * Get number of client sessions.
+	 * @param OutGUIDs Point to output GUIDs.
+	 * @param MaxGUIDs Maximum number of GUIDs that can be filled in.
+	 * @return Number of GUIDs set.
+	 */
+	virtual size_t getClientSessions( NsGUID* OutGUIDs, size_t MaxGUIDs ) const = 0;
+	
 	/**
 	 * Send to specific remote session.
 	 * @param RemoteGUID GUID of remote session to send to.

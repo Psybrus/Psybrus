@@ -535,7 +535,7 @@ BcU32 DsCoreImpl::registerPanel( const char* Category, const char* Name, const c
 	std::sort( PanelFunctions_.begin(), PanelFunctions_.end(), 
 		[]( const DsPanelDefinition& A, const DsPanelDefinition& B ) 
 		{
-			return A.Name_ < B.Name_;
+			return A.Category_ < B.Category_;
 		} );
 
 	return Handle;

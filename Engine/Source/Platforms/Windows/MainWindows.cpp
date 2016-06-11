@@ -167,6 +167,18 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	BcRandom::Global = BcRandom( (BcU32)::GetTickCount() );
 #endif
 
+	// Game or tool init.
+	if( GPsySetupParams.Flags_ & psySF_GAME )
+	{
+		// Init game.
+		PsyGameInit();
+	}
+	else if( GPsySetupParams.Flags_ & psySF_TOOL )
+	{
+		extern void PsyToolInit();
+		PsyToolInit();
+	}
+
 	// Create reflection database
 	ReManager::Init();
 
@@ -199,23 +211,14 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Game or tool init.
 	if( GPsySetupParams.Flags_ & psySF_GAME )
 	{
-		if( ( GPsySetupParams.Flags_ & psySF_SERVER ) == 0 )
-		{
-			OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
-			OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
-		}
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOsOpen_CreateClient );
+		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
-
-		// Init game.
-		PsyGameInit();
 	}
 	else if( GPsySetupParams.Flags_ & psySF_TOOL )
 	{
-		extern void PsyToolInit();
-		PsyToolInit();
-
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
-		[]( EvtID, const EvtBaseEvent& )
+			[]( EvtID, const EvtBaseEvent& )
 			{
 				extern void PsyToolMain();
 				PsyToolMain();
