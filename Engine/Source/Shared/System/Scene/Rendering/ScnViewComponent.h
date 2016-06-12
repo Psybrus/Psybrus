@@ -136,6 +136,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
 
 	ScnViewComponent();
+	ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS );
 	virtual ~ScnViewComponent();
 	
 	void onAttach( ScnEntityWeakRef Parent ) override;

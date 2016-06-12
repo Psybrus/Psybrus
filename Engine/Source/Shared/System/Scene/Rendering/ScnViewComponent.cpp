@@ -560,6 +560,22 @@ ScnViewComponent::ScnViewComponent():
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
+ScnViewComponent::ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS ):
+	ScnViewComponent()
+{
+	ViewUniformBuffer_ = nullptr;
+
+	RenderTarget_.resize( NoofRTs );
+	for( size_t Idx = 0; Idx < NoofRTs; ++Idx )
+	{
+		RenderTarget_[ Idx ] = RTs[ Idx ];
+	}
+
+	setRenderMask( 1 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
 //virtual
 ScnViewComponent::~ScnViewComponent()
 {
