@@ -312,11 +312,11 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // addRigidBody
-void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
+void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody, BcU16 CollisionGroup, BcU16 CollisionMask )
 {
 	BcAssert( DynamicsWorld_ != nullptr );
 	BcAssert( RigidBody != nullptr );
-	DynamicsWorld_->addRigidBody( RigidBody );
+	DynamicsWorld_->addRigidBody( RigidBody, CollisionGroup, CollisionMask );
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -57,7 +57,7 @@ public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
-	void addRigidBody( class btRigidBody* RigidBody );
+	void addRigidBody( class btRigidBody* RigidBody, BcU16 CollisionGroup, BcU16 CollisionMask );
 	void removeRigidBody( class btRigidBody* RigidBody );
 
 	void addConstraint( class btTypedConstraint* Constraint );
