@@ -80,6 +80,10 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "ResolveY_", &ScnDeferredRendererComponent::ResolveY_, bcRFF_IMPORTER ),
 		new ReField( "ResolveW_", &ScnDeferredRendererComponent::ResolveW_, bcRFF_IMPORTER ),
 		new ReField( "ResolveH_", &ScnDeferredRendererComponent::ResolveH_, bcRFF_IMPORTER ),
+		new ReField( "Near_", &ScnDeferredRendererComponent::Near_, bcRFF_IMPORTER ),
+		new ReField( "Far_", &ScnDeferredRendererComponent::Far_, bcRFF_IMPORTER ),
+		new ReField( "HorizontalFOV_", &ScnDeferredRendererComponent::HorizontalFOV_, bcRFF_IMPORTER ),
+		new ReField( "VerticalFOV_", &ScnDeferredRendererComponent::VerticalFOV_, bcRFF_IMPORTER ),
 		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 
 		
@@ -143,6 +147,9 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 	TransparentView_->setClearParams( RsColour::BLACK, true, false, false );
 	OverlayView_->setClearParams( RsColour::BLACK, false, false, false );
 
+	OpaqueView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
+	TransparentView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
+	OverlayView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
 
 	// Recreate all resources.
 	recreateResources();

@@ -192,6 +192,11 @@ public:
 	 * Set clear parameters.
 	 */
 	void setClearParams( RsColour Colour, bool ClearColour, bool ClearDepth, bool ClearStencil );
+
+	/**
+	 * Set projection parameters.
+	 */
+	void setProjectionParams( BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV );
 	
 	/**
 	 * Register view callbacks.

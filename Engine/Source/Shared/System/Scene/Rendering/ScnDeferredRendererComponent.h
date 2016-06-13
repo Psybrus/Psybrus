@@ -63,10 +63,17 @@ protected:
 	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;
 	ScnShaderRef ResolveShader_;
 
+	// Final resolve to the backbuffer (or other target)
 	BcF32 ResolveX_ = 0.0f;
 	BcF32 ResolveY_ = 0.0f;
 	BcF32 ResolveW_ = 1.0f;
 	BcF32 ResolveH_ = 1.0f;
+
+	// Perspective projection.
+	BcF32 Near_ = 0.1f;
+	BcF32 Far_ = 1000.0f;
+	BcF32 HorizontalFOV_ = BcPI * 0.25f;
+	BcF32 VerticalFOV_ = 0.0f;
 
 	enum : size_t
 	{

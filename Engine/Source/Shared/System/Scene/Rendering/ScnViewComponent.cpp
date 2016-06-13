@@ -817,7 +817,20 @@ void ScnViewComponent::setClearParams( RsColour Colour, bool ClearColour, bool C
 	EnableClearColour_ = ClearColour;
 	EnableClearDepth_ = ClearDepth;
 	EnableClearStencil_ = ClearStencil;	
-}	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setProjectionParams
+void ScnViewComponent::setProjectionParams( BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV )
+{
+	BcAssert( Near > 0.0f );
+	BcAssert( Near < Far );
+	BcAssert( HorizontalFOV <= 0.0f || VerticalFOV <= 0.0f );
+	Near_ = Near;
+	Far_ = Far;
+	HorizontalFOV_ = HorizontalFOV;
+	VerticalFOV_ = VerticalFOV;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // registerViewCallback
