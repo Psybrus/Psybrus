@@ -66,8 +66,8 @@ public:
 	void registerWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 	void deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler );
 
-	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result );
-	BcBool sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result );
+	BcBool lineCast( const MaVec3d& A, const MaVec3d& B, BcU16 CollisionMask, ScnPhysicsLineCastResult* Result );
+	BcBool sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, BcU16 CollisionMask, ScnPhysicsLineCastResult* Result );
 
 private:
 	static void simulate( const ScnComponentList& Components );
