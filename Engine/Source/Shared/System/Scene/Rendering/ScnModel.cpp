@@ -408,7 +408,7 @@ void ScnModelProcessor::destroyViewRenderData( class ScnComponent* Component, cl
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext & RenderContext )
+void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext& RenderContext )
 {
 	// Fill our vector with components we should render.
 	// TODO: Per frame allocator, or pass up as non-const?

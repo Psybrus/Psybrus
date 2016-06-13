@@ -72,9 +72,19 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
-		new ReField( "Shaders_", &ScnDeferredRendererComponent::Shaders_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
-	};
+		new ReField( "Width_", &ScnDeferredRendererComponent::Width_, bcRFF_IMPORTER ),
+		new ReField( "Height_", &ScnDeferredRendererComponent::Height_, bcRFF_IMPORTER ),
+		new ReField( "LightShaders_", &ScnDeferredRendererComponent::LightShaders_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "ResolveX_", &ScnDeferredRendererComponent::ResolveX_, bcRFF_IMPORTER ),
+		new ReField( "ResolveY_", &ScnDeferredRendererComponent::ResolveY_, bcRFF_IMPORTER ),
+		new ReField( "ResolveW_", &ScnDeferredRendererComponent::ResolveW_, bcRFF_IMPORTER ),
+		new ReField( "ResolveH_", &ScnDeferredRendererComponent::ResolveH_, bcRFF_IMPORTER ),
+		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+
+		
+		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_TRANSIENT ),
+	};	
 	
 	ReRegisterClass< ScnDeferredRendererComponent, Super >( Fields )
 		.addAttribute( new ScnComponentProcessor() );
@@ -105,11 +115,38 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 			return evtRET_PASS;
 		} );
 
+
+	// Create textures.
+	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Albedo" );
+	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Material" );
+	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Normal" );
+	Textures_[ TEX_GBUFFER_VELOCITY ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Velocity" );
+	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::D24S8, false, true, "Depth" );
+	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, true, false, "HDR" );
+
+	// Create views.
+	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
+		"OpaqueView", 4, &Textures_[ TEX_GBUFFER_ALBEDO ], Textures_[ TEX_GBUFFER_DEPTH ],
+		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OPAQUE );
+	TransparentView_ = getParentEntity()->attach< ScnViewComponent >(
+		"TransparentView", 1, &Textures_[ TEX_HDR ], Textures_[ TEX_GBUFFER_DEPTH ],
+		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::TRANSPARENT );
+	OverlayView_ = getParentEntity()->attach< ScnViewComponent >(
+		"OverlayView", 0, nullptr, nullptr,
+		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OVERLAY );
+
+	OpaqueView_->registerViewCallback( this );
+	TransparentView_->registerViewCallback( this );
+	OverlayView_->registerViewCallback( this );
+
+	OpaqueView_->setClearParams( RsColour::BLACK, true, true, true );
+	TransparentView_->setClearParams( RsColour::BLACK, true, false, false );
+	OverlayView_->setClearParams( RsColour::BLACK, false, false, false );
+
+
+	// Recreate all resources.
 	recreateResources();
-
-	// TODO
-	//View_ = Parent->attach< ScnViewComponent >();
-
+	
 	Super::onAttach( Parent );
 }
 
@@ -120,6 +157,20 @@ void ScnDeferredRendererComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	OsCore::pImpl()->unsubscribeAll( this );
 
+	// Already detached.
+	OpaqueView_ = nullptr;
+	TransparentView_ = nullptr;
+	OpaqueView_ = nullptr;
+
+	// Free all textures.
+	for( auto& Texture : Textures_ )
+	{
+		if( Texture )
+		{
+			Texture->markDestroy();
+			Texture = nullptr;
+		}
+	}
 	Super::onDetach( Parent );
 }
 
@@ -130,162 +181,15 @@ void ScnDeferredRendererComponent::visit( class ScnLightComponent* Component )
 	LightComponents_.emplace_back( Component );
 }
 
-#if 0 
-//////////////////////////////////////////////////////////////////////////
-// render
-void ScnDeferredRendererComponent::render( ScnRenderContext & RenderContext )
-{
-	RsRenderSort Sort = RenderContext.Sort_;
-	Sort.Layer_ = 0;
-
-	auto* ViewRenderData = static_cast< ScnDeferredLightingViewRenderData* >( RenderContext.ViewRenderData_ );
-
-	// Grab albedo texture for size data.
-	MaVec2d UVSize( 1.0f, 1.0f );
-	auto AlbedoTexIt = Textures_.find( "aAlbedoTex" );
-	if( AlbedoTexIt != Textures_.end() )
-	{
-		auto AlbedoTex = AlbedoTexIt->second;
-		auto Rect = AlbedoTex->getRect( 0 );			
-		UVSize.x( Rect.W_ );
-		UVSize.y( Rect.H_ );
-	}
-
-	// Update vertex buffer.
-	const BcU32 VertexBufferSize = 4 * VertexDeclaration_->getDesc().getMinimumStride();
-	const auto& Features = RsCore::pImpl()->getContext( 0 )->getFeatures();
-	const auto RTOrigin = Features.RTOrigin_;
-	RsCore::pImpl()->updateBuffer( 
-		VertexBuffer_.get(),
-		0, VertexBufferSize,
-		RsResourceUpdateFlags::ASYNC,
-		[ RTOrigin, UVSize ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-		{
-			auto Vertices = reinterpret_cast< ScnDeferredRendererVertex* >( Lock.Buffer_ );
-
-			// TODO: Pass in separate UVs for what is intended to be a render target source?
-			if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
-			{
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f - UVSize.y() ), MaVec2d( -1.0f, -1.0f ) );
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f - UVSize.y() ), MaVec2d( 1.0f, -1.0f ) );
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ), MaVec2d( -1.0f, 1.0f ) );
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f ), MaVec2d( 1.0f, 1.0f ) );
-			}
-			else
-			{
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, UVSize.y() ), MaVec2d( -1.0f, 1.0f ) );
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), UVSize.y() ), MaVec2d( 1.0f, 1.0f ) );
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ), MaVec2d( -1.0f, -1.0f ) );
-				*Vertices++ = ScnDeferredRendererVertex( 
-					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 0.0f ), MaVec2d( 1.0f, -1.0f ) );
-			}
-		} );	
-	
-	// TODO: Use ScnLightProcessor when implemented.
-	// Gather lights that intersect with our view.
-	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
-
-	// Render all lights.
-	for( size_t Idx = 0; Idx < LightComponents_.size(); ++Idx )
-	{
-		auto LightComponent = LightComponents_[ Idx ];
-		auto ProgramBinding = ViewRenderData->ProgramBindings_[ scnLT_SPOT ].get(); // TODO: Get from component.
-		
-		// 
-		ScnShaderLightUniformBlockData LightUniformData = {};
-		LightComponent->setLightUniformBlockData( 0, LightUniformData );
-		LightComponent->setLightUniformBlockData( 1, LightUniformData );
-		LightComponent->setLightUniformBlockData( 2, LightUniformData );
-		LightComponent->setLightUniformBlockData( 3, LightUniformData );
-		
-		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
-			[ 
-				UniformBuffer = UniformBuffer_.get(),
-				LightUniformData = LightUniformData,
-				GeometryBinding = GeometryBinding_.get(),
-				ProgramBinding = ProgramBinding,
-				RenderState = RenderState_.get(),
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-				Viewport = RenderContext.pViewComponent_->getViewport()
-			]
-			( RsContext* Context )
-			{
-				PSY_PROFILE_FUNCTION;
-
-				Context->updateBuffer( UniformBuffer, 0, sizeof( LightUniformData ), RsResourceUpdateFlags::ASYNC,
-					[ &LightUniformData ]( RsBuffer* Buffer, RsBufferLock Lock )
-					{
-						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformData ) );
-						memcpy( Lock.Buffer_, &LightUniformData, sizeof( LightUniformData ) );
-					} );
-
-				Context->drawPrimitives( 
-					GeometryBinding,
-					ProgramBinding,
-					RenderState,
-					FrameBuffer,
-					&Viewport,
-					nullptr,
-					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
-			} );
-	}
-
-	LightComponents_.clear();
-}
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // recreateResources
 void ScnDeferredRendererComponent::recreateResources()
 {
-	// Free all textures.
-	for( auto& Texture : Textures_ )
+	for( auto & LightProgramBinding : LightProgramBindings_ )
 	{
-		if( Texture )
-		{
-			delete Texture.get();
-			Texture = nullptr;
-		}
+		LightProgramBinding.reset();
 	}
-
-	// Free all frame buffers.
-	GBuffer_.reset();
-	LightingBuffer_.reset();
-
-	// Create textures.
-	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, "TEX_GBUFFER_ALBEDO" );
-	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, "TEX_GBUFFER_MATERIAL" );
-	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, "TEX_GBUFFER_NORMAL" );
-	Textures_[ TEX_GBUFFER_VELOCITY ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, "TEX_GBUFFER_VELOCITY" );
-	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::D24S8, "TEX_GBUFFER_DEPTH" );
-	Textures_[ TEX_LIGHTING ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, "TEX_LIGHTING" );
-
-	// Create GBuffer.
-	{
-		RsFrameBufferDesc FBDesc = RsFrameBufferDesc( 4 )
-			.setRenderTarget( 0, Textures_[ TEX_GBUFFER_ALBEDO ]->getTexture() )
-			.setRenderTarget( 1, Textures_[ TEX_GBUFFER_MATERIAL ]->getTexture() )
-			.setRenderTarget( 2, Textures_[ TEX_GBUFFER_NORMAL ]->getTexture() )
-			.setRenderTarget( 3, Textures_[ TEX_GBUFFER_VELOCITY ]->getTexture() )
-			.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() );
-		GBuffer_ = RsCore::pImpl()->createFrameBuffer( FBDesc, "GBuffer" );
-	}
-
-	// Create lighting buffer.
-	{
-		RsFrameBufferDesc FBDesc = RsFrameBufferDesc( 1 )
-			.setRenderTarget( 0, Textures_[ TEX_LIGHTING ]->getTexture() )
-			.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() );
-		LightingBuffer_ = RsCore::pImpl()->createFrameBuffer( FBDesc, "Lighting" );
-	}
-
+	ResolveProgramBinding_.reset();
 
 	if( VertexDeclaration_ == nullptr )
 	{
@@ -342,8 +246,324 @@ void ScnDeferredRendererComponent::recreateResources()
 	auto& DepthStencilState = RenderStateDesc.DepthStencilState_;
 	DepthStencilState.DepthTestEnable_ = false;
 	DepthStencilState.DepthWriteEnable_ = false;
-	RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
+	LightRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
+
+	BlendState.Enable_ = BcFalse;
+	ResolveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 
 	// Reset view render data.
 	ScnViewProcessor::pImpl()->resetViewRenderData( this );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setupQuad
+void ScnDeferredRendererComponent::setupQuad( RsContext* Context, 
+	RsVertexDeclaration* VertexDeclaration,
+	RsBuffer* VertexBuffer,
+	const MaVec2d& MinPos, 
+	const MaVec2d& MaxPos, 
+	const MaVec2d& UVSize )
+{
+	// Update vertex buffer.
+	const BcU32 VertexBufferSize = 4 * VertexDeclaration->getDesc().getMinimumStride();
+	const auto& Features = Context->getFeatures();
+	const auto RTOrigin = Features.RTOrigin_;
+	Context->updateBuffer( 
+		VertexBuffer,
+		0, VertexBufferSize,
+		RsResourceUpdateFlags::ASYNC,
+		[ RTOrigin, UVSize ]( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			auto Vertices = reinterpret_cast< ScnDeferredRendererVertex* >( Lock.Buffer_ );
+
+			// TODO: Pass in separate UVs for what is intended to be a render target source?
+			if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
+			{
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f - UVSize.y() ), MaVec2d( -1.0f, -1.0f ) );
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f - UVSize.y() ), MaVec2d( 1.0f, -1.0f ) );
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 1.0f ), MaVec2d( -1.0f, 1.0f ) );
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 1.0f ), MaVec2d( 1.0f, 1.0f ) );
+			}
+			else
+			{
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d( -1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, UVSize.y() ), MaVec2d( -1.0f, 1.0f ) );
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d(  1.0f, -1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), UVSize.y() ), MaVec2d( 1.0f, 1.0f ) );
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d( -1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( 0.0f, 0.0f ), MaVec2d( -1.0f, -1.0f ) );
+				*Vertices++ = ScnDeferredRendererVertex( 
+					MaVec4d(  1.0f,  1.0f,  0.0f,  1.0f ), MaVec2d( UVSize.x(), 0.0f ), MaVec2d( 1.0f, -1.0f ) );
+			}
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderLights
+void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext )
+{
+	RsRenderSort Sort = RenderContext.Sort_;
+	Sort.Layer_ = 0;
+
+	// HACK: Create lights
+	if( LightProgramBindings_[ 0 ] == nullptr )
+	{
+		// Create program binding for lighting view.
+		const ScnShaderPermutationFlags Permutation = 
+			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+			ScnShaderPermutationFlags::PASS_MAIN |
+			ScnShaderPermutationFlags::MESH_STATIC_2D |
+			ScnShaderPermutationFlags::LIGHTING_NONE;
+
+		RsProgramBindingDesc ProgramBindingDesc;
+		for( size_t LightTypeIdx = 0; LightTypeIdx < LightShaders_.size(); ++LightTypeIdx )
+		{
+			auto Shader = LightShaders_[ LightTypeIdx ];
+			auto Program = Shader->getProgram( Permutation );
+
+			std::array< const char*, TEX_MAX > TextureNames_ = 
+			{
+				"aAlbedoTex",
+				"aMaterialTex",
+				"aNormalTex",
+				"aVelocityTex",
+				"aDepthTex",
+				"aHDRTex"
+			};
+
+			for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
+			{
+				BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
+				BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
+				ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
+				ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+			}
+
+			// Reflection cubemap.
+			{
+				BcU32 SRVSlot = Program->findShaderResourceSlot( "aReflectionTex" );
+				BcU32 SamplerSlot = Program->findSamplerSlot( "aReflectionTex" );
+				ProgramBindingDesc.setShaderResourceView( SRVSlot, ReflectionCubemap_->getTexture() );
+				ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+			}
+
+			// TODO: Tailored uniform buffer for deferred.
+			{
+				BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
+				if( UniformSlot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ) );
+				}
+			}
+			{
+				BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+				if( UniformSlot != BcErrorCode )
+				{
+					ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+				}
+			}
+
+			LightProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+		}
+	}
+
+	// Grab albedo texture for size data.
+	MaVec2d UVSize( 1.0f, 1.0f );
+	auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
+	auto Rect = AlbedoTex->getRect( 0 );			
+	UVSize.x( Rect.W_ );
+	UVSize.y( Rect.H_ );
+
+	// TODO: Use ScnLightProcessor when implemented.
+	// Gather lights that intersect with our view.
+	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
+
+	// Render all lights.
+	for( size_t Idx = 0; Idx < LightComponents_.size(); ++Idx )
+	{
+		auto LightComponent = LightComponents_[ Idx ];
+		auto ProgramBinding = LightProgramBindings_[ scnLT_SPOT ].get(); // TODO: Get from component.
+		
+		// 
+		ScnShaderLightUniformBlockData LightUniformData = {};
+		LightComponent->setLightUniformBlockData( 0, LightUniformData );
+		LightComponent->setLightUniformBlockData( 1, LightUniformData );
+		LightComponent->setLightUniformBlockData( 2, LightUniformData );
+		LightComponent->setLightUniformBlockData( 3, LightUniformData );
+		
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				UVSize = UVSize,
+				UniformBuffer = UniformBuffer_.get(),
+				LightUniformData = LightUniformData,
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = ProgramBinding,
+				RenderState = LightRenderState_.get(),
+				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+				Viewport = RenderContext.pViewComponent_->getViewport()
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+
+				setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
+					GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
+					MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
+				
+				Context->updateBuffer( UniformBuffer, 0, sizeof( LightUniformData ), RsResourceUpdateFlags::ASYNC,
+					[ &LightUniformData ]( RsBuffer* Buffer, RsBufferLock Lock )
+					{
+						BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformData ) );
+						memcpy( Lock.Buffer_, &LightUniformData, sizeof( LightUniformData ) );
+					} );
+
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					&Viewport,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+			} );
+	}
+
+	LightComponents_.clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// renderResolve
+void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContext )
+{
+	// HACK: Create resolve.
+	if( ResolveProgramBinding_ == nullptr )
+	{
+		// Create program binding for lighting view.
+		const ScnShaderPermutationFlags Permutation = 
+			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+			ScnShaderPermutationFlags::PASS_MAIN |
+			ScnShaderPermutationFlags::MESH_STATIC_2D |
+			ScnShaderPermutationFlags::LIGHTING_NONE;
+
+		RsProgramBindingDesc ProgramBindingDesc;
+		auto Program = ResolveShader_->getProgram( Permutation );
+
+		std::array< const char*, TEX_MAX > TextureNames_ = 
+		{
+			"aAlbedoTex",
+			"aMaterialTex",
+			"aNormalTex",
+			"aVelocityTex",
+			"aDepthTex",
+			"aHDRTex"
+		};
+
+		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
+		{
+			BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
+			BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
+			ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
+			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+		}
+
+		{
+			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+			if( UniformSlot != BcErrorCode )
+			{
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+			}
+		}
+
+		ResolveProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+	}
+
+	// Grab albedo texture for size data.
+	MaVec2d UVSize( 1.0f, 1.0f );
+	auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
+	auto Rect = AlbedoTex->getRect( 0 );			
+	UVSize.x( Rect.W_ );
+	UVSize.y( Rect.H_ );
+
+	RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+		[ 
+			UVSize = UVSize,
+			UniformBuffer = UniformBuffer_.get(),
+			GeometryBinding = GeometryBinding_.get(),
+			ProgramBinding = ResolveProgramBinding_.get(),
+			RenderState = ResolveRenderState_.get(),
+			ResolveX = ResolveX_,
+			ResolveY = ResolveY_,
+			ResolveW = ResolveW_,
+			ResolveH = ResolveH_
+		]
+		( RsContext* Context )
+		{
+			PSY_PROFILE_FUNCTION;
+
+			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
+				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
+				MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
+
+			auto FrameBuffer = Context->getBackBuffer();
+			auto Desc = FrameBuffer->getDesc().RenderTargets_[ 0 ]->getDesc();
+
+			RsViewport Viewport( 
+				BcU32( ResolveX * Desc.Width_ ),
+				BcU32( ResolveY * Desc.Height_ ),
+				BcU32( ResolveW * Desc.Width_ ),
+				BcU32( ResolveH * Desc.Height_ ) );
+				
+			Context->drawPrimitives( 
+				GeometryBinding,
+				ProgramBinding,
+				RenderState,
+				FrameBuffer,
+				&Viewport,
+				nullptr,
+				RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onViewDrawPreRender
+void ScnDeferredRendererComponent::onViewDrawPreRender( ScnRenderContext& RenderContext )
+{
+	if( RenderContext.pViewComponent_ == OpaqueView_ )
+	{
+		// begin opaque
+	}
+	else if( RenderContext.pViewComponent_ == TransparentView_ )
+	{
+		// begin transparent
+		renderLights( RenderContext );
+	}
+	else if( RenderContext.pViewComponent_ == OverlayView_ )
+	{
+		// begin overlay
+		renderResolve( RenderContext );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// onViewDrawPostRender
+void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& RenderContext )
+{
+	if( RenderContext.pViewComponent_ == OpaqueView_ )
+	{
+		// end opaque
+
+	}
+	else if( RenderContext.pViewComponent_ == TransparentView_ )
+	{
+		// end transparent
+	}
+	else if( RenderContext.pViewComponent_ == OverlayView_ )
+	{
+		// end overlay
+	}
 }

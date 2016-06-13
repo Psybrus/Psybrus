@@ -7,12 +7,13 @@
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnShader.h"
 #include "System/Scene/Rendering/ScnTexture.h"
+#include "System/Scene/Rendering/ScnViewComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnDeferredRendererVertex
 struct ScnDeferredRendererVertex
 {
-	REFLECTION_DECLARE_BASIC( ScnDeferredRendererVertex);
+	REFLECTION_DECLARE_BASIC( ScnDeferredRendererVertex );
 	ScnDeferredRendererVertex();
 	ScnDeferredRendererVertex( const MaVec4d& Position, const MaVec2d& UV, const MaVec2d& Screen );
 
@@ -25,7 +26,8 @@ struct ScnDeferredRendererVertex
 // ScnDeferredRendererComponent
 class ScnDeferredRendererComponent:
 	public ScnComponent,
-	public ScnVisitor
+	public ScnVisitor,
+	public ScnViewCallback
 {
 public:
 	REFLECTION_DECLARE_DERIVED( ScnDeferredRendererComponent, ScnComponent );
@@ -41,9 +43,30 @@ public:
 protected:
 	void recreateResources();
 
+	static void setupQuad( class RsContext* Context, 
+		RsVertexDeclaration* VertexDeclaration,
+		RsBuffer* VertexBuffer,
+		const MaVec2d& MinPos, 
+		const MaVec2d& MaxPos, 
+		const MaVec2d& UVSize );
+
+	void renderLights( ScnRenderContext& RenderContext );
+	void renderResolve( ScnRenderContext& RenderContext );
+
+	// ScnViewCallback
+	void onViewDrawPreRender( ScnRenderContext& RenderContext ) override;
+	void onViewDrawPostRender( ScnRenderContext& RenderContext ) override;
+
 protected:
-	BcU32 Width_ = 0;
-	BcU32 Height_ = 0;
+	BcS32 Width_ = 0;
+	BcS32 Height_ = 0;
+	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;
+	ScnShaderRef ResolveShader_;
+
+	BcF32 ResolveX_ = 0.0f;
+	BcF32 ResolveY_ = 0.0f;
+	BcF32 ResolveW_ = 1.0f;
+	BcF32 ResolveH_ = 1.0f;
 
 	enum : size_t
 	{
@@ -52,22 +75,26 @@ protected:
 		TEX_GBUFFER_NORMAL,
 		TEX_GBUFFER_VELOCITY,
 		TEX_GBUFFER_DEPTH,
-		TEX_LIGHTING,
-
+		TEX_HDR,
+		
 		TEX_MAX
 	};
 
 	std::array< ScnTextureRef, TEX_MAX > Textures_;
 
-	RsFrameBufferUPtr GBuffer_;
-	RsFrameBufferUPtr LightingBuffer_;
+	ScnTextureRef ReflectionCubemap_;
 
-	ScnViewComponent* View_ = nullptr;
+	ScnViewComponent* OpaqueView_ = nullptr;
+	ScnViewComponent* TransparentView_ = nullptr;
+	ScnViewComponent* OverlayView_ = nullptr;
 
-	std::array< ScnShaderRef, scnLT_MAX > Shaders_;
 	std::vector< ScnLightComponent* > LightComponents_;
 
-	RsRenderStateUPtr RenderState_;
+	std::array< RsProgramBindingUPtr, scnLT_MAX > LightProgramBindings_;
+	RsProgramBindingUPtr ResolveProgramBinding_;
+
+	RsRenderStateUPtr LightRenderState_;
+	RsRenderStateUPtr ResolveRenderState_;
 	RsSamplerStateUPtr SamplerState_;
 	RsBufferUPtr UniformBuffer_;
 	RsVertexDeclarationUPtr VertexDeclaration_;

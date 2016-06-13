@@ -151,7 +151,7 @@ public:
 private:
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
-	void render( ScnRenderContext & RenderContext ) override;
+	void render( ScnRenderContext& RenderContext ) override;
 
 	static void clearAll( const ScnComponentList& Components );
 

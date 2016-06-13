@@ -423,7 +423,7 @@ void ScnDebugRenderComponent::clear()
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnDebugRenderComponent::render( ScnRenderContext & RenderContext )
+void ScnDebugRenderComponent::render( ScnRenderContext& RenderContext )
 {
 	// Upload.
 	BcU32 VertexDataSize = VertexIndex_ * sizeof( ScnDebugRenderComponentVertex );

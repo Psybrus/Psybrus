@@ -70,7 +70,7 @@ void ScnRenderableProcessor::destroyViewRenderData( class ScnComponent* Componen
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnRenderableProcessor::render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext & RenderContext )
+void ScnRenderableProcessor::render( const ScnViewComponentRenderData* ComponentRenderDatas, BcU32 NoofComponents, class ScnRenderContext& RenderContext )
 {
 	for( BcU32 Idx = 0; Idx< NoofComponents; ++Idx )
 	{
@@ -175,7 +175,7 @@ void ScnRenderableComponent::destroyViewRenderData( class ScnViewComponent* View
 //////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void ScnRenderableComponent::render( ScnRenderContext & RenderContext )
+void ScnRenderableComponent::render( ScnRenderContext& RenderContext )
 {
 	
 }

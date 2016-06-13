@@ -73,7 +73,7 @@ public:
 
 	MaAABB getAABB() const override;
 
-	void render( ScnRenderContext & RenderContext ) override;
+	void render( ScnRenderContext& RenderContext ) override;
 	class ScnViewRenderData* createViewRenderData( class ScnViewComponent* View ) override;
 	void onAttach( ScnEntityWeakRef Parent ) override;
 	void onDetach( ScnEntityWeakRef Parent ) override;
