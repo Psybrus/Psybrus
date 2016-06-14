@@ -4,7 +4,12 @@
 // Generated header.
 #include <UniformLight.psh>
 
+#define USE_SPECULAR_BLINN_PHONG ( 0 )
+#define USE_SPECULAR_GGX ( 1 )
+#define USE_DIFFUSE_LAMBERT ( 1 )
+
 #define LIGHTING_EPSILON  ( 1e-6 )
+#define DIELECTRIC_F0 ( 0.04 )
 
 //////////////////////////////////////////////////////////////////////////
 // Light
@@ -20,7 +25,6 @@ struct Light
 struct Material
 {
 	float3 Colour_;
-	float Specular_;
 	float Roughness_;
 	float Metallic_;
 };
@@ -124,31 +128,37 @@ float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPositi
 	float Roughness = InMaterial.Roughness_;
 
 	// Calculate reflectance.
-	float3 SpecularReflectance = lerp( float3( InMaterial.Specular_, InMaterial.Specular_, InMaterial.Specular_ ), InMaterial.Colour_, InMaterial.Metallic_ ); 
+	//float3 BaseF0 = float3( InMaterial.Specular_, InMaterial.Specular_, InMaterial.Specular_ );
+	float3 BaseF0 = float3( DIELECTRIC_F0, DIELECTRIC_F0, DIELECTRIC_F0 );
+	float3 F0 = lerp( BaseF0, InMaterial.Colour_, InMaterial.Metallic_ ); 
 
 	// Calculate terms for spec + diffuse.
-#if 1
+#if USE_SPECULAR_BLINN_PHONG
 	float D = NDF_BlinnPhongNormalised( NdotH, RoughnessToSpecularPower( Roughness ) );
 	float G = GeometryVisibility_CookTorrence( NdotL, NdotV, NdotH, VdotH );
-#else
+	float3 Fspec = Fresnel_SchlickApproximation( F0, LdotH );
+	float3 SpecularColour = CookTorrence( D, Fspec, G, NdotL, NdotV );
+#elif USE_SPECULAR_GGX
 	float D = NDF_GGX( NdotH, Roughness );
 	float G = GeometryVisibility_SmithGGXApprox( LdotH, Roughness );
+	float3 Fspec = Fresnel_SchlickApproximation( F0, LdotH );
+	float3 SpecularColour = D * Fspec *  G * NdotL;
 #endif
-	float3 Fspec = Fresnel_SchlickApproximation( SpecularReflectance, LdotH );
-
-	// Specular.
-	float3 Specular = CookTorrence( D, Fspec, G, NdotL, NdotV );
 
 	// Diffuse
+#if USE_DIFFUSE_LAMBERT
 	float DiffuseScalar = max( NdotL, 0.0 );
-	float3 Diffuse = float3( DiffuseScalar, DiffuseScalar, DiffuseScalar ) - Specular;
-	Diffuse = max( float3( 0.0, 0.0, 0.0 ), Diffuse * ( float3( 1.0, 1.0, 1.0 ) - float3( InMaterial.Metallic_, InMaterial.Metallic_, InMaterial.Metallic_ ) ) );
+	float3 DiffuseColour = float3( DiffuseScalar, DiffuseScalar, DiffuseScalar ) - SpecularColour;
+	DiffuseColour = max( float3( 0.0, 0.0, 0.0 ), DiffuseColour * ( float3( 1.0, 1.0, 1.0 ) - float3( InMaterial.Metallic_, InMaterial.Metallic_, InMaterial.Metallic_ ) ) );
+	DiffuseColour *= InMaterial.Colour_ / PI;
+#endif
 
-	// Specular colour.
-	float3 SpecularColour = Specular + ( ReflectionColour * InMaterial.Colour_ ) * InMaterial.Metallic_;
+	// Reflection. TODO: Factor out of here?
+	float GrazingTerm = clamp( ( 1.0 - Roughness ) + InMaterial.Metallic_, 0.0, 1.0 );
+	SpecularColour += ReflectionColour * lerp( InMaterial.Colour_, float3( GrazingTerm, GrazingTerm, GrazingTerm ), Pow5( 1.0 - NdotV ) );
 
 	// Total colour.
-	float3 Total = ( Diffuse * ( InMaterial.Colour_ / PI ) ) + SpecularColour;
+	float3 Total = DiffuseColour + SpecularColour;
 
 	// Punctual light source.
 	return Total * InLight.Colour_ * NdotL;

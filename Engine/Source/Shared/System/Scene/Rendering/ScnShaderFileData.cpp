@@ -97,9 +97,9 @@ void ScnShaderMaterialUniformBlockData::StaticRegisterClass()
 	{
 		new ReField( "MaterialBaseColour_", &ScnShaderMaterialUniformBlockData::MaterialBaseColour_ ),
 		new ReField( "MaterialMetallic_", &ScnShaderMaterialUniformBlockData::MaterialMetallic_ ),
-		new ReField( "MaterialSpecular_", &ScnShaderMaterialUniformBlockData::MaterialSpecular_ ),
 		new ReField( "MaterialRoughness_", &ScnShaderMaterialUniformBlockData::MaterialRoughness_ ),
-		new ReField( "MaterialUnused_", &ScnShaderMaterialUniformBlockData::MaterialUnused_ ),
+		new ReField( "MaterialUnused0_", &ScnShaderMaterialUniformBlockData::MaterialUnused0_ ),
+		new ReField( "MaterialUnused1_", &ScnShaderMaterialUniformBlockData::MaterialUnused1_ ),
 	};
 		
 	auto& Class = ReRegisterClass< ScnShaderMaterialUniformBlockData >( Fields );

@@ -210,9 +210,9 @@ struct ScnShaderMaterialUniformBlockData
 
 	MaVec4d MaterialBaseColour_ = MaVec4d( 1.0f, 1.0f, 1.0f, 1.0f );
 	BcF32 MaterialMetallic_ = 1.0f;
-	BcF32 MaterialSpecular_ = 1.0f;
 	BcF32 MaterialRoughness_ = 1.0f;
-	BcF32 MaterialUnused_ = 0.0f;
+	BcF32 MaterialUnused0_ = 0.0f;
+	BcF32 MaterialUnused1_ = 0.0f;
 };
 
 //////////////////////////////////////////////////////////////////////////
