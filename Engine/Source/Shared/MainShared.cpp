@@ -393,17 +393,16 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			
 
 			OsClient* Client = OsCore::pImpl()->getClient( 0 );
-			MaVec2d WindowPos = MaVec2d( Client->getWidth() - 300.0f, 10.0f );
 			static bool ShowOpened = true;
-			ImGui::SetNextWindowPos( WindowPos );
-			ImGui::SetNextWindowSize( MaVec2d( 300.0f, 400.0f ) );
-			if ( ImGui::Begin( "Engine Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+			if ( ImGui::Begin( "Engine Stats", &ShowOpened, ImVec2( 300.0f, 400.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
 				ImGui::Text( "Build: %s-%s-%s", 
 					BUILD_ACTION,
 					BUILD_TOOLCHAIN,
 					BUILD_CONFIG );
+				ImGui::Text( "Version: %s", 
+					BUILD_VERSION );
 				ImGui::Text( "Date/Time: %s %s", 
 					BUILD_DATE,
 					BUILD_TIME );
