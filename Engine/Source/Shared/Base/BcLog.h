@@ -44,17 +44,12 @@ public:
 	/**
 	 * Set category suppression.
 	 */
-	virtual void setCategorySuppression( const std::string& Category, BcBool IsSuppressed ) = 0;
+	virtual void setCategorySuppression( const BcName Category, BcBool IsSuppressed ) = 0;
 
 	/**
 	 * Get category suppression.
 	 */
-	virtual BcBool getCategorySuppression( const std::string& Category ) const = 0;
-
-	/*
-	 * Get log data
-	 */
-	virtual std::vector<std::string> getLogData() = 0;
+	virtual BcBool getCategorySuppression( const BcName Category ) const = 0;
 
 protected:
 	friend class BcLogScopedCategory;
@@ -74,12 +69,12 @@ protected:
 	/**
 	 * Set category.
 	 */
-	virtual void setCategory( const std::string& Category ) = 0;
+	virtual void setCategory( const BcName Category ) = 0;
 
 	/**
 	 * Get category.
 	 */
-	virtual std::string getCategory() = 0;
+	virtual BcName getCategory() = 0;
 
 	/**
 	 * Increase indent.
@@ -101,7 +96,7 @@ struct BcLogEntry
 {
 	BcF64 Time_;
 	BcThreadId ThreadId_;
-	std::string Category_;
+	BcName Category_;
 	int Indent_;
 	std::string Text_;
 };
@@ -115,6 +110,7 @@ class BcLogListener
 {
 public:
 	BcLogListener();
+	BcLogListener( const BcLogListener& Other );
 	virtual ~BcLogListener();
 
 	/**
@@ -130,11 +126,11 @@ public:
 class BcLogScopedCategory
 {
 public:
-	BcLogScopedCategory( const std::string& Category );
+	BcLogScopedCategory( const BcName Category );
 	~BcLogScopedCategory();
 
 private:
-	std::string OldCategory_;
+	BcName OldCategory_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,7 +148,8 @@ public:
 // Macros
 #if !PSY_PRODUCTION
 #  define PSY_LOGSCOPEDCATEGORY( _NAME ) \
-	BcLogScopedCategory _LogScopedCategory_##__LINE__( std::string( _NAME ) );
+	static const BcName LOG_CATEGORY_##_NAME( #_NAME ); \
+	BcLogScopedCategory _LogScopedCategory_##__LINE__( LOG_CATEGORY_##_NAME );
 
 #  define PSY_LOGSCOPEDINDENT \
 	BcLogScopedIndent _LogScopedIndent_##__LINE__;

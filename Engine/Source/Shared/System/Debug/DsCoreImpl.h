@@ -21,15 +21,21 @@
 */
 struct DsPanelDefinition
 {
-	DsPanelDefinition( std::string Name, std::function< void( BcU32 ) > Func, BcU32 Handle ) :
+	DsPanelDefinition( const char* Category, const char* Name, const char* Shortcut, std::function< void( BcU32 ) > Func, BcU32 Handle ) :
+		Category_( Category ),
 		Name_( Name ),
+		Shortcut_( Shortcut ? Shortcut : "" ),
 		Function_( Func ),
-		Handle_( Handle )
+		Handle_( Handle ),
+		IsVisible_( false )
 	{}
 
+	std::string Category_;
 	std::string Name_;
+	std::string Shortcut_;
 	std::function< void( BcU32 ) > Function_;
 	BcU32 Handle_;
+	bool IsVisible_;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,7 +105,8 @@ public:
 	void update() override;
 	void close() override;
 
-	BcU32 registerPanel( std::string Name, std::function < void( BcU32 )> Func ) override;
+	BcU32 registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function< void( BcU32 )> Func ) override;
+
 	void deregisterPanel( BcU32 Handle ) override;
 	void drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void( DsParameters, BcHtmlNode&, std::string )> fn, std::string display ) override;
@@ -160,12 +167,17 @@ private:
 #endif // USE_WEBBY
 
 protected:
-	bool DrawPanels_;
+	bool DrawMenu_ = false;
 	std::vector< DsPanelDefinition > PanelFunctions_;
 	std::vector< DsPageDefinition > PageFunctions_;
 	std::vector< DsFunctionDefinition > ButtonFunctions_;
 	BcU32 NextHandle_;
 
+	int CtrlModifier_ = 0;
+	int AltModifier_ = 0;
+	int ShiftModifier_ = 0;
+
+	std::unordered_map< BcU32, std::string > ShortcutLookup_;
 };
 
 

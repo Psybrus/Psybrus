@@ -247,7 +247,7 @@ BcBool CsPackageLoader::requestChunk( BcU32 ResourceIdx, BcU32 ResourceChunkIdx,
 // onHeaderLoaded
 void CsPackageLoader::onHeaderLoaded( void* pData, BcSize Size )
 {
-	PSY_LOGSCOPEDCATEGORY( "CsPackageLoader" );
+	PSY_LOGSCOPEDCATEGORY( CsPackageLoader );
 
 	// Check we have the right data.
 	BcAssert( pData == &Header_ );

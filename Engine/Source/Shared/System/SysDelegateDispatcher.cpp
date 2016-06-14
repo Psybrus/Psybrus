@@ -40,7 +40,7 @@ void SysDelegateDispatcher::enqueueDelegateCall( const std::function< void() >& 
 // dispatch
 void SysDelegateDispatcher::dispatch()
 {
-	PSY_LOGSCOPEDCATEGORY( "SysDelegateDispatcher" );
+	PSY_LOGSCOPEDCATEGORY( SysDelegateDispatcher );
 
 	// Grab list of delegate calls.
 	DelegateCallListLock_.lock();

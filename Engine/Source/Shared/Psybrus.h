@@ -44,7 +44,7 @@ enum PsySetupFlags
 	psySF_DEFAULT_SYSTEMS					= psySF_RENDER | psySF_SOUND,
 	psySF_GAME_FINAL						= psySF_DEFAULT_SYSTEMS | psySF_WINDOW,
 	psySF_GAME_DEV							= psySF_GAME | psySF_GAME_FINAL | psySF_REMOTE,
-	psySF_SERVER							= psySF_GAME | psySF_CONSOLE | psySF_REMOTE | psySF_DEFAULT_SYSTEMS,
+	psySF_SERVER							= psySF_GAME | psySF_CONSOLE | psySF_REMOTE | psySF_RENDER,
 	psySF_IMPORTER							= psySF_TOOL | psySF_CONSOLE,
 };
 

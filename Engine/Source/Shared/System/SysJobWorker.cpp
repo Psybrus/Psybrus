@@ -109,7 +109,7 @@ void SysJobWorker::debugLog()
 //virtual
 void SysJobWorker::execute()
 {
-	PSY_LOGSCOPEDCATEGORY( "Worker" );
+	PSY_LOGSCOPEDCATEGORY( Worker );
 
 	// Set name in profiler.
 #if PSY_USE_PROFILER

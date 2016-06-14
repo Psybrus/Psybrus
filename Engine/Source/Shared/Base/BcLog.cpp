@@ -24,6 +24,16 @@ BcLogListener::BcLogListener()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+BcLogListener::BcLogListener( const BcLogListener& Other )
+{
+	if( BcLog::pImpl() )
+	{
+		BcLog::pImpl()->registerListener( this );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 BcLogListener::~BcLogListener()
@@ -37,7 +47,7 @@ BcLogListener::~BcLogListener()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-BcLogScopedCategory::BcLogScopedCategory( const std::string& Category )
+BcLogScopedCategory::BcLogScopedCategory( const BcName Category )
 {
 	if( BcLog::pImpl() )
 	{

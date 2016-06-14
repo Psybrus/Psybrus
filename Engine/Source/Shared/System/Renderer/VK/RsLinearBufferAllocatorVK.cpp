@@ -96,7 +96,7 @@ RsBufferAllocationVK RsLinearBufferAllocatorVK::allocate( BcU64 Size, BcU64 Alig
 void RsLinearBufferAllocatorVK::reset()
 {
 	BcAssert( OwningThread_ == BcCurrentThreadId() );
-	PSY_LOGSCOPEDCATEGORY( "RsLinearBufferAllocatorVK" );
+	PSY_LOGSCOPEDCATEGORY( RsLinearBufferAllocatorVK );
 
 	BcU64 TotalUsage = 0;
 	BcU64 TotalSize = 0;

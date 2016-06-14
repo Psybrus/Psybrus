@@ -55,6 +55,29 @@ public:
 	virtual ~NsSession();
 
 	/**
+	 * Get number of remote sessions.
+	 */
+	virtual BcU32 getNoofRemoteSessions() const = 0;
+
+	/**
+	 * Get GUID of remote session by index.
+	 */
+	virtual NsGUID getRemoteGUIDByIndex( BcU32 Index ) = 0;
+
+	/**
+	 * Send to specific remote session.
+	 * @param RemoteGUID GUID of remote session to send to.
+	 * @param Channel Channel to send on. Messages ordered by channel.
+	 * @param Data Pointer to data. Only needs to be valid for call.
+	 * @param DataSize Data size.
+	 * @param Priority Priority to send message. See NsPriority.
+	 * @param Reliability Reliability to send with. See NsReliability.
+	 */
+	virtual void send( 
+		NsGUID RemoteGUID, BcU8 Channel, const void* Data, size_t DataSize, 
+		NsPriority Priority, NsReliability Reliability ) = 0;
+
+	/**
 	 * Broadcast to all players.
 	 * @param Channel Channel to send on. Messages ordered by channel.
 	 * @param Data Pointer to data. Only needs to be valid for call.
@@ -77,5 +100,4 @@ public:
 	 * @return Successfully deregistered.
 	 */
 	virtual BcBool deregisterMessageHandler( BcU8 Channel, NsSessionMessageHandler* Handler ) = 0;
-
 };

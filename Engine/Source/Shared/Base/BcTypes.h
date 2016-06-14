@@ -384,4 +384,13 @@ namespace CompilerUtility
 	std::string Demangle( const char* Name );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Symbol exporting.
+#if PLATFORM_WINDOWS
+#define PSY_EXPORT __declspec(dllexport)
+#else
+#define PSY_EXPORT
+#endif
+
+
 #endif // include_guard

@@ -268,7 +268,7 @@ void RsContextD3D12::takeScreenshot( RsScreenshotFunc ScreenshotFunc )
 // create
 void RsContextD3D12::create()
 {
-	PSY_LOGSCOPEDCATEGORY( "RsContextD3D12" );
+	PSY_LOGSCOPEDCATEGORY( RsContext );
 	OsClientWindows* Client = dynamic_cast< OsClientWindows* >( Client_ );
 	BcAssertMsg( Client != nullptr, "Windows client is not being used!" );
 	HRESULT RetVal = E_FAIL;

@@ -114,11 +114,17 @@ OsClientSDL::~OsClientSDL()
 // create
 BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible )
 {
+	BcU32 Flags = SDL_WINDOW_OPENGL;
+	if( Visible )
+	{
+		Flags |= SDL_WINDOW_SHOWN;
+	}
+
 	SDLWindow_ = SDL_CreateWindow( 
 		pTitle,
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		Width, Height, 
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+		Flags );
 	if ( SDLWindow_ == nullptr )
 	{
 		return BcFalse;
@@ -258,7 +264,14 @@ void OsClientSDL::handleKeyEvent( const SDL_Event& SDLEvent )
 {
 	OsEventInputKeyboard Event;
 	Event.DeviceID_ = 0;
-	Event.KeyCode_ = SDLEvent.key.keysym.sym;
+	if( SDLEvent.key.keysym.sym >= 'a' && SDLEvent.key.keysym.sym <= 'z' )
+	{
+		Event.KeyCode_ = ::toupper( SDLEvent.key.keysym.sym );
+	}
+	else
+	{
+		Event.KeyCode_ = SDLEvent.key.keysym.sym;
+	}
 	Event.ScanCode_ = SDLEvent.key.keysym.scancode;
 	Event.AsciiCode_ = SDLEvent.key.keysym.sym; // TODO.
 

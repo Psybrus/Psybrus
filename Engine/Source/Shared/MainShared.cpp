@@ -136,7 +136,7 @@ namespace ScreenshotUtil
 #endif
 		const BcU32 W = OsCore::pImpl()->getClient( 0 )->getWidth();
 		const BcU32 H = OsCore::pImpl()->getClient( 0 )->getHeight();
-		GifBegin( &Writer, FileName, W, H, 1, 8, false );
+		GifBegin( &Writer, FileName, W / 2, H / 2, 1, 8, false );
 
 		// Mark capturing.
 		ScreenCapturing = BcTrue;
@@ -154,14 +154,16 @@ namespace ScreenshotUtil
 					ImgImage* Image = new ImgImage();
 					Image->create( W, H, nullptr );
 					Image->setPixels( reinterpret_cast< ImgColour* >( Screenshot.Data_ ) );
+
 					++TotalFramesRemaining;
 					SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
 						[ W, H, IsScreenCapturing, Image ]()->void
 						{
+							auto HalfImage = Image->resize( W / 2, H / 2, 1.0f );
 							GifWriteFrame(
 								&Writer,
-								reinterpret_cast< const uint8_t* >( Image->getImageData() ), 
-								W, H, 0, 8, false );
+								reinterpret_cast< const uint8_t* >( HalfImage->getImageData() ), 
+								W / 2, H / 2, 0, 8, false );
 							if( IsScreenCapturing == BcFalse )
 							{
 								GifEnd( &Writer );
@@ -232,8 +234,95 @@ eEvtReturn onCsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 // onDsCoreOpened
 eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 {
+	struct EngineLog :
+		public BcLogListener
+	{
+		EngineLog()
+		{
+		}
+
+		EngineLog( const EngineLog& )
+		{
+		}
+
+		void operator()( BcU32 Handle )
+		{
+			ImGui::SetNextWindowSize( ImVec2( 500, 400 ), ImGuiSetCond_FirstUseEver );
+			if( ImGui::Begin( "Log" ) )
+			{
+				if( ImGui::Button( "Clear" ) )
+				{
+					Buf_.clear(); 
+					LineOffsets_.clear(); 
+				}
+				ImGui::SameLine();
+				bool Copy = ImGui::Button( "Copy" );
+				ImGui::SameLine();
+				Filter_.Draw( "Filter", -100.0f );
+				ImGui::Separator();
+				ImGui::BeginChild( "scrolling" );
+				ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0, 1 ) );
+				if( Copy )
+				{
+					ImGui::LogToClipboard();
+				}
+
+				if( Filter_.IsActive() )
+				{
+					const char* BufBegin = Buf_.begin();
+					const char* Line = BufBegin;
+					for( int LineNo = 0; Line != NULL; LineNo++ )
+					{
+						const char* LineEnd = (LineNo < LineOffsets_.Size ) ? BufBegin + LineOffsets_[ LineNo ] : NULL;
+						if( Filter_.PassFilter( Line, LineEnd ) )
+						{
+							ImGui::TextUnformatted( Line, LineEnd );
+						}
+						Line = LineEnd && LineEnd[1] ? LineEnd + 1 : NULL;
+					}
+				}
+				else
+				{
+					ImGui::TextUnformatted( Buf_.begin() );
+				}
+
+				if( ScrollToBottom_ )
+				{
+					ImGui::SetScrollHere(1.0f);
+				}
+				ScrollToBottom_ = false;
+				ImGui::PopStyleVar();
+				ImGui::EndChild();
+			}
+			ImGui::End();		
+		}
+
+		void onLog( const BcLogEntry& Entry ) override
+		{
+			int OldSize = Buf_.size();
+			Buf_.append( "%s\n", Entry.Text_.c_str() );
+
+			for( int NewSize = Buf_.size(); OldSize < NewSize; OldSize++ )
+			{
+				if( Buf_[ OldSize ] == '\n' )
+				{
+					LineOffsets_.push_back( OldSize );
+				}
+			}
+			ScrollToBottom_ = true;
+		}
+		
+		ImGuiTextBuffer Buf_;
+		ImGuiTextFilter Filter_;
+		ImVector<int> LineOffsets_;        // Index to lines offset
+		bool ScrollToBottom_ = false;
+	};
+
 	DsCore::pImpl()->registerPanel( 
-		"Engine", []( BcU32 )->void
+		"Engine", "Log", "Ctrl+Alt+L", EngineLog() );
+
+	DsCore::pImpl()->registerPanel( 
+		"Engine", "Stat Overlay", "Ctrl+Alt+S", []( BcU32 )->void
 		{
 			static BcF32 GameTimeTotal = 0.0f;
 			static BcF32 RenderTimeTotal = 0.0f;
@@ -308,7 +397,7 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			static bool ShowOpened = true;
 			ImGui::SetNextWindowPos( WindowPos );
 			ImGui::SetNextWindowSize( MaVec2d( 300.0f, 400.0f ) );
-			if ( ImGui::Begin( "Engine", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
+			if ( ImGui::Begin( "Engine Stats", &ShowOpened, ImVec2( 0.0f, 0.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{
 				ImGui::Text( "Build: %s-%s-%s", 
@@ -431,8 +520,8 @@ void MainShared()
 	bool Success = true;
 	while( !FoundRoot && Success )
 	{
-		// Check for PackedContent
-		if( BcFileSystemExists( "PackedContent" ) )
+		// Check for Content or PackedContent.
+		if( BcFileSystemExists( "Content" ) || BcFileSystemExists( "PackedContent" ) )
 		{
 			FoundRoot = true;
 		}
@@ -464,6 +553,13 @@ void MainShared()
 	if( GCommandLine_.hasArg( '\0', "nosound" ) )
 	{
 		GPsySetupParams.Flags_ &= ~psySF_SOUND;
+	}
+
+	// Check if running as a server.
+	const bool IsServer = GCommandLine_.hasArg( '\0', "server" );
+	if( IsServer )
+	{
+		GPsySetupParams.Flags_ = psySF_SERVER;		
 	}
 	
 	// Start debug system if not a production build.

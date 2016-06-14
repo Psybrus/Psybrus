@@ -112,7 +112,6 @@ public:
 
 	void debugDraw( btIDebugDraw* debugDrawer ) override
 	{
-
 	}
 
 private:
@@ -358,8 +357,9 @@ void ScnPhysicsWorldComponent::registerWorldUpdateHandler( ScnIPhysicsWorldUpdat
 // deregisterWorldUpdateHandler
 void ScnPhysicsWorldComponent::deregisterWorldUpdateHandler( ScnIPhysicsWorldUpdate* Handler )
 {
-	std::remove( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler );
-	BcAssert( std::find( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler ) == WorldUpdateHandler_.end() );
+	auto It = std::find( WorldUpdateHandler_.begin(), WorldUpdateHandler_.end(), Handler );
+	BcAssert( It != WorldUpdateHandler_.end() );
+	WorldUpdateHandler_.erase( It );	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -454,7 +454,27 @@ void ScnPhysicsWorldComponent::simulate( const ScnComponentList& Components )
 			WorldComponent->InvFrameRate_ );
 
 		// Resolve collisions?
+#if !PSY_PRODUCTION
+		if ( ImGui::Begin( "Engine Debug" ) )
+		{
+			if( ImGui::TreeNode( "ScnPhysicsWorldComponent" ) )
+			{
+				ImGui::LabelText( "%s", WorldComponent->getFullName().c_str() );
+
+				bool DebugDraw = !!WorldComponent->DebugDrawWorld_;
+				if( ImGui::Checkbox( "Debug draw", &DebugDraw ) )
+				{
+					WorldComponent->DebugDrawWorld_ = DebugDraw ? BcTrue : BcFalse;
+				}
+			
+				ImGui::Separator();
+				ImGui::TreePop();
+			}
+		}
+		ImGui::End();
+#endif
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////

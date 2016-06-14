@@ -16,6 +16,10 @@
 
 #include "System/Os/OsCore.h"
 
+#include "System/Os/OsInputDeviceKeyboard.h"
+#include "System/Os/OsInputDeviceMouse.h"
+#include "System/Os/OsInputDeviceXInputWindows.h"
+
 //////////////////////////////////////////////////////////////////////////
 // OsCoreImplWindows
 class OsCoreImplWindows:
@@ -34,6 +38,11 @@ private:
 	OsEventCore				EventCore_;
 	OsEventInputKeyboard	EventInputKeyboard_;
 	OsEventInputMouse		EventInputMouse_;
+
+	std::unique_ptr< OsInputDeviceKeyboard > InputKeyboard_;
+	std::unique_ptr< OsInputDeviceMouse > InputMouse_;
+
+	std::array< std::unique_ptr< OsInputDeviceXInputWindows >, 4 > InputXInput_;
 };
 
 #endif

@@ -9,6 +9,8 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 			"./glslang/glslang/MachineIndependent/**.cpp",
 			"./glslang/glslang/MachineIndependent/glslang_tab.cpp",
 			"./glslang/glslang/MachineIndependent/glslang_tab.cpp.h",
+			"./glslang/hlsl/**.h",
+			"./glslang/hlsl/**.cpp",
 			"./glslang/OGLCompilersDLL/**.h",
 			"./glslang/OGLCompilersDLL/**.cpp",
 			"./glslang/glslang/Include/**.h",
@@ -32,15 +34,15 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 			"./glslang/glslang/OSDependent/Windows",
 		}
 
-		glslangPath = "..\\..\\Psybrus\\External\\glslang\\glslang\\MachineIndependent"
-		glslangBisonPath = "..\\..\\Psybrus\\External\\glslang\\Tools\\bison.exe"
-		prebuildcommands {
-			"@echo Generating glslang_tab.cpp + glslang_tab.cpp.h",
-			glslangBisonPath .. 
-				" --defines=" .. glslangPath .. "\\glslang_tab.cpp.h" .. 
-				" -t " .. glslangPath .. "\\glslang.y" .. 
-				" -o " .. glslangPath .. "\\glslang_tab.cpp"
-			}
+		--glslangPath = "..\\..\\Psybrus\\External\\glslang\\glslang\\MachineIndependent"
+		--glslangBisonPath = "..\\..\\Psybrus\\External\\glslang\\Tools\\bison.exe"
+		--prebuildcommands {
+		--	"@echo Generating glslang_tab.cpp + glslang_tab.cpp.h",
+		--	glslangBisonPath .. 
+		--		" --defines=" .. glslangPath .. "\\glslang_tab.cpp.h" .. 
+		--		" -t " .. glslangPath .. "\\glslang.y" .. 
+		--		" -o " .. glslangPath .. "\\glslang_tab.cpp"
+		--	}
 
 	configuration "linux-* or osx-*"
 		files { 
@@ -53,14 +55,14 @@ if PsyProjectExternalLib( "glslang", "C++11" ) then
 			"./glslang/glslang/OSDependent/Unix",
 		}
 
-		glslangPath = "../../Psybrus/External/glslang/glslang/MachineIndependent"
-		glslangBisonPath = "bison"
-		prebuildcommands {
-			"@echo Generating Generating glslang_tab.cpp + glslang_tab.cpp.h",
-			glslangBisonPath .. 
-				" --defines=" .. glslangPath .. "/glslang_tab.cpp.h" .. 
-				" -t " .. glslangPath .. "/glslang.y" .. 
-				" -o " .. glslangPath .. "/glslang_tab.cpp"
-		}
+		--glslangPath = "../../Psybrus/External/glslang/glslang/MachineIndependent"
+		--glslangBisonPath = "bison"
+		--prebuildcommands {
+		--	"@echo Generating Generating glslang_tab.cpp + glslang_tab.cpp.h",
+		--	glslangBisonPath .. 
+		--		" --defines=" .. glslangPath .. "/glslang_tab.cpp.h" .. 
+		--		" -t " .. glslangPath .. "/glslang.y" .. 
+		--		" -o " .. glslangPath .. "/glslang_tab.cpp"
+		--}
 
 end

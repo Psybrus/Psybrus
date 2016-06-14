@@ -30,10 +30,12 @@ public:
 	virtual ~ScnPhysicsRigidBodyComponent();
 
 	void applyTorque( const MaVec3d& Torque );
+	void applyLocalTorque( const MaVec3d& Torque );
 	void applyForce( const MaVec3d& Force, const MaVec3d& RelativePos );
 	void applyCentralForce( const MaVec3d& Force );
 
 	void applyTorqueImpulse( const MaVec3d& Torque );
+	void applyLocalTorqueImpulse( const MaVec3d& Torque );
 	void applyImpulse( const MaVec3d& Impulse, const MaVec3d& RelativePos );
 	void applyCentralImpulse( const MaVec3d& Impulse );
 
@@ -41,6 +43,8 @@ public:
 	MaVec3d getLinearVelocity() const;
 	void setAngularVelocity( const MaVec3d& Velocity );
 	MaVec3d getAngularVelocity() const;
+
+	MaVec3d getVelocityInLocalPoint( const MaVec3d& LocalPoint );
 
 	void setMass( BcF32 Mass );
 	BcF32 getMass() const;

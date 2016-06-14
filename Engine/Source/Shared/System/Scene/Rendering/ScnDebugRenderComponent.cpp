@@ -57,7 +57,6 @@ ScnDebugRenderComponent* ScnDebugRenderComponent::pImpl_ = NULL;
 //static
 ScnDebugRenderComponent* ScnDebugRenderComponent::pImpl()
 {
-	BcAssert( pImpl_ != NULL );
 	return pImpl_;
 }
 

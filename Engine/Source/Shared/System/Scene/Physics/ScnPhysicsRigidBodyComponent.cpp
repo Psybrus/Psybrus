@@ -81,6 +81,15 @@ void ScnPhysicsRigidBodyComponent::applyTorque( const MaVec3d& Torque )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// applyLocalTorque
+void ScnPhysicsRigidBodyComponent::applyLocalTorque( const MaVec3d& Torque )
+{
+	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
+	RigidBody_->applyTorque( RigidBody_->getInvInertiaTensorWorld().inverse() * RigidBody_->getWorldTransform().getBasis() * ScnPhysicsToBullet( Torque ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // applyForce
 void ScnPhysicsRigidBodyComponent::applyForce( const MaVec3d& Force, const MaVec3d& RelativePos )
 {
@@ -105,6 +114,15 @@ void ScnPhysicsRigidBodyComponent::applyTorqueImpulse( const MaVec3d& Torque )
 	BcAssert( RigidBody_ != nullptr );	
 	RigidBody_->activate();
 	RigidBody_->applyTorqueImpulse( ScnPhysicsToBullet( Torque ) );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// applyLocalTorqueImpulse
+void ScnPhysicsRigidBodyComponent::applyLocalTorqueImpulse( const MaVec3d& Torque )
+{
+	BcAssert( RigidBody_ != nullptr );	
+	RigidBody_->activate();
+	RigidBody_->applyTorqueImpulse( RigidBody_->getInvInertiaTensorWorld().inverse() * RigidBody_->getWorldTransform().getBasis() * ScnPhysicsToBullet( Torque ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -157,6 +175,13 @@ MaVec3d ScnPhysicsRigidBodyComponent::getAngularVelocity() const
 {
 	BcAssert( RigidBody_ != nullptr );	
 	return ScnPhysicsFromBullet( RigidBody_->getAngularVelocity() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getVelocityInLocalPoint
+MaVec3d ScnPhysicsRigidBodyComponent::getVelocityInLocalPoint( const MaVec3d& LocalPoint )
+{
+	return ScnPhysicsFromBullet( RigidBody_->getVelocityInLocalPoint( ScnPhysicsToBullet( LocalPoint ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

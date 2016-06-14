@@ -141,7 +141,7 @@ BcBool CsSerialiserPackageObjectCodec::isMatchingField(
 
 	// Case insensitive compare.
 	// Not UTF-8 safe. We shouldn't need to worry as input names should be ASCII (should later perform checks for this).
-	return BcStrCompare( FieldName.c_str(), Name.c_str() );
+	return BcStrCompareCaseInsensitive( FieldName.c_str(), Name.c_str() );
 }
 
 //virtual

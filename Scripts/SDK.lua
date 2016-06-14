@@ -21,6 +21,7 @@ end
 			"winmm",
 			"ws2_32",
 			"IPHlpApi",
+			"xinput"
 		}
 
 	configuration "winphone-*"

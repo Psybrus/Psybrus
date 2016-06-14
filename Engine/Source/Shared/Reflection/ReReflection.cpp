@@ -386,7 +386,7 @@ void ReCopyClass( void* DstObject, void* SrcObject, const ReClass* InClass )
 	BcAssert( SrcObject != nullptr );
 	BcAssert( InClass != nullptr );
 
-	PSY_LOGSCOPEDCATEGORY( "Reflection" );
+	PSY_LOGSCOPEDCATEGORY( Reflection );
 	PSY_LOG( "ReCopyClass: \"%s\"", (*InClass->getName()).c_str() );
 	PSY_LOGSCOPEDINDENT;
 
@@ -412,7 +412,7 @@ ReObject* ReConstructObject(
 	PSY_PROFILE_FUNCTION;
 	BcAssert( InClass != nullptr );
 
-	PSY_LOGSCOPEDCATEGORY( "Reflection" );
+	PSY_LOGSCOPEDCATEGORY( Reflection );
 	PSY_LOG( "ReConstructObject: \"%s\", name \"%s\", basis \"%s\"", 
 		(*InClass->getName()).c_str(),
 		InName.c_str(),

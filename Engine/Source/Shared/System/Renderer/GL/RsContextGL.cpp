@@ -1414,7 +1414,7 @@ bool RsContextGL::updateTexture(
 		BcU32 Pitch = RsTexturePitch( 
 			TextureDesc.Format_,
 			Width,
-			Height );;
+			Height );
 		RsTextureLock Lock = 
 		{
 			&Data[ 0 ],
