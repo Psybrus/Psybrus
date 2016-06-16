@@ -41,7 +41,7 @@ public:
 
 	void visit( class ScnLightComponent* Component ) override;
 
-	void render( ScnRenderContext & RenderContext ) override;
+	void render( ScnRenderContext& RenderContext ) override;
 	
 protected:
 	void recreateResources();

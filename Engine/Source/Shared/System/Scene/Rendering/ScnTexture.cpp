@@ -142,11 +142,15 @@ ScnTexture::~ScnTexture()
 ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
+	Texture->setName( DebugName );
 	Texture->Texture_ = RsCore::pImpl()->createTexture( Desc, DebugName );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Texture_->getDesc().Width_;
 	Texture->Height_ = Texture->Texture_->getDesc().Height_;
 	Texture->Depth_ = Texture->Texture_->getDesc().Depth_;
+	Texture->InternalWidth_ = Texture->Texture_->getDesc().Width_;
+	Texture->InternalHeight_ = Texture->Texture_->getDesc().Height_;
+	Texture->InternalDepth_ = Texture->Texture_->getDesc().Depth_;
 	Texture->Header_.Width_ = Texture->Width_;
 	Texture->Header_.Height_ = Texture->Height_;
 	Texture->Header_.Depth_ = Texture->Depth_;
@@ -163,7 +167,7 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 //////////////////////////////////////////////////////////////////////////
 // New1D
 //static
-ScnTexture* ScnTexture::New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
+ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -176,7 +180,7 @@ ScnTexture* ScnTexture::New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format
 	Texture->Header_.Levels_ = Levels;
 	Texture->Header_.Type_ = RsTextureType::TEX1D;
 	Texture->Header_.Format_ = Format;
-	Texture->Header_.Editable_ = BcTrue;
+	Texture->Header_.Editable_ = BcFalse;
 	Texture->Header_.RenderTarget_ = BcFalse;
 	Texture->Header_.DepthStencilTarget_ = BcFalse;
 	Texture->markCreate();
@@ -186,7 +190,7 @@ ScnTexture* ScnTexture::New1D( BcU32 Width, BcU32 Levels, RsTextureFormat Format
 //////////////////////////////////////////////////////////////////////////
 // New2D
 //static
-ScnTexture* ScnTexture::New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
+ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -199,9 +203,9 @@ ScnTexture* ScnTexture::New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextur
 	Texture->Header_.Levels_ = Levels;
 	Texture->Header_.Type_ = RsTextureType::TEX2D;
 	Texture->Header_.Format_ = Format;
-	Texture->Header_.Editable_ = BcTrue;
-	Texture->Header_.RenderTarget_ = BcFalse;
-	Texture->Header_.DepthStencilTarget_ = BcFalse;
+	Texture->Header_.Editable_ = BcFalse;
+	Texture->Header_.RenderTarget_ = IsRT ? BcTrue : BcFalse;
+	Texture->Header_.DepthStencilTarget_ = IsDS ? BcTrue : BcFalse;
 	Texture->markCreate();
 	return Texture;
 }
@@ -209,7 +213,7 @@ ScnTexture* ScnTexture::New2D( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextur
 //////////////////////////////////////////////////////////////////////////
 // New3D
 //static
-ScnTexture* ScnTexture::New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
+ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -222,7 +226,7 @@ ScnTexture* ScnTexture::New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Lev
 	Texture->Header_.Levels_ = Levels;
 	Texture->Header_.Type_ = RsTextureType::TEX3D;
 	Texture->Header_.Format_ = Format;
-	Texture->Header_.Editable_ = BcTrue;
+	Texture->Header_.Editable_ = BcFalse;
 	Texture->Header_.RenderTarget_ = BcFalse;
 	Texture->Header_.DepthStencilTarget_ = BcFalse;
 	Texture->markCreate();
@@ -232,7 +236,7 @@ ScnTexture* ScnTexture::New3D( BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Lev
 //////////////////////////////////////////////////////////////////////////
 // NewCube
 //static
-ScnTexture* ScnTexture::NewCube( BcU32 Width, BcU32 Height, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
+ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;

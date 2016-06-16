@@ -136,7 +136,7 @@ MaAABB ScnParticleSystemComponent::getAABB() const
 //////////////////////////////////////////////////////////////////////////
 // render
 //virtual
-void ScnParticleSystemComponent::render( ScnRenderContext & RenderContext )
+void ScnParticleSystemComponent::render( ScnRenderContext& RenderContext )
 {
 	// Calculate lock size.
 	BcU32 NoofParticlesToRender = 0;

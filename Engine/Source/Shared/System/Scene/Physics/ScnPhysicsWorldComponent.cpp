@@ -312,11 +312,11 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 
 //////////////////////////////////////////////////////////////////////////
 // addRigidBody
-void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody )
+void ScnPhysicsWorldComponent::addRigidBody( btRigidBody* RigidBody, BcU16 CollisionGroup, BcU16 CollisionMask )
 {
 	BcAssert( DynamicsWorld_ != nullptr );
 	BcAssert( RigidBody != nullptr );
-	DynamicsWorld_->addRigidBody( RigidBody );
+	DynamicsWorld_->addRigidBody( RigidBody, CollisionGroup, CollisionMask );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -364,11 +364,12 @@ void ScnPhysicsWorldComponent::deregisterWorldUpdateHandler( ScnIPhysicsWorldUpd
 
 //////////////////////////////////////////////////////////////////////////
 // lineCast
-BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, ScnPhysicsLineCastResult* Result )
+BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, BcU16 CollisionMask, ScnPhysicsLineCastResult* Result )
 {
 	btCollisionWorld::ClosestRayResultCallback HitResult( 
 		btVector3( A.x(), A.y(), A.z() ),
 		btVector3( B.x(), B.y(), B.z() ) );
+	HitResult.m_collisionFilterMask = CollisionMask;
 	DynamicsWorld_->rayTest( 
 		btVector3( A.x(), A.y(), A.z() ),
 		btVector3( B.x(), B.y(), B.z() ),
@@ -397,7 +398,7 @@ BcBool ScnPhysicsWorldComponent::lineCast( const MaVec3d& A, const MaVec3d& B, S
 
 //////////////////////////////////////////////////////////////////////////
 // sphereCast
-BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, ScnPhysicsLineCastResult* Result )
+BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B, BcF32 Radius, BcU16 CollisionMask, ScnPhysicsLineCastResult* Result )
 {
 	std::unique_ptr< btConvexShape > Sphere( new btSphereShape( Radius ) );
 
@@ -407,6 +408,7 @@ BcBool ScnPhysicsWorldComponent::sphereCast( const MaVec3d& A, const MaVec3d& B,
 	btCollisionWorld::ClosestConvexResultCallback HitResult( 
 		ScnPhysicsToBullet( A ),
 		ScnPhysicsToBullet( B ) );
+	HitResult.m_collisionFilterMask = CollisionMask;
 	DynamicsWorld_->convexSweepTest( 
 		Sphere.get(),
 		To,

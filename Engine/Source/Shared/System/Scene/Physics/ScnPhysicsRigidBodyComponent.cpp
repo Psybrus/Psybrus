@@ -33,6 +33,8 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Mass_", &ScnPhysicsRigidBodyComponent::Mass_, bcRFF_IMPORTER ),
+		new ReField( "CollisionGroup_", &ScnPhysicsRigidBodyComponent::CollisionGroup_, bcRFF_IMPORTER ),
+		new ReField( "CollisionMask_", &ScnPhysicsRigidBodyComponent::CollisionMask_, bcRFF_IMPORTER ),
 		new ReField( "Friction_", &ScnPhysicsRigidBodyComponent::Friction_, bcRFF_IMPORTER ),
 		new ReField( "RollingFriction_", &ScnPhysicsRigidBodyComponent::RollingFriction_, bcRFF_IMPORTER ),
 		new ReField( "Restitution_", &ScnPhysicsRigidBodyComponent::Restitution_, bcRFF_IMPORTER ),
@@ -275,7 +277,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	ConstructionInfo.m_angularSleepingThreshold = AngularSleepingThreshold_;
 	RigidBody_ = new btRigidBody( ConstructionInfo );
 	RigidBody_->setUserPointer( this );
-	World_->addRigidBody( RigidBody_ );
+	World_->addRigidBody( RigidBody_, CollisionGroup_, CollisionMask_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

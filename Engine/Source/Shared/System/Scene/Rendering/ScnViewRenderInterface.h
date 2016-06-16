@@ -45,5 +45,5 @@ public:
 	/**
 	 * Do render.
 	 */
-	virtual void render( const ScnViewComponentRenderData* ComponentRenderData, BcU32 NoofComponents, class ScnRenderContext & RenderContext ) = 0;
+	virtual void render( const ScnViewComponentRenderData* ComponentRenderData, BcU32 NoofComponents, class ScnRenderContext& RenderContext ) = 0;
 };

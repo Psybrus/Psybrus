@@ -195,7 +195,7 @@ bool BcName::operator != ( const BcName& Other ) const
 // operator <
 bool BcName::operator < ( const BcName& Other ) const
 {
-	return EntryIndex_ < Other.EntryIndex_;
+	return std::make_pair( EntryIndex_, ID_ ) < std::make_pair( Other.EntryIndex_, Other.ID_ );
 }
 
 //////////////////////////////////////////////////////////////////////////

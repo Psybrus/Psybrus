@@ -265,10 +265,21 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 			{
 				PSY_PROFILER_SECTION( RootSort, "Render visible components" );
 
+				// Do pre render.
+				for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
+				{
+					ViewCallback->onViewDrawPreRender( RenderContext );
+				}
+
 				// Iterate over components.
 				for( auto Group : ProcessingGroups_ )
 				{
 					Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
+				}
+
+				for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
+				{
+					ViewCallback->onViewDrawPostRender( RenderContext );
 				}
 			}
 
@@ -540,20 +551,42 @@ ScnViewComponent::ScnViewComponent():
 	Width_( 1.0f ),
 	Height_( 1.0f ),
 	Near_( 0.1f ),
-	Far_( 1000.0f ),
-	HorizontalFOV_( 0.0f ),
+	Far_( 5000.0f ),
+	HorizontalFOV_( BcPI * 0.25f ),
 	VerticalFOV_( 0.0f ),
 	ClearColour_( RsColour( 0.0f, 0.0f, 0.0f, 0.0f ) ),
 	EnableClearColour_( true ),
 	EnableClearDepth_( true ),
 	EnableClearStencil_( true ),
-	RenderMask_( 0 ),
+	RenderMask_( 1 ),
 	RenderPermutation_( ScnShaderPermutationFlags::RENDER_FORWARD ),
 	Passes_( RsRenderSortPassFlags::OPAQUE | RsRenderSortPassFlags::TRANSPARENT ),
 	RenderTarget_(),
 	DepthStencilTarget_( nullptr )
 {
 	ViewUniformBuffer_ = nullptr;
+
+	setRenderMask( 1 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnViewComponent::ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS,
+	BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes ):
+	ScnViewComponent()
+{
+	ViewUniformBuffer_ = nullptr;
+
+	RenderMask_ = RenderMask;
+	RenderPermutation_ = RenderPermutation;
+	Passes_ = Passes;
+	
+	RenderTarget_.resize( NoofRTs );
+	for( size_t Idx = 0; Idx < NoofRTs; ++Idx )
+	{
+		RenderTarget_[ Idx ] = RTs[ Idx ];
+	}
+	DepthStencilTarget_ = DS;
 
 	setRenderMask( 1 );
 }
@@ -570,23 +603,30 @@ ScnViewComponent::~ScnViewComponent()
 //virtual
 void ScnViewComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
-		RsBufferDesc(
-			RsResourceBindFlags::UNIFORM_BUFFER,
-			RsResourceCreationFlags::STREAM,
-			sizeof( ViewUniformBlock_ ) ),
-		getFullName().c_str() );
+	if( !isFlagSet( scnCF_PENDING_DETACH ) )
+	{
+		ViewUniformBuffer_ = RsCore::pImpl()->createBuffer( 
+			RsBufferDesc(
+				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsResourceCreationFlags::STREAM,
+				sizeof( ViewUniformBlock_ ) ),
+			getFullName().c_str() );
 
-	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
-		{
-			recreateFrameBuffer();
-			return evtRET_PASS;
-		} );
+		OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+			[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+			{
+				FrameBuffer_.reset();
+				if( isAttached() )
+				{
+					recreateFrameBuffer();
+				}
+				return evtRET_PASS;
+			} );
 
-	memset( &ViewUniformBlock_, 0, sizeof( ViewUniformBlock_ ) );
+		memset( &ViewUniformBlock_, 0, sizeof( ViewUniformBlock_ ) );
 
-	recreateFrameBuffer();
+		recreateFrameBuffer();
+	}
 	Super::onAttach( Parent );
 }
 
@@ -770,6 +810,45 @@ void ScnViewComponent::setViewResources( RsProgram* Program, RsProgramBindingDes
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setClearParams
+void ScnViewComponent::setClearParams( RsColour Colour, bool ClearColour, bool ClearDepth, bool ClearStencil )
+{
+	ClearColour_ = Colour;
+	EnableClearColour_ = ClearColour;
+	EnableClearDepth_ = ClearDepth;
+	EnableClearStencil_ = ClearStencil;	
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setProjectionParams
+void ScnViewComponent::setProjectionParams( BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV )
+{
+	BcAssert( Near > 0.0f );
+	BcAssert( Near < Far );
+	BcAssert( HorizontalFOV <= 0.0f || VerticalFOV <= 0.0f );
+	Near_ = Near;
+	Far_ = Far;
+	HorizontalFOV_ = HorizontalFOV;
+	VerticalFOV_ = VerticalFOV;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerViewCallback
+void ScnViewComponent::registerViewCallback( ScnViewCallback* ViewCallback )
+{
+	ViewCallbacks_.push_back( ViewCallback );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterViewCallback
+void ScnViewComponent::deregisterViewCallback( ScnViewCallback* ViewCallback )
+{
+	auto It = std::find( ViewCallbacks_.begin(), ViewCallbacks_.end(), ViewCallback );
+	BcAssert( It != ViewCallbacks_.end() );
+	ViewCallbacks_.erase( It );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // setup
 void ScnViewComponent::setup( RsFrame* pFrame, RsRenderSort Sort )
 {
@@ -917,12 +996,14 @@ void ScnViewComponent::recreateFrameBuffer()
 
 	if( AnyValid )
 	{
-		RsFrameBufferDesc FrameBufferDesc( static_cast< BcU32 >( RenderTarget_.size() ) );
+		RsFrameBufferDesc FrameBufferDesc( std::max( BcU32( 1 ), BcU32( RenderTarget_.size() ) ) );
+
 		BcU32 RTIdx = 0;
 		for( auto RT : RenderTarget_ )
 		{
 			FrameBufferDesc.setRenderTarget( RTIdx++, RT->getTexture() );
 		}
+
 		if( DepthStencilTarget_.isValid() )
 		{
 			FrameBufferDesc.setDepthStencilTarget( DepthStencilTarget_->getTexture() );

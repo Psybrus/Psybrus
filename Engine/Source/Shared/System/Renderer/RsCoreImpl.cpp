@@ -336,6 +336,11 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createFrameBuffer: %s", DebugName );
 
+	for( auto RT: Desc.RenderTargets_ )
+	{
+		BcAssert( RT );
+	}
+
 	auto Context = getContext( nullptr );
 	RsFrameBufferUPtr Resource( new RsFrameBuffer( Context, Desc ) );
 	Resource->setDebugName( DebugName );
@@ -370,6 +375,8 @@ RsTextureUPtr RsCoreImpl::createTexture(
 {
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
+	BcAssert( Desc.Type_ != RsTextureType::UNKNOWN );
+
 	PSY_LOG( "createTexture: %s", DebugName );
 
 	auto Context = getContext( nullptr );

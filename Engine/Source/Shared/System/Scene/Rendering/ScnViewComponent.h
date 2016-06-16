@@ -27,6 +27,24 @@
 #include <unordered_map>
 
 //////////////////////////////////////////////////////////////////////////
+// ScnViewCallback
+class ScnViewCallback
+{
+public:
+	/**
+	 * Called prior to all ScnViewRenderInterface::render calls.
+	 * Useful for doing any custom setup or debug.
+	 */
+	virtual void onViewDrawPreRender( ScnRenderContext& RenderContext ) = 0;
+
+	/**
+	 * Called after all ScnViewRenderInterface::render calls.
+	 * Useful for doing any custom post rendering or debug.
+	 */
+	virtual void onViewDrawPostRender( ScnRenderContext& RenderContext ) = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnViewProcessor
 class ScnViewProcessor : 
 	public BcGlobal< ScnViewProcessor >,
@@ -136,6 +154,8 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
 
 	ScnViewComponent();
+	ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS,
+		BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes );
 	virtual ~ScnViewComponent();
 	
 	void onAttach( ScnEntityWeakRef Parent ) override;
@@ -168,6 +188,28 @@ public:
 	 */
 	void setViewResources( RsProgram* Program, RsProgramBindingDesc& ProgramBindingDesc ) const;
 
+	/**
+	 * Set clear parameters.
+	 */
+	void setClearParams( RsColour Colour, bool ClearColour, bool ClearDepth, bool ClearStencil );
+
+	/**
+	 * Set projection parameters.
+	 */
+	void setProjectionParams( BcF32 Near, BcF32 Far, BcF32 HorizontalFOV, BcF32 VerticalFOV );
+	
+	/**
+	 * Register view callbacks.
+	 */
+	void registerViewCallback( ScnViewCallback* ViewCallback );
+
+	/**
+	 * Deregister view callbacks.
+	 */
+	void deregisterViewCallback( ScnViewCallback* ViewCallback );
+
+
+
 	void setup( class RsFrame* pFrame, RsRenderSort Sort );
 	
 	void setRenderMask( BcU32 RenderMask ) { RenderMask_ = RenderMask; }
@@ -184,6 +226,8 @@ private:
 	void recreateFrameBuffer();
 
 private:
+	friend class ScnViewProcessor;
+
 	// Viewport. Values relative to the size of the client being rendered into.
 	BcF32 X_;
 	BcF32 Y_;
@@ -225,6 +269,8 @@ private:
 
 	// Reflection cubemap.
 	ScnTextureRef ReflectionCubemap_;
+
+	std::vector< ScnViewCallback* > ViewCallbacks_;
 };
 
 #endif

@@ -72,6 +72,9 @@ eEvtReturn OnPostOsClose_DestroyClient( EvtID, const EvtBaseEvent& )
 
 int main(int argc, const char* argv[])
 {
+	BcTimer Time;
+	Time.mark();
+
 	// Start.
 	std::string CommandLine;
 
@@ -97,12 +100,27 @@ int main(int argc, const char* argv[])
 #endif
 
 	// Initialise RNG.
-#if !PSY_DEBUG
-	BcRandom::Global = BcRandom( 1337 ); // TODO LINUX
-#endif
+	timeval TimeVal;
+	auto RetVal = ::gettimeofday( &TimeVal, NULL );
+	BcAssert( RetVal != -1 );
+	auto Seed = static_cast< BcU32 >( TimeVal.tv_sec + TimeVal.tv_usec );
+	PSY_LOG( "Initialising random seed to %u", Seed );
+	BcRandom::Global = BcRandom( Seed );
 
 	// Additional input devices.
 	GInputMindwave_.reset( new OsInputMindwaveLinux() );
+
+	// Game or tool init.
+	if( GPsySetupParams.Flags_ & psySF_GAME )
+	{
+		// Init game.
+		PsyGameInit();
+	}
+	else if( GPsySetupParams.Flags_ & psySF_TOOL )
+	{
+		extern void PsyToolInit();
+		PsyToolInit();
+	}
 
 	// Create reflection database
 	ReManager::Init();
@@ -138,15 +156,9 @@ int main(int argc, const char* argv[])
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_CLOSE, OnPostOsClose_DestroyClient );
 		OsCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, OnPreOsUpdate_PumpMessages );
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, OnPostOpenScnCore_LaunchGame );
-
-		// Init game.
-		PsyGameInit();
 	}
 	else if( GPsySetupParams.Flags_ & psySF_TOOL )
 	{
-		extern void PsyToolInit();
-		PsyToolInit();
-
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
 		[]( EvtID, const EvtBaseEvent& )
 			{

@@ -193,7 +193,7 @@ void ScnDeferredLightingComponent::visit( class ScnLightComponent* Component )
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnDeferredLightingComponent::render( ScnRenderContext & RenderContext )
+void ScnDeferredLightingComponent::render( ScnRenderContext& RenderContext )
 {
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = 0;

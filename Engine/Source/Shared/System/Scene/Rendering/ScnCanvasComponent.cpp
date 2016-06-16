@@ -588,7 +588,7 @@ void ScnCanvasComponent::clear()
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnCanvasComponent::render( ScnRenderContext & RenderContext )
+void ScnCanvasComponent::render( ScnRenderContext& RenderContext )
 {
 	// Upload.
 	size_t VertexDataSize = VertexIndex_ * sizeof( ScnCanvasComponentVertex );

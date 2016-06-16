@@ -65,7 +65,7 @@ public:
 
 	MaAABB getAABB() const override;
 
-	void render( ScnRenderContext & RenderContext ) override;
+	void render( ScnRenderContext& RenderContext ) override;
 	
 protected:
 	void recreateResources();

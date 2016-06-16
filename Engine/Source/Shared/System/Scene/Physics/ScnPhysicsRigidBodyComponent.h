@@ -71,6 +71,12 @@ private:
 
 	BcF32 Mass_;
 
+	/// What collision group we belong to.
+	BcU16 CollisionGroup_ = BcU16( 1 );
+
+	/// What collision groups we collide with.
+	BcU16 CollisionMask_ = BcU16( -1 );
+
 	// TODO: Physics material.
 	BcF32 Friction_;
 	BcF32 RollingFriction_;

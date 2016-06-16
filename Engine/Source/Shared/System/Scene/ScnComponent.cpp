@@ -155,7 +155,7 @@ BcBool ScnComponent::isFlagSet( ScnComponentFlags Flag ) const
 // isAttached
 BcBool ScnComponent::isAttached() const
 {
-	return isFlagSet( scnCF_ATTACHED );
+	return isFlagSet( scnCF_ATTACHED ) && !isFlagSet( scnCF_PENDING_DETACH );
 }
 
 //////////////////////////////////////////////////////////////////////////

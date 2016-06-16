@@ -119,6 +119,10 @@ BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width
 	{
 		Flags |= SDL_WINDOW_SHOWN;
 	}
+	else
+	{
+		Flags |= SDL_WINDOW_HIDDEN;
+	}
 
 	SDLWindow_ = SDL_CreateWindow( 
 		pTitle,
