@@ -2,6 +2,7 @@
 #define __PSYBRUSOUTPUT_PSH__
 
 #include <PsybrusTypes.psh>
+#include <PsybrusUtility.psh>
 
 //////////////////////////////////////////////////////////////////////////
 // Fragment writing.
@@ -61,7 +62,7 @@ void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal )
 	clearFrag( FRAMEBUFFER_INTERNAL );
 	o.Output_[0].xyzw = Albedo.xyzw;
 #  if defined( PERM_RENDER_DEFERRED )
-	o.Output_[2].xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	o.Output_[2].xyz = encodeNormal( Normal.xyz );
 #  endif
 }
 
@@ -71,7 +72,7 @@ void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal, in float3
 	o.Output_[0].xyzw = Albedo.xyzw;
 #  if defined( PERM_RENDER_DEFERRED )
 	o.Output_[1].xyz = Material;
-	o.Output_[2].xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	o.Output_[2].xyz = encodeNormal( Normal.xyz );
 #  endif
 }
 
@@ -155,7 +156,7 @@ void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal )
 	clearFrag( FRAMEBUFFER_INTERNAL );
 	outFrag0.xyzw = Albedo.xyzw;
 #  if defined( PERM_RENDER_DEFERRED )
-	outFrag2.xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	outFrag2.xyz = encodeNormal( Normal.xyz );
 #  endif
 }
 
@@ -165,7 +166,7 @@ void writeFrag( FRAMEBUFFER_INPUT, in float4 Albedo, in float3 Normal, in float3
 	outFrag0.xyzw = Albedo.xyzw;
 #  if defined( PERM_RENDER_DEFERRED )
 	outFrag1.xyz = InMaterial;
-	outFrag2.xyz = ( Normal.xyz + float3( 1.0, 1.0, 1.0 ) ) * 0.5;
+	outFrag2.xyz = encodeNormal( Normal.xyz );
 #  endif
 }
 

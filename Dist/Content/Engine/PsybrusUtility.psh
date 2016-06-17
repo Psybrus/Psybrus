@@ -207,6 +207,20 @@ float4 linearToGamma( float4 InputRGBA )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Normal encoding.
+float3 encodeNormal( float3 Normal )
+{
+	const float3 Scale = float3( 0.5, 0.5, 0.5 );
+	return Normal * Scale + Scale;
+}
+
+float3 decodeNormal( float3 Normal )
+{
+	const float3 Scale = float3( 2.0, 2.0, 2.0 );
+	return Normal * Scale - float3( 1.0, 1.0, 1.0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Depth utility.
 float linearDepth( float DepthSample, float Near, float Far )
 {
