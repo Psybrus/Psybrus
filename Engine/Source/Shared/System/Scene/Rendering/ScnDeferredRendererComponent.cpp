@@ -75,6 +75,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "Width_", &ScnDeferredRendererComponent::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnDeferredRendererComponent::Height_, bcRFF_IMPORTER ),
 		new ReField( "LightShaders_", &ScnDeferredRendererComponent::LightShaders_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveX_", &ScnDeferredRendererComponent::ResolveX_, bcRFF_IMPORTER ),
 		new ReField( "ResolveY_", &ScnDeferredRendererComponent::ResolveY_, bcRFF_IMPORTER ),
@@ -196,6 +197,7 @@ void ScnDeferredRendererComponent::recreateResources()
 	{
 		LightProgramBinding.reset();
 	}
+	ReflectionProgramBinding_.reset();
 	ResolveProgramBinding_.reset();
 
 	if( VertexDeclaration_ == nullptr )
@@ -234,11 +236,16 @@ void ScnDeferredRendererComponent::recreateResources()
 		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() );
 	}
 
-	// Create sampler.
+	// Create samplers.
 	RsSamplerStateDesc SamplerStateDesc;
+	SamplerStateDesc.MinFilter_ = RsTextureFilteringMode::NEAREST;
+	SamplerStateDesc.MagFilter_ = RsTextureFilteringMode::NEAREST;
+	NearestSamplerState_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, getFullName().c_str() );
+
 	SamplerStateDesc.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
 	SamplerStateDesc.MagFilter_ = RsTextureFilteringMode::LINEAR;
 	SamplerState_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, getFullName().c_str() );
+
 
 	// Create render state.
 	RsRenderStateDesc RenderStateDesc;
@@ -253,7 +260,7 @@ void ScnDeferredRendererComponent::recreateResources()
 	auto& DepthStencilState = RenderStateDesc.DepthStencilState_;
 	DepthStencilState.DepthTestEnable_ = false;
 	DepthStencilState.DepthWriteEnable_ = false;
-	LightRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
+	AdditiveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 
 	BlendState.Enable_ = BcFalse;
 	ResolveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
@@ -347,15 +354,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 				BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
 				BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
 				ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
-				ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
-			}
-
-			// Reflection cubemap.
-			{
-				BcU32 SRVSlot = Program->findShaderResourceSlot( "aReflectionTex" );
-				BcU32 SamplerSlot = Program->findSamplerSlot( "aReflectionTex" );
-				ProgramBindingDesc.setShaderResourceView( SRVSlot, ReflectionCubemap_->getTexture() );
-				ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+				ProgramBindingDesc.setSamplerState( SamplerSlot, NearestSamplerState_.get() );
 			}
 
 			// TODO: Tailored uniform buffer for deferred.
@@ -409,7 +408,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 				LightUniformData = LightUniformData,
 				GeometryBinding = GeometryBinding_.get(),
 				ProgramBinding = ProgramBinding,
-				RenderState = LightRenderState_.get(),
+				RenderState = AdditiveRenderState_.get(),
 				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
 				Viewport = RenderContext.pViewComponent_->getViewport()
 			]
@@ -444,6 +443,95 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 
 
 //////////////////////////////////////////////////////////////////////////
+// renderReflection
+void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderContext )
+{
+	// HACK: Create resolve.
+	if( ReflectionProgramBinding_ == nullptr )
+	{
+		// Create program binding for lighting view.
+		const ScnShaderPermutationFlags Permutation = 
+			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+			ScnShaderPermutationFlags::PASS_MAIN |
+			ScnShaderPermutationFlags::MESH_STATIC_2D |
+			ScnShaderPermutationFlags::LIGHTING_NONE;
+
+		RsProgramBindingDesc ProgramBindingDesc;
+		auto Program = ReflectionShader_->getProgram( Permutation );
+
+		std::array< const char*, TEX_MAX > TextureNames_ = 
+		{
+			"aAlbedoTex",
+			"aMaterialTex",
+			"aNormalTex",
+			"aVelocityTex",
+			"aDepthTex",
+			"aHDRTex"
+		};
+
+		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
+		{
+			BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
+			BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
+			ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
+			ProgramBindingDesc.setSamplerState( SamplerSlot, NearestSamplerState_.get() );
+		}
+
+		// Reflection cubemap.
+		{
+			BcU32 SRVSlot = Program->findShaderResourceSlot( "aReflectionTex" );
+			BcU32 SamplerSlot = Program->findSamplerSlot( "aReflectionTex" );
+			ProgramBindingDesc.setShaderResourceView( SRVSlot, ReflectionCubemap_->getTexture() );
+			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+		}
+
+		{
+			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
+			if( UniformSlot != BcErrorCode )
+			{
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+			}
+		}
+
+		ReflectionProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
+	}
+
+	// Grab albedo texture for size data.
+	MaVec2d UVSize( 1.0f, 1.0f );
+	auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
+	auto Rect = AlbedoTex->getRect( 0 );			
+	UVSize.x( Rect.W_ );
+	UVSize.y( Rect.H_ );
+
+	RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+		[ 
+			UVSize = UVSize,
+			UniformBuffer = UniformBuffer_.get(),
+			GeometryBinding = GeometryBinding_.get(),
+			ProgramBinding = ReflectionProgramBinding_.get(),
+			RenderState = AdditiveRenderState_.get(),
+			FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer()
+		]
+		( RsContext* Context )
+		{
+			PSY_PROFILE_FUNCTION;
+
+			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
+				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
+				MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
+			
+			Context->drawPrimitives( 
+				GeometryBinding,
+				ProgramBinding,
+				RenderState,
+				FrameBuffer,
+				nullptr,
+				nullptr,
+				RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // renderResolve
 void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContext )
 {
@@ -475,7 +563,7 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 			BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
 			BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
 			ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
-			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+			ProgramBindingDesc.setSamplerState( SamplerSlot, NearestSamplerState_.get() );
 		}
 
 		{
@@ -548,6 +636,7 @@ void ScnDeferredRendererComponent::onViewDrawPreRender( ScnRenderContext& Render
 	{
 		// begin transparent
 		renderLights( RenderContext );
+		renderReflection( RenderContext );
 	}
 	else if( RenderContext.pViewComponent_ == OverlayView_ )
 	{

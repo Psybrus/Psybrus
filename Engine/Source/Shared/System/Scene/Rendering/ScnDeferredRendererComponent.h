@@ -51,6 +51,7 @@ protected:
 		const MaVec2d& UVSize );
 
 	void renderLights( ScnRenderContext& RenderContext );
+	void renderReflection( ScnRenderContext& RenderContext );
 	void renderResolve( ScnRenderContext& RenderContext );
 
 	// ScnViewCallback
@@ -61,6 +62,7 @@ protected:
 	BcS32 Width_ = 0;
 	BcS32 Height_ = 0;
 	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;
+	ScnShaderRef ReflectionShader_;
 	ScnShaderRef ResolveShader_;
 
 	// Final resolve to the backbuffer (or other target)
@@ -98,10 +100,12 @@ protected:
 	std::vector< ScnLightComponent* > LightComponents_;
 
 	std::array< RsProgramBindingUPtr, scnLT_MAX > LightProgramBindings_;
+	RsProgramBindingUPtr ReflectionProgramBinding_;
 	RsProgramBindingUPtr ResolveProgramBinding_;
 
-	RsRenderStateUPtr LightRenderState_;
+	RsRenderStateUPtr AdditiveRenderState_;
 	RsRenderStateUPtr ResolveRenderState_;
+	RsSamplerStateUPtr NearestSamplerState_;
 	RsSamplerStateUPtr SamplerState_;
 	RsBufferUPtr UniformBuffer_;
 	RsVertexDeclarationUPtr VertexDeclaration_;

@@ -88,7 +88,7 @@ RsResourceAllocationD3D12 RsLinearHeapAllocatorD3D12::allocate( BcU64 Size, BcU6
 void RsLinearHeapAllocatorD3D12::reset()
 {
 	BcAssert( OwningThread_ == BcCurrentThreadId() );
-	PSY_LOGSCOPEDCATEGORY( "RsLinearHeapAllocatorD3D12" );
+	PSY_LOGSCOPEDCATEGORY( RsLinearHeapAllocatorD3D12 );
 
 	BcU64 TotalUsage = 0;
 	BcU64 TotalSize = 0;

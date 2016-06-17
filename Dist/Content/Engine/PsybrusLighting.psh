@@ -29,6 +29,45 @@ struct Material
 	float Metallic_;
 };
 
+
+//////////////////////////////////////////////////////////////////////////
+// Surface
+struct Surface
+{
+	float3 DiffuseColour_;
+	float3 SpecularColour_;
+	float Roughness_;
+
+	float3 SurfacePosition_;
+	float3 Normal_;
+
+	// Not strictly surface, but useful.
+	float3 ViewPosition_;
+	float3 ViewVector_;
+	float NdotV_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// SetupSurface
+Surface SetupSurface( Material InMaterial, in float3 ViewPosition, in float3 SurfacePosition, in float3 Normal )
+{
+	Surface OutSurface;
+	// Calculate diffuse + spec material colours.
+	float3 DielectricSpecular = float3( DIELECTRIC_F0, DIELECTRIC_F0, DIELECTRIC_F0 );
+	OutSurface.DiffuseColour_ = ( InMaterial.Colour_ - InMaterial.Colour_ * InMaterial.Metallic_ );
+	OutSurface.SpecularColour_ = lerp( DielectricSpecular, InMaterial.Colour_, InMaterial.Metallic_ );
+
+	OutSurface.Roughness_ = InMaterial.Roughness_;
+	OutSurface.Normal_ = Normal;
+	OutSurface.ViewVector_ = normalize( ViewPosition - SurfacePosition );
+	OutSurface.NdotV_ = max( LIGHTING_EPSILON, dot( Normal, OutSurface.ViewVector_ ) );
+
+	OutSurface.ViewPosition_ = ViewPosition;
+	OutSurface.SurfacePosition_ = SurfacePosition;
+
+	return OutSurface;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Pow5
 float Pow5( float Val )
@@ -117,34 +156,26 @@ float3 EnvBRDFApprox( float3 SpecularColor, float Roughness, float NoV )
 
 //////////////////////////////////////////////////////////////////////////
 // BRDF_Default
-float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPosition, in float3 SurfacePosition, in float3 Normal, in float3 ReflectionColour )
+float3 BRDF_Default( Light InLight, in Surface InSurface )
 {
 	// Shared utility.
-	float3 LightPosition = InLight.Position_.xyz;
-	float3 ViewVector = normalize( ViewPosition - SurfacePosition );
-	float3 LightVector = normalize( LightPosition - SurfacePosition );
-	float3 HalfVector = normalize( LightVector + ViewVector );
-	float NdotL = max( LIGHTING_EPSILON, dot( Normal, LightVector ) );
-	float NdotH = max( LIGHTING_EPSILON, dot( Normal, HalfVector ) );
-	float NdotV = max( LIGHTING_EPSILON, dot( Normal, ViewVector ) );
+	float3 LightVector = normalize( InLight.Position_.xyz - InSurface.SurfacePosition_ );
+	float3 HalfVector = normalize( LightVector + InSurface.ViewVector_ );
+	float NdotL = max( LIGHTING_EPSILON, dot( InSurface.Normal_, LightVector ) );
+	float NdotH = max( LIGHTING_EPSILON, dot( InSurface.Normal_, HalfVector ) );
 	float LdotH = max( LIGHTING_EPSILON, dot( LightVector, HalfVector ) );
-	float VdotH = max( LIGHTING_EPSILON, dot( ViewVector, HalfVector ) );
-
-	// Calculate diffuse + spec material colours.
-	float3 DielectricSpecular = float3( DIELECTRIC_F0, DIELECTRIC_F0, DIELECTRIC_F0 );
-	float3 MaterialDiffuse = ( InMaterial.Colour_ - InMaterial.Colour_ * InMaterial.Metallic_ );
-	float3 MaterialSpecular = lerp( DielectricSpecular, InMaterial.Colour_, InMaterial.Metallic_ );
+	float VdotH = max( LIGHTING_EPSILON, dot( InSurface.ViewVector_, HalfVector ) );
 
 	// Calculate terms for spec + diffuse.
 #if USE_SPECULAR_BLINN_PHONG
-	float D = NDF_BlinnPhongNormalised( NdotH, RoughnessToSpecularPower( InMaterial.Roughness_ ) );
-	float G = GeometryVisibility_CookTorrence( NdotL, NdotV, NdotH, VdotH );
-	float3 Fspec = Fresnel_SchlickApproximation( MaterialSpecular, LdotH );
+	float D = NDF_BlinnPhongNormalised( NdotH, RoughnessToSpecularPower( InSurface.Roughness_ ) );
+	float G = GeometryVisibility_CookTorrence( NdotL, InSurface.NdotV_, NdotH, VdotH );
+	float3 Fspec = Fresnel_SchlickApproximation( InSurface.SpecularColour_, LdotH );
 	float3 SpecularColour = Fspec * D * G;
 #elif USE_SPECULAR_GGX
-	float D = NDF_GGX( NdotH, InMaterial.Roughness_ );
-	float G = GeometryVisibility_SmithGGXApprox( LdotH, InMaterial.Roughness_ );
-	float3 Fspec = Fresnel_SchlickApproximation( MaterialSpecular, LdotH );
+	float D = NDF_GGX( NdotH, InSurface.Roughness_ );
+	float G = GeometryVisibility_SmithGGXApprox( LdotH, InSurface.Roughness_ );
+	float3 Fspec = Fresnel_SchlickApproximation( InSurface.SpecularColour_, LdotH );
 	float3 SpecularColour = Fspec * D * G;
 #else
 #  error No other specular model supported.
@@ -154,7 +185,7 @@ float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPositi
 #if USE_DIFFUSE_LAMBERT
 	float INV_PI = 1.0 / PI;
 	float3 DiffuseColour = float3( INV_PI, INV_PI, INV_PI );
-	DiffuseColour *= MaterialDiffuse;
+	DiffuseColour *= InSurface.DiffuseColour_;
 #else
 #  error No other diffuse model supported.
 #endif
@@ -165,10 +196,14 @@ float3 BRDF_Default( Light InLight, in Material InMaterial, in float3 ViewPositi
 	// Punctual light source.
 	Total = Total * InLight.Colour_ * NdotL;
 
-	// Reflection. TODO: Factor out of here.
-	Total += ReflectionColour * EnvBRDFApprox( MaterialSpecular, InMaterial.Roughness_, NdotV );
-
 	return Total;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ApplyReflection
+float3 ApplyReflection( in Surface InSurface, float3 ReflectionColour )
+{
+	return ReflectionColour * EnvBRDFApprox( InSurface.SpecularColour_, InSurface.Roughness_, InSurface.NdotV_ );
 }
 
 #endif // __PSYBRUSLIGHTING_PSH__

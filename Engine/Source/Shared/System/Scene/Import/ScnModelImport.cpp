@@ -892,11 +892,11 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 					// Attempt to find textures.
 					auto DiffuseRef = addTexture( Material, MaterialImport, "aDiffuseTex", aiTextureType_DIFFUSE, 0 );
 					auto SpecularRef = addTexture( Material, MaterialImport, "aSpecularTex", aiTextureType_SPECULAR, 0 );
-					auto AmbientRef = addTexture( Material, MaterialImport, "aAmbientTex", aiTextureType_AMBIENT, 0 );
+					auto MetallicRef = addTexture( Material, MaterialImport, "aMetallicTex", aiTextureType_AMBIENT, 0 );
 					auto EmissiveRef = addTexture( Material, MaterialImport, "aEmissiveTex", aiTextureType_EMISSIVE, 0 );
 					auto HeightRef = addTexture( Material, MaterialImport, "aHeightTex", aiTextureType_HEIGHT, 0 );
 					auto NormalRef = addTexture( Material, MaterialImport, "aNormalTex", aiTextureType_NORMALS, 0 );
-					auto ShininessRef = addTexture( Material, MaterialImport, "aShininessTex", aiTextureType_SHININESS, 0 );
+					auto RoughnessRef = addTexture( Material, MaterialImport, "aRoughnessTex", aiTextureType_SHININESS, 0 );
 					auto OpacityRef = addTexture( Material, MaterialImport, "aOpacityTex", aiTextureType_OPACITY, 0 );
 					auto DisplacementRef = addTexture( Material, MaterialImport, "aDisplacementTex", aiTextureType_DISPLACEMENT, 0 );
 					auto LightmapRef = addTexture( Material, MaterialImport, "aLightmapTex", aiTextureType_LIGHTMAP, 0 );
