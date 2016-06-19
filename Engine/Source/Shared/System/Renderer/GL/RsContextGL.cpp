@@ -217,13 +217,12 @@ class RsFrameBuffer* RsContextGL::getBackBuffer() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// beginFrame
-RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
+// resizeBackBuffer
+void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 0 );
-	++InsideBeginEnd_;
 
 #if PLATFORM_ANDROID
 	//
@@ -298,8 +297,16 @@ RsFrameBuffer* RsContextGL::beginFrame( BcU32 Width, BcU32 Height )
 
 	Width_ = Width;
 	Height_ = Height;
+}
 
-	return BackBufferFB_;
+//////////////////////////////////////////////////////////////////////////
+// beginFrame
+void RsContextGL::beginFrame()
+{
+	PSY_PROFILE_FUNCTION;
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssert( InsideBeginEnd_ == 0 );
+	++InsideBeginEnd_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -314,6 +321,18 @@ void RsContextGL::endFrame()
 	GL( Flush() );		
 
 	NoofDrawCalls_ = 0;
+
+	// Advance frame.
+	FrameCount_++;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// present
+void RsContextGL::present()
+{
+	PSY_PROFILE_FUNCTION;
+	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
+	BcAssert( InsideBeginEnd_ == 0 );
 
 	auto ScreenshotFunc = std::move( ScreenshotFunc_ );
 	if( ScreenshotFunc != nullptr )
@@ -381,8 +400,6 @@ void RsContextGL::endFrame()
 		eglSwapBuffers( EGLDisplay_, EGLSurface_ );
 	}
 #endif
-	// Advance frame.
-	FrameCount_++;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -797,9 +814,10 @@ void RsContextGL::create()
 	// Ensure all buffers are cleared to black first.
 	const BcU32 Width = pClient_->getWidth();
 	const BcU32 Height = pClient_->getHeight();
+	resizeBackBuffer( Width, Height );
 	for( BcU32 Idx = 0; Idx < 3; ++Idx )
 	{
-		beginFrame( Width, Height );
+		beginFrame();
 		GL( Clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT ) );
 		endFrame();
 	}

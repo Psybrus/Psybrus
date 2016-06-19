@@ -74,16 +74,33 @@ public:
 	void resetViewRenderData( class ScnComponent* Component );
 
 	/**
-	 * Will render everything visible to all views.
+	 * Render a single view.
 	 */
-	void renderViews( const ScnComponentList& Components );	
+	void renderView( ScnViewComponent* Component, class RsFrame* Frame, RsRenderSort Sort );
 
 	/**
 	 * Get frame time.
 	 */
 	BcF64 getFrameTime() const { return FrameTime_; }
 
-protected:
+private:
+	struct ViewData
+	{
+		/// View.
+		class ScnViewComponent* View_ = nullptr;
+		std::unordered_map< ScnComponent*, ScnViewRenderData* > ViewRenderData_;
+	};
+
+	/**
+	 * Will render everything visible to all views.
+	 */
+	void renderViews( const ScnComponentList& Components );	
+
+	/**
+	 * Render single view.
+	 */
+	void renderView( ViewData* ViewData, class RsFrame* Frame, RsRenderSort Sort, bool DoGather );
+
 	void initialise() override;
 	void shutdown() override;
 
@@ -114,13 +131,6 @@ private:
 
 	std::unordered_map< const ReClass*, ScnViewRenderInterface* > RenderInterfaces_;
 	std::unordered_map< ScnComponent*, ScnViewVisibilityLeaf* > VisibilityLeaves_;
-
-	struct ViewData
-	{
-		/// View.
-		class ScnViewComponent* View_ = nullptr;
-		std::unordered_map< ScnComponent*, ScnViewRenderData* > ViewRenderData_;
-	};
 
 	std::vector< std::unique_ptr< ViewData > > ViewData_;
 	std::vector< ScnComponent* > RenderableComponents_;
@@ -155,7 +165,8 @@ public:
 
 	ScnViewComponent();
 	ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS,
-		BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes );
+		BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes,
+		bool Enabled );
 	virtual ~ScnViewComponent();
 	
 	void onAttach( ScnEntityWeakRef Parent ) override;
@@ -227,6 +238,8 @@ private:
 
 private:
 	friend class ScnViewProcessor;
+
+	BcBool Enabled_ = BcTrue;
 
 	// Viewport. Values relative to the size of the client being rendered into.
 	BcF32 X_;

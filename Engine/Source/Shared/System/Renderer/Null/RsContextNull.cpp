@@ -106,17 +106,28 @@ class RsFrameBuffer* RsContextNull::getBackBuffer() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// beginFrame
-RsFrameBuffer* RsContextNull::beginFrame( BcU32 Width, BcU32 Height )
+// resizeBackBuffer
+void RsContextNull::resizeBackBuffer( BcU32 Width, BcU32 Height )
 {
 	Width_ = Width;
 	Height_ = Height;
-	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// beginFrame
+void RsContextNull::beginFrame()
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
 // endFrame
 void RsContextNull::endFrame()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// present
+void RsContextNull::present()
 {
 }
 

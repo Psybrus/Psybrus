@@ -1238,16 +1238,16 @@ void RsCoreImpl::createResource( RsResource* pResource )
 
 //////////////////////////////////////////////////////////////////////////
 // allocateFrame
-RsFrame* RsCoreImpl::allocateFrame( RsContext* pContext )
+RsFrame* RsCoreImpl::allocateFrame( RsContext* pContext, bool ShouldPresent )
 {
 	BcAssert( BcIsGameThread() );
 	if( pContext != NULL )
 	{
-		return new RsFrame( pContext );
+		return new RsFrame( pContext, ShouldPresent );
 	}
 	else
 	{
-		return new RsFrame( ContextMap_[ NULL ] );
+		return new RsFrame( ContextMap_[ NULL ], ShouldPresent );
 	}	
 }
 

@@ -39,6 +39,19 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	void visit( class ScnLightComponent* Component ) override;
+
+	/**
+	 * Render to specified frame.
+	 */
+	void render( RsFrame* Frame, RsRenderSort Sort );
+
+	/**
+	 * Set projection parameters.
+	 */
+	void setProjectionParams( BcF32 Near, BcF32 Far, BcF32 HorizonalFOV, BcF32 VerticalFOV );
+
+	BcS32 getWidth() const { return Width_; }
+	BcS32 getHeight() const { return Height_; }
 	
 protected:
 	void recreateResources();
@@ -59,6 +72,7 @@ protected:
 	void onViewDrawPostRender( ScnRenderContext& RenderContext ) override;
 
 protected:
+	BcBool Enabled_ = BcTrue;
 	BcS32 Width_ = 0;
 	BcS32 Height_ = 0;
 	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;

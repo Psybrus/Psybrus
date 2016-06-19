@@ -164,7 +164,7 @@ private:
 	void createResource( RsResource* pResource );
 
 public:
-	RsFrame* allocateFrame( RsContext* pContext ) override;
+	RsFrame* allocateFrame( RsContext* pContext, bool ShouldPresent ) override;
 	void queueFrame( RsFrame* pFrame ) override;
 	BcF64 getFrameTime() const override;
 

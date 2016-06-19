@@ -266,7 +266,7 @@ public:
 	 *	GAME FUCTION: Called to get a frame prior to queuing up render objects.
 	 *	@param pContext Rendering context to allocate frame for use with.
 	 */
-	virtual RsFrame* allocateFrame( RsContext* pContext ) = 0;
+	virtual RsFrame* allocateFrame( RsContext* pContext, bool ShouldPresent ) = 0;
 
 	/**
 	 *	Queue a frame for rendering.\n

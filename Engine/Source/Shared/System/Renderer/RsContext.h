@@ -87,17 +87,25 @@ public:
 	virtual class RsFrameBuffer* getBackBuffer() const = 0;
 
 	/**
-	 *	Begin frame.
-	 *	Will resize or setup backbuffer, depending on what is appropriate.
-	 *	@return Backbuffer.
+	 *	Resize backbuffer.
+	 *	@pre Must be outside of beginFrame/endFrame block.
 	 */
-	virtual RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) = 0;
+	virtual void resizeBackBuffer( BcU32 Width, BcU32 Height ) = 0;
+
+	/**
+	 *	Begin frame.
+	 */
+	virtual void beginFrame() = 0;
 	
 	/**
 	 * End frame.
-	 * Will present backbuffer to client.
 	 */
 	virtual void endFrame() = 0;
+
+	/**
+	 * Present.
+	 */
+	virtual void present() = 0;
 
 	/**
 	 * Requests a screenshot from the context.

@@ -28,6 +28,7 @@ class RsFrame
 public:
 	RsFrame( 
 		class RsContext* pContext, 
+		bool ShouldPresent,
 		BcU32 NoofNodes = 32 * 1024, 
 		BcSize NodeMem = 1024 * 1024 );
 	~RsFrame();
@@ -97,6 +98,7 @@ private:
 	class RsContext* pContext_;
 	BcU32 Width_;
 	BcU32 Height_;
+	bool ShouldPresent_;
 	class RsRenderNode** ppNodeArray_;
 	class RsRenderNode** ppNodeSortArray_;
 	BcU32 NoofNodes_;

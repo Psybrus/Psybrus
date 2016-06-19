@@ -72,6 +72,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "Enabled_", &ScnDeferredRendererComponent::Enabled_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnDeferredRendererComponent::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnDeferredRendererComponent::Height_, bcRFF_IMPORTER ),
 		new ReField( "LightShaders_", &ScnDeferredRendererComponent::LightShaders_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
@@ -132,13 +133,13 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 	// Create views.
 	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
 		"OpaqueView", 4, &Textures_[ TEX_GBUFFER_ALBEDO ], Textures_[ TEX_GBUFFER_DEPTH ],
-		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OPAQUE );
+		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OPAQUE, !!Enabled_ );
 	TransparentView_ = getParentEntity()->attach< ScnViewComponent >(
 		"TransparentView", 1, &Textures_[ TEX_HDR ], Textures_[ TEX_GBUFFER_DEPTH ],
-		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::TRANSPARENT );
+		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::TRANSPARENT, !!Enabled_ );
 	OverlayView_ = getParentEntity()->attach< ScnViewComponent >(
 		"OverlayView", 0, nullptr, nullptr,
-		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OVERLAY );
+		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OVERLAY, !!Enabled_ );
 
 	OpaqueView_->registerViewCallback( this );
 	TransparentView_->registerViewCallback( this );
@@ -148,9 +149,7 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 	TransparentView_->setClearParams( RsColour::BLACK, true, false, false );
 	OverlayView_->setClearParams( RsColour::BLACK, false, false, false );
 
-	OpaqueView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
-	TransparentView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
-	OverlayView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
+	setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
 
 	// Recreate all resources.
 	recreateResources();
@@ -168,7 +167,7 @@ void ScnDeferredRendererComponent::onDetach( ScnEntityWeakRef Parent )
 	// Already detached.
 	OpaqueView_ = nullptr;
 	TransparentView_ = nullptr;
-	OpaqueView_ = nullptr;
+	OverlayView_ = nullptr;
 
 	// Free all textures.
 	for( auto& Texture : Textures_ )
@@ -187,6 +186,26 @@ void ScnDeferredRendererComponent::onDetach( ScnEntityWeakRef Parent )
 void ScnDeferredRendererComponent::visit( class ScnLightComponent* Component )
 {
 	LightComponents_.emplace_back( Component );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// render
+void ScnDeferredRendererComponent::render( RsFrame* Frame, RsRenderSort Sort )
+{
+	ScnViewProcessor::pImpl()->renderView( OpaqueView_, Frame, Sort );
+	Sort.Viewport_++;
+	ScnViewProcessor::pImpl()->renderView( TransparentView_, Frame, Sort );
+	Sort.Viewport_++;
+	ScnViewProcessor::pImpl()->renderView( OverlayView_, Frame, Sort );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setProjectionParams
+void ScnDeferredRendererComponent::setProjectionParams( BcF32 Near, BcF32 Far, BcF32 HorizonalFOV, BcF32 VerticalFOV )
+{
+	OpaqueView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
+	TransparentView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
+	OverlayView_->setProjectionParams( Near_, Far_, HorizontalFOV_, VerticalFOV_ );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,7 +280,6 @@ void ScnDeferredRendererComponent::recreateResources()
 	DepthStencilState.DepthTestEnable_ = false;
 	DepthStencilState.DepthWriteEnable_ = false;
 	AdditiveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
-
 	BlendState.Enable_ = BcFalse;
 	ResolveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 

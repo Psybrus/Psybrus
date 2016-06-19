@@ -22,9 +22,10 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsFrame::RsFrame( RsContext* pContext, BcU32 NoofNodes, BcSize NodeMem )
+RsFrame::RsFrame( RsContext* pContext, bool ShouldPresent, BcU32 NoofNodes, BcSize NodeMem )
 {
 	pContext_ = pContext;
+	ShouldPresent_ = ShouldPresent;
 
 	//
 	NoofNodes_ = NoofNodes;
@@ -103,8 +104,14 @@ void RsFrame::render()
 	// Only render if we have a valid context.
 	if( pContext_ != NULL )
 	{
+		// Resize backbuffer if we should present.
+		if( ShouldPresent_ )
+		{
+			pContext_->resizeBackBuffer( Width_, Height_ );
+		}
+
 		// Begin frame.
-		pContext_->beginFrame( Width_, Height_ );
+		pContext_->beginFrame();
 
 		// Sort all nodes.
 		sortNodes();
@@ -116,8 +123,14 @@ void RsFrame::render()
 			pRenderNode->render( pContext_ );
 		}
 
-		// Present.
+		// End frame.
 		pContext_->endFrame();
+
+		// Present if enabled.
+		if( ShouldPresent_ )
+		{
+			pContext_->present();
+		}
 
 		// Reset everything.
 		reset();

@@ -43,10 +43,10 @@ public:
 	virtual ~ScnTexture();
 
 	static ScnTexture* New( const RsTextureDesc& Desc, const char* DebugName );
-	static ScnTexture* New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, const char* DebugName );
+	static ScnTexture* New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName );
 	static ScnTexture* New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName );
-	static ScnTexture* New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, const char* DebugName );
-	static ScnTexture* NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, const char* DebugName );
+	static ScnTexture* New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName );
+	static ScnTexture* NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName );
 
 	RsTexture* getTexture();
 	

@@ -129,7 +129,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 		Client->getHeight() > 0 )
 	{
 		// Allocate a frame to render using default context.
-		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext );
+		RsFrame* pFrame = RsCore::pImpl()->allocateFrame( pContext, true );
 
 		RsRenderSort Sort( 0 );
 		
@@ -171,123 +171,31 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 
 		for( auto& ViewData : ViewData_ )
 		{
-			ScnRenderContext RenderContext( ViewData->View_, pFrame, Sort );
-			bool DoGather = true;
-
+			if( ViewData->View_->Enabled_ )
 			{
-				PSY_PROFILER_SECTION( RootSort, "Check last view component for reuse." );
-
-				if( LastView != nullptr && ViewData->View_ != LastView )
+				bool DoGather = true;
 				{
-					// Check current view
-					if( LastView->compare( ViewData->View_ ) )
+					PSY_PROFILER_SECTION( RootSort, "Check last view component for reuse." );
+
+					if( LastView != nullptr && ViewData->View_ != LastView )
 					{
-						DoGather = false;
-					}
-				}
-			}
-
-			{
-				PSY_PROFILER_SECTION( RootSort, "Setup view" );
-				ViewData->View_->setup( pFrame, Sort );
-			}
-
-			if( DoGather )
-			{
-				PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
-
-				GatheredVisibleLeaves_.clear();
-				BroadGather_.clear();
-				SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather_ );
-
-				// Trim down based on render mask.
-				for( auto Leaf : BroadGather_ )
-				{
-					if( RenderContext.pViewComponent_->getRenderMask() & Leaf->RenderMask_ )
-					{
-						GatheredVisibleLeaves_.push_back( Leaf );
-					}
-				}
-			}
-
-			{
-				PSY_PROFILER_SECTION( RootSort, "Sort visible components by render interface" );
-
-				// Sort by render interface.
-				// TODO: Put into correct buckets by type.
-				std::sort( GatheredVisibleLeaves_.begin(), GatheredVisibleLeaves_.end(),
-					[ this ]( const ScnViewVisibilityLeaf* A, const ScnViewVisibilityLeaf* B )
-					{
-						return A->RenderInterface_ < B->RenderInterface_;
-					} );
-			}
-
-			{
-				PSY_PROFILER_SECTION( RootSort, "Build processing list." );
-
-				ProcessingGroups_.clear();
-				ViewComponentRenderDatas_.clear();
-				if( GatheredVisibleLeaves_.size() > 0 )
-				{
-					ProcessingGroup Group;
-					Group.RenderInterface_ = GatheredVisibleLeaves_[ 0 ]->RenderInterface_;
-					for( BcU32 Idx = 0; Idx < GatheredVisibleLeaves_.size(); ++Idx )
-					{
-						ScnViewComponentRenderData ComponentRenderData;
-						auto* Leaf = GatheredVisibleLeaves_[ Idx ];
-						ComponentRenderData.Component_ = Leaf->Component_;
-
-						// Find view render data.
-						auto It = ViewData->ViewRenderData_.find( Leaf->Component_ );
-						if( It != ViewData->ViewRenderData_.end() )
+						// Check current view
+						if( LastView->compare( ViewData->View_ ) )
 						{
-							ComponentRenderData.ViewRenderData_ = It->second;
-							if( Group.RenderInterface_ != Leaf->RenderInterface_ )
-							{
-								ProcessingGroups_.push_back( Group );
-								Group.RenderInterface_ = Leaf->RenderInterface_;
-								Group.Base_ = ViewComponentRenderDatas_.size();
-								Group.Noof_ = 0;
-							}
-							Group.Noof_++;
-
-							ViewComponentRenderDatas_.push_back( ComponentRenderData );
+							DoGather = false;
 						}
 					}
-
-					if( Group.Noof_ > 0 )
-					{
-						ProcessingGroups_.push_back( Group );
-					}
 				}
+
+				// Render view.
+				renderView( ViewData.get(), pFrame, Sort, DoGather );
+
+				// Increment viewport.
+				Sort.Viewport_++;
+		
+				// Set last view.
+				LastView = ViewData->View_;
 			}
-
-			{
-				PSY_PROFILER_SECTION( RootSort, "Render visible components" );
-
-				// Do pre render.
-				for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
-				{
-					ViewCallback->onViewDrawPreRender( RenderContext );
-				}
-
-				// Iterate over components.
-				for( auto Group : ProcessingGroups_ )
-				{
-					Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
-				}
-
-				for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
-				{
-					ViewCallback->onViewDrawPostRender( RenderContext );
-				}
-			}
-
-			// Increment viewport.
-			Sort.Viewport_++;
-
-			// Set last view.
-			LastView = ViewData->View_;
 		}
 		
 		// TODO: Move completely to DsCore.
@@ -318,6 +226,125 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 
 		FrameQueryIdx_ = ( FrameQueryIdx_ + 1 ) % NOOF_FRAMES_TO_QUERY;
 		ReadQueries_ |= FrameQueryIdx_ == 0;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderView
+void ScnViewProcessor::renderView( ScnViewComponent* Component, class RsFrame* Frame, RsRenderSort Sort )
+{
+	auto It = std::find_if( ViewData_.begin(), ViewData_.end(), 
+		[ Component ]( const std::unique_ptr< ViewData >& ViewData )
+		{
+			return ViewData->View_ == Component;
+		} );
+	BcAssert( It != ViewData_.end() );
+	if( It != ViewData_.end() )
+	{
+		renderView( It->get(), Frame, Sort, true );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// renderView
+void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsRenderSort Sort, bool DoGather )
+{
+	ScnRenderContext RenderContext( ViewData->View_, Frame, Sort );
+
+	{
+		PSY_PROFILER_SECTION( RootSort, "Setup view" );
+		ViewData->View_->setup( Frame, Sort );
+	}
+
+	if( DoGather )
+	{
+		PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
+
+		GatheredVisibleLeaves_.clear();
+		BroadGather_.clear();
+		SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather_ );
+
+		// Trim down based on render mask.
+		for( auto Leaf : BroadGather_ )
+		{
+			if( RenderContext.pViewComponent_->getRenderMask() & Leaf->RenderMask_ )
+			{
+				GatheredVisibleLeaves_.push_back( Leaf );
+			}
+		}
+	}
+
+	{
+		PSY_PROFILER_SECTION( RootSort, "Sort visible components by render interface" );
+
+		// Sort by render interface.
+		// TODO: Put into correct buckets by type.
+		std::sort( GatheredVisibleLeaves_.begin(), GatheredVisibleLeaves_.end(),
+			[ this ]( const ScnViewVisibilityLeaf* A, const ScnViewVisibilityLeaf* B )
+			{
+				return A->RenderInterface_ < B->RenderInterface_;
+			} );
+	}
+
+	{
+		PSY_PROFILER_SECTION( RootSort, "Build processing list." );
+
+		ProcessingGroups_.clear();
+		ViewComponentRenderDatas_.clear();
+		if( GatheredVisibleLeaves_.size() > 0 )
+		{
+			ProcessingGroup Group;
+			Group.RenderInterface_ = GatheredVisibleLeaves_[ 0 ]->RenderInterface_;
+			for( BcU32 Idx = 0; Idx < GatheredVisibleLeaves_.size(); ++Idx )
+			{
+				ScnViewComponentRenderData ComponentRenderData;
+				auto* Leaf = GatheredVisibleLeaves_[ Idx ];
+				ComponentRenderData.Component_ = Leaf->Component_;
+
+				// Find view render data.
+				auto It = ViewData->ViewRenderData_.find( Leaf->Component_ );
+				if( It != ViewData->ViewRenderData_.end() )
+				{
+					ComponentRenderData.ViewRenderData_ = It->second;
+					if( Group.RenderInterface_ != Leaf->RenderInterface_ )
+					{
+						ProcessingGroups_.push_back( Group );
+						Group.RenderInterface_ = Leaf->RenderInterface_;
+						Group.Base_ = ViewComponentRenderDatas_.size();
+						Group.Noof_ = 0;
+					}
+					Group.Noof_++;
+
+					ViewComponentRenderDatas_.push_back( ComponentRenderData );
+				}
+			}
+
+			if( Group.Noof_ > 0 )
+			{
+				ProcessingGroups_.push_back( Group );
+			}
+		}
+	}
+
+	{
+		PSY_PROFILER_SECTION( RootSort, "Render visible components" );
+
+		// Do pre render.
+		for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
+		{
+			ViewCallback->onViewDrawPreRender( RenderContext );
+		}
+
+		// Iterate over components.
+		for( auto Group : ProcessingGroups_ )
+		{
+			Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
+		}
+
+		for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
+		{
+			ViewCallback->onViewDrawPostRender( RenderContext );
+		}
 	}
 }
 
@@ -513,6 +540,7 @@ void ScnViewComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "Enabled_", &ScnViewComponent::Enabled_, bcRFF_IMPORTER ),
 		new ReField( "X_", &ScnViewComponent::X_, bcRFF_IMPORTER ),
 		new ReField( "Y_", &ScnViewComponent::Y_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnViewComponent::Width_, bcRFF_IMPORTER ),
@@ -572,9 +600,11 @@ ScnViewComponent::ScnViewComponent():
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnViewComponent::ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS,
-	BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes ):
+	BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes,
+	bool Enabled ):
 	ScnViewComponent()
 {
+	Enabled_ = Enabled ? BcTrue : BcFalse;
 	ViewUniformBuffer_ = nullptr;
 
 	RenderMask_ = RenderMask;
@@ -913,16 +943,22 @@ void ScnViewComponent::setup( RsFrame* pFrame, RsRenderSort Sort )
 	ViewUniformBlock_.NearFar_ = MaVec4d( Near_, Far_, Near_ + Far_, Near_ * Far_ );
 
 	// Upload uniforms.
-	RsCore::pImpl()->updateBuffer( 
-		ViewUniformBuffer_.get(),
-		0, sizeof( ViewUniformBlock_ ),
-		RsResourceUpdateFlags::ASYNC,
-		[
+	pFrame->queueRenderNode( Sort,
+		[ 
+			UniformBuffer = ViewUniformBuffer_.get(),
 			ViewUniformBlock = ViewUniformBlock_
 		]
-		( RsBuffer* Buffer, const RsBufferLock& Lock )
+		( RsContext* Context )
 		{
-			BcMemCopy( Lock.Buffer_, &ViewUniformBlock, sizeof( ViewUniformBlock ) );
+			Context->updateBuffer( 
+				UniformBuffer,
+				0, sizeof( ViewUniformBlock ),
+				RsResourceUpdateFlags::ASYNC,
+				[ &ViewUniformBlock ]
+				( RsBuffer* Buffer, const RsBufferLock& Lock )
+				{
+					BcMemCopy( Lock.Buffer_, &ViewUniformBlock, sizeof( ViewUniformBlock ) );
+				} );
 		} );
 
 	// Build frustum planes.
