@@ -188,7 +188,7 @@ void ScnEnvironmentProbeComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	Super::onDetach( Parent );
 
-	delete Texture_;
+	Texture_->markDestroy();
 	Texture_ = nullptr;
 }
 
