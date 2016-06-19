@@ -21,19 +21,27 @@
 // RsFrameBufferDesc
 struct RsFrameBufferDesc
 {
-	RsFrameBufferDesc( BcU32 NoofTargets );
+	RsFrameBufferDesc( size_t NoofTargets );
 
 	/**
 	 * Set render target.
 	 */
-	RsFrameBufferDesc& setRenderTarget( BcU32 Idx, RsTexture* Texture );
+	RsFrameBufferDesc& setRenderTarget( size_t Idx, class RsTexture* Texture, BcU32 Level = 0, RsTextureFace Face = RsTextureFace::NONE );
 
 	/**
 	 * Set depth stencil target.
 	 */
 	RsFrameBufferDesc& setDepthStencilTarget( RsTexture* Texture );
+
+	struct RTV
+	{
+		class RsTexture* Texture_ = nullptr;
+		BcU32 Level_ = 0;
+		RsTextureFace Face_ = RsTextureFace::NONE;
+	};
 	
-	std::vector< class RsTexture* > RenderTargets_;
+	// TODO: Get rid of vector.
+	std::vector< RTV > RenderTargets_;
 	RsTexture* DepthStencilTarget_;
 };
 

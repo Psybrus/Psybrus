@@ -22,6 +22,18 @@ ScnEnvironmentProbeProcessor::~ScnEnvironmentProbeProcessor()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getProbeEnvironmentMap
+ScnTexture* ScnEnvironmentProbeProcessor::getProbeEnvironmentMap( const MaVec3d& Position ) const
+{
+	// TODO: Distance check.
+	if( EnvironmentProbes_.size() > 0 )
+	{
+		return EnvironmentProbes_[ 0 ]->Texture_;
+	}
+	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // initialise
 void ScnEnvironmentProbeProcessor::initialise()
 {
@@ -69,42 +81,42 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 			Transform.rotation( MaVec3d( 0.0f, -BcPIDIV2, 0.0f ) );
 			Transform.translation( Position );
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
-			Renderer->render( Frame, Sort );
+			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 0 ].get(), Sort );
 			Sort.RenderTarget_++;
 
 			// NEGATIVE_X
 			Transform.rotation( MaVec3d( 0.0f, BcPIDIV2, 0.0f ) );
 			Transform.translation( Position );
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
-			Renderer->render( Frame, Sort );
+			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 1 ].get(), Sort );
 			Sort.RenderTarget_++;
 
 			// POSITIVE_Y
 			Transform.rotation( MaVec3d( BcPIDIV2, 0.0f, 0.0f ) );
 			Transform.translation( Position );
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
-			Renderer->render( Frame, Sort );
+			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 2 ].get(), Sort );
 			Sort.RenderTarget_++;
 
 			// NEGATIVE_Y
 			Transform.rotation( MaVec3d( -BcPIDIV2, 0.0f, 0.0f ) );
 			Transform.translation( Position );
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
-			Renderer->render( Frame, Sort );
+			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 3 ].get(), Sort );
 			Sort.RenderTarget_++;
 
 			// POSITIVE_Z
 			Transform.rotation( MaVec3d( 0.0f, 0.0f, 0.0f ) );
 			Transform.translation( Position );
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
-			Renderer->render( Frame, Sort );
+			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 4 ].get(), Sort );
 			Sort.RenderTarget_++;
 
 			// NEGATIVE_Z
 			Transform.rotation( MaVec3d( 0.0f, BcPI, 0.0f ) );
 			Transform.translation( Position );
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
-			Renderer->render( Frame, Sort );
+			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 5 ].get(), Sort );
 			Sort.RenderTarget_++;
 		}
 
@@ -119,7 +131,9 @@ void ScnEnvironmentProbeProcessor::onAttachComponent( ScnComponent* Component )
 {
 	if( Component->isTypeOf< ScnEnvironmentProbeComponent >() )
 	{
-		ProbeUpdateQueue_.push_back( static_cast< ScnEnvironmentProbeComponent* >( Component ) );
+		auto* ProbeComponent = static_cast< ScnEnvironmentProbeComponent* >( Component );
+		ProbeUpdateQueue_.push_back( ProbeComponent );
+		EnvironmentProbes_.push_back( ProbeComponent );
 	}
 }
 
@@ -129,10 +143,20 @@ void ScnEnvironmentProbeProcessor::onDetachComponent( ScnComponent* Component )
 {
 	if( Component->isTypeOf< ScnEnvironmentProbeComponent >() )
 	{
-		auto It = std::find( ProbeUpdateQueue_.begin(), ProbeUpdateQueue_.end(), Component );
-		if( It != ProbeUpdateQueue_.end() )
 		{
-			ProbeUpdateQueue_.erase( It );
+			auto It = std::find( ProbeUpdateQueue_.begin(), ProbeUpdateQueue_.end(), Component );
+			if( It != ProbeUpdateQueue_.end() )
+			{
+				ProbeUpdateQueue_.erase( It );
+			}
+		}
+
+		{
+			auto It = std::find( EnvironmentProbes_.begin(), EnvironmentProbes_.end(), Component );
+			if( It != EnvironmentProbes_.end() )
+			{
+				EnvironmentProbes_.erase( It );
+			}
 		}
 	}
 }
@@ -180,6 +204,13 @@ void ScnEnvironmentProbeComponent::onAttach( ScnEntityWeakRef Parent )
 	// Create texture to render into.
 	Texture_ = ScnTexture::NewCube( Renderer->getWidth(), Renderer->getHeight(), 1, RsTextureFormat::R8G8B8A8, true, false, (*getName()).c_str() );
 
+	// Generate cubemaps.
+	RsFrameBufferDesc Desc( 1 );
+	for( size_t Idx = 0; Idx < CubemapFaceTargets_.size(); ++Idx )
+	{
+		Desc.setRenderTarget( 0, Texture_->getTexture(), 0, RsTextureFace( Idx ) );
+		CubemapFaceTargets_[ Idx ] = RsCore::pImpl()->createFrameBuffer( Desc, (*getName()).c_str() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

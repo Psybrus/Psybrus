@@ -39,11 +39,14 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	void visit( class ScnLightComponent* Component ) override;
-
+	
 	/**
 	 * Render to specified frame.
+	 * @param Frame Frame to render into.
+	 * @param ResolveTarget Target to resolve to. nullptr for backbuffer.
+	 * @param Sort Sort key.
 	 */
-	void render( RsFrame* Frame, RsRenderSort Sort );
+	void render( RsFrame* Frame, RsFrameBuffer* ResolveTarget, RsRenderSort Sort );
 
 	/**
 	 * Set projection parameters.
@@ -105,6 +108,7 @@ protected:
 
 	std::array< ScnTextureRef, TEX_MAX > Textures_;
 
+	BcBool UseEnvironmentProbes_ = BcTrue;
 	ScnTextureRef ReflectionCubemap_;
 
 	ScnViewComponent* OpaqueView_ = nullptr;
@@ -125,5 +129,6 @@ protected:
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	RsBufferUPtr VertexBuffer_;
 	RsGeometryBindingUPtr GeometryBinding_;
+	RsFrameBuffer* ResolveTarget_ = nullptr;
 };
 

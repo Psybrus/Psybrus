@@ -17,12 +17,6 @@ RsQueryHeapGL::RsQueryHeapGL( RsQueryHeap* Parent, const RsOpenGLVersion& Versio
 	Handles_.resize( QueryHeapDesc.NoofQueries_ );
 
 	GL( GenQueries( Handles_.size(), Handles_.data() ) );
-
-	for( size_t Idx = 0; Idx < Handles_.size(); ++Idx )
-	{
-			
-	}
-
 #endif
 
 #if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION

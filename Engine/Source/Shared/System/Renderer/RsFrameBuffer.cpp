@@ -18,21 +18,24 @@
 
 //////////////////////////////////////////////////////////////////////////
 // RsFrameBufferDesc
-RsFrameBufferDesc::RsFrameBufferDesc( BcU32 NoofTargets ):
-	RenderTargets_( NoofTargets, nullptr ),
+RsFrameBufferDesc::RsFrameBufferDesc( size_t NoofTargets ):
+	RenderTargets_( NoofTargets, RTV() ),
 	DepthStencilTarget_( nullptr )
 {
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setRenderTarget
-RsFrameBufferDesc& RsFrameBufferDesc::setRenderTarget( BcU32 Idx, RsTexture* Texture )
+RsFrameBufferDesc& RsFrameBufferDesc::setRenderTarget( size_t Idx, RsTexture* Texture, BcU32 Level, RsTextureFace Face )
 {
 	BcAssertMsg( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) != RsResourceBindFlags::NONE,
 		"Can't bind texture as render target, was it created with RsResourceBindFlags::RENDER_TARGET?" );
-	BcAssertMsg( Texture->getDesc().Type_ == RsTextureType::TEX2D, "Can only use TEX2D textures." );
+	BcAssertMsg( Texture->getDesc().Type_ == RsTextureType::TEX2D ||
+		Texture->getDesc().Type_ == RsTextureType::TEXCUBE, "Can only use TEX2D or TEXCUBE textures." );
 
-	RenderTargets_[ Idx ] = Texture;
+	RenderTargets_[ Idx ].Texture_ = Texture;
+	RenderTargets_[ Idx ].Level_ = Level;
+	RenderTargets_[ Idx ].Face_ = Face;
 
 	return *this;
 }

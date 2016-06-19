@@ -8,6 +8,7 @@
 #include "System/Renderer/RsRenderNode.h"
 
 #include "System/Scene/Rendering/ScnDeferredRendererComponent.h"
+#include "System/Scene/Rendering/ScnEnvironmentProbeComponent.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
@@ -87,8 +88,8 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "HorizontalFOV_", &ScnDeferredRendererComponent::HorizontalFOV_, bcRFF_IMPORTER ),
 		new ReField( "VerticalFOV_", &ScnDeferredRendererComponent::VerticalFOV_, bcRFF_IMPORTER ),
 		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
-
-		
+		new ReField( "UseEnvironmentProbes_", &ScnDeferredRendererComponent::UseEnvironmentProbes_, bcRFF_IMPORTER ),
+				
 		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_TRANSIENT ),
 	};	
 	
@@ -190,13 +191,16 @@ void ScnDeferredRendererComponent::visit( class ScnLightComponent* Component )
 
 //////////////////////////////////////////////////////////////////////////
 // render
-void ScnDeferredRendererComponent::render( RsFrame* Frame, RsRenderSort Sort )
+void ScnDeferredRendererComponent::render( RsFrame* Frame, RsFrameBuffer* ResolveTarget, RsRenderSort Sort )
 {
+	RsFrameBuffer* OldResolveTarget = ResolveTarget_;
+	ResolveTarget_ = ResolveTarget;
 	ScnViewProcessor::pImpl()->renderView( OpaqueView_, Frame, Sort );
 	Sort.Viewport_++;
 	ScnViewProcessor::pImpl()->renderView( TransparentView_, Frame, Sort );
 	Sort.Viewport_++;
 	ScnViewProcessor::pImpl()->renderView( OverlayView_, Frame, Sort );
+	ResolveTarget_ = OldResolveTarget;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -406,6 +410,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 	// Gather lights that intersect with our view.
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
+
 	// Render all lights.
 	for( size_t Idx = 0; Idx < LightComponents_.size(); ++Idx )
 	{
@@ -464,6 +469,17 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 // renderReflection
 void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderContext )
 {
+	// Update reflection.
+	if( UseEnvironmentProbes_ )
+	{
+		auto NearestEnvironmentMap = ScnEnvironmentProbeProcessor::pImpl()->getProbeEnvironmentMap( getParentEntity()->getWorldPosition() );
+		if( NearestEnvironmentMap != ReflectionCubemap_ )
+		{
+			ReflectionCubemap_ = NearestEnvironmentMap;
+			ReflectionProgramBinding_.reset();
+		}
+	}
+
 	// HACK: Create resolve.
 	if( ReflectionProgramBinding_ == nullptr )
 	{
@@ -609,6 +625,7 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 			GeometryBinding = GeometryBinding_.get(),
 			ProgramBinding = ResolveProgramBinding_.get(),
 			RenderState = ResolveRenderState_.get(),
+			ResolveTarget = ResolveTarget_,
 			ResolveX = ResolveX_,
 			ResolveY = ResolveY_,
 			ResolveW = ResolveW_,
@@ -622,8 +639,8 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
 				MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
 
-			auto FrameBuffer = Context->getBackBuffer();
-			auto Desc = FrameBuffer->getDesc().RenderTargets_[ 0 ]->getDesc();
+			auto FrameBuffer = ResolveTarget ? ResolveTarget : Context->getBackBuffer();
+			auto Desc = FrameBuffer->getDesc().RenderTargets_[ 0 ].Texture_->getDesc();
 
 			RsViewport Viewport( 
 				BcU32( ResolveX * Desc.Width_ ),

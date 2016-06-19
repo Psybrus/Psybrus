@@ -67,4 +67,3 @@ void ScnVisitor::visit( class ScnLightComponent* pComponent )
 {
 
 }
-

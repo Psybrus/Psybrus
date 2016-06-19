@@ -43,8 +43,10 @@ public:
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
 	class RsFrameBuffer* getBackBuffer() const override;
-	class RsFrameBuffer* beginFrame( BcU32 Width, BcU32 Height ) override;
+	void resizeBackBuffer( BcU32 Width, BcU32 Height ) override;
+	void beginFrame() override;
 	void endFrame() override;
+	void present() override;
 	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
 	void clear( 

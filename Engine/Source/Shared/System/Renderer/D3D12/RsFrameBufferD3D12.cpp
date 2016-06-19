@@ -67,8 +67,11 @@ void RsFrameBufferD3D12::createDSVDescriptorHeap()
 #if !PSY_PRODUCTION
 	auto* DebugName = Parent_->getDebugName();
 	BcAssert( DebugName != nullptr );
-	std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
-	DSV_->SetName( DebugNameW.c_str() );
+	if( DSV_ )
+	{
+		std::wstring DebugNameW( &DebugName[0], DebugName + BcStrLength( DebugName ) );
+		DSV_->SetName( DebugNameW.c_str() );
+	}
 #endif
 }
 
@@ -82,12 +85,12 @@ void RsFrameBufferD3D12::setupRTVs()
 	for( INT Idx = 0; Idx < static_cast< INT >( ParentDesc.RenderTargets_.size() ); ++Idx )
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE ThisDescriptorHandle( RTVDescriptorHandle, Idx, DescriptorSize );
-		auto RTTexture = ParentDesc.RenderTargets_[ Idx ];
+		auto RTV = ParentDesc.RenderTargets_[ Idx ];
 		auto Format = RsTextureFormat::UNKNOWN;
-		if( RTTexture != nullptr )
+		if( RTV.Texture_!= nullptr )
 		{
-			const auto& RTTextureDesc = RTTexture->getDesc();
-			auto RTResource = RTTexture->getHandle< RsResourceD3D12* >();
+			const auto& RTTextureDesc = RTV.Texture_->getDesc();
+			auto RTResource = RTV.Texture_->getHandle< RsResourceD3D12* >();
 			BcAssert( RTResource );
 			D3D12_RENDER_TARGET_VIEW_DESC RTVDesc;
 			BcMemZero( &RTVDesc, sizeof( RTVDesc ) );
@@ -97,7 +100,16 @@ void RsFrameBufferD3D12::setupRTVs()
 				{
 					RTVDesc.Format = RsUtilsD3D12::GetTextureFormat( RTTextureDesc.Format_ ).RTVFormat_;
 					RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-					RTVDesc.Texture2D.MipSlice = 0;
+					RTVDesc.Texture2D.MipSlice = RTV.Level_;
+				}
+				break;
+			case RsTextureType::TEXCUBE:
+				{
+					RTVDesc.Format = RsUtilsD3D12::GetTextureFormat( RTTextureDesc.Format_ ).RTVFormat_;
+					RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+					RTVDesc.Texture2DArray.MipSlice = RTV.Level_;
+					RTVDesc.Texture2DArray.FirstArraySlice = UINT( RTV.Face_ );
+					RTVDesc.Texture2DArray.ArraySize = 1;
 				}
 				break;
 
@@ -194,10 +206,10 @@ void RsFrameBufferD3D12::setRenderTargets( ID3D12GraphicsCommandList* CommandLis
 	// Resource barriers.
 	for( size_t Idx = 0; Idx < ParentDesc.RenderTargets_.size(); ++Idx )
 	{
-		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
-		if( RenderTarget != nullptr )
+		auto RTV = ParentDesc.RenderTargets_[ Idx ];
+		if( RTV.Texture_ != nullptr )
 		{
-			auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+			auto Resource = RTV.Texture_->getHandle< RsResourceD3D12* >();
 			BcAssert( Resource );
 			Resource->resourceBarrierTransition( CommandList, D3D12_RESOURCE_STATE_RENDER_TARGET );
 		}
@@ -233,13 +245,13 @@ void RsFrameBufferD3D12::transitionToRead( ID3D12GraphicsCommandList* CommandLis
 	// Resource barriers.
 	for( size_t Idx = 0; Idx < ParentDesc.RenderTargets_.size(); ++Idx )
 	{
-		auto RenderTarget = ParentDesc.RenderTargets_[ Idx ];
-		if( RenderTarget != nullptr )
+		auto RTV = ParentDesc.RenderTargets_[ Idx ];
+		if( RTV.Texture_ != nullptr )
 		{
-			const auto& RenderTargetDesc = RenderTarget->getDesc();
+			const auto& RenderTargetDesc = RTV.Texture_->getDesc();
 			if( ( RenderTargetDesc.BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE )
 			{ 
-				auto Resource = RenderTarget->getHandle< RsResourceD3D12* >();
+				auto Resource = RTV.Texture_->getHandle< RsResourceD3D12* >();
 				Resource->resourceBarrierTransition( CommandList, Usage );
 			}
 		}

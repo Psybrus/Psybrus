@@ -276,6 +276,7 @@ RsRenderStateUPtr RsCoreImpl::createRenderState(
 		const RsRenderStateDesc& Desc, 
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createRenderState: %s", DebugName );
@@ -304,6 +305,7 @@ RsSamplerStateUPtr RsCoreImpl::createSamplerState(
 		const RsSamplerStateDesc& Desc, 
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createSamplerState: %s", DebugName );
@@ -332,13 +334,14 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 		const RsFrameBufferDesc& Desc, 
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createFrameBuffer: %s", DebugName );
 
 	for( auto RT: Desc.RenderTargets_ )
 	{
-		BcAssert( RT );
+		BcAssert( RT.Texture_ );
 	}
 
 	auto Context = getContext( nullptr );
@@ -373,6 +376,7 @@ RsTextureUPtr RsCoreImpl::createTexture(
 		const RsTextureDesc& Desc, 
 	const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	BcAssert( Desc.Type_ != RsTextureType::UNKNOWN );
@@ -413,6 +417,7 @@ RsVertexDeclarationUPtr RsCoreImpl::createVertexDeclaration(
 		const RsVertexDeclarationDesc& Desc, 
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createVertexDeclaration: %s", DebugName );
@@ -442,6 +447,7 @@ RsBufferUPtr RsCoreImpl::createBuffer(
 		const RsBufferDesc& Desc, 
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createBuffer: %s", DebugName );
@@ -472,6 +478,7 @@ RsShaderUPtr RsCoreImpl::createShader(
 		void* pShaderData, BcU32 ShaderDataSize,
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createShader: %s", DebugName );
@@ -503,6 +510,7 @@ RsProgramUPtr RsCoreImpl::createProgram(
 		RsProgramParameterList ParameterList,
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createProgram: %s", DebugName );
@@ -549,6 +557,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 		const RsProgramBindingDesc& ProgramBindingDesc,
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createProgramBinding: %s", DebugName );
@@ -651,6 +660,7 @@ RsGeometryBindingUPtr RsCoreImpl::createGeometryBinding(
 		const RsGeometryBindingDesc& GeometryBindingDesc,
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createGeometryBinding: %s", DebugName );
@@ -687,6 +697,7 @@ RsQueryHeapUPtr RsCoreImpl::createQueryHeap(
 		const RsQueryHeapDesc& QueryHeapDesc,
 		const BcChar* DebugName )
 {
+	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	PSY_LOG( "createQueryHeap: %s", DebugName );
@@ -873,9 +884,9 @@ void RsCoreImpl::destroyResource( RsTexture* Texture )
 			for( const auto* FrameBuffer : AliveFrameBuffers_ )
 			{
 				const auto& Desc = FrameBuffer->getDesc();
-				for( const auto& RTTexture : Desc.RenderTargets_ )
+				for( const auto& RTVSlot : Desc.RenderTargets_ )
 				{
-					BcAssertMsg( RTTexture != Texture, "RsTexture %s is currently being used in RsFrameBuffer %s.", 
+					BcAssertMsg( RTVSlot.Texture_ != Texture, "RsTexture %s is currently being used in RsFrameBuffer %s.", 
 						Texture->getDebugName(),
 						FrameBuffer->getDebugName() );
 				}

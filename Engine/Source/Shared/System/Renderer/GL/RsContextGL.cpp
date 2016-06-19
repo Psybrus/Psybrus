@@ -1123,15 +1123,15 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	BcAssertMsg( Desc.RenderTargets_.size() < GL_MAX_COLOR_ATTACHMENTS, "Too many targets" );
 
 	// Check if it's the backbuffer we're trying to create.
-	if( Desc.RenderTargets_[ 0 ] == BackBufferRT_ || Desc.DepthStencilTarget_ == BackBufferDS_ ) 
+	if( Desc.RenderTargets_[ 0 ].Texture_ == BackBufferRT_ || Desc.DepthStencilTarget_ == BackBufferDS_ ) 
 	{
-		if( Desc.RenderTargets_[ 0 ] != BackBufferRT_ || Desc.DepthStencilTarget_ != BackBufferDS_ )
+		if( Desc.RenderTargets_[ 0 ].Texture_ != BackBufferRT_ || Desc.DepthStencilTarget_ != BackBufferDS_ )
 		{
 			return false;
 		}
 		for( size_t Idx = 1; Idx < Desc.RenderTargets_.size(); ++Idx )
 		{
-			if( Desc.RenderTargets_[ Idx ] != nullptr )
+			if( Desc.RenderTargets_[ Idx ].Texture_ != nullptr )
 			{
 				return false;
 			}
@@ -1157,10 +1157,26 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 
 	// Attach colour targets.
 	BcU32 NoofAttachments = 0;
-	for( auto Texture : Desc.RenderTargets_ )
+	for( auto RTV : Desc.RenderTargets_ )
 	{
-		if( Texture != nullptr )
+		if( RTV.Texture_ != nullptr )
 		{
+			auto Texture = RTV.Texture_;
+			auto Type = GL_TEXTURE_2D;
+			switch( Texture->getDesc().Type_ )
+			{
+			case RsTextureType::TEX2D:
+				BcAssertMsg( RTV.Face_ == RsTextureFace::NONE,
+					"Texture face for TEX2D in RsFrameBuffer \"%s\" is invalid. Must have RsTextureFace::NONE.", FrameBuffer->getDebugName() );
+				Type = GL_TEXTURE_2D;
+				break;
+			case RsTextureType::TEXCUBE:
+				Type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + GLenum( RTV.Face_ );
+				break;
+			default:
+				BcAssertMsg( false, "Unsupported texture type for RsFrameBuffer \"%s\"", FrameBuffer->getDebugName() );
+			}
+
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
 				RsResourceBindFlags::NONE );
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) !=
@@ -1169,9 +1185,9 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
 				GL_COLOR_ATTACHMENT0 + NoofAttachments++,
-				GL_TEXTURE_2D,
+				Type,
 				TextureGL->getHandle(),
-				0 ) );
+				RTV.Level_ ) );
 		}
 	}
 
@@ -2190,9 +2206,9 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 
 	// Determine frame buffer width + height.
 	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
-	BcAssert( RT );
-	auto FBWidth = RT->getDesc().Width_;
-	auto FBHeight = RT->getDesc().Height_;
+	BcAssert( RT.Texture_ );
+	auto FBWidth = RT.Texture_->getDesc().Width_;
+	auto FBHeight = RT.Texture_->getDesc().Height_;
 
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );

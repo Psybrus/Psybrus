@@ -9,12 +9,15 @@
 //////////////////////////////////////////////////////////////////////////
 // ScnEnvironmentProbeProcessor
 class ScnEnvironmentProbeProcessor:
+	public BcGlobal< ScnEnvironmentProbeProcessor >,
 	public ScnComponentProcessor,
 	public ScnCoreCallback
 {
 public:
 	ScnEnvironmentProbeProcessor();
 	virtual ~ScnEnvironmentProbeProcessor();
+
+	class ScnTexture* getProbeEnvironmentMap( const MaVec3d& Position ) const;
 
 private:
 	void initialise() override;
@@ -26,6 +29,7 @@ private:
 	void onDetachComponent( ScnComponent* Component ) override;
 
 private:
+	std::vector< class ScnEnvironmentProbeComponent* > EnvironmentProbes_;
 	std::deque< class ScnEnvironmentProbeComponent* > ProbeUpdateQueue_;
 		
 };
@@ -51,5 +55,7 @@ private:
 	ScnEntity* Renderer_ = nullptr;
 
 	class ScnTexture* Texture_ = nullptr;
+
+	std::array< RsFrameBufferUPtr, 6 > CubemapFaceTargets_;
 
 };

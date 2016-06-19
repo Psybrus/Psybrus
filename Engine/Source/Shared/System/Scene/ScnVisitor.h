@@ -39,28 +39,28 @@ public:
 	virtual ~ScnVisitor();
 
 	/**
-	*	Called before recursing into the scene.
-	*/
+	 * Called before recursing into the scene.
+	 */
 	virtual void preScene();
 
 	/**
-	*	Called after recursing into the scene.
-	*/
+	 * Called after recursing into the scene.
+	 */
 	virtual void postScene();
 
 	/**
-	*	Called when a component is hit.
-	*/
+	 * Called when a component is hit.
+	 */
 	virtual void visit( class ScnSpatialComponent* pComponent );
 
 	/**
-	*	Called when a component is hit.
-	*/
+	 * Called when a component is hit.
+	 */
 	virtual void visit( class ScnRenderableComponent* pComponent );
 
 	/**
-	*	Called when a component is hit.
-	*/
+	 * Called when a component is hit.
+	 */
 	virtual void visit( class ScnLightComponent* pComponent );
 
 private:

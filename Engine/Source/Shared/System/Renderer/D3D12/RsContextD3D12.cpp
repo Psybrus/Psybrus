@@ -210,20 +210,20 @@ RsFrameBuffer* RsContextD3D12::getBackBuffer() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// resizeBackBuffer
+void RsContextD3D12::resizeBackBuffer( BcU32 Width, BcU32 Height )
+{
+	// Recreate as needed.
+	recreateBackBuffers( Width, Height );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // beginFrame
-RsFrameBuffer* RsContextD3D12::beginFrame( BcU32 Width, BcU32 Height )
+void RsContextD3D12::beginFrame()
 {
 	PSY_PROFILE_FUNCTION;
 	BcAssert( InsideBeginEnd_ == 0 );
 	++InsideBeginEnd_;
-
-	// Recreate as needed.
-	recreateBackBuffers( Width, Height );
-
-	// Grab current swap buffer index.
-	CurrentSwapBuffer_ = SwapChain_->GetCurrentBackBufferIndex();
-
-	return BackBufferFB_[ CurrentSwapBuffer_ ];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,6 +244,15 @@ void RsContextD3D12::endFrame()
 	// Destroy resources.
 	destroyResources();
 
+
+	// Flush command list (also waits for completion).
+	flushCommandList( nullptr );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// present
+void RsContextD3D12::present()
+{
 	// Flush command list (also waits for completion).
 	flushCommandList( 
 		[ this ]()
@@ -255,6 +264,9 @@ void RsContextD3D12::endFrame()
 			BcAssert( SUCCEEDED( RetVal ) );
 			++FrameCounter_;
 		} );
+
+	// Grab current swap buffer index.
+	CurrentSwapBuffer_ = SwapChain_->GetCurrentBackBufferIndex();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -707,10 +719,10 @@ void RsContextD3D12::bindFrameBuffer(
 		const RsScissorRect* ScissorRect )
 {
 	// Determine frame buffer width + height.
-	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
-	BcAssert( RT );
-	auto FBWidth = RT->getDesc().Width_;
-	auto FBHeight = RT->getDesc().Height_;
+	auto RTV = FrameBuffer->getDesc().RenderTargets_[ 0 ];
+	BcAssert( RTV.Texture_ );
+	auto FBWidth = RTV.Texture_->getDesc().Width_;
+	auto FBHeight = RTV.Texture_->getDesc().Height_;
 
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
@@ -888,10 +900,10 @@ void RsContextD3D12::bindGraphicsPSO(
 			GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_.fill( RsTextureFormat::UNKNOWN );
 			for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
 			{
-				auto RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
-				if( RenderTarget != nullptr )
+				auto RTV = FrameBufferDesc.RenderTargets_[ Idx ];
+				if( RTV.Texture_ != nullptr )
 				{
-					const auto& RenderTargetDesc =  RenderTarget->getDesc();
+					const auto& RenderTargetDesc =  RTV.Texture_->getDesc();
 					GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_[ Idx ] = RenderTargetDesc.Format_;
 				}
 			}

@@ -214,7 +214,7 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 			// TODO: Determine if this step is required base on nodes.
 			if( InputTexture != nullptr )
 			{
-				Context->copyTexture( FrameBuffer->getDesc().RenderTargets_[ 0 ], InputTexture );
+				Context->copyTexture( FrameBuffer->getDesc().RenderTargets_[ 0 ].Texture_, InputTexture );
 			}
 
 			ScnShaderPermutationFlags Permutation = 
@@ -292,7 +292,7 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 					const auto& FrameBufferDesc = FrameBuffer->getDesc(); 
 					for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
 					{
-						RsTexture* RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ];
+						RsTexture* RenderTarget = FrameBufferDesc.RenderTargets_[ Idx ].Texture_;
 						if( RenderTarget )
 						{
 							const auto& Desc = RenderTarget->getDesc();
@@ -325,7 +325,7 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 			// TODO: Determine if this step is required based on nodes.
 			if( OutputTexture != nullptr )
 			{
-				Context->copyTexture( OutputTexture, FrameBuffer->getDesc().RenderTargets_[ 0 ] );
+				Context->copyTexture( OutputTexture, FrameBuffer->getDesc().RenderTargets_[ 0 ].Texture_ );
 			}
 
 			RenderFence_.decrement();
@@ -450,7 +450,7 @@ void ScnPostProcessComponent::recreateResources()
 			}
 		}
 
-		if( Desc.RenderTargets_[ 0 ] == nullptr )
+		if( Desc.RenderTargets_[ 0 ].Texture_ == nullptr )
 		{
 			FrameBuffers_.emplace_back( nullptr );	
 		}
