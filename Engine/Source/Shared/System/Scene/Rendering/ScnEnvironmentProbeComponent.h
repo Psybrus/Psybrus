@@ -57,5 +57,6 @@ private:
 	class ScnTexture* Texture_ = nullptr;
 
 	std::array< RsFrameBufferUPtr, 6 > CubemapFaceTargets_;
+	MaVec3d GeneratedWorldPosition_ = MaVec3d( FLT_MAX, FLT_MAX, FLT_MAX );
 
 };

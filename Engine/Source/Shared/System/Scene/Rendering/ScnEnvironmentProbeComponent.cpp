@@ -56,14 +56,25 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 
 	if( Components.size() > 0 )
 	{
-		// Allocate a frame, but without present.
-		RsFrame* Frame = RsCore::pImpl()->allocateFrame( Context, false );
-
-		// Wait for all uploads to complete.
-		for( BcU32 Idx = 0; Idx < Components.size(); ++Idx )
+		for( size_t Idx = 0; Idx < Components.size(); ++Idx )
 		{
 			auto Component = Components[ Idx ];
 			auto* ProbeComponent = static_cast< ScnEnvironmentProbeComponent* >( Component.get() );
+			MaVec3d Position = ProbeComponent->getParentEntity()->getWorldPosition();
+			if( ( Position - ProbeComponent->GeneratedWorldPosition_ ).magnitudeSquared() > 1e6f )
+			{
+				ProbeUpdateQueue_.push_back( ProbeComponent );
+			}
+		}
+
+		// Allocate a frame, but without present.
+		RsFrame* Frame = RsCore::pImpl()->allocateFrame( Context, false );
+
+		// Add a single probe to generate.
+		if( ProbeUpdateQueue_.size() > 0 )
+		{
+			auto* ProbeComponent = ProbeUpdateQueue_.front();
+			ProbeUpdateQueue_.pop_front();
 				
 			// TODO: Renderer interface component?
 			auto Renderer = ProbeComponent->Renderer_->getComponentByType< ScnDeferredRendererComponent >();
@@ -74,7 +85,7 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 			Renderer->setProjectionParams( 0.1f, 5000.0f, BcPIDIV4, 0.0f );
 			
 			// Get renderer position.
-			MaVec3d Position = Renderer->getParentEntity()->getWorldPosition();
+			MaVec3d Position = ProbeComponent->getParentEntity()->getWorldPosition();
 			MaMat4d Transform;
 
 			// POSITIVE_X
@@ -118,6 +129,8 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 			Renderer->getParentEntity()->setWorldMatrix( Transform );
 			Renderer->render( Frame, ProbeComponent->CubemapFaceTargets_[ 5 ].get(), Sort );
 			Sort.RenderTarget_++;
+
+			ProbeComponent->GeneratedWorldPosition_ = Position;
 		}
 
 		// Queue frame for render.
@@ -132,8 +145,17 @@ void ScnEnvironmentProbeProcessor::onAttachComponent( ScnComponent* Component )
 	if( Component->isTypeOf< ScnEnvironmentProbeComponent >() )
 	{
 		auto* ProbeComponent = static_cast< ScnEnvironmentProbeComponent* >( Component );
-		ProbeUpdateQueue_.push_back( ProbeComponent );
 		EnvironmentProbes_.push_back( ProbeComponent );
+	}
+
+	// TODO: More intelligent determination of if a probe needs to be regenerated.
+	// Regenerate if entity has been attached.
+	else if( Component->isTypeOf< ScnEntity >() )
+	{
+		for( auto ProbeComponent : EnvironmentProbes_ )
+		{
+			ProbeUpdateQueue_.push_back( ProbeComponent );
+		}
 	}
 }
 
@@ -157,6 +179,16 @@ void ScnEnvironmentProbeProcessor::onDetachComponent( ScnComponent* Component )
 			{
 				EnvironmentProbes_.erase( It );
 			}
+		}
+	}
+
+	// TODO: More intelligent determination of if a probe needs to be regenerated.
+	// Regenerate if entity has been attached.
+	else if( Component->isTypeOf< ScnEntity >() )
+	{
+		for( auto ProbeComponent : EnvironmentProbes_ )
+		{
+			ProbeUpdateQueue_.push_back( ProbeComponent );
 		}
 	}
 }
