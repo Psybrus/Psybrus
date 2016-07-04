@@ -35,13 +35,14 @@ enum PsySetupFlags
 	psySF_REMOTE							= 0x00000010,		// Create remoting system.
 	psySF_RENDER							= 0x00000020,		// Create render system.
 	psySF_SOUND								= 0x00000040,		// Create sound system.
+	psySF_SCENE								= 0x00000080,		// Create scene system.
 
 	// Run mode.
 	psySF_GAME								= 0x00000100,		// Game.
 	psySF_TOOL								= 0x00000200,		// Tool.
 
 	// Defaults.
-	psySF_DEFAULT_SYSTEMS					= psySF_RENDER | psySF_SOUND,
+	psySF_DEFAULT_SYSTEMS					= psySF_RENDER | psySF_SOUND | psySF_SCENE,
 	psySF_GAME_FINAL						= psySF_DEFAULT_SYSTEMS | psySF_WINDOW,
 	psySF_GAME_DEV							= psySF_GAME | psySF_GAME_FINAL | psySF_REMOTE,
 	psySF_SERVER							= psySF_GAME | psySF_CONSOLE | psySF_REMOTE | psySF_RENDER,

@@ -193,82 +193,85 @@ void DsCoreImpl::open()
 	}
 #endif
 
-	// Setup init/deinit hooks.
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
-		[]( EvtID, const EvtBaseEvent& )
+	if( ScnCore::pImpl() )
 	{
-		if( OsCore::pImpl()->getClient( 0 ) )
+		// Setup init/deinit hooks.
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
+			[]( EvtID, const EvtBaseEvent& )
 		{
-			ImGui::Psybrus::Init();
-		}
-		return evtRET_REMOVE;
-	} );
-
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
-		[]( EvtID, const EvtBaseEvent& )
-	{
-		if( OsCore::pImpl()->getClient( 0 ) )
-		{
-			ImGui::Psybrus::Shutdown();
-		}
-		return evtRET_REMOVE;
-	} );
-
-	ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )
-	{
-		PSY_PROFILER_SECTION( UpdateImGui, "ImGui" );
-		if( OsCore::pImpl()->getClient( 0 ) )
-		{
-			if ( ImGui::Psybrus::NewFrame() )
+			if( OsCore::pImpl()->getClient( 0 ) )
 			{
-				if ( DrawMenu_ )
-				{
-					// Do main menu bar.
-					if( ImGui::BeginMainMenuBar() )
-					{
-						// Categorised panels.
-						std::string LastCategory;
-						bool MenuOpen = false;
-						for ( auto& Panel : PanelFunctions_ )
-						{
-							if( Panel.Category_ != LastCategory )
-							{
-								if( MenuOpen && !LastCategory.empty() )
-								{
-									ImGui::EndMenu();
-								}
-								MenuOpen = ImGui::BeginMenu( Panel.Category_.c_str() );
-								LastCategory = Panel.Category_;
-							}
-							if( MenuOpen )
-							{
-								if( ImGui::MenuItem( Panel.Name_.c_str(), Panel.Shortcut_.c_str(), nullptr ) )
-								{
-									Panel.IsVisible_ = !Panel.IsVisible_; 
-								}
-							}
-						}
-						if( MenuOpen && !LastCategory.empty() )
-						{
-							ImGui::EndMenu();
-						}
+				ImGui::Psybrus::Init();
+			}
+			return evtRET_REMOVE;
+		} );
 
-						ImGui::EndMainMenuBar();
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_CLOSE, this,
+			[]( EvtID, const EvtBaseEvent& )
+		{
+			if( OsCore::pImpl()->getClient( 0 ) )
+			{
+				ImGui::Psybrus::Shutdown();
+			}
+			return evtRET_REMOVE;
+		} );
+
+		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, this,
+			[ this ]( EvtID, const EvtBaseEvent& )
+		{
+			PSY_PROFILER_SECTION( UpdateImGui, "ImGui" );
+			if( OsCore::pImpl()->getClient( 0 ) )
+			{
+				if ( ImGui::Psybrus::NewFrame() )
+				{
+					if ( DrawMenu_ )
+					{
+						// Do main menu bar.
+						if( ImGui::BeginMainMenuBar() )
+						{
+							// Categorised panels.
+							std::string LastCategory;
+							bool MenuOpen = false;
+							for ( auto& Panel : PanelFunctions_ )
+							{
+								if( Panel.Category_ != LastCategory )
+								{
+									if( MenuOpen && !LastCategory.empty() )
+									{
+										ImGui::EndMenu();
+									}
+									MenuOpen = ImGui::BeginMenu( Panel.Category_.c_str() );
+									LastCategory = Panel.Category_;
+								}
+								if( MenuOpen )
+								{
+									if( ImGui::MenuItem( Panel.Name_.c_str(), Panel.Shortcut_.c_str(), nullptr ) )
+									{
+										Panel.IsVisible_ = !Panel.IsVisible_; 
+									}
+								}
+							}
+							if( MenuOpen && !LastCategory.empty() )
+							{
+								ImGui::EndMenu();
+							}
+
+							ImGui::EndMainMenuBar();
+						}
 					}
-				}
 
-				for ( auto& Panel : PanelFunctions_ )
-				{
-					if( Panel.IsVisible_ )
+					for ( auto& Panel : PanelFunctions_ )
 					{
-						Panel.Function_( Panel.Handle_ );
+						if( Panel.IsVisible_ )
+						{
+							Panel.Function_( Panel.Handle_ );
+						}
 					}
 				}
 			}
-		}
-		return evtRET_PASS;
-	} );
+			return evtRET_PASS;
+		} );
+	}
 
 	DrawMenu_ = false;
 #if PLATFORM_HTML5

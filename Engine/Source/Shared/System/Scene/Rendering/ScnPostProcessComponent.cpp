@@ -220,8 +220,7 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 			ScnShaderPermutationFlags Permutation = 
 				ScnShaderPermutationFlags::RENDER_POST_PROCESS |
 				ScnShaderPermutationFlags::PASS_MAIN |
-				ScnShaderPermutationFlags::MESH_STATIC_2D |
-				ScnShaderPermutationFlags::LIGHTING_NONE;
+				ScnShaderPermutationFlags::MESH_STATIC_2D;
 
 			// Iterate over nodes to process.
 			for( size_t NodeIdx = 0; NodeIdx < Nodes_.size(); ++NodeIdx )
@@ -369,8 +368,7 @@ void ScnPostProcessComponent::recreateResources()
 	const ScnShaderPermutationFlags Permutation = 
 		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
 		ScnShaderPermutationFlags::PASS_MAIN |
-		ScnShaderPermutationFlags::MESH_STATIC_2D |
-		ScnShaderPermutationFlags::LIGHTING_NONE;
+		ScnShaderPermutationFlags::MESH_STATIC_2D;
 
 	// Create framebuffers, render states, and uniform buffers for nodes.
 	FrameBuffers_.clear();

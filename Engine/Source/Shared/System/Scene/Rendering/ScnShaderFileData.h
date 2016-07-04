@@ -29,7 +29,6 @@ enum class ScnShaderPermutationType : BcU32
 	RENDER_FIRST,
 	RENDER_FORWARD = RENDER_FIRST,						// Forward rendering.
 	RENDER_DEFERRED,									// Deferred rendering.
-	RENDER_FORWARD_PLUS,								// Forward plus rendering.
 	RENDER_POST_PROCESS,								// Post process rendering.
 	RENDER_MAX_END,
 	RENDER_COUNT = RENDER_MAX_END - RENDER_FIRST,
@@ -51,15 +50,7 @@ enum class ScnShaderPermutationType : BcU32
 	MESH_INSTANCED_3D,									// Instanced 3D.
 	MESH_MAX_END,
 	MESH_COUNT = MESH_MAX_END - MESH_FIRST,
-	
-	// Lighting types.
-	LIGHTING_FIRST = MESH_MAX_END,
-	LIGHTING_NONE = LIGHTING_FIRST,						// Unlit geometry.
-	LIGHTING_DIFFUSE,									// Diffuse lit geometry.
-	LIGHTING_MAX_END,
-	LIGHTING_COUNT = LIGHTING_MAX_END - LIGHTING_FIRST,
 };
-
 
 //////////////////////////////////////////////////////////////////////////
 // ScnShaderPermutationFlags
@@ -70,12 +61,10 @@ enum class ScnShaderPermutationFlags : BcU32
 	// Render type.
 	RENDER_FORWARD				= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD,
 	RENDER_DEFERRED				= 1 << (BcU32)ScnShaderPermutationType::RENDER_DEFERRED,
-	RENDER_FORWARD_PLUS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_FORWARD_PLUS,
 	RENDER_POST_PROCESS			= 1 << (BcU32)ScnShaderPermutationType::RENDER_POST_PROCESS,
 	RENDER_ALL = 
 		RENDER_FORWARD | 
 		RENDER_DEFERRED | 
-		RENDER_FORWARD_PLUS | 
 		RENDER_POST_PROCESS,
 	
 	// Pass type.
@@ -99,13 +88,6 @@ enum class ScnShaderPermutationFlags : BcU32
 		MESH_SKINNED_3D |
 		MESH_PARTICLE_3D |
 		MESH_INSTANCED_3D,
-
-	// Lighting type.
-	LIGHTING_NONE				= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_NONE,
-	LIGHTING_DIFFUSE			= 1 << (BcU32)ScnShaderPermutationType::LIGHTING_DIFFUSE,
-	LIGHTING_ALL = 
-		LIGHTING_NONE |
-		LIGHTING_DIFFUSE,
 };
 
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, | );

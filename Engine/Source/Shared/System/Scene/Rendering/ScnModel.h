@@ -168,16 +168,6 @@ public:
 		setUniforms( _Ty::StaticGetClass(), &UniformData );
 	}
 
-	/**
-	 * Is this model component lit?
-	 */
-	BcBool isLit() const { return IsLit_; }
-
-	/**
-	 * Set if model is lit.
-	 */
-	void setLit( BcBool Lit ) { IsLit_ = Lit; }
-
 	void setBaseTransform( const MaVec3d& Position, const MaVec3d& Scale, const MaVec3d& Rotation );
 	
 public:
@@ -190,8 +180,7 @@ public:
 	bool isInstancingMatch( const ScnModelComponent& Other ) const
 	{
 		return Model_ == Other.Model_ &&
-			Layer_ == Other.Layer_ &&
-			IsLit_ == Other.IsLit_;
+			Layer_ == Other.Layer_;
 	}
 
 	void updateInstancingHash();
@@ -209,8 +198,6 @@ protected:
 
 	/// Used to specify what kind of object it is for selectively rendering with certain views.
 	BcU32 RenderMask_;
-	/// Does this need to be lit?
-	BcBool IsLit_;
 	/// Render permutation flags that this renderable supports.
 	ScnShaderPermutationFlags RenderPermutations_;
 	/// Sort pass flags that this renderable supports.

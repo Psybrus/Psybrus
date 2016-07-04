@@ -43,7 +43,6 @@ namespace
 	{
 		{ ScnShaderPermutationFlags::RENDER_FORWARD,			"PERM_RENDER_FORWARD",				"1" },
 		{ ScnShaderPermutationFlags::RENDER_DEFERRED,			"PERM_RENDER_DEFERRED",				"1" },
-		{ ScnShaderPermutationFlags::RENDER_FORWARD_PLUS,		"PERM_RENDER_FORWARD_PLUS",			"1" },
 		{ ScnShaderPermutationFlags::RENDER_POST_PROCESS,		"PERM_RENDER_POST_PROCESS",			"1" },
 	};
 
@@ -63,18 +62,11 @@ namespace
 		{ ScnShaderPermutationFlags::MESH_INSTANCED_3D,			"PERM_MESH_INSTANCED_3D",			"1" },
 	};
 
-	static ScnShaderPermutationEntry GPermutationsLightingType[] = 
-	{
-		{ ScnShaderPermutationFlags::LIGHTING_NONE,				"PERM_LIGHTING_NONE",				"1" },
-		{ ScnShaderPermutationFlags::LIGHTING_DIFFUSE,			"PERM_LIGHTING_DIFFUSE",			"1" },
-	};
-
 	static ScnShaderPermutationGroup GPermutationGroups[] =
 	{
 		ScnShaderPermutationGroup( GPermutationsRenderType ),
 		ScnShaderPermutationGroup( GPermutationsPassType ),
 		ScnShaderPermutationGroup( GPermutationsMeshType ),
-		ScnShaderPermutationGroup( GPermutationsLightingType ),
 	};
 
 	static const BcU32 GNoofPermutationGroups = ( sizeof( GPermutationGroups ) / sizeof( GPermutationGroups[ 0 ] ) );
@@ -142,7 +134,6 @@ void ScnShaderImport::StaticRegisterClass()
 
 			new ReEnumConstant( "RENDER_FORWARD", ScnShaderPermutationFlags::RENDER_FORWARD ),
 			new ReEnumConstant( "RENDER_DEFERRED", ScnShaderPermutationFlags::RENDER_DEFERRED ),
-			new ReEnumConstant( "RENDER_FORWARD_PLUS", ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
 			new ReEnumConstant( "RENDER_POST_PROCESS", ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
 			new ReEnumConstant( "RENDER_ALL", ScnShaderPermutationFlags::RENDER_ALL ),
 
@@ -157,10 +148,6 @@ void ScnShaderImport::StaticRegisterClass()
 			new ReEnumConstant( "MESH_PARTICLE_3D", (BcU32)ScnShaderPermutationFlags::MESH_PARTICLE_3D ),
 			new ReEnumConstant( "MESH_INSTANCED_3D", (BcU32)ScnShaderPermutationFlags::MESH_INSTANCED_3D ),
 			new ReEnumConstant( "MESH_ALL", (BcU32)ScnShaderPermutationFlags::MESH_ALL ),
-
-			new ReEnumConstant( "LIGHTING_NONE", (BcU32)ScnShaderPermutationFlags::LIGHTING_NONE ),
-			new ReEnumConstant( "LIGHTING_DIFFUSE", (BcU32)ScnShaderPermutationFlags::LIGHTING_DIFFUSE ),
-			new ReEnumConstant( "LIGHTING_ALL", (BcU32)ScnShaderPermutationFlags::LIGHTING_ALL ),
 		};
 		ReRegisterEnum< ScnShaderPermutationFlags >( EnumConstants );
 	}
@@ -788,6 +775,11 @@ BcBool ScnShaderImport::newPipeline()
 	}
 	else
 	{
+		// Add all base defines at the end.
+		for( auto Define : Defines_ )
+		{
+			DefaultPermutation.Defines_.insert( Define );
+		}
 		Permutations_.push_back( DefaultPermutation );
 	}
 

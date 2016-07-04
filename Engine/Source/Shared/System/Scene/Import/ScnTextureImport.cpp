@@ -405,6 +405,17 @@ BcBool ScnTextureImport::import()
 			return BcFalse;
 		}
 
+
+		RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
+		if( RenderTarget_ )
+		{
+			BindFlags |= RsResourceBindFlags::RENDER_TARGET;
+		}
+		else if ( DepthStencilTarget_ )
+		{
+			BindFlags |= RsResourceBindFlags::DEPTH_STENCIL;
+		}
+
 		// Write header.
 		ScnTextureHeader Header =
 		{
@@ -415,8 +426,7 @@ BcBool ScnTextureImport::import()
 			TextureType_,
 			Format_,
 			BcFalse,
-			RenderTarget_,
-			DepthStencilTarget_
+			BindFlags,
 		};
 
 		HeaderStream << Header;
@@ -441,6 +451,16 @@ BcBool ScnTextureImport::import()
 			return BcFalse;
 		}
 
+		RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
+		if( RenderTarget_ )
+		{
+			BindFlags |= RsResourceBindFlags::RENDER_TARGET;
+		}
+		else if ( DepthStencilTarget_ )
+		{
+			BindFlags |= RsResourceBindFlags::DEPTH_STENCIL;
+		}
+
 		// User created texture.
 		ScnTextureHeader Header = 
 		{ 
@@ -451,8 +471,7 @@ BcBool ScnTextureImport::import()
 			TextureType_, 
 			Format_, 
 			!RenderTarget_ && !DepthStencilTarget_, // If we're not a render target and not a depth stencil target, we're editable.
-			RenderTarget_,
-			DepthStencilTarget_
+			BindFlags
 		};
 		BcStream HeaderStream;
 		HeaderStream << Header;

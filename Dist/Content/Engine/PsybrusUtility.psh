@@ -39,6 +39,19 @@ float4 mul( float4x4 M, float4 V )
 }
 #endif // PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
+uint reversebits( uint Bits )
+{
+	uint Reverse = Bits;
+	Reverse = (Bits << 16u) | (Bits >> 16u);
+	Reverse = ((Reverse & 0x00ff00ffu) << 8u) | ((Reverse & 0xff00ff00u) >> 8u);
+	Reverse = ((Reverse & 0x0f0f0f0fu) << 4u) | ((Reverse & 0xf0f0f0f0u) >> 4u);
+	Reverse = ((Reverse & 0x33333333u) << 2u) | ((Reverse & 0xccccccccu) >> 2u);
+	Reverse = ((Reverse & 0x55555555u) << 1u) | ((Reverse & 0xaaaaaaaau) >> 1u);
+	return Reverse;
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // textureQueryLevels implementations (glslang doesn't support yet)
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11

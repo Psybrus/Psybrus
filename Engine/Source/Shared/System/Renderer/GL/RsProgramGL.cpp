@@ -441,9 +441,9 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 		PSY_LOG( "RsProgramGL: Infolog (%s):\n %s\n", Parent_->getDebugName(), pszInfoLog );
 		delete [] pszInfoLog;
 
-		BcBreakpoint;
-		GL( DeleteProgram( Handle_ ) );
-		Handle_  = 0;
+		//BcBreakpoint;
+		//GL( DeleteProgram( Handle_ ) );
+		//Handle_  = 0;
 	}
 }
 

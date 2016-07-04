@@ -93,16 +93,6 @@ public:
 	void onDetach( ScnEntityWeakRef Parent ) override;
 
 	/**
-	 * Is this renderable component lit?
-	 */
-	bool isLit() const { return IsLit_; }
-
-	/**
-	 * Set if renderable is lit.
-	 */
-	void setLit( bool Lit ) { IsLit_ = Lit; }
-
-	/**
 	 * Set render permutation flags.
 	 */
 	void setRenderPermutations( ScnShaderPermutationFlags RenderPermutations ) { RenderPermutations_ = RenderPermutations & ScnShaderPermutationFlags::RENDER_ALL; }
@@ -142,8 +132,6 @@ protected:
 private:
 	/// Used to specify what kind of object it is for selectively rendering with certain views.
 	BcU32 RenderMask_;
-	/// Does this need to be lit?
-	bool IsLit_;
 	/// Render permutation flags that this renderable supports.
 	ScnShaderPermutationFlags RenderPermutations_;
 	/// Sort pass flags that this renderable supports.

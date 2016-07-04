@@ -601,7 +601,10 @@ void MainShared()
 	ScreenshotUtil::Init();
 
 	// Start scene system.
-	SysKernel::pImpl()->startSystem( "ScnCore" );
+	if( GPsySetupParams.Flags_ & psySF_SCENE )
+	{
+		SysKernel::pImpl()->startSystem( "ScnCore" );
+	}
 
 	// Log kernel information.
 	PSY_LOG( "============================================================================\n" );

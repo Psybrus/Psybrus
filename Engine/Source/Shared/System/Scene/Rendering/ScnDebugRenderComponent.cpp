@@ -525,7 +525,7 @@ void ScnDebugRenderComponent::onAttach( ScnEntityWeakRef Parent )
 	MaterialComponent_ = Parent->attach< ScnMaterialComponent >( 
 		BcName::INVALID,
 		Material_,
-		ScnShaderPermutationFlags::MESH_STATIC_3D | ScnShaderPermutationFlags::LIGHTING_NONE );
+		ScnShaderPermutationFlags::MESH_STATIC_3D );
 
 	// Allocate our own vertex buffer data.
 	VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration( 

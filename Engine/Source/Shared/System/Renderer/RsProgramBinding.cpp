@@ -56,7 +56,8 @@ bool RsProgramBindingDesc::setSamplerState( BcU32 Slot, class RsSamplerState* Sa
 
 //////////////////////////////////////////////////////////////////////////
 // setShaderResourceView
-bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer )
+bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Buffer,
+	BcU32 FirstElement, BcU32 NumElements )
 {
 	bool RetVal = false;
 	if( Slot < ShaderResourceSlots_.size() )
@@ -67,6 +68,9 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Bu
 			RetVal |= ShaderResourceSlots_[ Slot ].Buffer_ != Buffer;
 			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::BUFFER;
 			ShaderResourceSlots_[ Slot ].Buffer_ = Buffer;
+			ShaderResourceSlots_[ Slot ].MostDetailedMip_FirstElement_ = FirstElement;
+			ShaderResourceSlots_[ Slot ].MipLevels_NumElements_ = NumElements > 0 ? 
+				NumElements : BcU32( Buffer->getDesc().SizeBytes_ ) / Buffer->getDesc().StructureStride_;
 		}
 		else
 		{
@@ -85,17 +89,24 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Bu
 
 //////////////////////////////////////////////////////////////////////////
 // setShaderResourceView
-bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* Texture )
+bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* Texture, 
+	BcU32 MostDetailedMip, BcU32 MipLevels, BcU32 FirstArraySlice, BcU32 ArraySize )
 {
 	bool RetVal = false;
 	if( Slot < ShaderResourceSlots_.size() )
 	{
 		if( Texture )
 		{
+			BcAssert( MostDetailedMip < Texture->getDesc().Levels_ );
+			BcAssert( MipLevels < Texture->getDesc().Levels_ );
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 			RetVal |= ShaderResourceSlots_[ Slot ].Texture_ != Texture;
 			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::TEXTURE;
 			ShaderResourceSlots_[ Slot ].Texture_ = Texture;
+			ShaderResourceSlots_[ Slot ].MostDetailedMip_FirstElement_ = MostDetailedMip;
+			ShaderResourceSlots_[ Slot ].MipLevels_NumElements_ = MipLevels > 0 ? MipLevels : Texture->getDesc().Levels_;
+			ShaderResourceSlots_[ Slot ].FirstArraySlice_ = FirstArraySlice;
+			ShaderResourceSlots_[ Slot ].ArraySize_ = ArraySize;
 		}
 		else
 		{
@@ -125,6 +136,10 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* B
 			RetVal |= ShaderResourceSlots_[ Slot ].Buffer_ != Buffer;
 			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::BUFFER;
 			UnorderedAccessSlots_[ Slot ].Buffer_ = Buffer;
+
+			// TODO!
+			UnorderedAccessSlots_[ Slot ].MipSlice_FirstElement_ = 0;
+			UnorderedAccessSlots_[ Slot ].FirstArraySlice_NumElements_ = BcU32( Buffer->getDesc().SizeBytes_ );
 		}
 		else
 		{
@@ -143,7 +158,7 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* B
 
 //////////////////////////////////////////////////////////////////////////
 // setUnorderedAccessView
-bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture )
+bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* Texture, BcU32 MipSlice, BcU32 FirstArraySlice, BcU32 ArraySize )
 {
 	bool RetVal = false;
 	if( Slot < UnorderedAccessSlots_.size() )
@@ -154,12 +169,15 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* 
 			RetVal |= UnorderedAccessSlots_[ Slot ].Texture_ != Texture;
 			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::TEXTURE;
 			UnorderedAccessSlots_[ Slot ].Texture_ = Texture;
+			UnorderedAccessSlots_[ Slot ].MipSlice_FirstElement_ = MipSlice;
+			UnorderedAccessSlots_[ Slot ].FirstArraySlice_NumElements_ = FirstArraySlice;
+			UnorderedAccessSlots_[ Slot ].ArraySize_ = ArraySize;
 		}
 		else
 		{
 			RetVal |= UnorderedAccessSlots_[ Slot ].Resource_ != nullptr;
 			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::INVALID;
-			UnorderedAccessSlots_[ Slot ].Resource_ = nullptr;
+			UnorderedAccessSlots_[ Slot ].Buffer_ = nullptr;
 		}
 	}
 	else

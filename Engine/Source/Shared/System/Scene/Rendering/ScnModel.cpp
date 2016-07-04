@@ -167,7 +167,6 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 			BcAssert( Material->isReady() );
 
 			ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-			ShaderPermutation |= ModelComponent->IsLit_ ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
 			ShaderPermutation |= View->getRenderPermutation();
 
 			IsInstancable &= Material->hasPermutation( ScnShaderPermutationFlags::MESH_INSTANCED_3D );
@@ -265,7 +264,6 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 				BcAssert( Material->isReady() );
 
 				ScnShaderPermutationFlags ShaderPermutation = pMeshData->ShaderPermutation_;
-				ShaderPermutation |= ModelComponent->IsLit_ ? ScnShaderPermutationFlags::LIGHTING_DIFFUSE : ScnShaderPermutationFlags::LIGHTING_NONE;
 				ShaderPermutation |= View->getRenderPermutation();
 
 				// Create program binding for instanced rendering.
@@ -436,8 +434,8 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 				BcAssert( B.Component_->isTypeOf< ScnModelComponent >() );
 				const auto* ComponentA = static_cast< ScnModelComponent* >( A.Component_ );
 				const auto* ComponentB = static_cast< ScnModelComponent* >( B.Component_ );
-				return std::make_tuple( ComponentA->Layer_, ComponentA->IsLit_, ComponentA->Model_ ) < 
-					std::make_tuple( ComponentB->Layer_, ComponentB->IsLit_, ComponentB->Model_ );
+				return std::make_tuple( ComponentA->Layer_, ComponentA->Model_ ) < 
+					std::make_tuple( ComponentB->Layer_, ComponentB->Model_ );
 			} );
 		SortingTime_ += Time.time();
 	}
@@ -559,19 +557,16 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 							}
 
 							// Do lighting uniform.
-							if( InstancedComponent->IsLit_ )
+							auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
+							if( UniformBufferIt != UniformBuffers.end() )
 							{
-								auto UniformBufferIt = UniformBuffers.find( ScnShaderLightUniformBlockData::StaticGetClass() );
-								if( UniformBufferIt != UniformBuffers.end() )
-								{
-									auto Size = sizeof( ScnShaderLightUniformBlockData );
-									auto Offset = Size * IdxB;
-									auto UniformBuffer = UniformBufferIt->second;
+								auto Size = sizeof( ScnShaderLightUniformBlockData );
+								auto Offset = Size * IdxB;
+								auto UniformBuffer = UniformBufferIt->second;
 
-									ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
-									ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
-									BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
-								}
+								ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+								ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+								BcMemCopy( UniformBuffer.UploadBuffer_ + Offset, &LightingVisitor.getLightUniformBlockData(), sizeof( ScnShaderLightUniformBlockData ) );
 							}
 						}
 
@@ -653,25 +648,22 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 			Sort.Layer_ = Component->Layer_;
 
 			// Lighting visitors.
-			if( Component->IsLit_ )
+			for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 			{
-				for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
+				ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
+				if( PerComponentMeshData.LightingUniformBuffer_ )
 				{
-					ScnModelComponent::TPerComponentMeshData& PerComponentMeshData = Component->PerComponentMeshDataList_[ PrimitiveIdx ];
-					if( PerComponentMeshData.LightingUniformBuffer_ )
-					{
-						ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
-						RsCore::pImpl()->updateBuffer( 
-							PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
-							RsResourceUpdateFlags::ASYNC,
-							[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
-							( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-							{
-								BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
-								BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
-									sizeof( LightUniformBlockData ) );
-							} );
-					}
+					ScnLightingVisitor LightingVisitor( PerComponentMeshData.AABB_ );
+					RsCore::pImpl()->updateBuffer( 
+						PerComponentMeshData.LightingUniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ), 
+						RsResourceUpdateFlags::ASYNC,
+						[ LightUniformBlockData = LightingVisitor.getLightUniformBlockData() ]
+						( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+						{
+							BcAssert( Buffer->getDesc().SizeBytes_ == sizeof( LightUniformBlockData ) );
+							BcMemCopy( BufferLock.Buffer_, &LightUniformBlockData, 
+								sizeof( LightUniformBlockData ) );
+						} );
 				}
 			}
 
@@ -1204,7 +1196,6 @@ void ScnModelComponent::StaticRegisterClass()
 
 		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
 		new ReField( "RenderMask_", &ScnModelComponent::RenderMask_, bcRFF_IMPORTER ),
-		new ReField( "IsLit_", &ScnModelComponent::IsLit_, bcRFF_IMPORTER ),
 		new ReField( "RenderPermutations_", &ScnModelComponent::RenderPermutations_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 		new ReField( "Passes_", &ScnModelComponent::Passes_, bcRFF_IMPORTER | bcRFF_FLAGS ),
 
@@ -1226,8 +1217,7 @@ ScnModelComponent::ScnModelComponent():
 	Scale_( 1.0f, 1.0f, 1.0f ),
 	Rotation_( 0.0f, 0.0f, 0.0f ),
 	RenderMask_( 1 ),
-	IsLit_( BcFalse ),
-	RenderPermutations_( ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::RENDER_DEFERRED | ScnShaderPermutationFlags::RENDER_FORWARD_PLUS ),
+	RenderPermutations_( ScnShaderPermutationFlags::RENDER_FORWARD | ScnShaderPermutationFlags::RENDER_DEFERRED ),
 	Passes_( RsRenderSortPassFlags::DEPTH | RsRenderSortPassFlags::OPAQUE | RsRenderSortPassFlags::SHADOW ),
 	pNodeTransformData_( nullptr ),
 	UploadFence_(),

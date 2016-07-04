@@ -599,8 +599,7 @@ namespace Psybrus
 				ScnShaderPermutationFlags Permutation = 
 					ScnShaderPermutationFlags::RENDER_FORWARD |
 					ScnShaderPermutationFlags::PASS_MAIN |
-					ScnShaderPermutationFlags::MESH_STATIC_2D |
-					ScnShaderPermutationFlags::LIGHTING_NONE;
+					ScnShaderPermutationFlags::MESH_STATIC_2D;
 
 				Program_ = Textured->getProgram( Permutation );
 

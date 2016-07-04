@@ -27,8 +27,7 @@ struct ScnTextureHeader
 	RsTextureType Type_;
 	RsTextureFormat Format_;
 	BcBool Editable_;
-	BcBool RenderTarget_;
-	BcBool DepthStencilTarget_;
+	RsResourceBindFlags BindFlags_;
 };
 
 #endif

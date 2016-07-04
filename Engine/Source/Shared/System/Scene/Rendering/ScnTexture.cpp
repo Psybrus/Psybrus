@@ -158,8 +158,7 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 	Texture->Header_.Type_ = Texture->Texture_->getDesc().Type_;
 	Texture->Header_.Format_ = Texture->Texture_->getDesc().Format_;
 	Texture->Header_.Editable_ = BcFalse;
-	Texture->Header_.RenderTarget_ = ( Texture->Texture_->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE;
-	Texture->Header_.DepthStencilTarget_ = ( Texture->Texture_->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE;
+	Texture->Header_.BindFlags_ = Texture->Texture_->getDesc().BindFlags_;
 	Texture->markCreate();
 	return Texture;
 }
@@ -167,7 +166,7 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 //////////////////////////////////////////////////////////////////////////
 // New1D
 //static
-ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName )
+ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -181,8 +180,7 @@ ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format
 	Texture->Header_.Type_ = RsTextureType::TEX1D;
 	Texture->Header_.Format_ = Format;
 	Texture->Header_.Editable_ = BcFalse;
-	Texture->Header_.RenderTarget_ = IsRT ? BcTrue : BcFalse;
-	Texture->Header_.DepthStencilTarget_ = IsDS ? BcTrue : BcFalse;
+	Texture->Header_.BindFlags_ = BindFlags;
 	Texture->markCreate();
 	return Texture;
 }
@@ -190,7 +188,7 @@ ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format
 //////////////////////////////////////////////////////////////////////////
 // New2D
 //static
-ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName )
+ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -204,8 +202,7 @@ ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextur
 	Texture->Header_.Type_ = RsTextureType::TEX2D;
 	Texture->Header_.Format_ = Format;
 	Texture->Header_.Editable_ = BcFalse;
-	Texture->Header_.RenderTarget_ = IsRT ? BcTrue : BcFalse;
-	Texture->Header_.DepthStencilTarget_ = IsDS ? BcTrue : BcFalse;
+	Texture->Header_.BindFlags_ = BindFlags;
 	Texture->markCreate();
 	return Texture;
 }
@@ -213,7 +210,7 @@ ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextur
 //////////////////////////////////////////////////////////////////////////
 // New3D
 //static
-ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName )
+ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -227,8 +224,7 @@ ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Lev
 	Texture->Header_.Type_ = RsTextureType::TEX3D;
 	Texture->Header_.Format_ = Format;
 	Texture->Header_.Editable_ = BcFalse;
-	Texture->Header_.RenderTarget_ = IsRT ? BcTrue : BcFalse;
-	Texture->Header_.DepthStencilTarget_ = IsDS ? BcTrue : BcFalse;
+	Texture->Header_.BindFlags_ = BindFlags;
 	Texture->markCreate();
 	return Texture;
 }
@@ -236,7 +232,7 @@ ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Lev
 //////////////////////////////////////////////////////////////////////////
 // NewCube
 //static
-ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, bool IsRT, bool IsDS, const char* DebugName )
+ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = new ScnTexture();
 	Texture->pTextureData_ = nullptr;
@@ -250,8 +246,7 @@ ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsText
 	Texture->Header_.Type_ = RsTextureType::TEXCUBE;
 	Texture->Header_.Format_ = Format;
 	Texture->Header_.Editable_ = BcTrue;
-	Texture->Header_.RenderTarget_ = IsRT ? BcTrue : BcFalse;
-	Texture->Header_.DepthStencilTarget_ = IsDS ? BcTrue : BcFalse;
+	Texture->Header_.BindFlags_ = BindFlags;
 	Texture->markCreate();
 	return Texture;
 }
@@ -381,7 +376,7 @@ void ScnTexture::recreate()
 	Depth_ = Header_.Depth_;
 	
 	// If a target, use negative width + height as multiples of resolution.
-	if( Header_.RenderTarget_ || Header_.DepthStencilTarget_ )
+	if( BcContainsAnyFlags( Header_.BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL ) )
 	{
 		auto* Client = Context->getClient();
 		if( Header_.Width_ <= 0 )
@@ -432,21 +427,6 @@ void ScnTexture::recreate()
 
 	// Create new one immediately.
 	auto CreationFlags = Header_.Editable_ ? RsResourceCreationFlags::DYNAMIC : RsResourceCreationFlags::STATIC;
-	RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
-
-	if( Header_.RenderTarget_ )
-	{
-		BindFlags = RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET;
-	}
-	if( Header_.DepthStencilTarget_ )
-	{
-		BindFlags = RsResourceBindFlags::DEPTH_STENCIL;
-
-		if( Features.DepthTextures_ )
-		{
-			BindFlags = BindFlags | RsResourceBindFlags::SHADER_RESOURCE;
-		}
-	}
 
 	// Free old.
 	Texture_.reset();
@@ -458,7 +438,7 @@ void ScnTexture::recreate()
 		RsTextureDesc( 
 			Header_.Type_, 
 			CreationFlags,
-			BindFlags,
+			Header_.BindFlags_,
 			Header_.Format_,
 			Header_.Levels_ - SkipMips,
 			InternalWidth_ >> SkipMips,
@@ -598,8 +578,7 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		*/
 
 		if( Header_.Editable_ == BcFalse &&
-			Header_.RenderTarget_ == BcFalse &&
-			Header_.DepthStencilTarget_ == BcFalse )
+			!BcContainsAnyFlags( Header_.BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL ) )
 		{
 			requestChunk( ++ChunkIdx );
 		}

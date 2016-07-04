@@ -2700,20 +2700,20 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 					auto& BindingInfo = ImageBindingInfo_[ SRVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != SRVSlot.Resource_ ||
 						BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Level_ != 0 ||
-						BindingInfo.Layered_ != GL_FALSE ||
-						BindingInfo.Layer_ != 0 ||
+						BindingInfo.Level_ != SRVSlot.MostDetailedMip_FirstElement_ ||
+						BindingInfo.Layered_ != SRVSlot.ArraySize_ == 0 ||
+						BindingInfo.Layer_ != SRVSlot.FirstArraySlice_ ||
 						BindingInfo.Access_ != GL_READ_ONLY ||
 						BindingInfo.Format_ != Format )
 					{
 						GL( BindImageTexture( SRVSlotGL.Binding_, TextureGL->getHandle(),
-							0, GL_FALSE, 0, GL_READ_ONLY,
+							SRVSlot.MostDetailedMip_FirstElement_, SRVSlot.ArraySize_ == 0, SRVSlot.FirstArraySlice_, GL_READ_ONLY,
 							Format ) );
 						BindingInfo.Resource_ = SRVSlot.Resource_;
 						BindingInfo.Texture_ = TextureGL->getHandle();
-						BindingInfo.Level_ = 0;
-						BindingInfo.Layered_ = GL_FALSE;
-						BindingInfo.Layer_ = 0;
+						BindingInfo.Level_ = SRVSlot.MostDetailedMip_FirstElement_;
+						BindingInfo.Layered_ = SRVSlot.ArraySize_ == 0;
+						BindingInfo.Layer_ = SRVSlot.FirstArraySlice_;
 						BindingInfo.Access_ = GL_READ_ONLY;
 						BindingInfo.Format_ = Format;
 					}
@@ -2777,20 +2777,20 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					auto& BindingInfo = ImageBindingInfo_[ UAVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||
 						BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Level_ != 0 ||
-						BindingInfo.Layered_ != GL_FALSE ||
-						BindingInfo.Layer_ != 0 ||
-						BindingInfo.Access_ != GL_READ_WRITE||
+						BindingInfo.Level_ != UAVSlot.MipSlice_FirstElement_ ||
+						BindingInfo.Layered_ != UAVSlot.ArraySize_ == 0 ||
+						BindingInfo.Layer_ != UAVSlot.FirstArraySlice_NumElements_ ||
+						BindingInfo.Access_ != GL_READ_WRITE ||
 						BindingInfo.Format_ != Format )
 					{
 						GL( BindImageTexture( UAVSlotGL.Binding_, TextureGL->getHandle(),
-							0, GL_FALSE, 0, GL_READ_WRITE,
+							UAVSlot.MipSlice_FirstElement_, UAVSlot.ArraySize_ == 0, UAVSlot.FirstArraySlice_NumElements_, GL_READ_WRITE,
 							Format ) );
 						BindingInfo.Resource_ = UAVSlot.Resource_;
 						BindingInfo.Texture_ = TextureGL->getHandle();
-						BindingInfo.Level_ = 0;
-						BindingInfo.Layered_ = GL_FALSE;
-						BindingInfo.Layer_ = 0;
+						BindingInfo.Level_ = UAVSlot.MipSlice_FirstElement_;
+						BindingInfo.Layered_ = UAVSlot.ArraySize_ == 0;
+						BindingInfo.Layer_ = UAVSlot.FirstArraySlice_NumElements_;
 						BindingInfo.Access_ = GL_READ_WRITE;
 						BindingInfo.Format_ = Format;
 						// TODO: Other params...

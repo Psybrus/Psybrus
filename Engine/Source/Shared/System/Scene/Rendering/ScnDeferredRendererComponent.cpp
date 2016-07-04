@@ -124,12 +124,18 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 
 
 	// Create textures.
-	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Albedo" );
-	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Material" );
-	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Normal" );
-	Textures_[ TEX_GBUFFER_VELOCITY ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, true, false, "Velocity" );
-	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::D24S8, false, true, "Depth" );
-	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, true, false, "HDR" );
+	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Albedo" );
+	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Material" );
+	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Normal" );
+	Textures_[ TEX_GBUFFER_VELOCITY ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Velocity" );
+	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::D24S8, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL, "Depth" );
+	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "HDR" );
 
 	// Create views.
 	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
@@ -352,8 +358,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 		const ScnShaderPermutationFlags Permutation = 
 			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
 			ScnShaderPermutationFlags::PASS_MAIN |
-			ScnShaderPermutationFlags::MESH_STATIC_2D |
-			ScnShaderPermutationFlags::LIGHTING_NONE;
+			ScnShaderPermutationFlags::MESH_STATIC_2D;
 
 		RsProgramBindingDesc ProgramBindingDesc;
 		for( size_t LightTypeIdx = 0; LightTypeIdx < LightShaders_.size(); ++LightTypeIdx )
@@ -487,8 +492,7 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 		const ScnShaderPermutationFlags Permutation = 
 			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
 			ScnShaderPermutationFlags::PASS_MAIN |
-			ScnShaderPermutationFlags::MESH_STATIC_2D |
-			ScnShaderPermutationFlags::LIGHTING_NONE;
+			ScnShaderPermutationFlags::MESH_STATIC_2D;
 
 		RsProgramBindingDesc ProgramBindingDesc;
 		auto Program = ReflectionShader_->getProgram( Permutation );
@@ -576,9 +580,8 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 		const ScnShaderPermutationFlags Permutation = 
 			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
 			ScnShaderPermutationFlags::PASS_MAIN |
-			ScnShaderPermutationFlags::MESH_STATIC_2D |
-			ScnShaderPermutationFlags::LIGHTING_NONE;
-
+			ScnShaderPermutationFlags::MESH_STATIC_2D;
+		
 		RsProgramBindingDesc ProgramBindingDesc;
 		auto Program = ResolveShader_->getProgram( Permutation );
 

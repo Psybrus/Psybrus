@@ -128,11 +128,14 @@ int main(int argc, const char* argv[])
 	}
 	else if( GPsySetupParams.Flags_ & psySF_TOOL )
 	{
-		extern void PsyToolInit();
-		PsyToolInit();
+		SysSystem* PostOpenSystem = ScnCore::pImpl();
+		if( !PostOpenSystem )
+		{
+			PostOpenSystem = CsCore::pImpl();
+		}
 
-		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
-		[]( EvtID, const EvtBaseEvent& )
+		PostOpenSystem->subscribe( sysEVT_SYSTEM_POST_OPEN, 
+			[]( EvtID, const EvtBaseEvent& )
 			{
 				extern void PsyToolMain();
 				PsyToolMain();

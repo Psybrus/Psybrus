@@ -7,6 +7,17 @@
 #include <deque>
 
 //////////////////////////////////////////////////////////////////////////
+// ScnEnvironmentFilterUniformBlock
+struct ScnEnvironmentFilterUniformBlock
+{
+	REFLECTION_DECLARE_BASIC( ScnEnvironmentFilterUniformBlock );
+	ScnEnvironmentFilterUniformBlock(){};
+
+	BcU32 EnvironmentFilterCubeFace_ = 0;
+	BcF32 EnvironmentFilterRoughness_ = 1.0f;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnEnvironmentProbeProcessor
 class ScnEnvironmentProbeProcessor:
 	public BcGlobal< ScnEnvironmentProbeProcessor >,
@@ -24,6 +35,8 @@ private:
 	void shutdown() override;
 	void updateProbes( const ScnComponentList& Components );
 
+	void generateMipLevel( RsFrame* Frame, RsRenderSort Sort, RsTexture* Texture, size_t Level, RsTextureFace Face );
+
 	// ScnCoreCallback
 	void onAttachComponent( ScnComponent* Component ) override;
 	void onDetachComponent( ScnComponent* Component ) override;
@@ -31,7 +44,13 @@ private:
 private:
 	std::vector< class ScnEnvironmentProbeComponent* > EnvironmentProbes_;
 	std::deque< class ScnEnvironmentProbeComponent* > ProbeUpdateQueue_;
-		
+	
+	CsPackage* ShaderPackage_ = nullptr;
+	RsProgram* FilterProgram_ = nullptr;
+	RsSamplerStateUPtr Sampler_;
+	RsBufferUPtr FilterUniform_;
+
+	bool UseCompute_ = false;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,6 +76,7 @@ private:
 	class ScnTexture* Texture_ = nullptr;
 
 	std::array< RsFrameBufferUPtr, 6 > CubemapFaceTargets_;
+
 	MaVec3d GeneratedWorldPosition_ = MaVec3d( FLT_MAX, FLT_MAX, FLT_MAX );
 
 };
