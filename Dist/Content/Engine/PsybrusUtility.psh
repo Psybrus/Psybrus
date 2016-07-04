@@ -189,10 +189,20 @@ float3x3 buildTBN( float3 InTangent, float3 InBinormal, float3 InNormal )
 
 //////////////////////////////////////////////////////////////////////////
 // Colour space conversion.
+#define ACCURATE_GAMMA_CONVERSION ( 1 )
+
 float3 gammaToLinear( float3 InputRGBA )
 {
 #if FAST_GAMMA_CONVERSION
 	return InputRGBA.rgb * InputRGBA.rgb;
+#elif ACCURATE_GAMMA_CONVERSION
+	// http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf pg87
+	float3 linearRGBLo = InputRGBA / 12.92;
+	float3 linearRGBHi = pow( ( InputRGBA + 0.055 ) / 1.055, float3( 2.4, 2.4, 2.4 ) ) ;
+	return float3( 
+		( InputRGBA.x <= 0.04045 ) ? linearRGBLo.x : linearRGBHi.x,
+		( InputRGBA.y <= 0.04045 ) ? linearRGBLo.y : linearRGBHi.y,
+		( InputRGBA.z <= 0.04045 ) ? linearRGBLo.z : linearRGBHi.z );
 #else
 	float Gamma = 2.2;
 	return pow( max( float3( 0.0, 0.0, 0.0 ), InputRGBA.rgb ), float3( Gamma, Gamma, Gamma ) );
@@ -208,6 +218,14 @@ float3 linearToGamma( float3 InputRGBA )
 {
 #if FAST_GAMMA_CONVERSION
 	return sqrt( InputRGBA.rgb );
+#elif ACCURATE_GAMMA_CONVERSION
+	// http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf pg87
+	float3 sRGBLo = InputRGBA * 12.92;
+	float3 sRGBHi = ( pow( abs( InputRGBA ) , float3( 1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4 ) ) * 1.055) - 0.055;
+	return float3(
+		( InputRGBA.x <= 0.0031308 ) ? sRGBLo.x : sRGBHi.x,
+		( InputRGBA.y <= 0.0031308 ) ? sRGBLo.y : sRGBHi.y,
+		( InputRGBA.z <= 0.0031308 ) ? sRGBLo.z : sRGBHi.z );
 #else	
 	float InvGamma = 1.0 / 2.2;
 	return pow( max( float3( 0.0, 0.0, 0.0 ), InputRGBA.rgb ), float3( InvGamma, InvGamma, InvGamma ) );
