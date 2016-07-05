@@ -77,6 +77,8 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "Width_", &ScnDeferredRendererComponent::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnDeferredRendererComponent::Height_, bcRFF_IMPORTER ),
 		new ReField( "LightShaders_", &ScnDeferredRendererComponent::LightShaders_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "LuminanceComputeShader_", &ScnDeferredRendererComponent::LuminanceComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "DownsampleComputeShader_", &ScnDeferredRendererComponent::DownsampleComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveX_", &ScnDeferredRendererComponent::ResolveX_, bcRFF_IMPORTER ),
@@ -90,7 +92,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "UseEnvironmentProbes_", &ScnDeferredRendererComponent::UseEnvironmentProbes_, bcRFF_IMPORTER ),
 				
-		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_TRANSIENT ),
+		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_SHALLOW_COPY /* | bcRFF_TRANSIENT*/ ),
 	};	
 	
 	ReRegisterClass< ScnDeferredRendererComponent, Super >( Fields )
@@ -124,6 +126,9 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 
 
 	// Create textures.
+	BcU32 HalfWidth = Width_ == 0 ? -1 : Width_ / 2;
+	BcU32 HalfHeight = Height_ == 0 ? -1 : Width_ / 2;
+
 	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Albedo" );
 	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
@@ -136,6 +141,8 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL, "Depth" );
 	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "HDR" );
+	Textures_[ TEX_LUMINANCE ] = ScnTexture::New2D( HalfWidth, HalfHeight, 0, RsTextureFormat::R16F, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
 
 	// Create views.
 	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
@@ -373,7 +380,8 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 				"aNormalTex",
 				"aVelocityTex",
 				"aDepthTex",
-				"aHDRTex"
+				"aHDRTex",
+				"aLuminanceTex"
 			};
 
 			for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
@@ -504,7 +512,8 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 			"aNormalTex",
 			"aVelocityTex",
 			"aDepthTex",
-			"aHDRTex"
+			"aHDRTex",
+			"aLuminanceTex"
 		};
 
 		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
@@ -570,6 +579,45 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 }
 
 //////////////////////////////////////////////////////////////////////////
+// downsampleHDR
+void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContext )
+{
+	// Downsample all mip levels.
+	bool UseCompute = RenderContext.pFrame_->getContext()->getFeatures().ComputeShaders_;
+	if( UseCompute )
+	{
+		auto* LumunanceProgram = LuminanceComputeShader_->getProgram( ScnShaderPermutationFlags::NONE );
+		auto InputSRVSlot = LumunanceProgram->findShaderResourceSlot( "aInputTexture" );
+		auto OutputUAVSlot = LumunanceProgram->findUnorderedAccessSlot( "aOutputTexture" );
+		RsProgramBindingDesc BindingDesc;
+
+		auto* InputTexture = Textures_[ TEX_HDR ]->getTexture();
+		auto* OutputTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+
+		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+		BindingDesc.setUnorderedAccessView( OutputUAVSlot, OutputTexture, 0, 0, 1 );
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LumunanceProgram, BindingDesc, (*getName()).c_str() );
+
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				ProgramBinding = ProgramBinding.get(),
+				XGroups = OutputTexture->getDesc().Width_,
+				YGroups = OutputTexture->getDesc().Height_
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+				Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
+			} );
+	}
+	else
+	{
+		BcAssertMsg( false, "Non-compute path unimplemented." );
+	}
+
+}
+
+//////////////////////////////////////////////////////////////////////////
 // renderResolve
 void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContext )
 {
@@ -592,7 +640,8 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 			"aNormalTex",
 			"aVelocityTex",
 			"aDepthTex",
-			"aHDRTex"
+			"aHDRTex",
+			"aLuminanceTex"
 		};
 
 		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
@@ -695,6 +744,7 @@ void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& Rende
 	else if( RenderContext.pViewComponent_ == TransparentView_ )
 	{
 		// end transparent
+		downsampleHDR( RenderContext );
 	}
 	else if( RenderContext.pViewComponent_ == OverlayView_ )
 	{

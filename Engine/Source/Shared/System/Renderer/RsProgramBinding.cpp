@@ -98,7 +98,7 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* T
 		if( Texture )
 		{
 			BcAssert( MostDetailedMip < Texture->getDesc().Levels_ );
-			BcAssert( MipLevels < Texture->getDesc().Levels_ );
+			BcAssert( ( MostDetailedMip + MipLevels ) <= Texture->getDesc().Levels_ );
 			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 			RetVal |= ShaderResourceSlots_[ Slot ].Texture_ != Texture;
 			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::TEXTURE;

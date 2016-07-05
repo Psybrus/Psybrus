@@ -380,6 +380,7 @@ RsTextureUPtr RsCoreImpl::createTexture(
 	BcAssert( BcIsGameThread() );
 	BcAssert( DebugName && DebugName[0] != '\0' );
 	BcAssert( Desc.Type_ != RsTextureType::UNKNOWN );
+	BcAssert( Desc.Levels_ > 0 );
 
 	PSY_LOG( "createTexture: %s", DebugName );
 

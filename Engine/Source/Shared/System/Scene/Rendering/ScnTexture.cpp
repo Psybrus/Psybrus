@@ -431,6 +431,13 @@ void ScnTexture::recreate()
 	// Free old.
 	Texture_.reset();
 
+	// Calculate number of levels.
+	BcU32 Levels = Header_.Levels_;
+	if( Levels == 0 )
+	{
+		BcU32 MaxDim = std::max( InternalWidth_, std::max( InternalHeight_, InternalDepth_ ) );
+		Levels = 32 - BcCountLeadingZeros( MaxDim );
+	}
 	BcU32 SkipMips = 0;
 
 	// Create new.
@@ -440,7 +447,7 @@ void ScnTexture::recreate()
 			CreationFlags,
 			Header_.BindFlags_,
 			Header_.Format_,
-			Header_.Levels_ - SkipMips,
+			Levels - SkipMips,
 			InternalWidth_ >> SkipMips,
 			InternalHeight_ >> SkipMips,
 			InternalDepth_ ),
@@ -453,7 +460,7 @@ void ScnTexture::recreate()
 			RsResourceCreationFlags::STREAM,
 			RsResourceBindFlags::NONE,
 			Header_.Format_,
-			Header_.Levels_ - SkipMips,
+			Levels - SkipMips,
 			InternalWidth_ >> SkipMips,
 			InternalHeight_ >> SkipMips,
 			InternalDepth_ ),
@@ -474,7 +481,7 @@ void ScnTexture::recreate()
 		BcU32 Width = InternalWidth_;
 		BcU32 Height = InternalHeight_;
 		BcU32 Depth = InternalDepth_;
-		for( BcU32 LevelIdx = 0; LevelIdx < Header_.Levels_; ++LevelIdx )
+		for( BcU32 LevelIdx = 0; LevelIdx < StagingTexture->getDesc().Levels_; ++LevelIdx )
 		{
 			const auto NoofFaces = Header_.Type_ == RsTextureType::TEXCUBE ? 6 : 1;
 

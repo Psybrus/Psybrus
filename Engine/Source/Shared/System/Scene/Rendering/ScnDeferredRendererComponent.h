@@ -68,6 +68,7 @@ protected:
 
 	void renderLights( ScnRenderContext& RenderContext );
 	void renderReflection( ScnRenderContext& RenderContext );
+	void downsampleHDR( ScnRenderContext& RenderContext );
 	void renderResolve( ScnRenderContext& RenderContext );
 
 	// ScnViewCallback
@@ -79,6 +80,8 @@ protected:
 	BcS32 Width_ = 0;
 	BcS32 Height_ = 0;
 	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;
+	ScnShaderRef LuminanceComputeShader_;
+	ScnShaderRef DownsampleComputeShader_;
 	ScnShaderRef ReflectionShader_;
 	ScnShaderRef ResolveShader_;
 
@@ -102,6 +105,7 @@ protected:
 		TEX_GBUFFER_VELOCITY,
 		TEX_GBUFFER_DEPTH,
 		TEX_HDR,
+		TEX_LUMINANCE,
 		
 		TEX_MAX
 	};
