@@ -121,7 +121,10 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 			MaVec3d Position = ProbeComponent->getParentEntity()->getWorldPosition();
 			if( ( Position - ProbeComponent->GeneratedWorldPosition_ ).magnitudeSquared() > 1e6f )
 			{
-				ProbeUpdateQueue_.push_back( ProbeComponent );
+				if( std::find( ProbeUpdateQueue_.begin(), ProbeUpdateQueue_.end(), ProbeComponent ) == ProbeUpdateQueue_.end() )
+				{
+					ProbeUpdateQueue_.push_back( ProbeComponent );
+				}
 			}
 		}
 
@@ -238,8 +241,8 @@ void ScnEnvironmentProbeProcessor::generateMipLevel( RsFrame* Frame, RsRenderSor
 				ProgramBinding = ProgramBinding.get(),
 				Face = Face,
 				FilterUniform = FilterUniform_.get(),
-				XGroups = Texture->getDesc().Width_ >> Level,
-				YGroups = Texture->getDesc().Height_ >> Level,
+				XGroups = std::max( BcU32( 1 ), Texture->getDesc().Width_ >> Level ),
+				YGroups = std::max( BcU32( 1 ), Texture->getDesc().Height_ >> Level ),
 				Roughness
 			]
 			( RsContext* Context )
@@ -318,6 +321,7 @@ void ScnEnvironmentProbeProcessor::onDetachComponent( ScnComponent* Component )
 	// Regenerate if entity has been attached.
 	else if( Component->isTypeOf< ScnEntity >() )
 	{
+		ProbeUpdateQueue_.clear();
 		for( auto ProbeComponent : EnvironmentProbes_ )
 		{
 			ProbeUpdateQueue_.push_back( ProbeComponent );

@@ -17,6 +17,9 @@
 
 #include "System/Debug/DsCore.h"
 
+#include "System/SysKernel.h"
+
+
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
@@ -78,6 +81,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "Height_", &ScnDeferredRendererComponent::Height_, bcRFF_IMPORTER ),
 		new ReField( "LightShaders_", &ScnDeferredRendererComponent::LightShaders_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "LuminanceComputeShader_", &ScnDeferredRendererComponent::LuminanceComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "LuminanceTransferComputeShader_", &ScnDeferredRendererComponent::LuminanceTransferComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "DownsampleComputeShader_", &ScnDeferredRendererComponent::DownsampleComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
@@ -89,14 +93,29 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "Far_", &ScnDeferredRendererComponent::Far_, bcRFF_IMPORTER ),
 		new ReField( "HorizontalFOV_", &ScnDeferredRendererComponent::HorizontalFOV_, bcRFF_IMPORTER ),
 		new ReField( "VerticalFOV_", &ScnDeferredRendererComponent::VerticalFOV_, bcRFF_IMPORTER ),
+		new ReField( "ToneMappingUniformBlock_", &ScnDeferredRendererComponent::ToneMappingUniformBlock_, bcRFF_IMPORTER ),
 		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "UseEnvironmentProbes_", &ScnDeferredRendererComponent::UseEnvironmentProbes_, bcRFF_IMPORTER ),
 				
 		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_SHALLOW_COPY /* | bcRFF_TRANSIENT*/ ),
 	};	
 	
-	ReRegisterClass< ScnDeferredRendererComponent, Super >( Fields )
-		.addAttribute( new ScnComponentProcessor() );
+	auto& Class = ReRegisterClass< ScnDeferredRendererComponent, Super >( Fields );
+	Class.addAttribute( new ScnComponentProcessor() );
+
+		// Add editor.
+	Class.addAttribute( 
+		new DsImGuiFieldEditor( 
+			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+			{
+				ScnDeferredRendererComponent* Value = (ScnDeferredRendererComponent*)Object;
+				if( Value != nullptr )
+				{
+					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, &Value->ToneMappingUniformBlock_, ScnShaderToneMappingUniformBlockData::StaticGetClass(), Flags );
+					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Value, Value->getClass(), Flags );
+				}
+			} ) );
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,7 +160,9 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL, "Depth" );
 	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "HDR" );
-	Textures_[ TEX_LUMINANCE ] = ScnTexture::New2D( HalfWidth, HalfHeight, 0, RsTextureFormat::R16F, 
+	Textures_[ TEX_LUMINANCE ] = ScnTexture::New2D( HalfWidth, HalfHeight, 0, RsTextureFormat::R32F, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
+	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 0, RsTextureFormat::R32F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
 
 	// Create views.
@@ -235,6 +256,25 @@ void ScnDeferredRendererComponent::recreateResources()
 	}
 	ReflectionProgramBinding_.reset();
 	ResolveProgramBinding_.reset();
+
+	if( ToneMappingUniformBuffer_ == nullptr )
+	{
+		ToneMappingUniformBuffer_ = RsCore::pImpl()->createBuffer(
+			RsBufferDesc(
+				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsResourceCreationFlags::STREAM, 
+				sizeof( ScnShaderToneMappingUniformBlockData ) ),
+			getFullName().c_str() );
+		RsCore::pImpl()->updateBuffer( ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ), 
+			RsResourceUpdateFlags::ASYNC,
+			[
+				ToneMappingUniformBlock = ToneMappingUniformBlock_
+			]
+			( RsBuffer* Buffer, const RsBufferLock& Lock )
+			{
+				memcpy( Lock.Buffer_, &ToneMappingUniformBlock, sizeof( ToneMappingUniformBlock ) );
+			} );
+	}
 
 	if( VertexDeclaration_ == nullptr )
 	{
@@ -381,7 +421,8 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 				"aVelocityTex",
 				"aDepthTex",
 				"aHDRTex",
-				"aLuminanceTex"
+				"aLuminanceTex",
+				"aLuminance2Tex"
 			};
 
 			for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
@@ -424,7 +465,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
 
-	// Render all lights.
+	// Render all lights.i
 	for( size_t Idx = 0; Idx < LightComponents_.size(); ++Idx )
 	{
 		auto LightComponent = LightComponents_[ Idx ];
@@ -513,7 +554,8 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 			"aVelocityTex",
 			"aDepthTex",
 			"aHDRTex",
-			"aLuminanceTex"
+			"aLuminanceTex",
+			"aLuminance2Tex"
 		};
 
 		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
@@ -582,33 +624,118 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 // downsampleHDR
 void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContext )
 {
+	// Setup transfer rate based on timer.
+	// TODO: Need to make sure this will be consistent across different frame times. Work out the correct curve for it later.
+	ToneMappingUniformBlock_.ToneMappingLuminanceTransferRate_ = BcClamp( SysKernel::pImpl()->getFrameTime() * 0.5f, 0.0f, 1.0f );
+
+	// Update tone mapping params.
+	RsCore::pImpl()->updateBuffer( ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ), 
+		RsResourceUpdateFlags::ASYNC,
+		[
+			ToneMappingUniformBlock = ToneMappingUniformBlock_
+		]
+		( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			memcpy( Lock.Buffer_, &ToneMappingUniformBlock, sizeof( ToneMappingUniformBlock ) );
+		} );
+
 	// Downsample all mip levels.
 	bool UseCompute = RenderContext.pFrame_->getContext()->getFeatures().ComputeShaders_;
 	if( UseCompute )
 	{
-		auto* LumunanceProgram = LuminanceComputeShader_->getProgram( ScnShaderPermutationFlags::NONE );
-		auto InputSRVSlot = LumunanceProgram->findShaderResourceSlot( "aInputTexture" );
-		auto OutputUAVSlot = LumunanceProgram->findUnorderedAccessSlot( "aOutputTexture" );
-		RsProgramBindingDesc BindingDesc;
+		// Generate top level luminance mip.
+		{
+			auto* LumunanceProgram = LuminanceComputeShader_->getProgram( ScnShaderPermutationFlags::NONE );
+			auto InputSRVSlot = LumunanceProgram->findShaderResourceSlot( "aInputTexture" );
+			auto OutputUAVSlot = LumunanceProgram->findUnorderedAccessSlot( "aOutputTexture" );
+			RsProgramBindingDesc BindingDesc;
 
-		auto* InputTexture = Textures_[ TEX_HDR ]->getTexture();
-		auto* OutputTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+			auto* InputTexture = Textures_[ TEX_HDR ]->getTexture();
+			auto* OutputTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
 
-		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
-		BindingDesc.setUnorderedAccessView( OutputUAVSlot, OutputTexture, 0, 0, 1 );
-		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LumunanceProgram, BindingDesc, (*getName()).c_str() );
+			BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+			BindingDesc.setUnorderedAccessView( OutputUAVSlot, OutputTexture, 0, 0, 1 );
+			auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LumunanceProgram, BindingDesc, (*getName()).c_str() );
 
-		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
-			[ 
-				ProgramBinding = ProgramBinding.get(),
-				XGroups = OutputTexture->getDesc().Width_,
-				YGroups = OutputTexture->getDesc().Height_
-			]
-			( RsContext* Context )
+			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+				[ 
+					ProgramBinding = ProgramBinding.get(),
+					XGroups = OutputTexture->getDesc().Width_,
+					YGroups = OutputTexture->getDesc().Height_
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
+				} );
+		}
+
+		// Downsample.
+		{
+			auto* DownsampleProgram = DownsampleComputeShader_->getProgram( ScnShaderPermutationFlags::NONE );
+			auto InputSRVSlot = DownsampleProgram->findShaderResourceSlot( "aInputTexture" );
+			auto OutputUAVSlot = DownsampleProgram->findUnorderedAccessSlot( "aOutputTexture" );
+			RsProgramBindingDesc BindingDesc;
+
+			auto* InputTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+			auto* OutputTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+
+			for( BcU32 Level = 1; Level < OutputTexture->getDesc().Levels_; ++Level )
 			{
-				PSY_PROFILE_FUNCTION;
-				Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
-			} );
+				BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, Level - 1, 1, 0, 1 );
+				BindingDesc.setUnorderedAccessView( OutputUAVSlot, OutputTexture, Level, 0, 1 );
+				auto ProgramBinding = RsCore::pImpl()->createProgramBinding( DownsampleProgram, BindingDesc, (*getName()).c_str() );
+
+				RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+					[ 
+						ProgramBinding = ProgramBinding.get(),
+						XGroups = std::max( BcU32( 1 ), OutputTexture->getDesc().Width_ >> Level ),
+						YGroups = std::max( BcU32( 1 ), OutputTexture->getDesc().Height_ >> Level )
+					]
+					( RsContext* Context )
+					{
+						PSY_PROFILE_FUNCTION;
+						Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
+					} );
+			}
+		}
+
+		// Transfer luminance to 2nd target.
+		{
+			auto* LuminanceTransferProgram = LuminanceTransferComputeShader_->getProgram( ScnShaderPermutationFlags::NONE );
+			auto InputSRVSlot = LuminanceTransferProgram->findShaderResourceSlot( "aInputTexture" );
+			auto OutputUAVSlot = LuminanceTransferProgram->findUnorderedAccessSlot( "aOutputTexture" );
+			RsProgramBindingDesc BindingDesc;
+
+			auto* InputTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+			auto* OutputTexture = Textures_[ TEX_LUMINANCE2 ]->getTexture();
+
+			BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, InputTexture->getDesc().Levels_ - 1, 1, 0, 1 );
+			BindingDesc.setUnorderedAccessView( OutputUAVSlot, OutputTexture, 0, 0, 1 );
+
+			{
+				BcU32 UniformSlot = LuminanceTransferProgram->findUniformBufferSlot( "ScnShaderToneMappingUniformBlockData" );
+				if( UniformSlot != BcErrorCode )
+				{
+					BindingDesc.setUniformBuffer( UniformSlot, ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ) );
+				}
+			}
+
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LuminanceTransferProgram, BindingDesc, (*getName()).c_str() );
+
+			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+				[ 
+					ProgramBinding = ProgramBinding.get(),
+					XGroups = 1,
+					YGroups = 1
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
+				} );
+		}
+
 	}
 	else
 	{
@@ -641,7 +768,8 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 			"aVelocityTex",
 			"aDepthTex",
 			"aHDRTex",
-			"aLuminanceTex"
+			"aLuminanceTex",
+			"aLuminance2Tex"
 		};
 
 		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
@@ -657,6 +785,14 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 			if( UniformSlot != BcErrorCode )
 			{
 				ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+			}
+		}
+
+		{
+			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderToneMappingUniformBlockData" );
+			if( UniformSlot != BcErrorCode )
+			{
+				ProgramBindingDesc.setUniformBuffer( UniformSlot, ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ) );
 			}
 		}
 

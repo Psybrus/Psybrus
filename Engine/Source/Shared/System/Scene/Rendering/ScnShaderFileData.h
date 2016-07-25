@@ -245,6 +245,37 @@ struct ScnShaderPostProcessConfigData
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderToneMappingUniformBlockData
+struct ScnShaderToneMappingUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderToneMappingUniformBlockData );
+	ScnShaderToneMappingUniformBlockData(){};
+
+	/// Exposure.
+	BcF32 ToneMappingExposure_ = 0.0f;
+	/// Middle grey.
+	BcF32 ToneMappingMiddleGrey_ = 1.0f;
+	/// White point.
+	BcF32 ToneMappingWhitePoint_ = 11.2f;
+	/// Constants for curve.
+	BcF32 ToneMappingA_ = 0.15f;
+	BcF32 ToneMappingB_ = 0.50f;
+	BcF32 ToneMappingC_ = 0.10f;
+	BcF32 ToneMappingD_ = 0.20f;
+	BcF32 ToneMappingE_ = 0.02f;
+	BcF32 ToneMappingF_ = 0.30f;
+	/// Minimum luminance.
+	BcF32 ToneMappingLuminanceMin_ = 0.05f;
+	/// Maximum luminance.
+	BcF32 ToneMappingLuminanceMax_ = 100.0f;
+	/// Luminance transfer rate.
+	BcF32 ToneMappingLuminanceTransferRate_ = 0.05f;
+
+	/// Methods for reference/utility.
+	BcF32 uncharted2Curve( BcF32 X );
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessCopyBlockData
 struct ScnShaderPostProcessCopyBlockData
 {

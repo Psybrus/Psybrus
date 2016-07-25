@@ -174,6 +174,46 @@ void ScnShaderPostProcessConfigData::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderToneMappingUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnShaderToneMappingUniformBlockData );
+
+void ScnShaderToneMappingUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "ToneMappingExposure_", &ScnShaderToneMappingUniformBlockData::ToneMappingExposure_ ),
+		new ReField( "ToneMappingMiddleGrey_", &ScnShaderToneMappingUniformBlockData::ToneMappingMiddleGrey_ ),
+		new ReField( "ToneMappingWhitePoint_", &ScnShaderToneMappingUniformBlockData::ToneMappingWhitePoint_ ),
+		new ReField( "ToneMappingA_", &ScnShaderToneMappingUniformBlockData::ToneMappingA_ ),
+		new ReField( "ToneMappingB_", &ScnShaderToneMappingUniformBlockData::ToneMappingB_ ),
+		new ReField( "ToneMappingC_", &ScnShaderToneMappingUniformBlockData::ToneMappingC_ ),
+		new ReField( "ToneMappingD_", &ScnShaderToneMappingUniformBlockData::ToneMappingD_ ),
+		new ReField( "ToneMappingE_", &ScnShaderToneMappingUniformBlockData::ToneMappingE_ ),
+		new ReField( "ToneMappingF_", &ScnShaderToneMappingUniformBlockData::ToneMappingF_ ),
+		new ReField( "ToneMappingLuminanceMin_", &ScnShaderToneMappingUniformBlockData::ToneMappingLuminanceMin_ ),
+		new ReField( "ToneMappingLuminanceMax_", &ScnShaderToneMappingUniformBlockData::ToneMappingLuminanceMax_ ),
+		new ReField( "ToneMappingLuminanceTransferRate_", &ScnShaderToneMappingUniformBlockData::ToneMappingLuminanceTransferRate_ ),
+	};
+		
+	auto& Class = ReRegisterClass< ScnShaderToneMappingUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "ToneMapping", BcFalse ) );
+	Class.setFlags( bcRFF_POD );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// uncharted2Curve
+BcF32 ScnShaderToneMappingUniformBlockData::uncharted2Curve( BcF32 X )
+{
+	const BcF32 A = ToneMappingA_;
+	const BcF32 B = ToneMappingB_;
+	const BcF32 C = ToneMappingC_;
+	const BcF32 D = ToneMappingD_;
+	const BcF32 E = ToneMappingE_;
+	const BcF32 F = ToneMappingF_;
+	return ( ( X * ( A * X + C * B ) + D * E ) / ( X * ( A * X + B ) + D * F ) ) - E / F;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderPostProcessCopyBlockData
 REFLECTION_DEFINE_BASIC( ScnShaderPostProcessCopyBlockData );
 

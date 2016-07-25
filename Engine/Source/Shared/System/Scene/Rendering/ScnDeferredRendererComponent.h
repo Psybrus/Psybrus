@@ -81,6 +81,7 @@ protected:
 	BcS32 Height_ = 0;
 	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;
 	ScnShaderRef LuminanceComputeShader_;
+	ScnShaderRef LuminanceTransferComputeShader_;
 	ScnShaderRef DownsampleComputeShader_;
 	ScnShaderRef ReflectionShader_;
 	ScnShaderRef ResolveShader_;
@@ -97,6 +98,9 @@ protected:
 	BcF32 HorizontalFOV_ = BcPI * 0.25f;
 	BcF32 VerticalFOV_ = 0.0f;
 
+	// Post process uniforms.
+	ScnShaderToneMappingUniformBlockData ToneMappingUniformBlock_;
+
 	enum : size_t
 	{
 		TEX_GBUFFER_ALBEDO = 0,
@@ -106,6 +110,7 @@ protected:
 		TEX_GBUFFER_DEPTH,
 		TEX_HDR,
 		TEX_LUMINANCE,
+		TEX_LUMINANCE2,
 		
 		TEX_MAX
 	};
@@ -124,6 +129,8 @@ protected:
 	std::array< RsProgramBindingUPtr, scnLT_MAX > LightProgramBindings_;
 	RsProgramBindingUPtr ReflectionProgramBinding_;
 	RsProgramBindingUPtr ResolveProgramBinding_;
+
+	RsBufferUPtr ToneMappingUniformBuffer_;
 
 	RsRenderStateUPtr AdditiveRenderState_;
 	RsRenderStateUPtr ResolveRenderState_;

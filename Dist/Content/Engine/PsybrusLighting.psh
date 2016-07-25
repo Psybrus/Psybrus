@@ -196,6 +196,10 @@ float3 BRDF_Default( Light InLight, in Surface InSurface )
 	// Punctual light source.
 	Total = Total * InLight.Colour_ * NdotL;
 
+	// BUG: When using GGX we sometimes end up with a negative value.
+	// Need to investigate this further. For now this max works around the issue.
+	Total = max( Total, float3( 0.0, 0.0, 0.0 ) );
+
 	return Total;
 }
 
