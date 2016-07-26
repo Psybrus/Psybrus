@@ -706,6 +706,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 		} );
 
 	// Downsample all mip levels.
+	// TODO: Have compute use be configurable, for now keep it disabled for testing purposes.
 	bool UseCompute = false && RenderContext.pFrame_->getContext()->getFeatures().ComputeShaders_;
 	if( UseCompute )
 	{
