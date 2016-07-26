@@ -55,7 +55,7 @@ uint reversebits( uint Bits )
 //////////////////////////////////////////////////////////////////////////
 // textureQueryLevels implementations (glslang doesn't support yet)
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
-int textureQueryLevels( Texture1D<float4> InTex )
+int textureQueryLevels( const Texture1D<float4> InTex )
 {
 	int Width;
 	int NumberOfLevels = 1;
@@ -63,7 +63,7 @@ int textureQueryLevels( Texture1D<float4> InTex )
 	return NumberOfLevels;
 }
 
-int textureQueryLevels( Texture2D<float4> InTex )
+int textureQueryLevels( const Texture2D<float4> InTex )
 {
 	int Width;
 	int Height;
@@ -72,18 +72,17 @@ int textureQueryLevels( Texture2D<float4> InTex )
 	return NumberOfLevels;
 }
 
-int textureQueryLevels( Texture3D<float4> InTex )
+int textureQueryLevels( const Texture3D<float4> InTex )
 {
 	int Width;
 	int Height;
 	int Depth;
 	int NumberOfLevels = 1;
-	int NumberOfSamples;
 	InTex.GetDimensions( 0, Width, Height, Depth, NumberOfLevels );
 	return NumberOfLevels;
 }
 
-int textureQueryLevels( TextureCube<float4> InTex )
+int textureQueryLevels( const TextureCube<float4> InTex )
 {
 	int Width;
 	int Height;
@@ -92,8 +91,50 @@ int textureQueryLevels( TextureCube<float4> InTex )
 	return NumberOfLevels;
 }
 
+int textureSize( const Texture1D<float4> InTex, int Level )
+{
+	int Width;
+	int NumberOfLevels = 1;
+	InTex.GetDimensions( Level, Width, NumberOfLevels );
+
+	return Width;
+}
+
+int2 textureSize( const Texture2D<float4> InTex, int Level )
+{
+	int Width;
+	int Height;
+	int NumberOfLevels = 1;
+	InTex.GetDimensions( Level, Width, Height, NumberOfLevels );
+
+	return int2( Width, Height );
+}
+
+int3 textureSize( const Texture3D<float4> InTex, int Level )
+{
+	int Width;
+	int Height;
+	int Depth;
+	int NumberOfLevels = 1;
+	InTex.GetDimensions( Level, Width, Height, Depth, NumberOfLevels );
+
+	return int3( Width, Height, Depth );
+}
+
+int2 textureSize( const TextureCube<float4> InTex, int Level )
+{
+	int Width;
+	int Height;
+	int NumberOfLevels = 1;
+	int NumberOfSamples;
+	InTex.GetDimensions( Level, Width, Height, NumberOfLevels );
+
+	return int2( Width, Height );
+}
+
 #elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
 
+// NOT GOOD, IMPROVE.
 int textureQueryLevels( sampler1D Sampler )
 {
 	int Size = textureSize( Sampler, 0 );
@@ -112,6 +153,7 @@ int textureQueryLevels( sampler1D Sampler )
 	return MipCount;
 }
 
+// NOT GOOD, IMPROVE.
 int textureQueryLevels( sampler2D Sampler )
 {
 	int2 Size = textureSize( Sampler, 0 );
@@ -130,6 +172,7 @@ int textureQueryLevels( sampler2D Sampler )
 	return MipCount;
 }
 
+// NOT GOOD, IMPROVE.
 int textureQueryLevels( sampler3D Sampler )
 {
 	int3 Size = textureSize( Sampler, 0 );
@@ -148,6 +191,7 @@ int textureQueryLevels( sampler3D Sampler )
 	return MipCount;
 }
 
+// NOT GOOD, IMPROVE.
 int textureQueryLevels( samplerCube Sampler )
 {
 	int2 Size = textureSize( Sampler, 0 );
@@ -177,6 +221,12 @@ int textureQueryLevels( samplerCube Sampler )
 {
 	return 1;
 }
+
+int2 textureSize( sampler2D Sampler, int Level )
+{
+	return int2( 1, 1 );
+}
+
 #endif
 
 
@@ -259,6 +309,12 @@ float linearDepth( float DepthSample, float Near, float Far )
 	return ( 2.0 * ( Near * Far ) ) / ( ( Near + Far ) - DepthSample * ( Far - Near ) );
 }
 
+//////////////////////////////////////////////////////////////////////////
+// luminance
+float luminance( float3 Input )
+{
+	return dot( Input, float3( 0.2126, 0.7152, 0.0722 ) );
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Misc.

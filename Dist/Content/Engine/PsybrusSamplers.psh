@@ -8,19 +8,19 @@
 // Samplers.
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
 #  define PSY_SAMPLER_1D( _n ) \
-		texture1D a##_n; \
+		Texture1D<float4> a##_n; \
 		SamplerState s##_n
 
 #  define PSY_SAMPLER_2D( _n ) \
-		texture2D a##_n; \
+		Texture2D<float4> a##_n; \
 		SamplerState s##_n
 
 #  define PSY_SAMPLER_3D( _n ) \
-		texture3D a##_n; \
+		Texture3D<float4> a##_n; \
 		SamplerState s##_n
 
 #  define PSY_SAMPLER_CUBE( _n ) \
-		textureCUBE a##_n; \
+		TextureCube<float4> a##_n; \
 		SamplerState s##_n
 
 #  define PSY_SAMPLE_1D( _n, _c ) a##_n.Sample( s##_n, _c )
