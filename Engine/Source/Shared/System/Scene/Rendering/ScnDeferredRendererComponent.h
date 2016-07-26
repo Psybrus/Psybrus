@@ -80,9 +80,16 @@ protected:
 	BcS32 Width_ = 0;
 	BcS32 Height_ = 0;
 	std::array< ScnShaderRef, scnLT_MAX > LightShaders_;
+
+	// Compute path.
 	ScnShaderRef LuminanceComputeShader_;
 	ScnShaderRef LuminanceTransferComputeShader_;
 	ScnShaderRef DownsampleComputeShader_;
+
+	ScnShaderRef LuminanceShader_;
+	ScnShaderRef LuminanceTransferShader_;
+	ScnShaderRef DownsampleShader_;
+
 	ScnShaderRef ReflectionShader_;
 	ScnShaderRef ResolveShader_;
 
@@ -100,6 +107,7 @@ protected:
 
 	// Post process uniforms.
 	ScnShaderToneMappingUniformBlockData ToneMappingUniformBlock_;
+	ScnShaderDownsampleUniformBlockData DownsampleUniformBlock_;
 
 	enum : size_t
 	{
@@ -141,8 +149,10 @@ protected:
 	RsProgramBindingUPtr ResolveProgramBinding_;
 
 	RsBufferUPtr ToneMappingUniformBuffer_;
+	RsBufferUPtr DownsampleUniformBuffer_;
 
 	RsRenderStateUPtr AdditiveRenderState_;
+	RsRenderStateUPtr BlendRenderState_;
 	RsRenderStateUPtr ResolveRenderState_;
 	RsSamplerStateUPtr NearestSamplerState_;
 	RsSamplerStateUPtr SamplerState_;

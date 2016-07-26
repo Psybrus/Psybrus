@@ -245,6 +245,17 @@ struct ScnShaderPostProcessConfigData
 };
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderDownsampleUniformBlockData
+struct ScnShaderDownsampleUniformBlockData
+{
+	REFLECTION_DECLARE_BASIC( ScnShaderDownsampleUniformBlockData );
+	ScnShaderDownsampleUniformBlockData(){};
+
+	BcU32 DownsampleSourceMipLevel_ = 0;
+	BcU32 DownsampleUnused_[ 3 ] = {};
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderToneMappingUniformBlockData
 struct ScnShaderToneMappingUniformBlockData
 {

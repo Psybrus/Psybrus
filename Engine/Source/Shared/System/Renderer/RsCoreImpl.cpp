@@ -374,7 +374,7 @@ RsFrameBufferUPtr RsCoreImpl::createFrameBuffer(
 //virtual 
 RsTextureUPtr RsCoreImpl::createTexture( 
 		const RsTextureDesc& Desc, 
-	const BcChar* DebugName )
+		const BcChar* DebugName )
 {
 	PSY_LOGSCOPEDCATEGORY( RsCoreImpl );
 	BcAssert( BcIsGameThread() );

@@ -141,8 +141,7 @@ ScnTexture::~ScnTexture()
 //static
 ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 {
-	auto Texture = new ScnTexture();
-	Texture->setName( DebugName );
+	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->Texture_ = RsCore::pImpl()->createTexture( Desc, DebugName );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Texture_->getDesc().Width_;
@@ -168,7 +167,7 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 //static
 ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
-	auto Texture = new ScnTexture();
+	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = 0;
@@ -190,7 +189,7 @@ ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format
 //static
 ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
-	auto Texture = new ScnTexture();
+	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = Height;
@@ -212,7 +211,7 @@ ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextur
 //static
 ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
-	auto Texture = new ScnTexture();
+	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = Height;
@@ -234,7 +233,7 @@ ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Lev
 //static
 ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
-	auto Texture = new ScnTexture();
+	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
 	Texture->Width_ = Texture->Header_.Width_ = Width;
 	Texture->Height_ = Texture->Header_.Height_ = Height;

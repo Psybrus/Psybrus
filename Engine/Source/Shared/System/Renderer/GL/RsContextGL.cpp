@@ -2207,8 +2207,8 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 	// Determine frame buffer width + height.
 	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
 	BcAssert( RT.Texture_ );
-	auto FBWidth = RT.Texture_->getDesc().Width_;
-	auto FBHeight = RT.Texture_->getDesc().Height_;
+	auto FBWidth = std::max( BcU32( 1 ), RT.Texture_->getDesc().Width_ >> RT.Level_ );
+	auto FBHeight = std::max( BcU32( 1 ), RT.Texture_->getDesc().Height_ >> RT.Level_ );
 
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );

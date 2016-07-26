@@ -83,6 +83,9 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "LuminanceComputeShader_", &ScnDeferredRendererComponent::LuminanceComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "LuminanceTransferComputeShader_", &ScnDeferredRendererComponent::LuminanceTransferComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "DownsampleComputeShader_", &ScnDeferredRendererComponent::DownsampleComputeShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "LuminanceShader_", &ScnDeferredRendererComponent::LuminanceShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "LuminanceTransferShader_", &ScnDeferredRendererComponent::LuminanceTransferShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "DownsampleShader_", &ScnDeferredRendererComponent::DownsampleShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveX_", &ScnDeferredRendererComponent::ResolveX_, bcRFF_IMPORTER ),
@@ -136,13 +139,6 @@ ScnDeferredRendererComponent::~ScnDeferredRendererComponent()
 //virtual
 void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 {
-	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
-		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
-		{
-			recreateResources();
-			return evtRET_PASS;
-		} );
-
 
 	// Create textures.
 	BcU32 HalfWidth = Width_ == 0 ? -1 : Width_ / 2;
@@ -164,6 +160,14 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
 	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsTextureFormat::R32F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance2" );
+
+	// Subscribe for recreation after textures have been created.
+	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
+		[ this ]( EvtID, const EvtBaseEvent& )->eEvtReturn
+		{
+			recreateResources();
+			return evtRET_PASS;
+		} );
 
 	// Create views.
 	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
@@ -276,7 +280,7 @@ void ScnDeferredRendererComponent::recreateResources()
 	LuminanceFrameBuffers_.resize( LuminanceLevels + 1 );
 	for( size_t Idx = 0; Idx < LuminanceLevels; ++Idx )
 	{
-		LuminanceFrameBuffers_[ Idx + 1 ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		LuminanceFrameBuffers_[ Idx ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
 			.setRenderTarget( 0, Textures_[ TEX_LUMINANCE ]->getTexture(), Idx ), "Luminance" );
 	}
 
@@ -311,6 +315,25 @@ void ScnDeferredRendererComponent::recreateResources()
 			} );
 	}
 
+	if( DownsampleUniformBuffer_ == nullptr )
+	{
+		DownsampleUniformBuffer_ = RsCore::pImpl()->createBuffer(
+			RsBufferDesc(
+				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsResourceCreationFlags::STREAM, 
+				sizeof( ScnShaderDownsampleUniformBlockData ) ),
+			getFullName().c_str() );
+		RsCore::pImpl()->updateBuffer( DownsampleUniformBuffer_.get(), 0, sizeof( ScnShaderDownsampleUniformBlockData ), 
+			RsResourceUpdateFlags::ASYNC,
+			[
+				DownsampleUniformBlock = DownsampleUniformBlock_
+			]
+			( RsBuffer* Buffer, const RsBufferLock& Lock )
+			{
+				memcpy( Lock.Buffer_, &DownsampleUniformBlock, sizeof( DownsampleUniformBlock ) );
+			} );
+	}
+	
 	if( VertexDeclaration_ == nullptr )
 	{
 		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
@@ -357,9 +380,13 @@ void ScnDeferredRendererComponent::recreateResources()
 	SamplerStateDesc.MagFilter_ = RsTextureFilteringMode::LINEAR;
 	SamplerState_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, getFullName().c_str() );
 
-
 	// Create render state.
 	RsRenderStateDesc RenderStateDesc;
+
+	auto& DepthStencilState = RenderStateDesc.DepthStencilState_;
+	DepthStencilState.DepthTestEnable_ = false;
+	DepthStencilState.DepthWriteEnable_ = false;
+
 	auto& BlendState = RenderStateDesc.BlendState_.RenderTarget_[ 0 ];
 	BlendState.Enable_ = BcTrue;
 	BlendState.SrcBlend_ = RsBlendType::ONE;
@@ -368,10 +395,14 @@ void ScnDeferredRendererComponent::recreateResources()
 	BlendState.DestBlendAlpha_ = RsBlendType::ONE;
 	BlendState.BlendOp_ = RsBlendOp::ADD;
 	BlendState.BlendOpAlpha_ = RsBlendOp::ADD;
-	auto& DepthStencilState = RenderStateDesc.DepthStencilState_;
-	DepthStencilState.DepthTestEnable_ = false;
-	DepthStencilState.DepthWriteEnable_ = false;
 	AdditiveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
+
+	BlendState.SrcBlend_ = RsBlendType::SRC_ALPHA;
+	BlendState.SrcBlendAlpha_ = RsBlendType::ONE;
+	BlendState.DestBlend_ = RsBlendType::INV_SRC_ALPHA;
+	BlendState.DestBlendAlpha_ = RsBlendType::ONE;
+	BlendRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
+
 	BlendState.Enable_ = BcFalse;
 	ResolveRenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, getFullName().c_str() );
 
@@ -500,7 +531,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
 
 
-	// Render all lights.i
+	// Render all lights.
 	for( size_t Idx = 0; Idx < LightComponents_.size(); ++Idx )
 	{
 		auto LightComponent = LightComponents_[ Idx ];
@@ -675,7 +706,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 		} );
 
 	// Downsample all mip levels.
-	bool UseCompute = RenderContext.pFrame_->getContext()->getFeatures().ComputeShaders_;
+	bool UseCompute = false && RenderContext.pFrame_->getContext()->getFeatures().ComputeShaders_;
 	if( UseCompute )
 	{
 		// Generate top level luminance mip.
@@ -756,7 +787,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				}
 			}
 
-		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LuminanceTransferProgram, BindingDesc, (*getName()).c_str() );
+			auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LuminanceTransferProgram, BindingDesc, (*getName()).c_str() );
 
 			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
 				[ 
@@ -770,13 +801,177 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 				} );
 		}
-
 	}
 	else
 	{
-		BcAssertMsg( false, "Non-compute path unimplemented." );
-	}
+		const ScnShaderPermutationFlags Permutation = 
+			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+			ScnShaderPermutationFlags::PASS_MAIN |
+			ScnShaderPermutationFlags::MESH_STATIC_2D;
 
+		MaVec2d UVSize( 1.0f, 1.0f );
+		auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
+		auto Rect = AlbedoTex->getRect( 0 );			
+		UVSize.x( Rect.W_ );
+		UVSize.y( Rect.H_ );
+
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				UVSize = UVSize,
+				GeometryBinding = GeometryBinding_.get()
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+
+				setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
+					GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
+					MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
+			} );
+
+		// Generate top level luminance mip.
+		{
+			auto* LuminanceProgram = LuminanceShader_->getProgram( Permutation );
+			auto InputSRVSlot = LuminanceProgram->findShaderResourceSlot( "aHDRTexture" );
+			RsProgramBindingDesc BindingDesc;
+
+			auto* HDRTexture = Textures_[ TEX_HDR ]->getTexture();
+
+			BindingDesc.setShaderResourceView( InputSRVSlot, HDRTexture, 0, 1, 0, 1 );
+			
+			auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LuminanceProgram, BindingDesc, (*getName()).c_str() );
+
+			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+				[ 
+					UniformBuffer = UniformBuffer_.get(),
+					GeometryBinding = GeometryBinding_.get(),
+					ProgramBinding = ProgramBinding.get(),
+					RenderState = ResolveRenderState_.get(),
+					FrameBuffer = LuminanceFrameBuffers_[ 0 ].get()
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+			
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						nullptr,
+						nullptr,
+						RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+				} );
+		}
+
+		// Downsample.
+		{
+			auto* DownsampleProgram = DownsampleShader_->getProgram( Permutation );
+			auto InputSRVSlot = DownsampleProgram->findShaderResourceSlot( "aHDRTexture" );
+			RsProgramBindingDesc BindingDesc;
+
+			auto* LuminanceTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+			
+			for( BcU32 Level = 1; Level < LuminanceTexture->getDesc().Levels_; ++Level )
+			{
+				BindingDesc.setShaderResourceView( InputSRVSlot, LuminanceTexture, Level - 1, 1, 0, 1 );
+
+				{
+					BcU32 UniformSlot = DownsampleProgram->findUniformBufferSlot( "ScnShaderDownsampleUniformBlockData" );
+					if( UniformSlot != BcErrorCode )
+					{
+						BindingDesc.setUniformBuffer( UniformSlot, DownsampleUniformBuffer_.get(), 0, sizeof( ScnShaderDownsampleUniformBlockData ) );
+					}
+				}
+
+				auto ProgramBinding = RsCore::pImpl()->createProgramBinding( DownsampleProgram, BindingDesc, (*getName()).c_str() );
+
+				DownsampleUniformBlock_.DownsampleSourceMipLevel_ = Level - 1;
+
+				RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+					[ 
+						Level = Level,
+						GeometryBinding = GeometryBinding_.get(),
+						ProgramBinding = ProgramBinding.get(),
+						RenderState = ResolveRenderState_.get(),
+						FrameBuffer = LuminanceFrameBuffers_[ Level ].get(),
+						DownsampleUniformBuffer = DownsampleUniformBuffer_.get(),
+						DownsampleUniformBlock = DownsampleUniformBlock_
+					]
+					( RsContext* Context )
+					{
+						PSY_PROFILE_FUNCTION;
+
+						Context->updateBuffer( DownsampleUniformBuffer, 0, sizeof( ScnShaderDownsampleUniformBlockData ), 
+							RsResourceUpdateFlags::ASYNC,
+							[
+								DownsampleUniformBlock = DownsampleUniformBlock
+							]
+							( RsBuffer* Buffer, const RsBufferLock& Lock )
+							{
+								memcpy( Lock.Buffer_, &DownsampleUniformBlock, sizeof( DownsampleUniformBlock ) );
+							} );
+
+						Context->drawPrimitives( 
+							GeometryBinding,
+							ProgramBinding,
+							RenderState,
+							FrameBuffer,
+							nullptr,
+							nullptr,
+							RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+					} );
+			}
+		}
+
+		// Transfer luminance to 2nd target.
+		{
+			MaVec2d UVSize( 1.0f, 1.0f );
+			auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
+			auto Rect = AlbedoTex->getRect( 0 );			
+			UVSize.x( Rect.W_ );
+			UVSize.y( Rect.H_ );
+
+			auto* LuminanceTransferProgram = LuminanceTransferShader_->getProgram( Permutation );
+			auto InputSRVSlot = LuminanceTransferProgram->findShaderResourceSlot( "aLuminanceTexture" );
+			RsProgramBindingDesc BindingDesc;
+
+			auto* LuminanceTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
+
+			BindingDesc.setShaderResourceView( InputSRVSlot, LuminanceTexture, LuminanceTexture->getDesc().Levels_ - 1, 1, 0, 1 );
+			
+			{
+				BcU32 UniformSlot = LuminanceTransferProgram->findUniformBufferSlot( "ScnShaderToneMappingUniformBlockData" );
+				if( UniformSlot != BcErrorCode )
+				{
+					BindingDesc.setUniformBuffer( UniformSlot, ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ) );
+				}
+			}
+
+			auto ProgramBinding = RsCore::pImpl()->createProgramBinding( LuminanceTransferProgram, BindingDesc, (*getName()).c_str() );
+
+			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+				[
+					GeometryBinding = GeometryBinding_.get(),
+					ProgramBinding = ProgramBinding.get(),
+					RenderState = BlendRenderState_.get(),
+					FrameBuffer = LuminanceFrameBuffers_[ LuminanceFrameBuffers_.size() - 1 ].get()
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						nullptr,
+						nullptr,
+						RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+				} );
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -844,7 +1039,6 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 	RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
 		[ 
 			UVSize = UVSize,
-			UniformBuffer = UniformBuffer_.get(),
 			GeometryBinding = GeometryBinding_.get(),
 			ProgramBinding = ResolveProgramBinding_.get(),
 			RenderState = ResolveRenderState_.get(),

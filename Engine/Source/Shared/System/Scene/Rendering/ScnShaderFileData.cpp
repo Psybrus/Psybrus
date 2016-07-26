@@ -167,9 +167,26 @@ void ScnShaderPostProcessConfigData::StaticRegisterClass()
 		new ReField( "InputDimensions_", &ScnShaderPostProcessConfigData::InputDimensions_ ),
 		new ReField( "OutputDimensions_", &ScnShaderPostProcessConfigData::OutputDimensions_ ),
 	};
-		
+	
 	auto& Class = ReRegisterClass< ScnShaderPostProcessConfigData >( Fields );
 	Class.addAttribute( new ScnShaderDataAttribute( "PostProcessConfig", BcFalse ) );
+	Class.setFlags( bcRFF_POD );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// ScnShaderDownsampleUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnShaderDownsampleUniformBlockData );
+
+void ScnShaderDownsampleUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "DownsampleSourceMipLevel_", &ScnShaderDownsampleUniformBlockData::DownsampleSourceMipLevel_ ),
+		new ReField( "DownsampleUnused_", &ScnShaderDownsampleUniformBlockData::DownsampleUnused_ ),
+	};
+		
+	auto& Class = ReRegisterClass< ScnShaderDownsampleUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "Downsample", BcFalse ) );
 	Class.setFlags( bcRFF_POD );
 }
 
