@@ -162,8 +162,8 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "HDR" );
 	Textures_[ TEX_LUMINANCE ] = ScnTexture::New2D( HalfWidth, HalfHeight, 0, RsTextureFormat::R32F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
-	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 0, RsTextureFormat::R32F, 
-		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
+	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsTextureFormat::R32F, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance2" );
 
 	// Create views.
 	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
@@ -203,6 +203,13 @@ void ScnDeferredRendererComponent::onDetach( ScnEntityWeakRef Parent )
 	OpaqueView_ = nullptr;
 	TransparentView_ = nullptr;
 	OverlayView_ = nullptr;
+
+	// Free all framebuffers.
+	LuminanceFrameBuffers_.clear();
+	for( auto& FrameBuffer : FrameBuffers_ )
+	{
+		FrameBuffer.reset();
+	}
 
 	// Free all textures.
 	for( auto& Texture : Textures_ )
@@ -250,6 +257,34 @@ void ScnDeferredRendererComponent::setProjectionParams( BcF32 Near, BcF32 Far, B
 // recreateResources
 void ScnDeferredRendererComponent::recreateResources()
 {
+	// Create frame buffers.
+	FrameBuffers_[ FB_GBUFFER ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 4 )
+		.setRenderTarget( 0, Textures_[ TEX_GBUFFER_ALBEDO ]->getTexture() )
+		.setRenderTarget( 1, Textures_[ TEX_GBUFFER_MATERIAL ]->getTexture() )
+		.setRenderTarget( 2, Textures_[ TEX_GBUFFER_NORMAL ]->getTexture() )
+		.setRenderTarget( 3, Textures_[ TEX_GBUFFER_VELOCITY ]->getTexture() )
+		.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() ), "GBuffer" );
+
+	FrameBuffers_[ FB_HDR ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		.setRenderTarget( 0, Textures_[ TEX_HDR ]->getTexture() )
+		.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() ), "HDR" );
+
+	// Create luminance frame buffers.
+	size_t LuminanceLevels = Textures_[ TEX_LUMINANCE ]->getTexture()->getDesc().Levels_;
+
+	LuminanceFrameBuffers_.clear();
+	LuminanceFrameBuffers_.resize( LuminanceLevels + 1 );
+	for( size_t Idx = 0; Idx < LuminanceLevels; ++Idx )
+	{
+		LuminanceFrameBuffers_[ Idx + 1 ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+			.setRenderTarget( 0, Textures_[ TEX_LUMINANCE ]->getTexture(), Idx ), "Luminance" );
+	}
+
+	LuminanceFrameBuffers_[ LuminanceLevels ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		.setRenderTarget( 0, Textures_[ TEX_LUMINANCE2 ]->getTexture() ), "Luminance2" );
+
+
+	// Reset bindings.
 	for( auto & LightProgramBinding : LightProgramBindings_ )
 	{
 		LightProgramBinding.reset();

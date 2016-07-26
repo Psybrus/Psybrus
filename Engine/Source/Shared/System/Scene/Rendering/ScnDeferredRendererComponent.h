@@ -115,7 +115,17 @@ protected:
 		TEX_MAX
 	};
 
+	enum : size_t
+	{
+		FB_GBUFFER,
+		FB_HDR,
+
+		FB_MAX
+	};
+
 	std::array< ScnTextureRef, TEX_MAX > Textures_;
+	std::array< RsFrameBufferUPtr, FB_MAX > FrameBuffers_;
+	std::vector< RsFrameBufferUPtr > LuminanceFrameBuffers_;
 
 	BcBool UseEnvironmentProbes_ = BcTrue;
 	ScnTextureRef ReflectionCubemap_;
