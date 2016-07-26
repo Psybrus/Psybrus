@@ -439,6 +439,14 @@ RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
 		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 );
 	case RsTextureFormat::BC3:
 		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 );
+	case RsTextureFormat::BC4:
+		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RED_RGTC1, GL_RED, 0 );
+	case RsTextureFormat::BC5:
+		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RG_RGTC2, GL_RG, 0 );
+	case RsTextureFormat::BC6H:
+		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, 0, 0 );
+	case RsTextureFormat::BC7:
+		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, 0, 0 );
 	case RsTextureFormat::ETC1:
 		return TextureFormat( BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 );
 	case RsTextureFormat::D16:

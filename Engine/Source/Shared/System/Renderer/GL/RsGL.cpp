@@ -9,9 +9,13 @@ namespace
 	bool HaveExtension( const char* ExtensionName )
 	{
 		auto Extensions = (const char*)glGetString( GL_EXTENSIONS );
-		auto RetVal = BcStrStr( Extensions, ExtensionName ) != nullptr;
-		PSY_LOG( "RsGL: HaveExtension \"%s\"? %s\n", ExtensionName, RetVal ? "YES!" : "no" );
-		return RetVal;
+		if( Extensions )
+		{
+			auto RetVal = BcStrStr( Extensions, ExtensionName ) != nullptr;
+			PSY_LOG( "RsGL: HaveExtension \"%s\"? %s\n", ExtensionName, RetVal ? "YES!" : "no" );
+			return RetVal;
+		}
+		return false;
 	}
 }
 
@@ -74,120 +78,126 @@ void RsOpenGLVersion::setupFeatureSupport()
 		break;
 
 	case RsOpenGLType::CORE:
-		// 3.0
-		if( getCombinedVersion() >= 0x00030000 )
 		{
-			Features_.MRT_ = true;
-			Features_.Instancing_ = true;
+			// 3.0
+			if( getCombinedVersion() >= 0x00030000 )
+			{
+				Features_.MRT_ = true;
+				Features_.Instancing_ = true;
 
-			Features_.Texture1D_ = true;
-			Features_.Texture2D_ = true;
-			Features_.Texture3D_ = true;
-			Features_.TextureCube_ = true;
+				Features_.Texture1D_ = true;
+				Features_.Texture2D_ = true;
+				Features_.Texture3D_ = true;
+				Features_.TextureCube_ = true;
 
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::BC1 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::BC2 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::BC3 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D16 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D24 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D32 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::D24S8 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R8 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R8G8 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC1 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC2 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC3 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC4 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC5 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::D16 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::D24 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::D32 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
-			Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8 ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8 ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8 ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R8G8B8A8 ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R16FG16FB16FA16F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32F ] = true;
+				Features_.RenderTargetFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
 
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D16 ] = true;
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24 ] = true;
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
-			Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24S8 ] = true;
+				Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D16 ] = true;
+				Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24 ] = true;
+				Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D32 ] = true;
+				Features_.DepthStencilTargetFormat_[ (int)RsTextureFormat::D24S8 ] = true;
 
-			Features_.MRT_= true;
-			Features_.DepthTextures_ = true;
-			Features_.NPOTTextures_ = true;
-			Features_.AnisotropicFiltering_ = true;
-			Features_.AntialiasedLines_ = true;
+				Features_.MRT_= true;
+				Features_.DepthTextures_ = true;
+				Features_.NPOTTextures_ = true;
+				Features_.AnisotropicFiltering_ = true;
+				Features_.AntialiasedLines_ = true;
 
-			SupportPolygonMode_ = true;
-			SupportVAOs_ = true;
-			SupportBindBufferRange_ = true;
+				SupportPolygonMode_ = true;
+				SupportVAOs_ = true;
+				SupportBindBufferRange_ = true;
+			}
+
+			// 3.1
+			if( getCombinedVersion() >= 0x00030001 )
+			{
+				SupportUniformBuffers_ = true;
+				SupportGeometryShaders_ = true;
+				SupportDrawInstanced_ = true;
+			}
+
+			// 3.2
+			if( getCombinedVersion() >= 0x00030002 )
+			{
+				SupportDrawElementsBaseVertex_ = true;
+			}
+
+			// 3.3
+			if( getCombinedVersion() >= 0x00030003 )
+			{
+				SupportUniformBufferOffset_ = true;
+				SupportSamplerStates_ = true;
+				SupportBlitFrameBuffer_ = true;
+			}
+
+			// 4.0
+			if( getCombinedVersion() >= 0x00040000 )
+			{
+				Features_.SeparateBlendState_ = true;
+				SupportTesselationShaders_ = true;
+			}
+
+			// 4.1
+			if( getCombinedVersion() >= 0x00040001 )
+			{
+			}
+
+			// 4.2
+			if( getCombinedVersion() >= 0x00040002 )
+			{
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC6H ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC7 ] = true;
+
+				SupportImageLoadStore_ = true;
+				SupportDrawInstancedBaseInstance_ = true;
+			}
+
+			// 4.3
+			if( getCombinedVersion() >= 0x00040003 )
+			{
+				SupportComputeShaders_ = true;
+				SupportShaderStorageBufferObjects_ = true;
+				SupportProgramInterfaceQuery_ = true;
+				SupportCopyImageSubData_ = true;
+			}
 		}
-
-		// 3.1
-		if( getCombinedVersion() >= 0x00030001 )
-		{
-			SupportUniformBuffers_ = true;
-			SupportGeometryShaders_ = true;
-			SupportDrawInstanced_ = true;
-		}
-
-		// 3.2
-		if( getCombinedVersion() >= 0x00030002 )
-		{
-			SupportDrawElementsBaseVertex_ = true;
-		}
-
-		// 3.3
-		if( getCombinedVersion() >= 0x00030003 )
-		{
-			SupportUniformBufferOffset_ = true;
-			SupportSamplerStates_ = true;
-			SupportBlitFrameBuffer_ = true;
-		}
-
-		// 4.0
-		if( getCombinedVersion() >= 0x00040000 )
-		{
-			Features_.SeparateBlendState_ = true;
-			SupportTesselationShaders_ = true;
-		}
-
-		// 4.1
-		if( getCombinedVersion() >= 0x00040001 )
-		{
-		}
-
-		// 4.2
-		if( getCombinedVersion() >= 0x00040002 )
-		{
-			SupportImageLoadStore_ = true;
-			SupportDrawInstancedBaseInstance_ = true;
-		}
-
-		// 4.3
-		if( getCombinedVersion() >= 0x00040003 )
-		{
-			SupportComputeShaders_ = true;
-			SupportShaderStorageBufferObjects_ = true;
-			SupportProgramInterfaceQuery_ = true;
-			SupportCopyImageSubData_ = true;
-		}
-
 		break;
 
 	case RsOpenGLType::ES:
@@ -235,8 +245,11 @@ void RsOpenGLVersion::setupFeatureSupport()
 			bool SupportETC2Textures = 
 				HaveExtension( "OES_compressed_ETC2_RGBA8_texture" );
 
-			bool SupportATCTextures = 
-				HaveExtension( "AMD_compressed_ATC_texture" );
+			bool SupportRGTCTextures = 
+				HaveExtension( "EXT_texture_compression_rgtc" );
+
+			bool SupportBPTCTextures = 
+				HaveExtension( "ARB_texture_compression_bptc" );
 
 			bool SupportDepthTextures = 
 				HaveExtension( "OES_depth_texture" ) |
@@ -256,6 +269,18 @@ void RsOpenGLVersion::setupFeatureSupport()
 				Features_.TextureFormat_[ (int)RsTextureFormat::BC1 ] = true;
 				Features_.TextureFormat_[ (int)RsTextureFormat::BC2 ] = true;
 				Features_.TextureFormat_[ (int)RsTextureFormat::BC3 ] = true;
+			}
+
+			if( SupportRGTCTextures )
+			{
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC4 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC5 ] = true;
+			}
+
+			if( SupportBPTCTextures )
+			{
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC6H ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC7 ] = true;
 			}
 
 			if( SupportETC1Textures )
