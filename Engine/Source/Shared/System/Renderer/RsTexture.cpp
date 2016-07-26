@@ -74,9 +74,13 @@ RsTextureDesc::RsTextureDesc(
 	BcU32 MinimumDimension = 1;
 	switch( Format_ )
 	{
-	case RsTextureFormat::DXT1:
-	case RsTextureFormat::DXT3:
-	case RsTextureFormat::DXT5:
+	case RsTextureFormat::BC1:
+	case RsTextureFormat::BC2:
+	case RsTextureFormat::BC3:
+	case RsTextureFormat::BC4:
+	case RsTextureFormat::BC5:
+	case RsTextureFormat::BC6H:
+	case RsTextureFormat::BC7:
 		MinimumDimension = 4;
 		break;
 	default:

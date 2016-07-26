@@ -433,11 +433,11 @@ RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
 		return TextureFormat( BcFalse, BcFalse, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_10_10_10_2 );
 	case RsTextureFormat::R11G11B10F:
 		return TextureFormat( BcFalse, BcFalse, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT );
-	case RsTextureFormat::DXT1:
+	case RsTextureFormat::BC1:
 		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 );
-	case RsTextureFormat::DXT3:
+	case RsTextureFormat::BC2:
 		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 );
-	case RsTextureFormat::DXT5:
+	case RsTextureFormat::BC3:
 		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 );
 	case RsTextureFormat::ETC1:
 		return TextureFormat( BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 );
@@ -495,9 +495,9 @@ GLenum RsUtilsGL::GetImageFormat( RsTextureFormat Format )
 		return GL_RGB10_A2;
 	case RsTextureFormat::R11G11B10F:
 		return GL_R11F_G11F_B10F;
-	case RsTextureFormat::DXT1:
-	case RsTextureFormat::DXT3:
-	case RsTextureFormat::DXT5:
+	case RsTextureFormat::BC1:
+	case RsTextureFormat::BC2:
+	case RsTextureFormat::BC3:
 	case RsTextureFormat::ETC1:
 	case RsTextureFormat::D16:
 	case RsTextureFormat::D24:

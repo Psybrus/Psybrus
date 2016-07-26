@@ -314,13 +314,17 @@ RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
 	case RsTextureFormat::R11G11B10F:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::DXT1:
+	case RsTextureFormat::BC1:
+	case RsTextureFormat::BC4:
 		BlockInfo.Bits_ = 64;
 		BlockInfo.Width_ = 4;
 		BlockInfo.Height_ = 4;
 		break;
-	case RsTextureFormat::DXT3:
-	case RsTextureFormat::DXT5:			
+	case RsTextureFormat::BC2:
+	case RsTextureFormat::BC3:	
+	case RsTextureFormat::BC5:
+	case RsTextureFormat::BC6H:
+	case RsTextureFormat::BC7:
 		BlockInfo.Bits_ = 128;
 		BlockInfo.Width_ = 4;
 		BlockInfo.Height_ = 4;
@@ -415,7 +419,7 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 		Size = TotalTexels * sizeof( BcU32 ) * 4;
 		break;
 
-	case RsTextureFormat::DXT1:
+	case RsTextureFormat::BC1:
 		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 		{
 			BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
@@ -426,8 +430,8 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 		Size *= Depth;
 		break;
 
-	case RsTextureFormat::DXT3:
-	case RsTextureFormat::DXT5:			
+	case RsTextureFormat::BC2:
+	case RsTextureFormat::BC3:
 		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 		{
 			BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );

@@ -192,6 +192,11 @@ BcBool ScnTextureImport::import()
 	ClearColour.B_ = BcU8( BcClamp( BcU32( ClearColour_.b() * 255.0f ), 0, 255 ) );
 	ClearColour.A_ = BcU8( BcClamp( BcU32( ClearColour_.a() * 255.0f ), 0, 255 ) );
 	BcU32 SpreadDouble = Spread_ * 2;
+
+	// Add type dependencies.
+	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureFormat" ) );
+	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureType" ) );
+
 	if( Source_.size() > 0 )
 	{
 		// Load all source images.
@@ -353,11 +358,11 @@ BcBool ScnTextureImport::import()
 				{
 					if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
 					{
-						Format_ = RsTextureFormat::DXT1;
+						Format_ = RsTextureFormat::BC1;
 					}
 					else
 					{
-						Format_ = RsTextureFormat::DXT5;
+						Format_ = RsTextureFormat::BC3;
 					}
 				}
 			}

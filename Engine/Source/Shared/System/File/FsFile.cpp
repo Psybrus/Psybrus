@@ -93,7 +93,7 @@ void FsFile::seek( BcSize Position )
 // read
 void FsFile::read( BcSize Position, void* pData, BcSize Bytes )
 {
-	pImpl_->seek( Position );
+r	pImpl_->seek( Position );
 	pImpl_->read( pData, Bytes );
 }
 

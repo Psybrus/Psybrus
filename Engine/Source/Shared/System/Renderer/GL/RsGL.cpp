@@ -99,9 +99,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.TextureFormat_[ (int)RsTextureFormat::R32FG32FB32FA32F ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R10G10B10A2 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::R11G11B10F ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
-			Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::BC1 ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::BC2 ] = true;
+			Features_.TextureFormat_[ (int)RsTextureFormat::BC3 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::D16 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::D24 ] = true;
 			Features_.TextureFormat_[ (int)RsTextureFormat::D32 ] = true;
@@ -253,9 +253,9 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			if( SupportDXTTextures )
 			{
-				Features_.TextureFormat_[ (int)RsTextureFormat::DXT1 ] = true;
-				Features_.TextureFormat_[ (int)RsTextureFormat::DXT3 ] = true;
-				Features_.TextureFormat_[ (int)RsTextureFormat::DXT5 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC1 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC2 ] = true;
+				Features_.TextureFormat_[ (int)RsTextureFormat::BC3 ] = true;
 			}
 
 			if( SupportETC1Textures )

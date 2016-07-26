@@ -163,15 +163,24 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "R32FG32FB32FA32F", RsTextureFormat::R32FG32FB32FA32F ),
 		new ReEnumConstant( "R10G10B10A2", RsTextureFormat::R10G10B10A2 ),
 		new ReEnumConstant( "R11G11B10F", RsTextureFormat::R11G11B10F ),
-		new ReEnumConstant( "DXT1", RsTextureFormat::DXT1 ),
-		new ReEnumConstant( "DXT3", RsTextureFormat::DXT3 ),
-		new ReEnumConstant( "DXT5", RsTextureFormat::DXT5 ),
+		new ReEnumConstant( "BC1", RsTextureFormat::BC1 ),
+		new ReEnumConstant( "BC2", RsTextureFormat::BC2 ),
+		new ReEnumConstant( "BC3", RsTextureFormat::BC3 ),
+		new ReEnumConstant( "BC4", RsTextureFormat::BC4 ),
+		new ReEnumConstant( "BC5", RsTextureFormat::BC5 ),
+		new ReEnumConstant( "BC6H", RsTextureFormat::BC6H ),
+		new ReEnumConstant( "BC7", RsTextureFormat::BC7 ),
 		new ReEnumConstant( "ETC1", RsTextureFormat::ETC1 ),
 		new ReEnumConstant( "D16", RsTextureFormat::D16 ),
 		new ReEnumConstant( "D24", RsTextureFormat::D24 ),
 		new ReEnumConstant( "D32", RsTextureFormat::D32 ),
 		new ReEnumConstant( "D24S8", RsTextureFormat::D24S8 ),
 		new ReEnumConstant( "INVALID", RsTextureFormat::INVALID ),
+
+		// Legacy.
+		new ReEnumConstant( "DXT1", RsTextureFormat::BC1 ),
+		new ReEnumConstant( "DXT3", RsTextureFormat::BC2 ),
+		new ReEnumConstant( "DXT5", RsTextureFormat::BC3 ),
 	};
 	ReRegisterEnum< RsTextureFormat >( RsTextureFormatEnumConstants );
 
