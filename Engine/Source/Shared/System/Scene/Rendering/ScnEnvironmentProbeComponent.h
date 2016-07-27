@@ -50,6 +50,11 @@ private:
 	RsSamplerStateUPtr Sampler_;
 	RsBufferUPtr FilterUniform_;
 
+	RsRenderStateUPtr RenderState_;
+	RsVertexDeclarationUPtr VertexDeclaration_;
+	RsBufferUPtr VertexBuffer_;
+	RsGeometryBindingUPtr GeometryBinding_;
+
 	bool UseCompute_ = false;
 };
 

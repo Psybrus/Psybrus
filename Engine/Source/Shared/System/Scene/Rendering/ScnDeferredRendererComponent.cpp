@@ -431,7 +431,6 @@ void ScnDeferredRendererComponent::setupQuad( RsContext* Context,
 		{
 			auto Vertices = reinterpret_cast< ScnDeferredRendererVertex* >( Lock.Buffer_ );
 
-			// TODO: Pass in separate UVs for what is intended to be a render target source?
 			if( RTOrigin == RsFeatureRenderTargetOrigin::BOTTOM_LEFT )
 			{
 				*Vertices++ = ScnDeferredRendererVertex( 
