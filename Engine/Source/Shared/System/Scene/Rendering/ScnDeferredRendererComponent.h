@@ -66,10 +66,12 @@ protected:
 		const MaVec2d& MaxPos, 
 		const MaVec2d& UVSize );
 
+	void setTextures( RsProgram* Program, RsProgramBindingDesc& ProgramBindingDesc );
 	void renderLights( ScnRenderContext& RenderContext );
 	void renderReflection( ScnRenderContext& RenderContext );
 	void downsampleHDR( ScnRenderContext& RenderContext );
 	void renderResolve( ScnRenderContext& RenderContext );
+	void calculateBloom( ScnRenderContext& RenderContext );
 
 	// ScnViewCallback
 	void onViewDrawPreRender( ScnRenderContext& RenderContext ) override;
@@ -90,6 +92,10 @@ protected:
 	ScnShaderRef LuminanceTransferShader_;
 	ScnShaderRef DownsampleShader_;
 
+	ScnShaderRef BloomGenerateShader_;
+	ScnShaderRef BloomHBlurShader_;
+	ScnShaderRef BloomVBlurShader_;
+
 	ScnShaderRef ReflectionShader_;
 	ScnShaderRef ResolveShader_;
 
@@ -106,6 +112,7 @@ protected:
 	BcF32 VerticalFOV_ = 0.0f;
 
 	// Post process uniforms.
+	ScnShaderBloomUniformBlockData BloomUniformBlock_;
 	ScnShaderToneMappingUniformBlockData ToneMappingUniformBlock_;
 	ScnShaderDownsampleUniformBlockData DownsampleUniformBlock_;
 
@@ -119,6 +126,8 @@ protected:
 		TEX_HDR,
 		TEX_LUMINANCE,
 		TEX_LUMINANCE2,
+		TEX_BLOOM,
+		TEX_BLOOM_WORK,
 		
 		TEX_MAX
 	};
@@ -127,6 +136,8 @@ protected:
 	{
 		FB_GBUFFER,
 		FB_HDR,
+		FB_BLOOM,
+		FB_BLOOM_WORK,
 
 		FB_MAX
 	};
@@ -148,6 +159,7 @@ protected:
 	RsProgramBindingUPtr ReflectionProgramBinding_;
 	RsProgramBindingUPtr ResolveProgramBinding_;
 
+	RsBufferUPtr BloomUniformBuffer_;
 	RsBufferUPtr ToneMappingUniformBuffer_;
 	RsBufferUPtr DownsampleUniformBuffer_;
 
@@ -161,5 +173,7 @@ protected:
 	RsBufferUPtr VertexBuffer_;
 	RsGeometryBindingUPtr GeometryBinding_;
 	RsFrameBuffer* ResolveTarget_ = nullptr;
+
+	static std::array< const char*, TEX_MAX > TextureNames_;
 };
 

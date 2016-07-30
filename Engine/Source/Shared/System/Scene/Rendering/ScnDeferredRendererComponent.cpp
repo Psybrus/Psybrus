@@ -24,6 +24,22 @@
 #include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Static data.
+std::array< const char*, ScnDeferredRendererComponent::TEX_MAX > ScnDeferredRendererComponent::TextureNames_ = 
+{
+	"aAlbedoTex",
+	"aMaterialTex",
+	"aNormalTex",
+	"aVelocityTex",
+	"aDepthTex",
+	"aHDRTex",
+	"aLuminanceTex",
+	"aLuminance2Tex",
+	"aBloomTex",
+	"aBloomWorkTex",
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Define resource.
 class ScnDeferredLightingViewRenderData : 
 	public ScnViewRenderData
@@ -86,6 +102,9 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "LuminanceShader_", &ScnDeferredRendererComponent::LuminanceShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "LuminanceTransferShader_", &ScnDeferredRendererComponent::LuminanceTransferShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "DownsampleShader_", &ScnDeferredRendererComponent::DownsampleShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "BloomGenerateShader_", &ScnDeferredRendererComponent::BloomGenerateShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "BloomHBlurShader_", &ScnDeferredRendererComponent::BloomHBlurShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "BloomVBlurShader_", &ScnDeferredRendererComponent::BloomVBlurShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveX_", &ScnDeferredRendererComponent::ResolveX_, bcRFF_IMPORTER ),
@@ -96,7 +115,9 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "Far_", &ScnDeferredRendererComponent::Far_, bcRFF_IMPORTER ),
 		new ReField( "HorizontalFOV_", &ScnDeferredRendererComponent::HorizontalFOV_, bcRFF_IMPORTER ),
 		new ReField( "VerticalFOV_", &ScnDeferredRendererComponent::VerticalFOV_, bcRFF_IMPORTER ),
+		new ReField( "BloomUniformBlock_", &ScnDeferredRendererComponent::BloomUniformBlock_, bcRFF_IMPORTER ),
 		new ReField( "ToneMappingUniformBlock_", &ScnDeferredRendererComponent::ToneMappingUniformBlock_, bcRFF_IMPORTER ),
+		new ReField( "DownsampleUniformBlock_", &ScnDeferredRendererComponent::DownsampleUniformBlock_, bcRFF_IMPORTER ),
 		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "UseEnvironmentProbes_", &ScnDeferredRendererComponent::UseEnvironmentProbes_, bcRFF_IMPORTER ),
 				
@@ -114,6 +135,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 				ScnDeferredRendererComponent* Value = (ScnDeferredRendererComponent*)Object;
 				if( Value != nullptr )
 				{
+					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, &Value->BloomUniformBlock_, ScnShaderBloomUniformBlockData::StaticGetClass(), Flags );
 					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, &Value->ToneMappingUniformBlock_, ScnShaderToneMappingUniformBlockData::StaticGetClass(), Flags );
 					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Value, Value->getClass(), Flags );
 				}
@@ -139,7 +161,6 @@ ScnDeferredRendererComponent::~ScnDeferredRendererComponent()
 //virtual
 void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 {
-
 	// Create textures.
 	BcU32 HalfWidth = Width_ == 0 ? -1 : Width_ / 2;
 	BcU32 HalfHeight = Height_ == 0 ? -1 : Width_ / 2;
@@ -160,6 +181,10 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
 	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsTextureFormat::R32F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance2" );
+	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R16FG16FB16F, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Bloom" );
+	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R16FG16FB16F, 
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "BloomWork" );
 
 	// Subscribe for recreation after textures have been created.
 	OsCore::pImpl()->subscribe( osEVT_CLIENT_RESIZE, this,
@@ -273,6 +298,12 @@ void ScnDeferredRendererComponent::recreateResources()
 		.setRenderTarget( 0, Textures_[ TEX_HDR ]->getTexture() )
 		.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() ), "HDR" );
 
+	FrameBuffers_[ FB_BLOOM ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		.setRenderTarget( 0, Textures_[ TEX_BLOOM ]->getTexture() ), "Bloom" );
+	
+	FrameBuffers_[ FB_BLOOM_WORK ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		.setRenderTarget( 0, Textures_[ TEX_BLOOM_WORK ]->getTexture() ), "BloomWork" );
+
 	// Create luminance frame buffers.
 	size_t LuminanceLevels = Textures_[ TEX_LUMINANCE ]->getTexture()->getDesc().Levels_;
 
@@ -295,6 +326,25 @@ void ScnDeferredRendererComponent::recreateResources()
 	}
 	ReflectionProgramBinding_.reset();
 	ResolveProgramBinding_.reset();
+
+	if( BloomUniformBuffer_ == nullptr )
+	{
+		BloomUniformBuffer_ = RsCore::pImpl()->createBuffer(
+			RsBufferDesc(
+				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsResourceCreationFlags::STREAM, 
+				sizeof( ScnShaderBloomUniformBlockData ) ),
+			getFullName().c_str() );
+		RsCore::pImpl()->updateBuffer( BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ), 
+			RsResourceUpdateFlags::ASYNC,
+			[
+				BloomUniformBlock = BloomUniformBlock_
+			]
+			( RsBuffer* Buffer, const RsBufferLock& Lock )
+			{
+				memcpy( Lock.Buffer_, &BloomUniformBlock, sizeof( BloomUniformBlock ) );
+			} );
+	}
 
 	if( ToneMappingUniformBuffer_ == nullptr )
 	{
@@ -457,6 +507,26 @@ void ScnDeferredRendererComponent::setupQuad( RsContext* Context,
 }
 
 //////////////////////////////////////////////////////////////////////////
+// setTextures
+void ScnDeferredRendererComponent::setTextures( RsProgram* Program, RsProgramBindingDesc& ProgramBindingDesc )
+{
+	for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
+	{
+		BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
+		BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
+		if( SRVSlot != BcErrorCode )
+		{
+			ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
+		}
+
+		if( SamplerSlot != BcErrorCode )
+		{
+			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // renderLights
 void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext )
 {
@@ -478,25 +548,8 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 			auto Shader = LightShaders_[ LightTypeIdx ];
 			auto Program = Shader->getProgram( Permutation );
 
-			std::array< const char*, TEX_MAX > TextureNames_ = 
-			{
-				"aAlbedoTex",
-				"aMaterialTex",
-				"aNormalTex",
-				"aVelocityTex",
-				"aDepthTex",
-				"aHDRTex",
-				"aLuminanceTex",
-				"aLuminance2Tex"
-			};
-
-			for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
-			{
-				BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
-				BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
-				ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
-				ProgramBindingDesc.setSamplerState( SamplerSlot, NearestSamplerState_.get() );
-			}
+			setTextures( Program, ProgramBindingDesc );
+			OpaqueView_->setViewResources( Program, ProgramBindingDesc );
 
 			// TODO: Tailored uniform buffer for deferred.
 			{
@@ -506,13 +559,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 					ProgramBindingDesc.setUniformBuffer( UniformSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderLightUniformBlockData ) );
 				}
 			}
-			{
-				BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-				if( UniformSlot != BcErrorCode )
-				{
-					ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
-				}
-			}
+
 
 			LightProgramBindings_[ LightTypeIdx ] = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
 		}
@@ -611,25 +658,8 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 		RsProgramBindingDesc ProgramBindingDesc;
 		auto Program = ReflectionShader_->getProgram( Permutation );
 
-		std::array< const char*, TEX_MAX > TextureNames_ = 
-		{
-			"aAlbedoTex",
-			"aMaterialTex",
-			"aNormalTex",
-			"aVelocityTex",
-			"aDepthTex",
-			"aHDRTex",
-			"aLuminanceTex",
-			"aLuminance2Tex"
-		};
-
-		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
-		{
-			BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
-			BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
-			ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
-			ProgramBindingDesc.setSamplerState( SamplerSlot, NearestSamplerState_.get() );
-		}
+		setTextures( Program, ProgramBindingDesc );
+		OpaqueView_->setViewResources( Program, ProgramBindingDesc );
 
 		// Reflection cubemap.
 		{
@@ -637,14 +667,6 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 			BcU32 SamplerSlot = Program->findSamplerSlot( "aReflectionTex" );
 			ProgramBindingDesc.setShaderResourceView( SRVSlot, ReflectionCubemap_->getTexture() );
 			ProgramBindingDesc.setSamplerState( SamplerSlot, SamplerState_.get() );
-		}
-
-		{
-			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-			if( UniformSlot != BcErrorCode )
-			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
-			}
 		}
 
 		ReflectionProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
@@ -990,40 +1012,13 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 		RsProgramBindingDesc ProgramBindingDesc;
 		auto Program = ResolveShader_->getProgram( Permutation );
 
-		std::array< const char*, TEX_MAX > TextureNames_ = 
-		{
-			"aAlbedoTex",
-			"aMaterialTex",
-			"aNormalTex",
-			"aVelocityTex",
-			"aDepthTex",
-			"aHDRTex",
-			"aLuminanceTex",
-			"aLuminance2Tex"
-		};
+		setTextures( Program, ProgramBindingDesc );
+		OpaqueView_->setViewResources( Program, ProgramBindingDesc );
 
-		for( size_t Idx = 0; Idx < TEX_MAX; ++Idx )
+		BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderToneMappingUniformBlockData" );
+		if( UniformSlot != BcErrorCode )
 		{
-			BcU32 SRVSlot = Program->findShaderResourceSlot( TextureNames_[ Idx ] );
-			BcU32 SamplerSlot = Program->findSamplerSlot( TextureNames_[ Idx ] );
-			ProgramBindingDesc.setShaderResourceView( SRVSlot, Textures_[ Idx ]->getTexture() );
-			ProgramBindingDesc.setSamplerState( SamplerSlot, NearestSamplerState_.get() );
-		}
-
-		{
-			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderViewUniformBlockData" );
-			if( UniformSlot != BcErrorCode )
-			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, OpaqueView_->getViewUniformBuffer(), 0, sizeof( ScnShaderViewUniformBlockData ) );
-			}
-		}
-
-		{
-			BcU32 UniformSlot = Program->findUniformBufferSlot( "ScnShaderToneMappingUniformBlockData" );
-			if( UniformSlot != BcErrorCode )
-			{
-				ProgramBindingDesc.setUniformBuffer( UniformSlot, ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ) );
-			}
+			ProgramBindingDesc.setUniformBuffer( UniformSlot, ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ) );
 		}
 
 		ResolveProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );
@@ -1077,6 +1072,173 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 }
 
 //////////////////////////////////////////////////////////////////////////
+// calculateBloom
+void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderContext )
+{
+	// No bloom.
+	if( !BloomGenerateShader_ )
+	{
+		return;
+	}
+
+	// Update bloom params.
+	RsCore::pImpl()->updateBuffer( BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ), 
+		RsResourceUpdateFlags::ASYNC,
+		[
+			BloomUniformBlock = BloomUniformBlock_
+		]
+		( RsBuffer* Buffer, const RsBufferLock& Lock )
+		{
+			memcpy( Lock.Buffer_, &BloomUniformBlock, sizeof( BloomUniformBlock ) );
+		} );
+
+	const ScnShaderPermutationFlags Permutation = 
+		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::MESH_STATIC_2D;
+
+	MaVec2d UVSize( 1.0f, 1.0f );
+	auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
+	auto Rect = AlbedoTex->getRect( 0 );			
+	UVSize.x( Rect.W_ );
+	UVSize.y( Rect.H_ );
+
+	RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+		[ 
+			UVSize = UVSize,
+			GeometryBinding = GeometryBinding_.get()
+		]
+		( RsContext* Context )
+		{
+			PSY_PROFILE_FUNCTION;
+
+			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
+				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
+				MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
+		} );
+
+	// Generate bloom target.
+	{
+		auto* BloomGenerateProgram = BloomGenerateShader_->getProgram( Permutation );
+		auto InputSRVSlot = BloomGenerateProgram->findShaderResourceSlot( "aInputTexture" );
+		RsProgramBindingDesc BindingDesc;
+
+		auto* InputTexture = Textures_[ TEX_HDR ]->getTexture();
+
+		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+			
+		BcU32 UniformSlot = BloomGenerateProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
+		if( UniformSlot != BcErrorCode )
+		{
+			BindingDesc.setUniformBuffer( UniformSlot, BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ) );
+		}
+
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomGenerateProgram, BindingDesc, (*getName()).c_str() );
+
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = ProgramBinding.get(),
+				RenderState = ResolveRenderState_.get(),
+				FrameBuffer = FrameBuffers_[ FB_BLOOM ].get()
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+			
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					nullptr,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+			} );
+	}
+
+	// Horizontal blur.
+	{
+		auto* BloomBlurProgram = BloomHBlurShader_->getProgram( Permutation );
+		auto InputSRVSlot = BloomBlurProgram->findShaderResourceSlot( "aInputTexture" );
+		RsProgramBindingDesc BindingDesc;
+
+		auto* InputTexture = Textures_[ TEX_BLOOM ]->getTexture();
+
+		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+			
+		BcU32 UniformSlot = BloomBlurProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
+		if( UniformSlot != BcErrorCode )
+		{
+			BindingDesc.setUniformBuffer( UniformSlot, BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ) );
+		}
+
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomBlurProgram, BindingDesc, (*getName()).c_str() );
+
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = ProgramBinding.get(),
+				RenderState = ResolveRenderState_.get(),
+				FrameBuffer = FrameBuffers_[ FB_BLOOM_WORK ].get()
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+			
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					nullptr,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+			} );
+	}
+
+	// Vertical blur.
+	{
+		auto* BloomBlurProgram = BloomVBlurShader_->getProgram( Permutation );
+		auto InputSRVSlot = BloomBlurProgram->findShaderResourceSlot( "aInputTexture" );
+		RsProgramBindingDesc BindingDesc;
+
+		auto* InputTexture = Textures_[ TEX_BLOOM_WORK ]->getTexture();
+
+		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+			
+		BcU32 UniformSlot = BloomBlurProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
+		if( UniformSlot != BcErrorCode )
+		{
+			BindingDesc.setUniformBuffer( UniformSlot, BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ) );
+		}
+
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomBlurProgram, BindingDesc, (*getName()).c_str() );
+
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = ProgramBinding.get(),
+				RenderState = ResolveRenderState_.get(),
+				FrameBuffer = FrameBuffers_[ FB_BLOOM ].get()
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+			
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					nullptr,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+			} );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
 // onViewDrawPreRender
 void ScnDeferredRendererComponent::onViewDrawPreRender( ScnRenderContext& RenderContext )
 {
@@ -1110,6 +1272,7 @@ void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& Rende
 	{
 		// end transparent
 		downsampleHDR( RenderContext );
+		calculateBloom( RenderContext );
 	}
 	else if( RenderContext.pViewComponent_ == OverlayView_ )
 	{

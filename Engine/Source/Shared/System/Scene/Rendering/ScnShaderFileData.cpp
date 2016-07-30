@@ -191,6 +191,25 @@ void ScnShaderDownsampleUniformBlockData::StaticRegisterClass()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderBloomUniformBlockData
+REFLECTION_DEFINE_BASIC( ScnShaderBloomUniformBlockData );
+
+void ScnShaderBloomUniformBlockData::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "BloomRadius_", &ScnShaderBloomUniformBlockData::BloomRadius_ ),
+		new ReField( "BloomPower_", &ScnShaderBloomUniformBlockData::BloomPower_ ),
+		new ReField( "BloomThreshold_", &ScnShaderBloomUniformBlockData::BloomThreshold_ ),
+		new ReField( "BloomUnused_", &ScnShaderBloomUniformBlockData::BloomUnused_ ),
+	};
+		
+	auto& Class = ReRegisterClass< ScnShaderBloomUniformBlockData >( Fields );
+	Class.addAttribute( new ScnShaderDataAttribute( "Bloom", BcFalse ) );
+	Class.setFlags( bcRFF_POD );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderToneMappingUniformBlockData
 REFLECTION_DEFINE_BASIC( ScnShaderToneMappingUniformBlockData );
 
