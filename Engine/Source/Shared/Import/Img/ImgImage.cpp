@@ -1029,7 +1029,7 @@ BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
 	ImgColour* pColour = pPixelData_;
 
 #define WRITE_PIXEL \
-		*pCurrByte++ = (BcU8)BcMax( ( (BcU32)pColour->R_ + (BcU32)pColour->B_ + (BcU32)pColour->G_ ) / 3, (BcU32)255 ); \
+		*pCurrByte++ = (BcU8)BcMin( ( (BcU32)pColour->R_ + (BcU32)pColour->B_ + (BcU32)pColour->G_ ) / 3, (BcU32)255 ); \
 		++pColour
 
 #if 0
