@@ -306,6 +306,7 @@ void ScnEnvironmentProbeProcessor::generateMipLevel( RsFrame* Frame, RsRenderSor
 	BcAssert( Level < Texture->getDesc().Levels_ );
 
 	BcF32 Roughness = BcF32( Level ) / BcF32( Texture->getDesc().Levels_ - 1 );
+	Roughness *= 0.5f;
 
 	if( UseCompute_ )
 	{	
@@ -513,8 +514,8 @@ void ScnEnvironmentProbeComponent::onAttach( ScnEntityWeakRef Parent )
 	// Create texture to render into.
 	auto Levels = BcS32( 32 - BcCountLeadingZeros( BcU32( Renderer->getWidth() ) ) );
 
-	// Don't want tail mips 1x1 & 2x2.
-	Levels = std::max( 1, Levels - 2 );
+	// Don't want tail mips 1x1, 2x2 and 4x4.
+	Levels = std::max( 1, Levels - 3 );
 	Texture_ = ScnTexture::NewCube( Renderer->getWidth(), Renderer->getHeight(), Levels, RsTextureFormat::R8G8B8A8, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::UNORDERED_ACCESS, (*getName()).c_str() );
 
