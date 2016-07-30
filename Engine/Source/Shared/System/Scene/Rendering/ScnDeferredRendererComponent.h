@@ -92,7 +92,7 @@ protected:
 	ScnShaderRef LuminanceTransferShader_;
 	ScnShaderRef DownsampleShader_;
 
-	ScnShaderRef BloomGenerateShader_;
+	ScnShaderRef BloomBrightPassShader_;
 	ScnShaderRef BloomHBlurShader_;
 	ScnShaderRef BloomVBlurShader_;
 

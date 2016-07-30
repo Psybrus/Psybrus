@@ -102,7 +102,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "LuminanceShader_", &ScnDeferredRendererComponent::LuminanceShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "LuminanceTransferShader_", &ScnDeferredRendererComponent::LuminanceTransferShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "DownsampleShader_", &ScnDeferredRendererComponent::DownsampleShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
-		new ReField( "BloomGenerateShader_", &ScnDeferredRendererComponent::BloomGenerateShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "BloomBrightPassShader_", &ScnDeferredRendererComponent::BloomBrightPassShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "BloomHBlurShader_", &ScnDeferredRendererComponent::BloomHBlurShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "BloomVBlurShader_", &ScnDeferredRendererComponent::BloomVBlurShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
@@ -181,9 +181,9 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
 	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsTextureFormat::R32F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance2" );
-	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R16FG16FB16F, 
+	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R8G8B8A8,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Bloom" );
-	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R16FG16FB16F, 
+	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R8G8B8A8,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "BloomWork" );
 
 	// Subscribe for recreation after textures have been created.
@@ -422,6 +422,8 @@ void ScnDeferredRendererComponent::recreateResources()
 
 	// Create samplers.
 	RsSamplerStateDesc SamplerStateDesc;
+	SamplerStateDesc.AddressU_ = RsTextureSamplingMode::CLAMP;
+	SamplerStateDesc.AddressV_ = RsTextureSamplingMode::CLAMP;
 	SamplerStateDesc.MinFilter_ = RsTextureFilteringMode::NEAREST;
 	SamplerStateDesc.MagFilter_ = RsTextureFilteringMode::NEAREST;
 	NearestSamplerState_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, getFullName().c_str() );
@@ -1076,7 +1078,7 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderContext )
 {
 	// No bloom.
-	if( !BloomGenerateShader_ )
+	if( !BloomBrightPassShader_ )
 	{
 		return;
 	}
@@ -1119,21 +1121,18 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 
 	// Generate bloom target.
 	{
-		auto* BloomGenerateProgram = BloomGenerateShader_->getProgram( Permutation );
-		auto InputSRVSlot = BloomGenerateProgram->findShaderResourceSlot( "aInputTexture" );
+		auto* BloomBrightPassProgram = BloomBrightPassShader_->getProgram( Permutation );
 		RsProgramBindingDesc BindingDesc;
 
-		auto* InputTexture = Textures_[ TEX_HDR ]->getTexture();
-
-		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+		setTextures( BloomBrightPassProgram, BindingDesc );
 			
-		BcU32 UniformSlot = BloomGenerateProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
+		BcU32 UniformSlot = BloomBrightPassProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
 		if( UniformSlot != BcErrorCode )
 		{
 			BindingDesc.setUniformBuffer( UniformSlot, BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ) );
 		}
 
-		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomGenerateProgram, BindingDesc, (*getName()).c_str() );
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomBrightPassProgram, BindingDesc, (*getName()).c_str() );
 
 		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
 			[ 
@@ -1164,9 +1163,9 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 		RsProgramBindingDesc BindingDesc;
 
 		auto* InputTexture = Textures_[ TEX_BLOOM ]->getTexture();
-
 		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
-			
+		setTextures( BloomBlurProgram, BindingDesc );
+
 		BcU32 UniformSlot = BloomBlurProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
 		if( UniformSlot != BcErrorCode )
 		{
@@ -1204,8 +1203,8 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 		RsProgramBindingDesc BindingDesc;
 
 		auto* InputTexture = Textures_[ TEX_BLOOM_WORK ]->getTexture();
-
 		BindingDesc.setShaderResourceView( InputSRVSlot, InputTexture, 0, 1, 0, 1 );
+		setTextures( BloomBlurProgram, BindingDesc );
 			
 		BcU32 UniformSlot = BloomBlurProgram->findUniformBufferSlot( "ScnShaderBloomUniformBlockData" );
 		if( UniformSlot != BcErrorCode )
