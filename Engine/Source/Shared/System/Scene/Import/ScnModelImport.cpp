@@ -950,6 +950,10 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 		std::replace( FixedPath.begin(), FixedPath.end(), '\\', '/');
 		TexturePath.join( FixedPath.c_str() );
 
+		if(strstr(TexturePath.c_str(),"Sponza_Floor"))
+		{
+			int a = 0; ++a;
+		}
 		if( BcFileSystemExists( TexturePath.c_str() ) )
 		{
 			RsSamplerStateDesc SamplerState;
@@ -977,11 +981,28 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			SamplerState.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
 			SamplerState.MagFilter_ = RsTextureFilteringMode::LINEAR;
 
-			auto TextureImporter = CsResourceImporterUPtr(
-				new ScnTextureImport(
+			auto TextureImporter = new ScnTextureImport(
 					Path.C_Str(), "ScnTexture",
-					TexturePath.c_str(), RsTextureFormat::UNKNOWN ) );
-			TextureRef = addImport( std::move( TextureImporter ) );
+					TexturePath.c_str(), RsTextureFormat::UNKNOWN );
+
+			// Setup some default texture formats.
+			switch( Type )
+			{
+			case aiTextureType_NORMALS:
+				TextureImporter->setFormat( RsTextureFormat::R8G8B8 );
+				break;
+			case aiTextureType_AMBIENT: // METALLIC
+				TextureImporter->setFormat( RsTextureFormat::R8 );
+				break;
+			case aiTextureType_SHININESS: // ROUGHNESS
+				TextureImporter->setFormat( RsTextureFormat::R8 );
+				break;
+			default:
+				break;
+			}
+
+
+			TextureRef = addImport( CsResourceImporterUPtr( TextureImporter ) );
 			MaterialImport->addTexture( Name, TextureRef, SamplerState );
 		}
 		else

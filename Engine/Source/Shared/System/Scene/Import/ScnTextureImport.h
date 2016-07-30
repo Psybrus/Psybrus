@@ -49,6 +49,11 @@ public:
 	 */
 	BcBool import() override;
 
+	/**
+	 * Set format.
+	 */
+	void setFormat( RsTextureFormat Format ) { Format_ = Format; }
+
 private:
 	ImgImageList loadImages( std::vector< std::string > Sources );
 
