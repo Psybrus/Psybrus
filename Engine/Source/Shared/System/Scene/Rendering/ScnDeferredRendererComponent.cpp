@@ -30,7 +30,6 @@ std::array< const char*, ScnDeferredRendererComponent::TEX_MAX > ScnDeferredRend
 	"aAlbedoTex",
 	"aMaterialTex",
 	"aNormalTex",
-	"aVelocityTex",
 	"aDepthTex",
 	"aHDRTex",
 	"aLuminanceTex",
@@ -169,10 +168,8 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Albedo" );
 	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Material" );
-	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R10G10B10A2, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Normal" );
-	Textures_[ TEX_GBUFFER_VELOCITY ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
-		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Velocity" );
 	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::D24S8, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL, "Depth" );
 	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, 
@@ -196,7 +193,7 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Create views.
 	OpaqueView_ = getParentEntity()->attach< ScnViewComponent >(
-		"OpaqueView", 4, &Textures_[ TEX_GBUFFER_ALBEDO ], Textures_[ TEX_GBUFFER_DEPTH ],
+		"OpaqueView", 3, &Textures_[ TEX_GBUFFER_ALBEDO ], Textures_[ TEX_GBUFFER_DEPTH ],
 		0x1, ScnShaderPermutationFlags::RENDER_DEFERRED, RsRenderSortPassFlags::OPAQUE, !!Enabled_ );
 	TransparentView_ = getParentEntity()->attach< ScnViewComponent >(
 		"TransparentView", 1, &Textures_[ TEX_HDR ], Textures_[ TEX_GBUFFER_DEPTH ],
@@ -287,11 +284,10 @@ void ScnDeferredRendererComponent::setProjectionParams( BcF32 Near, BcF32 Far, B
 void ScnDeferredRendererComponent::recreateResources()
 {
 	// Create frame buffers.
-	FrameBuffers_[ FB_GBUFFER ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 4 )
+	FrameBuffers_[ FB_GBUFFER ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 3 )
 		.setRenderTarget( 0, Textures_[ TEX_GBUFFER_ALBEDO ]->getTexture() )
 		.setRenderTarget( 1, Textures_[ TEX_GBUFFER_MATERIAL ]->getTexture() )
 		.setRenderTarget( 2, Textures_[ TEX_GBUFFER_NORMAL ]->getTexture() )
-		.setRenderTarget( 3, Textures_[ TEX_GBUFFER_VELOCITY ]->getTexture() )
 		.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() ), "GBuffer" );
 
 	FrameBuffers_[ FB_HDR ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )

@@ -55,6 +55,8 @@ private:
 	RsBufferUPtr VertexBuffer_;
 	RsGeometryBindingUPtr GeometryBinding_;
 
+	int CaptureCountDown_ = 0;
+
 	bool UseCompute_ = false;
 };
 

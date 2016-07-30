@@ -44,6 +44,7 @@ enum class ScnComponentPriority : BcS32
 	VIEW_UPDATE,
 
 	// render
+	UPDATE_ENVIRONMENT_PROBES,
 	VIEW_RENDER,
 };
 

@@ -32,7 +32,7 @@ ScnEnvironmentProbeProcessor::ScnEnvironmentProbeProcessor():
 	ScnComponentProcessor( {
 		ScnComponentProcessFuncEntry(
 			"Update Probes",
-			ScnComponentPriority::VIEW_RENDER - 1,
+			ScnComponentPriority::UPDATE_ENVIRONMENT_PROBES,
 			std::bind( &ScnEnvironmentProbeProcessor::updateProbes, this, std::placeholders::_1 ) ) } )
 {
 	setName( "ScnEnvironmentProbeProcessor" );
@@ -201,7 +201,7 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 			auto Component = Components[ Idx ];
 			auto* ProbeComponent = static_cast< ScnEnvironmentProbeComponent* >( Component.get() );
 			MaVec3d Position = ProbeComponent->getParentEntity()->getWorldPosition();
-			if( ( Position - ProbeComponent->GeneratedWorldPosition_ ).magnitudeSquared() > 1e6f )
+			if( ( Position - ProbeComponent->GeneratedWorldPosition_ ).magnitudeSquared() > 1e-6f )
 			{
 				if( std::find( ProbeUpdateQueue_.begin(), ProbeUpdateQueue_.end(), ProbeComponent ) == ProbeUpdateQueue_.end() )
 				{
@@ -210,15 +210,18 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 			}
 		}
 
-		// Allocate a frame, but without present.
-		RsFrame* Frame = RsCore::pImpl()->allocateFrame( Context, false );
-
-		// Add a single probe to generate.
-		if( ProbeUpdateQueue_.size() > 0 )
+		if( CaptureCountDown_ > 0 )
+		{
+			CaptureCountDown_--;
+		}
+		else if( ProbeUpdateQueue_.size() > 0 )
 		{
 			auto* ProbeComponent = ProbeUpdateQueue_.front();
 			ProbeUpdateQueue_.pop_front();
 				
+			// Allocate a frame, but without present.
+			RsFrame* Frame = RsCore::pImpl()->allocateFrame( Context, false );
+
 			// TODO: Renderer interface component?
 			auto Renderer = ProbeComponent->Renderer_->getComponentByType< ScnDeferredRendererComponent >();
 
@@ -287,10 +290,10 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 				generateMipLevel( Frame, Sort, Texture, Idx, RsTextureFace::POSITIVE_Z );
 				generateMipLevel( Frame, Sort, Texture, Idx, RsTextureFace::NEGATIVE_Z );
 			}
-		}
 
-		// Queue frame for render.
-		RsCore::pImpl()->queueFrame( Frame );
+			// Queue frame for render.
+			RsCore::pImpl()->queueFrame( Frame );
+		}
 	}
 }
 
@@ -427,6 +430,7 @@ void ScnEnvironmentProbeProcessor::onAttachComponent( ScnComponent* Component )
 		{
 			ProbeUpdateQueue_.push_back( ProbeComponent );
 		}
+		CaptureCountDown_ = 1;
 	}
 }
 
@@ -462,6 +466,7 @@ void ScnEnvironmentProbeProcessor::onDetachComponent( ScnComponent* Component )
 		{
 			ProbeUpdateQueue_.push_back( ProbeComponent );
 		}
+		CaptureCountDown_ = 1;
 	}
 }
 

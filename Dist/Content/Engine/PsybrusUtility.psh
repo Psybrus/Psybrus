@@ -288,6 +288,36 @@ float4 linearToGamma( float4 InputRGBA )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// HLSL functions
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+float saturate( float X )
+{
+	return clamp( X, 0.0, 1.0 );
+}
+
+float2 saturate( float2 X )
+{
+	return clamp( X, float2( 0.0, 0.0 ), float2( 1.0, 1.0 ) );
+}
+
+float3 saturate( float3 X )
+{
+	return clamp( X, float3( 0.0, 0.0, 0.0 ), float3( 1.0, 1.0, 1.0 ) );
+}
+
+float4 saturate( float4 X )
+{
+	return clamp( X, float4( 0.0, 0.0, 0.0, 0.0 ), float4( 1.0, 1.0, 1.0, 1.0 ) );
+}
+
+float atan2( float Y, float X )
+{
+	return atan( Y, X );
+}
+
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // Normal encoding.
 float3 encodeNormal( float3 Normal )
 {
@@ -315,31 +345,6 @@ float luminance( float3 Input )
 {
 	return dot( Input, float3( 0.2126, 0.7152, 0.0722 ) );
 }
-
-//////////////////////////////////////////////////////////////////////////
-// saturate
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
-float saturate( float X )
-{
-	return clamp( X, 0.0, 1.0 );
-}
-
-float2 saturate( float2 X )
-{
-	return clamp( X, float2( 0.0, 0.0 ), float2( 1.0, 1.0 ) );
-}
-
-float3 saturate( float3 X )
-{
-	return clamp( X, float3( 0.0, 0.0, 0.0 ), float3( 1.0, 1.0, 1.0 ) );
-}
-
-float4 saturate( float4 X )
-{
-	return clamp( X, float4( 0.0, 0.0, 0.0, 0.0 ), float4( 1.0, 1.0, 1.0, 1.0 ) );
-}
-
-#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Misc.
