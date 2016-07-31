@@ -1,7 +1,7 @@
 {
 	"resources" : [
 		/////////////////////////////////////////////////////////////// 
-		// Entities.
+		// Default renderer.
 		{
 			"name" : "Renderer",
 			"type" : "ScnEntity",
@@ -50,7 +50,148 @@
 		},
 
 		/////////////////////////////////////////////////////////////// 
-		// Entities.
+		// Split screen renderers.
+		{
+			"name" : "Renderer_0",
+			"type" : "ScnEntity",
+
+			"components" : [
+				{
+					"$Class" : "ScnDeferredRendererComponent",
+					"name" : "DeferredRenderer",
+					"width" : -1,
+					"height" : 0,
+
+					"enabled" : true,
+
+					"resolvex" : 0.0,
+					"resolvey" : 0.0,
+					"resolvew" : 0.5,
+					"resolveh" : 1.0,
+
+					"near" : 1.0,
+					"far" : 5000.0,
+
+					"reflectioncubemap" : "$(ScnTexture:cubemap_textures.default_cubemap)",
+
+					"lightshaders" : [
+						"$(ScnShader:pp_shaders.pp_deferred_point_light)",
+						"$(ScnShader:pp_shaders.pp_deferred_spot_light)"
+					],
+
+					"luminancecomputeshader" : "$(ScnShader:pp_shaders.pp_compute_luminance)",
+					"luminancetransfercomputeshader" : "$(ScnShader:pp_shaders.pp_compute_luminance_transfer)",
+					"downsamplecomputeshader" : "$(ScnShader:pp_shaders.pp_compute_downsample_r32f)",
+
+					"luminanceshader" : "$(ScnShader:pp_shaders.pp_luminance)",
+					"luminancetransfershader" : "$(ScnShader:pp_shaders.pp_luminance_transfer)",
+					"downsampleshader" : "$(ScnShader:pp_shaders.pp_downsample)",
+
+					"bloombrightpassshader" : "$(ScnShader:pp_shaders.pp_bloom_brightpass)",
+					"bloomhblurshader" : "$(ScnShader:pp_shaders.pp_bloom_h_blur)",
+					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
+
+					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+				}
+			]
+		},
+
+		{
+			"name" : "Renderer_1",
+			"type" : "ScnEntity",
+
+			"components" : [
+				{
+					"$Class" : "ScnDeferredRendererComponent",
+					"name" : "DeferredRenderer",
+					"width" : -1,
+					"height" : 0,
+
+					"enabled" : true,
+
+					"resolvex" : 0.5,
+					"resolvey" : 0.0,
+					"resolvew" : 0.5,
+					"resolveh" : 1.0,
+
+					"near" : 1.0,
+					"far" : 5000.0,
+
+					"reflectioncubemap" : "$(ScnTexture:cubemap_textures.default_cubemap)",
+
+					"lightshaders" : [
+						"$(ScnShader:pp_shaders.pp_deferred_point_light)",
+						"$(ScnShader:pp_shaders.pp_deferred_spot_light)"
+					],
+
+					"luminancecomputeshader" : "$(ScnShader:pp_shaders.pp_compute_luminance)",
+					"luminancetransfercomputeshader" : "$(ScnShader:pp_shaders.pp_compute_luminance_transfer)",
+					"downsamplecomputeshader" : "$(ScnShader:pp_shaders.pp_compute_downsample_r32f)",
+
+					"luminanceshader" : "$(ScnShader:pp_shaders.pp_luminance)",
+					"luminancetransfershader" : "$(ScnShader:pp_shaders.pp_luminance_transfer)",
+					"downsampleshader" : "$(ScnShader:pp_shaders.pp_downsample)",
+
+					"bloombrightpassshader" : "$(ScnShader:pp_shaders.pp_bloom_brightpass)",
+					"bloomhblurshader" : "$(ScnShader:pp_shaders.pp_bloom_h_blur)",
+					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
+
+					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+				}
+			]
+		},
+
+		/////////////////////////////////////////////////////////////// 
+		// Environment renderer
+		{
+			"name" : "Renderer_2",
+			"type" : "ScnEntity",
+
+			"components" : [
+				{
+					"$Class" : "ScnDeferredRendererComponent",
+					"name" : "DeferredRenderer",
+					"width" : -2,
+					"height" : -2,
+
+
+					"resolvex" : 0.35,
+					"resolvey" : 0.0,
+					"resolvew" : 0.3,
+					"resolveh" : 0.3,
+
+					"near" : 1.0,
+					"far" : 5000.0,
+
+					"reflectioncubemap" : "$(ScnTexture:cubemap_textures.default_cubemap)",
+
+					"lightshaders" : [
+						"$(ScnShader:pp_shaders.pp_deferred_point_light)",
+						"$(ScnShader:pp_shaders.pp_deferred_spot_light)"
+					],
+
+					"luminancecomputeshader" : "$(ScnShader:pp_shaders.pp_compute_luminance)",
+					"luminancetransfercomputeshader" : "$(ScnShader:pp_shaders.pp_compute_luminance_transfer)",
+					"downsamplecomputeshader" : "$(ScnShader:pp_shaders.pp_compute_downsample_r32f)",
+
+					"luminanceshader" : "$(ScnShader:pp_shaders.pp_luminance)",
+					"luminancetransfershader" : "$(ScnShader:pp_shaders.pp_luminance_transfer)",
+					"downsampleshader" : "$(ScnShader:pp_shaders.pp_downsample)",
+
+					"bloombrightpassshader" : "$(ScnShader:pp_shaders.pp_bloom_brightpass)",
+					"bloomhblurshader" : "$(ScnShader:pp_shaders.pp_bloom_h_blur)",
+					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
+
+					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+				}
+			]
+		},
+
+		/////////////////////////////////////////////////////////////// 
+		// Environment renderer
 		{
 			"name" : "EnvironmentRenderer",
 			"type" : "ScnEntity",

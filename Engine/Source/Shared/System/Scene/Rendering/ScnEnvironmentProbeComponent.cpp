@@ -505,7 +505,7 @@ void ScnEnvironmentProbeComponent::onAttach( ScnEntityWeakRef Parent )
 	Super::onAttach( Parent );
 
 	Renderer_ = ScnCore::pImpl()->spawnEntity(
-		ScnEntitySpawnParams( "Renderer", TemplateRenderer_, MaMat4d(), Parent ) );
+		ScnEntitySpawnParams( "EnvironmentProbeRenderer", TemplateRenderer_, MaMat4d(), Parent ) );
 	
 	// TODO: Renderer interface component?
 	auto Renderer = Renderer_->getComponentByType< ScnDeferredRendererComponent >();

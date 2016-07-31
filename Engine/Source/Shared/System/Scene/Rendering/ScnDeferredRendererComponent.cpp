@@ -637,7 +637,7 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 	if( UseEnvironmentProbes_ )
 	{
 		auto NearestEnvironmentMap = ScnEnvironmentProbeProcessor::pImpl()->getProbeEnvironmentMap( getParentEntity()->getWorldPosition() );
-		if( NearestEnvironmentMap != ReflectionCubemap_ )
+		if( NearestEnvironmentMap && NearestEnvironmentMap != ReflectionCubemap_ )
 		{
 			ReflectionCubemap_ = NearestEnvironmentMap;
 			ReflectionProgramBinding_.reset();

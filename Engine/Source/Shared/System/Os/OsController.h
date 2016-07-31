@@ -72,13 +72,7 @@ public:
 	 * @return Was binding released since last frame?
 	 */
 	bool wasReleased( BcU32 BindingID ) const;
-
-	/**
-	 * Update controller.
-	 * Called internally by the OsCore at the beginning of each frame.
-	 */
-	void update();
-
+	
 private:
 	struct Input
 	{
