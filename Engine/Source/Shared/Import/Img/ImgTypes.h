@@ -45,9 +45,13 @@ enum class ImgEncodeFormat
 	R32FG32FB32FA32F,
 	R10G10B10A2,
 	R11G11B10F,
-	DXT1,
-	DXT3,
-	DXT5,
+	BC1,
+	BC2,
+	BC3,
+	BC4,
+	BC5,
+	BC6H,
+	BC7,
 	ETC1,
 
 	// Depth stencil.

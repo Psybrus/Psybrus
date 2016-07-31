@@ -318,7 +318,7 @@ float atan2( float Y, float X )
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// Normal encoding.
+// Normal encoding/decoding
 float3 encodeNormal( float3 Normal )
 {
 	const float3 Scale = float3( 0.5, 0.5, 0.5 );
@@ -329,6 +329,11 @@ float3 decodeNormal( float3 Normal )
 {
 	const float3 Scale = float3( 2.0, 2.0, 2.0 );
 	return Normal * Scale - float3( 1.0, 1.0, 1.0 );
+}
+
+float3 reconstructNormal( float3 Normal )
+{
+	return float3( Normal.xy, sqrt( 1.0 - dot( Normal.xy, Normal.xy ) ) );
 }
 
 //////////////////////////////////////////////////////////////////////////

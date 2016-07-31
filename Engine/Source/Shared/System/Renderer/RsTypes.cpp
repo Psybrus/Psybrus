@@ -420,6 +420,7 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 		break;
 
 	case RsTextureFormat::BC1:
+	case RsTextureFormat::BC4:
 		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 		{
 			BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
@@ -432,6 +433,7 @@ BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Hei
 
 	case RsTextureFormat::BC2:
 	case RsTextureFormat::BC3:
+	case RsTextureFormat::BC5:
 		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 		{
 			BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );

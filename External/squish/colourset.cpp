@@ -32,7 +32,7 @@ ColourSet::ColourSet( u8 const* rgba, int mask, int flags )
 	m_transparent( false )
 {
 	// check the compression mode for dxt1
-	bool isDxt1 = ( ( flags & kDxt1 ) != 0 );
+	bool isDxt1 = ( ( flags & kBc1 ) != 0 );
 	bool weightByAlpha = ( ( flags & kWeightColourByAlpha ) != 0 );
 
 	// create the minimal set

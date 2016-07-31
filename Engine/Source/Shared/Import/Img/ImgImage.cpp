@@ -816,10 +816,12 @@ BcBool ImgImage::encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSi
 	case ImgEncodeFormat::R8:
 		return encodeAsI8( pOutData, OutSize );
 
-	case ImgEncodeFormat::DXT1:
-	case ImgEncodeFormat::DXT3:
-	case ImgEncodeFormat::DXT5:
-		return encodeAsDXT( Format, pOutData, OutSize );
+	case ImgEncodeFormat::BC1:
+	case ImgEncodeFormat::BC2:
+	case ImgEncodeFormat::BC3:
+	case ImgEncodeFormat::BC4:
+	case ImgEncodeFormat::BC5:
+		return encodeAsBCn( Format, pOutData, OutSize );
 		
 	case ImgEncodeFormat::ETC1:
 		return encodeAsETC1( pOutData, OutSize );
@@ -1062,25 +1064,33 @@ BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// encodeAsDXT
-BcBool ImgImage::encodeAsDXT( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
+// encodeAsBCn
+BcBool ImgImage::encodeAsBCn( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
 {
-	if( Format == ImgEncodeFormat::DXT1 ||
-		Format == ImgEncodeFormat::DXT3 ||
-		Format == ImgEncodeFormat::DXT5 )
+	if( Format == ImgEncodeFormat::BC1 ||
+		Format == ImgEncodeFormat::BC2 ||
+		Format == ImgEncodeFormat::BC3 ||
+		Format == ImgEncodeFormat::BC4 ||
+		Format == ImgEncodeFormat::BC5 )
 	{
 		BcU32 SquishFormat = 0;
 
 		switch( Format )
 		{
-		case ImgEncodeFormat::DXT1:
-			SquishFormat = squish::kDxt1 | squish::kColourIterativeClusterFit;
+		case ImgEncodeFormat::BC1:
+			SquishFormat = squish::kBc1 | squish::kColourIterativeClusterFit;
 			break;
-		case ImgEncodeFormat::DXT3:
-			SquishFormat = squish::kDxt3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+		case ImgEncodeFormat::BC2:
+			SquishFormat = squish::kBc2 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
 			break;
-		case ImgEncodeFormat::DXT5:
-			SquishFormat = squish::kDxt5 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+		case ImgEncodeFormat::BC3:
+			SquishFormat = squish::kBc3 | squish::kColourIterativeClusterFit | squish::kWeightColourByAlpha;
+			break;
+		case ImgEncodeFormat::BC4:
+			SquishFormat = squish::kBc4;
+			break;
+		case ImgEncodeFormat::BC5:
+			SquishFormat = squish::kBc5;
 			break;
 		default:
 			BcBreakpoint;

@@ -38,32 +38,38 @@ typedef unsigned char u8;
 
 enum
 {
-	//! Use DXT1 compression.
-	kDxt1 = ( 1 << 0 ), 
+	//! Use BC1 compression.
+	kBc1 = ( 1 << 0 ), 
 	
-	//! Use DXT3 compression.
-	kDxt3 = ( 1 << 1 ), 
+	//! Use BC2 compression.
+	kBc2 = ( 1 << 1 ), 
 	
-	//! Use DXT5 compression.
-	kDxt5 = ( 1 << 2 ), 
+	//! Use BC3 compression.
+	kBc3 = ( 1 << 2 ), 
 	
+	//! Use BC4 compression.
+	kBc4 = ( 1 << 3 ), 
+
+	//! Use BC5 compression.
+	kBc5 = ( 1 << 4 ), 
+
 	//! Use a very slow but very high quality colour compressor.
 	kColourIterativeClusterFit = ( 1 << 8 ),	
 	
 	//! Use a slow but high quality colour compressor (the default).
-	kColourClusterFit = ( 1 << 3 ),	
+	kColourClusterFit = ( 1 << 9 ),	
 	
 	//! Use a fast but low quality colour compressor.
-	kColourRangeFit	= ( 1 << 4 ),
+	kColourRangeFit	= ( 1 << 10 ),
 	
 	//! Use a perceptual metric for colour error (the default).
-	kColourMetricPerceptual = ( 1 << 5 ),
+	kColourMetricPerceptual = ( 1 << 11 ),
 
 	//! Use a uniform metric for colour error.
-	kColourMetricUniform = ( 1 << 6 ),
+	kColourMetricUniform = ( 1 << 12 ),
 	
 	//! Weight the colour by alpha during cluster fit (disabled by default).
-	kWeightColourByAlpha = ( 1 << 7 )
+	kWeightColourByAlpha = ( 1 << 13 )
 };
 
 // -----------------------------------------------------------------------------
@@ -79,7 +85,7 @@ enum
 	
 		{ r1, g1, b1, a1, .... , r16, g16, b16, a16 }
 	
-	The flags parameter should specify either kDxt1, kDxt3 or kDxt5 compression, 
+	The flags parameter should specify either kBc1, kBc2 or kBc3 compression, 
 	however, DXT1 will be used by default if none is specified. When using DXT1 
 	compression, 8 bytes of storage are required for the compressed DXT block. 
 	DXT3 and DXT5 compression require 16 bytes of storage per block.
@@ -120,7 +126,7 @@ void Compress( u8 const* rgba, void* block, int flags );
 	is in the CompressImage function to disable pixels outside the bounds of
 	the image when the width or height is not divisible by 4.
 	
-	The flags parameter should specify either kDxt1, kDxt3 or kDxt5 compression, 
+	The flags parameter should specify either kBc1, kBc2 or kBc3 compression, 
 	however, DXT1 will be used by default if none is specified. When using DXT1 
 	compression, 8 bytes of storage are required for the compressed DXT block. 
 	DXT3 and DXT5 compression require 16 bytes of storage per block.
@@ -153,7 +159,7 @@ void CompressMasked( u8 const* rgba, int mask, void* block, int flags );
 	
 		{ r1, g1, b1, a1, .... , r16, g16, b16, a16 }
 	
-	The flags parameter should specify either kDxt1, kDxt3 or kDxt5 compression, 
+	The flags parameter should specify either kBc1, kBc2 or kBc3 compression, 
 	however, DXT1 will be used by default if none is specified. All other flags 
 	are ignored.
 */
@@ -167,7 +173,7 @@ void Decompress( u8* rgba, void const* block, int flags );
 	@param height	The height of the image.
 	@param flags	Compression flags.
 	
-	The flags parameter should specify either kDxt1, kDxt3 or kDxt5 compression, 
+	The flags parameter should specify either kBc1, kBc2 or kBc3 compression, 
 	however, DXT1 will be used by default if none is specified. All other flags 
 	are ignored.
 	
@@ -192,7 +198,7 @@ int GetStorageRequirements( int width, int height, int flags );
 	
 		{ r1, g1, b1, a1, .... , rn, gn, bn, an } for n = width*height
 		
-	The flags parameter should specify either kDxt1, kDxt3 or kDxt5 compression, 
+	The flags parameter should specify either kBc1, kBc2 or kBc3 compression, 
 	however, DXT1 will be used by default if none is specified. When using DXT1 
 	compression, 8 bytes of storage are required for each compressed DXT block. 
 	DXT3 and DXT5 compression require 16 bytes of storage per block.
@@ -231,7 +237,7 @@ void CompressImage( u8 const* rgba, int width, int height, void* blocks, int fla
 	
 		{ r1, g1, b1, a1, .... , rn, gn, bn, an } for n = width*height
 		
-	The flags parameter should specify either kDxt1, kDxt3 or kDxt5 compression, 
+	The flags parameter should specify either kBc1, kBc2 or kBc3 compression, 
 	however, DXT1 will be used by default if none is specified. All other flags 
 	are ignored.
 

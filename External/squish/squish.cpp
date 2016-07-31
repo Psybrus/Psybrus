@@ -37,14 +37,14 @@ namespace squish {
 static int FixFlags( int flags )
 {
 	// grab the flag bits
-	int method = flags & ( kDxt1 | kDxt3 | kDxt5 );
+	int method = flags & ( kBc1 | kBc2 | kBc3 | kBc4 | kBc5 );
 	int fit = flags & ( kColourIterativeClusterFit | kColourClusterFit | kColourRangeFit );
 	int metric = flags & ( kColourMetricPerceptual | kColourMetricUniform );
 	int extra = flags & kWeightColourByAlpha;
 	
 	// set defaults
-	if( method != kDxt3 && method != kDxt5 )
-		method = kDxt1;
+	if( method != kBc2 && method != kBc3 && method != kBc4 && method != kBc5 )
+		method = kBc1;
 	if( fit != kColourRangeFit )
 		fit = kColourClusterFit;
 	if( metric != kColourMetricUniform )
@@ -65,10 +65,33 @@ void CompressMasked( u8 const* rgba, int mask, void* block, int flags )
 	// fix any bad flags
 	flags = FixFlags( flags );
 
+	if( ( flags & ( kBc4 | kBc5 ) ) != 0 )
+	{
+		u8 alpha[ 16 * 4 ];
+		u8* alphaBlock = reinterpret_cast< u8* >( block );
+		for( int idx = 0; idx < 16; ++idx )
+		{
+			alpha[idx * 4 + 3] = rgba[idx * 4 + 0];
+		}
+		CompressAlphaDxt5( alpha, mask, alphaBlock );
+
+		if( ( flags & kBc5 ) != 0 )
+		{
+			for( int idx = 0; idx < 16; ++idx )
+			{
+				alpha[idx * 4 + 3] = rgba[idx * 4 + 1];
+			}
+
+			u8* alphaBlock = reinterpret_cast< u8* >( block ) + 8;
+			CompressAlphaDxt5( alpha, mask, alphaBlock );
+		}
+		return;
+	}
+
 	// get the block locations
 	void* colourBlock = block;
-	void* alphaBock = block;
-	if( ( flags & ( kDxt3 | kDxt5 ) ) != 0 )
+	void* alphaBlock = block;
+	if( ( flags & ( kBc2 | kBc3 ) ) != 0 )
 		colourBlock = reinterpret_cast< u8* >( block ) + 8;
 
 	// create the minimal point set
@@ -95,10 +118,10 @@ void CompressMasked( u8 const* rgba, int mask, void* block, int flags )
 	}
 	
 	// compress alpha separately if necessary
-	if( ( flags & kDxt3 ) != 0 )
-		CompressAlphaDxt3( rgba, mask, alphaBock );
-	else if( ( flags & kDxt5 ) != 0 )
-		CompressAlphaDxt5( rgba, mask, alphaBock );
+	if( ( flags & kBc2 ) != 0 )
+		CompressAlphaDxt3( rgba, mask, alphaBlock );
+	else if( ( flags & kBc3 ) != 0 )
+		CompressAlphaDxt5( rgba, mask, alphaBlock );
 }
 
 void Decompress( u8* rgba, void const* block, int flags )
@@ -106,20 +129,51 @@ void Decompress( u8* rgba, void const* block, int flags )
 	// fix any bad flags
 	flags = FixFlags( flags );
 
+	if( ( flags & ( kBc4 | kBc5 ) ) != 0 )
+	{
+		memset( rgba, 0, 16 * 4 );
+
+		u8 alpha[ 16 * 4 ];
+		const u8* alphaBlock = reinterpret_cast< const u8* >( block );
+		DecompressAlphaDxt5( alpha, alphaBlock );
+
+		for( int idx = 0; idx < 16; ++idx )
+		{
+			rgba[idx * 4 + 0] = alpha[idx * 4 + 3];
+		}
+
+		if( ( flags & kBc5 ) != 0 )
+		{
+			for( int idx = 0; idx < 16; ++idx )
+			{
+				alpha[idx * 4 + 3] = rgba[idx * 4 + 1];
+			}
+
+			const u8* alphaBlock = reinterpret_cast< const u8* >( block ) + 8;
+			DecompressAlphaDxt5( alpha, alphaBlock );
+
+			for( int idx = 0; idx < 16; ++idx )
+			{
+				rgba[idx * 4 + 1] = alpha[idx * 4 + 3];
+			}
+		}
+		return;
+	}
+
 	// get the block locations
 	void const* colourBlock = block;
-	void const* alphaBock = block;
-	if( ( flags & ( kDxt3 | kDxt5 ) ) != 0 )
+	void const* alphaBlock = block;
+	if( ( flags & ( kBc2 | kBc3 ) ) != 0 )
 		colourBlock = reinterpret_cast< u8 const* >( block ) + 8;
 
 	// decompress colour
-	DecompressColour( rgba, colourBlock, ( flags & kDxt1 ) != 0 );
+	DecompressColour( rgba, colourBlock, ( flags & kBc1 ) != 0 );
 
 	// decompress alpha separately if necessary
-	if( ( flags & kDxt3 ) != 0 )
-		DecompressAlphaDxt3( rgba, alphaBock );
-	else if( ( flags & kDxt5 ) != 0 )
-		DecompressAlphaDxt5( rgba, alphaBock );
+	if( ( flags & kBc2 ) != 0 )
+		DecompressAlphaDxt3( rgba, alphaBlock );
+	else if( ( flags & kBc3 ) != 0 )
+		DecompressAlphaDxt5( rgba, alphaBlock );
 }
 
 int GetStorageRequirements( int width, int height, int flags )
@@ -129,7 +183,7 @@ int GetStorageRequirements( int width, int height, int flags )
 	
 	// compute the storage requirements
 	int blockcount = ( ( width + 3 )/4 ) * ( ( height + 3 )/4 );
-	int blocksize = ( ( flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int blocksize = ( ( flags & ( kBc1 | kBc4 ) ) != 0 ) ? 8 : 16;
 	return blockcount*blocksize;	
 }
 
@@ -140,7 +194,7 @@ void CompressImage( u8 const* rgba, int width, int height, void* blocks, int fla
 
 	// initialise the block output
 	u8* targetBlock = reinterpret_cast< u8* >( blocks );
-	int bytesPerBlock = ( ( flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int bytesPerBlock = ( ( flags & ( kBc1 | kBc4 ) ) != 0 ) ? 8 : 16;
 
 	// loop over blocks
 	for( int y = 0; y < height; y += 4 )
@@ -194,7 +248,7 @@ void DecompressImage( u8* rgba, int width, int height, void const* blocks, int f
 
 	// initialise the block input
 	u8 const* sourceBlock = reinterpret_cast< u8 const* >( blocks );
-	int bytesPerBlock = ( ( flags & kDxt1 ) != 0 ) ? 8 : 16;
+	int bytesPerBlock = ( ( flags & ( kBc1 | kBc4 ) ) != 0 ) ? 8 : 16;
 
 	// loop over blocks
 	for( int y = 0; y < height; y += 4 )
