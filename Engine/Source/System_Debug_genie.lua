@@ -25,7 +25,6 @@ PsyProjectEngineLib( "System_Debug" )
  		}
 
   configuration { "windows-* or linux-* or osx-* or android-*" }
-    defines { "USE_WEBBY=1" }
     PsyAddExternalLinks { "webby" }    
     includedirs { "../../External/webby/" }
 
