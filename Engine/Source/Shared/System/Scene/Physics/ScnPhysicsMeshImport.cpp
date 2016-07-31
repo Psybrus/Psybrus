@@ -164,7 +164,8 @@ BcBool ScnPhysicsMeshImport::import()
 		return BcFalse;
 	}
 
-	CsResourceImporter::addDependency( Source_.c_str() );
+	auto ResolvedSource = CsPaths::resolveContent( Source_.c_str() );
+	CsResourceImporter::addDependency( ResolvedSource.c_str() );
 
 	auto PropertyStore = aiCreatePropertyStore();
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_RVC_FLAGS, 
@@ -186,7 +187,7 @@ BcBool ScnPhysicsMeshImport::import()
 
 	// TODO: Intercept file io to track dependencies.
 	Scene_ = aiImportFileExWithProperties( 
-		Source_.c_str(), 
+		ResolvedSource.c_str(), 
 			aiProcess_RemoveComponent |
 			aiProcess_Triangulate | 
 			aiProcess_FindDegenerates |

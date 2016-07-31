@@ -1,0 +1,86 @@
+#include <Psybrus.psh>
+
+#include <PsybrusLighting.psh>
+
+#include <UniformLight.psh>
+#include <UniformMaterial.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Vertex shader
+#if VERTEX_SHADER
+
+VS_IN_BEGIN
+	DECLARE_IN( float4, InPosition_, POSITION );
+	DECLARE_IN( float4, InTexCoord0_, TEXCOORD0 );
+	DECLARE_IN( float4, InTexCoord1_, TEXCOORD1 );
+VS_IN_END
+
+VS_OUT_BEGIN
+	DECLARE_OUT( float4, VsTexCoord0, TEXCOORD0 );
+	DECLARE_OUT( float4, VsTexCoord1, TEXCOORD1 );
+VS_OUT_END
+
+VS_MAIN( vertexMain )
+{
+	VS_ENTER;
+	OUT_POSITION = IN( InPosition_ ).xyzw;
+	OUT( VsTexCoord0 ) = IN( InTexCoord0_ );
+	OUT( VsTexCoord1 ) = IN( InTexCoord1_ );
+	VS_EXIT;
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+	DECLARE_IN( float4, VsTexCoord1, TEXCOORD1 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+
+PSY_SAMPLER_2D( AlbedoTex );
+PSY_SAMPLER_2D( MaterialTex );
+PSY_SAMPLER_2D( NormalTex );
+PSY_SAMPLER_2D( DepthTex );
+PSY_SAMPLER_CUBE( ReflectionTex );
+
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+	float4 GBufferAlbedo  = gammaToLinear( PSY_SAMPLE_2D( AlbedoTex, IN( VsTexCoord0.xy ) ) );
+
+	// x - Metallic
+	// y - Roughness
+	float4 GBufferMaterial  = PSY_SAMPLE_2D( MaterialTex, IN( VsTexCoord0 ).xy );
+
+	float3 GBufferNormal  = normalize( PSY_SAMPLE_2D( NormalTex, IN( VsTexCoord0 ).xy ).xyz * 2.0 - 1.0 );
+	float4 Depth  = PSY_SAMPLE_2D( DepthTex, IN( VsTexCoord0 ).xy );
+
+	float4 SSPosition = float4( IN( VsTexCoord1 ).xy, Depth.x * 2.0 - 1.0, 1.0 );
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+	SSPosition.y = -SSPosition.y;
+#endif
+
+	SSPosition = mul( InverseClipTransform_, SSPosition );
+	float3 WorldPosition = SSPosition.xyz / SSPosition.w;
+	float3 EyePosition = getViewPosition();
+
+	Material InMaterial;
+	InMaterial.Colour_ = GBufferAlbedo.xyz;
+	InMaterial.Metallic_ = GBufferMaterial.x;
+	InMaterial.Roughness_ = GBufferMaterial.y;
+	Surface InSurface = SetupSurface( InMaterial, EyePosition, WorldPosition.xyz, GBufferNormal.xyz );
+
+	Light InLight;
+	InLight.Position_ = LightPosition_[ 0 ].xyz;
+	InLight.Colour_ = LightDiffuseColour_[ 0 ].xyz;
+	InLight.AttenuationCLQ_ = LightAttn_[ 0 ].xyz;
+	float3 TotalSurface = BRDF_Default( InLight, InSurface );
+	outputFrag[0] = float4( TotalSurface, 1.0 );
+	PS_EXIT;
+}
+
+#endif
+

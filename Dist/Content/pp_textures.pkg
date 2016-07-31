@@ -1,0 +1,49 @@
+{
+	"resources" : [
+		////////////////////////////////////////////////////////////////////////
+		// Render target + depth stencil target
+		{
+			"type" : "ScnTexture",
+			"name" : "pp_framebuffer",
+			"rendertarget" : true,
+			"width" : 0,
+			"height" : 0,
+			"levels" : 1,
+			"texturetype" : "tex2d",
+			"format" : "R8G8B8A8"
+		},
+
+		{
+			"type" : "ScnTexture",
+			"name" : "pp_downscale_0",
+			"rendertarget" : true,
+			"width" : -1,
+			"height" : -1,
+			"levels" : 1,
+			"texturetype" : "tex2d",
+			"format" : "R8G8B8A8"
+		},
+
+		{
+			"type" : "ScnTexture",
+			"name" : "pp_working_0",
+			"rendertarget" : true,
+			"width" : -1,
+			"height" : -1,
+			"levels" : 1,
+			"texturetype" : "tex2d",
+			"format" : "R8G8B8A8"
+		},
+
+		{
+			"type" : "ScnTexture",
+			"name" : "pp_working_1",
+			"rendertarget" : true,
+			"width" : -1,
+			"height" : -1,
+			"levels" : 1,
+			"texturetype" : "tex2d",
+			"format" : "R8G8B8A8"
+		}
+	]
+}

@@ -37,6 +37,13 @@ public:
 	static const BcPath PACKED_CONTENT;
 	static const BcPath INTERMEDIATE;
 	static const BcPath CONTENT;
+	static const BcPath PSYBRUS_CONTENT;
+
+	/**
+	 * Resolve content path. Will search CONTENT, followed by PSYBRUS_CONTENT,
+	 * and finally just the path itself. (for generated/external content).
+	 */
+	static const BcPath resolveContent( const char* FileName );
 };
 
 //////////////////////////////////////////////////////////////////////////

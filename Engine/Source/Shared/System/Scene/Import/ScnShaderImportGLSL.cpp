@@ -1050,6 +1050,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				Preprocessor.addInclude( "." );
 				Preprocessor.addInclude( "./Content/Engine" );
 				Preprocessor.addInclude( "../Psybrus/Dist/Content/Engine" );
+				Preprocessor.addInclude( "./Intermediate/GeneratedShaderData" );
 
 				Preprocessor.preprocess();
 				std::string ProcessedSourceData = Preprocessor.getOutput();

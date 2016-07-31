@@ -1,0 +1,80 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnShader",
+			"name"			: "textured_normal_mapped",
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/textured_normal_mapped.psf",
+				"GLSL_430" : "Engine/textured_normal_mapped.psf",
+				"GLSL_330" : "Engine/textured_normal_mapped.psf",
+				"GLSL_ES_100" : "Engine/textured_normal_mapped.psf"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_mapped.psf"
+				}
+			},
+
+			"@(html5)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_mapped.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"RENDER_FORWARD",
+				"RENDER_DEFERRED",
+				"PASS_OPAQUE",
+				"PASS_MAIN"
+			],
+
+			"excludepermutations" : [
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelMain"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "textured_normal_mapped_mask",
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/textured_normal_mapped.psf",
+				"GLSL_430" : "Engine/textured_normal_mapped.psf"
+				//"GLSL_330" : "Engine/textured_normal_mapped.psf",
+				//"GLSL_ES_100" : "Engine/textured_normal_mapped.psf"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_mapped.psf"
+				}
+			},
+
+			"@(html5)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_mapped.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"RENDER_FORWARD",
+				"RENDER_DEFERRED",
+				"PASS_OPAQUE",
+				"PASS_MAIN"
+			],
+
+			"excludepermutations" : [
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelMainMask"
+			}
+		}
+	]
+}
+

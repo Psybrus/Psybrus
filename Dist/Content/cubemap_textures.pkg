@@ -1,0 +1,12 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnTexture",
+			"name"			: "default_cubemap",
+			"texturetype"	: "cube",
+
+			"source"		: "Source/Engine/default_cubemap.png",
+			"format" : "R8G8B8A8"
+		}
+	]
+}

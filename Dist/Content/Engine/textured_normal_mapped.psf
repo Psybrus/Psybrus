@@ -1,0 +1,250 @@
+#include <Psybrus.psh>
+#include <PsybrusLighting.psh>
+
+#include <UniformLight.psh>
+#include <UniformMaterial.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Features.
+#if defined( PERM_MESH_PARTICLE_3D ) && defined ( PERM_RENDER_DEFERRED )
+//#define SOFT_CLIPPING
+#endif
+
+#if defined( PERM_MESH_INSTANCED_3D ) && PSY_INPUT_CODE_TYPE != PSY_CODE_TYPE_GLSL_ES_100
+#define INSTANCED_DRAW
+#endif
+
+#if defined( PERM_MESH_STATIC_3D ) || defined( PERM_MESH_SKINNED_3D ) || defined( PERM_MESH_INSTANCED_3D )
+#define MESH_DRAW
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
+// Vertex shader
+#if VERTEX_SHADER
+
+VS_IN_BEGIN
+	DECLARE_IN( float4, InPosition_, POSITION );
+	DECLARE_IN( float4, InNormal_, NORMAL );
+	DECLARE_IN( float4, InTexCoord_, TEXCOORD0 );
+	DECLARE_IN( float4, InColour_, COLOR0 );
+#if defined( MESH_DRAW )
+	DECLARE_IN( float4, InBinormal_, BINORMAL );
+	DECLARE_IN( float4, InTangent_, TANGENT );
+#endif
+#if defined( PERM_MESH_SKINNED_3D )
+	DECLARE_IN( float4, InBlendWeights_, BLENDWEIGHTS );
+	DECLARE_IN( BLENDINDICES_TYPE, InBlendIndices_, BLENDINDICES );
+#elif defined( PERM_MESH_PARTICLE_3D )
+	DECLARE_IN( float4, InTangent_, TANGENT );
+#endif
+VS_IN_END
+
+VS_OUT_BEGIN
+	DECLARE_OUT( float4, VsColour0, COLOR0 );
+	DECLARE_OUT( float3, VsNormal, NORMAL );
+	DECLARE_OUT( float2, VsTexCoord0, TEXCOORD0 );
+#if defined( MESH_DRAW )
+	DECLARE_OUT( float3, VsBinormal, TEXCOORD1 );
+	DECLARE_OUT( float3, VsTangent, TEXCOORD2 );
+#endif
+	DECLARE_OUT( float3, VsWorldPosition, TEXCOORD3 );
+#if defined( INSTANCED_DRAW )
+	DECLARE_OUT_NOINTERPOLATION( int, VsInstanceID, TEXCOORD7 );
+#endif
+VS_OUT_END
+
+VS_MAIN( vertexMain )
+{
+	VS_ENTER;
+	float4 WorldPosition;
+	PSY_MAKE_WORLD_SPACE_VERTEX( WorldPosition, IN( InPosition_ ) );
+	PSY_MAKE_CLIP_SPACE_VERTEX( OUT_POSITION, WorldPosition );
+	OUT( VsWorldPosition ) = WorldPosition.xyz;
+	OUT( VsColour0 ) = IN( InColour_ );
+
+	float4 Normal;
+	PSY_MAKE_WORLD_SPACE_NORMAL( Normal, IN( InNormal_ ) );
+	OUT( VsNormal ) = Normal.xyz;
+
+	OUT( VsTexCoord0 ) = IN( InTexCoord_ ).xy;
+
+#if defined( MESH_DRAW )
+	float4 Binormal;
+	float4 Tangent;
+	PSY_MAKE_WORLD_SPACE_NORMAL( Binormal, IN( InBinormal_ ) );
+	PSY_MAKE_WORLD_SPACE_NORMAL( Tangent, IN( InTangent_ ) );
+	OUT( VsBinormal ).xyz = Binormal.xyz;
+	OUT( VsTangent ).xyz = Tangent.xyz;
+#endif
+
+#if defined( INSTANCED_DRAW )
+	OUT( VsInstanceID ) = GInstanceID;
+#endif
+
+	VS_EXIT;
+}
+
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsColour0, COLOR0 );
+	DECLARE_IN( float3, VsNormal, NORMAL );
+	DECLARE_IN( float2, VsTexCoord0, TEXCOORD0 );
+#if defined( MESH_DRAW )
+	DECLARE_IN( float3, VsBinormal, TEXCOORD1 );
+	DECLARE_IN( float3, VsTangent, TEXCOORD2 );
+#endif
+	DECLARE_IN( float3, VsWorldPosition, TEXCOORD3 );
+#if defined( INSTANCED_DRAW )
+	DECLARE_IN_NOINTERPOLATION( int, VsInstanceID, TEXCOORD7 );
+#endif
+PS_IN_END
+
+#include <PsybrusOutput.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Samplers
+PSY_SAMPLER_2D( DiffuseTex );
+PSY_SAMPLER_2D( NormalTex );
+PSY_SAMPLER_2D( SpecularTex );
+PSY_SAMPLER_2D( OpacityTex );
+PSY_SAMPLER_CUBE( ReflectionTex );
+
+#if defined( SOFT_CLIPPING )
+PSY_SAMPLER_2D( DepthTex );
+#endif
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterial
+float4 getMaterial( in float3 InNormal, in float3 InTangent, in float3 InBinormal, in float2 InTexCoord0, out float4 Diffuse, out float4 Normal, out float4 Specular )
+{
+	float3x3 TBN = buildTBN( InTangent.xyz, InBinormal.xyz, InNormal.xyz );
+
+	float4 TexNormal = PSY_SAMPLE_2D( NormalTex, InTexCoord0.xy );
+	Normal.xyz = reconstructNormal( TexNormal.xyz * 2.0 - 1.0 );
+	Normal.xyz = mul( TBN, Normal.xyz );
+	Normal.xyz = normalize( Normal.xyz );
+	Normal.w = 1.0;
+
+	Diffuse = PSY_SAMPLE_2D( DiffuseTex, InTexCoord0.xy );
+	Specular = PSY_SAMPLE_2D( SpecularTex, InTexCoord0.xy );
+
+	return float4( 0.0, 0.0, 0.0, 0.0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pixelMain
+void pixelAll( FRAMEBUFFER_INPUT )
+{
+	float4 Diffuse;
+	float4 Normal;
+	float4 Specular;
+
+	Material InMaterial;
+#if defined( INSTANCED_DRAW )
+	int InstanceID = IN( VsInstanceID );
+	InMaterial.Colour_ = MaterialInstances_[ InstanceID ].MaterialBaseColour_.xyz;
+	InMaterial.Metallic_ = MaterialInstances_[ InstanceID ].MaterialMetallic_;
+	InMaterial.Roughness_ = MaterialInstances_[ InstanceID ].MaterialRoughness_;
+#else
+	InMaterial.Colour_ = MaterialBaseColour_.xyz;
+	InMaterial.Metallic_ = MaterialMetallic_;
+	InMaterial.Roughness_ = MaterialRoughness_;
+#endif
+
+#if defined( MESH_DRAW )
+	float4 DebugValue = getMaterial( 
+		IN( VsNormal ).xyz, IN( VsTangent ).xyz, IN( VsBinormal ).xyz, IN( VsTexCoord0 ).xy,
+	 	Diffuse, Normal, Specular );
+#else
+	float4 DebugValue = getMaterial( 
+		float3( 0.0, 0.0, 1.0 ), float3( 1.0, 0.0, 0.0 ), float3( 0.0, 1.0, 0.0 ), IN( VsTexCoord0 ).xy,
+	 	Diffuse, Normal, Specular );
+#endif
+
+	// Multiply down the specular texture channels.
+	InMaterial.Metallic_ = InMaterial.Metallic_ * Specular.x;
+	InMaterial.Roughness_ = InMaterial.Roughness_ * Specular.y;
+
+#if defined( SOFT_CLIPPING )
+	float DstDepth  = linearDepth( PSY_SAMPLE_2D( DepthTex, float2( gl_FragCoord.x, gl_FragCoord.y ) * ViewSize_.zw ).x, NearFar_.x, NearFar_.y );
+	float SrcDepth = linearDepth( gl_FragCoord.z, NearFar_.x, NearFar_.y );
+	float DiffDepth = clamp( ( DstDepth - SrcDepth ) / 1.0, 0.0, 1.0 );
+	Diffuse.w *= DiffDepth;
+
+#  if defined ( PERM_RENDER_DEFERRED )
+	// If we're doing soft clipping for deferred it means we're no longer rendering to the gbuffer, so we need to go linear.
+	Diffuse = gammaToLinear( Diffuse );
+#  endif
+#endif
+
+#if defined( PERM_RENDER_FORWARD )
+	Diffuse = gammaToLinear( Diffuse ) * IN( VsColour0 ) * float4( InMaterial.Colour_, 1.0 );
+	float3 EyePosition = getViewPosition();
+	float3 TotalSurface = float3( 0.0, 0.0, 0.0 );
+
+	InMaterial.Colour_ = Diffuse.xyz;
+
+	Surface InSurface = SetupSurface( InMaterial, EyePosition.xyz, IN( VsWorldPosition ).xyz, Normal.xyz );
+
+	// Handle lighting.
+	for( int LightIdx = 0; LightIdx < 4; ++LightIdx )
+	{
+		Light InLight;
+#if defined( INSTANCED_DRAW )
+		InLight.Position_ = LightInstances_[ InstanceID ].LightPosition_[ LightIdx ].xyz;
+		InLight.Colour_ = LightInstances_[ InstanceID ].LightDiffuseColour_[ LightIdx ].xyz;
+		InLight.AttenuationCLQ_ = LightInstances_[ InstanceID ].LightAttn_[ LightIdx ].xyz;
+#else
+		InLight.Position_ = LightPosition_[ LightIdx ].xyz;
+		InLight.Colour_ = LightDiffuseColour_[ LightIdx ].xyz;
+		InLight.AttenuationCLQ_ = LightAttn_[ LightIdx ].xyz;
+#endif
+		TotalSurface += BRDF_Default( InLight, InSurface );
+	}
+
+	// Handle reflection.
+	int ReflectionLevels = textureQueryLevels( aReflectionTex );
+	float MipLevel = float( ReflectionLevels ) * InMaterial.Roughness_;
+	float3 ReflectionColour = gammaToLinear( PSY_SAMPLE_CUBE_LOD( ReflectionTex, reflect( normalize( IN( VsWorldPosition ).xyz - EyePosition ), Normal.xyz ), MipLevel ).xyz );
+	TotalSurface += ApplyReflection( InSurface, ReflectionColour );
+
+	TotalSurface = min( float3( 1.0, 1.0, 1.0 ), TotalSurface );
+	TotalSurface = linearToGamma( TotalSurface );
+
+	writeFrag( FRAMEBUFFER_INTERNAL, float4( TotalSurface, Diffuse.w ), Normal.xyz, float3( InMaterial.Metallic_, InMaterial.Roughness_, 0.0 ) );
+#else
+	Diffuse = gammaToLinear( Diffuse ) * IN( VsColour0 ) * float4( InMaterial.Colour_, 1.0 );
+	writeFrag( FRAMEBUFFER_INTERNAL, linearToGamma( Diffuse ), Normal.xyz, float3( InMaterial.Metallic_, InMaterial.Roughness_, 0.0 ) );
+#endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pixelMain
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+	pixelAll( FRAMEBUFFER_OUTPUT );
+	PS_EXIT;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pixelMainMask
+PS_MAIN( pixelMainMask )
+{
+	PS_ENTER;
+	float4 Opacity = PSY_SAMPLE_2D( OpacityTex, IN( VsTexCoord0 ).xy );
+	if( Opacity.x < 0.5 )
+	{
+		discard;
+	}
+	pixelAll( FRAMEBUFFER_OUTPUT );
+	PS_EXIT;
+}
+
+#endif

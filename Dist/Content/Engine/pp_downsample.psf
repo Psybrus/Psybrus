@@ -1,0 +1,30 @@
+#include "pp_shared.psh"
+
+#include <UniformDownsample.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+PSY_SAMPLER_2D( HDRTexture );
+
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+	float2 TexCoord = IN( VsTexCoord0 ).xy;
+
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+	// Need to flip in OpenGL.
+	//TexCoord.y = 1.0 - TexCoord.y;
+#endif
+	float4 Colour = PSY_SAMPLE_2D_LOD( HDRTexture, TexCoord, DownsampleSourceMipLevel_ );
+	outputFrag[0] = float4( Colour.xyz, 1.0 );
+	PS_EXIT;
+}
+
+#endif
+

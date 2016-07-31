@@ -1,0 +1,57 @@
+#include "pp_shared.psh"
+
+#include <UniformToneMapping.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Tone mapping.
+float3 Uncharted2Curve( float3 X )
+{
+	float A = ToneMappingA_;
+	float B = ToneMappingB_;
+	float C = ToneMappingC_;
+	float D = ToneMappingD_;
+	float E = ToneMappingE_;
+	float F = ToneMappingF_;
+	return ( ( X * ( A * X + C * B ) + D * E ) / ( X * ( A * X + B ) + D * F ) ) - E / F;
+}
+
+float3 Uncharted2Tonemapping( float3 Colour, float Exposure )
+{
+	float WhitePoint = ToneMappingWhitePoint_;
+	float3 MiddleGrey3 = float3( ToneMappingMiddleGrey_, ToneMappingMiddleGrey_, ToneMappingMiddleGrey_ );
+
+	float3 WhitePoint3 = Uncharted2Curve( float3( WhitePoint, WhitePoint, WhitePoint ) );
+	Colour *= MiddleGrey3 / float3( Exposure, Exposure, Exposure ) / WhitePoint3;
+	return ( Uncharted2Curve( Colour ) / WhitePoint3 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+PSY_SAMPLER_2D( HDRTex );
+PSY_SAMPLER_2D( BloomTex );
+PSY_SAMPLER_2D( Luminance2Tex );
+
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+	float AvgLum = PSY_SAMPLE_2D( Luminance2Tex, float2( 0.0, 0.0 ) ).x;
+	float4 Colour = PSY_SAMPLE_2D( HDRTex, IN( VsTexCoord0 ).xy );
+	float4 Bloom = gammaToLinear( PSY_SAMPLE_2D( BloomTex, IN( VsTexCoord0 ).xy ) );
+
+	Colour.xyz = Uncharted2Tonemapping( Colour.xyz + Bloom.xyz, AvgLum * pow( 2.0, -ToneMappingExposure_ ) );
+
+	// This linear -> gamma is handled by Uncharted2Tonemapping
+	// Colour.xyz = linearToGamma( Colour.xyz );
+
+	outputFrag[0] = float4( Colour.xyz, 1.0 );
+	PS_EXIT;
+}
+
+#endif
+

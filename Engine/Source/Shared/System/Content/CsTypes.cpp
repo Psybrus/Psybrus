@@ -14,6 +14,7 @@
 #include "System/Content/CsTypes.h"
 #include "System/File/FsCore.h"
 
+#include "Base/BcFile.h"
 #include "Base/BcString.h"
 
 #include <cstdarg>
@@ -25,11 +26,36 @@
 const BcPath CsPaths::PACKED_CONTENT( "PackedContent/pc" );
 const BcPath CsPaths::INTERMEDIATE( "Intermediate/pc" );
 const BcPath CsPaths::CONTENT( "Content" );
+const BcPath CsPaths::PSYBRUS_CONTENT( "../Psybrus/Dist/Content" );
 #else
 const BcPath CsPaths::PACKED_CONTENT( "PackedContent" );
 const BcPath CsPaths::INTERMEDIATE( "Intermediate" );
 const BcPath CsPaths::CONTENT( "Content" );
+const BcPath CsPaths::PSYBRUS_CONTENT( "../Psybrus/Dist/Content" );
 #endif
+
+//static
+const BcPath CsPaths::resolveContent( const char* FileName )
+{
+	BcPath Content = CONTENT;
+	Content.join( FileName );
+	BcPath PsybrusContent = PSYBRUS_CONTENT;
+	PsybrusContent.join( FileName );
+
+	if( BcFileSystemExists( Content.c_str() ) )
+	{
+		return Content;
+	}
+	else if( BcFileSystemExists( PsybrusContent.c_str() ) )
+	{
+		return PsybrusContent;
+	}
+	else if( BcFileSystemExists( FileName ) )
+	{
+		return FileName;
+	}
+	return Content;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // CsPackageDependencies

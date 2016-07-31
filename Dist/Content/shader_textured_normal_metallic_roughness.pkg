@@ -1,0 +1,80 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnShader",
+			"name"			: "textured_normal_metallic_roughness",
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/textured_normal_metallic_roughness.psf",
+				"GLSL_430" : "Engine/textured_normal_metallic_roughness.psf",
+				"GLSL_330" : "Engine/textured_normal_metallic_roughness.psf",
+				"GLSL_ES_100" : "Engine/textured_normal_metallic_roughness.psf"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_metallic_roughness.psf"
+				}
+			},
+
+			"@(html5)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_metallic_roughness.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"RENDER_FORWARD",
+				"RENDER_DEFERRED",
+				"PASS_OPAQUE",
+				"PASS_MAIN"
+			],
+
+			"excludepermutations" : [
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelMain"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "textured_normal_metallic_roughness_mask",
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/textured_normal_metallic_roughness.psf",
+				"GLSL_430" : "Engine/textured_normal_metallic_roughness.psf"
+				//"GLSL_330" : "Engine/textured_normal_metallic_roughness.psf",
+				//"GLSL_ES_100" : "Engine/textured_normal_metallic_roughness.psf"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_metallic_roughness.psf"
+				}
+			},
+
+			"@(html5)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/textured_normal_metallic_roughness.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"RENDER_FORWARD",
+				"RENDER_DEFERRED",
+				"PASS_OPAQUE",
+				"PASS_MAIN"
+			],
+
+			"excludepermutations" : [
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelMainMask"
+			}
+		}
+	]
+}
+

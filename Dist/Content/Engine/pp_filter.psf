@@ -1,0 +1,46 @@
+#include "pp_shared.psh"
+
+#include <UniformEnvironmentFilter.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+PSY_SAMPLER_CUBE( EnvTexture );
+
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+
+	float3 Total = float3( 0.0, 0.0, 0.0 );
+	float3 N = getCubemapNormal( EnvironmentFilterCubeFace_, ( IN( VsTexCoord0 ).xy ) * 2.0 - float2( 1.0, 1.0 ) );
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+	// TODO: Test.
+	Total = PSY_SAMPLE_CUBE( EnvTexture, N ).xyz;
+#else
+	float Roughness = EnvironmentFilterRoughness_;
+	uint NumSamples = uint( 1024 );
+	for( uint Idx = uint( 0 ); Idx < NumSamples; ++Idx )
+	{
+		float3 H = importanceSampleGGX( hammersley( Idx, NumSamples ), Roughness, N );
+		float3 L = 2 * dot( N, H ) * H - N;
+		float NdotL = clamp( dot( N, L ), 0.0, 1.0 );
+		if( NdotL > 0.0 )
+		{
+			float4 SampleColour = PSY_SAMPLE_CUBE( EnvTexture, L );
+			Total += SampleColour.xyz * NdotL;
+		}
+	}
+
+	Total /= float( NumSamples );
+#endif
+
+	outputFrag[0] = float4( Total, 0.0 );
+	PS_EXIT;
+}
+
+#endif // PIXEL_SHADER

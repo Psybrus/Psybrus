@@ -158,6 +158,11 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	if( BcLog::pImpl() != nullptr )
 	{
 		BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+
+		// Render & sound are noisy.
+		BcLog::pImpl()->setCategorySuppression( "RsCore", BcTrue );
+		BcLog::pImpl()->setCategorySuppression( "SsCore", BcTrue );
+		
 		// Setup basic log Category.
 		BcLogScopedCategory LogCategory( "Main" );
 	}

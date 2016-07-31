@@ -1,0 +1,29 @@
+{
+	"resources" : [
+		/////////////////////////////////////////////////////////////// 
+		// Entities.
+		{
+			"name"		:		"Renderer",
+			"type"		:		"ScnEntity",
+
+			"components" : [
+				{
+					"$Class"				: "ScnViewComponent",
+					"name"					: "view_forward",
+					"x"						: 0.0,
+					"y"						: 0.0,
+					"width"					: 1.0,
+					"height"				: 1.0,
+					"near"					: 1.0,
+					"far"					: 4000.0,
+					"horizontalfov"			: 0.75,
+					"verticalfov"			: 0.0,
+					"rendermask"			: 1,
+					"renderpermutation"		: "RENDER_FORWARD",
+					"passes"				: "OPAQUE|TRANSPARENT|OVERLAY",
+					"reflectioncubemap"		: "$(ScnTexture:cubemap_textures.default_cubemap)"
+				}
+			]
+		}
+	]
+}

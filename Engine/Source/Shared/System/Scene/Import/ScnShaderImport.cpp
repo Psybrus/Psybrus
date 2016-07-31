@@ -213,12 +213,14 @@ BcBool ScnShaderImport::import()
 	IncludePaths_.push_back( ".\\" );
 	IncludePaths_.push_back( ".\\Content\\Engine\\" );
 	IncludePaths_.push_back( "..\\Psybrus\\Dist\\Content\\Engine\\" );
+	IncludePaths_.push_back( ".\\Intermediate\\GeneratedShaderData\\" );
 #elif PLATFORM_LINUX || PLATFORM_OSX
 	// Setup include paths.
 	IncludePaths_.clear();
 	IncludePaths_.push_back( "./" );
 	IncludePaths_.push_back( "./Content/Engine/" );
 	IncludePaths_.push_back( "../Psybrus/Dist/Content/Engine/" );
+	IncludePaths_.push_back( "./Intermediate/GeneratedShaderData/" );
 #endif
 	
 	// Cache intermediate path.
@@ -496,14 +498,14 @@ void ScnShaderImport::regenerateShaderDataHeader()
 
 		// Check output folder exists.
 		bool ShouldExport = false;
-		if( !BcFileSystemExists( "./Content/Engine" ) )
+		if( !BcFileSystemExists( "./Intermediate/GeneratedShaderData" ) )
 		{
-			BcFileSystemCreateDirectories( "./Content/Engine" );
+			BcFileSystemCreateDirectories( "./Intermediate/GeneratedShaderData" );
 			ShouldExport = true;
 		}
 
 		// Check if file currently exists.
-		BcSPrintf( OutBuffer.data(), OutBuffer.size(), "./Content/Engine/Uniform%s.psh", (*Attribute->getName()).c_str() );
+		BcSPrintf( OutBuffer.data(), OutBuffer.size(), "./Intermediate/GeneratedShaderData/Uniform%s.psh", (*Attribute->getName()).c_str() );
 		const std::string FileName = OutBuffer.data();
 		if( BcFileSystemExists( FileName.c_str() ) )
 		{
@@ -711,7 +713,7 @@ BcBool ScnShaderImport::oldPipeline()
 						{
 							InputCodeType,
 							OutputCodeType,
-							Source_,
+							CsPaths::resolveContent( Source_.c_str() ).c_str(),
 							SourceFileData_,
 							Permutation,
 							Entries
@@ -749,15 +751,18 @@ BcBool ScnShaderImport::newPipeline()
 	{
 		PSY_LOG( "Source: %s - %s", (*ReManager::GetEnumValueName( SourcePair.first )).c_str(), SourcePair.second.c_str() );
 
+		// Resolve source path.
+		auto ResolvedSource = CsPaths::resolveContent( SourcePair.second.c_str() );
+
 		BcFile SourceFile;
-		if( SourceFile.open( SourcePair.second.c_str(), bcFM_READ ) )
+		if( SourceFile.open( ResolvedSource.c_str(), bcFM_READ ) )
 		{
 			std::vector< char > FileData( SourceFile.size() + 1 );
 			BcMemZero( FileData.data(), FileData.size() );
 			SourceFile.read( FileData.data(), FileData.size() );
 			SourcesFileData_[ SourcePair.first ] = FileData.data();
 			CodeTypes_.push_back( SourcePair.first );
-			addDependency( SourcePair.second.c_str() );
+			addDependency( ResolvedSource.c_str() );
 		}
 		else
 		{
@@ -857,7 +862,7 @@ BcBool ScnShaderImport::newPipeline()
 					{
 						InputCodeType,
 						OutputCodeType,
-						Sources_[ InputCodeType ],
+						CsPaths::resolveContent( Sources_[ InputCodeType ].c_str() ).c_str(),
 						SourcesFileData_[ InputCodeType ],
 						Permutation,
 						Entries

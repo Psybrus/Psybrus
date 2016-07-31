@@ -31,7 +31,7 @@ std::vector< BcPath > FindPackages( const CsPlatformParams& Params )
 	std::vector< BcPath > FoundPackages;
 
 #if PLATFORM_LINUX || PLATFORM_OSX
-	if( DIR* SearchDir = opendir( "Content" ) )
+	if( DIR* SearchDir = opendir( CsPaths::CONTENT.c_str() ) )
 	{
 		dirent Data;
 		dirent* FoundEntry = nullptr;
@@ -40,27 +40,67 @@ std::vector< BcPath > FindPackages( const CsPlatformParams& Params )
 			if( strstr( FoundEntry->d_name, ".pkg" ) )
 			{
 				std::array< char, 256 > FullPath;
-				BcSPrintf( FullPath.data(), FullPath.size(), "Content/%s", FoundEntry->d_name );
+				BcSPrintf( FullPath.data(), FullPath.size(), "%s", FoundEntry->d_name );
 				FoundPackages.emplace_back( FullPath.data() );
 			}
 		}
 		closedir(SearchDir);
 	}
+
+	if( DIR* SearchDir = opendir( CsPaths::PSYBRUS_CONTENT.c_str() ) )
+	{
+		dirent Data;
+		dirent* FoundEntry = nullptr;
+		while( readdir_r( SearchDir, &Data, &FoundEntry ) == 0 && FoundEntry != nullptr )
+		{
+			if( strstr( FoundEntry->d_name, ".pkg" ) )
+			{
+				std::array< char, 256 > FullPath;
+				BcSPrintf( FullPath.data(), FullPath.size(), "%s", FoundEntry->d_name );
+				FoundPackages.emplace_back( FullPath.data() );
+			}
+		}
+		closedir(SearchDir);
+	}
+
 #elif PLATFORM_WINDOWS
 	using namespace std::experimental::filesystem;
-	path Path( "Content/" );
-
-	auto It = directory_iterator( Path );
-	while( It != directory_iterator() )
 	{
-		directory_entry Entry = *It;
-		if( Entry.path().extension().string()  == ".pkg" )
+		BcPath ContentPath = CsPaths::CONTENT;
+		ContentPath.append( "/" );
+		path Path( ContentPath.c_str() );
+
+		auto It = directory_iterator( Path );
+		while( It != directory_iterator() )
 		{
-			BcPath PackagePath( Entry.path().string() );
-			FoundPackages.emplace_back( PackagePath );
+			directory_entry Entry = *It;
+			if( Entry.path().extension().string()  == ".pkg" )
+			{
+				BcPath PackagePath( Entry.path().filename().string() );
+				FoundPackages.emplace_back( PackagePath );
+			}
+			++It;
 		}
-		++It;
 	}
+
+	{
+		BcPath ContentPath = CsPaths::PSYBRUS_CONTENT;
+		ContentPath.append( "/" );
+		path Path( ContentPath.c_str() );
+
+		auto It = directory_iterator( Path );
+		while( It != directory_iterator() )
+		{
+			directory_entry Entry = *It;
+			if( Entry.path().extension().string()  == ".pkg" )
+			{
+				BcPath PackagePath( Entry.path().filename().string() );
+				FoundPackages.emplace_back( PackagePath );
+			}
+			++It;
+		}
+	}
+
 #endif
 
 	PSY_LOG( "Found %u packages.", FoundPackages.size() );
@@ -92,7 +132,8 @@ std::vector< BcPath > CheckPackages( const CsPlatformParams& Params, const std::
 		}
 
 		// Import package & output dependencies changed?
-		if( BcFileSystemExists( (*PackagePath).c_str() ) )
+		auto ResolvedPackagePath = CsPaths::resolveContent( (*PackagePath).c_str() );
+		if( BcFileSystemExists( ResolvedPackagePath.c_str() ) )
 		{
 			if(	BcFileSystemExists( OutputDependencies.c_str() ) )
 			{

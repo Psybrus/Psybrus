@@ -1,0 +1,60 @@
+#include <Psybrus.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Vertex shader
+#if VERTEX_SHADER
+
+VS_IN_BEGIN
+	DECLARE_IN( float4, InPosition_, POSITION );
+	DECLARE_IN( float4, InTexCoord_, TEXCOORD0 );
+	DECLARE_IN( float4, InColour_, COLOR0 );
+VS_IN_END
+
+VS_OUT_BEGIN
+	DECLARE_OUT( float4, VsColour0, COLOR0 );
+	DECLARE_OUT( float4, VsTexCoord0, TEXCOORD0 );
+VS_OUT_END
+
+VS_MAIN( vertexMain )
+{
+	VS_ENTER;
+    OUT_POSITION = mul( ClipTransform_, float4( IN( InPosition_ ).xy, 0.0, 1.0 ) );
+    OUT( VsTexCoord0 ) = IN( InTexCoord_ );
+    OUT( VsColour0 ) = IN( InColour_ );
+    VS_EXIT;
+}
+
+#endif // VERTEX_SHADER
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsColour0, COLOR0 );
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// pixelDefaultMain
+PS_MAIN( pixelDefaultMain )
+{
+	PS_ENTER;
+	outputFrag[0] = IN( VsColour0 );
+	PS_EXIT;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// pixelTexturedMain
+PSY_SAMPLER_2D( DiffuseTex );
+
+PS_MAIN( pixelTexturedMain )
+{
+	PS_ENTER;
+	float4 Colour = PSY_SAMPLE_2D( DiffuseTex, IN( VsTexCoord0 ).xy );
+	outputFrag[0] = Colour * IN( VsColour0 );
+	PS_EXIT;
+}
+
+#endif // PIXEL_SHADER

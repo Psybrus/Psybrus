@@ -1,0 +1,23 @@
+#include "pp_shared.psh"
+
+#include <UniformPostProcessCopy.psh>
+#include <UniformPostProcessConfig.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+PSY_SAMPLER_2D( InputTexture0 );
+
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+	outputFrag[0] = PSY_SAMPLE_2D( InputTexture0, IN( VsTexCoord0 ).xy );
+	PS_EXIT;
+}
+
+#endif

@@ -85,8 +85,6 @@ BcBool ScnTileMapImport::import()
 	BcBool CanImport = BcTrue;
 	BcStream Stream;
 
-	CsResourceImporter::addDependency( Source_.c_str() );
-
 	if( Source_.empty() )
 	{
 		CsResourceImporter::addMessage( CsMessageCategory::CRITICAL, "Missing 'source' field." );
@@ -99,11 +97,14 @@ BcBool ScnTileMapImport::import()
 		CanImport = BcFalse;
 	}
 
-	if( CanImport)
+	auto ResolvedSource = CsPaths::resolveContent( Source_.c_str() );
+	CsResourceImporter::addDependency( ResolvedSource.c_str() );
+
+	if( CanImport )
 	{
 		TileMapData_ = Stream.alloc< ScnTileMapData >();
 		BcFile SourceFile;
-		if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
+		if( SourceFile.open( ResolvedSource.c_str(), bcFM_READ ) )
 		{
 			auto SourceText = SourceFile.readAllBytes();
 			rapidxml::xml_document<> SourceDoc;

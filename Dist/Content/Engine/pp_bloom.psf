@@ -1,0 +1,65 @@
+#include "pp_shared.psh"
+
+#include <UniformBloom.psh>
+
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+PSY_SAMPLER_2D( HDRTex );
+PSY_SAMPLER_2D( Luminance2Tex );
+
+//////////////////////////////////////////////////////////////////////////
+// BrightPass
+PS_MAIN( pixelMain_BrightPass )
+{
+	PS_ENTER;
+
+	float AvgLum = PSY_SAMPLE_2D( Luminance2Tex, float2( 0.0, 0.0 ) ).x;
+	float4 Colour = PSY_SAMPLE_2D( HDRTex, IN( VsTexCoord0 ).xy );
+	Colour -= float4( BloomThreshold_, BloomThreshold_, BloomThreshold_, 0.0f );
+	Colour = saturate( Colour / AvgLum );
+	outputFrag[0] = linearToGamma( Colour );
+
+	PS_EXIT;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Blur
+PSY_SAMPLER_2D( InputTexture );
+
+float blurWeight( float X, float Width )
+{
+	// TODO: LUT?
+	return cos( ( X / Width ) * PIDIV2 );
+}
+
+PS_MAIN( pixelMain_Blur )
+{
+	PS_ENTER;
+
+	float Radius = BloomRadius_;
+	float4 Colour = float4( 0.0, 0.0, 0.0, 0.0 );
+#if V_BLUR
+	float Offset = 1.0 / float( textureSize( aInputTexture, 0 ).y );
+	float4 UVOffset = float4( 0.0, -Radius * Offset, 0.0, 0.0 );
+	float4 UVIncr = float4( 0.0, Offset, 0.0, 0.0 );
+#elif H_BLUR
+	float Offset = 1.0 / float( textureSize( aInputTexture, 0 ).x );
+	float4 UVOffset = float4( -Radius * Offset, 0.0, 0.0, 0.0 );
+	float4 UVIncr = float4( Offset, 0.0, 0.0, 0.0 );
+#endif
+	for( float Idx = -Radius; Idx <= Radius; Idx += 1.0 )
+	{
+		Colour += gammaToLinear( PSY_SAMPLE_2D( InputTexture, IN( VsTexCoord0 ).xy + UVOffset.xy ) * blurWeight( Idx, Radius ) );
+		UVOffset += UVIncr;
+	}
+	outputFrag[0] = linearToGamma( float4( ( Colour / ( Radius * 2.0 + 1.0 ) ).rgb, 1.0 ) );
+
+	PS_EXIT;
+}
+
+#endif // PIXEL_SHADER
+

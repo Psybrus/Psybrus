@@ -69,8 +69,17 @@ BcBool ScnFontImport::import()
 {
 	BcBool RetVal = BcFalse;
 #if PSY_IMPORT_PIPELINE
+	if( Source_.empty() )
+	{
+		PSY_LOG( "ERROR: Missing 'source' field.\n" );
+		return BcFalse;
+	}
+
+	// Resolve source path.
+	auto ResolvedSource = CsPaths::resolveContent( Source_.c_str() );
+
 	// Add root dependancy.
-	CsResourceImporter::addDependency( Source_.c_str() );
+	CsResourceImporter::addDependency( ResolvedSource.c_str() );
 
 	FT_Library	Library;
 	FT_Face		Face;
@@ -87,7 +96,7 @@ BcBool ScnFontImport::import()
 	{
 		// Create new face.
 		Error = FT_New_Face( Library,
-							 Source_.c_str(),
+							 ResolvedSource.c_str(),
 							 0,
 							 &Face );
 		

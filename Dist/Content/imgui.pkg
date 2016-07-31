@@ -1,0 +1,72 @@
+{
+	"resources" : [
+		{
+			"type"			: "ScnShader",
+			"name"			: "default_shader",
+
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/imgui.psf",
+				"GLSL_430" : "Engine/imgui.psf",
+				"GLSL_330" : "Engine/imgui.psf",
+				"GLSL_ES_100" : "Engine/imgui.psf"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/imgui.psf"
+				}
+			},
+
+			"@(html5)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/imgui.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"MESH_STATIC_2D",
+				"PASS_MAIN"
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelDefaultMain"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
+			"name"			: "textured_shader",
+
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/imgui.psf",
+				"GLSL_430" : "Engine/imgui.psf",
+				"GLSL_330" : "Engine/imgui.psf",
+				"GLSL_ES_100" : "Engine/imgui.psf"
+			},
+
+			"@(android)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/imgui.psf"
+				}
+			},
+
+			"@(html5)" : {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/imgui.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"MESH_STATIC_2D",
+				"PASS_MAIN"
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelTexturedMain"
+			}
+		}
+	]
+}
+

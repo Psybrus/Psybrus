@@ -312,8 +312,7 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 			std::array< char, 1024 > Arguments;
 			BcSPrintf( Path.data(), Path.size(), "%s%s%s", 
 				Prefix, ImporterName, Suffix );
-			BcSPrintf( Arguments.data(), Arguments.size(), "-p %s/%s.pkg", 
-				CsPaths::CONTENT.c_str(), (*Package).c_str() );
+			BcSPrintf( Arguments.data(), Arguments.size(), "-p %s.pkg", (*Package).c_str() );
 
 			PSY_LOG( "Launching importer for package \"%s\" with commandline: %s %s", (*Package).c_str(), Path.data(), Arguments.data() );
 			auto RetCode = BcProcessLaunch( Path.data(),

@@ -95,7 +95,9 @@ BcBool ScnSoundImport::import()
 		FileData_.Type_ = SsSourceFileData::MODPLUG;
 	}
 
-	FileData_.FileHash_= addFile( Source_ );
+	auto ResolvedSource = CsPaths::resolveContent( Source_.c_str() );
+
+	FileData_.FileHash_= addFile( ResolvedSource.c_str() );
 	FileData_.Looping_ = IsLoop_;
 
 	CsResourceImporter::addChunk( BcHash( "filedata" ), &FileData_, sizeof( FileData_ ) );

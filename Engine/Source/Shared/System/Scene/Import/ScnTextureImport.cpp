@@ -500,14 +500,15 @@ ImgImageList ScnTextureImport::loadImages( std::vector< std::string > Sources )
 		const std::string& FileName = Source_[ Idx ];  
 
 		// Add as dependancy.
-		CsResourceImporter::addDependency( FileName.c_str() );
+		auto ResolvedFilename = CsPaths::resolveContent( FileName.c_str() );
+		CsResourceImporter::addDependency( ResolvedFilename.c_str() );
 
 		// Load image.
-		auto Image = Img::load( FileName.c_str() );
+		auto Image = Img::load( ResolvedFilename.c_str() );
 		if( Image == nullptr )
 		{
 			BcChar Error[ 4096 ] = { 0 };
-			BcSPrintf( Error, sizeof( Error ) - 1, "Unable to load texture \"%s\"", FileName.c_str() );
+			BcSPrintf( Error, sizeof( Error ) - 1, "Unable to load texture \"%s\"", ResolvedFilename.c_str() );
 			CsResourceImporter::addMessage( CsMessageCategory::ERROR, Error );
 		}
 		else

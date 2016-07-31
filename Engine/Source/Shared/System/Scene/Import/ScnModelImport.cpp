@@ -241,7 +241,10 @@ BcBool ScnModelImport::import()
 		return BcFalse;
 	}
 
-	CsResourceImporter::addDependency( Source_.c_str() );
+	// Resolve source path.
+	auto ResolvedSource = CsPaths::resolveContent( Source_.c_str() );
+
+	CsResourceImporter::addDependency( ResolvedSource.c_str() );
 
 	auto PropertyStore = aiCreatePropertyStore();
 	aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_SBBC_MAX_BONES, ScnShaderBoneUniformBlockData::MAX_BONES );
@@ -265,7 +268,7 @@ BcBool ScnModelImport::import()
 	}
 
 	Scene_ = aiImportFileExWithProperties( 
-		Source_.c_str(), 
+		ResolvedSource.c_str(), 
 		Flags,
 		nullptr, 
 		PropertyStore );
@@ -950,11 +953,8 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 		std::replace( FixedPath.begin(), FixedPath.end(), '\\', '/');
 		TexturePath.join( FixedPath.c_str() );
 
-		if(strstr(TexturePath.c_str(),"Sponza_Floor"))
-		{
-			int a = 0; ++a;
-		}
-		if( BcFileSystemExists( TexturePath.c_str() ) )
+		auto ResolvedTexturePath = CsPaths::resolveContent( TexturePath.c_str() );
+		if( BcFileSystemExists( ResolvedTexturePath.c_str() ) )
 		{
 			RsSamplerStateDesc SamplerState;
 
@@ -981,6 +981,7 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			SamplerState.MinFilter_ = RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR;
 			SamplerState.MagFilter_ = RsTextureFilteringMode::LINEAR;
 
+			// Pass up unresolved texture path, it will resolve later.
 			auto TextureImporter = new ScnTextureImport(
 					Path.C_Str(), "ScnTexture",
 					TexturePath.c_str(), RsTextureFormat::UNKNOWN );

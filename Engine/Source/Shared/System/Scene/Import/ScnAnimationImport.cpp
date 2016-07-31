@@ -169,8 +169,11 @@ BcBool ScnAnimationImport::import()
 		return BcFalse;
 	}
 
-	CsResourceImporter::addDependency( Source_.c_str() );
+	// Resolve source path.
+	auto ResolvedSource = CsPaths::resolveContent( Source_.c_str() );
 
+	// Add dependency.
+	CsResourceImporter::addDependency( ResolvedSource.c_str() );
 	auto PropertyStore = aiCreatePropertyStore();
 
 	aiLogStream AssimpLogger =
@@ -180,7 +183,7 @@ BcBool ScnAnimationImport::import()
 	aiAttachLogStream( &AssimpLogger );
 
 	Scene_ = aiImportFileExWithProperties( 
-		Source_.c_str(), 
+		ResolvedSource.c_str(), 
 		aiProcess_MakeLeftHanded,
 		nullptr, 
 		PropertyStore );

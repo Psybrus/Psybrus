@@ -96,7 +96,6 @@ BcBool ScnShaderImport::compileShader(
 	BcBool RetVal = BcFalse;
 #if PLATFORM_WINDOWS
 	CsResourceImporter::addDependency( FileName.c_str() );
-
 	std::wstring WFileName( FileName.begin(), FileName.end() );
 	// Create macros.
 	std::vector< D3D_SHADER_MACRO > Macros;

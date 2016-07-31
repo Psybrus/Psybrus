@@ -1,0 +1,63 @@
+#include "pp_shared.psh"
+
+#include <UniformToneMapping.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+
+PSY_SAMPLER_2D( HDRTexture );
+
+PS_MAIN( pixelMain_Luminance )
+{
+	PS_ENTER;
+	int2 TextureSize = textureSize( aHDRTexture, 0 );
+
+#if 1 // Filter manually.
+	float3 TexelOffset = float3( 
+		1.0 / float( TextureSize.x ), 
+		1.0 / float( TextureSize.y ),
+		0.0 );
+
+	float3 Texel = 
+		PSY_SAMPLE_2D( HDRTexture, IN( VsTexCoord0 ).xy ).xyz +
+		PSY_SAMPLE_2D( HDRTexture, IN( VsTexCoord0 ).xy + TexelOffset.xz ).xyz +
+		PSY_SAMPLE_2D( HDRTexture, IN( VsTexCoord0 ).xy + TexelOffset.zy ).xyz +
+		PSY_SAMPLE_2D( HDRTexture, IN( VsTexCoord0 ).xy + TexelOffset.xy ).xyz;
+	Texel *= 0.25;
+
+#else // Rely on linear filtering.
+	float3 TexelOffset = float3( 
+		0.5 / float( TextureSize.x ), 
+		0.5 / float( TextureSize.y ),
+		0.0 );
+
+	float3 Texel = 
+		PSY_SAMPLE_2D( HDRTexture, IN( VsTexCoord0 ).xy + TexelOffset.xy ).xyz;
+
+#endif
+
+	outputFrag[0] = float4( luminance( Texel ), 0.0, 0.0, 0.0 );
+	PS_EXIT;
+}
+
+
+PSY_SAMPLER_2D( LuminanceTexture );
+
+PS_MAIN( pixelMain_LuminanceTransfer )
+{
+	PS_ENTER;
+
+	float Texel = PSY_SAMPLE_2D( LuminanceTexture, IN( VsTexCoord0 ).xy ).x;
+	Texel = clamp( Texel, ToneMappingLuminanceMin_, ToneMappingLuminanceMax_ );
+	outputFrag[0] = float4( Texel, 0.0, 0.0, ToneMappingLuminanceTransferRate_ );
+	PS_EXIT;
+}
+
+#endif
+

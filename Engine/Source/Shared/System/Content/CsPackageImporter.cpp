@@ -174,7 +174,7 @@ BcBool CsPackageImporter::import()
 
 		// Add as dependency.
 		beginImport();
-		addDependency( Filename_.c_str() );
+		addDependency( CsPaths::resolveContent( Filename_.c_str() ).c_str() );
 
 		// Get resource list.
 		Json::Value Resources( Root.get( "resources", Json::Value( Json::arrayValue ) ) );
@@ -395,7 +395,7 @@ BcBool CsPackageImporter::loadJsonFile( const BcChar* pFileName, Json::Value& Ro
 {
 	BcBool Success = BcFalse;
 	BcFile File;
-	if( File.open( pFileName ) )
+	if( File.open( CsPaths::resolveContent( pFileName ).c_str() ) )
 	{
 		auto Data = File.readAllBytes();		
 		Json::Reader Reader;
@@ -855,6 +855,7 @@ void CsPackageImporter::addDependency( const BcChar* pFileName )
 {
 	std::lock_guard< std::recursive_mutex > Lock( BuildingLock_ );
 	BcAssert( BuildingBeginCount_ > 0 );
+	BcAssert( BcFileSystemExists( pFileName ) );
 	Dependencies_.Dependencies_.insert( CsDependency( pFileName ) );
 }
 
