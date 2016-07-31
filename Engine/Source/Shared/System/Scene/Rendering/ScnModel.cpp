@@ -1254,6 +1254,7 @@ void ScnModelComponent::initialise()
 // findNodeIndexByName
 BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 {
+	BcAssert( isReady() );
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	const ScnModelNodePropertyData* pNodePropertyData = Model_->pNodePropertyData_;
 	for( BcU32 NodeIdx = 0; NodeIdx < NoofNodes; ++NodeIdx )
@@ -1271,6 +1272,7 @@ BcU32 ScnModelComponent::findNodeIndexByName( const BcName& Name ) const
 // findNodeNameByIndex
 const BcName& ScnModelComponent::findNodeNameByIndex( BcU32 NodeIdx ) const
 {
+	BcAssert( isReady() );
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	const ScnModelNodePropertyData* pNodePropertyData = Model_->pNodePropertyData_;
 	if( NodeIdx < NoofNodes )
@@ -1285,6 +1287,7 @@ const BcName& ScnModelComponent::findNodeNameByIndex( BcU32 NodeIdx ) const
 // setNode
 void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 {
+	BcAssert( isReady() );
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
@@ -1296,7 +1299,9 @@ void ScnModelComponent::setNode( BcU32 NodeIdx, const MaMat4d& LocalTransform )
 // getNodeLocalTransform
 const MaMat4d& ScnModelComponent::getNodeLocalTransform( BcU32 NodeIdx ) const
 {
+	BcAssert( isReady() );
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
+	BcAssert( pNodeTransformData_ );
 	if( NodeIdx < NoofNodes )
 	{
 		return pNodeTransformData_[ NodeIdx ].LocalTransform_;
@@ -1310,6 +1315,7 @@ const MaMat4d& ScnModelComponent::getNodeLocalTransform( BcU32 NodeIdx ) const
 // getNodeWorldTransform
 const MaMat4d& ScnModelComponent::getNodeWorldTransform( BcU32 NodeIdx ) const
 {
+	BcAssert( isReady() );
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	if( NodeIdx < NoofNodes )
 	{
@@ -1324,6 +1330,7 @@ const MaMat4d& ScnModelComponent::getNodeWorldTransform( BcU32 NodeIdx ) const
 // setUniforms
 void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* UniformData )
 {
+	BcAssert( isReady() );
 #if !PSY_PRODUCTION
 	const std::string DebugName = getFullName();
 	const char* DebugNameCStr = DebugName.c_str();
@@ -1379,6 +1386,7 @@ void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* Un
 // getNoofNodes
 BcU32 ScnModelComponent::getNoofNodes() const
 {
+	BcAssert( isReady() );
 	const BcU32 NoofNodes = Model_->pHeader_->NoofNodes_;
 	return NoofNodes;
 }
@@ -1406,6 +1414,7 @@ void ScnModelComponent::setBaseTransform( const MaVec3d& Position, const MaVec3d
 void ScnModelComponent::updateNodes( const MaMat4d& RootMatrix )
 {
 	PSY_PROFILE_FUNCTION;
+	BcAssert( isReady() );
 
 	setBaseTransform( Position_, Scale_, Rotation_ );
 
