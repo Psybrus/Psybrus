@@ -149,7 +149,14 @@ public:
 
 	static BcU32 StaticEventTypeHash()
 	{
-		static const BcU32 EventTypeHash = BcHash( CompilerUtility::Demangle( typeid( _Ty ).name() ).c_str() );
+		auto GetEventTypeHash = []()
+		{
+			std::array< char, 64 > EventName;
+			CompilerUtility::Demangle( typeid( _Ty ).name(), EventName.data(), EventName.size() );
+			return BcHash( EventName.data() );
+		};
+		
+		static const BcU32 EventTypeHash = GetEventTypeHash();
 		return EventTypeHash;
 	}
 };

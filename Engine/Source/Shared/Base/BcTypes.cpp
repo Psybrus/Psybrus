@@ -41,7 +41,7 @@ void BcTypes_UnitTest()
 
 namespace CompilerUtility
 {
-	std::string Demangle( const char* Name ) 
+	bool Demangle( const char* Name, char* Output, size_t OutputSize )
 	{
 		int Status = 1;
 
@@ -51,7 +51,12 @@ namespace CompilerUtility
 			std::free
 		};
 
-		return ( Status == 0 ) ? Res.get() : Name;
+		if( Status == 0 )
+		{
+			BcStrCopy( Output, OutputSize, Res.get() );
+			return true;
+		}
+		return false;
 	}
 }
 
@@ -59,9 +64,10 @@ namespace CompilerUtility
 
 namespace CompilerUtility
 {
-	std::string Demangle( const char* Name )
+	bool Demangle( const char* Name, char* Output, size_t OutputSize )
 	{
-	    return Name;
+		BcStrCopy( Output, (BcU32)OutputSize, Name );
+	    return true;
 	}
 }
 

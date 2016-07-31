@@ -375,21 +375,19 @@ inline bool BcContainsAnyFlags( _Enum Value, _Enum Flags )
 // TODO: Move this to a better place...
 // Mega super awesome hack.
 // Temporary until better demangling is setup.
-#include <cstdlib>
-#include <memory>
-#include <string>
-
 namespace CompilerUtility
 {
-	std::string Demangle( const char* Name );
+	bool Demangle( const char* Name, char* Output, size_t OutputSize );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Symbol exporting.
 #if PLATFORM_WINDOWS
 #define PSY_EXPORT __declspec(dllexport)
+#define PSY_IMPORT __declspec(dllimport)
 #else
 #define PSY_EXPORT
+#define PSY_IMPORT
 #endif
 
 

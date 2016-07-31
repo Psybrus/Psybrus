@@ -69,8 +69,14 @@ struct ReTypeTraits
 	static const bool IsEnum = std::is_enum< Type >::value;
 	static const char* Name()
 	{
-		static auto Name = CompilerUtility::Demangle( typeid( Type ).name() );
-		return Name.c_str();
+		auto GetName = []()
+		{
+			std::array< char, 128 > EventName;
+			CompilerUtility::Demangle( typeid( Type ).name(), EventName.data(), EventName.size() );
+			return EventName;
+		};
+		static auto Name = GetName();
+		return Name.data();
 	}
 };
 		
