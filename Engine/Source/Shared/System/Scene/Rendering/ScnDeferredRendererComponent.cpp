@@ -1146,7 +1146,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 		auto InputSRVSlot = DownsampleProgram->findShaderResourceSlot( "aInputTexture" );
 		BcU32 UniformSlot = DownsampleProgram->findUniformBufferSlot( "ScnShaderDownsampleUniformBlockData" );
 		RsProgramBindingDesc BindingDesc;
-
+		
 		DownsampleUniformBlock_.DownsampleSourceMipLevel_ = 0;
 		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
 			[ 
@@ -1229,37 +1229,6 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 						RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1 );
 				} );
 		}
-	}
-
-	{
-		auto* BloomDownsampleProgram = DownsampleShader_->getProgram( Permutation );
-		RsProgramBindingDesc BindingDesc;
-
-		setTextures( BloomDownsampleProgram, BindingDesc );
-		
-		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomDownsampleProgram, BindingDesc, (*getName()).c_str() );
-
-		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
-			[ 
-				GeometryBinding = GeometryBinding_.get(),
-				ProgramBinding = ProgramBinding.get(),
-				RenderState = ResolveRenderState_.get(),
-				FrameBuffer = FrameBuffers_[ FB_DOWNSAMPLE_BLOOM_0 ].get()
-			]
-			( RsContext* Context )
-			{
-				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
-			
-				Context->drawPrimitives( 
-					GeometryBinding,
-					ProgramBinding,
-					RenderState,
-					FrameBuffer,
-					nullptr,
-					nullptr,
-					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
-			} );
 	}
 
 	// Generate bloom target.
