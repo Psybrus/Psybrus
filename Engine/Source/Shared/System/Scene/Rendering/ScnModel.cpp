@@ -611,6 +611,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 							( RsContext* Context )
 							{
 								PSY_PROFILE_FUNCTION;
+								PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnModelProcessor::render" );
 								Context->drawIndexedPrimitives(
 									GeometryBinding,
 									DrawProgramBinding, 

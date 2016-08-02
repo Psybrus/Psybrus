@@ -262,7 +262,7 @@ struct ScnShaderBloomUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderBloomUniformBlockData );
 	ScnShaderBloomUniformBlockData(){};
 
-	BcF32 BloomRadius_ = 32.0f;
+	BcF32 BloomRadius_ = 8.0f;
 	BcF32 BloomPower_ = 1.0f;
 	BcF32 BloomThreshold_ = 0.5f;
 	BcF32 BloomUnused_ = 0.0f;

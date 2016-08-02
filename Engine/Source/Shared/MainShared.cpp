@@ -388,10 +388,10 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 			GraphPointIdx = ( GraphPointIdx + 1 ) % GameTimeGraphPoints.size();
 
-			
-
 			OsClient* Client = OsCore::pImpl()->getClient( 0 );
 			static bool ShowOpened = true;
+			MaVec2d Position( Client->getWidth() - ( 316.0f ), 16.0f );
+			ImGui::SetNextWindowPos( Position );
 			if ( ImGui::Begin( "Engine Stats", &ShowOpened, ImVec2( 300.0f, 400.0f ), 0.3f, 
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
 			{

@@ -53,7 +53,7 @@ PS_MAIN( pixelMain )
 	// y - Roughness
 	float4 GBufferMaterial  = PSY_SAMPLE_2D( MaterialTex, IN( VsTexCoord0 ).xy );
 
-	float3 GBufferNormal  = normalize( PSY_SAMPLE_2D( NormalTex, IN( VsTexCoord0 ).xy ).xyz * 2.0 - 1.0 );
+	float3 GBufferNormal  = decodeNormal( PSY_SAMPLE_2D( NormalTex, IN( VsTexCoord0 ).xy ).xyz );
 	float4 Depth  = PSY_SAMPLE_2D( DepthTex, IN( VsTexCoord0 ).xy );
 
 	float4 SSPosition = float4( IN( VsTexCoord1 ).xy, Depth.x * 2.0 - 1.0, 1.0 );

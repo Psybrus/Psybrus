@@ -34,6 +34,8 @@ std::array< const char*, ScnDeferredRendererComponent::TEX_MAX > ScnDeferredRend
 	"aHDRTex",
 	"aLuminanceTex",
 	"aLuminance2Tex",
+	"aDownsampleBloom0Tex",
+	"aDownsampleBloom1Tex",
 	"aBloomTex",
 	"aBloomWorkTex",
 };
@@ -161,8 +163,10 @@ ScnDeferredRendererComponent::~ScnDeferredRendererComponent()
 void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 {
 	// Create textures.
-	BcU32 HalfWidth = Width_ == 0 ? -1 : Width_ / 2;
-	BcU32 HalfHeight = Height_ == 0 ? -1 : Width_ / 2;
+	BcS32 HalfWidth = Width_ <= 0 ? Width_ - 1 : Width_ / 2;
+	BcS32 HalfHeight = Height_ <= 0 ? Height_ - 1 : Height_ / 2;
+	BcS32 QuarterWidth = Width_ <= 0 ? Width_ - 2 : Width_ / 4;
+	BcS32 QuarterHeight = Height_ <= 0 ? Height_ - 2 : Height_ / 4;
 
 	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Albedo" );
@@ -178,9 +182,13 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
 	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsTextureFormat::R32F, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance2" );
-	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R8G8B8A8,
+	Textures_[ TEX_DOWNSAMPLE_BLOOM_0 ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R10G10B10A2,
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "DownsampleBloom0" );
+	Textures_[ TEX_DOWNSAMPLE_BLOOM_1 ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsTextureFormat::R10G10B10A2,
+		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "DownsampleBloom1" );
+	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsTextureFormat::R10G10B10A2,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Bloom" );
-	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R8G8B8A8,
+	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsTextureFormat::R10G10B10A2,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "BloomWork" );
 
 	// Subscribe for recreation after textures have been created.
@@ -293,6 +301,12 @@ void ScnDeferredRendererComponent::recreateResources()
 	FrameBuffers_[ FB_HDR ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
 		.setRenderTarget( 0, Textures_[ TEX_HDR ]->getTexture() )
 		.setDepthStencilTarget( Textures_[ TEX_GBUFFER_DEPTH ]->getTexture() ), "HDR" );
+
+	FrameBuffers_[ FB_DOWNSAMPLE_BLOOM_0 ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		.setRenderTarget( 0, Textures_[ TEX_DOWNSAMPLE_BLOOM_0 ]->getTexture() ), "DownsampleBloom0" );
+
+	FrameBuffers_[ FB_DOWNSAMPLE_BLOOM_1 ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
+		.setRenderTarget( 0, Textures_[ TEX_DOWNSAMPLE_BLOOM_1 ]->getTexture() ), "DownsampleBloom1" );
 
 	FrameBuffers_[ FB_BLOOM ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
 		.setRenderTarget( 0, Textures_[ TEX_BLOOM ]->getTexture() ), "Bloom" );
@@ -602,6 +616,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent::renderLights" );
 
 				setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 					GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -689,6 +704,7 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 		( RsContext* Context )
 		{
 			PSY_PROFILE_FUNCTION;
+			PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent::renderReflection" );
 
 			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -752,6 +768,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
+					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent calc lum" );
 					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 				} );
 		}
@@ -781,6 +798,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 					( RsContext* Context )
 					{
 						PSY_PROFILE_FUNCTION;
+						PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
 						Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 					} );
 			}
@@ -818,6 +836,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
+					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent transfer lum" );
 					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 				} );
 		}
@@ -843,6 +862,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent setup quad" );
 
 				setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 					GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -872,6 +892,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
+					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent calc lum" );
 			
 					Context->drawPrimitives( 
 						GeometryBinding,
@@ -887,7 +908,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 		// Downsample.
 		{
 			auto* DownsampleProgram = DownsampleShader_->getProgram( Permutation );
-			auto InputSRVSlot = DownsampleProgram->findShaderResourceSlot( "aHDRTexture" );
+			auto InputSRVSlot = DownsampleProgram->findShaderResourceSlot( "aInputTexture" );
 			RsProgramBindingDesc BindingDesc;
 
 			auto* LuminanceTexture = Textures_[ TEX_LUMINANCE ]->getTexture();
@@ -921,6 +942,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 					( RsContext* Context )
 					{
 						PSY_PROFILE_FUNCTION;
+						PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
 
 						Context->updateBuffer( DownsampleUniformBuffer, 0, sizeof( ScnShaderDownsampleUniformBlockData ), 
 							RsResourceUpdateFlags::ASYNC,
@@ -980,6 +1002,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
+					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent transfer lum" );
 
 					Context->drawPrimitives( 
 						GeometryBinding,
@@ -1044,6 +1067,7 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 		( RsContext* Context )
 		{
 			PSY_PROFILE_FUNCTION;
+			PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent resolve" );
 
 			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -1109,11 +1133,134 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 		( RsContext* Context )
 		{
 			PSY_PROFILE_FUNCTION;
+			PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent setup quad" );
 
 			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
 				MaVec2d( -1.0f, -1.0f ), MaVec2d( 1.0f, 1.0f ), UVSize );
 		} );
+
+	// Downsample.
+	{
+		auto* DownsampleProgram = DownsampleShader_->getProgram( Permutation );
+		auto InputSRVSlot = DownsampleProgram->findShaderResourceSlot( "aInputTexture" );
+		BcU32 UniformSlot = DownsampleProgram->findUniformBufferSlot( "ScnShaderDownsampleUniformBlockData" );
+		RsProgramBindingDesc BindingDesc;
+
+		DownsampleUniformBlock_.DownsampleSourceMipLevel_ = 0;
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				DownsampleUniformBuffer = DownsampleUniformBuffer_.get(),
+				DownsampleUniformBlock = DownsampleUniformBlock_
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
+
+				Context->updateBuffer( DownsampleUniformBuffer, 0, sizeof( ScnShaderDownsampleUniformBlockData ), 
+					RsResourceUpdateFlags::ASYNC,
+					[
+						DownsampleUniformBlock = DownsampleUniformBlock
+					]
+					( RsBuffer* Buffer, const RsBufferLock& Lock )
+					{
+						memcpy( Lock.Buffer_, &DownsampleUniformBlock, sizeof( DownsampleUniformBlock ) );
+					} );
+			} );
+
+		// Downsample 0. 
+		{
+			BindingDesc.setShaderResourceView( InputSRVSlot, Textures_[ TEX_HDR ]->getTexture(), 0, 1, 0, 1 );
+			BindingDesc.setUniformBuffer( UniformSlot, DownsampleUniformBuffer_.get(), 0, sizeof( ScnShaderDownsampleUniformBlockData ) );
+
+			auto ProgramBinding = RsCore::pImpl()->createProgramBinding( DownsampleProgram, BindingDesc, (*getName()).c_str() );
+
+			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+				[ 
+					GeometryBinding = GeometryBinding_.get(),
+					ProgramBinding = ProgramBinding.get(),
+					RenderState = ResolveRenderState_.get(),
+					FrameBuffer = FrameBuffers_[ FB_DOWNSAMPLE_BLOOM_0 ].get()
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample 0" );
+
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						nullptr,
+						nullptr,
+						RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1 );
+				} );
+		}
+
+		// Downsample 1.
+		{
+			BindingDesc.setShaderResourceView( InputSRVSlot, Textures_[ TEX_DOWNSAMPLE_BLOOM_0 ]->getTexture(), 0, 1, 0, 1 );
+			BindingDesc.setUniformBuffer( UniformSlot, DownsampleUniformBuffer_.get(), 0, sizeof( ScnShaderDownsampleUniformBlockData ) );
+
+			auto ProgramBinding = RsCore::pImpl()->createProgramBinding( DownsampleProgram, BindingDesc, (*getName()).c_str() );
+
+			RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+				[ 
+					GeometryBinding = GeometryBinding_.get(),
+					ProgramBinding = ProgramBinding.get(),
+					RenderState = ResolveRenderState_.get(),
+					FrameBuffer = FrameBuffers_[ FB_DOWNSAMPLE_BLOOM_1 ].get()
+				]
+				( RsContext* Context )
+				{
+					PSY_PROFILE_FUNCTION;
+					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample 1" );
+
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						nullptr,
+						nullptr,
+						RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1 );
+				} );
+		}
+	}
+
+	{
+		auto* BloomDownsampleProgram = DownsampleShader_->getProgram( Permutation );
+		RsProgramBindingDesc BindingDesc;
+
+		setTextures( BloomDownsampleProgram, BindingDesc );
+		
+		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomDownsampleProgram, BindingDesc, (*getName()).c_str() );
+
+		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
+			[ 
+				GeometryBinding = GeometryBinding_.get(),
+				ProgramBinding = ProgramBinding.get(),
+				RenderState = ResolveRenderState_.get(),
+				FrameBuffer = FrameBuffers_[ FB_DOWNSAMPLE_BLOOM_0 ].get()
+			]
+			( RsContext* Context )
+			{
+				PSY_PROFILE_FUNCTION;
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
+			
+				Context->drawPrimitives( 
+					GeometryBinding,
+					ProgramBinding,
+					RenderState,
+					FrameBuffer,
+					nullptr,
+					nullptr,
+					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
+			} );
+	}
 
 	// Generate bloom target.
 	{
@@ -1128,6 +1275,9 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			BindingDesc.setUniformBuffer( UniformSlot, BloomUniformBuffer_.get(), 0, sizeof( ScnShaderBloomUniformBlockData ) );
 		}
 
+		auto InputSRVSlot = BloomBrightPassProgram->findShaderResourceSlot( "aInputTexture" );
+		BindingDesc.setShaderResourceView( InputSRVSlot, Textures_[ TEX_DOWNSAMPLE_BLOOM_1 ]->getTexture(), 0, 1, 0, 1 );
+
 		auto ProgramBinding = RsCore::pImpl()->createProgramBinding( BloomBrightPassProgram, BindingDesc, (*getName()).c_str() );
 
 		RenderContext.pFrame_->queueRenderNode( RenderContext.Sort_,
@@ -1140,6 +1290,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent bloom bright pass" );
 			
 				Context->drawPrimitives( 
 					GeometryBinding,
@@ -1180,7 +1331,8 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-			
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent horizontal blur" );
+
 				Context->drawPrimitives( 
 					GeometryBinding,
 					ProgramBinding,
@@ -1220,7 +1372,8 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-			
+				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent vertical blur" );
+
 				Context->drawPrimitives( 
 					GeometryBinding,
 					ProgramBinding,

@@ -545,6 +545,8 @@ void SysKernel::runOnce()
 	}
 #endif
 
+	PSY_PROFILER_SECTION( GameFrame, "Game Frame" );
+
 	// Store frame time.
 	FrameTime_ = BcMin( (BcF32)MainTimer_.time(), 1.0f );
 
@@ -564,7 +566,7 @@ void SysKernel::runOnce()
 	// Sleep if we have a fixed rate specified, otherwise just yield.
 	if( TickRate_ > 0.0f )
 	{
-		//PSY_PROFILER_SECTION( TickSleep, "Sleep" );
+		PSY_PROFILER_SECTION( TickSleep, "Sleep" );
 
 		BcF32 TimeSpent = (BcF32)MainTimer_.time();
 		SleepAccumulator_ += BcMax( ( TickRate_ ) - TimeSpent, 0.0f );

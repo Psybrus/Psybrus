@@ -8,7 +8,7 @@ PS_IN_BEGIN
 	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
 PS_IN_END
 #include <PsybrusOutput.psh>
-PSY_SAMPLER_2D( HDRTex );
+PSY_SAMPLER_2D( InputTexture );
 PSY_SAMPLER_2D( Luminance2Tex );
 
 //////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ PS_MAIN( pixelMain_BrightPass )
 	PS_ENTER;
 
 	float AvgLum = PSY_SAMPLE_2D( Luminance2Tex, float2( 0.0, 0.0 ) ).x;
-	float4 Colour = PSY_SAMPLE_2D( HDRTex, IN( VsTexCoord0 ).xy );
+	float4 Colour = PSY_SAMPLE_2D( InputTexture, IN( VsTexCoord0 ).xy );
 	Colour -= float4( BloomThreshold_, BloomThreshold_, BloomThreshold_, 0.0f );
 	Colour = saturate( Colour / AvgLum );
 	outputFrag[0] = linearToGamma( Colour );
@@ -28,7 +28,6 @@ PS_MAIN( pixelMain_BrightPass )
 
 //////////////////////////////////////////////////////////////////////////
 // Blur
-PSY_SAMPLER_2D( InputTexture );
 
 float blurWeight( float X, float Width )
 {
