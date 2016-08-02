@@ -115,14 +115,12 @@ void SysJobWorker::execute()
 #if PSY_USE_PROFILER
 	if( BcProfiler::pImpl() )
 	{
-		BcProfiler::pImpl()->setThreadName( BcCurrentThreadId(), DebugName_.c_str() );
+		BcProfiler::pImpl()->setCurrentThreadName( DebugName_.c_str() );
 	}
 #endif
 	
 	// Mark as started.
 	StartFence_.decrement();
-
-	PSY_PROFILER_SECTION( WaitSchedule_Profiler, "SysJobWorker" );
 
 	// Enter loop.
 	while( Active_ )
@@ -139,7 +137,7 @@ void SysJobWorker::execute()
 		// Check for a job queues update.
 		if( PendingJobQueue_.load() > 0 )
 		{
-			std::lock_guard< std::mutex > Lock( JobQueuesLock_ );
+			std::lock_guard< std::mutex > Lock2( JobQueuesLock_ );
 			CurrJobQueues_.insert( CurrJobQueues_.end(), NextJobQueues_.begin(), NextJobQueues_.end() );
 
 			// Wrap job queue index round to fit into new size.

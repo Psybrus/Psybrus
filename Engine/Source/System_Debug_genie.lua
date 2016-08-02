@@ -24,6 +24,12 @@ PsyProjectEngineLib( "System_Debug" )
   	  "raknet", 
  		}
 
+  defines { "RMT_USE_OPENGL=1" }
+
+  configuration { "windows-* or linux-* or osx-*" }
+    PsyAddExternalLinks { "remotery" }    
+    includedirs { "../../External/Remotery/lib" }
+
   configuration { "windows-* or linux-* or osx-* or android-*" }
     PsyAddExternalLinks { "webby" }    
     includedirs { "../../External/webby/" }

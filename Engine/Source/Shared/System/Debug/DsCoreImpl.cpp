@@ -4,6 +4,7 @@
 #include "System/Debug/DsImGuiFieldEditor.h"
 #include "System/Debug/DsTemplate.h"
 #include "System/Debug/DsProfilerChromeTracing.h"
+#include "System/Debug/DsProfilerRemotery.h"
 
 #include "Base/BcFile.h"
 #include "Base/BcHtml.h"
@@ -47,7 +48,7 @@ DsCoreImpl::DsCoreImpl() :
 #if PSY_USE_PROFILER
 	if( GCommandLine_.hasArg( 'p', "profile" ) )
 	{
-		new DsProfilerChromeTracing();
+		new DsProfilerRemotery();
 	}
 #endif
 

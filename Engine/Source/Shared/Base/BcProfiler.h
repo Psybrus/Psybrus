@@ -30,9 +30,22 @@ public:
 	virtual ~BcProfiler(){};
 
 	/**
-	 * Set thread name.
+	 * Initialise graphics API profiling.
+	 * @param API API. I.e. D3D12, GL, VK, etc.
+	 * @param Context Context for API.
+	 * @param Device Device to profile.
 	 */
-	virtual void setThreadName( BcThreadId ThreadId, const char* Name ) = 0;
+	virtual void initialiseGraphics( const char* API, void* Context, void* Device ) = 0;
+
+	/**
+	 * Shutdown graphics API profiling.
+	 */
+	virtual void shutdownGraphics() = 0;
+
+	/**
+	 * Set current thread name.
+	 */
+	virtual void setCurrentThreadName( const char* Name ) = 0;
 
 	/**
 	 * Begin profiling.
@@ -55,6 +68,16 @@ public:
 	 * Should be thread safe, and track appropriately.
 	 */
 	virtual void exitSection( const char* Tag ) = 0;
+
+	/**
+	 * Enter GPU section to profile.
+	 */
+	virtual void enterGPUSection( const char* Tag ) = 0;
+
+	/**
+	 * Exit GPU section.
+	 */
+	virtual void exitGPUSection( const char* Tag ) = 0;
 
 	/**
 	 * Start async section. Tag MUST be unique.
@@ -117,6 +140,46 @@ public:
 		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
 		{
 			BcProfiler::pImpl()->exitSection( Tag_.data() );
+		}
+	}
+
+private:
+	std::array< char, 128 > Tag_;
+};
+
+//////////////////////////////////////////////////////////////////////////
+// BcProfilerGPUSectionScope
+class BcProfilerGPUSectionScope
+{
+public:
+	BcProfilerGPUSectionScope( const char* Tag ):
+		Tag_( { 0 } )
+	{
+		if( Tag )
+		{
+			if( BcProfiler::pImpl() != nullptr )
+			{
+				BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag );
+				BcProfiler::pImpl()->enterGPUSection( Tag_.data() );
+			}
+		}
+	}
+
+	BcProfilerGPUSectionScope( const std::string& Tag ):
+		Tag_( { 0 } )
+	{
+		if( BcProfiler::pImpl() != nullptr )
+		{
+			BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag.c_str() );
+			BcProfiler::pImpl()->enterGPUSection( Tag_.data() );
+		}
+	}
+
+	~BcProfilerGPUSectionScope()
+	{
+		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
+		{
+			BcProfiler::pImpl()->exitGPUSection( Tag_.data() );
 		}
 	}
 
@@ -237,7 +300,8 @@ public:
 	BcProfilerSectionScope _ProfilerFunction_##__LINE__( __PRETTY_FUNCTION__ ) 
 #endif
 
-#define PSY_PROFILER_SECTION( _LocalName, _Tag ) BcProfilerSectionScope _LocalName( _Tag ) 
+#define PSY_PROFILER_SECTION( _LocalName, _Tag ) BcProfilerSectionScope _LocalName##CPU( _Tag ) 
+#define PSY_PROFILER_GPU_SECTION( _LocalName, _Tag ) BcProfilerGPUSectionScope _LocalName##GPU( _Tag ) 
 #define PSY_PROFILER_START_ASYNC( _Tag, _Data ) BcProfilerStartAsync( _Tag, _Data )
 #define PSY_PROFILER_STEP_ASYNC( _Tag, _Data ) BcProfilerStepAsync( _Tag, _Data )
 #define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data ) BcProfilerEndAsync( _Tag, _Data )
@@ -247,6 +311,7 @@ public:
 
 #define PSY_PROFILE_FUNCTION
 #define PSY_PROFILER_SECTION( _LocalName, _Tag )
+#define PSY_PROFILER_GPU_SECTION( _LocalName, _Tag )
 #define PSY_PROFILER_START_ASYNC( _Tag, _Data )
 #define PSY_PROFILER_STEP_ASYNC( _Tag, _Data )
 #define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data )

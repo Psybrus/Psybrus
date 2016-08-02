@@ -44,12 +44,26 @@ DsProfilerChromeTracing::~DsProfilerChromeTracing()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setThreadName
+// setCurrentThreadName
 //virtual
-void DsProfilerChromeTracing::setThreadName( BcThreadId ThreadId, const char* Name )
+void DsProfilerChromeTracing::setCurrentThreadName( const char* Name )
 {
 	std::lock_guard< std::mutex > Lock( InternalMutex_ );
-	ThreadNames_[ ThreadId ] = Name;
+	ThreadNames_[ BcCurrentThreadId() ] = Name;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// initialiseGraphics
+void DsProfilerChromeTracing::initialiseGraphics( const char* API, void* Context, void* Device )
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+// shutdownGraphics
+void DsProfilerChromeTracing::shutdownGraphics()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,6 +206,20 @@ void DsProfilerChromeTracing::exitSection( const char* Tag )
 			Event->StartTime_ = Timer_.time();
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// enterGPUSection
+//virtual
+void DsProfilerChromeTracing::enterGPUSection( const char* Tag )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// exitGPUSection
+//virtual
+void DsProfilerChromeTracing::exitGPUSection( const char* Tag )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////

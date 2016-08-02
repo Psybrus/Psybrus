@@ -36,11 +36,15 @@ public:
 	DsProfilerChromeTracing();
 	virtual ~DsProfilerChromeTracing();
 
-	void setThreadName( BcThreadId ThreadId, const char* Name ) override;
+	void setCurrentThreadName( const char* Name ) override;
+	void initialiseGraphics( const char* API, void* Context, void* Device ) override;
+	void shutdownGraphics() override;
 	void beginProfiling() override;
 	void endProfiling() override;
 	void enterSection( const char* Tag ) override;
 	void exitSection( const char* Tag ) override;
+	void enterGPUSection( const char* Tag ) override;
+	void exitGPUSection( const char* Tag ) override;
 	void startAsync( const char* Tag, void* Data ) override;
 	void stepAsync( const char* Tag, void* Data ) override;
 	void endAsync( const char* Tag, void* Data ) override;

@@ -16,6 +16,7 @@ dofile ("jsoncpp_genie.lua")
 dofile ("libb64_genie.lua")
 dofile ("fcpp_genie.lua")
 dofile ("png_genie.lua")
+dofile ("remotery_genie.lua")
 dofile ("zlib_genie.lua")
 dofile ("SoLoud_genie.lua")
 

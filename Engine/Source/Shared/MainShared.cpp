@@ -43,8 +43,6 @@ BcU32 GResolutionHeight = 720;
 #include "Base/BcFile.h"
 #include "Base/BcProfiler.h"
 
-#include "System/Debug/DsProfilerChromeTracing.h"
-
 #define SEARCH_FOR_CORRECT_PATH ( PLATFORM_WINDOWS | PLATFORM_LINUX | PLATFORM_OSX )
 
 #include <chrono>
@@ -639,7 +637,7 @@ void MainShared()
 	// Set name in profiler.
 	if( BcProfiler::pImpl() )
 	{
-		BcProfiler::pImpl()->setThreadName( BcCurrentThreadId(), "Main Thread" );
+		BcProfiler::pImpl()->setCurrentThreadName( "Main Thread" );
 	}
 #endif
 }

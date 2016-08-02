@@ -314,6 +314,7 @@ void RsContextGL::beginFrame()
 void RsContextGL::endFrame()
 {
 	PSY_PROFILE_FUNCTION;
+	PSY_PROFILER_GPU_SECTION( endFrame );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 1 );
 	--InsideBeginEnd_;
@@ -827,6 +828,12 @@ void RsContextGL::create()
 	GL( Enable( GL_TEXTURE_CUBE_MAP_SEAMLESS ) );
 #endif
 
+#if PSY_USE_PROFILER
+	if( BcProfiler::pImpl() )
+	{
+		BcProfiler::pImpl()->initialiseGraphics( "GL", nullptr, nullptr );
+	}
+#endif // PSY_USE_PROFILER
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -842,6 +849,13 @@ void RsContextGL::update()
 //virtual
 void RsContextGL::destroy()
 {
+#if PSY_USE_PROFILER
+	if( BcProfiler::pImpl() )
+	{
+		BcProfiler::pImpl()->shutdownGraphics();
+	}
+#endif // PSY_USE_PROFILER
+
 	// Destroy transfer FBO.
 	GL( DeleteFramebuffers( 2, TransferFBOs_ ) );
 
@@ -1726,6 +1740,8 @@ void RsContextGL::drawPrimitives(
 		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
+	PSY_PROFILER_GPU_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
+
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
@@ -1792,6 +1808,7 @@ void RsContextGL::drawIndexedPrimitives(
 		BcU32 FirstInstance, BcU32 NoofInstances )
 {
 	PSY_PROFILE_FUNCTION;
+	PSY_PROFILER_GPU_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();

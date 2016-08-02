@@ -100,6 +100,7 @@ void RsFrame::reset()
 void RsFrame::render()
 {
 	PSY_PROFILER_SECTION( UpdateRoot, "RsFrame::render" );
+	PSY_PROFILER_GPU_SECTION( UpdateRoot, "RsFrame::render" );
 
 	// Only render if we have a valid context.
 	if( pContext_ != NULL )

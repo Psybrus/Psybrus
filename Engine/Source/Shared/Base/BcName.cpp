@@ -372,7 +372,6 @@ std::string BcName::StripInvalidChars( const BcChar* pString )
 // GetLock
 std::mutex& BcName::GetLock()
 {
-	PSY_PROFILER_SECTION( Profile, "BcName::GetLock()" );
 	static std::mutex Lock;
 	return Lock;
 }
