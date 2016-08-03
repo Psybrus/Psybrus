@@ -38,6 +38,7 @@ public:
 	MaPlane(){}
 	MaPlane( const MaVec3d& Normal, BcF32 D );
 	MaPlane( BcF32 A, BcF32 B, BcF32 C, BcF32 D );
+	MaPlane( const MaVec3d& V1, const MaVec3d& V2, const MaVec3d& V3 );
 	~MaPlane(){}
 
 	void normalise();
@@ -88,6 +89,11 @@ inline MaPlane::MaPlane( BcF32 A, BcF32 B, BcF32 C, BcF32 D )
 {
 	Normal_ = MaVec3d( A, B, C );
 	D_ = D;
+}
+
+inline MaPlane::MaPlane( const MaVec3d& V1, const MaVec3d& V2, const MaVec3d& V3 )
+{
+	fromPoints( V1, V2, V3 );
 }
 
 #endif
