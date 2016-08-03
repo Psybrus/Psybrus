@@ -37,6 +37,17 @@ float4 mul( float4x4 M, float4 V )
 {
 	return M * V;
 }
+
+float3x3 mul( float3x3 M, float3x3 V )
+{
+	return M * V;
+}
+
+float4x4 mul( float4x4 M, float4x4 V )
+{
+	return M * V;
+}
+
 #endif // PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
