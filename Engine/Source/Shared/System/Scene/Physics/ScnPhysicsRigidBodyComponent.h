@@ -70,6 +70,7 @@ private:
 	class btRigidBody* RigidBody_;
 
 	BcF32 Mass_;
+	BcBool IsTrigger_;
 
 	/// What collision group we belong to.
 	BcU16 CollisionGroup_ = BcU16( 1 );

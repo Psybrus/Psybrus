@@ -33,6 +33,7 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Mass_", &ScnPhysicsRigidBodyComponent::Mass_, bcRFF_IMPORTER ),
+		new ReField( "IsTrigger_", &ScnPhysicsRigidBodyComponent::IsTrigger_, bcRFF_IMPORTER ),
 		new ReField( "CollisionGroup_", &ScnPhysicsRigidBodyComponent::CollisionGroup_, bcRFF_IMPORTER ),
 		new ReField( "CollisionMask_", &ScnPhysicsRigidBodyComponent::CollisionMask_, bcRFF_IMPORTER ),
 		new ReField( "Friction_", &ScnPhysicsRigidBodyComponent::Friction_, bcRFF_IMPORTER ),
@@ -277,6 +278,19 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	ConstructionInfo.m_angularSleepingThreshold = AngularSleepingThreshold_;
 	RigidBody_ = new btRigidBody( ConstructionInfo );
 	RigidBody_->setUserPointer( this );
+
+	// Intentionally not an epsilon test. Will explicitly set to 0.0.
+	if( Mass_ == 0.0f )
+	{
+		RigidBody_->setCollisionFlags( RigidBody_->getCollisionFlags() |
+		    btCollisionObject::CF_STATIC_OBJECT );
+	}
+
+	if( IsTrigger_ )
+	{
+		RigidBody_->setCollisionFlags( RigidBody_->getCollisionFlags() |
+		    btCollisionObject::CF_NO_CONTACT_RESPONSE );
+	}
 	World_->addRigidBody( RigidBody_, CollisionGroup_, CollisionMask_ );
 }
 
