@@ -59,6 +59,7 @@ void ScnPhysicsRigidBodyComponent::StaticRegisterClass()
 ScnPhysicsRigidBodyComponent::ScnPhysicsRigidBodyComponent():
 	RigidBody_( nullptr ),
 	Mass_ ( 0.0f ),
+	IsTrigger_( BcFalse ),
 	RollingFriction_( 0.0f ),
 	Friction_( 0.0f ),
 	Restitution_( 0.0f ),
@@ -283,7 +284,7 @@ void ScnPhysicsRigidBodyComponent::onAttach( ScnEntityWeakRef Parent )
 	if( Mass_ == 0.0f )
 	{
 		RigidBody_->setCollisionFlags( RigidBody_->getCollisionFlags() |
-		    btCollisionObject::CF_STATIC_OBJECT );
+			btCollisionObject::CF_STATIC_OBJECT );
 	}
 
 	if( IsTrigger_ )
