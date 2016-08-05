@@ -483,10 +483,21 @@ void ScnCore::queueComponentForAttach( ScnComponentRef Component )
 {
 	BcAssert( Component->getName() != BcName::INVALID );
 	
-	// Add pending operation if not already in queue.
-	if( std::find( PendingAttachComponentList_.begin(), PendingAttachComponentList_.end(), Component ) == PendingAttachComponentList_.end() )
+	BcAssert( Component->getInitStage() != CsResource::INIT_STAGE_DESTROY );
+
+	//
+	BcAssert( Component->isReady() )
+
+	// Handle attachment.
+	if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
 	{
-		PendingAttachComponentList_.push_back( Component );
+		auto ParentName =
+			Component->getParentEntity() ? 
+				Component->getParentEntity()->getName() : 
+				BcName::INVALID;
+		Component->onAttach( Component->getParentEntity() );
+		onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
+		BcAssertMsg( Component->isFlagSet( scnCF_ATTACHED ), "Not attached? Did you call Super::onAttach?" );
 	}
 }
 
@@ -619,30 +630,6 @@ void ScnCore::processPendingComponents()
 	}
 	PendingEntityRemovalSet_.clear();
 
-	while( PendingAttachComponentList_.size() > 0 )
-	{
-		//
-		ScnComponentRef Component( *PendingAttachComponentList_.begin() );
-		PendingAttachComponentList_.erase( PendingAttachComponentList_.begin() );
-
-		BcAssert( Component->getInitStage() != CsResource::INIT_STAGE_DESTROY );
-
-		//
-		BcAssert( Component->isReady() )
-
-		// Handle attachment.
-		if( Component->isFlagSet( scnCF_PENDING_ATTACH ) )
-		{
-			auto ParentName =
-				Component->getParentEntity() ? 
-					Component->getParentEntity()->getName() : 
-					BcName::INVALID;
-			Component->onAttach( Component->getParentEntity() );
-			onAttachComponent( ScnEntityWeakRef( Component->getParentEntity() ), ScnComponentRef( Component ) );
-			BcAssertMsg( Component->isFlagSet( scnCF_ATTACHED ), "Not attached? Did you call Super::onAttach?" );
-		}
-	}
-
 	ScnComponentList ComponentToDestroy;
 	while( PendingDetachComponentList_.size() > 0 )
 	{
@@ -708,6 +695,10 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	// Set it's transform.
 	Entity->setLocalMatrix( Params.Transform_ );
 
+	// Initialise entity.
+	Entity->initialise();
+	Entity->postInitialise();
+
 	// Add entity if we have no parent.
 	if( !Params.Parent_.isValid() )
 	{
@@ -720,25 +711,33 @@ ScnEntity* ScnCore::internalSpawnEntity(
 		Entity->visitHierarchy(
 			ScnComponentVisitType::BOTTOM_UP,
 			Params.Parent_,
-			[ this, &Params ]( ScnComponent* Component, ScnEntity* Parent )
+			[ this, &Params, Entity ]( ScnComponent* Component, ScnEntity* Parent )
 			{
-				BcAssert( Component->getBasis() );
-				PSY_LOG( "Component \"%s\" has package \"%s\"", 
-					(*Component->getName()).c_str(),
-					(*Component->getPackage()->getName()).c_str() );
-				if( Parent != nullptr )
+				// If component doesn't have a basis, then it has been added
+				// during this visit. We can skip it.
+				if( Component->getBasis() )
 				{
-					PSY_LOG( "Component's parent \"%s\" has package \"%s\"", 
-						(*Parent->getName()).c_str(),
-						(*Parent->getPackage()->getName()).c_str() );
-				}
+					PSY_LOG( "Component \"%s\" has package \"%s\"", 
+						(*Component->getName()).c_str(),
+						(*Component->getPackage()->getName()).c_str() );
+					if( Parent != nullptr )
+					{
+						PSY_LOG( "Component's parent \"%s\" has package \"%s\"", 
+							(*Parent->getName()).c_str(),
+							(*Parent->getPackage()->getName()).c_str() );
+					}
 			
-				Component->initialise();
-				Component->postInitialise();
+					if( Parent != nullptr && Component != Entity )
+					{
+						Component->initialise();
+						Component->postInitialise();
+						Component->setOwner( Parent );
+					}
 
-				if( Parent != nullptr )
-				{
-					Parent->attach( Component );
+					if( Parent != nullptr )
+					{
+						Parent->attach( Component );
+					}
 				}
 			} );
 	}

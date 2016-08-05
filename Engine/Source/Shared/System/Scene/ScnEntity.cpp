@@ -123,8 +123,9 @@ void ScnEntity::visitHierarchy(
 		Super::visitHierarchy( VisitType, Parent, Func );
 	}
 
-	for( auto& Component : Components_ )
+	for( size_t Idx = 0; Idx < Components_.size(); ++Idx )
 	{
+		auto Component = Components_[ Idx ];
 		Component->visitHierarchy( VisitType, this, Func );
 	}
 
@@ -539,7 +540,6 @@ void ScnEntity::setupComponents()
 					{
 						Component->setOwner( getPackage() );
 						Component->initialise();
-						Component->postInitialise();
 						Parent->attach( Component );
 					} );
 			}

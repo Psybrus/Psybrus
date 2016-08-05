@@ -138,7 +138,6 @@ private:
 	BcBool StepSingleUpdate_;
 
 	// Pending components + entities.
-	ScnComponentList PendingAttachComponentList_;
 	ScnComponentList PendingDetachComponentList_;
 	std::set< ScnEntity* > PendingEntityRemovalSet_;
 	
