@@ -61,9 +61,6 @@ public:
 	class btRigidBody* getRigidBody();
 
 private:
-	static void updateBodies( const ScnComponentList& Components );
-
-private:
 	class ScnPhysicsWorldComponent* World_;
 	class ScnPhysicsCollisionComponent* CollisionComponent_;
 
