@@ -137,7 +137,7 @@ public:
 	 * Get component on any parent or self by type.
 	 */
 	template< typename _Ty >
-	_Ty* getComponentAnyParentByType( BcU32 Idx = 0 )
+	_Ty* getComponentAnyParentByType( size_t Idx = 0 )
 	{
 		return static_cast< _Ty* >( getComponentAnyParent( Idx, _Ty::StaticGetClass() ) );
 	}

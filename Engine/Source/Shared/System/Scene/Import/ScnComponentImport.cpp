@@ -80,8 +80,7 @@ BcBool ScnComponentImport::import()
 	CsSerialiserPackageObjectCodec ObjectCodec( nullptr, bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
 	SeJsonWriter Writer( &ObjectCodec );
 	Writer.serialise( Component_, Component_->getClass() );
-	Writer.save( "test_component.json" );
-
+	
 	// Write out object to be used later.
 	Json::FastWriter JsonWriter;
 	std::string JsonData = JsonWriter.write( Writer.getValue() );
