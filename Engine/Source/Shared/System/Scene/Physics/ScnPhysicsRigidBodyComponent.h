@@ -53,6 +53,8 @@ public:
 	MaVec3d getPosition() const;
 	MaQuat getRotation() const;  
 
+	bool isTrigger() const { return !!IsTrigger_; }
+
 	void setTransform( const MaMat4d& NewTransform );
 
 	void onAttach( ScnEntityWeakRef Parent ) override;

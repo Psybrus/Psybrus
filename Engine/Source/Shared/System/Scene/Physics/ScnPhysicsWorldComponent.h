@@ -91,6 +91,7 @@ private:
 	std::vector< ScnIPhysicsWorldUpdate* > WorldUpdateHandler_;
 
 	std::vector< ScnPhysicsEventCollision > Collisions_;
+	std::vector< ScnPhysicsEventTrigger > Triggers_;
 
 	BcU32 DebugRenderingHandle_;
 };

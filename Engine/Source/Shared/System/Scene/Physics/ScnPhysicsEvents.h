@@ -9,6 +9,7 @@ enum class ScnPhysicsEvents : EvtID
 	FIRST = EVT_MAKE_ID( 'S', 'p', 0 ),
 
 	COLLISION,
+	TRIGGER,
 	
 	//
 	MAX
@@ -27,4 +28,12 @@ struct ScnPhysicsEventCollision: EvtEvent< ScnPhysicsEventCollision >
 	};
 	BcU32 NoofContactPoints_;
 	std::array< ContactPoint, 8 > ContactPoints_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// ScnPhysicsEventTrigger
+struct ScnPhysicsEventTrigger: EvtEvent< ScnPhysicsEventTrigger >
+{
+	class ScnPhysicsRigidBodyComponent* BodyA_;	
+	class ScnPhysicsRigidBodyComponent* BodyB_;
 };

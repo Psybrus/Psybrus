@@ -850,79 +850,7 @@ void DsCoreImpl::deregisterPage( BcU32 Handle )
 void DsCoreImpl::setupReflectionEditorAttributes()
 {
 	// Add some custom editors.
-	ReManager::GetClass( "BcU8" )->addAttribute(
-		new DsImGuiFieldEditor(
-		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
-		{
-			BcU8* Value = ( BcU8* ) Object;
-			int ValueInt = *Value;
-			if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
-			{
-				*Value = ( BcU8 ) ValueInt;
-			}
-		} ) );
-
-	ReManager::GetClass( "BcS8" )->addAttribute(
-		new DsImGuiFieldEditor(
-		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
-		{
-			BcS8* Value = ( BcS8* ) Object;
-			int ValueInt = *Value;
-			if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
-			{
-				*Value = ( BcS8 ) ValueInt;
-			}
-		} ) );
-
-	ReManager::GetClass( "BcU16" )->addAttribute(
-		new DsImGuiFieldEditor(
-		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
-		{
-			BcU16* Value = ( BcU16* ) Object;
-			int ValueInt = *Value;
-			if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
-			{
-				*Value = ( BcU16 ) ValueInt;
-			}
-		} ) );
-
-	ReManager::GetClass( "BcS16" )->addAttribute(
-		new DsImGuiFieldEditor(
-		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
-		{
-			BcS16* Value = ( BcS16* ) Object;
-			int ValueInt = *Value;
-			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
-			{
-				*Value = ( BcS16 ) ValueInt;
-			}
-		} ) );
-
-	ReManager::GetClass( "BcU32" )->addAttribute(
-		new DsImGuiFieldEditor(
-		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
-		{
-			BcU32* Value = ( BcU32* ) Object;
-			int ValueInt = *Value;
-			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
-			{
-				*Value = ( BcU32 ) ValueInt;
-			}
-		} ) );
-
-	ReManager::GetClass( "BcS32" )->addAttribute(
-		new DsImGuiFieldEditor(
-		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
-		{
-			BcS32* Value = ( BcS32* ) Object;
-			int ValueInt = *Value;
-			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
-			{
-				*Value = ( BcS32 ) ValueInt;
-			}
-		} ) );
-
-	ReManager::GetClass( "BcBool" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< BcBool >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -934,7 +862,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "bool" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< bool >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -946,7 +874,93 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "BcF32" )->addAttribute(
+	ReManager::GetClass(ReTypeTraits< BcU8 >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			BcU8* Value = ( BcU8* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( BcU8 ) ValueInt;
+			}
+		} ) );
+
+	ReManager::GetClass( ReTypeTraits< BcS8 >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			BcS8* Value = ( BcS8* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( BcS8 ) ValueInt;
+			}
+		} ) );
+
+	ReManager::GetClass( ReTypeTraits< BcU16 >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			BcU16* Value = ( BcU16* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( BcU16 ) ValueInt;
+			}
+		} ) );
+
+	ReManager::GetClass( ReTypeTraits< BcS16 >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			BcS16* Value = ( BcS16* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( BcS16 ) ValueInt;
+			}
+		} ) );
+
+	ReManager::GetClass( ReTypeTraits< BcU32 >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			BcU32* Value = ( BcU32* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( BcU32 ) ValueInt;
+			}
+		} ) );
+
+	ReManager::GetClass( ReTypeTraits< BcS32 >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			BcS32* Value = ( BcS32* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( BcS32 ) ValueInt;
+			}
+		} ) );
+
+
+
+	ReManager::GetClass( ReTypeTraits< size_t >::Name() )->addAttribute(
+		new DsImGuiFieldEditor(
+		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
+		{
+			size_t* Value = ( size_t* ) Object;
+			int ValueInt = *Value;
+			if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )
+			{
+				*Value = ( size_t ) ValueInt;
+			}
+		} ) );
+
+	ReManager::GetClass( ReTypeTraits< BcF32 >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -958,7 +972,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "BcF64" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< BcF64 >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -970,7 +984,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "string" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< std::string >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -983,7 +997,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "BcName" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< BcName >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -996,7 +1010,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "MaVec2d" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< MaVec2d >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1009,7 +1023,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "MaVec3d" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< MaVec3d >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1023,7 +1037,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "MaVec4d" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< MaVec4d >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1038,7 +1052,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "MaAABB" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< MaAABB >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1055,7 +1069,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "MaQuat" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< MaQuat >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1071,7 +1085,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "MaMat4d" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< MaMat4d >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1107,7 +1121,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "RsColour" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< RsColour >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 		{
@@ -1138,7 +1152,7 @@ void DsCoreImpl::setupReflectionEditorAttributes()
 			}
 		} ) );
 
-	ReManager::GetClass( "ReObject" )->addAttribute(
+	ReManager::GetClass( ReTypeTraits< ReObject >::Name() )->addAttribute(
 		new DsImGuiFieldEditor(
 		[ this ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* ObjectData, const ReClass* Class, ReFieldFlags Flags )
 		{

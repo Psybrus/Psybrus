@@ -223,8 +223,6 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 			// Gather collisions.
 			int NumManifolds = World->Dispatcher_->getNumManifolds();
-			ScnPhysicsEventCollision EventA;
-			ScnPhysicsEventCollision EventB;
 			World->Collisions_.reserve( NumManifolds * 2 );
 			for( int ManifoldIdx = 0; ManifoldIdx < NumManifolds; ++ManifoldIdx )
 			{
@@ -235,31 +233,51 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 				auto RigidBodyB = static_cast< ScnPhysicsRigidBodyComponent* >( ObB_->getUserPointer() );	
 				BcAssert( RigidBodyA->isTypeOf< ScnPhysicsRigidBodyComponent >() );
 				BcAssert( RigidBodyB->isTypeOf< ScnPhysicsRigidBodyComponent >() );
-				
-				EventA.BodyA_ = RigidBodyA;
-				EventA.BodyB_ = RigidBodyB;
-				EventA.NoofContactPoints_ = 0;
-				EventB.BodyA_ = RigidBodyB;
-				EventB.BodyB_ = RigidBodyA;
-				EventB.NoofContactPoints_ = 0;
+			
 				size_t NumContacts = ContactManifold->getNumContacts();
-				for( int ContactIdx = 0; ContactIdx < std::min( NumContacts, EventA.ContactPoints_.size() ); ++ContactIdx )
+				if( NumContacts > 0 )
 				{
-					const btManifoldPoint& Point = ContactManifold->getContactPoint( ContactIdx );
-					ScnPhysicsEventCollision::ContactPoint& ContactPointA = EventA.ContactPoints_[ EventA.NoofContactPoints_++ ];
-					ScnPhysicsEventCollision::ContactPoint& ContactPointB = EventB.ContactPoints_[ EventB.NoofContactPoints_++ ];
-					ContactPointA.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
-					ContactPointA.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+					if( RigidBodyA->isTrigger() || RigidBodyB->isTrigger() )
+					{
+						ScnPhysicsEventTrigger EventA;
+						ScnPhysicsEventTrigger EventB;
+						EventA.BodyA_ = RigidBodyA;
+						EventA.BodyB_ = RigidBodyB;
+						EventB.BodyA_ = RigidBodyB;
+						EventB.BodyB_ = RigidBodyA;
 
-					ContactPointB.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
-					ContactPointB.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+						World->Triggers_.push_back( EventA );
+						World->Triggers_.push_back( EventB );
+					}
+					else
+					{
+						ScnPhysicsEventCollision EventA;
+						ScnPhysicsEventCollision EventB;
+						EventA.BodyA_ = RigidBodyA;
+						EventA.BodyB_ = RigidBodyB;
+						EventA.NoofContactPoints_ = 0;
+						EventB.BodyA_ = RigidBodyB;
+						EventB.BodyB_ = RigidBodyA;
+						EventB.NoofContactPoints_ = 0;
+						for( int ContactIdx = 0; ContactIdx < std::min( NumContacts, EventA.ContactPoints_.size() ); ++ContactIdx )
+						{
+							const btManifoldPoint& Point = ContactManifold->getContactPoint( ContactIdx );
+							ScnPhysicsEventCollision::ContactPoint& ContactPointA = EventA.ContactPoints_[ EventA.NoofContactPoints_++ ];
+							ScnPhysicsEventCollision::ContactPoint& ContactPointB = EventB.ContactPoints_[ EventB.NoofContactPoints_++ ];
+							ContactPointA.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+							ContactPointA.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+
+							ContactPointB.PointA_ = ScnPhysicsFromBullet( Point.getPositionWorldOnB() );
+							ContactPointB.PointB_ = ScnPhysicsFromBullet( Point.getPositionWorldOnA() );
+						}
+
+						if( EventA.NoofContactPoints_ > 0 )
+						{
+							World->Collisions_.push_back( EventA );
+							World->Collisions_.push_back( EventB );
+						}				
+					}
 				}
-
-				if( EventA.NoofContactPoints_ > 0 )
-				{
-					World->Collisions_.push_back( EventA );
-					World->Collisions_.push_back( EventB );
-				}				
 			}
 
 			// Publish collision events.
@@ -269,8 +287,16 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 				Entity->publish( (EvtID)ScnPhysicsEvents::COLLISION, Collision );
 			}
 
-			// Clear gathered collisions.
+			// Publish trigger events.
+			for( auto& Collision : World->Triggers_ )
+			{
+				auto Entity = Collision.BodyA_->getParentEntity();
+				Entity->publish( (EvtID)ScnPhysicsEvents::TRIGGER, Collision );
+			}
+
+			// Clear gathered collisions & triggers.
 			World->Collisions_.clear();
+			World->Triggers_.clear();
 
 		}, this, false );
 
