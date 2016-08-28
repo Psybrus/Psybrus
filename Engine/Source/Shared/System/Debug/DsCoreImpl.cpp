@@ -130,6 +130,9 @@ DsCoreImpl::DsCoreImpl() :
 	ShortcutLookup_[ '7' ] = "7";
 	ShortcutLookup_[ '8' ] = "8";
 	ShortcutLookup_[ '9' ] = "9";
+
+	ShortcutLookup_[ 192 ] = "`";
+	ShortcutLookup_[ '~' ] = "~";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -325,8 +328,6 @@ void DsCoreImpl::open()
 						{
 							Shortcut = "+" + Shortcut;
 						}
-
-						PSY_LOG( "Shortcut: Ctrl %u, Alt %u, Shift %u, %s", CtrlModifier_, AltModifier_, ShiftModifier_, Panel.Shortcut_.c_str() );
 
 						if( Panel.Shortcut_.find( Shortcut ) == Panel.Shortcut_.length() - Shortcut.length() )
 						{
