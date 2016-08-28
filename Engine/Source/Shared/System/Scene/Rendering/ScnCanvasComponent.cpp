@@ -413,7 +413,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
-		pVertices->U_ = 1.0f;
+		pVertices->U_ = 0.0f;
 		pVertices->V_ = 0.0f;
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
@@ -423,7 +423,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = 0.0f;
-		pVertices->V_ = 1.0f;
+		pVertices->V_ = 0.0f;
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
@@ -431,8 +431,8 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
-		pVertices->U_ = 1.0f;
-		pVertices->V_ = 1.0f;
+		pVertices->U_ = 0.0f;
+		pVertices->V_ = 0.0f;
 		pVertices->ABGR_ = ABGR;
 		
 		// Add primitive.	
