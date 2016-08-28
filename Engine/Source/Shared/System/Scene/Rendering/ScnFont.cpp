@@ -284,7 +284,7 @@ ScnFontDrawParams::ScnFontDrawParams():
 	BorderColour_( RsColour::BLACK ),
 	ShadowColour_( RsColour::BLACK ),
 	TextSettings_( 0.45f, 0.5f, -1.0f, -1.0f ),
-	BorderSettings_( -1.0f, -1.0, -1.0f, -1.0f ),
+	BorderSettings_( -1.0f, -1.0f, -1.0f, -1.0f ),
 	ShadowSettings_( 0.0f, 0.0f, 0.0f, 0.0f )
 {
 
@@ -292,17 +292,17 @@ ScnFontDrawParams::ScnFontDrawParams():
 
 //////////////////////////////////////////////////////////////////////////
 // setWrappingEnabled
-ScnFontDrawParams& ScnFontDrawParams::setWrappingEnabled( BcBool Enabled )
+ScnFontDrawParams& ScnFontDrawParams::setWrappingEnabled( bool Enabled )
 {
-	WrappingEnabled_ = Enabled;
+	WrappingEnabled_ = Enabled ? BcTrue : BcFalse;
 	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getWrappingEnabled
-BcBool ScnFontDrawParams::getWrappingEnabled() const
+bool ScnFontDrawParams::getWrappingEnabled() const
 {
-	return WrappingEnabled_;
+	return !!WrappingEnabled_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -367,17 +367,17 @@ BcF32 ScnFontDrawParams::getSize() const
 
 //////////////////////////////////////////////////////////////////////////
 // setClippingEnabled
-ScnFontDrawParams& ScnFontDrawParams::setClippingEnabled( BcBool Enabled )
+ScnFontDrawParams& ScnFontDrawParams::setClippingEnabled( bool Enabled )
 {
-	ClippingEnabled_ = Enabled;
+	ClippingEnabled_ = Enabled ? BcTrue : BcFalse;
 	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // getClippingEnabled
-BcBool ScnFontDrawParams::getClippingEnabled() const
+bool ScnFontDrawParams::getClippingEnabled() const
 {
-	return ClippingEnabled_;
+	return !!ClippingEnabled_;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -133,8 +133,8 @@ public:
 	/**
 	 * Do we wrap words when aligning?
 	 */
-	ScnFontDrawParams& setWrappingEnabled( BcBool Enabled );
-	BcBool getWrappingEnabled() const;
+	ScnFontDrawParams& setWrappingEnabled( bool Enabled );
+	bool getWrappingEnabled() const;
 
 	/**
 	 * Layer to draw on.
@@ -151,8 +151,8 @@ public:
 	/**
 	 * Do we wish to allow clipping?
 	 */
-	ScnFontDrawParams& setClippingEnabled( BcBool Enabled );
-	BcBool getClippingEnabled() const;
+	ScnFontDrawParams& setClippingEnabled( bool Enabled );
+	bool getClippingEnabled() const;
 
 	/**
 	 * Clipping bounds.
