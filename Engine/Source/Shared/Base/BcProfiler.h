@@ -18,6 +18,8 @@
 #include "Base/BcMisc.h"
 #include "Base/BcString.h"
 
+#include <stdarg.h>
+
 #if PSY_USE_PROFILER
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,29 +114,22 @@ private:
 class BcProfilerSectionScope
 {
 public:
-	BcProfilerSectionScope( const char* Tag ):
+	BcProfilerSectionScope( const char* Tag, ... ):
 		Tag_( { 0 } )
 	{
 		if( Tag )
 		{
 			if( BcProfiler::pImpl() != nullptr )
 			{
-				BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag );
+				va_list Args;
+				va_start( Args, Tag );
+				BcVSPrintf( Tag_.data(), Tag_.size(), Tag, Args ); 
+				va_end( Args );
 				BcProfiler::pImpl()->enterSection( Tag_.data() );
 			}
 		}
 	}
-
-	BcProfilerSectionScope( const std::string& Tag ):
-		Tag_( { 0 } )
-	{
-		if( BcProfiler::pImpl() != nullptr )
-		{
-			BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag.c_str() );
-			BcProfiler::pImpl()->enterSection( Tag_.data() );
-		}
-	}
-
+	
 	~BcProfilerSectionScope()
 	{
 		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
@@ -152,29 +147,22 @@ private:
 class BcProfilerGPUSectionScope
 {
 public:
-	BcProfilerGPUSectionScope( const char* Tag ):
+	BcProfilerGPUSectionScope( const char* Tag, ... ):
 		Tag_( { 0 } )
 	{
 		if( Tag )
 		{
 			if( BcProfiler::pImpl() != nullptr )
 			{
-				BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag );
+				va_list Args;
+				va_start( Args, Tag );
+				BcVSPrintf( Tag_.data(), Tag_.size(), Tag, Args ); 
+				va_end( Args );
 				BcProfiler::pImpl()->enterGPUSection( Tag_.data() );
 			}
 		}
 	}
-
-	BcProfilerGPUSectionScope( const std::string& Tag ):
-		Tag_( { 0 } )
-	{
-		if( BcProfiler::pImpl() != nullptr )
-		{
-			BcStrCopy( Tag_.data(), BcU32( Tag_.size() - 1 ), Tag.c_str() );
-			BcProfiler::pImpl()->enterGPUSection( Tag_.data() );
-		}
-	}
-
+	
 	~BcProfilerGPUSectionScope()
 	{
 		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
@@ -202,14 +190,6 @@ public:
 			}
 		}
 	}
-
-	BcProfilerStartAsync( const std::string& Tag, void* Data )
-	{
-		if( BcProfiler::pImpl() != nullptr )
-		{
-			BcProfiler::pImpl()->startAsync( Tag.c_str(), Data );
-		}
-	}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,14 +205,6 @@ public:
 			{
 				BcProfiler::pImpl()->stepAsync( Tag, Data );
 			}
-		}
-	}
-
-	BcProfilerStepAsync( const std::string& Tag, void* Data )
-	{
-		if( BcProfiler::pImpl() != nullptr )
-		{
-			BcProfiler::pImpl()->stepAsync( Tag.c_str(), Data );
 		}
 	}
 };
@@ -300,8 +272,8 @@ public:
 	BcProfilerSectionScope _ProfilerFunction_##__LINE__( __PRETTY_FUNCTION__ ) 
 #endif
 
-#define PSY_PROFILER_SECTION( _LocalName, _Tag ) BcProfilerSectionScope _LocalName##CPU( _Tag ) 
-#define PSY_PROFILER_GPU_SECTION( _LocalName, _Tag ) BcProfilerGPUSectionScope _LocalName##GPU( _Tag ) 
+#define PSY_PROFILER_SECTION( _LocalName, ... ) BcProfilerSectionScope _LocalName##CPU( __VA_ARGS__ ) 
+#define PSY_PROFILER_GPU_SECTION( _LocalName, ... ) BcProfilerGPUSectionScope _LocalName##GPU( __VA_ARGS__ ) 
 #define PSY_PROFILER_START_ASYNC( _Tag, _Data ) BcProfilerStartAsync( _Tag, _Data )
 #define PSY_PROFILER_STEP_ASYNC( _Tag, _Data ) BcProfilerStepAsync( _Tag, _Data )
 #define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data ) BcProfilerEndAsync( _Tag, _Data )

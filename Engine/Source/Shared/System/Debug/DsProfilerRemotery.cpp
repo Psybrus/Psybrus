@@ -132,12 +132,16 @@ void DsProfilerRemotery::exitGPUSection( const char* Tag )
 {
 	if( UseGL_ )
 	{
-		rmt_EndOpenGLSample();
+#if RMT_USE_OPENGL
+		_rmt_EndOpenGLSample();
+#endif
 	}
 
 	if( UseD3D11_ )
 	{
-		rmt_EndD3D11Sample();
+#if RMT_USE_D3D11
+		_rmt_EndD3D11Sample();
+#endif
 	}
 }
 
