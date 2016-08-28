@@ -34,12 +34,13 @@ public:
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsTextureFormat Format );
+		RsResourceFormat Format,
+		ImgEncodeFormat EncodeFormat = ImgEncodeFormat::UNKNOWN );
 	ScnTextureImport( 
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsTextureFormat Format,
+		RsResourceFormat Format,
 		BcU32 TileWidth,
 		BcU32 TileHeight );
 	virtual ~ScnTextureImport();
@@ -52,7 +53,7 @@ public:
 	/**
 	 * Set format.
 	 */
-	void setFormat( RsTextureFormat Format ) { Format_ = Format; }
+	void setFormat( RsResourceFormat Format ) { Format_ = Format; }
 
 private:
 	bool loadDDS( const char* FileName );
@@ -68,7 +69,8 @@ private:
 
 private:
 	std::vector< std::string > Source_;
-	RsTextureFormat Format_;  // TODO: Use.
+	RsResourceFormat Format_;  // TODO: Use.
+	ImgEncodeFormat EncodeFormat_;
 	BcBool RenderTarget_;
 	BcBool DepthStencilTarget_;
 	RsColour ClearColour_;

@@ -159,6 +159,7 @@ private:
 	BcBool					encodeAsBGR8( BcU8*& pOutData, BcU32& OutSize );
 	BcBool					encodeAsABGR8( BcU8*& pOutData, BcU32& OutSize );
 	BcBool					encodeAsI8( BcU8*& pOutData, BcU32& OutSize );
+	BcBool					encodeAsA8( BcU8*& pOutData, BcU32& OutSize );
 	BcBool					encodeAsBCn( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize );
 	BcBool					encodeAsETC1( BcU8*& pOutData, BcU32& OutSize );
 

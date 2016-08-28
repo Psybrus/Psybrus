@@ -984,19 +984,19 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			// Pass up unresolved texture path, it will resolve later.
 			auto TextureImporter = new ScnTextureImport(
 					Path.C_Str(), "ScnTexture",
-					TexturePath.c_str(), RsTextureFormat::UNKNOWN );
+					TexturePath.c_str(), RsResourceFormat::UNKNOWN );
 
 			// Setup some default texture formats.
 			switch( Type )
 			{
 			case aiTextureType_NORMALS:
-				TextureImporter->setFormat( RsTextureFormat::BC5 );
+				TextureImporter->setFormat( RsResourceFormat::BC5_UNORM );
 				break;
 			case aiTextureType_AMBIENT: // METALLIC
-				TextureImporter->setFormat( RsTextureFormat::BC4 );
+				TextureImporter->setFormat( RsResourceFormat::BC4_UNORM );
 				break;
 			case aiTextureType_SHININESS: // ROUGHNESS
-				TextureImporter->setFormat( RsTextureFormat::BC4 );
+				TextureImporter->setFormat( RsResourceFormat::BC4_UNORM );
 				break;
 			default:
 				break;

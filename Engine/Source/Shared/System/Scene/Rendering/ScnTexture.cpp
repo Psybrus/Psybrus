@@ -165,7 +165,7 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 //////////////////////////////////////////////////////////////////////////
 // New1D
 //static
-ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -187,7 +187,7 @@ ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsTextureFormat Format
 //////////////////////////////////////////////////////////////////////////
 // New2D
 //static
-ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -209,7 +209,7 @@ ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextur
 //////////////////////////////////////////////////////////////////////////
 // New3D
 //static
-ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -231,7 +231,7 @@ ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Lev
 //////////////////////////////////////////////////////////////////////////
 // NewCube
 //static
-ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsTextureFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -491,7 +491,7 @@ void ScnTexture::recreate()
 				RsTextureBlockInfo( Header_.Format_ );
 
 			const auto SliceSize = 
-				RsTextureFormatSize( 
+				RsResourceFormatSize( 
 					Header_.Format_, 
 					Width, 
 					Height,

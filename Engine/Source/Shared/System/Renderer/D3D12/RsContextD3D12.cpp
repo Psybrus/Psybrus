@@ -364,7 +364,6 @@ void RsContextD3D12::create()
 	}
 
 	Features_.MRT_ = true;
-	Features_.DepthTextures_ = true;
 	Features_.NPOTTextures_ = true;
 	Features_.SeparateBlendState_ = true;
 	Features_.AnisotropicFiltering_ = true;
@@ -376,9 +375,9 @@ void RsContextD3D12::create()
 	Features_.ComputeShaders_ = true;
 	Features_.Instancing_ = true;
 
-	for( int Format = 0; Format < (int)RsTextureFormat::MAX; ++Format )
+	for( int Format = 0; Format < (int)RsResourceFormat::MAX; ++Format )
 	{
-		auto DXFormat = RsUtilsD3D12::GetTextureFormat( (RsTextureFormat)Format );
+		auto DXFormat = RsUtilsD3D12::GetResourceFormat( (RsResourceFormat)Format );
 		if( DXFormat.SRVFormat_ != DXGI_FORMAT_UNKNOWN )
 		{
 			D3D12_FEATURE_DATA_FORMAT_SUPPORT FormatSupport = { DXFormat.SRVFormat_ };
@@ -897,7 +896,7 @@ void RsContextD3D12::bindGraphicsPSO(
 			BoundFrameBufferFormatHash_ = FrameBufferD3D12->getFormatHash();
 			const auto FrameBufferDesc = FrameBuffer->getDesc();
 			GraphicsPSODesc_.FrameBufferFormatDesc_.NumRenderTargets_ = FrameBufferDesc.RenderTargets_.size();
-			GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_.fill( RsTextureFormat::UNKNOWN );
+			GraphicsPSODesc_.FrameBufferFormatDesc_.RTVFormats_.fill( RsResourceFormat::UNKNOWN );
 			for( size_t Idx = 0; Idx < FrameBufferDesc.RenderTargets_.size(); ++Idx )
 			{
 				auto RTV = FrameBufferDesc.RenderTargets_[ Idx ];
@@ -916,7 +915,7 @@ void RsContextD3D12::bindGraphicsPSO(
 			}
 			else
 			{
-				GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsTextureFormat::UNKNOWN;
+				GraphicsPSODesc_.FrameBufferFormatDesc_.DSVFormat_ = RsResourceFormat::UNKNOWN;
 			}
 		}
 
@@ -1322,7 +1321,7 @@ bool RsContextD3D12::createTexture(
 	CD3DX12_HEAP_PROPERTIES HeapProperties( HeapType );
 	CD3DX12_RESOURCE_DESC ResourceDesc;
 	
-	const auto& Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ );
+	const auto& Format = RsUtilsD3D12::GetResourceFormat( TextureDesc.Format_ );
 
 	switch( TextureDesc.Type_ )
 	{
@@ -1897,7 +1896,7 @@ void RsContextD3D12::recreateBackBuffers( BcU32 Width, BcU32 Height )
 
 			// Depth stencil.
 			Desc.BindFlags_ = RsResourceBindFlags::DEPTH_STENCIL;
-			Desc.Format_ = RsTextureFormat::D24S8;
+			Desc.Format_ = RsResourceFormat::D24_UNORM_S8_UINT;
 			BackBufferDS_ = new RsTexture( this, Desc );
 			BackBufferDS_->setDebugName( "BackBuffer" );
 			auto RetVal = createTexture( BackBufferDS_ );
@@ -1917,7 +1916,7 @@ void RsContextD3D12::recreateBackBuffers( BcU32 Width, BcU32 Height )
 
 			// Render target.
 			Desc.BindFlags_ = RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::PRESENT | RsResourceBindFlags::SHADER_RESOURCE;
-			Desc.Format_ = RsTextureFormat::R8G8B8A8;
+			Desc.Format_ = RsResourceFormat::R8G8B8A8_UNORM;
 			BackBufferRT_[ Idx ] = new RsTexture( this, Desc );
 			BackBufferRT_[ Idx ]->setDebugName( "BackBuffer" );
 

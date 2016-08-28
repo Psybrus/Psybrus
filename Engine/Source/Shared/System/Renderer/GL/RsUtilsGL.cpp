@@ -381,141 +381,159 @@ GLenum RsUtilsGL::GetBufferType( RsResourceBindFlags V )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// GetTextureFormat
-RsUtilsGL::TextureFormat RsUtilsGL::GetTextureFormat( RsTextureFormat V )
+// GetResourceFormat
+RsUtilsGL::ResourceFormat RsUtilsGL::GetResourceFormat( RsResourceFormat V )
 {
+	auto Unsupported = ResourceFormat( BcFalse, BcFalse, GL_ZERO, GL_ZERO, GL_ZERO );
+	
 	switch( V )
 	{
-	case RsTextureFormat::R8:
-		return TextureFormat( BcFalse, BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE );
-	case RsTextureFormat::R8G8:
-		return TextureFormat( BcFalse, BcFalse, GL_RG, GL_RG, GL_UNSIGNED_BYTE );
-	case RsTextureFormat::R8G8B8:
-		return TextureFormat( BcFalse, BcFalse, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE );
-	case RsTextureFormat::R8G8B8A8:
-		return TextureFormat( BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE );
-#if !defined( RENDER_USE_GLES )
-	case RsTextureFormat::R16F:
-		return TextureFormat( BcFalse, BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT );
-	case RsTextureFormat::R16FG16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RG16F, GL_RG, GL_HALF_FLOAT );
-	case RsTextureFormat::R16FG16FB16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGB16F, GL_RGB, GL_HALF_FLOAT );
-	case RsTextureFormat::R16FG16FB16FA16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT );
-	case RsTextureFormat::R32F:
-		return TextureFormat( BcFalse, BcFalse, GL_R32F, GL_RED, GL_FLOAT );
-	case RsTextureFormat::R32FG32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RG32F, GL_RG, GL_FLOAT );
-	case RsTextureFormat::R32FG32FB32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGB32F, GL_RGB, GL_FLOAT );
-	case RsTextureFormat::R32FG32FB32FA32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGBA32F, GL_RGBA, GL_FLOAT );
-#else
-	case RsTextureFormat::R16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RED, GL_RED, GL_HALF_FLOAT_OES );
-	case RsTextureFormat::R16FG16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RG, GL_RG, GL_HALF_FLOAT_OES );
-	case RsTextureFormat::R16FG16FB16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGB, GL_RGB, GL_HALF_FLOAT_OES );
-	case RsTextureFormat::R16FG16FB16FA16F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_HALF_FLOAT_OES );
-	case RsTextureFormat::R32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RED, GL_RED, GL_FLOAT );
-	case RsTextureFormat::R32FG32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RG, GL_RG, GL_FLOAT );
-	case RsTextureFormat::R32FG32FB32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGB, GL_RGB, GL_FLOAT );
-	case RsTextureFormat::R32FG32FB32FA32F:
-		return TextureFormat( BcFalse, BcFalse, GL_RGBA, GL_RGBA, GL_FLOAT );
-#endif
-	case RsTextureFormat::R10G10B10A2:
-		return TextureFormat( BcFalse, BcFalse, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_10_10_10_2 );
-	case RsTextureFormat::R11G11B10F:
-		return TextureFormat( BcFalse, BcFalse, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT );
-	case RsTextureFormat::BC1:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 );
-	case RsTextureFormat::BC2:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 );
-	case RsTextureFormat::BC3:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 );
-	case RsTextureFormat::BC4:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RED_RGTC1, GL_RED, 0 );
-	case RsTextureFormat::BC5:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RG_RGTC2, GL_RG, 0 );
-	case RsTextureFormat::BC6H:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, 0, 0 );
-	case RsTextureFormat::BC7:
-		return TextureFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, 0, 0 );
-	case RsTextureFormat::ETC1:
-		return TextureFormat( BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 );
-	case RsTextureFormat::D16:
-		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT );
-	case RsTextureFormat::D24:
-		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT );
-	case RsTextureFormat::D32:
-		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT );
-#if !defined( RENDER_USE_GLES )
-	case RsTextureFormat::D24S8:
-		return TextureFormat( BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 );
-#else
-	case RsTextureFormat::D24S8:
-		return TextureFormat( BcFalse, BcTrue, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8_OES );
-#endif
+	case RsResourceFormat::R8_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_R8, GL_RED, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R8UI, GL_RED, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8_SNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_R8_SNORM, GL_RED, GL_BYTE );
+	case RsResourceFormat::R8_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R8I, GL_RED, GL_BYTE );
+
+	case RsResourceFormat::R8G8_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG8, GL_RG, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8G8_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG8UI, GL_RG, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8G8_SNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG8_SNORM, GL_RG, GL_BYTE );
+	case RsResourceFormat::R8G8_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG8I, GL_RG, GL_BYTE );
+
+	case RsResourceFormat::R8G8B8A8_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8G8B8A8_UNORM_SRGB:
+		return ResourceFormat( BcFalse, BcFalse, GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8G8B8A8_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA8UI, GL_RGBA, GL_UNSIGNED_BYTE );
+	case RsResourceFormat::R8G8B8A8_SNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA8_SNORM, GL_RGBA, GL_BYTE );
+	case RsResourceFormat::R8G8B8A8_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA8I, GL_RGBA, GL_BYTE );
+
+	case RsResourceFormat::R16_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R16F, GL_RED, GL_HALF_FLOAT ); // GL_HALF_FLOAT_OES
+	case RsResourceFormat::R16_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_R16, GL_RED, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::R16_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R16UI, GL_RED, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::R16_SNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_R16_SNORM, GL_RED, GL_SHORT );
+	case RsResourceFormat::R16_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R16I, GL_RED, GL_SHORT );
+
+	case RsResourceFormat::R16G16_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG16F, GL_RG, GL_HALF_FLOAT ); // GL_HALF_FLOAT_OES
+	case RsResourceFormat::R16G16_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG16, GL_RG, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::R16G16_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG16UI, GL_RG, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::R16G16_SNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG16_SNORM, GL_RG, GL_SHORT );
+	case RsResourceFormat::R16G16_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG16I, GL_RG, GL_SHORT );
+
+	case RsResourceFormat::R16G16B16A16_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT ); // GL_HALF_FLOAT_OES
+	case RsResourceFormat::R16G16B16A16_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::R16G16B16A16_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA16UI, GL_RGBA, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::R16G16B16A16_SNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA16_SNORM, GL_RGBA, GL_SHORT );
+	case RsResourceFormat::R16G16B16A16_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA16I, GL_RGBA, GL_SHORT );
+
+	case RsResourceFormat::R32_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R32F, GL_RED, GL_FLOAT );
+	case RsResourceFormat::R32_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R32UI, GL_RED, GL_UNSIGNED_INT );
+	case RsResourceFormat::R32_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R32I, GL_RED, GL_INT );
+
+	case RsResourceFormat::R32G32_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG32F, GL_RED, GL_FLOAT );
+	case RsResourceFormat::R32G32_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG32UI, GL_RED, GL_UNSIGNED_INT );
+	case RsResourceFormat::R32G32_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RG32I, GL_RED, GL_INT );
+
+	case RsResourceFormat::R32G32B32_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGB32F, GL_RED, GL_FLOAT );
+	case RsResourceFormat::R32G32B32_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGB32UI, GL_RED, GL_UNSIGNED_INT );
+	case RsResourceFormat::R32G32B32_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGB32I, GL_RED, GL_INT );
+
+	case RsResourceFormat::R32G32B32A32_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA32F, GL_RED, GL_FLOAT );
+	case RsResourceFormat::R32G32B32A32_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA32UI, GL_RED, GL_UNSIGNED_INT );
+	case RsResourceFormat::R32G32B32A32_SINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGBA32I, GL_RED, GL_INT );
+
+	case RsResourceFormat::R10G10B10A2_UNORM:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_10_10_10_2 );
+	case RsResourceFormat::R10G10B10A2_UINT:
+		return ResourceFormat( BcFalse, BcFalse, GL_RGB10_A2UI, GL_RGBA, GL_UNSIGNED_INT_10_10_10_2 );
+	
+	case RsResourceFormat::R11G11B10_FLOAT:
+		return ResourceFormat( BcFalse, BcFalse, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT );
+
+	case RsResourceFormat::BC1_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0 );
+	case RsResourceFormat::BC1_UNORM_SRGB:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, 0, 0 );
+	case RsResourceFormat::BC2_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0 );
+	case RsResourceFormat::BC2_UNORM_SRGB:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, 0, 0 );
+	case RsResourceFormat::BC3_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0 );
+	case RsResourceFormat::BC3_UNORM_SRGB:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, 0, 0 );
+	case RsResourceFormat::BC4_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RED_RGTC1, GL_RED, 0 );
+	case RsResourceFormat::BC4_SNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SIGNED_RED_RGTC1, GL_RED, 0 );
+	case RsResourceFormat::BC5_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RG_RGTC2, GL_RG, 0 );
+	case RsResourceFormat::BC5_SNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SIGNED_RG_RGTC2, GL_RG, 0 );
+	case RsResourceFormat::BC6H_UF16:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, 0, 0 );
+	case RsResourceFormat::BC6H_SF16:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, 0, 0 );
+	case RsResourceFormat::BC7_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, 0, 0 );
+	case RsResourceFormat::BC7_UNORM_SRGB:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, 0, 0 );
+	case RsResourceFormat::ETC1_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 );
+	case RsResourceFormat::ETC2_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB8_ETC2, 0, 0 );
+	case RsResourceFormat::ETC2A_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA8_ETC2_EAC, 0, 0 );
+	case RsResourceFormat::ETC2A1_UNORM:
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2, 0, 0 );
+	case RsResourceFormat::D16_UNORM:
+		return ResourceFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT );
+	case RsResourceFormat::D24_UNORM_S8_UINT:
+		return ResourceFormat( BcFalse, BcTrue, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8 ); // GL_UNSIGNED_INT_24_8_OES
+	case RsResourceFormat::D32_FLOAT:
+		return ResourceFormat( BcFalse, BcTrue, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT );
+
 	default:
 		BcBreakpoint;
 	}
 
-	return TextureFormat( BcFalse, BcFalse, GL_RED, GL_RED, GL_UNSIGNED_BYTE );
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// GetImageFormat
-GLenum RsUtilsGL::GetImageFormat( RsTextureFormat Format )
-{
-	switch( Format )
-	{
-	case RsTextureFormat::R8:
-		return GL_R8;
-	case RsTextureFormat::R8G8:
-		return GL_RG8;
-	case RsTextureFormat::R8G8B8:
-		return GL_RGB8;
-	case RsTextureFormat::R8G8B8A8:
-		return GL_RGBA8;
-	case RsTextureFormat::R16F:
-		return GL_R16F;
-	case RsTextureFormat::R16FG16F:
-		return GL_RG16F;
-	case RsTextureFormat::R16FG16FB16F:
-		return GL_RGB16F;
-	case RsTextureFormat::R16FG16FB16FA16F:
-		return GL_RGBA16F;
-	case RsTextureFormat::R32F:
-		return GL_R32F;
-	case RsTextureFormat::R32FG32F:
-		return GL_RG32F;
-	case RsTextureFormat::R32FG32FB32F:
-		return GL_RGB32F;
-	case RsTextureFormat::R32FG32FB32FA32F:
-		return GL_RGBA32F;
-	case RsTextureFormat::R10G10B10A2:
-		return GL_RGB10_A2;
-	case RsTextureFormat::R11G11B10F:
-		return GL_R11F_G11F_B10F;
-	case RsTextureFormat::BC1:
-	case RsTextureFormat::BC2:
-	case RsTextureFormat::BC3:
-	case RsTextureFormat::ETC1:
-	case RsTextureFormat::D16:
-	case RsTextureFormat::D24:
-	case RsTextureFormat::D32:
-	case RsTextureFormat::D24S8:
-	default:
-		BcBreakpoint;
-	}
-	BcBreakpoint;
-	return GL_NONE;
+	return Unsupported;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

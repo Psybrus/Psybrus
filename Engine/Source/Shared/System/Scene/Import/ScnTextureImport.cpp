@@ -63,7 +63,7 @@ void ScnTextureImport::StaticRegisterClass()
 // Ctor
 ScnTextureImport::ScnTextureImport():
 	Source_(),
-	Format_( RsTextureFormat::UNKNOWN ),
+	Format_( RsResourceFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
@@ -89,7 +89,8 @@ ScnTextureImport::ScnTextureImport():
 // Ctor
 ScnTextureImport::ScnTextureImport( ReNoInit ):
 	Source_(),
-	Format_( RsTextureFormat::UNKNOWN ),
+	Format_( RsResourceFormat::UNKNOWN ),
+	EncodeFormat_( ImgEncodeFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
@@ -117,11 +118,12 @@ ScnTextureImport::ScnTextureImport(
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsTextureFormat Format,
+		RsResourceFormat Format,
 		BcU32 TileWidth,
 		BcU32 TileHeight ):
 	CsResourceImporter( Name, Type ),
 	Format_( Format ),
+	EncodeFormat_( ImgEncodeFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
@@ -149,9 +151,11 @@ ScnTextureImport::ScnTextureImport(
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsTextureFormat Format ):
+		RsResourceFormat Format,
+		ImgEncodeFormat EncodeFormat ):
 	CsResourceImporter( Name, Type ),
 	Format_( Format ),
+	EncodeFormat_( EncodeFormat ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),
@@ -191,10 +195,9 @@ BcBool ScnTextureImport::import()
 	ClearColour.G_ = BcU8( BcClamp( BcU32( ClearColour_.g() * 255.0f ), 0, 255 ) );
 	ClearColour.B_ = BcU8( BcClamp( BcU32( ClearColour_.b() * 255.0f ), 0, 255 ) );
 	ClearColour.A_ = BcU8( BcClamp( BcU32( ClearColour_.a() * 255.0f ), 0, 255 ) );
-	BcU32 SpreadDouble = Spread_ * 2;
 
 	// Add type dependencies.
-	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureFormat" ) );
+	CsResourceImporter::addDependency( ReManager::GetEnum( "RsResourceFormat" ) );
 	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureType" ) );
 
 	// Check if it's a DDS, avoid all processing for those.
@@ -350,10 +353,10 @@ BcBool ScnTextureImport::import()
 		}
 
 		// Automatically determine the best format if we specify unknown.
-		if( Format_ == RsTextureFormat::UNKNOWN || Format_ == RsTextureFormat::INVALID )
+		if( Format_ == RsResourceFormat::UNKNOWN || Format_ == RsResourceFormat::INVALID )
 		{
 			// Default to a catch all which is 32 bit RGBA.
-			Format_ = RsTextureFormat::R8G8B8A8;
+			Format_ = RsResourceFormat::R8G8B8A8_UNORM;
 
 			// In a non-debug build, check if we should
 			// use texture compression (to speed up build times).
@@ -364,11 +367,11 @@ BcBool ScnTextureImport::import()
 				{
 					if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
 					{
-						Format_ = RsTextureFormat::BC1;
+						Format_ = RsResourceFormat::BC1_UNORM;
 					}
 					else
 					{
-						Format_ = RsTextureFormat::BC3;
+						Format_ = RsResourceFormat::BC3_UNORM;
 					}
 				}
 			}
@@ -387,7 +390,63 @@ BcBool ScnTextureImport::import()
 			for( BcU32 Idx = 0; Idx < MipImages.size(); ++Idx )
 			{
 				auto* pImage = MipImages[ Idx ].get();
-				ImgEncodeFormat EncodeFormat = (ImgEncodeFormat)Format_;
+				ImgEncodeFormat EncodeFormat = EncodeFormat_;
+				if( EncodeFormat == ImgEncodeFormat::UNKNOWN )
+				{
+					switch( Format_ ) 
+					{
+					case RsResourceFormat::R8_UNORM:
+					case RsResourceFormat::R8_UINT:
+					case RsResourceFormat::R8_SNORM:
+					case RsResourceFormat::R8_SINT:
+						{
+							EncodeFormat = ImgEncodeFormat::I8; 
+							if( DistanceField_ || AlphaFromIntensity_ )
+							{
+								EncodeFormat = ImgEncodeFormat::A8;
+							}
+						}
+						break;
+
+					case RsResourceFormat::R8G8B8A8_UNORM:
+					case RsResourceFormat::R8G8B8A8_UNORM_SRGB:
+					case RsResourceFormat::R8G8B8A8_UINT:
+					case RsResourceFormat::R8G8B8A8_SNORM:
+					case RsResourceFormat::R8G8B8A8_SINT:
+						EncodeFormat = ImgEncodeFormat::R8G8B8A8; 
+						break;
+					 
+					case RsResourceFormat::BC1_UNORM:
+					case RsResourceFormat::BC1_UNORM_SRGB:
+						EncodeFormat = ImgEncodeFormat::BC1; 
+						break;
+
+					case RsResourceFormat::BC2_UNORM:
+					case RsResourceFormat::BC2_UNORM_SRGB:
+						EncodeFormat = ImgEncodeFormat::BC2; 
+						break;
+
+					case RsResourceFormat::BC3_UNORM:
+					case RsResourceFormat::BC3_UNORM_SRGB:
+						EncodeFormat = ImgEncodeFormat::BC3; 
+						break;
+
+					case RsResourceFormat::BC4_UNORM:
+					case RsResourceFormat::BC4_SNORM:
+						EncodeFormat = ImgEncodeFormat::BC4; 
+						break;
+
+					case RsResourceFormat::BC5_UNORM:
+					case RsResourceFormat::BC5_SNORM:
+						EncodeFormat = ImgEncodeFormat::BC5; 
+						break;
+
+					case RsResourceFormat::ETC1_UNORM:
+						EncodeFormat = ImgEncodeFormat::ETC1; 
+						break;
+					}
+				}
+
 				if( pImage->encodeAs( EncodeFormat, pEncodedImageData, EncodedImageDataSize ) )
 				{
 					// Serialize encoded images.
@@ -398,11 +457,12 @@ BcBool ScnTextureImport::import()
 				}
 				else
 				{
-					PSY_LOG( "Failed to encode image, falling back to R8G8B8A8\n" );
-					Format_ = RsTextureFormat::R8G8B8A8;
+					PSY_LOG( "Failed to encode image, falling back to R8G8B8A8_UNORM\n" );
+					Format_ = RsResourceFormat::R8G8B8A8_UNORM;
 					AllMipsSucceeded = BcFalse;
 				}
 			}
+
 
 			if( AllMipsSucceeded )
 			{
@@ -556,8 +616,7 @@ ImgImageUPtr ScnTextureImport::processRoundUpPot( ImgImageUPtr Image )
 {
 	return Image->resize( 
 		BcPotNext( Image->width() ), 
-		BcPotNext( Image->height() ),
-		1.0f );
+		BcPotNext( Image->height() ), 1.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -574,8 +633,7 @@ ImgImageUPtr ScnTextureImport::processRoundDownPot( ImgImageUPtr Image )
 
 	return Image->resize( 
 		BcPotNext( W ) / 2, 
-		BcPotNext( H ) / 2 ,
-		1.0f );
+		BcPotNext( H ) / 2, 1.0f );
 }
 
 //////////////////////////////////////////////////////////////////////////

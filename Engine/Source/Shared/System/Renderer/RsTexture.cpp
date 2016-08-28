@@ -21,7 +21,7 @@ RsTextureDesc::RsTextureDesc():
 	Type_( RsTextureType::UNKNOWN ),
 	CreationFlags_( RsResourceCreationFlags::NONE ),
 	BindFlags_( RsResourceBindFlags::NONE ),
-	Format_( RsTextureFormat::INVALID ),
+	Format_( RsResourceFormat::INVALID ),
 	Width_( 0 ),
 	Height_( 0 ),
 	Depth_( 0 )
@@ -35,7 +35,7 @@ RsTextureDesc::RsTextureDesc(
 		RsTextureType Type, 
 		RsResourceCreationFlags CreationFlags,
 		RsResourceBindFlags BindFlags,
-		RsTextureFormat Format,
+		RsResourceFormat Format,
 		BcU32 Levels, 
 		BcU32 Width, 
 		BcU32 Height,
@@ -74,13 +74,24 @@ RsTextureDesc::RsTextureDesc(
 	BcU32 MinimumDimension = 1;
 	switch( Format_ )
 	{
-	case RsTextureFormat::BC1:
-	case RsTextureFormat::BC2:
-	case RsTextureFormat::BC3:
-	case RsTextureFormat::BC4:
-	case RsTextureFormat::BC5:
-	case RsTextureFormat::BC6H:
-	case RsTextureFormat::BC7:
+	case RsResourceFormat::BC1_UNORM:
+	case RsResourceFormat::BC1_UNORM_SRGB:
+	case RsResourceFormat::BC2_UNORM:
+	case RsResourceFormat::BC2_UNORM_SRGB:
+	case RsResourceFormat::BC3_UNORM:
+	case RsResourceFormat::BC3_UNORM_SRGB:
+	case RsResourceFormat::BC4_UNORM:
+	case RsResourceFormat::BC4_SNORM:
+	case RsResourceFormat::BC5_UNORM:
+	case RsResourceFormat::BC5_SNORM:
+	case RsResourceFormat::BC6H_UF16:
+	case RsResourceFormat::BC6H_SF16:
+	case RsResourceFormat::BC7_UNORM:
+	case RsResourceFormat::BC7_UNORM_SRGB:
+	case RsResourceFormat::ETC1_UNORM:
+	case RsResourceFormat::ETC2_UNORM:
+	case RsResourceFormat::ETC2A_UNORM:
+	case RsResourceFormat::ETC2A1_UNORM:
 		MinimumDimension = 4;
 		break;
 	default:

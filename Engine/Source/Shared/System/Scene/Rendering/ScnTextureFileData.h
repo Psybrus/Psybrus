@@ -25,7 +25,7 @@ struct ScnTextureHeader
 	BcU32 Depth_;
 	BcU32 Levels_;
 	RsTextureType Type_;
-	RsTextureFormat Format_;
+	RsResourceFormat Format_;
 	BcBool Editable_;
 	RsResourceBindFlags BindFlags_;
 };

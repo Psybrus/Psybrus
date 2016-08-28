@@ -7,9 +7,9 @@
 class RsUtilsGL
 {
 public:
-	struct TextureFormat
+	struct ResourceFormat
 	{
-		TextureFormat(
+		ResourceFormat(
 				BcBool Compressed,
 				BcBool DepthStencil,
 				GLint InternalFormat,
@@ -42,8 +42,7 @@ public:
 	static GLint GetVertexDataSize( RsVertexDataType V );
 	static GLenum GetTopologyType( RsTopologyType V );
 	static GLenum GetBufferType( RsResourceBindFlags V );
-	static TextureFormat GetTextureFormat( RsTextureFormat V );
-	static GLenum GetImageFormat( RsTextureFormat Format );
+	static ResourceFormat GetResourceFormat( RsResourceFormat V );
 	static GLenum GetShaderType( RsShaderType V );
 	static GLenum GetQueryType( RsQueryType Query );
 };

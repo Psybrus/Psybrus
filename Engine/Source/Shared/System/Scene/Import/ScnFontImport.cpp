@@ -227,7 +227,9 @@ BcBool ScnFontImport::import()
 					auto TextureImporter = CsResourceImporterUPtr(
 						new ScnTextureImport( 
 							FontTextureName, "ScnTexture",
-							FontTextureFileName, RsTextureFormat::R8G8B8A8 ) );
+							FontTextureFileName, 
+							DistanceField_ ? RsResourceFormat::BC4_UNORM : RsResourceFormat::R8G8B8A8_UNORM,
+							ImgEncodeFormat::UNKNOWN ) );
 					
 					// Build data.
 					BcStream HeaderStream;

@@ -417,7 +417,7 @@ bool RsContextNull::updateTexture(
 	BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
 	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
-	BcU32 DataSize = RsTextureFormatSize( 
+	BcU32 DataSize = RsResourceFormatSize( 
 		TextureDesc.Format_,
 		Width,
 		Height,

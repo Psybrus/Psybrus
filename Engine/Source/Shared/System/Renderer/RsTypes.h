@@ -227,40 +227,98 @@ enum class RsVertexUsage : BcU32
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Texture Format
-enum class RsTextureFormat : BcU32
+// Resource Format
+enum class RsResourceFormat : BcU32
 {
 	UNKNOWN,
 
 	// Colour.
-	R8,
-	R8G8,
-	R8G8B8,
-	R8G8B8A8,
-	R16F,
-	R16FG16F,
-	R16FG16FB16F,
-	R16FG16FB16FA16F,
-	R32F,
-	R32FG32F,
-	R32FG32FB32F,
-	R32FG32FB32FA32F,
-	R10G10B10A2,
-	R11G11B10F,
-	BC1,
-	BC2,
-	BC3,
-	BC4,
-	BC5,
-	BC6H,
-	BC7,
-	ETC1,
+	R8_UNORM,
+	R8_UINT,
+	R8_SNORM,
+	R8_SINT,
+
+	R8G8_UNORM,
+	R8G8_UINT,
+	R8G8_SNORM,
+	R8G8_SINT,
+	
+	R8G8B8A8_UNORM,
+	R8G8B8A8_UNORM_SRGB,
+	R8G8B8A8_UINT,
+	R8G8B8A8_SNORM,
+	R8G8B8A8_SINT,
+	
+	R16_FLOAT,
+	R16_UNORM,
+	R16_UINT,
+	R16_SNORM,
+	R16_SINT,
+
+	R16G16_FLOAT,
+	R16G16_UNORM,
+	R16G16_UINT,
+	R16G16_SNORM,
+	R16G16_SINT,	
+
+	R16G16B16A16_FLOAT,
+	R16G16B16A16_UNORM,
+	R16G16B16A16_UINT,
+	R16G16B16A16_SNORM,
+	R16G16B16A16_SINT,
+
+	R32_FLOAT,
+	R32_UINT,
+	R32_SINT,
+
+	R32G32_FLOAT,
+	R32G32_UINT,
+	R32G32_SINT,
+	
+	R32G32B32_FLOAT,
+	R32G32B32_UINT,
+	R32G32B32_SINT,
+	
+	R32G32B32A32_FLOAT,
+	R32G32B32A32_UINT,
+	R32G32B32A32_SINT,
+		
+	R10G10B10A2_UNORM,
+	R10G10B10A2_UINT,
+
+	R11G11B10_FLOAT,
+
+	// Compressed formats.
+	BC1_UNORM,
+	BC1_UNORM_SRGB,
+
+	BC2_UNORM,
+	BC2_UNORM_SRGB,
+
+	BC3_UNORM,
+	BC3_UNORM_SRGB,
+
+	BC4_UNORM,
+	BC4_SNORM,
+
+	BC5_UNORM,
+	BC5_SNORM,
+
+	BC6H_UF16,
+	BC6H_SF16,
+
+	BC7_UNORM,
+	BC7_UNORM_SRGB,
+
+	ETC1_UNORM,
+	ETC2_UNORM,
+	ETC2A_UNORM,
+	ETC2A1_UNORM,
 
 	// Depth stencil.
-	D16,
-	D24,
-	D32,
-	D24S8,
+	D16_UNORM,
+	D24_UNORM_S8_UINT,
+	D32_FLOAT,
 	
 	MAX,
 	INVALID = BcErrorCode
@@ -275,19 +333,19 @@ struct RsBlockInfo
 	BcU32 Bits_;
 };
 
-extern RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat );
+extern RsBlockInfo RsTextureBlockInfo( RsResourceFormat TextureFormat );
 
 //////////////////////////////////////////////////////////////////////////
-// RsTextureFormatSize
-extern BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
+// RsResourceFormatSize
+extern BcU32 RsResourceFormatSize( RsResourceFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels );
 
 //////////////////////////////////////////////////////////////////////////
 // RsTexturePitch
-extern BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height );
+extern BcU32 RsTexturePitch( RsResourceFormat TextureFormat, BcU32 Width, BcU32 Height );
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureSlicePitch
-extern BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height );
+extern BcU32 RsTextureSlicePitch( RsResourceFormat TextureFormat, BcU32 Width, BcU32 Height );
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureFace
@@ -687,7 +745,7 @@ struct RsScreenshot
 	void* Data_;
 	BcU32 Width_;
 	BcU32 Height_;
-	RsTextureFormat Format_;
+	RsResourceFormat Format_;
 };
 
 typedef std::function< BcBool( const RsScreenshot& ) > RsScreenshotFunc;

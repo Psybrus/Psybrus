@@ -54,8 +54,8 @@ PSY_SAMPLER_2D( DiffuseTex );
 PS_MAIN( pixelMain )
 {
 	PS_ENTER;
-	float4 TextColour = PSY_SAMPLE_2D( DiffuseTex, IN( VsTexCoord0 ).xy );
-	float TextFactor = smoothstep( TextSettings_.x, TextSettings_.y, TextColour.a );
+	float TextDF = PSY_SAMPLE_2D( DiffuseTex, IN( VsTexCoord0 ).xy ).r;
+	float TextFactor = smoothstep( TextSettings_.x, TextSettings_.y, TextDF );
 	outputFrag[0] = float4( TextColour_.xyz, TextFactor * TextColour_.w ) * IN( VsColour0 );
 	PS_EXIT;
 }

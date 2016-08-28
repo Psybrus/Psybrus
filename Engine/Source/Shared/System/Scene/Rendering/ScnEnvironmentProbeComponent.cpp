@@ -516,7 +516,7 @@ void ScnEnvironmentProbeComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Don't want tail mips 1x1, 2x2 and 4x4.
 	Levels = std::max( 1, Levels - 3 );
-	Texture_ = ScnTexture::NewCube( Renderer->getWidth(), Renderer->getHeight(), Levels, RsTextureFormat::R8G8B8A8, 
+	Texture_ = ScnTexture::NewCube( Renderer->getWidth(), Renderer->getHeight(), Levels, RsResourceFormat::R8G8B8A8_UNORM, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::UNORDERED_ACCESS, (*getName()).c_str() );
 
 	// Generate cubemaps.

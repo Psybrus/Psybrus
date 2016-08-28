@@ -47,10 +47,9 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceT
 		GL( TexParameteri( TypeGL, GL_TEXTURE_MAX_LEVEL, TextureDesc.Levels_ - 1 ) );
 
 		// Set compare mode to none.
-		if( TextureDesc.Format_ == RsTextureFormat::D16 ||
-			TextureDesc.Format_ == RsTextureFormat::D24 ||
-			TextureDesc.Format_ == RsTextureFormat::D32 ||
-			TextureDesc.Format_ == RsTextureFormat::D24S8 )
+		if( TextureDesc.Format_ == RsResourceFormat::D16_UNORM ||
+			TextureDesc.Format_ == RsResourceFormat::D24_UNORM_S8_UINT ||
+			TextureDesc.Format_ == RsResourceFormat::D32_FLOAT )
 		{
 			GL( TexParameteri( TypeGL, GL_TEXTURE_COMPARE_MODE, GL_NONE ) );
 			
@@ -71,7 +70,7 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceT
 
 				// Load slice.
 				loadTexture( TextureSlice, 
-					RsTextureFormatSize( TextureDesc.Format_, Width, Height, Depth, 1 ), 
+					RsResourceFormatSize( TextureDesc.Format_, Width, Height, Depth, 1 ), 
 					nullptr );
 				// TODO: Error checking on loadTexture.
 
@@ -137,7 +136,7 @@ void RsTextureGL::loadTexture(
 	BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
 	BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
 
-	const auto& FormatGL = RsUtilsGL::GetTextureFormat( TextureDesc.Format_ );
+	const auto& FormatGL = RsUtilsGL::GetResourceFormat( TextureDesc.Format_ );
 	
 	if( FormatGL.Compressed_ == BcFalse )
 	{

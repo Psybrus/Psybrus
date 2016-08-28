@@ -281,7 +281,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsProgramBindingD3D12::getDefaultSRVDesc( class 
 	{
 	case RsTextureType::TEX1D:
 		{
-			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.Format = RsUtilsD3D12::GetResourceFormat( TextureDesc.Format_ ).SRVFormat_;
 			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1D;
 			OutDesc.Texture1D.MipLevels = TextureDesc.Levels_;
 			OutDesc.Texture1D.MostDetailedMip = 0;
@@ -290,7 +290,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsProgramBindingD3D12::getDefaultSRVDesc( class 
 
 	case RsTextureType::TEX2D:
 		{
-			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.Format = RsUtilsD3D12::GetResourceFormat( TextureDesc.Format_ ).SRVFormat_;
 			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 			OutDesc.Texture2D.MipLevels = TextureDesc.Levels_;
 			OutDesc.Texture2D.MostDetailedMip = 0;
@@ -300,7 +300,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsProgramBindingD3D12::getDefaultSRVDesc( class 
 	case RsTextureType::TEX3D:
 		{
 			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.Format = RsUtilsD3D12::GetResourceFormat( TextureDesc.Format_ ).SRVFormat_;
 			OutDesc.Texture3D.MipLevels = TextureDesc.Levels_;
 			OutDesc.Texture3D.MostDetailedMip = 0;
 		}
@@ -309,7 +309,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC RsProgramBindingD3D12::getDefaultSRVDesc( class 
 	case RsTextureType::TEXCUBE:
 		{
 			OutDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-			OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).SRVFormat_;
+			OutDesc.Format = RsUtilsD3D12::GetResourceFormat( TextureDesc.Format_ ).SRVFormat_;
 			OutDesc.TextureCube.MipLevels = TextureDesc.Levels_;
 			OutDesc.TextureCube.MostDetailedMip = 0;
 		}
@@ -365,7 +365,7 @@ D3D12_UNORDERED_ACCESS_VIEW_DESC RsProgramBindingD3D12::getDefaultUAVDesc( class
 
 	const auto& TextureDesc = Texture->getDesc();
 
-	OutDesc.Format = RsUtilsD3D12::GetTextureFormat( TextureDesc.Format_ ).UAVFormat_;
+	OutDesc.Format = RsUtilsD3D12::GetResourceFormat( TextureDesc.Format_ ).UAVFormat_;
 
 	switch( TextureDesc.Type_ )
 	{

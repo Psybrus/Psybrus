@@ -481,8 +481,14 @@ ImgImageUPtr ImgImage::generateDistanceField( BcU32 IntensityThreshold, BcF32 Sp
 					
 					BcU32 DistanceInt = (BcU32)BcClamp( Distance, 0.0f, 255.0f );
 					
-					ImgColour Colour = pInputImage->getPixel( X, Y );
-					Colour.A_ = (BcU8)DistanceInt;
+					ImgColour Colour = 
+					{
+						(BcU8)DistanceInt,
+						(BcU8)DistanceInt,
+						(BcU8)DistanceInt,
+						(BcU8)DistanceInt
+					};
+
 					pOutputImage->setPixel( X, Y, Colour );
 				}
 			}
@@ -807,14 +813,12 @@ BcBool ImgImage::encodeAs( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSi
 
 	switch( Format )
 	{
-	case ImgEncodeFormat::R8G8B8:
-		return encodeAsRGB8( pOutData, OutSize );
-
+	case ImgEncodeFormat::I8:
+		return encodeAsI8( pOutData, OutSize );
+	case ImgEncodeFormat::A8:
+		return encodeAsA8( pOutData, OutSize );
 	case ImgEncodeFormat::R8G8B8A8:
 		return encodeAsRGBA8( pOutData, OutSize );
-
-	case ImgEncodeFormat::R8:
-		return encodeAsI8( pOutData, OutSize );
 
 	case ImgEncodeFormat::BC1:
 	case ImgEncodeFormat::BC2:
@@ -897,7 +901,7 @@ BcBool ImgImage::encodeAsRGBA8( BcU8*& pOutData, BcU32& OutSize )
 		*pCurrByte++ = pColour->A_; \
 		++pColour; TotalWritten += 4
 
-#if 1
+#if 0
 	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
 	{
 		WRITE_PIXEL;
@@ -1064,6 +1068,50 @@ BcBool ImgImage::encodeAsI8( BcU8*& pOutData, BcU32& OutSize )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// encodeAsA8
+BcBool ImgImage::encodeAsA8( BcU8*& pOutData, BcU32& OutSize )
+{
+	BcU32 NoofPixels = Width_ * Height_;
+	OutSize = NoofPixels;
+	pOutData = new BcU8[ OutSize ];
+	
+	BcU8* pCurrByte = pOutData;
+	ImgColour* pColour = pPixelData_;
+
+#define WRITE_PIXEL \
+		*pCurrByte++ = pColour->A_; \
+		++pColour
+
+#if 0
+	for( BcU32 Idx = 0; Idx < NoofPixels; ++Idx )
+	{
+		WRITE_PIXEL;
+	}
+#else
+	BcS32 Count = (BcS32)NoofPixels;
+	{
+		BcS32 N = ( Count + 7 ) / 8;
+
+		switch( Count % 8 )
+		{
+		case 0: do {	WRITE_PIXEL;
+		case 7:			WRITE_PIXEL;
+		case 6:			WRITE_PIXEL;
+		case 5:			WRITE_PIXEL;
+		case 4:			WRITE_PIXEL;
+		case 3:			WRITE_PIXEL;
+		case 2:			WRITE_PIXEL;
+		case 1:			WRITE_PIXEL;
+				} while( --N > 0 );
+		}
+	}
+#endif
+#undef WRITE_PIXEL
+
+	return BcTrue;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // encodeAsBCn
 BcBool ImgImage::encodeAsBCn( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& OutSize )
 {
@@ -1106,7 +1154,7 @@ BcBool ImgImage::encodeAsBCn( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 			squish::CompressImage( reinterpret_cast< squish::u8* >( pPixelData_ ), Width_, Height_, pOutData, SquishFormat );
 		}
 		// If less than block size, copy into a 4x4 block.
-		else if ( Width_ < 4 && Height_ < 4 )
+		else if ( ( Width_ < 4 || Height_ < 4 ) && !( Width_ > 4 || Height_ > 4 ) )
 		{
 			std::array< ImgColour, 4 * 4 > Block;
 			Block.fill( getPixel( 0, 0 ) );

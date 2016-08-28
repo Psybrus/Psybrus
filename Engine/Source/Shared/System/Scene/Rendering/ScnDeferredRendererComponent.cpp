@@ -168,27 +168,27 @@ void ScnDeferredRendererComponent::onAttach( ScnEntityWeakRef Parent )
 	BcS32 QuarterWidth = Width_ <= 0 ? Width_ - 2 : Width_ / 4;
 	BcS32 QuarterHeight = Height_ <= 0 ? Height_ - 2 : Height_ / 4;
 
-	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+	Textures_[ TEX_GBUFFER_ALBEDO ] = ScnTexture::New2D( Width_, Height_, 1, RsResourceFormat::R8G8B8A8_UNORM, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Albedo" );
-	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R8G8B8A8, 
+	Textures_[ TEX_GBUFFER_MATERIAL ] = ScnTexture::New2D( Width_, Height_, 1, RsResourceFormat::R8G8B8A8_UNORM, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Material" );
-	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R10G10B10A2, 
+	Textures_[ TEX_GBUFFER_NORMAL ] = ScnTexture::New2D( Width_, Height_, 1, RsResourceFormat::R10G10B10A2_UNORM, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "Normal" );
-	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::D24S8, 
+	Textures_[ TEX_GBUFFER_DEPTH ] = ScnTexture::New2D( Width_, Height_, 1, RsResourceFormat::D24_UNORM_S8_UINT, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::DEPTH_STENCIL, "Depth" );
-	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsTextureFormat::R16FG16FB16FA16F, 
+	Textures_[ TEX_HDR ] = ScnTexture::New2D( Width_, Height_, 1, RsResourceFormat::R16G16B16A16_FLOAT, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET, "HDR" );
-	Textures_[ TEX_LUMINANCE ] = ScnTexture::New2D( HalfWidth, HalfHeight, 0, RsTextureFormat::R32F, 
+	Textures_[ TEX_LUMINANCE ] = ScnTexture::New2D( HalfWidth, HalfHeight, 0, RsResourceFormat::R32_FLOAT, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance" );
-	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsTextureFormat::R32F, 
+	Textures_[ TEX_LUMINANCE2 ] = ScnTexture::New2D( 1, 1, 1, RsResourceFormat::R32_FLOAT, 
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Luminance2" );
-	Textures_[ TEX_DOWNSAMPLE_BLOOM_0 ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsTextureFormat::R10G10B10A2,
+	Textures_[ TEX_DOWNSAMPLE_BLOOM_0 ] = ScnTexture::New2D( HalfWidth, HalfHeight, 1, RsResourceFormat::R10G10B10A2_UNORM,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "DownsampleBloom0" );
-	Textures_[ TEX_DOWNSAMPLE_BLOOM_1 ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsTextureFormat::R10G10B10A2,
+	Textures_[ TEX_DOWNSAMPLE_BLOOM_1 ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsResourceFormat::R10G10B10A2_UNORM,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "DownsampleBloom1" );
-	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsTextureFormat::R10G10B10A2,
+	Textures_[ TEX_BLOOM ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsResourceFormat::R10G10B10A2_UNORM,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "Bloom" );
-	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsTextureFormat::R10G10B10A2,
+	Textures_[ TEX_BLOOM_WORK ] = ScnTexture::New2D( QuarterWidth, QuarterHeight, 1, RsResourceFormat::R10G10B10A2_UNORM,
 		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::UNORDERED_ACCESS | RsResourceBindFlags::RENDER_TARGET, "BloomWork" );
 
 	// Subscribe for recreation after textures have been created.

@@ -86,7 +86,7 @@ void RsFrameBufferD3D12::setupRTVs()
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE ThisDescriptorHandle( RTVDescriptorHandle, Idx, DescriptorSize );
 		auto RTV = ParentDesc.RenderTargets_[ Idx ];
-		auto Format = RsTextureFormat::UNKNOWN;
+		auto Format = RsResourceFormat::UNKNOWN;
 		if( RTV.Texture_!= nullptr )
 		{
 			const auto& RTTextureDesc = RTV.Texture_->getDesc();
@@ -98,14 +98,14 @@ void RsFrameBufferD3D12::setupRTVs()
 			{
 			case RsTextureType::TEX2D:
 				{
-					RTVDesc.Format = RsUtilsD3D12::GetTextureFormat( RTTextureDesc.Format_ ).RTVFormat_;
+					RTVDesc.Format = RsUtilsD3D12::GetResourceFormat( RTTextureDesc.Format_ ).RTVFormat_;
 					RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 					RTVDesc.Texture2D.MipSlice = RTV.Level_;
 				}
 				break;
 			case RsTextureType::TEXCUBE:
 				{
-					RTVDesc.Format = RsUtilsD3D12::GetTextureFormat( RTTextureDesc.Format_ ).RTVFormat_;
+					RTVDesc.Format = RsUtilsD3D12::GetResourceFormat( RTTextureDesc.Format_ ).RTVFormat_;
 					RTVDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 					RTVDesc.Texture2DArray.MipSlice = RTV.Level_;
 					RTVDesc.Texture2DArray.FirstArraySlice = UINT( RTV.Face_ );
@@ -132,7 +132,7 @@ void RsFrameBufferD3D12::setupDSV()
 {
 	const auto& ParentDesc = Parent_->getDesc();
 	auto DSTexture = ParentDesc.DepthStencilTarget_;
-	auto Format = RsTextureFormat::UNKNOWN;
+	auto Format = RsResourceFormat::UNKNOWN;
 	if( DSTexture != nullptr )
 	{
 		auto DSVDescriptorHandle = DSV_->GetCPUDescriptorHandleForHeapStart();
@@ -146,7 +146,7 @@ void RsFrameBufferD3D12::setupDSV()
 		{
 		case RsTextureType::TEX2D:
 			{
-				DSVDesc.Format = RsUtilsD3D12::GetTextureFormat( DSTextureDesc.Format_ ).DSVFormat_;
+				DSVDesc.Format = RsUtilsD3D12::GetResourceFormat( DSTextureDesc.Format_ ).DSVFormat_;
 				DSVDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 				DSVDesc.Texture2D.MipSlice = 0;
 			}

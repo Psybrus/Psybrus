@@ -263,7 +263,7 @@ bool RsFloatToVertexDataType( BcF32* InFloats, BcU32 NoofFloats, RsVertexDataTyp
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsTextureBlockInfo
-RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
+RsBlockInfo RsTextureBlockInfo( RsResourceFormat TextureFormat )
 {
 	// Bits per block.
 	RsBlockInfo BlockInfo;
@@ -272,78 +272,122 @@ RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
 	BlockInfo.Height_ = 1;
 	switch( TextureFormat )
 	{
-	case RsTextureFormat::R8:
+	case RsResourceFormat::R8_UNORM:
+	case RsResourceFormat::R8_UINT:
+	case RsResourceFormat::R8_SNORM:
+	case RsResourceFormat::R8_SINT:
 		BlockInfo.Bits_ = 8;
 		break;
-	case RsTextureFormat::R8G8:
+	case RsResourceFormat::R8G8_UNORM:
+	case RsResourceFormat::R8G8_UINT:
+	case RsResourceFormat::R8G8_SNORM:
+	case RsResourceFormat::R8G8_SINT:
 		BlockInfo.Bits_ = 16;
 		break;
-	case RsTextureFormat::R8G8B8:
-		BlockInfo.Bits_ = 24;
-		break;
-	case RsTextureFormat::R8G8B8A8:
+	case RsResourceFormat::R8G8B8A8_UNORM:
+	case RsResourceFormat::R8G8B8A8_UNORM_SRGB:
+	case RsResourceFormat::R8G8B8A8_UINT:
+	case RsResourceFormat::R8G8B8A8_SNORM:
+	case RsResourceFormat::R8G8B8A8_SINT:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::R16F:
+	case RsResourceFormat::R16_FLOAT:
+	case RsResourceFormat::R16_UNORM:
+	case RsResourceFormat::R16_UINT:
+	case RsResourceFormat::R16_SNORM:
+	case RsResourceFormat::R16_SINT:
 		BlockInfo.Bits_ = 16;
 		break;
-	case RsTextureFormat::R16FG16F:
+	case RsResourceFormat::R16G16_FLOAT:
+	case RsResourceFormat::R16G16_UNORM:
+	case RsResourceFormat::R16G16_UINT:
+	case RsResourceFormat::R16G16_SNORM:
+	case RsResourceFormat::R16G16_SINT:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::R16FG16FB16F:
-		BlockInfo.Bits_ = 48;
-		break;
-	case RsTextureFormat::R16FG16FB16FA16F:
+	case RsResourceFormat::R16G16B16A16_FLOAT:
+	case RsResourceFormat::R16G16B16A16_UNORM:
+	case RsResourceFormat::R16G16B16A16_UINT:
+	case RsResourceFormat::R16G16B16A16_SNORM:
+	case RsResourceFormat::R16G16B16A16_SINT:
 		BlockInfo.Bits_ = 64;
 		break;
-	case RsTextureFormat::R32F:
+	case RsResourceFormat::R32_FLOAT:
+	case RsResourceFormat::R32_UINT:
+	case RsResourceFormat::R32_SINT:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::R32FG32F:
+	case RsResourceFormat::R32G32_FLOAT:
+	case RsResourceFormat::R32G32_UINT:
+	case RsResourceFormat::R32G32_SINT:
 		BlockInfo.Bits_ = 64;
 		break;
-	case RsTextureFormat::R32FG32FB32F:
+	case RsResourceFormat::R32G32B32_FLOAT:
+	case RsResourceFormat::R32G32B32_UINT:
+	case RsResourceFormat::R32G32B32_SINT:
 		BlockInfo.Bits_ = 96;
 		break;
-	case RsTextureFormat::R32FG32FB32FA32F:
+	case RsResourceFormat::R32G32B32A32_FLOAT:
+	case RsResourceFormat::R32G32B32A32_UINT:
+	case RsResourceFormat::R32G32B32A32_SINT:
 		BlockInfo.Bits_ = 128;
 		break;
-	case RsTextureFormat::R10G10B10A2:
+	case RsResourceFormat::R10G10B10A2_UNORM:
+	case RsResourceFormat::R10G10B10A2_UINT:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::R11G11B10F:
+	case RsResourceFormat::R11G11B10_FLOAT:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::BC1:
-	case RsTextureFormat::BC4:
+	case RsResourceFormat::BC1_UNORM:
+	case RsResourceFormat::BC1_UNORM_SRGB:
+	case RsResourceFormat::BC4_UNORM:
+	case RsResourceFormat::BC4_SNORM:
 		BlockInfo.Bits_ = 64;
 		BlockInfo.Width_ = 4;
 		BlockInfo.Height_ = 4;
 		break;
-	case RsTextureFormat::BC2:
-	case RsTextureFormat::BC3:	
-	case RsTextureFormat::BC5:
-	case RsTextureFormat::BC6H:
-	case RsTextureFormat::BC7:
+	case RsResourceFormat::BC2_UNORM:
+	case RsResourceFormat::BC2_UNORM_SRGB:
+	case RsResourceFormat::BC3_UNORM:	
+	case RsResourceFormat::BC3_UNORM_SRGB:
+	case RsResourceFormat::BC5_UNORM:
+	case RsResourceFormat::BC5_SNORM:
+	case RsResourceFormat::BC6H_UF16:
+	case RsResourceFormat::BC6H_SF16:
+	case RsResourceFormat::BC7_UNORM:
+	case RsResourceFormat::BC7_UNORM_SRGB:
 		BlockInfo.Bits_ = 128;
 		BlockInfo.Width_ = 4;
 		BlockInfo.Height_ = 4;
 		break;
-	case RsTextureFormat::ETC1:
+	case RsResourceFormat::ETC1_UNORM:
 		BlockInfo.Bits_ = 64;
 		BlockInfo.Width_ = 4;
 		BlockInfo.Height_ = 4;
 		break;
-	case RsTextureFormat::D16:
+	case RsResourceFormat::ETC2_UNORM:
+		BlockInfo.Bits_ = 64;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsResourceFormat::ETC2A_UNORM:
+		BlockInfo.Bits_ = 128;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsResourceFormat::ETC2A1_UNORM:
+		BlockInfo.Bits_ = 64;
+		BlockInfo.Width_ = 4;
+		BlockInfo.Height_ = 4;
+		break;
+	case RsResourceFormat::D16_UNORM:
 		BlockInfo.Bits_ = 16;
 		break;
-	case RsTextureFormat::D24:
-		BlockInfo.Bits_ = 24;
-		break;
-	case RsTextureFormat::D32:
+	case RsResourceFormat::D32_FLOAT:
 		BlockInfo.Bits_ = 32;
 		break;
-	case RsTextureFormat::D24S8:
+	case RsResourceFormat::D24_UNORM_S8_UINT:
 		BlockInfo.Bits_ = 32;
 		break;
 	default:
@@ -355,117 +399,34 @@ RsBlockInfo RsTextureBlockInfo( RsTextureFormat TextureFormat )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// RsTextureFormatSize
-BcU32 RsTextureFormatSize( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
+// RsResourceFormatSize
+BcU32 RsResourceFormatSize( RsResourceFormat ResourceFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
 {
 	BcU32 Size = 0;
-	BcU32 TotalTexels = 0;
 	Width = BcMax( 1, Width );
 	Height = BcMax( 1, Height );
 	Depth = BcMax( 1, Depth );
 
-	BcU32 HalfWidth = Width;
-	BcU32 HalfHeight = Height;
+	auto BlockInfo = RsTextureBlockInfo( ResourceFormat );
 	for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
 	{
-		TotalTexels += HalfWidth * HalfHeight;
-		HalfWidth >>= 1;
-		HalfHeight >>= 1;
+		BcU32 BlocksW = BcPotRoundUp( Width, BlockInfo.Width_ ) / BlockInfo.Width_;
+		BcU32 BlocksH = BcPotRoundUp( Height, BlockInfo.Height_ ) / BlockInfo.Height_;
+		BcU32 BlocksD = Depth;
+
+		Size += ( BlockInfo.Bits_ * BlocksW * BlocksH * BlocksD ) / 8;
+
+		Width = BcMax( Width / 2, 1 );
+		Height = BcMax( Height / 2, 1 );
+		Depth = BcMax( Depth / 2, 1 );
 	}
-	TotalTexels *= Depth;
 
-	switch( TextureFormat )
-	{
-	case RsTextureFormat::R8:
-		Size = TotalTexels;
-		break;
-	case RsTextureFormat::R8G8:
-		Size = TotalTexels * 2;
-		break;
-	case RsTextureFormat::R8G8B8:
-		Size = TotalTexels * 3;
-		break;
-	case RsTextureFormat::R8G8B8A8:
-		Size = TotalTexels * 4;
-		break;
-	case RsTextureFormat::R16F:
-		Size = TotalTexels * sizeof( BcU16 );
-		break;
-	case RsTextureFormat::R16FG16F:
-		Size = TotalTexels * sizeof( BcU16 ) * 2;
-		break;
-	case RsTextureFormat::R16FG16FB16F:
-		Size = TotalTexels * sizeof( BcU16 ) * 3;
-		break;
-	case RsTextureFormat::R16FG16FB16FA16F:
-		Size = TotalTexels * sizeof( BcU16 ) * 4;
-		break;
-	case RsTextureFormat::R32F:
-		Size = TotalTexels * sizeof( BcU32 );
-		break;
-	case RsTextureFormat::R32FG32F:
-		Size = TotalTexels * sizeof( BcU32 ) * 2;
-		break;
-	case RsTextureFormat::R32FG32FB32F:
-		Size = TotalTexels * sizeof( BcU32 ) * 3;
-		break;
-	case RsTextureFormat::R32FG32FB32FA32F:
-		Size = TotalTexels * sizeof( BcU32 ) * 4;
-		break;
-	case RsTextureFormat::R10G10B10A2:
-		Size = TotalTexels * sizeof( BcU32 ) * 4;
-		break;
-	case RsTextureFormat::R11G11B10F:
-		Size = TotalTexels * sizeof( BcU32 ) * 4;
-		break;
-
-	case RsTextureFormat::BC1:
-	case RsTextureFormat::BC4:
-		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
-		{
-			BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
-			Size += BlockCount * 8;
-			Width >>= 1;
-			Height >>= 1;
-		}
-		Size *= Depth;
-		break;
-
-	case RsTextureFormat::BC2:
-	case RsTextureFormat::BC3:
-	case RsTextureFormat::BC5:
-	case RsTextureFormat::BC6H:
-	case RsTextureFormat::BC7:
-		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
-		{
-			BcU32 BlockCount = ( ( Width + 3 ) / 4 ) * ( ( Height + 3 ) / 4 );
-			Size += BlockCount * 16;
-			Width >>= 1;
-			Height >>= 1;
-		}
-		Size *= Depth;
-		break;
-			
-	default:
-		break;
-
-	case RsTextureFormat::ETC1:
-		for( BcU32 iLevel = 0; iLevel < Levels; ++iLevel )
-		{
-			Size += ( Width * Height ) / 2;
-			Width >>= 1;
-			Height >>= 1;
-		}
-		Size *= Depth;
-		break;
-	}
-	
 	return Size;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // RsTexturePitch
-BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
+BcU32 RsTexturePitch( RsResourceFormat TextureFormat, BcU32 Width, BcU32 Height )
 {
 	BcU32 Pitch = 0;
 	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );
@@ -476,7 +437,7 @@ BcU32 RsTexturePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
 
 //////////////////////////////////////////////////////////////////////////
 // RsTextureSlicePitch
-BcU32 RsTextureSlicePitch( RsTextureFormat TextureFormat, BcU32 Width, BcU32 Height )
+BcU32 RsTextureSlicePitch( RsResourceFormat TextureFormat, BcU32 Width, BcU32 Height )
 {
 	BcU32 SlicePitch = 0;
 	const auto BlockInfo = RsTextureBlockInfo( TextureFormat );

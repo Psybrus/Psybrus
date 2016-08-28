@@ -147,42 +147,136 @@ void RsCore::StaticRegisterClass()
 	};
 	ReRegisterEnum< RsVertexDataType >( RsVertexDataTypeEnumConstants );
 
-	ReEnumConstant* RsTextureFormatEnumConstants[] = 
+	ReEnumConstant* RsResourceFormatEnumConstants[] = 
 	{
-		new ReEnumConstant( "R8", RsTextureFormat::R8 ),
-		new ReEnumConstant( "R8G8", RsTextureFormat::R8G8 ),
-		new ReEnumConstant( "R8G8B8", RsTextureFormat::R8G8B8 ),
-		new ReEnumConstant( "R8G8B8A8", RsTextureFormat::R8G8B8A8 ),
-		new ReEnumConstant( "R16F", RsTextureFormat::R16F ),
-		new ReEnumConstant( "R16FG16F", RsTextureFormat::R16FG16F ),
-		new ReEnumConstant( "R16FG16FB16F", RsTextureFormat::R16FG16FB16F ),
-		new ReEnumConstant( "R16FG16FB16FA16F", RsTextureFormat::R16FG16FB16FA16F ),
-		new ReEnumConstant( "R32F", RsTextureFormat::R32F ),
-		new ReEnumConstant( "R32FG32F", RsTextureFormat::R32FG32F ),
-		new ReEnumConstant( "R32FG32FB32F", RsTextureFormat::R32FG32FB32F ),
-		new ReEnumConstant( "R32FG32FB32FA32F", RsTextureFormat::R32FG32FB32FA32F ),
-		new ReEnumConstant( "R10G10B10A2", RsTextureFormat::R10G10B10A2 ),
-		new ReEnumConstant( "R11G11B10F", RsTextureFormat::R11G11B10F ),
-		new ReEnumConstant( "BC1", RsTextureFormat::BC1 ),
-		new ReEnumConstant( "BC2", RsTextureFormat::BC2 ),
-		new ReEnumConstant( "BC3", RsTextureFormat::BC3 ),
-		new ReEnumConstant( "BC4", RsTextureFormat::BC4 ),
-		new ReEnumConstant( "BC5", RsTextureFormat::BC5 ),
-		new ReEnumConstant( "BC6H", RsTextureFormat::BC6H ),
-		new ReEnumConstant( "BC7", RsTextureFormat::BC7 ),
-		new ReEnumConstant( "ETC1", RsTextureFormat::ETC1 ),
-		new ReEnumConstant( "D16", RsTextureFormat::D16 ),
-		new ReEnumConstant( "D24", RsTextureFormat::D24 ),
-		new ReEnumConstant( "D32", RsTextureFormat::D32 ),
-		new ReEnumConstant( "D24S8", RsTextureFormat::D24S8 ),
-		new ReEnumConstant( "INVALID", RsTextureFormat::INVALID ),
+		new ReEnumConstant( "R8_UNORM", RsResourceFormat::R8_UNORM ),
+		new ReEnumConstant( "R8_UINT", RsResourceFormat::R8_UINT ),
+		new ReEnumConstant( "R8_SNORM", RsResourceFormat::R8_SNORM ),
+		new ReEnumConstant( "R8_SINT", RsResourceFormat::R8_SINT ),
+
+		new ReEnumConstant( "R8G8_UNORM", RsResourceFormat::R8G8_UNORM ),
+		new ReEnumConstant( "R8G8_UINT", RsResourceFormat::R8G8_UINT ),
+		new ReEnumConstant( "R8G8_SNORM", RsResourceFormat::R8G8_SNORM ),
+		new ReEnumConstant( "R8G8_SINT", RsResourceFormat::R8G8_SINT ),
+	
+		new ReEnumConstant( "R8G8B8A8_UNORM", RsResourceFormat::R8G8B8A8_UNORM ),
+		new ReEnumConstant( "R8G8B8A8_UNORM_SRGB", RsResourceFormat::R8G8B8A8_UNORM_SRGB ),
+		new ReEnumConstant( "R8G8B8A8_UINT", RsResourceFormat::R8G8B8A8_UINT ),
+		new ReEnumConstant( "R8G8B8A8_SNORM", RsResourceFormat::R8G8B8A8_SNORM ),
+		new ReEnumConstant( "R8G8B8A8_SINT", RsResourceFormat::R8G8B8A8_SINT ),
+	
+		new ReEnumConstant( "R16_FLOAT", RsResourceFormat::R16_FLOAT ),
+		new ReEnumConstant( "R16_UNORM", RsResourceFormat::R16_UNORM ),
+		new ReEnumConstant( "R16_UINT", RsResourceFormat::R16_UINT ),
+		new ReEnumConstant( "R16_SNORM", RsResourceFormat::R16_SNORM ),
+		new ReEnumConstant( "R16_SINT", RsResourceFormat::R16_SINT ),
+
+		new ReEnumConstant( "R16G16_FLOAT", RsResourceFormat::R16G16_FLOAT ),
+		new ReEnumConstant( "R16G16_UNORM", RsResourceFormat::R16G16_UNORM ),
+		new ReEnumConstant( "R16G16_UINT", RsResourceFormat::R16G16_UINT ),
+		new ReEnumConstant( "R16G16_SNORM", RsResourceFormat::R16G16_SNORM ),
+		new ReEnumConstant( "R16G16_SINT", RsResourceFormat::R16G16_SINT ),
+
+		new ReEnumConstant( "R16G16B16A16_FLOAT", RsResourceFormat::R16G16B16A16_FLOAT ),
+		new ReEnumConstant( "R16G16B16A16_UNORM", RsResourceFormat::R16G16B16A16_UNORM ),
+		new ReEnumConstant( "R16G16B16A16_UINT", RsResourceFormat::R16G16B16A16_UINT ),
+		new ReEnumConstant( "R16G16B16A16_SNORM", RsResourceFormat::R16G16B16A16_SNORM ),
+		new ReEnumConstant( "R16G16B16A16_SINT", RsResourceFormat::R16G16B16A16_SINT ),
+
+		new ReEnumConstant( "R32_FLOAT", RsResourceFormat::R32_FLOAT ),
+		new ReEnumConstant( "R32_UINT", RsResourceFormat::R32_UINT ),
+		new ReEnumConstant( "R32_SINT", RsResourceFormat::R32_SINT ),
+
+		new ReEnumConstant( "R32G32_FLOAT", RsResourceFormat::R32G32_FLOAT ),
+		new ReEnumConstant( "R32G32_UINT", RsResourceFormat::R32G32_UINT ),
+		new ReEnumConstant( "R32G32_SINT", RsResourceFormat::R32G32_SINT ),
+	
+		new ReEnumConstant( "R32G32B32_FLOAT", RsResourceFormat::R32G32B32_FLOAT ),
+		new ReEnumConstant( "R32G32B32_UINT", RsResourceFormat::R32G32B32_UINT ),
+		new ReEnumConstant( "R32G32B32_SINT", RsResourceFormat::R32G32B32_SINT ),
+	
+		new ReEnumConstant( "R32G32B32A32_FLOAT", RsResourceFormat::R32G32B32A32_FLOAT ),
+		new ReEnumConstant( "R32G32B32A32_UINT", RsResourceFormat::R32G32B32A32_UINT ),
+		new ReEnumConstant( "R32G32B32A32_SINT", RsResourceFormat::R32G32B32A32_SINT ),
+		
+		new ReEnumConstant( "R10G10B10A2_UNORM", RsResourceFormat::R10G10B10A2_UNORM ),
+		new ReEnumConstant( "R10G10B10A2_UINT", RsResourceFormat::R10G10B10A2_UINT ),
+
+		new ReEnumConstant( "R11G11B10_FLOAT", RsResourceFormat::R11G11B10_FLOAT ),
+
+		// Compressed formats.
+		new ReEnumConstant( "BC1_UNORM", RsResourceFormat::BC1_UNORM ),
+		new ReEnumConstant( "BC1_UNORM_SRGB", RsResourceFormat::BC1_UNORM_SRGB ),
+
+		new ReEnumConstant( "BC2_UNORM", RsResourceFormat::BC2_UNORM ),
+		new ReEnumConstant( "BC2_UNORM_SRGB", RsResourceFormat::BC2_UNORM_SRGB ),
+
+		new ReEnumConstant( "BC3_UNORM", RsResourceFormat::BC3_UNORM ),
+		new ReEnumConstant( "BC3_UNORM_SRGB", RsResourceFormat::BC3_UNORM_SRGB ),
+
+		new ReEnumConstant( "BC4_UNORM", RsResourceFormat::BC4_UNORM ),
+		new ReEnumConstant( "BC4_SNORM", RsResourceFormat::BC4_SNORM ),
+
+		new ReEnumConstant( "BC5_UNORM", RsResourceFormat::BC5_UNORM ),
+		new ReEnumConstant( "BC5_SNORM", RsResourceFormat::BC5_SNORM ),
+
+		new ReEnumConstant( "BC6H_UF16", RsResourceFormat::BC6H_UF16 ),
+		new ReEnumConstant( "BC6H_SF16", RsResourceFormat::BC6H_SF16 ),
+
+		new ReEnumConstant( "BC7_UNORM", RsResourceFormat::BC7_UNORM ),
+		new ReEnumConstant( "BC7_UNORM_SRGB", RsResourceFormat::BC7_UNORM_SRGB ),
+
+		new ReEnumConstant( "ETC1_UNORM", RsResourceFormat::ETC1_UNORM ),
+		new ReEnumConstant( "ETC2_UNORM", RsResourceFormat::ETC2_UNORM ),
+		new ReEnumConstant( "ETC2A_UNORM", RsResourceFormat::ETC2A_UNORM ),
+		new ReEnumConstant( "ETC2A1_UNORM", RsResourceFormat::ETC2A1_UNORM ),
+
+		// Depth stencil.
+		new ReEnumConstant( "D16_UNORM", RsResourceFormat::D16_UNORM ),
+		new ReEnumConstant( "D24_UNORM_S8_UINT", RsResourceFormat::D24_UNORM_S8_UINT ),
+		new ReEnumConstant( "D32_FLOAT", RsResourceFormat::D32_FLOAT ),
+
+		// Aliases.
+		new ReEnumConstant( "R8", RsResourceFormat::R8_UNORM ),
+		new ReEnumConstant( "R8G8", RsResourceFormat::R8G8_UNORM ),
+		new ReEnumConstant( "R8G8B8A8", RsResourceFormat::R8G8B8A8_UNORM ),
+
+		new ReEnumConstant( "R16F", RsResourceFormat::R16_FLOAT ),
+		new ReEnumConstant( "R16FG16F", RsResourceFormat::R16G16_FLOAT ),
+		new ReEnumConstant( "R16FG16FB16FA16F", RsResourceFormat::R16G16B16A16_FLOAT ),
+
+		new ReEnumConstant( "R32F", RsResourceFormat::R32_FLOAT ),
+		new ReEnumConstant( "R32FG32F", RsResourceFormat::R32G32_FLOAT ),
+		new ReEnumConstant( "R32FG32FB32F", RsResourceFormat::R32G32B32_FLOAT ),
+		new ReEnumConstant( "R32FG32FB32FA32F", RsResourceFormat::R32G32B32A32_FLOAT ),
+		
+		new ReEnumConstant( "R10G10B10A2", RsResourceFormat::R10G10B10A2_UNORM ),
+
+		new ReEnumConstant( "R11G11B10", RsResourceFormat::R11G11B10_FLOAT ),
+
+		new ReEnumConstant( "BC1", RsResourceFormat::BC1_UNORM ),
+		new ReEnumConstant( "BC2", RsResourceFormat::BC2_UNORM ),
+		new ReEnumConstant( "BC3", RsResourceFormat::BC3_UNORM ),
+		new ReEnumConstant( "BC4", RsResourceFormat::BC4_UNORM ),
+		new ReEnumConstant( "BC5", RsResourceFormat::BC5_UNORM ),
+		new ReEnumConstant( "BC6H", RsResourceFormat::BC6H_UF16 ),
+		new ReEnumConstant( "BC7", RsResourceFormat::BC7_UNORM ),
+
+		new ReEnumConstant( "ETC1", RsResourceFormat::ETC1_UNORM ),
+		new ReEnumConstant( "ETC2", RsResourceFormat::ETC2_UNORM ),
+		new ReEnumConstant( "ETC2A", RsResourceFormat::ETC2A_UNORM ),
+		new ReEnumConstant( "ETC2A1", RsResourceFormat::ETC2A1_UNORM ),
+
+		new ReEnumConstant( "D16", RsResourceFormat::D16_UNORM ),
+		new ReEnumConstant( "D24S8", RsResourceFormat::D24_UNORM_S8_UINT ),
+		new ReEnumConstant( "D32F", RsResourceFormat::D32_FLOAT ),
 
 		// Legacy.
-		new ReEnumConstant( "DXT1", RsTextureFormat::BC1 ),
-		new ReEnumConstant( "DXT3", RsTextureFormat::BC2 ),
-		new ReEnumConstant( "DXT5", RsTextureFormat::BC3 ),
+		new ReEnumConstant( "DXT1", RsResourceFormat::BC1_UNORM ),
+		new ReEnumConstant( "DXT3", RsResourceFormat::BC2_UNORM ),
+		new ReEnumConstant( "DXT5", RsResourceFormat::BC3_UNORM ),
 	};
-	ReRegisterEnum< RsTextureFormat >( RsTextureFormatEnumConstants );
+	ReRegisterEnum< RsResourceFormat >( RsResourceFormatEnumConstants );
 
 	ReEnumConstant* RsShaderTypeEnumConstants[] = 
 	{

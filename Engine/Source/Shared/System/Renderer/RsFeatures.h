@@ -23,7 +23,6 @@ struct RsFeatures
 
 	// Misc.
 	bool MRT_ = false;
-	bool DepthTextures_ = false;
 	bool NPOTTextures_ = false;
 	bool SeparateBlendState_ = false;
 	bool AnisotropicFiltering_ = false;
@@ -39,9 +38,9 @@ struct RsFeatures
 	bool TextureCube_ = false;
 
 	// Texture formats.
-	std::array< bool, (int)RsTextureFormat::MAX > TextureFormat_;
-	std::array< bool, (int)RsTextureFormat::MAX > RenderTargetFormat_;
-	std::array< bool, (int)RsTextureFormat::MAX > DepthStencilTargetFormat_;
+	std::array< bool, (int)RsResourceFormat::MAX > TextureFormat_;
+	std::array< bool, (int)RsResourceFormat::MAX > RenderTargetFormat_;
+	std::array< bool, (int)RsResourceFormat::MAX > DepthStencilTargetFormat_;
 
 	// TODO: Buffer types.
 

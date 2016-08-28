@@ -25,40 +25,22 @@
 #include <memory>
 
 //////////////////////////////////////////////////////////////////////////
-// ImgEncodeFormat - Must match RsTextureFormat 1:1.
+// ImgEncodeFormat
 enum class ImgEncodeFormat
 {
 	UNKNOWN,
 
-	// Colour.
-	R8,
-	R8G8,
-	R8G8B8,
+	I8,
+	A8,
 	R8G8B8A8,
-	R16F,
-	R16FG16F,
-	R16FG16FB16F,
-	R16FG16FB16FA16F,
-	R32F,
-	R32FG32F,
-	R32FG32FB32F,
-	R32FG32FB32FA32F,
-	R10G10B10A2,
-	R11G11B10F,
+
 	BC1,
 	BC2,
 	BC3,
 	BC4,
 	BC5,
-	BC6H,
-	BC7,
-	ETC1,
 
-	// Depth stencil.
-	D16,
-	D24,
-	D32,
-	D24S8,
+	ETC1,
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,6 +81,39 @@ inline ImgColour ImgColourf::toGamma( BcF32 GammaRGB ) const
 	RetVal.B_ = static_cast< BcU8 >( std::powf( BcClamp( B_, 0.0f, 1.0f ), 1.0f / GammaRGB ) * 255.0f );
 	RetVal.A_ = static_cast< BcU8 >( BcClamp( A_, 0.0f, 1.0f ) * 255.0f );
 	return RetVal;
+	
+#if 0 // TODO
+	ImgColourf sRGBLo =
+	{
+		R_ * 12.92f,
+		G_ * 12.92f,
+		B_ * 12.92f,
+		1.0f,
+	};
+
+	ImgColourf sRGBHi =
+	{
+		std::powf( std::abs( R_ ), 1.0f / 2.4f ) * 1.055f - 0.055f,
+		std::powf( std::abs( G_ ), 1.0f / 2.4f ) * 1.055f - 0.055f,
+		std::powf( std::abs( B_ ), 1.0f / 2.4f ) * 1.055f - 0.055f,
+		1.0f,
+	};
+	
+	ImgColourf sRGB =
+	{
+		( R_ <= 0.0031308f ) ? sRGBLo.R_ : sRGBHi.R_,
+		( G_ <= 0.0031308f ) ? sRGBLo.G_ : sRGBHi.G_,
+		( B_ <= 0.0031308f ) ? sRGBLo.B_ : sRGBHi.B_,
+		1.0f
+	};
+
+	ImgColour RetVal;
+	RetVal.R_ = static_cast< BcU8 >( BcClamp( sRGB.R_, 0.0f, 1.0f ) * 255.0f ); 
+	RetVal.G_ = static_cast< BcU8 >( BcClamp( sRGB.G_, 0.0f, 1.0f ) * 255.0f );
+	RetVal.B_ = static_cast< BcU8 >( BcClamp( sRGB.B_, 0.0f, 1.0f ) * 255.0f );
+	RetVal.A_ = static_cast< BcU8 >( BcClamp( A_, 0.0f, 1.0f ) * 255.0f );
+	return RetVal;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -111,6 +126,44 @@ inline ImgColourf ImgColour::toLinear( BcF32 GammaRGB ) const
 	RetVal.B_ = std::powf( static_cast< BcF32 >( B_ ) / 255.0f, GammaRGB ); 
 	RetVal.A_ = static_cast< BcF32 >( A_ ) / 255.0f;
 	return RetVal;
+	
+#if 0 // TODO
+	const BcF32 R = BcClamp( static_cast< BcF32 >( R_ ) / 255.0f, 0.0f, 1.0f );
+	const BcF32 G = BcClamp( static_cast< BcF32 >( G_ ) / 255.0f, 0.0f, 1.0f );
+	const BcF32 B = BcClamp( static_cast< BcF32 >( B_ ) / 255.0f, 0.0f, 1.0f );
+
+
+	ImgColourf LinearLo =
+	{
+		R / 12.92f,
+		G / 12.92f,
+		B / 12.92f,
+		1.0f,
+	};
+
+	ImgColourf LinearHi =
+	{
+		std::powf( ( R + 0.055f ) / 1.055f, 2.4f ),
+		std::powf( ( G + 0.055f ) / 1.055f, 2.4f ),
+		std::powf( ( B + 0.055f ) / 1.055f, 2.4f ),
+		1.0f,
+	};
+	
+	ImgColourf Linear =
+	{
+		( R_ <= 0.04045f ) ? LinearLo.R_ : LinearHi.R_,
+		( G_ <= 0.04045f ) ? LinearLo.G_ : LinearHi.G_,
+		( B_ <= 0.04045f ) ? LinearLo.B_ : LinearHi.B_,
+		1.0f
+	};
+
+	ImgColourf RetVal;
+	RetVal.R_ = Linear.R_;
+	RetVal.G_ = Linear.G_;
+	RetVal.B_ = Linear.B_;
+	RetVal.A_ = A_;
+	return RetVal;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -13,8 +13,8 @@ struct RsFrameBufferFormatDescD3D12
 	bool operator == ( const RsFrameBufferFormatDescD3D12& Other ) const;
 
 	size_t NumRenderTargets_;
-	std::array< RsTextureFormat, 8 > RTVFormats_;
-	RsTextureFormat DSVFormat_;
+	std::array< RsResourceFormat, 8 > RTVFormats_;
+	RsResourceFormat DSVFormat_;
 };
 
 //////////////////////////////////////////////////////////////////////////

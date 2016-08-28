@@ -13,8 +13,8 @@
 RsFrameBufferFormatDescD3D12::RsFrameBufferFormatDescD3D12():
 	NumRenderTargets_( 0 )
 {
-	RTVFormats_.fill( RsTextureFormat::UNKNOWN );
-	DSVFormat_ = RsTextureFormat::UNKNOWN;
+	RTVFormats_.fill( RsResourceFormat::UNKNOWN );
+	DSVFormat_ = RsResourceFormat::UNKNOWN;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -266,10 +266,10 @@ ID3D12PipelineState* RsPipelineStateCacheD3D12::getPipelineState(
 	for( size_t Idx = 0; Idx < 8; ++Idx )
 	{
 		PSODesc.RTVFormats[ Idx ] = 
-			RsUtilsD3D12::GetTextureFormat( GraphicsPSDesc.FrameBufferFormatDesc_.RTVFormats_[ Idx ] ).RTVFormat_;
+			RsUtilsD3D12::GetResourceFormat( GraphicsPSDesc.FrameBufferFormatDesc_.RTVFormats_[ Idx ] ).RTVFormat_;
 	}
 	PSODesc.DSVFormat = 
-		RsUtilsD3D12::GetTextureFormat( GraphicsPSDesc.FrameBufferFormatDesc_.DSVFormat_ ).DSVFormat_;
+		RsUtilsD3D12::GetResourceFormat( GraphicsPSDesc.FrameBufferFormatDesc_.DSVFormat_ ).DSVFormat_;
 
 	PSODesc.SampleDesc.Count = 1;
 	PSODesc.SampleDesc.Quality = 0;

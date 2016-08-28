@@ -332,126 +332,81 @@ namespace DDS
 		BcU32 miscFlags2;
 	};
 
-	RsTextureFormat getTextureFormat( DXGI_FORMAT Format )
+	RsResourceFormat GetResourceFormat( DXGI_FORMAT Format )
 	{
 		switch( Format )
 		{
-		case DXGI_FORMAT_R32G32B32A32_FLOAT:
-			return RsTextureFormat::R32FG32FB32FA32F;
-
-		case DXGI_FORMAT_R32G32B32_FLOAT:
-			return RsTextureFormat::R32FG32FB32F;
-
-		case DXGI_FORMAT_R16G16B16A16_FLOAT:
-			return RsTextureFormat::R16FG16FB16FA16F;
-
-		case DXGI_FORMAT_R32G32_FLOAT:
-			return RsTextureFormat::R32FG32F;
-
-
-		case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-		case DXGI_FORMAT_R10G10B10A2_UNORM:
-		case DXGI_FORMAT_R10G10B10A2_UINT:
-			return RsTextureFormat::R10G10B10A2;
-
-		case DXGI_FORMAT_R11G11B10_FLOAT:
-			return RsTextureFormat::R11G11B10F;
-
-		case DXGI_FORMAT_R8G8B8A8_UNORM:
-		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-			return RsTextureFormat::R8G8B8A8;
-
-		case DXGI_FORMAT_R16G16_FLOAT:
-			return RsTextureFormat::R16FG16F;
-
-		case DXGI_FORMAT_R32_FLOAT:
-			return RsTextureFormat::R32F;
-
-		case DXGI_FORMAT_R8G8_UNORM:
-			return RsTextureFormat::R8G8;
-
-		
-		case DXGI_FORMAT_R16_FLOAT:
-			return RsTextureFormat::R16F;
-
-		case DXGI_FORMAT_R8_UNORM:
-			return RsTextureFormat::R8;
-
 		case DXGI_FORMAT_BC1_UNORM:
+			return RsResourceFormat::BC1_UNORM;
 		case DXGI_FORMAT_BC1_UNORM_SRGB:
-			return RsTextureFormat::BC1;
+			return RsResourceFormat::BC1_UNORM_SRGB;
 
 		case DXGI_FORMAT_BC2_UNORM:
+			return RsResourceFormat::BC2_UNORM;
 		case DXGI_FORMAT_BC2_UNORM_SRGB:
-			return RsTextureFormat::BC2;
+			return RsResourceFormat::BC2_UNORM_SRGB;
 
 		case DXGI_FORMAT_BC3_UNORM:
+			return RsResourceFormat::BC3_UNORM;
 		case DXGI_FORMAT_BC3_UNORM_SRGB:
-			return RsTextureFormat::BC3;
-		
+			return RsResourceFormat::BC3_UNORM_SRGB;
+
 		case DXGI_FORMAT_BC4_UNORM:
-			return RsTextureFormat::BC4;
+			return RsResourceFormat::BC4_UNORM;
+		case DXGI_FORMAT_BC4_SNORM:
+			return RsResourceFormat::BC4_SNORM;
 
 		case DXGI_FORMAT_BC5_UNORM:
-			return RsTextureFormat::BC5;
+			return RsResourceFormat::BC5_UNORM;
+		case DXGI_FORMAT_BC5_SNORM:
+			return RsResourceFormat::BC5_SNORM;
 
 		case DXGI_FORMAT_BC6H_UF16:
-			return RsTextureFormat::BC6H;
+			return RsResourceFormat::BC6H_UF16;
+		case DXGI_FORMAT_BC6H_SF16:
+			return RsResourceFormat::BC6H_SF16;
 
 		case DXGI_FORMAT_BC7_UNORM:
+			return RsResourceFormat::BC7_UNORM;
 		case DXGI_FORMAT_BC7_UNORM_SRGB:
-			return RsTextureFormat::BC7;
+			return RsResourceFormat::BC7_UNORM_SRGB;
 		}
-		return RsTextureFormat::UNKNOWN;
+		return RsResourceFormat::UNKNOWN;
 	}
 
-	RsTextureFormat getTextureFormat( D3DFORMAT Format )
+	RsResourceFormat GetResourceFormat( D3DFORMAT Format )
 	{
 		switch( Format )
 		{
 		case D3DFMT_DXT1:
-			return RsTextureFormat::BC1;
+			return RsResourceFormat::BC1_UNORM;
 
 		case D3DFMT_DXT2:
 		case D3DFMT_DXT3:
-			return RsTextureFormat::BC2;
+			return RsResourceFormat::BC2_UNORM;
 
 		case D3DFMT_DXT4:
 		case D3DFMT_DXT5:
-			return RsTextureFormat::BC3;
+			return RsResourceFormat::BC3_UNORM;
 
 		case D3DFMT_ATI1:
-			return RsTextureFormat::BC4;
+			return RsResourceFormat::BC4_UNORM;
 
 		case D3DFMT_ATI2:
-			return RsTextureFormat::BC5;
+			return RsResourceFormat::BC5_UNORM;
 
 		case D3DFMT_BC4U:
-			return RsTextureFormat::BC4;
+			return RsResourceFormat::BC4_UNORM;
+		case D3DFMT_BC4S:
+			return RsResourceFormat::BC4_SNORM;
 
 		case D3DFMT_BC5U:
-			return RsTextureFormat::BC5;
-
-		case D3DFMT_R16F:
-			return RsTextureFormat::R16F;
-
-		case D3DFMT_G16R16F:
-			return RsTextureFormat::R16FG16F;
-
-		case D3DFMT_A16B16G16R16F:
-			return RsTextureFormat::R16FG16FB16FA16F;
-
-		case D3DFMT_R32F:
-			return RsTextureFormat::R32F;
-
-		case D3DFMT_G32R32F:
-			return RsTextureFormat::R32FG32F;
-
-		case D3DFMT_A32B32G32R32F:
-			return RsTextureFormat::R32FG32FB32FA32F;
+			return RsResourceFormat::BC5_UNORM;
+		case D3DFMT_BC5S:
+			return RsResourceFormat::BC5_SNORM;
 		}
 
-		return RsTextureFormat::UNKNOWN;
+		return RsResourceFormat::UNKNOWN;
 	}
 }
 
@@ -510,7 +465,7 @@ bool ScnTextureImport::loadDDS( const char* FileName )
 		OutHeader.Type_ = RsTextureType::TEXCUBE;
 	}
 
-	OutHeader.Format_ = DDS::getTextureFormat( DDS::D3DFORMAT( DDSHeader.ddspf.dwFourCC ) );
+	OutHeader.Format_ = DDS::GetResourceFormat( DDS::D3DFORMAT( DDSHeader.ddspf.dwFourCC ) );
 	OutHeader.Editable_ = BcFalse;
 	OutHeader.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE;
 
@@ -519,11 +474,11 @@ bool ScnTextureImport::loadDDS( const char* FileName )
 		DDSHeader.ddspf.dwFourCC == MAKEFOURCC( 'D', 'X', '1', '0' ) )
 	{
 		File.read( &DDSHeaderDXT10, sizeof( DDSHeaderDXT10 ) );
-		OutHeader.Format_ = DDS::getTextureFormat( DDSHeaderDXT10.dxgiFormat );
+		OutHeader.Format_ = DDS::GetResourceFormat( DDSHeaderDXT10.dxgiFormat );
 	}
 
 	// No format determined, log error and fail.
-	if( OutHeader.Format_ == RsTextureFormat::UNKNOWN )
+	if( OutHeader.Format_ == RsResourceFormat::UNKNOWN )
 	{
 		std::array< char, 4096 > Error = { 0 };
 		BcSPrintf( Error.data(), Error.size(), "Unable to load texture \"%s\", unsupported format.", FileName );
@@ -532,7 +487,7 @@ bool ScnTextureImport::loadDDS( const char* FileName )
 	}
 
 	// Calculate size.
-	auto FormatSize = RsTextureFormatSize( OutHeader.Format_, OutHeader.Width_, OutHeader.Height_, OutHeader.Depth_, OutHeader.Levels_ );
+	auto FormatSize = RsResourceFormatSize( OutHeader.Format_, OutHeader.Width_, OutHeader.Height_, OutHeader.Depth_, OutHeader.Levels_ );
 	std::unique_ptr< BcU8[] > Data( new BcU8[ FormatSize ] );
 	File.read( Data.get(), FormatSize );
 	OutStream.push( Data.get(), FormatSize );

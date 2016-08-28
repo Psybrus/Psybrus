@@ -103,14 +103,13 @@ static void debugOutput( GLenum source, GLenum type, GLuint id, GLenum severity,
 // Small util.
 namespace
 {
-	bool IsDepthFormat( RsTextureFormat Format )
+	bool IsDepthFormat( RsResourceFormat Format )
 	{
 		switch( Format )
 		{
-		case RsTextureFormat::D16:
-		case RsTextureFormat::D24:
-		case RsTextureFormat::D32:
-		case RsTextureFormat::D24S8:
+		case RsResourceFormat::D16_UNORM:
+		case RsResourceFormat::D24_UNORM_S8_UINT:
+		case RsResourceFormat::D32_FLOAT:
 			return true;
 		default:
 			break;
@@ -366,7 +365,7 @@ void RsContextGL::present()
 		Screenshot.Data_ = ImageData.get();
 		Screenshot.Width_ = W;
 		Screenshot.Height_ = H;
-		Screenshot.Format_ = RsTextureFormat::R8G8B8A8;
+		Screenshot.Format_ = RsResourceFormat::R8G8B8A8_UNORM;
 		if( ScreenshotFunc( Screenshot ) )
 		{
 			ScreenshotFunc_ = ScreenshotFunc;
@@ -474,8 +473,8 @@ void RsContextGL::create()
 		0, 0, 0											// Layer Masks Ignored
 	};
 
-	auto RTFormat = RsTextureFormat::R8G8B8A8;
-	auto DSFormat = RsTextureFormat::D24S8;
+	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;
+	auto DSFormat = RsResourceFormat::D24_UNORM_S8_UINT;
 	
 	GLuint PixelFormat = 0;
 	if ( !(PixelFormat = ::ChoosePixelFormat( WindowDC_, &pfd ) ) )
@@ -563,8 +562,8 @@ void RsContextGL::create()
 	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-	auto RTFormat = RsTextureFormat::R8G8B8A8;
-	auto DSFormat = RsTextureFormat::D24S8;
+	auto RTFormat = RsResourceFormat::R8G8B8A8;
+	auto DSFormat = RsResourceFormat::D24S8;
 
 	BcAssert( pParent_ == nullptr );
 	SDL_Window* Window = reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() );
@@ -625,8 +624,8 @@ void RsContextGL::create()
 		EGL_NONE
 	};
 
-	auto RTFormat = RsTextureFormat::R8G8B8A8;
-	auto DSFormat = RsTextureFormat::D16;
+	auto RTFormat = RsResourceFormat::R8G8B8A8;
+	auto DSFormat = RsResourceFormat::D16;
 
 	const EGLint EGContextAttribs[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 2,
@@ -738,8 +737,8 @@ void RsContextGL::create()
 	ProfileCreated = true;
 
 #  if PLATFORM_HTML5
-	auto RTFormat = RsTextureFormat::R8G8B8A8;
-	auto DSFormat = RsTextureFormat::D24S8;
+	auto RTFormat = RsResourceFormat::R8G8B8A8;
+	auto DSFormat = RsResourceFormat::D24S8;
 #  endif
 #endif
 
@@ -1229,12 +1228,11 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		auto Attachment = GL_DEPTH_STENCIL_ATTACHMENT;
 		switch ( DSDesc.Format_ )
 		{
-		case RsTextureFormat::D16:
-		case RsTextureFormat::D24:
-		case RsTextureFormat::D32:
+		case RsResourceFormat::D16_UNORM:
+		case RsResourceFormat::D32_FLOAT:
 			Attachment = GL_DEPTH_ATTACHMENT;
 			break;
-		case RsTextureFormat::D24S8:
+		case RsResourceFormat::D24_UNORM_S8_UINT:
 			Attachment = GL_DEPTH_STENCIL_ATTACHMENT;
 			break;
 		default:
@@ -1449,7 +1447,7 @@ bool RsContextGL::updateTexture(
 		BcU32 Width = BcMax( 1, TextureDesc.Width_ >> Slice.Level_ );
 		BcU32 Height = BcMax( 1, TextureDesc.Height_ >> Slice.Level_ );
 		BcU32 Depth = BcMax( 1, TextureDesc.Depth_ >> Slice.Level_ );
-		BcU32 DataSize = RsTextureFormatSize( 
+		BcU32 DataSize = RsResourceFormatSize( 
 			TextureDesc.Format_,
 			Width,
 			Height,
@@ -2029,7 +2027,7 @@ void RsContextGL::copyTexture( RsTexture* SourceTexture, RsTexture* DestTexture 
 
 		// Bind up destination texture.
 		auto DestTypeGL = RsUtilsGL::GetTextureType( DestTextureDesc.Type_ );
-		const auto& FormatGL = RsUtilsGL::GetTextureFormat( DestTextureDesc.Format_ );
+		const auto& FormatGL = RsUtilsGL::GetResourceFormat( DestTextureDesc.Format_ );
 		bindTexture( 0, DestTexture );
 
 		// Copy tex image.
@@ -2714,7 +2712,7 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 					// TODO: Redundant state checking.
 					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 					RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >();
-					const auto Format = RsUtilsGL::GetImageFormat( SRVSlot.Texture_->getDesc().Format_ );
+					const auto Format = RsUtilsGL::GetResourceFormat( SRVSlot.Texture_->getDesc().Format_ );
 					auto& BindingInfo = ImageBindingInfo_[ SRVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != SRVSlot.Resource_ ||
 						BindingInfo.Texture_ != TextureGL->getHandle() ||
@@ -2722,18 +2720,18 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 						BindingInfo.Layered_ != SRVSlot.ArraySize_ == 0 ||
 						BindingInfo.Layer_ != SRVSlot.FirstArraySlice_ ||
 						BindingInfo.Access_ != GL_READ_ONLY ||
-						BindingInfo.Format_ != Format )
+						BindingInfo.Format_ != Format.InternalFormat_ )
 					{
 						GL( BindImageTexture( SRVSlotGL.Binding_, TextureGL->getHandle(),
 							SRVSlot.MostDetailedMip_FirstElement_, SRVSlot.ArraySize_ == 0, SRVSlot.FirstArraySlice_, GL_READ_ONLY,
-							Format ) );
+							Format.InternalFormat_ ) );
 						BindingInfo.Resource_ = SRVSlot.Resource_;
 						BindingInfo.Texture_ = TextureGL->getHandle();
 						BindingInfo.Level_ = SRVSlot.MostDetailedMip_FirstElement_;
 						BindingInfo.Layered_ = SRVSlot.ArraySize_ == 0;
 						BindingInfo.Layer_ = SRVSlot.FirstArraySlice_;
 						BindingInfo.Access_ = GL_READ_ONLY;
-						BindingInfo.Format_ = Format;
+						BindingInfo.Format_ = Format.InternalFormat_;
 					}
 				};
 				break;
@@ -2791,7 +2789,7 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					// TODO: Redundant state checking.
 					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
 					RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
-					const auto Format = RsUtilsGL::GetImageFormat( UAVSlot.Texture_->getDesc().Format_ );
+					const auto Format = RsUtilsGL::GetResourceFormat( UAVSlot.Texture_->getDesc().Format_ );
 					auto& BindingInfo = ImageBindingInfo_[ UAVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||
 						BindingInfo.Texture_ != TextureGL->getHandle() ||
@@ -2799,18 +2797,18 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 						BindingInfo.Layered_ != UAVSlot.ArraySize_ == 0 ||
 						BindingInfo.Layer_ != UAVSlot.FirstArraySlice_NumElements_ ||
 						BindingInfo.Access_ != GL_READ_WRITE ||
-						BindingInfo.Format_ != Format )
+						BindingInfo.Format_ != Format.InternalFormat_ )
 					{
 						GL( BindImageTexture( UAVSlotGL.Binding_, TextureGL->getHandle(),
 							UAVSlot.MipSlice_FirstElement_, UAVSlot.ArraySize_ == 0, UAVSlot.FirstArraySlice_NumElements_, GL_READ_WRITE,
-							Format ) );
+							Format.InternalFormat_ ) );
 						BindingInfo.Resource_ = UAVSlot.Resource_;
 						BindingInfo.Texture_ = TextureGL->getHandle();
 						BindingInfo.Level_ = UAVSlot.MipSlice_FirstElement_;
 						BindingInfo.Layered_ = UAVSlot.ArraySize_ == 0;
 						BindingInfo.Layer_ = UAVSlot.FirstArraySlice_NumElements_;
 						BindingInfo.Access_ = GL_READ_WRITE;
-						BindingInfo.Format_ = Format;
+						BindingInfo.Format_ = Format.InternalFormat_;
 						// TODO: Other params...
 					}
 					Barrier |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
