@@ -932,7 +932,10 @@ MaVec2d ScnFontComponent::drawText(
 		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
 	}
 
-	Canvas->setMaterialComponent( OldMaterial );
+	if( OldMaterial )
+	{
+		Canvas->setMaterialComponent( OldMaterial );
+	}
 	return MaxSize - MinSize;
 }
 

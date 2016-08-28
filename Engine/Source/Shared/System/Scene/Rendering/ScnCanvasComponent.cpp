@@ -105,7 +105,7 @@ MaAABB ScnCanvasComponent::getAABB() const
 void ScnCanvasComponent::setMaterialComponent( ScnMaterialComponentRef MaterialComponent )
 {
 	// Switch material component.
-	if( MaterialComponent_ != MaterialComponent )
+	if( MaterialComponent_ != MaterialComponent && MaterialComponent != nullptr )
 	{
 		// Ensure the material component is attached to an entity (doesn't have to be the same as us)
 		BcAssertMsg( MaterialComponent->isAttached() == BcTrue, "Material component \"%s\" (Parent \"%s\") is not attached to an entity! Can't use.", (*MaterialComponent->getName()).c_str(),(*MaterialComponent->getMaterial()->getName()).c_str() );

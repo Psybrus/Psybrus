@@ -64,6 +64,7 @@ void ScnTextureImport::StaticRegisterClass()
 ScnTextureImport::ScnTextureImport():
 	Source_(),
 	Format_( RsResourceFormat::UNKNOWN ),
+	EncodeFormat_( ImgEncodeFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
 	ClearColour_( 0.0f, 0.0f, 0.0f, 0.0f ),

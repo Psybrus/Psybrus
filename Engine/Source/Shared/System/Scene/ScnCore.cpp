@@ -713,9 +713,9 @@ ScnEntity* ScnCore::internalSpawnEntity(
 			Params.Parent_,
 			[ this, &Params, Entity ]( ScnComponent* Component, ScnEntity* Parent )
 			{
-				// If component doesn't have a basis, then it has been added
+				// If component doesn't have a basis, or is ready, then it has been added
 				// during this visit. We can skip it.
-				if( Component->getBasis() )
+				if( Component->getBasis() && ( Entity == Component || !Component->isReady() ) )
 				{
 					PSY_LOG( "Component \"%s\" has package \"%s\"", 
 						(*Component->getName()).c_str(),
@@ -727,15 +727,15 @@ ScnEntity* ScnCore::internalSpawnEntity(
 							(*Parent->getPackage()->getName()).c_str() );
 					}
 			
-					if( Parent != nullptr && Component != Entity )
-					{
-						Component->initialise();
-						Component->postInitialise();
-						Component->setOwner( Parent );
-					}
-
 					if( Parent != nullptr )
 					{
+						if( Component != Entity )
+						{
+							Component->initialise();
+							Component->postInitialise();
+							Component->setOwner( Parent );
+						}
+
 						Parent->attach( Component );
 					}
 				}
