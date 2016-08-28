@@ -20,7 +20,8 @@ RsQueryHeapGL::RsQueryHeapGL( RsQueryHeap* Parent, const RsOpenGLVersion& Versio
 #endif
 
 #if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
-	if( GLEW_KHR_debug )
+	// Causes GL_INVALID_VALUE. Investigate later.
+	if( 0 && GLEW_KHR_debug )
 	{
 		for( auto Handle : Handles_ )
 		{

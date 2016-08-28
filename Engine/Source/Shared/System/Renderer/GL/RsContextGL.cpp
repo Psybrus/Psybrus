@@ -1090,7 +1090,7 @@ bool RsContextGL::createSamplerState( RsSamplerState* SamplerState )
 #if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
 		if( GLEW_KHR_debug )
 		{
-			glObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() );
+			GL( ObjectLabel( GL_SAMPLER, SamplerObject, BcStrLength( SamplerState->getDebugName() ), SamplerState->getDebugName() ) );
 		}
 #endif
 
@@ -1160,9 +1160,10 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	FrameBuffer->setHandle( Handle );
 
 #if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
-	if( GLEW_KHR_debug )
+	// Causes GL_INVALID_VALUE. Investigate later.
+	if( 0 && GLEW_KHR_debug )
 	{
-		glObjectLabel( GL_FRAMEBUFFER, Handle, BcStrLength( FrameBuffer->getDebugName() ), FrameBuffer->getDebugName() );
+		GL( ObjectLabel( GL_FRAMEBUFFER, Handle, BcStrLength( FrameBuffer->getDebugName() ), FrameBuffer->getDebugName() ) );
 	}
 #endif
 
@@ -1497,7 +1498,7 @@ bool RsContextGL::createShader( RsShader* Shader )
 #if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
 	if( GLEW_KHR_debug )
 	{
-		glObjectLabel( GL_SHADER, Handle, BcStrLength( Shader->getDebugName() ), Shader->getDebugName() );
+		GL( ObjectLabel( GL_SHADER, Handle, BcStrLength( Shader->getDebugName() ), Shader->getDebugName() ) );
 	}
 #endif
 

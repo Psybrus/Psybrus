@@ -117,7 +117,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PSY_USE_PROFILER && !PLATFORM_HTML5 )
+#define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
 
 GLuint RsReportGLErrors( const char* File, int Line, const char* CallString );
 
