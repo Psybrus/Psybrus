@@ -259,7 +259,7 @@ void ScnCore::open()
 //virtual
 void ScnCore::update()
 {
-	PSY_PROFILER_SECTION( UpdateRoot, std::string( "ScnCore::update" ) );
+	PSY_PROFILER_SECTION( UpdateRoot, "ScnCore::update" );
 
 	// Update scene only if we have focus.
 	if( OsCore::pImpl()->getClient( 0 ) && OsCore::pImpl()->getClient( 0 )->isActive() )

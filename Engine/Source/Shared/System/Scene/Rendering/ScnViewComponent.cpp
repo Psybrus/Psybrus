@@ -87,7 +87,7 @@ void ScnViewProcessor::resetViewRenderData( class ScnComponent* Component )
 // renderViews
 void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 {
-	PSY_PROFILER_SECTION( RenderRoot, std::string( "ScnViewProcessor::renderViews" ) );
+	PSY_PROFILER_SECTION( RenderRoot, "ScnViewProcessor::renderViews" );
 
 	if( PendingViewDataReset_.size() > 0 )
 	{
