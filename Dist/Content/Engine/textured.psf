@@ -101,6 +101,12 @@ void pixelAll( FRAMEBUFFER_INPUT )
 	float4 Diffuse = PSY_SAMPLE_2D( DiffuseTex, IN( VsTexCoord0 ).xy );
 	float3 Normal = normalize( IN( VsNormal ) );
 
+	
+#if defined( PERM_MESH_STATIC_2D )
+	// Hack in 2D.
+	writeFrag( FRAMEBUFFER_INTERNAL, Diffuse * IN( VsColour0 ), float3( 0.0, 0.0, 0.0 ), float3( 0.0, 0.0, 0.0 ) );
+
+#else
 	Material InMaterial;
 #if defined( INSTANCED_DRAW )
 	int InstanceID = IN( VsInstanceID );
@@ -111,7 +117,7 @@ void pixelAll( FRAMEBUFFER_INPUT )
 	InMaterial.Colour_ = MaterialBaseColour_.xyz;
 	InMaterial.Metallic_ = MaterialMetallic_;
 	InMaterial.Roughness_ = MaterialRoughness_;
-#endif
+#endif // defined( INSTANCED_DRAW )
 
 #if defined( SOFT_CLIPPING )
 	float DstDepth  = linearDepth( PSY_SAMPLE_2D( DepthTex, float2( gl_FragCoord.x, gl_FragCoord.y ) * ViewSize_.zw ).x, NearFar_.x, NearFar_.y );
@@ -122,8 +128,8 @@ void pixelAll( FRAMEBUFFER_INPUT )
 #  if defined ( PERM_RENDER_DEFERRED )
 	// If we're doing soft clipping for deferred it means we're no longer rendering to the gbuffer, so we need to go linear.
 	Diffuse = gammaToLinear( Diffuse );
-#  endif
-#endif
+#  endif // defined ( PERM_RENDER_DEFERRED )
+#endif // defined( SOFT_CLIPPING )
 
 #if defined( PERM_RENDER_FORWARD )
 	Diffuse = gammaToLinear( Diffuse ) * IN( VsColour0 );
@@ -144,7 +150,7 @@ void pixelAll( FRAMEBUFFER_INPUT )
 		InLight.Position_ = LightPosition_[ LightIdx ].xyz;
 		InLight.Colour_ = LightDiffuseColour_[ LightIdx ].xyz;
 		InLight.AttenuationCLQ_ = LightAttn_[ LightIdx ].xyz;
-#endif
+#endif // defined( INSTANCED_DRAW )
 		TotalSurface += BRDF_Default( InLight, InSurface );
 	}
 
@@ -159,7 +165,10 @@ void pixelAll( FRAMEBUFFER_INPUT )
 	writeFrag( FRAMEBUFFER_INTERNAL, float4( TotalSurface, Diffuse.w ), Normal.xyz, float3( 0.0, 0.0, 0.0 ) );
 #else
 	writeFrag( FRAMEBUFFER_INTERNAL, Diffuse * IN( VsColour0 ), normalize( IN( VsNormal ).xyz ), float3( InMaterial.Metallic_, InMaterial.Roughness_, 0.0 ) );
-#endif
+#endif // defined( PERM_RENDER_FORWARD )
+
+#endif // defined( PERM_MESH_STATIC_2D )
+
 }
 
 //////////////////////////////////////////////////////////////////////////
