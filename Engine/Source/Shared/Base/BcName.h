@@ -28,7 +28,7 @@ struct BcNameEntry
 {
 	enum
 	{
-		ENTRY_SIZE_BYTES = 128,									// How large each entry should be.
+		ENTRY_SIZE_BYTES = 256,									// How large each entry should be.
 		ID_SIZE_BYTES = sizeof( BcU32 ),						// How many bytes the ID takes up.
 		MAX_STRING_LENGTH = ENTRY_SIZE_BYTES - ID_SIZE_BYTES,	// String size taking previous 2 values into account.
 		ENTRY_RESERVE_COUNT = 1024								// How many entries to reserve ahead of time to save reallocation.
