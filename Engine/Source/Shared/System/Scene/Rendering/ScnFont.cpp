@@ -653,202 +653,6 @@ ScnFontComponent::~ScnFontComponent()
 }
 
 //////////////////////////////////////////////////////////////////////////
-// setClipping
-void ScnFontComponent::setClipping( BcBool Enabled, MaVec2d Min, MaVec2d Max )
-{
-	ClippingEnabled_ = Enabled;
-	ClipMin_ = Min;
-	ClipMax_ = Max;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// draw
-MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
-{
-	return draw( Canvas, Position, Font_->pHeader_->NominalSize_, String, Colour, SizeRun, Layer );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// drawCentered
-MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer )
-{
-	MaVec2d Size = draw( Canvas, Position, String, Colour, BcTrue, Layer );
-	return draw( Canvas, Position - Size * 0.5f, String, Colour, BcFalse, Layer );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// draw
-MaVec2d ScnFontComponent::draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun, BcU32 Layer )
-{
-	// Cached elements from parent.
-	ScnFontHeader* pHeader = Font_->pHeader_;
-	ScnFontGlyphDesc* pGlyphDescs = Font_->pGlyphDescs_;
-	ScnFont::TCharCodeMap& CharCodeMap( Font_->CharCodeMap_ );
-	
-	BcF32 SizeMultiplier = Size / pHeader->NominalSize_;
-
-	// Allocate enough vertices for each character.
-	ScnCanvasComponentVertex* pFirstVert = SizeRun ? nullptr : Canvas->allocVertices( String.length() * 6 );
-	ScnCanvasComponentVertex* pVert = pFirstVert;
-
-	// Zero the buffer.
-	if( pFirstVert != nullptr )
-	{
-		BcMemZero( pFirstVert, String.length() * 6 * sizeof( ScnCanvasComponentVertex ) );
-	}
-	
-	BcU32 NoofVertices = 0;
-	
-	BcF32 AdvanceX = 0.0f;
-	BcF32 AdvanceY = 0.0f;
-	
-	BcU32 ABGR = Colour.asABGR();
-
-	MaVec2d MinSize( std::numeric_limits< BcF32 >::max(), std::numeric_limits< BcF32 >::max() );
-	MaVec2d MaxSize( std::numeric_limits< BcF32 >::min(), std::numeric_limits< BcF32 >::min() );
-	
-	BcBool FirstCharacterOnLine = BcTrue;
-
-	ScnFontUniformBlockData FontUniformData = FontUniformData_;
-
-	// Add custom render command to canvas to update the uniform buffer correctly.
-	Canvas->setMaterialComponent( MaterialComponent_ );
-	Canvas->addCustomRender(
-		[ FontUniformData = FontUniformData_, UniformBuffer = UniformBuffer_.get() ]( RsContext* Context )
-		{
-			Context->updateBuffer( 
-				UniformBuffer,
-				0, sizeof( FontUniformData ),
-				RsResourceUpdateFlags::NONE,
-				[ & ]( RsBuffer* Buffer, const RsBufferLock& Lock )
-				{
-					BcMemCopy( Lock.Buffer_, &FontUniformData, sizeof( FontUniformData ) );
-				} );
-		},
-		Layer );
-
-	if( pFirstVert != nullptr || SizeRun == BcTrue )
-	{
-		size_t RemainingChars = String.length();
-		const char* StringChar = String.c_str();
-
-		while( RemainingChars > 0 )
-		{
-			BcU32 CharCode = DecodeUTF8( StringChar, RemainingChars );
-			
-			// Handle special characters.
-			if( CharCode == '\n' )
-			{
-				AdvanceX = 0.0f;
-				AdvanceY += pHeader->NominalSize_ * SizeMultiplier;
-				FirstCharacterOnLine = BcTrue;
-			}
-			
-			// Find glyph.
-			ScnFont::TCharCodeMapIterator Iter = CharCodeMap.find( CharCode );
-			
-			if( Iter != CharCodeMap.end() )
-			{
-				ScnFontGlyphDesc& Glyph = pGlyphDescs[ (*Iter).second ];
-
-				// Bring first character back to the left so it sits on the cursor.
-				if( FirstCharacterOnLine )
-				{
-					AdvanceX -= Glyph.OffsetX_;
-					//AdvanceY -= pGlyph->OffsetY_ + pHeader->NominalSize_;
-					FirstCharacterOnLine = BcFalse;
-				}
-				
-				// Calculate size and UVs.
-				MaVec2d Size = GetGlyphSize( *pHeader, Glyph, SizeMultiplier );
-				MaVec2d CornerMin( MaVec2d( AdvanceX, AdvanceY ) + GetGlyphOffset( *pHeader, Glyph, SizeMultiplier ) );
-				MaVec2d CornerMax( CornerMin + Size );
-				MaVec2d UV0( Glyph.UA_, Glyph.VA_ );
-				MaVec2d UV1( Glyph.UB_, Glyph.VB_ );
-				
-				// Pre-clipping size.
-				MinSize.x( BcMin( MinSize.x(), CornerMin.x() ) );
-				MinSize.y( BcMin( MinSize.y(), CornerMin.y() ) );
-				MaxSize.x( BcMax( MaxSize.x(), CornerMin.x() ) );
-				MaxSize.y( BcMax( MaxSize.y(), CornerMin.y() ) );
-				MinSize.x( BcMin( MinSize.x(), CornerMax.x() ) );
-				MinSize.y( BcMin( MinSize.y(), CornerMax.y() ) );
-				MaxSize.x( BcMax( MaxSize.x(), CornerMax.x() ) );
-				MaxSize.y( BcMax( MaxSize.y(), CornerMax.y() ) );
-
-				// Draw if not a size run.
-				if( SizeRun == BcFalse )
-				{
-					if ( ClippingEnabled_ )
-					{
-						if( !ClipGlyph(
-							MaVec4d( ClipMin_.x(), ClipMin_.y(), ClipMax_.x(), ClipMax_.y() ),
-							Size,
-							CornerMin,
-							CornerMax,
-							UV0,
-							UV1 ) )
-						{
-							// Advance.
-							AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
-
-							// Next character.
-							continue;
-						}
-					}
-
-					NoofVertices += AddGlyphVertices( 
-						pVert, CornerMin, CornerMax, UV0, UV1, ABGR );
-				}
-								
-				// Advance.
-				AdvanceX += Glyph.AdvanceX_ * SizeMultiplier;
-			}
-		}
-		
-		// Update min + max sizes.
-		MinSize += Position;
-		MaxSize += Position;
-
-		// Add primitive to canvas.
-		if( NoofVertices > 0 )
-		{
-			PositionVertices( pFirstVert, NoofVertices, Position );
-
-			Canvas->addPrimitive( RsTopologyType::TRIANGLE_LIST, pFirstVert, NoofVertices, Layer );
-		}
-	}
-	else
-	{
-		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
-	}
-
-	return MaxSize - MinSize;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// drawCentered
-MaVec2d ScnFontComponent::drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcU32 Layer )
-{
-	MaVec2d FontSize = draw( Canvas, Position, Size, String, Colour, BcTrue, Layer );
-	return draw( Canvas, Position - FontSize * 0.5f, Size, String, Colour, BcFalse, Layer );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// setAlphaTestStepping
-void ScnFontComponent::setAlphaTestStepping( const MaVec2d& Stepping )
-{
-	FontUniformData_.TextSettings_ = MaVec4d( Stepping.x(), Stepping.y(), 0.0f, 0.0f );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getMaterialComponent
-ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
-{
-	return MaterialComponent_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // drawText
 MaVec2d ScnFontComponent::drawText( 
 	ScnCanvasComponentRef Canvas, 
@@ -870,6 +674,8 @@ MaVec2d ScnFontComponent::drawText(
 	const MaVec2d& TargetSize,
 	const std::wstring& Text )
 {
+	auto OldMaterial = Canvas->getMaterialComponent();
+
 	// Grab values from draw params and check validity.
 	const BcU32 ABGR = 0xffffffff;
 	const ScnFontAlignment Alignment = DrawParams.getAlignment();
@@ -1126,6 +932,7 @@ MaVec2d ScnFontComponent::drawText(
 		PSY_LOG( "ScnFontComponent: Out of vertices!\n" );
 	}
 
+	Canvas->setMaterialComponent( OldMaterial );
 	return MaxSize - MinSize;
 }
 
@@ -1191,6 +998,13 @@ MaVec2d ScnFontComponent::measureText(
 
 	return ( MaxSize - MinSize ) + 
 		MaVec2d( DrawParams.getMargin(), DrawParams.getMargin() ) * 2.0f;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMaterialComponent
+ScnMaterialComponentRef ScnFontComponent::getMaterialComponent()
+{
+	return MaterialComponent_;
 }
 
 //////////////////////////////////////////////////////////////////////////

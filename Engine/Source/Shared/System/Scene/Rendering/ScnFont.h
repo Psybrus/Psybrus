@@ -228,14 +228,6 @@ public:
 	ScnFontComponent( ScnFontRef Parent, ScnMaterialRef Material );
 	virtual ~ScnFontComponent();
 	
-	// Old interface.
-	void setClipping( BcBool Enabled, MaVec2d Min = MaVec2d( 0.0f, 0.0f ), MaVec2d Max = MaVec2d( 0.0f, 0.0f ) );
-	MaVec2d draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
-	MaVec2d drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
-	MaVec2d draw( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcBool SizeRun = BcFalse, BcU32 Layer = 16 ); // HACK.
-	MaVec2d drawCentered( ScnCanvasComponentRef Canvas, const MaVec2d& Position, BcF32 Size, const std::string& String, RsColour Colour, BcU32 Layer = 16 ); // HACK.
-	void setAlphaTestStepping( const MaVec2d& Stepping );
-	ScnMaterialComponentRef getMaterialComponent();
 
 	// New interfaces.
 
@@ -278,6 +270,8 @@ public:
 		const ScnFontDrawParams& DrawParams,
 		const std::wstring& Text );
 
+
+	ScnMaterialComponentRef getMaterialComponent();
 
 public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
