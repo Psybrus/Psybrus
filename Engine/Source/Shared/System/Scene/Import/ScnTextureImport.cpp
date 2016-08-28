@@ -197,6 +197,12 @@ BcBool ScnTextureImport::import()
 	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureFormat" ) );
 	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureType" ) );
 
+	// Check if it's a DDS, avoid all processing for those.
+	if( Source_.size() == 1 && Source_[ 0 ].rfind( ".dds" ) != std::string::npos )
+	{
+		return loadDDS( Source_[ 0 ].c_str() ) ? BcTrue : BcFalse;
+	}
+
 	if( Source_.size() > 0 )
 	{
 		// Load all source images.

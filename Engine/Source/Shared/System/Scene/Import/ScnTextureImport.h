@@ -55,6 +55,7 @@ public:
 	void setFormat( RsTextureFormat Format ) { Format_ = Format; }
 
 private:
+	bool loadDDS( const char* FileName );
 	ImgImageList loadImages( std::vector< std::string > Sources );
 
 	ImgImageUPtr processAlphaFromIntensity( ImgImageUPtr Image );
