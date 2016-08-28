@@ -275,6 +275,9 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 	ScnCanvasComponentVertex* pVertices = allocVertices( 2 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
+	const ScnRect& Rect = getRect( 0 );
+	const MaVec2d UV = MaVec2d( Rect.X_ + Rect.W_ * 0.5f, Rect.Y_ + Rect.H_ * 0.5f );
+
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
 	{
@@ -285,12 +288,17 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 		pVertices->Y_ = PointA.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
+		pVertices->U_ = UV.x();
+		pVertices->V_ = UV.y();
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
+
 		pVertices->X_ = PointB.x();
 		pVertices->Y_ = PointB.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
+		pVertices->U_ = UV.x();
+		pVertices->V_ = UV.y();
 		pVertices->ABGR_ = ABGR;
 
 		// Quickly check last primitive.
@@ -344,6 +352,9 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 	ScnCanvasComponentVertex* pVertices = allocVertices( NoofVertices );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 
+	const ScnRect& Rect = getRect( 0 );
+	const MaVec2d UV = MaVec2d( Rect.X_ + Rect.W_ * 0.5f, Rect.Y_ + Rect.H_ * 0.5f );
+
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
 	{	
@@ -356,6 +367,8 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 			pVertices->Y_ = pPoints[ Idx ].y();
 			pVertices->Z_ = 0.0f;
 			pVertices->W_ = 1.0f;
+			pVertices->U_ = UV.x();
+			pVertices->V_ = UV.y();
 			pVertices->ABGR_ = ABGR;
 			++pVertices;
 		}
@@ -394,6 +407,9 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 	ScnCanvasComponentVertex* pVertices = allocVertices( 4 );
 	ScnCanvasComponentVertex* pFirstVertex = pVertices;
 	
+	const ScnRect& Rect = getRect( 0 );
+	const MaVec2d UV = MaVec2d( Rect.X_ + Rect.W_ * 0.5f, Rect.Y_ + Rect.H_ * 0.5f );
+
 	// Only draw if we can allocate vertices.
 	if( pVertices != NULL )
 	{
@@ -404,8 +420,8 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
-		pVertices->U_ = 0.0f;
-		pVertices->V_ = 0.0f;
+		pVertices->U_ = UV.x();
+		pVertices->V_ = UV.y();
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
@@ -413,8 +429,8 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Y_ = CornerA.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
-		pVertices->U_ = 0.0f;
-		pVertices->V_ = 0.0f;
+		pVertices->U_ = UV.x();
+		pVertices->V_ = UV.y();
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
@@ -422,8 +438,8 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
-		pVertices->U_ = 0.0f;
-		pVertices->V_ = 0.0f;
+		pVertices->U_ = UV.x();
+		pVertices->V_ = UV.y();
 		pVertices->ABGR_ = ABGR;
 		++pVertices;
 
@@ -431,8 +447,8 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->Y_ = CornerB.y();
 		pVertices->Z_ = 0.0f;
 		pVertices->W_ = 1.0f;
-		pVertices->U_ = 0.0f;
-		pVertices->V_ = 0.0f;
+		pVertices->U_ = UV.x();
+		pVertices->V_ = UV.y();
 		pVertices->ABGR_ = ABGR;
 		
 		// Add primitive.	
