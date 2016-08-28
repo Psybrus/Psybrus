@@ -171,9 +171,9 @@ void ScnCanvasComponent::setViewMatrix( const MaMat4d& View )
 
 //////////////////////////////////////////////////////////////////////////
 // getRect
-const ScnRect& ScnCanvasComponent::getRect( BcU32 Idx ) const
+ScnRect ScnCanvasComponent::getRect( BcU32 Idx ) const
 {
-	static ScnRect Rect = 
+	const ScnRect Rect = 
 	{
 		0.0f, 0.0f,
 		1.0f, 1.0f
@@ -587,6 +587,26 @@ void ScnCanvasComponent::clear()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getMin
+MaVec2d ScnCanvasComponent::getMin() const
+{
+	auto Client = OsCore::pImpl()->getClient( 0 );
+	const BcF32 Width = AbsoluteCoords_ ? 1.0f : Client->getWidth();
+	const BcF32 Height = AbsoluteCoords_ ? 1.0f : Client->getHeight();
+	return MaVec2d( Left_ * Width, Top_ * Height );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getMax
+MaVec2d ScnCanvasComponent::getMax() const
+{
+	auto Client = OsCore::pImpl()->getClient( 0 );
+	const BcF32 Width = AbsoluteCoords_ ? 1.0f : Client->getWidth();
+	const BcF32 Height = AbsoluteCoords_ ? 1.0f : Client->getHeight();
+	return MaVec2d( Right_ * Width, Bottom_ * Height );
+}
+	
+//////////////////////////////////////////////////////////////////////////
 // render
 void ScnCanvasComponent::render( ScnRenderContext& RenderContext )
 {
@@ -696,6 +716,16 @@ void ScnCanvasComponent::onAttach( ScnEntityWeakRef Parent )
 
 	// Allocate working vertices.
 	pWorkingVertices_ = new ScnCanvasComponentVertex[ NoofVertices_ ];
+
+	// Grab first material component.
+	if( MaterialComponent_ == nullptr )
+	{
+		auto Component = getComponentByType< ScnMaterialComponent >();
+		if( Component->isAttached() )
+		{
+			setMaterialComponent( Component );
+		}
+	}
 
 	Super::onAttach( Parent );	
 }

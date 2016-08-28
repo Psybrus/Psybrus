@@ -345,6 +345,7 @@ void ScnMaterialComponent::StaticRegisterClass()
 			new ReField( "PermutationFlags_", &ScnMaterialComponent::PermutationFlags_, bcRFF_IMPORTER ),
 
 			new ReField( "pProgram_", &ScnMaterialComponent::pProgram_, bcRFF_SHALLOW_COPY ),
+			new ReField( "TextureMap_", &ScnMaterialComponent::TextureMap_, bcRFF_SHALLOW_COPY ),
 			new ReField( "ViewUniformBlockIndex_", &ScnMaterialComponent::ViewUniformBlockIndex_, bcRFF_CONST ),
 			new ReField( "BoneUniformBlockIndex_", &ScnMaterialComponent::BoneUniformBlockIndex_, bcRFF_CONST ),
 			new ReField( "ObjectUniformBlockIndex_", &ScnMaterialComponent::ObjectUniformBlockIndex_, bcRFF_CONST ),
@@ -434,6 +435,40 @@ void ScnMaterialComponent::initialise()
 			ScnTextureRef Texture = (*Iter).second;
 
 			BcU32 SamplerIdx = findTextureSlot( SamplerName );
+			if( SamplerIdx != BcErrorCode )
+			{
+				setTexture( SamplerIdx, Texture );
+			}
+		}
+
+		// Build a binding list for samplers.
+		auto& SamplerMap( Material_->SamplerStateMap_ );
+		for( auto Iter( SamplerMap.begin() ); Iter != SamplerMap.end(); ++Iter )
+		{
+			const BcName& SamplerName = (*Iter).first;
+			RsSamplerState* Sampler = (*Iter).second.get();
+
+			BcU32 SamplerIdx = findTextureSlot( SamplerName );
+			if( SamplerIdx != BcErrorCode )
+			{
+				setSamplerState( SamplerIdx, Sampler );
+			}
+		}
+
+		// Grab uniform blocks.
+		ViewUniformBlockIndex_ = findUniformBlock( "ScnShaderViewUniformBlockData" );
+		BoneUniformBlockIndex_ = findUniformBlock( "ScnShaderBoneUniformBlockData" );
+		ObjectUniformBlockIndex_ = findUniformBlock( "ScnShaderObjectUniformBlockData" );
+	}
+	// We've been setup, but we need to set textures & samplers up.
+	else if( Material_ && pProgram_ )
+	{
+		// Build a binding list for textures.
+		auto& TextureMap( TextureMap_ );
+		for( auto Iter( TextureMap.begin() ); Iter != TextureMap.end(); ++Iter )
+		{
+			BcU32 SamplerIdx = (*Iter).first;
+			ScnTextureRef Texture = (*Iter).second;
 			if( SamplerIdx != BcErrorCode )
 			{
 				setTexture( SamplerIdx, Texture );

@@ -42,6 +42,26 @@ void ScnShader::StaticRegisterClass()
 	auto& Class = ReRegisterClass< ScnShader, Super >( Fields );
 	BcUnusedVar( Class );
 
+	ReEnumConstant* ScnShaderPermutationFlagsEnumConstants[] = 
+	{
+		new ReEnumConstant( "RENDER_FORWARD", ScnShaderPermutationFlags::RENDER_FORWARD ),
+		new ReEnumConstant( "RENDER_DEFERRED", ScnShaderPermutationFlags::RENDER_DEFERRED ),
+		new ReEnumConstant( "RENDER_POST_PROCESS", ScnShaderPermutationFlags::RENDER_POST_PROCESS ),
+		new ReEnumConstant( "PASS_SHADOW", ScnShaderPermutationFlags::PASS_SHADOW ),
+		new ReEnumConstant( "PASS_DEPTH", ScnShaderPermutationFlags::PASS_DEPTH ),
+		new ReEnumConstant( "PASS_MAIN", ScnShaderPermutationFlags::PASS_MAIN ),
+		new ReEnumConstant( "MESH_STATIC_2D", ScnShaderPermutationFlags::MESH_STATIC_2D ),
+		new ReEnumConstant( "MESH_STATIC_3D", ScnShaderPermutationFlags::MESH_STATIC_3D ),
+		new ReEnumConstant( "MESH_SKINNED_3D", ScnShaderPermutationFlags::MESH_SKINNED_3D ),
+		new ReEnumConstant( "MESH_PARTICLE_3D", ScnShaderPermutationFlags::MESH_PARTICLE_3D ),
+		new ReEnumConstant( "MESH_INSTANCED_3D", ScnShaderPermutationFlags::MESH_INSTANCED_3D ),
+
+
+	};
+	ReRegisterEnum< ScnShaderPermutationFlags >( ScnShaderPermutationFlagsEnumConstants );
+
+	
+
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 

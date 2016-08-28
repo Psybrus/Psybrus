@@ -130,7 +130,7 @@ public:
 	/**
 	 * Get rect for current material component.
 	 */
-	const ScnRect& getRect( BcU32 Idx ) const;
+	ScnRect getRect( BcU32 Idx ) const;
 
 	/**
 	 * Allocate some vertices to use.<br/>
@@ -226,6 +226,16 @@ public:
 	 * Clear canvas.
 	 */
 	void clear();
+
+	/**
+	 * Get minimum coordinate (tl)
+	 */
+	MaVec2d getMin() const;
+
+	/**
+	 * Get maximum coordinate (rb)
+	 */
+	MaVec2d getMax() const;
 	
 public:
 	void onAttach( ScnEntityWeakRef Parent ) override;
