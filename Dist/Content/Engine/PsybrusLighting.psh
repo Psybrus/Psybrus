@@ -6,7 +6,6 @@
 
 #define USE_SPECULAR_BLINN_PHONG ( 0 )
 #define USE_SPECULAR_GGX ( 1 )
-#define USE_DIFFUSE_LAMBERT ( 1 )
 
 #define LIGHTING_EPSILON  ( 1e-6 )
 #define DIELECTRIC_F0 ( 0.04 )
@@ -155,8 +154,8 @@ float3 EnvBRDFApprox( float3 SpecularColor, float Roughness, float NoV )
 }
 
 //////////////////////////////////////////////////////////////////////////
-// BRDF_Default
-float3 BRDF_Default( Light InLight, in Surface InSurface )
+// BRDF_BlinnPhong
+float3 BRDF_BlinnPhong( Light InLight, in Surface InSurface )
 {
 	// Shared utility.
 	float3 LightVector = normalize( InLight.Position_.xyz - InSurface.SurfacePosition_ );
@@ -167,28 +166,47 @@ float3 BRDF_Default( Light InLight, in Surface InSurface )
 	float VdotH = max( LIGHTING_EPSILON, dot( InSurface.ViewVector_, HalfVector ) );
 
 	// Calculate terms for spec + diffuse.
-#if USE_SPECULAR_BLINN_PHONG
 	float D = NDF_BlinnPhongNormalised( NdotH, RoughnessToSpecularPower( InSurface.Roughness_ ) );
 	float G = GeometryVisibility_CookTorrence( NdotL, InSurface.NdotV_, NdotH, VdotH );
 	float3 Fspec = Fresnel_SchlickApproximation( InSurface.SpecularColour_, LdotH );
 	float3 SpecularColour = Fspec * D * G;
-#elif USE_SPECULAR_GGX
+
+	// Diffuse
+	float INV_PI = 1.0 / PI;
+	float3 DiffuseColour = float3( INV_PI, INV_PI, INV_PI );
+	DiffuseColour *= InSurface.DiffuseColour_;
+
+	// Total colour.
+	float3 Total = DiffuseColour + SpecularColour;
+
+	// Punctual light source.
+	Total = Total * InLight.Colour_ * NdotL;
+
+	return Total;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// BRDF_GGX
+float3 BRDF_GGX( Light InLight, in Surface InSurface )
+{
+	// Shared utility.
+	float3 LightVector = normalize( InLight.Position_.xyz - InSurface.SurfacePosition_ );
+	float3 HalfVector = normalize( LightVector + InSurface.ViewVector_ );
+	float NdotL = max( LIGHTING_EPSILON, dot( InSurface.Normal_, LightVector ) );
+	float NdotH = max( LIGHTING_EPSILON, dot( InSurface.Normal_, HalfVector ) );
+	float LdotH = max( LIGHTING_EPSILON, dot( LightVector, HalfVector ) );
+	float VdotH = max( LIGHTING_EPSILON, dot( InSurface.ViewVector_, HalfVector ) );
+
+	// Calculate terms for spec + diffuse.
 	float D = NDF_GGX( NdotH, InSurface.Roughness_ );
 	float G = GeometryVisibility_SmithGGXApprox( LdotH, InSurface.Roughness_ );
 	float3 Fspec = Fresnel_SchlickApproximation( InSurface.SpecularColour_, LdotH );
 	float3 SpecularColour = Fspec * D * G;
-#else
-#  error No other specular model supported.
-#endif
 
 	// Diffuse
-#if USE_DIFFUSE_LAMBERT
 	float INV_PI = 1.0 / PI;
 	float3 DiffuseColour = float3( INV_PI, INV_PI, INV_PI );
 	DiffuseColour *= InSurface.DiffuseColour_;
-#else
-#  error No other diffuse model supported.
-#endif
 
 	// Total colour.
 	float3 Total = DiffuseColour + SpecularColour;
@@ -201,6 +219,19 @@ float3 BRDF_Default( Light InLight, in Surface InSurface )
 	Total = max( Total, float3( 0.0, 0.0, 0.0 ) );
 
 	return Total;
+}
+//////////////////////////////////////////////////////////////////////////
+// BRDF_Default
+float3 BRDF_Default( Light InLight, in Surface InSurface )
+{
+	// Calculate terms for spec + diffuse.
+#if USE_SPECULAR_BLINN_PHONG
+	return BRDF_BlinnPhong( InLight, InSurface );
+#elif USE_SPECULAR_GGX
+	return BRDF_GGX( InLight, InSurface );
+#else
+#  error No other specular model supported.
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
