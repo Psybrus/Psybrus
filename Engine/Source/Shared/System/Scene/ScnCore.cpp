@@ -198,57 +198,49 @@ void ScnCore::open()
 	DsCore::pImpl()->registerPanel(
 		"Scene", "Component Editor", "Ctrl+Shift+E", [ this ]( BcU32 )->void
 		{
-			if ( ImGui::Begin( "Component Editor" ) )
+			ImGui::Text( "Components editing: %u", DebugComponents_.size() );
+			ImGui::Separator();
+			for( auto Component : DebugComponents_ )
 			{
-				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
-				ImGui::Separator();
-				for( auto Component : DebugComponents_ )
+				auto UpperClass = Component->getClass();
+				auto Class = UpperClass;
+
+				// Find editor.
+				DsImGuiFieldEditor* FieldEditor = nullptr;
+				while( FieldEditor == nullptr && Class != nullptr )
 				{
-					auto UpperClass = Component->getClass();
-					auto Class = UpperClass;
+					FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
+					Class = Class->getSuper();
 
-					// Find editor.
-					DsImGuiFieldEditor* FieldEditor = nullptr;
-					while( FieldEditor == nullptr && Class != nullptr )
-					{
-						FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
-						Class = Class->getSuper();
-
-					}
-					if( FieldEditor )
-					{
-						FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
-					}
+				}
+				if( FieldEditor )
+				{
+					FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
 				}
 			}
-			ImGui::End();
 		} );
 
 	DsCore::pImpl()->registerPanel(
 		"Scene", "Component Process Funcs", "Ctrl+Shift+P", [ this ]( BcU32 )->void
 		{
-			if ( ImGui::Begin( "Component Process Funcs" ) )
-			{
-				static bool ShowUnused = false;
-				ImGui::Checkbox( "Show unused", &ShowUnused );
+			static bool ShowUnused = false;
+			ImGui::Checkbox( "Show unused", &ShowUnused );
 
-				for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
+			for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
+			{
+				auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
+				auto& ComponentList = ComponentLists_[ ComponentListIdx ];
+				if( ComponentList.size() > 0 || ShowUnused )
 				{
-					auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
-					auto& ComponentList = ComponentLists_[ ComponentListIdx ];
-					if( ComponentList.size() > 0 || ShowUnused )
-					{
-						ImGui::Text( "%s::%s", 
-							(*ComponentProcessFunc.Class_->getName()).c_str(),
-							ComponentProcessFunc.Name_.c_str() );
-						ImGui::Text( "- Priority : %i", 
-							ComponentProcessFunc.Priority_ );
-						ImGui::Text( "- Components : %u", 
-							ComponentList.size() );
-					}
+					ImGui::Text( "%s::%s", 
+						(*ComponentProcessFunc.Class_->getName()).c_str(),
+						ComponentProcessFunc.Name_.c_str() );
+					ImGui::Text( "- Priority : %i", 
+						ComponentProcessFunc.Priority_ );
+					ImGui::Text( "- Components : %u", 
+						ComponentList.size() );
 				}
 			}
-			ImGui::End();
 		} );
 #endif // !PSY_PRODUCTION
 

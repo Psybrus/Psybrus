@@ -121,48 +121,44 @@ void ScnModelProcessor::initialise()
 		DsCore::pImpl()->registerPanel( 
 			"Processors", "ScnModelProcessor", nullptr, [ this ]( BcU32 )->void
 			{
-				if ( ImGui::Begin( "ScnModelProcessor" ) )
+				const BcF32 UpdateTime = static_cast< BcF32 >( UpdateTime_ * 1000.0 );
+				if( ImGui::TreeNode( "Update", "Update Time: %f ms", UpdateTime ) )
 				{
-					const BcF32 UpdateTime = static_cast< BcF32 >( UpdateTime_ * 1000.0 );
-					if( ImGui::TreeNode( "Update", "Update Time: %f ms", UpdateTime ) )
-					{
-						static std::array< BcF32, 256 > GraphPoints = { 0.0f };
-						static int GraphPointIdx = 0;
-						GraphPoints[ GraphPointIdx ] = UpdateTime;
-						GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
-						ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
-						ImGui::TreePop();
-					}
-					const BcF32 SortTime = static_cast< BcF32 >( SortingTime_ * 1000.0 );
-					if( ImGui::TreeNode( "Sort", "Sort Time: %f ms", SortTime ) )
-					{
-						static std::array< BcF32, 256 > GraphPoints = { 0.0f };
-						static int GraphPointIdx = 0;
-						GraphPoints[ GraphPointIdx ] = SortTime;
-						GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
-						ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
-						ImGui::TreePop();
-					}
-					ImGui::Text( "Components: %u", NoofComponents_ );
-					ImGui::Text( "Nodes: %u", NoofNodes_ );
-					ImGui::Text( "Models Rendered: %u", ModelsRendered_ );
-					ImGui::Text( "Total Draw Calls: %u", DrawCalls_ );
-
-					ImGui::Checkbox( "Enable Jobs", &UseJobs_ );
-					ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob_ );
-			
-					bool SortingEnabled = !!SortingEnabled_;
-					bool InstancingEnabled = !!InstancingEnabled_;
-					if( ImGui::Checkbox( "Sorting Enabled", &SortingEnabled ) )
-					{
-						SortingEnabled_ = SortingEnabled;
-					}
-					if( ImGui::Checkbox( "Instancing Enabled", &InstancingEnabled ) )
-					{
-						InstancingEnabled_ = InstancingEnabled;
-					}
+					static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+					static int GraphPointIdx = 0;
+					GraphPoints[ GraphPointIdx ] = UpdateTime;
+					GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+					ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+					ImGui::TreePop();
 				}
-				ImGui::End();
+				const BcF32 SortTime = static_cast< BcF32 >( SortingTime_ * 1000.0 );
+				if( ImGui::TreeNode( "Sort", "Sort Time: %f ms", SortTime ) )
+				{
+					static std::array< BcF32, 256 > GraphPoints = { 0.0f };
+					static int GraphPointIdx = 0;
+					GraphPoints[ GraphPointIdx ] = SortTime;
+					GraphPointIdx = ( GraphPointIdx + 1 ) % GraphPoints.size();
+					ImGui::PlotLines( "", GraphPoints.data(), static_cast< BcU32 >( GraphPoints.size() ), GraphPointIdx, nullptr, 0.0f, 2.0f, MaVec2d( 0.0f, 128.0f ) );
+					ImGui::TreePop();
+				}
+				ImGui::Text( "Components: %u", NoofComponents_ );
+				ImGui::Text( "Nodes: %u", NoofNodes_ );
+				ImGui::Text( "Models Rendered: %u", ModelsRendered_ );
+				ImGui::Text( "Total Draw Calls: %u", DrawCalls_ );
+
+				ImGui::Checkbox( "Enable Jobs", &UseJobs_ );
+				ImGui::InputInt( "MaxNodesPerJob", (int*)&MaxNodesPerJob_ );
+			
+				bool SortingEnabled = !!SortingEnabled_;
+				bool InstancingEnabled = !!InstancingEnabled_;
+				if( ImGui::Checkbox( "Sorting Enabled", &SortingEnabled ) )
+				{
+					SortingEnabled_ = SortingEnabled;
+				}
+				if( ImGui::Checkbox( "Instancing Enabled", &InstancingEnabled ) )
+				{
+					InstancingEnabled_ = InstancingEnabled;
+				}
 			} );
 	}
 #endif

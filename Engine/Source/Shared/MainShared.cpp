@@ -245,53 +245,49 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 		void operator()( BcU32 Handle )
 		{
 			ImGui::SetNextWindowSize( ImVec2( 500, 400 ), ImGuiSetCond_FirstUseEver );
-			if( ImGui::Begin( "Log" ) )
+			if( ImGui::Button( "Clear" ) )
 			{
-				if( ImGui::Button( "Clear" ) )
-				{
-					Buf_.clear(); 
-					LineOffsets_.clear(); 
-				}
-				ImGui::SameLine();
-				bool Copy = ImGui::Button( "Copy" );
-				ImGui::SameLine();
-				Filter_.Draw( "Filter", -100.0f );
-				ImGui::Separator();
-				ImGui::BeginChild( "scrolling" );
-				ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0, 1 ) );
-				if( Copy )
-				{
-					ImGui::LogToClipboard();
-				}
-
-				if( Filter_.IsActive() )
-				{
-					const char* BufBegin = Buf_.begin();
-					const char* Line = BufBegin;
-					for( int LineNo = 0; Line != NULL; LineNo++ )
-					{
-						const char* LineEnd = (LineNo < LineOffsets_.Size ) ? BufBegin + LineOffsets_[ LineNo ] : NULL;
-						if( Filter_.PassFilter( Line, LineEnd ) )
-						{
-							ImGui::TextUnformatted( Line, LineEnd );
-						}
-						Line = LineEnd && LineEnd[1] ? LineEnd + 1 : NULL;
-					}
-				}
-				else
-				{
-					ImGui::TextUnformatted( Buf_.begin() );
-				}
-
-				if( ScrollToBottom_ )
-				{
-					ImGui::SetScrollHere(1.0f);
-				}
-				ScrollToBottom_ = false;
-				ImGui::PopStyleVar();
-				ImGui::EndChild();
+				Buf_.clear(); 
+				LineOffsets_.clear(); 
 			}
-			ImGui::End();		
+			ImGui::SameLine();
+			bool Copy = ImGui::Button( "Copy" );
+			ImGui::SameLine();
+			Filter_.Draw( "Filter", -100.0f );
+			ImGui::Separator();
+			ImGui::BeginChild( "scrolling" );
+			ImGui::PushStyleVar( ImGuiStyleVar_ItemSpacing, ImVec2( 0, 1 ) );
+			if( Copy )
+			{
+				ImGui::LogToClipboard();
+			}
+
+			if( Filter_.IsActive() )
+			{
+				const char* BufBegin = Buf_.begin();
+				const char* Line = BufBegin;
+				for( int LineNo = 0; Line != NULL; LineNo++ )
+				{
+					const char* LineEnd = (LineNo < LineOffsets_.Size ) ? BufBegin + LineOffsets_[ LineNo ] : NULL;
+					if( Filter_.PassFilter( Line, LineEnd ) )
+					{
+						ImGui::TextUnformatted( Line, LineEnd );
+					}
+					Line = LineEnd && LineEnd[1] ? LineEnd + 1 : NULL;
+				}
+			}
+			else
+			{
+				ImGui::TextUnformatted( Buf_.begin() );
+			}
+
+			if( ScrollToBottom_ )
+			{
+				ImGui::SetScrollHere(1.0f);
+			}
+			ScrollToBottom_ = false;
+			ImGui::PopStyleVar();
+			ImGui::EndChild();
 		}
 
 		void onLog( const BcLogEntry& Entry ) override
@@ -387,74 +383,63 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 			GraphPointIdx = ( GraphPointIdx + 1 ) % GameTimeGraphPoints.size();
 
-			OsClient* Client = OsCore::pImpl()->getClient( 0 );
-			static bool ShowOpened = true;
-			MaVec2d WindowSize = ImVec2( 300.0f, 800.0f );
-			MaVec2d WindowPos = ImVec2( ( Client->getWidth() - 300.0f ) - 16.0f, 16.0f );
+			ImGui::Text( "Worker count: %u", 
+				(BcU32)SysKernel::pImpl()->workerCount() );
 
-			ImGui::SetNextWindowPos( WindowPos );
-			if ( ImGui::Begin( "Engine Stats", &ShowOpened, WindowSize, 0.0f, 
-				ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing ) )
+			if( ImGui::TreeNode( "Game", "Game time: %.2fms (%.2fms avg.)", 
+				SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f ) )
 			{
-				ImGui::Text( "Worker count: %u", 
-					(BcU32)SysKernel::pImpl()->workerCount() );
-
-				if( ImGui::TreeNode( "Game", "Game time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f ) )
-				{
-					ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
-					ImGui::TreePop();
-				}
-
-				if( ImGui::TreeNode( "Render", "Render time: %.2fms (%.2fms avg.)", 
-					RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f ) )
-				{
-					ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
-					ImGui::TreePop();
-				}
-
-				if( ImGui::TreeNode( "GPU", "GPU time: %.2fms (%.2fms avg.)", 
-					ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f, GPUTimeTotal * 1000.0f ) )
-				{
-					ImGui::PlotLines( "", GPUTimeGraphPoints.data(), GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
-					ImGui::TreePop();
-				}
-
-				if( ImGui::TreeNode( "Frame", "Frame time: %.2fms (%.2fms avg.)", 
-					SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f ) )
-				{
-					ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
-					ImGui::TreePop();
-				}
-
-
-				if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
-				{
-					if( ImGui::Button( "Begin Capture (F1)" ) )
-					{
-						ScreenshotUtil::BeginCapture();
-					}
-				}
-				else
-				{
-					if( ImGui::Button( "End Capture (F1)" ) )
-					{
-						ScreenshotUtil::EndCapture();
-					}
-				}
-
-				if( !ScreenshotUtil::ScreenCapturing )
-				{
-					ImGui::SameLine();
-					if( ImGui::Button( "Screenshot (F2)" ) )
-					{
-						ScreenshotUtil::TakeScreenshot();
-					}
-				}
-
-				ImGui::Text( "Capture frames processing: %u", (BcU32)ScreenshotUtil::TotalFramesRemaining.load() );
+				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::TreePop();
 			}
-			ImGui::End();
+
+			if( ImGui::TreeNode( "Render", "Render time: %.2fms (%.2fms avg.)", 
+				RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f ) )
+			{
+				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::TreePop();
+			}
+
+			if( ImGui::TreeNode( "GPU", "GPU time: %.2fms (%.2fms avg.)", 
+				ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f, GPUTimeTotal * 1000.0f ) )
+			{
+				ImGui::PlotLines( "", GPUTimeGraphPoints.data(), GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::TreePop();
+			}
+
+			if( ImGui::TreeNode( "Frame", "Frame time: %.2fms (%.2fms avg.)", 
+				SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f ) )
+			{
+				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::TreePop();
+			}
+
+
+			if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
+			{
+				if( ImGui::Button( "Begin Capture (F1)" ) )
+				{
+					ScreenshotUtil::BeginCapture();
+				}
+			}
+			else
+			{
+				if( ImGui::Button( "End Capture (F1)" ) )
+				{
+					ScreenshotUtil::EndCapture();
+				}
+			}
+
+			if( !ScreenshotUtil::ScreenCapturing )
+			{
+				ImGui::SameLine();
+				if( ImGui::Button( "Screenshot (F2)" ) )
+				{
+					ScreenshotUtil::TakeScreenshot();
+				}
+			}
+
+			ImGui::Text( "Capture frames processing: %u", (BcU32)ScreenshotUtil::TotalFramesRemaining.load() );
 		} );
 
 	return evtRET_REMOVE;

@@ -345,7 +345,11 @@ void DsCoreImpl::open()
 					{
 						if( Panel.IsVisible_ )
 						{
-							Panel.Function_( Panel.Handle_ );
+							if ( ImGui::Begin( Panel.Name_.c_str() ) )
+							{
+								Panel.Function_( Panel.Handle_ );
+							}
+							ImGui::End();
 						}
 					}
 				}
