@@ -88,9 +88,14 @@ private:
 
 	BcBool SortingEnabled_ = BcTrue;
 	BcBool InstancingEnabled_ = BcTrue;
+	size_t NoofNodes_ = 0;
 	size_t ModelsRendered_ = 0;
 	size_t DrawCalls_ = 0;
+	BcF64 UpdateTime_ = 0.0;
 	BcF64 SortingTime_ = 0.0;
+	bool UseJobs_ = true;
+	int MaxNodesPerJob_ = 64;
+	size_t NoofComponents_ = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////

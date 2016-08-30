@@ -68,6 +68,12 @@ public:
 	virtual void deregisterPanel( BcU32 Handle ) = 0;
 
 	/**
+	 * Add view overlay.
+	 * Adds a debug overlay for a given view. Must be called each frame.
+	 */
+	virtual void addViewOverlay( const class MaMat4d& View, const class MaMat4d& Proj, const struct RsViewport& Viewport ) = 0;
+
+	/**
 	 * Draw obejct editor.
 	 * Will handle any type represented by ReClass, will draw the default
 	 * object editor. Will handle upcasting ReObject types.

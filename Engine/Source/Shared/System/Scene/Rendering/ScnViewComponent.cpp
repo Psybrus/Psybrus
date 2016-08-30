@@ -760,20 +760,6 @@ BcBool ScnViewComponent::hasRenderTarget() const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// getFrameBuffer
-RsFrameBuffer* ScnViewComponent::getFrameBuffer() const
-{
-	return FrameBuffer_.get();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// getViewport
-const RsViewport& ScnViewComponent::getViewport() const
-{
-	return Viewport_;
-}
-
-//////////////////////////////////////////////////////////////////////////
 // compareFrustum
 bool ScnViewComponent::compare( const ScnViewComponent* Other ) const
 {

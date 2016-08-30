@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef BUILD_VERSION
-#define BUILD_VERSION "UNKNOWN"
+#define BUILD_VERSION "LOCAL"
 #endif
 
 #ifndef BUILD_DATE

@@ -93,7 +93,7 @@ private:
 	std::vector< ScnPhysicsEventCollision > Collisions_;
 	std::vector< ScnPhysicsEventTrigger > Triggers_;
 
-	BcU32 DebugRenderingHandle_;
+	BcU32 DebugPanelHandle_;
 };
 
 #endif

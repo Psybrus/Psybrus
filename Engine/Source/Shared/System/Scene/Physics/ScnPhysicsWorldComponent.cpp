@@ -302,17 +302,27 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
 
-
-
-
-#if !PLATFORM_HTML5
+#if !PSY_PRODUCTION
 	if( DsCore::pImpl() )
 	{
-		DebugRenderingHandle_ = DsCore::pImpl()->registerFunction("Toggle Debug Physics Rendering",
-			[ this ]
+		DsCore::pImpl()->registerPanel( 
+			"Processors", "ScnPhysicsWorldComponent", nullptr, [ this ]( BcU32 )->void
 			{
-				DebugDrawWorld_ = !DebugDrawWorld_;
-			});
+				if ( ImGui::Begin( "ScnPhysicsWorldComponent" ) )
+				{
+					ImGui::LabelText( "%s", getFullName().c_str() );
+
+					bool DebugDraw = !!DebugDrawWorld_;
+					if( ImGui::Checkbox( "Debug draw", &DebugDraw ) )
+					{
+						DebugDrawWorld_ = DebugDraw ? BcTrue : BcFalse;
+					}
+			
+					ImGui::Separator();
+					ImGui::TreePop();
+				}
+				ImGui::End();
+			} );
 	}
 #endif
 
@@ -326,10 +336,10 @@ void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	DynamicsWorld_->removeAction( UpdateActions_ );
 
-#if !PLATFORM_HTML5
+#if !PSY_PRODUCTION
 	if( DsCore::pImpl() )
 	{
-		DsCore::pImpl()->deregisterFunction( DebugRenderingHandle_ );
+		DsCore::pImpl()->deregisterPanel( DebugPanelHandle_ );
 	}
 #endif
 	
@@ -480,27 +490,6 @@ void ScnPhysicsWorldComponent::simulate( const ScnComponentList& Components )
 			Tick, 
 			WorldComponent->MaxSubSteps_, 
 			WorldComponent->InvFrameRate_ );
-
-		// Resolve collisions?
-#if !PSY_PRODUCTION
-		if ( ImGui::Begin( "Engine Debug" ) )
-		{
-			if( ImGui::TreeNode( "ScnPhysicsWorldComponent" ) )
-			{
-				ImGui::LabelText( "%s", WorldComponent->getFullName().c_str() );
-
-				bool DebugDraw = !!WorldComponent->DebugDrawWorld_;
-				if( ImGui::Checkbox( "Debug draw", &DebugDraw ) )
-				{
-					WorldComponent->DebugDrawWorld_ = DebugDraw ? BcTrue : BcFalse;
-				}
-			
-				ImGui::Separator();
-				ImGui::TreePop();
-			}
-		}
-		ImGui::End();
-#endif
 	}
 
 }

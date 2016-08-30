@@ -443,6 +443,18 @@ namespace
 // Implementation for Psybrus.
 namespace ImGui
 {
+void AddShadowedText( ImDrawList* DrawList, MaVec2d Position, int Colour, const char* Format, ... )
+{
+	std::array< char, 1024 > Buffer;
+	va_list Args;
+	va_start( Args, Format );
+	BcVSPrintf( Buffer.data(), Buffer.size(), Format, Args ); 
+	va_end( Args );
+
+	DrawList->AddText( Position + MaVec2d( 1.0f, 1.0f ), 0xff000000, Buffer.data() );
+	DrawList->AddText( Position, Colour, Buffer.data() );
+}
+
 namespace Psybrus
 {
 	bool Init()

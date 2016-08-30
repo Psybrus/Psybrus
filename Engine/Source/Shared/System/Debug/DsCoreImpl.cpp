@@ -6,6 +6,7 @@
 #include "System/Debug/DsProfilerChromeTracing.h"
 #include "System/Debug/DsProfilerRemotery.h"
 
+#include "Base/BcBuildInfo.h"
 #include "Base/BcFile.h"
 #include "Base/BcHtml.h"
 #include "Base/BcProfiler.h"
@@ -228,7 +229,83 @@ void DsCoreImpl::open()
 			{
 				if ( ImGui::Psybrus::NewFrame() )
 				{
-					if ( DrawMenu_ )
+					// Setup window.
+					MaVec2d ClientSize( OsCore::pImpl()->getClient( 0 )->getWidth(), OsCore::pImpl()->getClient( 0 )->getHeight() );
+					ImGui::Begin( "Engine Internal", NULL, ClientSize, 0, 
+						ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | 
+						ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing );
+					auto DrawList = ImGui::GetWindowDrawList();
+					ImGui::End();
+
+					// Draw stats.
+					if( DrawStats_ )
+					{
+
+						std::array< char, 1024 > TestBuffer;
+						auto Font = ImGui::GetWindowFont();
+						auto TextHeightIncr = MaVec2d( 0.0f, Font->FontSize + 2.0f );
+						auto ShadowOff = MaVec2d( 1.0f, 1.0f );
+
+						auto TextPos = MaVec2d( 16.0f, ClientSize.y() - ( 16.0f + TextHeightIncr.y() * 3.0f ) );
+
+						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Build: %s-%s-%s", 
+								BUILD_ACTION,
+								BUILD_TOOLCHAIN,
+								BUILD_CONFIG );
+						TextPos += TextHeightIncr;
+
+						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Version: %s", 
+								BUILD_VERSION );
+						TextPos += TextHeightIncr;
+
+						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Date/Time: %s %s", 
+								BUILD_DATE, BUILD_TIME );
+						TextPos += TextHeightIncr;
+					}
+
+					// Draw views.
+					if( DrawViews_ )
+					{
+						for( const auto& ViewInfo : ViewInfos_ )
+						{
+							MaMat4d View = ViewInfo.View_;
+							View.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
+							MaMat4d ClipTransform = View * ViewInfo.Proj_;
+
+							auto getScreenPos = [ & ]( MaVec4d WorldPos )
+							{
+								MaVec4d ScreenSpace = WorldPos * ClipTransform;
+								MaVec2d ScreenPosition = MaVec2d( ScreenSpace.x() / ScreenSpace.w(), -ScreenSpace.y() / ScreenSpace.w() );
+
+								BcF32 Aspect = (BcF32)ViewInfo.Viewport_.width() / (BcF32)ViewInfo.Viewport_.height();
+
+								return MaVec2d( ( ScreenPosition.x() ), ( ScreenPosition.y() / Aspect ) );
+							};
+
+							MaMat4d InvView = View;
+							InvView.inverse();
+							MaVec4d Offset = MaVec4d( 0.0f, 0.0f, 4.0f, 1.0f ) * InvView;
+
+							auto SC = getScreenPos( MaVec4d( 0.0f, 0.0f, 0.0f, 0.0f ) + Offset );
+							auto SX = getScreenPos( MaVec4d( 1.0f, 0.0f, 0.0f, 0.0f ) + Offset );
+							auto SY = getScreenPos( MaVec4d( 0.0f, 1.0f, 0.0f, 0.0f ) + Offset );
+							auto SZ = getScreenPos( MaVec4d( 0.0f, 0.0f, 1.0f, 0.0f ) + Offset );
+
+							auto S = 64.0f;
+							MaVec2d SO = MaVec2d( ClientSize.x() - S, ClientSize.y() - S );
+							SC = ( SC * S * 3.0f ) + SO;
+							SX = ( SX * S * 3.0f ) + SO;
+							SY = ( SY * S * 3.0f ) + SO;
+							SZ = ( SZ * S * 3.0f ) + SO;
+
+							DrawList->AddLine( SC, SX, 0xff0000ff, 4.0f );
+							DrawList->AddLine( SC, SY, 0xff00ff00, 4.0f );
+							DrawList->AddLine( SC, SZ, 0xffff0000, 4.0f );
+						}
+					}
+
+					// Draw menus.
+					if( DrawMenu_ )
 					{
 						// Do main menu bar.
 						if( ImGui::BeginMainMenuBar() )
@@ -273,6 +350,7 @@ void DsCoreImpl::open()
 					}
 				}
 			}
+			ViewInfos_.clear();
 			return evtRET_PASS;
 		} );
 	}
@@ -562,6 +640,14 @@ void DsCoreImpl::deregisterPanel( BcU32 Handle )
 		PanelFunctions_.erase( FoundIt );
 	}
 	BcAssert( BcIsGameThread() );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// addViewOverlay
+void DsCoreImpl::addViewOverlay( const MaMat4d& View, const MaMat4d& Proj, const RsViewport& Viewport )
+{
+	ViewInfo ViewInfo = { View, Proj, Viewport };
+	ViewInfos_.push_back( ViewInfo );
 }
 
 //////////////////////////////////////////////////////////////////////////

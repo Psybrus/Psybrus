@@ -39,7 +39,6 @@ BcU32 GResolutionHeight = 720;
 #include "Import/Img/Img.h"
 #include "Import/Img/gif.h"
 
-#include "Base/BcBuildInfo.h"
 #include "Base/BcFile.h"
 #include "Base/BcProfiler.h"
 
@@ -390,21 +389,13 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 			OsClient* Client = OsCore::pImpl()->getClient( 0 );
 			static bool ShowOpened = true;
-			MaVec2d WindowSize = ImVec2( 300.0f, 400.0f );
+			MaVec2d WindowSize = ImVec2( 300.0f, 800.0f );
 			MaVec2d WindowPos = ImVec2( ( Client->getWidth() - 300.0f ) - 16.0f, 16.0f );
+
 			ImGui::SetNextWindowPos( WindowPos );
-			if ( ImGui::Begin( "Engine Stats", &ShowOpened, WindowSize, 0.3f, 
-				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize ) )
+			if ( ImGui::Begin( "Engine Stats", &ShowOpened, WindowSize, 0.0f, 
+				ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoFocusOnAppearing ) )
 			{
-				ImGui::Text( "Build: %s-%s-%s", 
-					BUILD_ACTION,
-					BUILD_TOOLCHAIN,
-					BUILD_CONFIG );
-				ImGui::Text( "Version: %s", 
-					BUILD_VERSION );
-				ImGui::Text( "Date/Time: %s %s", 
-					BUILD_DATE,
-					BUILD_TIME );
 				ImGui::Text( "Worker count: %u", 
 					(BcU32)SysKernel::pImpl()->workerCount() );
 

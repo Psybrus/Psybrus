@@ -3,10 +3,14 @@
 
 #include "Base/BcGlobal.h"
 #include "Base/BcHtml.h"
+
+#include "Math/MaMat4d.h"
+
 #include "System/SysSystem.h"
 
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
+#include "System/Renderer/RsTypes.h"
 #include "DsCore.h"
 
 #include <functional>
@@ -106,8 +110,8 @@ public:
 	void close() override;
 
 	BcU32 registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function< void( BcU32 )> Func ) override;
-
 	void deregisterPanel( BcU32 Handle ) override;
+	void addViewOverlay( const MaMat4d& View, const MaMat4d& Proj, const RsViewport& Viewport ) override;
 	void drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void( DsParameters, BcHtmlNode&, std::string )> fn, std::string display ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void( DsParameters, BcHtmlNode&, std::string )> fn ) override;
@@ -167,6 +171,8 @@ private:
 #endif // USE_WEBBY
 
 protected:
+	bool DrawStats_ = true;
+	bool DrawViews_ = true;
 	bool DrawMenu_ = false;
 	std::vector< DsPanelDefinition > PanelFunctions_;
 	std::vector< DsPageDefinition > PageFunctions_;
@@ -178,6 +184,15 @@ protected:
 	int ShiftModifier_ = 0;
 
 	std::unordered_map< BcU32, std::string > ShortcutLookup_;
+
+	struct ViewInfo
+	{
+		MaMat4d View_;
+		MaMat4d Proj_;
+		RsViewport Viewport_;
+	};
+
+	std::vector< ViewInfo > ViewInfos_;
 };
 
 

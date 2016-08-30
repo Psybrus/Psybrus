@@ -185,8 +185,10 @@ public:
 	BcBool intersect( const MaAABB& AABB ) const;
 	BcBool hasRenderTarget() const;
 
-	RsFrameBuffer* getFrameBuffer() const;
-	const RsViewport& getViewport() const;
+	RsFrameBuffer* getFrameBuffer() const { return FrameBuffer_.get(); }
+	const RsViewport& getViewport() const { return Viewport_; }
+	const MaMat4d& getViewTransform() const { return ViewUniformBlock_.ViewTransform_; }
+	const MaMat4d& getProjectionTransform() const { return ViewUniformBlock_.ProjectionTransform_; }
 	bool compare( const ScnViewComponent* Other ) const;
 
 	/**

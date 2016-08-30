@@ -69,6 +69,11 @@ namespace ImGui
 		}
 	};
 
+	/**
+	 * Add shadowed text.
+	 */
+	void AddShadowedText( ImDrawList* DrawList, MaVec2d Position, int Colour, const char* Format, ... );
+
 
 	namespace Psybrus
 	{
