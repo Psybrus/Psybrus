@@ -112,6 +112,14 @@ namespace
 	BcF32 MouseWheel_ = 0.0f;
 	/// Text input.
 	std::vector< BcU32 > TextInput_;
+	/// Texture handling.
+	struct TextureEntry
+	{
+		RsTexture* Texture_;
+		RsSamplerState* SamplerState_;
+	};
+
+	std::vector< TextureEntry > TextureTable_; 
 
 	/**
 	 * Perform the draw.
@@ -256,28 +264,19 @@ namespace
 
 							// Regenerate program binding if we need to.
 							bool RecreateProgramBinding = false;
-							if( Cmd->TextureId != nullptr )
-							{
-								if( TextureSlot == BcErrorCode || 
-									ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
-								{
-									if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
-									{
-										RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, (RsTexture*)Cmd->TextureId );
-										RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
-									}
-									RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData )  );
-								}
-							}
-							else
+							auto Texture = ImGui::Psybrus::GetTexture( Cmd->TextureId );
+							auto SamplerState = ImGui::Psybrus::GetSamplerState( Cmd->TextureId );
+							if( TextureSlot == BcErrorCode || 
+								ProgramBindingDesc_.ShaderResourceSlots_[ TextureSlot ].Texture_ != Cmd->TextureId )
 							{
 								if( TextureSlot != BcErrorCode && SamplerSlot != BcErrorCode )
 								{
-									RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, WhiteTexture_.get() );
-									RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, FontSampler_.get() );
+									RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, Texture );
+									RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, SamplerState );
 								}
-								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData ) );
+								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData )  );
 							}
+
 							if( RecreateProgramBinding && ProgramBinding_ )
 							{
 								DestroyProgramBindings_.emplace_back( std::move( ProgramBinding_ ) );
@@ -457,6 +456,29 @@ void AddShadowedText( ImDrawList* DrawList, MaVec2d Position, int Colour, const 
 
 namespace Psybrus
 {
+	ImTextureID AddTexture( RsTexture* Texture, RsSamplerState* SamplerState )
+	{
+		TextureEntry TextureEntry = 
+		{
+			Texture ? Texture : WhiteTexture_.get(),
+			SamplerState ? SamplerState : FontSampler_.get(), 
+		};
+		TextureTable_.push_back( TextureEntry );
+		return (ImTextureID)( TextureTable_.size() - 1 );
+	}
+
+	RsTexture* GetTexture( ImTextureID ID )
+	{
+		BcAssert( (size_t)ID < TextureTable_.size() );
+		return TextureTable_[ (size_t)ID ].Texture_;
+	}
+
+	RsSamplerState* GetSamplerState( ImTextureID ID )
+	{
+		BcAssert( (size_t)ID < TextureTable_.size() );
+		return TextureTable_[ (size_t)ID ].SamplerState_;
+	}
+
 	bool Init()
 	{
 		PSY_LOGSCOPEDCATEGORY( ImGui );
@@ -563,8 +585,6 @@ namespace Psybrus
 		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
 		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, "DsImGui" );
 
-		IO.Fonts->TexID = FontTexture_.get();
-
 		IO.RenderDrawListsFn = RenderDrawLists;
 #if PLATFORM_WINDOWS		
 		IO.ImeWindowHandle = (HWND)OsCore::pImpl()->getClient( 0 )->getWindowHandle();
@@ -662,6 +682,10 @@ namespace Psybrus
 				}
 			}
 			TextInput_.clear();
+			TextureTable_.clear();
+
+			AddTexture( WhiteTexture_.get(), FontSampler_.get() );
+			IO.Fonts->TexID = AddTexture( FontTexture_.get(), FontSampler_.get() );
 
 			// Start the frame
 			ImGui::NewFrame();

@@ -178,7 +178,6 @@ DsCoreImpl::DsCoreImpl() :
 	ConnectionCount_( 0 ),
 	ws_connections(),
 #endif // USE_WEBBY
-	DrawMenu_( false ),
 	PanelFunctions_(),
 	PageFunctions_(),
 	ButtonFunctions_(),
@@ -492,6 +491,35 @@ void DsCoreImpl::open()
 									}
 									ImGui::EndMenu();
 								}
+
+								// Categorised panels.
+								std::string LastCategory;
+								bool MenuOpen = false;
+								for ( auto& Panel : PanelFunctions_ )
+								{
+									if( Panel.Category_ != LastCategory )
+									{
+										if( MenuOpen && !LastCategory.empty() )
+										{
+											ImGui::EndMenu();
+										}
+										MenuOpen = ImGui::BeginMenu( Panel.Category_.c_str() );
+										LastCategory = Panel.Category_;
+									}
+									if( MenuOpen )
+									{
+										bool IsSelected = false;
+										if( ImGui::MenuItem( Panel.Name_.c_str(), Panel.Shortcut_.c_str(), Panel.IsVisible_ ) )
+										{
+											Panel.IsVisible_ = !Panel.IsVisible_; 
+										}
+									}
+								}
+								if( MenuOpen && !LastCategory.empty() )
+								{
+									ImGui::EndMenu();
+								}
+
 								ImGui::EndPopup();
 							}
 						}
@@ -539,43 +567,6 @@ void DsCoreImpl::open()
 						}
 					}
 
-					// Draw menus.
-					if( DrawMenu_ )
-					{
-						// Do main menu bar.
-						if( ImGui::BeginMainMenuBar() )
-						{
-							// Categorised panels.
-							std::string LastCategory;
-							bool MenuOpen = false;
-							for ( auto& Panel : PanelFunctions_ )
-							{
-								if( Panel.Category_ != LastCategory )
-								{
-									if( MenuOpen && !LastCategory.empty() )
-									{
-										ImGui::EndMenu();
-									}
-									MenuOpen = ImGui::BeginMenu( Panel.Category_.c_str() );
-									LastCategory = Panel.Category_;
-								}
-								if( MenuOpen )
-								{
-									if( ImGui::MenuItem( Panel.Name_.c_str(), Panel.Shortcut_.c_str(), nullptr ) )
-									{
-										Panel.IsVisible_ = !Panel.IsVisible_; 
-									}
-								}
-							}
-							if( MenuOpen && !LastCategory.empty() )
-							{
-								ImGui::EndMenu();
-							}
-
-							ImGui::EndMainMenuBar();
-						}
-					}
-
 					for ( auto& Panel : PanelFunctions_ )
 					{
 						if( Panel.IsVisible_ )
@@ -594,11 +585,6 @@ void DsCoreImpl::open()
 		} );
 	}
 
-	DrawMenu_ = false;
-#if PLATFORM_HTML5
-	DrawMenu_ = true;
-#endif
-
 #if PLATFORM_ANDROID
 		auto& Style = ImGui::GetStyle();
 		Style.FramePadding.x *= 2.0f;
@@ -611,14 +597,6 @@ void DsCoreImpl::open()
 		[ this ]( EvtID, const EvtBaseEvent& InEvent )
 	{
 		const auto& Event = InEvent.get< OsEventInputKeyboard >();
-
-		// Handle toggling menu.
-		if ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_F11 ||
-			Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_VOLUME_UP ||
-			Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_VOLUME_DOWN )
-		{
-			DrawMenu_ = !DrawMenu_;
-		}
 
 		CtrlModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL ) ? 1 : 0;
 		AltModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT ) ? 1 : 0;

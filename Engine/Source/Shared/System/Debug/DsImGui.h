@@ -21,6 +21,8 @@
 // Forward declarations.
 class RsContext;
 class RsFrame;
+class RsTexture;
+class RsSamplerState;
 
 //////////////////////////////////////////////////////////////////////////
 // ImGui functions.
@@ -74,13 +76,18 @@ namespace ImGui
 	 */
 	void AddShadowedText( ImDrawList* DrawList, MaVec2d Position, int Colour, const char* Format, ... );
 
-
 	namespace Psybrus
 	{
+		ImTextureID AddTexture( RsTexture* Texture, RsSamplerState* SamplerState = nullptr );
+		RsTexture* GetTexture( ImTextureID ID );
+		RsSamplerState* GetSamplerState( ImTextureID ID );
+
 		bool Init();
 		void WaitFrame();
 		bool NewFrame();
 		void Render( RsContext* Context, RsFrame* Frame );
 		void Shutdown();
+
+
 	} // end Psybrus
 } // end ImGui

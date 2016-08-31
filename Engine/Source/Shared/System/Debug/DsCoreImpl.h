@@ -173,7 +173,6 @@ private:
 protected:
 	bool DrawStats_ = true;
 	bool DrawViews_ = true;
-	bool DrawMenu_ = false;
 	std::vector< DsPanelDefinition > PanelFunctions_;
 	std::vector< DsPageDefinition > PageFunctions_;
 	std::vector< DsFunctionDefinition > ButtonFunctions_;

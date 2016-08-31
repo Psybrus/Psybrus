@@ -102,7 +102,7 @@ void ScnTexture::StaticRegisterClass()
 						}
 
 						Size *= static_cast< BcF32 >( Width ) / Size.x();
-						ImGui::Image( Value->getTexture(), Size, UV0, UV1 );
+						ImGui::Image( ImGui::Psybrus::AddTexture( Value->getTexture() ), Size, UV0, UV1 );
 					}
 					else
 					{
