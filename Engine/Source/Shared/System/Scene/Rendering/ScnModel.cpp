@@ -20,6 +20,7 @@
 #include "System/Scene/Rendering/ScnViewRenderData.h"
 
 #include "System/Debug/DsCore.h"
+#include "System/Debug/DsUtils.h"
 
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
@@ -98,7 +99,12 @@ ScnModelProcessor::ScnModelProcessor():
 		ScnComponentProcessFuncEntry(
 			"Model Update",
 			ScnComponentPriority::MODEL_UPDATE,
-			std::bind( &ScnModelProcessor::updateModels, this, std::placeholders::_1 ) ) } )
+			std::bind( &ScnModelProcessor::updateModels, this, std::placeholders::_1 ) ),
+		ScnComponentProcessFuncEntry(
+			"Model Debug DraW",
+			ScnComponentPriority::DEFAULT_DEBUG_DRAW,
+			std::bind( &ScnModelProcessor::debugDraw, this, std::placeholders::_1 ) )
+		} )
 {
 }
 
@@ -870,6 +876,35 @@ void ScnModelProcessor::updateModels( const ScnComponentList& Components )
 	UpdateTime_ = Timer.time();
 	SortingTime_ = 0.0f;
 	NoofComponents_ = Components.size();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// debugDraw
+void ScnModelProcessor::debugDraw( const ScnComponentList& Components )
+{
+#if !PSY_PRODUCTION
+	if( Debug::CanDraw( "Model" ) )
+	{
+		Debug::DrawCategory DrawCategory( "Model" );
+		for( auto Component : Components )
+		{
+			auto* ModelComponent = static_cast< ScnModelComponent* >( Component.get() );
+			Debug::DrawMatrix( ModelComponent->getParentEntity()->getWorldMatrix() );
+			for( BcU32 Idx = 0; Idx < ModelComponent->getNoofNodes(); ++Idx )
+			{
+				auto ParentIdx = ModelComponent->Model_->pNodePropertyData_[ Idx ].ParentIndex_;
+				MaMat4d Transform = ModelComponent->getNodeWorldTransform( Idx );
+				MaMat4d ParentTransform = ModelComponent->getParentEntity()->getWorldMatrix();
+				if( ParentIdx != BcErrorCode )
+				{
+					ParentTransform = ModelComponent->getNodeWorldTransform( ParentIdx );
+				}
+				Debug::DrawLine( Transform.translation(), ParentTransform.translation(), RsColour::GREEN );
+				Debug::DrawMatrix( Transform );
+			}
+		}
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

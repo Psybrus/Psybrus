@@ -44,7 +44,7 @@ void ScnDebugRenderComponent::StaticRegisterClass()
 		.addAttribute( new ScnComponentProcessor( 
 			{
 				ScnComponentProcessFuncEntry(
-					"Simulate",
+					"Clear",
 					ScnComponentPriority::DEBUG_RENDER_CLEAR,
 					std::bind( &ScnDebugRenderComponent::clearAll, _1 ) )
 			} ) );
@@ -75,9 +75,14 @@ ScnDebugRenderComponent::ScnDebugRenderComponent( BcU32 NoofVertices ):
 	pVertices_( nullptr ),
 	pVerticesEnd_( nullptr ),
 	pWorkingVertices_( nullptr ),
-	NoofVertices_( NoofVertices )
+	NoofVertices_( NoofVertices ),
+	DrawCategoryMask_( 0x00000000 ),
+	CurrCategoryMask_( 0x00000000 ),
+	CurrCategoryMaskAlloc_( 0x00000001 )
 {
 	setPasses( RsRenderSortPassFlags::TRANSPARENT );
+	CurrCategoryMask_ = getCategoryMask( "Default" );
+	DrawCategoryMask_ = CurrCategoryMask_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,7 +117,7 @@ ScnDebugRenderComponentVertex* ScnDebugRenderComponent::allocVertices( BcU32 Noo
 
 //////////////////////////////////////////////////////////////////////////
 // addPrimitive
-void ScnDebugRenderComponent::addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer, BcBool UseMatrixStack )
+void ScnDebugRenderComponent::addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer )
 {
 	BcAssertMsg( MaterialComponent_ != nullptr, "ScnDebugRenderComponent: Material component has not been set!" );
 
@@ -135,6 +140,7 @@ void ScnDebugRenderComponent::addPrimitive( RsTopologyType Type, ScnDebugRenderC
 		VertexIndex,
 		NoofVertices,
 		Layer,
+		CurrCategoryMask_,
 		MaterialComponent_
 	};
 	
@@ -177,7 +183,8 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 			// NOTE: Need more checks here later.
 			if( PrimitiveSection.Type_ == RsTopologyType::LINE_LIST &&
 				PrimitiveSection.Layer_ == Layer &&
-				PrimitiveSection.MaterialComponent_ == MaterialComponent_ )
+				PrimitiveSection.MaterialComponent_ == MaterialComponent_ &&
+				PrimitiveSection.CategoryMask_ == CurrCategoryMask_ )
 			{
 				PrimitiveSection.NoofVertices_ += 2;
 				
@@ -188,7 +195,7 @@ void ScnDebugRenderComponent::drawLine( const MaVec3d& PointA, const MaVec3d& Po
 		// Add primitive.
 		if( AddNewPrimitive == BcTrue )
 		{
-			addPrimitive( RsTopologyType::LINE_LIST, pFirstVertex, 2, Layer, BcTrue );
+			addPrimitive( RsTopologyType::LINE_LIST, pFirstVertex, 2, Layer );
 		}
 	}
 }
@@ -218,7 +225,7 @@ void ScnDebugRenderComponent::drawLines( const MaVec3d* pPoints, BcU32 NoofLines
 		}
 		
 		// Add primitive.		
-		addPrimitive( RsTopologyType::LINE_STRIP, pFirstVertex, NoofVertices, Layer, BcTrue );
+		addPrimitive( RsTopologyType::LINE_STRIP, pFirstVertex, NoofVertices, Layer );
 	}
 }
 
@@ -459,57 +466,95 @@ void ScnDebugRenderComponent::render( ScnRenderContext& RenderContext )
 	{
 		auto* PrimitiveSection = &PrimitiveSectionList_[ Idx ];
 
-		// Bind material.
-		// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
-		//       if need be. If using multiple canvases we could potentially lose a material bind.
-		//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
+		if( PrimitiveSection->CategoryMask_ & DrawCategoryMask_ )
 		{
-			pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
-
-			// Set model parameters on material.
-			ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
-			RsCore::pImpl()->updateBuffer( 
-				UniformBuffer_.get(),
-				0, sizeof( ObjectUniforms_ ),
-				RsResourceUpdateFlags::ASYNC,
-				[ 
-					ObjectUniforms = ObjectUniforms_
-				]
-				( RsBuffer* Buffer, const RsBufferLock& Lock )
-				{
-					BcMemCopy( Lock.Buffer_, &ObjectUniforms, sizeof( ObjectUniforms ) );					
-				} );
-			pLastMaterialComponent->setObjectUniformBlock( UniformBuffer_.get() );
-
-			RenderContext.pViewComponent_->setMaterialParameters( pLastMaterialComponent );
-		}
-		
-		// Add to frame.
-		RenderContext.pFrame_->queueRenderNode( Sort,
-			[ 
-				GeometryBinding = GeometryBinding_.get(),
-				ProgramBinding = MaterialComponent_->getProgramBinding(),
-				RenderState = MaterialComponent_->getRenderState(),
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-				Viewport = RenderContext.pViewComponent_->getViewport(),
-				PrimitiveSection = *PrimitiveSection
-			]
-			( RsContext* Context )
+			// Bind material.
+			// NOTE: We should be binding for every single draw call. We can have the material deal with redundancy internally
+			//       if need be. If using multiple canvases we could potentially lose a material bind.
+			//if( pLastMaterialComponent != pRenderNode->pPrimitiveSections_->MaterialComponent_ )
 			{
-				Context->drawPrimitives( 
-					GeometryBinding,
-					ProgramBinding,
-					RenderState,
-					FrameBuffer,
-					&Viewport,
-					nullptr,
-					PrimitiveSection.Type_, PrimitiveSection.VertexIndex_, PrimitiveSection.NoofVertices_,
-					0, 1 );
-			} );
+				pLastMaterialComponent = PrimitiveSection->MaterialComponent_;
+
+				// Set model parameters on material.
+				ObjectUniforms_.WorldTransform_ = getParentEntity()->getWorldMatrix();
+				RsCore::pImpl()->updateBuffer( 
+					UniformBuffer_.get(),
+					0, sizeof( ObjectUniforms_ ),
+					RsResourceUpdateFlags::ASYNC,
+					[ 
+						ObjectUniforms = ObjectUniforms_
+					]
+					( RsBuffer* Buffer, const RsBufferLock& Lock )
+					{
+						BcMemCopy( Lock.Buffer_, &ObjectUniforms, sizeof( ObjectUniforms ) );					
+					} );
+				pLastMaterialComponent->setObjectUniformBlock( UniformBuffer_.get() );
+
+				RenderContext.pViewComponent_->setMaterialParameters( pLastMaterialComponent );
+			}
+		
+			// Add to frame.
+			RenderContext.pFrame_->queueRenderNode( Sort,
+				[ 
+					GeometryBinding = GeometryBinding_.get(),
+					ProgramBinding = MaterialComponent_->getProgramBinding(),
+					RenderState = MaterialComponent_->getRenderState(),
+					FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
+					Viewport = RenderContext.pViewComponent_->getViewport(),
+					PrimitiveSection = *PrimitiveSection
+				]
+				( RsContext* Context )
+				{
+					Context->drawPrimitives( 
+						GeometryBinding,
+						ProgramBinding,
+						RenderState,
+						FrameBuffer,
+						&Viewport,
+						nullptr,
+						PrimitiveSection.Type_, PrimitiveSection.VertexIndex_, PrimitiveSection.NoofVertices_,
+						0, 1 );
+				} );
+		}
 	}
 	
 	// Reset vertex index.
 	VertexIndex_ = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCategoryMask
+BcU32 ScnDebugRenderComponent::getCategoryMask( const char* Name )
+{
+	if( MaskNameMap_.find( Name ) == MaskNameMap_.end() )
+	{
+		MaskNameMap_[ Name ] = CurrCategoryMaskAlloc_;
+		CurrCategoryMaskAlloc_ <<= 1;
+	}
+	return MaskNameMap_[ Name ];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getCategories
+size_t ScnDebugRenderComponent::getCategories( const char** OutCategoryNames, BcU32* OutCategoryMasks, size_t MaxCategories ) const
+{
+	size_t RetVal = 0;
+	for( const auto& Pair : MaskNameMap_ )
+	{
+		if( RetVal >= MaxCategories )
+		{
+			break;
+		}
+
+		if( Pair.second != 0 )
+		{
+			OutCategoryNames[ RetVal ] = Pair.first.c_str();
+			OutCategoryMasks[ RetVal ] = Pair.second;
+			++RetVal;
+		}
+	}
+
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////

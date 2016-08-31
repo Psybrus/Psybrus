@@ -20,6 +20,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Debug/DsCore.h"
+#include "System/Debug/DsUtils.h"
 #include "System/Scene/Rendering/ScnDebugRenderComponent.h"
 
 #include "System/SysKernel.h"
@@ -31,6 +32,7 @@
 
 #include "LinearMath/btIDebugDraw.h"
 
+#if !PSY_PRODUCTION
 class DebugRenderer: 
 	public btIDebugDraw
 {
@@ -47,7 +49,8 @@ public:
 	{
 		if( ScnDebugRenderComponent::pImpl() )
 		{
-			ScnDebugRenderComponent::pImpl()->drawLine(
+			Debug::DrawCategory Category( CategoryMask_ );
+			Debug::DrawLine(
 				MaVec3d( from.x(), from.y(), from.z() ),
 				MaVec3d( to.x(), to.y(), to.z() ),
 				RsColour( color.x(), color.y(), color.z(), 1.0f ) );
@@ -58,7 +61,8 @@ public:
 	{
 		if( ScnDebugRenderComponent::pImpl() )
 		{
-			ScnDebugRenderComponent::pImpl()->drawLine(
+			Debug::DrawCategory Category( CategoryMask_ );
+			Debug::DrawLine(
 				ScnPhysicsFromBullet( PointOnB ) - ScnPhysicsFromBullet( normalOnB ),
 				ScnPhysicsFromBullet( PointOnB ) + ScnPhysicsFromBullet( normalOnB ),
 				RsColour( color.x(), color.y(), color.z(), 1.0f ) );
@@ -85,12 +89,12 @@ public:
 		return DebugMode_;
 	}
 
-private:
-	int DebugMode_;
+	int DebugMode_ = 0;
+	BcU32 CategoryMask_ = 0;
 };
 
 static DebugRenderer gDebugRenderer;
-
+#endif
 
 class UpdateActions: 
 	public btActionInterface
@@ -202,7 +206,9 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	Solver_ = new btSequentialImpulseConstraintSolver();
 	DynamicsWorld_ = new btDiscreteDynamicsWorld( Dispatcher_, Broadphase_, Solver_, CollisionConfiguration_ );
 	DynamicsWorld_->setGravity( ScnPhysicsToBullet( Gravity_ ) );
+#if !PSY_PRODUCTION
 	DynamicsWorld_->setDebugDrawer( &gDebugRenderer );
+#endif
 	DynamicsWorld_->addAction( UpdateActions_ );
 
 	// Pre-tick.
@@ -302,30 +308,6 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 
 	btGImpactCollisionAlgorithm::registerAlgorithm( Dispatcher_ );
 
-#if !PSY_PRODUCTION
-	if( DsCore::pImpl() )
-	{
-		DsCore::pImpl()->registerPanel( 
-			"Processors", "ScnPhysicsWorldComponent", nullptr, [ this ]( BcU32 )->void
-			{
-				if ( ImGui::Begin( "ScnPhysicsWorldComponent" ) )
-				{
-					ImGui::LabelText( "%s", getFullName().c_str() );
-
-					bool DebugDraw = !!DebugDrawWorld_;
-					if( ImGui::Checkbox( "Debug draw", &DebugDraw ) )
-					{
-						DebugDrawWorld_ = DebugDraw ? BcTrue : BcFalse;
-					}
-			
-					ImGui::Separator();
-					ImGui::TreePop();
-				}
-				ImGui::End();
-			} );
-	}
-#endif
-
 	Super::onAttach( Parent );
 }
 
@@ -335,13 +317,6 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 void ScnPhysicsWorldComponent::onDetach( ScnEntityWeakRef Parent )
 {
 	DynamicsWorld_->removeAction( UpdateActions_ );
-
-#if !PSY_PRODUCTION
-	if( DsCore::pImpl() )
-	{
-		DsCore::pImpl()->deregisterPanel( DebugPanelHandle_ );
-	}
-#endif
 	
 	Super::onDetach( Parent );
 }
@@ -504,6 +479,13 @@ void ScnPhysicsWorldComponent::debugDraw( const ScnComponentList& Components )
 		BcAssert( Component->isTypeOf< ScnPhysicsWorldComponent >() );
 		auto* WorldComponent = static_cast< ScnPhysicsWorldComponent* >( Component.get() );
 
+#if !PSY_PRODUCTION
+		if( ScnDebugRenderComponent::pImpl() )
+		{
+			gDebugRenderer.CategoryMask_ = ScnDebugRenderComponent::pImpl()->getCategoryMask( "Physics" );
+			WorldComponent->DebugDrawWorld_ = !!( ScnDebugRenderComponent::pImpl()->getDrawCategoryMask() & gDebugRenderer.CategoryMask_ );
+		}
+#endif
 		if( WorldComponent->DebugDrawWorld_ )
 		{
 			WorldComponent->DynamicsWorld_->debugDrawWorld();

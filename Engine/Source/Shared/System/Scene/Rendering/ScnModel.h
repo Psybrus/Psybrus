@@ -67,6 +67,8 @@ public:
 	size_t recursiveModelUpdate( const ScnComponentList& Components, size_t StartIdx, size_t EndIdx, size_t MaxNodesPerJob, SysFence* Fence );
 	void updateModels( const ScnComponentList& Components );
 
+	void debugDraw( const ScnComponentList& Components );
+
 private:
 	std::vector< ScnViewComponentRenderData > ComponentRenderDatas_;
 

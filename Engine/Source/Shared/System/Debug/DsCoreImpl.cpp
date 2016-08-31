@@ -22,11 +22,150 @@
 
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
+#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
 #if USE_WEBBY
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
 #endif
 #include "Psybrus.h"
+
+#include "Import/Img/Img.h"
+#include "Import/Img/gif.h"
+
+//////////////////////////////////////////////////////////////////////////
+// Screenshot utility.
+namespace ScreenshotUtil
+{
+	size_t ScreenshotJobQueue( 0 );
+	BcBool ScreenCapturing( BcFalse );
+	GifWriter Writer;
+	size_t FrameCounter( 0 );
+	std::atomic< size_t > TotalFramesRemaining( 0 );
+
+	void Init()
+	{
+		// Create job queue for screenshot encoding/saving.
+		ScreenshotJobQueue = SysKernel::pImpl()->createJobQueue( 1, 1 );
+	}
+
+	void TakeScreenshot()
+	{
+		if( ScreenCapturing )
+		{
+			return;
+		}
+
+		RsCore::pImpl()->getContext( nullptr )->takeScreenshot(
+			[]( RsScreenshot Screenshot )->BcBool
+			{
+				// Convert to image.
+				const BcU32 W = Screenshot.Width_;
+				const BcU32 H = Screenshot.Height_;
+				const BcU32* ImageData = reinterpret_cast< const BcU32* >( Screenshot.Data_ );
+				ImgImage* Image( new ImgImage() );
+				Image->create( W, H, nullptr );
+				Image->setPixels( reinterpret_cast< const ImgColour* >( ImageData ) );
+
+				SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
+					[ Image ]()->void
+					{
+						PSY_LOG( "Processing screenshot..." );
+
+						// Solid alpha.
+						for( BcU32 Y = 0; Y < Image->height(); ++Y )
+						{
+							for( BcU32 X = 0; X < Image->width(); ++X )
+							{
+								ImgColour Pixel = Image->getPixel( X, Y );
+								Pixel.A_ = 0xff;
+								Image->setPixel( X, Y, Pixel );
+							}
+						}
+
+						// Save out image.
+						auto Time = std::time( nullptr );
+						auto LocalTime = *std::localtime( &Time );
+						BcChar FileName[ 1024 ] = { 0 };
+#if PLATFORM_ANDROID
+						strftime( FileName, sizeof( FileName ) - 1, "/sdcard/Pictures/screenshot_%Y-%m-%d-%H-%M-%S.png", &LocalTime );
+#else
+						strftime( FileName, sizeof( FileName ) - 1, "screenshot_%Y-%m-%d-%H-%M-%S.png", &LocalTime );
+#endif
+						Img::save( FileName, Image );
+						PSY_LOG( "Saved screenshot to %s", FileName );
+						delete Image;
+					} );
+
+				return BcFalse;
+			} );
+	}
+
+	void BeginCapture()
+	{
+		// Early out.
+		if( ScreenshotUtil::ScreenCapturing == BcTrue || ScreenshotUtil::TotalFramesRemaining > 0 )
+		{
+			return;
+		}
+
+		// Begin the gif capture.
+		auto Time = std::time( nullptr );
+		auto LocalTime = *std::localtime( &Time );
+		BcChar FileName[ 1024 ] = { 0 };
+#if PLATFORM_ANDROID
+		strftime( FileName, sizeof( FileName ) - 1, "/sdcard/Pictures/screencapture_%Y-%m-%d-%H-%M-%S.gif", &LocalTime );
+#else
+		strftime( FileName, sizeof( FileName ) - 1, "screencapture_%Y-%m-%d-%H-%M-%S.gif", &LocalTime );
+#endif
+		const BcU32 W = OsCore::pImpl()->getClient( 0 )->getWidth();
+		const BcU32 H = OsCore::pImpl()->getClient( 0 )->getHeight();
+		GifBegin( &Writer, FileName, W / 2, H / 2, 1, 8, false );
+
+		// Mark capturing.
+		ScreenCapturing = BcTrue;
+		FrameCounter = 0;
+
+		// 
+		RsCore::pImpl()->getContext( nullptr )->takeScreenshot( 
+			[]( RsScreenshot Screenshot )->BcBool
+			{
+				const BcBool IsScreenCapturing = ScreenCapturing;
+				if( ( FrameCounter % 6 ) == 0 || IsScreenCapturing == BcFalse )
+				{
+					const BcU32 W = Screenshot.Width_;
+					const BcU32 H = Screenshot.Height_;
+					ImgImage* Image = new ImgImage();
+					Image->create( W, H, nullptr );
+					Image->setPixels( reinterpret_cast< ImgColour* >( Screenshot.Data_ ) );
+
+					++TotalFramesRemaining;
+					SysKernel::pImpl()->pushFunctionJob( ScreenshotJobQueue, 
+						[ W, H, IsScreenCapturing, Image ]()->void
+						{
+							auto HalfImage = Image->resize( W / 2, H / 2, 1.0f );
+							GifWriteFrame(
+								&Writer,
+								reinterpret_cast< const uint8_t* >( HalfImage->getImageData() ), 
+								W / 2, H / 2, 0, 8, false );
+							if( IsScreenCapturing == BcFalse )
+							{
+								GifEnd( &Writer );
+							}
+
+							delete Image;
+							TotalFramesRemaining--;
+						} );
+				}
+				++FrameCounter;
+				return IsScreenCapturing;
+			} );
+	}
+
+	void EndCapture()
+	{
+		ScreenCapturing = BcFalse;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Creator
@@ -221,6 +360,29 @@ void DsCoreImpl::open()
 			return evtRET_REMOVE;
 		} );
 
+		// Subscribe to F2 & F3 for screenshot
+		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
+			[ this ]( EvtID ID, const EvtBaseEvent& Event )
+			{
+				const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
+				if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F3 )
+				{
+					if( ScreenshotUtil::ScreenCapturing == BcFalse )
+					{
+						ScreenshotUtil::BeginCapture();
+					}
+					else
+					{
+						ScreenshotUtil::EndCapture();
+					}
+				}
+				else if( KeyEvent.KeyCode_ == OsEventInputKeyboard::KEYCODE_F2 )
+				{
+					ScreenshotUtil::TakeScreenshot();
+				}
+				return evtRET_PASS;
+			} );
+
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, this,
 			[ this ]( EvtID, const EvtBaseEvent& )
 		{
@@ -246,7 +408,7 @@ void DsCoreImpl::open()
 						auto TextHeightIncr = MaVec2d( 0.0f, Font->FontSize + 2.0f );
 						auto ShadowOff = MaVec2d( 1.0f, 1.0f );
 
-						auto TextPos = MaVec2d( 16.0f, ClientSize.y() - ( 16.0f + TextHeightIncr.y() * 3.0f ) );
+						auto TextPos = MaVec2d( 16.0f, ClientSize.y() - ( 16.0f + TextHeightIncr.y() * 4.0f ) );
 
 						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Build: %s-%s-%s", 
 								BUILD_ACTION,
@@ -261,6 +423,79 @@ void DsCoreImpl::open()
 						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Date/Time: %s %s", 
 								BUILD_DATE, BUILD_TIME );
 						TextPos += TextHeightIncr;
+
+						auto ScreenshotProcessing = ScreenshotUtil::TotalFramesRemaining.load();
+						if( ScreenshotProcessing > 0 )
+						{
+							ImGui::AddShadowedText( DrawList, TextPos, 0xff0000ff, "Capture frames remaining to process: %u", ScreenshotProcessing );
+							TextPos += TextHeightIncr;
+						}
+
+						// TODO: Per view perhaps?
+						ImGui::SetNextWindowPos( MaVec2d( ClientSize.x() - 32.0f, 0.0f ) );
+						if( ImGui::Begin( "Engine Internal 2", NULL, MaVec2d( 32.0f, 32.0f ), 0.0f,
+							ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | 
+							ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing ) )
+						{
+							if( ImGui::Button( "..." ) )
+							{
+								ImGui::OpenPopup( "View Popup" );
+							}
+							if( ImGui::BeginPopup( "View Popup" ) )
+							{
+								if( ImGui::BeginMenu( "Debug Rendering" ) )
+								{
+									if( ScnDebugRenderComponent::pImpl() )
+									{
+										BcU32 CategoryMask = ScnDebugRenderComponent::pImpl()->getDrawCategoryMask();
+
+										std::array< const char*, 32 > CategoryNames;
+										std::array< BcU32, 32 > CategoryMasks;
+										size_t NumCategories = ScnDebugRenderComponent::pImpl()->getCategories( 
+											CategoryNames.data(), CategoryMasks.data(), CategoryNames.size() );
+										for( auto Idx = 0; Idx < NumCategories; ++Idx )
+										{
+											if( ImGui::MenuItem( CategoryNames[ Idx ], nullptr, 
+												!!( CategoryMasks[ Idx ] & CategoryMask ), true) )
+											{
+												CategoryMask ^= CategoryMasks[ Idx ];
+											}
+										}
+										ScnDebugRenderComponent::pImpl()->setDrawCategoryMask( CategoryMask );
+									}
+									ImGui::EndMenu();
+								}
+
+								if( ImGui::BeginMenu( "Capture" ) )
+								{
+									if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
+									{
+										if( ImGui::MenuItem( "Begin Capture", "F3" ) )
+										{
+											ScreenshotUtil::BeginCapture();
+										}
+									}
+									else
+									{
+										if( ImGui::MenuItem( "End Capture", "F3" ) )
+										{
+											ScreenshotUtil::EndCapture();
+										}
+									}
+
+									if( !ScreenshotUtil::ScreenCapturing )
+									{
+										if( ImGui::MenuItem( "Screenshot", "F2" ) )
+										{
+											ScreenshotUtil::TakeScreenshot();
+										}
+									}
+									ImGui::EndMenu();
+								}
+								ImGui::EndPopup();
+							}
+						}
+						ImGui::End();
 					}
 
 					// Draw views.
@@ -436,6 +671,10 @@ void DsCoreImpl::open()
 
 	// Setup debug attributes for reflection.
 	setupReflectionEditorAttributes();
+
+
+	// Start screenshot util.
+	ScreenshotUtil::Init();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -40,6 +40,7 @@ struct ScnDebugRenderComponentPrimitiveSection
 	BcU32 VertexIndex_;
 	BcU32 NoofVertices_;
 	BcU32 Layer_;
+	BcU32 CategoryMask_;
 	ScnMaterialComponent* MaterialComponent_;
 };
 
@@ -79,7 +80,7 @@ public:
 	/**
 	 * Add raw primitive.<br/>
 	 */
-	void addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0, BcBool UseMatrixStack = BcTrue );
+	void addPrimitive( RsTopologyType Type, ScnDebugRenderComponentVertex* pVertices, BcU32 NoofVertices, BcU32 Layer = 0 );
 
 	/**
 	 * Draw line.
@@ -88,7 +89,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void drawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 	
 	/**
 	 * Draw lines.
@@ -97,7 +98,7 @@ public:
 	 * @param Colour Colour
 	 * @param Layer Layer
 	 */
-	void drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 
 	/**
 	 * Draw matrix.
@@ -105,7 +106,7 @@ public:
 	 * @param Colour Colour multiplier.
 	 * @param Layer Layer
 	 */
-	void drawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawMatrix( const MaMat4d& Matrix, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 
 	/**
 	 * Draw grid.
@@ -124,7 +125,7 @@ public:
 	 * @param Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 
 	/**
 	 * Draw circle.
@@ -133,7 +134,7 @@ public:
 	 * @param Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void drawCircle( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawCircle( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 
 	/**
 	 * Draw AABB.
@@ -141,12 +142,48 @@ public:
 	 * @params Colour Colour to draw it.
 	 * @param Layer Layer
 	 */
-	void drawAABB( const MaAABB& AABB, const RsColour& Colour, BcU32 Layer = 0 );
+	void drawAABB( const MaAABB& AABB, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 
 	/**
 	 * Clear
 	 */
 	void clear();
+
+	/**
+	 * Get draw category mask. Can be used to more broadly filter draws.
+	 */
+	BcU32 getDrawCategoryMask() const { return DrawCategoryMask_; }
+
+	/**
+	 * Set draw category mask.
+	 */
+	void setDrawCategoryMask( BcU32 CategoryMask ) { DrawCategoryMask_ = CategoryMask; }
+
+	/**
+	 * Get current category mask.
+	 */
+	BcU32 getCurrentCategoryMask() const { return CurrCategoryMask_; }
+
+	/**
+	 * Set current category mask.
+	 */
+	void setCurrentCategoryMask( BcU32 Mask ) { CurrCategoryMask_ = Mask; }
+
+	/**
+	 * Get category mask by name.
+	 * Will create one if missing, will return 0 if unable to create more.
+	 */
+	BcU32 getCategoryMask( const char* Name );
+
+	/**
+	 * Get draw categories.
+	 * @param OutCategoryNames Output category names.
+	 * @param OutCategoryMasks Output category masks.
+	 * @param MaxCategories Maximum number of categories to receive.
+	 * @return Number of categories filled.
+	 */
+	size_t getCategories( const char** OutCategoryNames, BcU32* OutCategoryMasks, size_t MaxCategories ) const;
+
 
 private:
 	void onAttach( ScnEntityWeakRef Parent ) override;
@@ -190,6 +227,11 @@ protected:
 	
 	TPrimitiveSectionList PrimitiveSectionList_;
 	BcU32 LastPrimitiveSection_;
+
+	BcU32 DrawCategoryMask_;
+	BcU32 CurrCategoryMask_;
+	BcU32 CurrCategoryMaskAlloc_;
+	std::unordered_map< std::string, BcU32 > MaskNameMap_;  
 };
 
 #endif
