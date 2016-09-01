@@ -467,6 +467,14 @@ void DsCoreImpl::open()
 
 								if( ImGui::BeginMenu( "Capture" ) )
 								{
+									if( !ScreenshotUtil::ScreenCapturing )
+									{
+										if( ImGui::MenuItem( "Screenshot", "F2" ) )
+										{
+											ScreenshotUtil::TakeScreenshot();
+										}
+									}
+
 									if( ScreenshotUtil::ScreenCapturing == BcFalse && ScreenshotUtil::TotalFramesRemaining == 0 )
 									{
 										if( ImGui::MenuItem( "Begin Capture", "F3" ) )
@@ -482,13 +490,6 @@ void DsCoreImpl::open()
 										}
 									}
 
-									if( !ScreenshotUtil::ScreenCapturing )
-									{
-										if( ImGui::MenuItem( "Screenshot", "F2" ) )
-										{
-											ScreenshotUtil::TakeScreenshot();
-										}
-									}
 									ImGui::EndMenu();
 								}
 
@@ -555,7 +556,8 @@ void DsCoreImpl::open()
 							auto SZ = getScreenPos( MaVec4d( 0.0f, 0.0f, 1.0f, 0.0f ) + Offset );
 
 							auto S = 64.0f;
-							MaVec2d SO = MaVec2d( ClientSize.x() - S, ClientSize.y() - S );
+							MaVec2d SO = MaVec2d( ViewInfo.Viewport_.width() - S, ViewInfo.Viewport_.height() - S );
+							SO += MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() );
 							SC = ( SC * S * 3.0f ) + SO;
 							SX = ( SX * S * 3.0f ) + SO;
 							SY = ( SY * S * 3.0f ) + SO;

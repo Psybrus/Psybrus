@@ -1393,6 +1393,36 @@ void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& Rende
 	}
 	else if( RenderContext.pViewComponent_ == OverlayView_ )
 	{
+#if !PSY_PRODUCTION
+		if( Enabled_ && DsCore::pImpl() )
+		{
+			RsViewport Viewport;
+			if( ResolveTarget_ )
+			{
+				auto FBDesc = ResolveTarget_->getDesc();
+				auto Desc = FBDesc.RenderTargets_[ 0 ].Texture_->getDesc();
+				Viewport = RsViewport( 
+					BcU32( ResolveX_ * Desc.Width_ ),
+					BcU32( ResolveY_ * Desc.Height_ ),
+					BcU32( ResolveW_ * Desc.Width_ ),
+					BcU32( ResolveH_ * Desc.Height_ ) );
+			}
+			else
+			{
+				auto Client = OsCore::pImpl()->getClient( 0 );
+				Viewport = RsViewport( 
+					BcU32( ResolveX_ * Client->getWidth() ),
+					BcU32( ResolveY_ * Client->getHeight() ),
+					BcU32( ResolveW_ * Client->getWidth() ),
+					BcU32( ResolveH_ * Client->getHeight() ) );
+			}
+
+			DsCore::pImpl()->addViewOverlay( 
+				OpaqueView_->getViewTransform(), 
+				OpaqueView_->getProjectionTransform(), 
+				Viewport );
+		}
+#endif
 		// end overlay
 	}
 }
