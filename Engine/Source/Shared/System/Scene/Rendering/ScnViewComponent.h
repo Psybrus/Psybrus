@@ -221,7 +221,15 @@ public:
 	 */
 	void deregisterViewCallback( ScnViewCallback* ViewCallback );
 
+	/**
+	 * Get view matrix.
+	 */
+	const MaMat4d& getViewMatrix() const { return ViewUniformBlock_.ViewTransform_; }
 
+	/**
+	 * Get projection.
+	 */
+	const MaMat4d& getProjectionMatrix() const { return ViewUniformBlock_.ProjectionTransform_; }
 
 	void setup( class RsFrame* pFrame, RsRenderSort Sort );
 	

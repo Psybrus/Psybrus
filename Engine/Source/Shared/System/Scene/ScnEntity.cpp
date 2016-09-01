@@ -28,6 +28,8 @@
 #include "System/Scene/Import/ScnEntityImport.h"
 #endif
 
+#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
+
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
@@ -411,7 +413,7 @@ void ScnEntity::setWorldPosition( const MaVec3d& Position )
 	InverseParentWorldTransform.inverse();
 
 	WorldTransform_.translation( Position );
-	setLocalMatrix( InverseParentWorldTransform * WorldTransform_ );
+	setLocalMatrix( WorldTransform_ * InverseParentWorldTransform );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -424,7 +426,7 @@ void ScnEntity::setWorldMatrix( const MaMat4d& Matrix )
 	InverseParentWorldTransform.inverse();
 
 	WorldTransform_ = Matrix;
-	setLocalMatrix( InverseParentWorldTransform * Matrix );
+	setLocalMatrix( Matrix * InverseParentWorldTransform );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -437,7 +439,7 @@ void ScnEntity::setWorldMatrixRS( const MaMat4d& Matrix )
 	InverseParentWorldTransform.inverse();
 
 	WorldTransform_ = Matrix;
-	setLocalMatrixRS( InverseParentWorldTransform * Matrix );
+	setLocalMatrixRS( Matrix * InverseParentWorldTransform );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -570,7 +572,15 @@ void ScnEntity::update( const ScnComponentList& Components )
 		{
 			Entity->WorldTransform_ = Entity->LocalTransform_;
 		}
-		
+
+
+		MaMat4d Scale;
+		Scale.scale( MaVec4d(2.0f, 2.0f, 2.0f, 1.0f));
+		Scale = Entity->WorldTransform_ * Scale;
+		Scale.row3( Entity->WorldTransform_.row3() );
+		ScnDebugRenderComponent::pImpl()->drawMatrix( Scale, RsColour::WHITE );
+
+
 #if SCNENTITY_USES_EVTPUBLISHER
 		// Dispatch all events.
 		// TODO: Move outside of update, perhaps run before all other component updates?

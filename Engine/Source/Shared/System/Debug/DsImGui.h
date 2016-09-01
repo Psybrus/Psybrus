@@ -2,6 +2,7 @@
 
 #include "Math/MaVec2d.h"
 #include "Math/MaVec4d.h"
+#include "Math/MaMat4d.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Cast operators.
@@ -14,8 +15,9 @@
 		operator class MaCPUVec4d() const;
 
 //////////////////////////////////////////////////////////////////////////
-// ImGui include.
+// ImGui includes.
 #include "imgui.h"
+#include "ImGuizmo.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward declarations.
@@ -91,3 +93,12 @@ namespace ImGui
 
 	} // end Psybrus
 } // end ImGui
+
+namespace ImGuizmo
+{
+	void SetMatrices( const MaMat4d& View, const MaMat4d& Projection );
+	void Translate( MaMat4d& Matrix, MaMat4d* DeltaMatrix = nullptr );
+	void Scale( MaMat4d& Matrix, MaMat4d* DeltaMatrix = nullptr );
+	void Rotate( MaMat4d& Matrix, MaMat4d* DeltaMatrix = nullptr );
+}
+

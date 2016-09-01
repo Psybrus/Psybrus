@@ -689,6 +689,7 @@ namespace Psybrus
 
 			// Start the frame
 			ImGui::NewFrame();
+			ImGuizmo::BeginFrame();
 			return true;
 		}
 		return false;
@@ -738,4 +739,46 @@ namespace Psybrus
 		WhiteTexture_.reset();
 	}
 } // end Psybrus
+
 } // end ImGui
+
+namespace ImGuizmo
+{
+	MaMat4d View_;
+	MaMat4d Projection_;
+
+	void Mogwai(MODE mode, float *matrix, float *deltaMatrix)
+	{
+		Mogwai( &View_[0][0], &Projection_[0][0], mode, matrix, deltaMatrix);
+	}
+
+	void SetMatrices( const MaMat4d& View, const MaMat4d& Projection )
+	{
+		View_ = View;
+		Projection_ = Projection;
+	}
+
+	void Translate( MaMat4d& Matrix, MaMat4d* DeltaMatrix )
+	{
+		MaMat4d NewMat = Matrix;
+		NewMat.transpose();
+		NewMat.row3(Matrix.row3());
+		NewMat.col3(Matrix.col3());
+		Mogwai( TRANSLATE, &NewMat[0][0], (float*)DeltaMatrix );
+		Matrix = NewMat;
+		Matrix.transpose();
+		Matrix.row3(NewMat.row3());
+		Matrix.col3(NewMat.col3());
+	}
+
+	void Scale( MaMat4d& Matrix, MaMat4d* DeltaMatrix )
+	{
+		Mogwai( SCALE, &Matrix[0][0], (float*)DeltaMatrix );
+	}
+
+	void Rotate( MaMat4d& Matrix, MaMat4d* DeltaMatrix )
+	{
+		Mogwai( ROTATE, &Matrix[0][0], (float*)DeltaMatrix );
+	}
+}
+

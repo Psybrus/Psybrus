@@ -12,6 +12,7 @@ EXTERNAL_PROJECT_KIND = "StaticLib"
 dofile ("bullet_genie.lua")
 dofile ("freetype_genie.lua")
 dofile ("imgui_genie.lua")
+dofile ("imguizmo_genie.lua")
 dofile ("jsoncpp_genie.lua")
 dofile ("libb64_genie.lua")
 dofile ("fcpp_genie.lua")

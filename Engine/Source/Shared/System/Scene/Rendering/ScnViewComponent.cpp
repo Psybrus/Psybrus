@@ -203,6 +203,13 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 		// Render ImGui.
 		ImGui::Psybrus::Render( pContext, pFrame );
 
+		// HACK: Set view transforms for ImGuizmo. At some point setup a proper callback system for it.
+		if( ViewData_.size() > 0 )
+		{
+			auto View = ViewData_[ViewData_.size() - 1]->View_;
+			ImGuizmo::SetMatrices( View->getViewMatrix(), View->getProjectionMatrix() );		
+		}
+
 		// End time query.
 		Sort.Value_ = static_cast< BcU64 >( -1 );
 		pFrame->queueRenderNode( Sort,

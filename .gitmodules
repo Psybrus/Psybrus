@@ -31,3 +31,6 @@
 [submodule "External/Remotery"]
 	path = External/Remotery
 	url = https://github.com/Psybrus/Remotery
+[submodule "External/ImGuizmo"]
+	path = External/ImGuizmo
+	url = https://github.com/Psybrus/ImGuizmo

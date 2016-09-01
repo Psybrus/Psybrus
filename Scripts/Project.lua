@@ -15,6 +15,7 @@ function PsyPlatformIncludes()
 	-- External includes.
 	includedirs { 
 	   "../Psybrus/External/imgui", 
+	   "../Psybrus/External/ImGuizmo", 
 	   "../Psybrus/External/jsoncpp/include", 
 	}
 
@@ -193,7 +194,8 @@ function PsyProjectCommonEngine( _name )
 	-- Add default include paths.
 	configuration( "*" )
 		includedirs {
-			"../../External/imgui"
+			"../../External/imgui",
+			"../../External/ImGuizmo"
 		}
 
 	configuration( "windows-* or winphone-*" )
@@ -341,6 +343,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		   "BulletPhysics",
 		   "freetype",
 		   "imgui",
+		   "ImGuizmo",
 		   "jsoncpp",
 		   "libb64",
 		   "png",

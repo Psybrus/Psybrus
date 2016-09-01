@@ -33,6 +33,8 @@
 #include "System/Scene/Rendering/ScnLightComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
+#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
+
 #include "Reflection/ReReflection.h"
 
 #include "Serialisation/SeJsonWriter.h"
@@ -202,20 +204,70 @@ void ScnCore::open()
 			ImGui::Separator();
 			for( auto Component : DebugComponents_ )
 			{
-				auto UpperClass = Component->getClass();
-				auto Class = UpperClass;
-
-				// Find editor.
-				DsImGuiFieldEditor* FieldEditor = nullptr;
-				while( FieldEditor == nullptr && Class != nullptr )
+				static int Gizmo = 0;
+				ImGui::RadioButton( "Translate", &Gizmo, 0 );
+				ImGui::RadioButton( "Scale", &Gizmo, 1 );
+				ImGui::RadioButton( "Rotate", &Gizmo, 2 );
+				
+				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
+				ImGui::Separator();
+				for( auto Component : DebugComponents_ )
 				{
-					FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
-					Class = Class->getSuper();
+					auto UpperClass = Component->getClass();
+					auto Class = UpperClass;
+
+					// Find editor.
+					DsImGuiFieldEditor* FieldEditor = nullptr;
+					while( FieldEditor == nullptr && Class != nullptr )
+					{
+						FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
+						Class = Class->getSuper();
+
+					}
+					if( FieldEditor )
+					{
+						FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
+					}
 
 				}
-				if( FieldEditor )
+
+				if( DebugComponents_.size() == 1 )
 				{
-					FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
+					auto Component = DebugComponents_[0];
+					auto Entity = ScnEntityRef( Component );
+
+					auto getParent = []( ScnEntity* Entity )
+					{
+						if( Entity->getParentEntity() )
+						{
+							return Entity->getParentEntity()->getWorldMatrix();
+						}
+						return MaMat4d();
+					};
+
+					if( Entity )
+					{
+						auto Parent = getParent( Entity );
+						auto ParentInverse = Parent;
+						ParentInverse.inverse();
+
+						auto Matrix = Entity->getLocalMatrix();
+						
+						if( Gizmo == 0 )
+						{
+							ImGuizmo::Translate( Matrix );
+						}
+						if( Gizmo == 1 )
+						{
+							ImGuizmo::Scale( Matrix );
+						}
+						if( Gizmo == 2 )
+						{
+							ImGuizmo::Rotate( Matrix );
+						}
+
+						Entity->setLocalMatrix( Matrix );
+					}
 				}
 			}
 		} );
