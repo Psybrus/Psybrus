@@ -28,6 +28,7 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Debug/DsImGui.h"
+#include "System/Debug/DsUtils.h"
 
 #include "System/SysKernel.h"
 
@@ -42,9 +43,14 @@
 ScnViewProcessor::ScnViewProcessor():
 	ScnComponentProcessor( {
 		ScnComponentProcessFuncEntry(
+			"Debug Draw",
+			ScnComponentPriority::DEFAULT_DEBUG_DRAW,
+			std::bind( &ScnViewProcessor::debugDraw, this, std::placeholders::_1 ) ),
+		ScnComponentProcessFuncEntry(
 			"Render Views",
 			ScnComponentPriority::VIEW_RENDER,
-			std::bind( &ScnViewProcessor::renderViews, this, std::placeholders::_1 ) ) } )
+			std::bind( &ScnViewProcessor::renderViews, this, std::placeholders::_1 ) ),
+} )
 {
 	SpatialTree_.reset( new ScnViewVisibilityTree() );
 
@@ -81,6 +87,45 @@ void ScnViewProcessor::deregisterRenderInterface( const ReClass* Class, ScnViewR
 void ScnViewProcessor::resetViewRenderData( class ScnComponent* Component )
 {
 	PendingViewDataReset_.insert( Component );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// debugDraw
+void ScnViewProcessor::debugDraw( const ScnComponentList& Components )
+{
+#if !PSY_PRODUCTION
+	if( Debug::CanDraw( "Visibility Tree" ) )
+	{
+		Debug::DrawCategory DrawCategory( "Visibility Tree" );
+
+		std::function< void(ScnViewVisibilityTreeNode*) > recursivelyDraw = [ & ]( ScnViewVisibilityTreeNode* Node )
+		{
+			Debug::DrawAABB( Node->getAABB(), RsColour::GREEN );
+			for( size_t Idx = 0; Idx < 8; ++Idx )
+			{
+				auto ChildNode = Node->pChild( Idx );
+				if( ChildNode )
+				{
+					recursivelyDraw( static_cast< ScnViewVisibilityTreeNode* >( ChildNode ) );
+				}
+			}
+		};
+
+		recursivelyDraw( static_cast< ScnViewVisibilityTreeNode* >( SpatialTree_->pRootNode() ) );
+	}
+
+	if( Debug::CanDraw( "Visibility Leaves" ) )
+	{
+		Debug::DrawCategory DrawCategory( "Visibility Leaves" );
+
+		std::vector< ScnViewVisibilityLeaf* > Leaves;
+		SpatialTree_->gatherView( nullptr, Leaves );
+		for( auto Leaf : Leaves )
+		{
+			Debug::DrawAABB( Leaf->AABB_, RsColour::RED );
+		}
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

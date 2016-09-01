@@ -536,6 +536,11 @@ void DsCoreImpl::open()
 							View.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
 							MaMat4d ClipTransform = View * ViewInfo.Proj_;
 
+							DrawList->PushClipRect( 
+								MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() ),
+								MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() ) +
+									MaVec2d( ViewInfo.Viewport_.width(), ViewInfo.Viewport_.height() ) );
+
 							auto getScreenPos = [ & ]( MaVec4d WorldPos )
 							{
 								MaVec4d ScreenSpace = WorldPos * ClipTransform;
@@ -566,6 +571,8 @@ void DsCoreImpl::open()
 							DrawList->AddLine( SC, SX, 0xff0000ff, 4.0f );
 							DrawList->AddLine( SC, SY, 0xff00ff00, 4.0f );
 							DrawList->AddLine( SC, SZ, 0xffff0000, 4.0f );
+
+							DrawList->PopClipRect();
 						}
 					}
 

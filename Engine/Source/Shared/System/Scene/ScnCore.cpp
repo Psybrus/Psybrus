@@ -166,35 +166,30 @@ void ScnCore::open()
 					ImGui::PopID();
 				};
 
-			static bool ShowOpened = true;
-			if ( ImGui::Begin( "Scene Hierarchy", &ShowOpened ) )
+			// TODO: Move these to into a control panel of some kind.
+			bool UpdateEnabled = !!UpdateEnabled_;
+			if( ImGui::Checkbox( "Enable update (F5)", &UpdateEnabled ) )
 			{
-				// TODO: Move these to into a control panel of some kind.
-				bool UpdateEnabled = !!UpdateEnabled_;
-				if( ImGui::Checkbox( "Enable update (F5)", &UpdateEnabled ) )
-				{
-					UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
-				}
-
-				if( ImGui::Button( "Step single update (F6)" ) )
-				{
-					StepSingleUpdate_ = BcTrue;
-				}
-
-				if( ImGui::TreeNode( "Scene Hierarchy" ) )
-				{
-					BcU32 Idx = 0;
-					while( ScnEntityRef Entity = getEntity( Idx++ ) )
-					{
-						if( Entity->getParentEntity() == nullptr )
-						{
-							RecurseNode( Entity );
-						}
-					}
-					ImGui::TreePop();
-				}
+				UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
 			}
-			ImGui::End();
+
+			if( ImGui::Button( "Step single update (F6)" ) )
+			{
+				StepSingleUpdate_ = BcTrue;
+			}
+
+			if( ImGui::TreeNode( "Scene Hierarchy" ) )
+			{
+				BcU32 Idx = 0;
+				while( ScnEntityRef Entity = getEntity( Idx++ ) )
+				{
+					if( Entity->getParentEntity() == nullptr )
+					{
+						RecurseNode( Entity );
+					}
+				}
+				ImGui::TreePop();
+			}
 		} );
 
 	DsCore::pImpl()->registerPanel(

@@ -92,6 +92,11 @@ private:
 	};
 
 	/**
+	 * Will do debug drawing.
+	 */
+	void debugDraw( const ScnComponentList& Components );	
+
+	/**
 	 * Will render everything visible to all views.
 	 */
 	void renderViews( const ScnComponentList& Components );	

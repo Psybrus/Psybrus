@@ -7,6 +7,12 @@
 #include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Undefine.
+#ifdef DrawText
+#undef DrawText
+#endif
+
+//////////////////////////////////////////////////////////////////////////
 // Debug Utilities
 #if !PSY_PRODUCTION
 namespace Debug
@@ -30,5 +36,6 @@ namespace Debug
 	void DrawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 	void DrawCircle( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 	void DrawAABB( const MaAABB& AABB, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
+	void DrawText( const MaVec3d& WorldPosition, const RsColour& Colour, const char* Text, ... );
 }
 #endif

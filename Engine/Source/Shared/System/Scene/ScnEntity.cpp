@@ -573,14 +573,6 @@ void ScnEntity::update( const ScnComponentList& Components )
 			Entity->WorldTransform_ = Entity->LocalTransform_;
 		}
 
-
-		MaMat4d Scale;
-		Scale.scale( MaVec4d(2.0f, 2.0f, 2.0f, 1.0f));
-		Scale = Entity->WorldTransform_ * Scale;
-		Scale.row3( Entity->WorldTransform_.row3() );
-		ScnDebugRenderComponent::pImpl()->drawMatrix( Scale, RsColour::WHITE );
-
-
 #if SCNENTITY_USES_EVTPUBLISHER
 		// Dispatch all events.
 		// TODO: Move outside of update, perhaps run before all other component updates?

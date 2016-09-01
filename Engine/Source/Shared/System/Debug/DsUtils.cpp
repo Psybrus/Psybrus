@@ -86,4 +86,15 @@ namespace Debug
 	{
 		if( CanDraw() ) ScnDebugRenderComponent::pImpl()->drawAABB( AABB, Colour, Layer );
 	}
+
+	void DrawText( const MaVec3d& WorldPosition, const RsColour& Colour, const char* Text, ... )
+	{
+		std::array< char, 1024 > TextBuffer;
+		va_list Args;
+		va_start( Args, Text );
+		BcVSPrintf( TextBuffer.data(), TextBuffer.size(), Text, Args );
+		va_end( Args );
+	}
+
+
 }
