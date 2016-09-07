@@ -359,6 +359,7 @@ BcBool ScnTextureImport::import()
 			// Default to a catch all which is 32 bit RGBA.
 			Format_ = RsResourceFormat::R8G8B8A8_UNORM;
 
+#if 0 // TODO: Platform defaults.
 			// In a non-debug build, check if we should
 			// use texture compression (to speed up build times).
 			if( TextureType_ == RsTextureType::TEX2D )
@@ -376,6 +377,7 @@ BcBool ScnTextureImport::import()
 					}
 				}
 			}
+#endif
 		}
 
 		// Streams.

@@ -228,7 +228,7 @@ BcBool ScnFontImport::import()
 						new ScnTextureImport( 
 							FontTextureName, "ScnTexture",
 							FontTextureFileName, 
-							DistanceField_ ? RsResourceFormat::BC4_UNORM : RsResourceFormat::R8G8B8A8_UNORM,
+							DistanceField_ ? RsResourceFormat::R8G8B8A8_UNORM : RsResourceFormat::R8G8B8A8_UNORM, // TODO: BC4
 							ImgEncodeFormat::UNKNOWN ) );
 					
 					// Build data.

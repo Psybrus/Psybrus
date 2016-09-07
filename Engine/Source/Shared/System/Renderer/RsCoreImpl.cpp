@@ -390,7 +390,7 @@ RsTextureUPtr RsCoreImpl::createTexture(
 	// Check if format is supported one.
 	if( !Features.TextureFormat_[ (int)Desc.Format_ ] )
 	{
-		PSY_LOG( "ERROR: No support for %u format.", Desc.Format_ );
+		PSY_LOG( "ERROR: No support for format %u (%s).", Desc.Format_, (*ReManager::GetEnumValueName( Desc.Format_ )).c_str() );
 		return nullptr;
 	}
 

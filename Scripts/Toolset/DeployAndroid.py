@@ -41,10 +41,8 @@ class DeployAndroid( Deploy ):
 		}
 
 		self.abis = {
-			"android-gcc-arm" : "armeabi-v7a",
-			"android-gcc-x86" : "x86",
-			#"android-clang-arm" : "armeabi-v7a",
-			#"android-clang-x86" : "x86"
+			"android-clang-arm" : "armeabi-v7a",
+			"android-clang-x86" : "x86"
 		}
 
 		Deploy.package_build( self, _config )
@@ -251,13 +249,13 @@ class DeployAndroid( Deploy ):
 		abi = self.abis[ self.platform.name ]
 		with open( os.path.join( self.android_project_root, "libs", abi, "gdb.setup" ), "w+" ) as gdbFile:
 			gdbFile.write( "set solib-search-path ../obj\n" )
-			gdbFile.write( "source " + os.path.join( env["ANDROID_NDK"], "prebuilt", "common", "gdb", "common.setup" ) + "\n" )
+			gdbFile.write( "source " + os.path.join( env["ANDROID_NDK_HOME"], "prebuilt", "common", "gdb", "common.setup" ) + "\n" )
 			gdbFile.write( "directory  ../../../Source ../../../Psybrus/Engine/Source\n" )
 
 
 	def launch_android_tool( self, _params ):
 		env = copy.deepcopy( os.environ )
-		android_command = os.path.join( env["ANDROID_SDK"], "tools", "android" ) + " " + _params
+		android_command = os.path.join( env["ANDROID_HOME"], "tools", "android" ) + " " + _params
 
 		Log.write( "Launching: " + android_command )
 

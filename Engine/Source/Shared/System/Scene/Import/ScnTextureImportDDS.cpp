@@ -1,6 +1,8 @@
 #include "System/Scene/Import/ScnTextureImport.h"
 #include "System/Scene/Rendering/ScnTextureFileData.h"
 
+#if PSY_IMPORT_PIPELINE
+
 #include "Base/BcStream.h"
 
 namespace DDS
@@ -499,3 +501,4 @@ bool ScnTextureImport::loadDDS( const char* FileName )
 	return true;
 }
 
+#endif // PSY_IMPORT_PIPELINE

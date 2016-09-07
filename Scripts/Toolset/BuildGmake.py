@@ -2,6 +2,9 @@ import copy
 import os
 from platform import system
 import subprocess
+import multiprocessing
+
+CPU_COUNT = multiprocessing.cpu_count()
 
 from Build import *
 
@@ -13,8 +16,8 @@ class BuildGmake( Build ):
 
 		PlatformSpecificGmake = {
 			"Windows" : (
-				"%ANDROID_NDK%\\prebuilt\\windows-x86_64\\bin\\make",
-				"C:\\Windows\\System32" ),
+				"%ANDROID_NDK_HOME%\\prebuilt\\windows-x86_64\\bin\\make",
+				"C:\\Windows\\System32;%ANDROID_NDK_HOME%\\prebuilt\\windows-x86_64\\bin" ),
 
 			"Linux" : (
 				"make", 
@@ -32,14 +35,14 @@ class BuildGmake( Build ):
 
 		# TODO: Should make generic to replace all env vars found.
 		env = copy.deepcopy( os.environ )
-		if env.has_key( "ANDROID_NDK" ):
-			self.tool = self.tool.replace( "%ANDROID_NDK%", env["ANDROID_NDK"] )
+		if env.has_key( "ANDROID_NDK_HOME" ):
+			self.tool = self.tool.replace( "%ANDROID_NDK_HOME%", env["ANDROID_NDK_HOME"] )
 
 	def clean( self ):
 		self.launch( "clean" )
 
 	def build( self, _config ):
-		self.launch( " -j5 config=" + _config )
+		self.launch( " -j {0} config={1}".format( CPU_COUNT, _config ) )
 
 	def launch( self, _params ):
 		env = copy.deepcopy( os.environ )

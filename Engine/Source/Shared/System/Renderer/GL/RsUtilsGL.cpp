@@ -507,13 +507,13 @@ RsUtilsGL::ResourceFormat RsUtilsGL::GetResourceFormat( RsResourceFormat V )
 	case RsResourceFormat::BC5_SNORM:
 		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SIGNED_RG_RGTC2, GL_RG, 0 );
 	case RsResourceFormat::BC6H_UF16:
-		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB, 0, 0 );
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT, 0, 0 );
 	case RsResourceFormat::BC6H_SF16:
-		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB, 0, 0 );
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, 0, 0 );
 	case RsResourceFormat::BC7_UNORM:
-		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, 0, 0 );
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_RGBA_BPTC_UNORM, 0, 0 );
 	case RsResourceFormat::BC7_UNORM_SRGB:
-		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB, 0, 0 );
+		return ResourceFormat( BcTrue, BcFalse, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM, 0, 0 );
 	case RsResourceFormat::ETC1_UNORM:
 		return ResourceFormat( BcTrue, BcFalse, GL_ETC1_RGB8_OES, 0, 0 );
 	case RsResourceFormat::ETC2_UNORM:
@@ -569,12 +569,14 @@ GLenum RsUtilsGL::GetQueryType( RsQueryType Query )
 {
 	switch( Query )
 	{
-	case RsQueryType::OCCLUSION:
+#if !defined( RENDER_USE_GLES )
+ 	case RsQueryType::OCCLUSION:
 		return GL_SAMPLES_PASSED;
 	case RsQueryType::OCCLUSION_BINARY:
 		return GL_ANY_SAMPLES_PASSED;
 	case RsQueryType::TIMESTAMP:
 		return GL_TIMESTAMP;
+#endif
 	default:
 		BcBreakpoint;
 	}

@@ -326,16 +326,6 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 	// General shared.
 	Features_.ComputeShaders_ = SupportComputeShaders_;
-
-
-	glGetIntegerv( GL_MAX_VARYING_FLOATS, &MaxVaryingFloats_ );
-	PSY_LOG( "GL_MAX_VARYING_FLOATS: %u", MaxVaryingFloats_ );
-
-	glGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS, &MaxTextureSlots_ );
-	PSY_LOG( "GL_MAX_TEXTURE_IMAGE_UNITS: %u", MaxTextureSlots_ );
-
-	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &MaxTextureAnisotropy_ );
-	PSY_LOG( "GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT: %f", MaxTextureAnisotropy_ );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

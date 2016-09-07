@@ -48,7 +48,7 @@ namespace CompilerUtility
 		std::unique_ptr< char, void(*)(void*) > Res
 		{
 			abi::__cxa_demangle( Name, nullptr, nullptr, &Status ),
-			std::free
+			free
 		};
 
 		if( Status == 0 )

@@ -147,7 +147,7 @@ namespace
 	
 		UniformBlock_.ProjectionTransform_.orthoProjection( 
 			0.0f, IO.DisplaySize.x,
-			IO.DisplaySize.y, 0,
+			IO.DisplaySize.y, 0.0f,
 			-1.0f, 1.0f );
 		UniformBlock_.InverseProjectionTransform_ = UniformBlock_.ProjectionTransform_;
 		UniformBlock_.InverseProjectionTransform_.inverse();
@@ -581,8 +581,9 @@ namespace Psybrus
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].WriteMask_ = 0xf;
 		RenderStateDesc.DepthStencilState_.DepthTestEnable_ = BcFalse;
 		RenderStateDesc.DepthStencilState_.DepthWriteEnable_ = BcFalse;
-		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcTrue;
+		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcFalse;
 		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
+		RenderStateDesc.RasteriserState_.CullMode_ = RsCullMode::NONE;
 		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, "DsImGui" );
 
 		IO.RenderDrawListsFn = RenderDrawLists;
@@ -702,7 +703,6 @@ namespace Psybrus
 		{
 			RenderThreadFence_.wait();
 			ScopedDraw ScopedDraw( Context, Frame );
-
 			ImGui::Render();
 		}
 	}

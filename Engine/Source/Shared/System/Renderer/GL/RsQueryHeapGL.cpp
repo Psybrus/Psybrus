@@ -35,6 +35,8 @@ RsQueryHeapGL::RsQueryHeapGL( RsQueryHeap* Parent, const RsOpenGLVersion& Versio
 // Dtor
 RsQueryHeapGL::~RsQueryHeapGL()
 {
+#if !defined( RENDER_USE_GLES )
 	GL( DeleteQueries( Handles_.size(), Handles_.data() ) );
+#endif
 	Handles_.clear();
 }

@@ -119,7 +119,7 @@ function PsyProjectCommon( _name, _lang )
 		defines { "_ITERATOR_DEBUG_LEVEL=1" }
 
 	-- Setup language specific support.
-	languageOptions = {
+	local languageOptions = {
 		[ "C" ] = "C",
 		[ "C++" ] = "C++",
 		[ "C++11" ] = "C++",
@@ -127,7 +127,7 @@ function PsyProjectCommon( _name, _lang )
 		[ "C++17" ] = "C++"
 	}
 
-	gccLanguageOptions = {
+	local gccLanguageOptions = {
 		[ "C" ] = {},
 		[ "C++" ] = {},
 		[ "C++11" ] = { "-std=c++11" },
@@ -135,9 +135,9 @@ function PsyProjectCommon( _name, _lang )
 		[ "C++17" ] = { "-std=c++11" }  -- TODO: C++17.
 	}
 
-	clangLanguageOptions = {
+	local clangLanguageOptions = {
 		[ "C" ] = {},
-		[ "C++" ] = { "-stdlib=libc++" },
+		[ "C++" ] = {},
 		[ "C++11" ] = { "-stdlib=libc++", "-std=c++11" },
 		[ "C++14" ] = { "-stdlib=libc++", "-std=c++14" },
 		[ "C++17" ] = { "-stdlib=libc++", "-std=c++17" }
@@ -149,7 +149,7 @@ function PsyProjectCommon( _name, _lang )
 	configuration "*-gcc or *-gcc-*"
 		buildoptions( gccLanguageOptions[ _lang ] )
 
-	configuration "*-clang or html5-clang-*"
+	configuration "*-clang or *-clang-*"
 		buildoptions( clangLanguageOptions[ _lang ] )
 
 	-- Terminate project.
@@ -176,19 +176,17 @@ function PsyProjectCommonEngine( _name )
 
 	-- Defines for all configurations
 	configuration "Debug"
-		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_DEBUG" }
 
 	configuration "Release"
-		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_RELEASE" }
 
 	configuration "Production"
-		defines { "PSY_USE_PROFILER=0" }
 		defines { "PSY_PRODUCTION" }
 
 	-- Import pipeline.
-	configuration( "Debug or Release", "windows-* or linux-* or osx-*" )
+	configuration { "Debug or Release", "windows-* or linux-* or osx-*" }
+		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_IMPORT_PIPELINE" }
 
 	-- Add default include paths.

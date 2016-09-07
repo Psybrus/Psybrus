@@ -247,7 +247,7 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 		if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
 		{
 			PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
-			return nullptr;
+			return;
 		}
 		else
 		{
@@ -259,7 +259,7 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 		if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
 		{
 			PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
-			return nullptr;
+			return;
 		}
 		else
 		{
@@ -624,8 +624,8 @@ void RsContextGL::create()
 		EGL_NONE
 	};
 
-	auto RTFormat = RsResourceFormat::R8G8B8A8;
-	auto DSFormat = RsResourceFormat::D16;
+	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;
+	auto DSFormat = RsResourceFormat::D16_UNORM;
 
 	const EGLint EGContextAttribs[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 2,
@@ -1205,6 +1205,7 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 		}
 	}
 
+#if !defined( RENDER_USE_GLES )
 	// Bind draw buffers.
 	GLenum Targets[ 8 ] =
 	{
@@ -1220,6 +1221,8 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 	BcAssertMsg( Desc.RenderTargets_.size() <= 8,
 		"Too many render targets in RsFrameBuffer \"%s\". Max of 8.", FrameBuffer->getDebugName() );
 	GL( DrawBuffers( GLsizei( Desc.RenderTargets_.size() ), Targets ) );
+#endif // !defined( RENDER_USE_GLES )
+
 
 	// Attach depth stencil target.
 	if( Desc.DepthStencilTarget_ != nullptr )
@@ -1769,6 +1772,7 @@ void RsContextGL::drawPrimitives(
 
 	if( NoofInstances > 1 || FirstInstance > 0 )
 	{
+#if !defined( RENDER_USE_GLES )
 		if( FirstInstance > 0 )
 		{
 			BcAssert( Version_.SupportDrawInstancedBaseInstance_ );
@@ -1779,6 +1783,7 @@ void RsContextGL::drawPrimitives(
 			BcAssert( Version_.SupportDrawInstanced_ );
 			GL( DrawArraysInstanced( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices, NoofInstances ) );
 		}
+#endif // !defined( RENDER_USE_GLES )
 	}
 	else
 	{
@@ -1876,13 +1881,13 @@ void RsContextGL::drawIndexedPrimitives(
 			GL( DrawElementsInstancedBaseVertexBaseInstance( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), NoofInstances, VertexOffset, FirstInstance ) );
 		}
 		else
-#endif
 		if( Version_.SupportDrawInstanced_ )
 		{
 			BcAssert( VertexOffset == 0 );
 			GL( DrawElementsInstanced( RsUtilsGL::GetTopologyType( TopologyType ), NoofIndices, IndexFormat, (void*)( IndexOffset ), NoofInstances ) );
 		}
 		else
+#endif
 		{
 			BcBreakpoint;
 		}
@@ -2145,10 +2150,12 @@ void RsContextGL::beginQuery( class RsQueryHeap* QueryHeap, size_t Idx )
 {
 	PSY_PROFILE_FUNCTION;
 
+#if !defined( RENDER_USE_GLES )
 	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
 	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
 	BcAssert( QueryType == GL_SAMPLES_PASSED || QueryType == GL_ANY_SAMPLES_PASSED );
 	GL( BeginQuery( QueryType, QueryHeapGL->getHandle( Idx ) ) );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2157,6 +2164,7 @@ void RsContextGL::endQuery( class RsQueryHeap* QueryHeap, size_t Idx )
 {
 	PSY_PROFILE_FUNCTION;
 
+#if !defined( RENDER_USE_GLES )
 	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
 	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
 
@@ -2172,6 +2180,7 @@ void RsContextGL::endQuery( class RsQueryHeap* QueryHeap, size_t Idx )
 	default:
 		BcBreakpoint;
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2180,6 +2189,7 @@ bool RsContextGL::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t I
 {
 	PSY_PROFILE_FUNCTION;
 
+#if !defined( RENDER_USE_GLES )
 	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
 	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
 
@@ -2187,6 +2197,9 @@ bool RsContextGL::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t I
 	GLint QueryAvailible = 0;
 	GL( GetQueryObjectiv( Handle, GL_QUERY_RESULT_AVAILABLE, &QueryAvailible ) );
 	return !!QueryAvailible;
+#else
+	return true;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2195,6 +2208,7 @@ void RsContextGL::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, s
 {
 	PSY_PROFILE_FUNCTION;
 
+#if !defined( RENDER_USE_GLES )
 	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
 	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
 
@@ -2208,29 +2222,39 @@ void RsContextGL::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, s
 #endif
 		GL( GetQueryObjectui64v( Handle, GL_QUERY_RESULT, &OutData[ Idx ] ) );
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 // bindFrameBuffer
 void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsViewport* Viewport, const RsScissorRect* ScissorRect )
 {
+	// Determine frame buffer width + height.
+	auto FBWidth = Width_;
+	auto FBHeight = Height_;
+
 	// Null signifies backbuffer.
 	if( FrameBuffer == nullptr )
 	{
 		FrameBuffer = getBackBuffer();
 	}
+	else
+	{
+		auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
+		BcAssert( RT.Texture_ );
+		FBWidth = std::max( BcU32( 1 ), RT.Texture_->getDesc().Width_ >> RT.Level_ );
+		FBHeight = std::max( BcU32( 1 ), RT.Texture_->getDesc().Height_ >> RT.Level_ );
 
-	// Determine frame buffer width + height.
-	auto RT = FrameBuffer->getDesc().RenderTargets_[ 0 ];
-	BcAssert( RT.Texture_ );
-	auto FBWidth = std::max( BcU32( 1 ), RT.Texture_->getDesc().Width_ >> RT.Level_ );
-	auto FBHeight = std::max( BcU32( 1 ), RT.Texture_->getDesc().Height_ >> RT.Level_ );
+		PSY_LOG( "Fbl: %u" , RT.Level_ );
+	}
 
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
 	RsScissorRect FullScissorRect( 0, 0, FBWidth, FBHeight );
 
 	BcAssert( FBWidth > 0 );
 	BcAssert( FBHeight > 0 );
+
+	PSY_LOG( "Fb: %u, %u" , FBWidth, FBHeight );
 
 	if( BoundFrameBuffer_ != FrameBuffer )
 	{
@@ -2247,6 +2271,9 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 	// Setup scissor rect if null.
 	ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
 
+	PSY_LOG( "Vi: %u, %u" , Viewport->x(), Viewport->y(), Viewport->width(), Viewport->height() );
+	PSY_LOG( "Sc: %u, %u" , ScissorRect->X_, ScissorRect->Y_, ScissorRect->Width_, ScissorRect->Height_ );
+
 	if( BoundViewport_ != *Viewport )
 	{
 		const auto VX = Viewport->x();
@@ -2255,6 +2282,8 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 		const auto VH = Viewport->height();
 		GL( Viewport( VX, VY, VW, VH ) );
 		BoundViewport_ = *Viewport;
+
+		PSY_LOG( "Vp: %u, %u, %u, %u" , VX, VY, VW, VH );
 	}
 
 	if( BoundScissorRect_ != *ScissorRect )
@@ -2263,8 +2292,11 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 		const auto SY = FBHeight - ( ScissorRect->Height_ + ScissorRect->Y_ );
 		const auto SW = ScissorRect->Width_;
 		const auto SH = ScissorRect->Height_;
+
 		GL( Scissor( SX, SY, SW, SH ) );
 		BoundScissorRect_ = *ScissorRect;
+
+		PSY_LOG( "Sr: %u, %u, %u, %u" , SX, SY, SW, SH );
 	}
 }
 

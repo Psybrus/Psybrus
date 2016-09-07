@@ -39,7 +39,11 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			"RsShader \"%s\" invalid when attaching to RsProgram \"%s\"",
 			Shader->getDebugName(),
 			Parent->getDebugName() );
-		GL( AttachShader( Handle_, Shader->getHandle< GLuint >() ) );
+		glAttachShader( Handle_, Shader->getHandle< GLuint >() );
+		if( glGetError() != 0 )
+		{
+			return;
+		}
 	}
 	
 	// Bind all slots up.

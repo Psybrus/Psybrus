@@ -990,13 +990,16 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			switch( Type )
 			{
 			case aiTextureType_NORMALS:
-				TextureImporter->setFormat( RsResourceFormat::BC5_UNORM );
+				// TODO: BC5
+				TextureImporter->setFormat( RsResourceFormat::R8G8B8A8_UINT );
 				break;
 			case aiTextureType_AMBIENT: // METALLIC
-				TextureImporter->setFormat( RsResourceFormat::BC4_UNORM );
+				// TODO: BC4.
+				TextureImporter->setFormat( RsResourceFormat::R8G8B8A8_UINT );
 				break;
 			case aiTextureType_SHININESS: // ROUGHNESS
-				TextureImporter->setFormat( RsResourceFormat::BC4_UNORM );
+				// TODO: BC4.
+				TextureImporter->setFormat( RsResourceFormat::R8G8B8A8_UINT );
 				break;
 			default:
 				break;

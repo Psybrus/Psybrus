@@ -26,8 +26,8 @@ PsyProjectEngineLib( "System_Debug" )
 
   defines { "RMT_USE_OPENGL=1" }
 
-  configuration { "windows-* or linux-* or osx-*" }
-    PsyAddExternalLinks { "remotery" }    
+  configuration { "windows-* or linux-* or osx-* or android-*" }
+    PsyAddExternalLinks { "remotery" }
     includedirs { "../../External/Remotery/lib" }
 
   configuration { "windows-* or linux-* or osx-* or android-*" }

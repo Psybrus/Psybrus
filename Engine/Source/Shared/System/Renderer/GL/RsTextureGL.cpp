@@ -160,6 +160,7 @@ void RsTextureGL::loadTexture(
 			break;
 
 		case RsTextureType::TEX2D:
+#if !defined( RENDER_USE_GLES )
 			GL( TexImage2D( 
 				TypeGL, 
 				Slice.Level_, 
@@ -170,6 +171,18 @@ void RsTextureGL::loadTexture(
 				FormatGL.Format_,
 				FormatGL.Type_,
 				Data ) );
+#else
+			GL( TexImage2D( 
+				TypeGL, 
+				Slice.Level_, 
+				FormatGL.Format_,
+				Width,
+				Height,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data ) );
+#endif
 			break;
 
 		case RsTextureType::TEX3D:
