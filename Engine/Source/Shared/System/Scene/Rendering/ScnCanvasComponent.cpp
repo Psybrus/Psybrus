@@ -29,7 +29,6 @@ void ScnCanvasComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "NoofVertices_", &ScnCanvasComponent::NoofVertices_, bcRFF_IMPORTER | bcRFF_CONST ),
-		new ReField( "Clear_", &ScnCanvasComponent::Clear_, bcRFF_IMPORTER ),
 		new ReField( "AbsoluteCoords_", &ScnCanvasComponent::AbsoluteCoords_, bcRFF_IMPORTER ),
 		new ReField( "Left_", &ScnCanvasComponent::Left_, bcRFF_IMPORTER ),
 		new ReField( "Right_", &ScnCanvasComponent::Right_, bcRFF_IMPORTER ),
@@ -38,11 +37,11 @@ void ScnCanvasComponent::StaticRegisterClass()
 
 		new ReField( "HaveVertexBufferLock_", &ScnCanvasComponent::HaveVertexBufferLock_, bcRFF_TRANSIENT ),
 		new ReField( "VertexIndex_", &ScnCanvasComponent::VertexIndex_, bcRFF_TRANSIENT ),
-		new ReField( "ViewMatrix_", &ScnCanvasComponent::ViewMatrix_ ),
-		new ReField( "MaterialComponent_", &ScnCanvasComponent::MaterialComponent_ ),
+		new ReField( "ViewMatrix_", &ScnCanvasComponent::ViewMatrix_, bcRFF_TRANSIENT ),
+		new ReField( "MaterialComponent_", &ScnCanvasComponent::MaterialComponent_, bcRFF_TRANSIENT ),
 		new ReField( "DiffuseTexture_", &ScnCanvasComponent::DiffuseTexture_, bcRFF_TRANSIENT ),
-		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_ ),
-		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_ ),
+		new ReField( "MatrixStack_", &ScnCanvasComponent::MatrixStack_, bcRFF_TRANSIENT ),
+		new ReField( "IsIdentity_", &ScnCanvasComponent::IsIdentity_, bcRFF_TRANSIENT ),
 	};
 
 	using namespace std::placeholders;		
@@ -75,7 +74,7 @@ ScnCanvasComponent::ScnCanvasComponent( BcU32 NoofVertices ):
 	VertexIndex_ ( 0 ),
 	VertexDeclaration_( nullptr ),
 	NoofVertices_( NoofVertices ),
-	Clear_( BcFalse ),
+	Clear_( BcTrue ),
 	Left_( 0.0f ),
 	Right_( 0.0f ),
 	Top_( 0.0f ),

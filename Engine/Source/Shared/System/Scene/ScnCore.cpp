@@ -33,8 +33,6 @@
 #include "System/Scene/Rendering/ScnLightComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
-
 #include "Reflection/ReReflection.h"
 
 #include "Serialisation/SeJsonWriter.h"
@@ -131,163 +129,6 @@ void ScnCore::open()
 				StepSingleUpdate_ = BcTrue;
 			}
 			return evtRET_PASS;
-		} );
-
-	DsCore::pImpl()->registerPanel(
-		"Scene", "Hierarchy", "Ctrl+Shift+H", [ this ]( BcU32 )->void
-		{
-			// Render scene hierarchy.
-			using ComponentNodeFunc = std::function< void( ScnComponent* Component ) >;
-			ComponentNodeFunc RecurseNode = 
-				[ & ]( ScnComponent* Component )
-				{
-					ImGui::PushID( Component );
-					if( Component->isTypeOf< ScnEntity >() )
-					{
-						auto TreeNodeOpen = ImGui::TreeNode( Component, "" );
-						ImGui::SameLine();
-
-						if( ImGui::SmallButton( (*Component->getName()).c_str() ) )
-						{
-							DebugComponents_.clear();
-							DebugComponents_.push_back( Component );
-						}	
-
-						if( TreeNodeOpen )
-						{
-							BcU32 ChildIdx = 0;
-							while( auto Child = Component->getComponent( ChildIdx++ ) )
-							{
-								RecurseNode( Child );
-							}
-							ImGui::TreePop();
-						}
-					}
-					ImGui::PopID();
-				};
-
-			// TODO: Move these to into a control panel of some kind.
-			bool UpdateEnabled = !!UpdateEnabled_;
-			if( ImGui::Checkbox( "Enable update (F5)", &UpdateEnabled ) )
-			{
-				UpdateEnabled_ = UpdateEnabled ? BcTrue : BcFalse;
-			}
-
-			if( ImGui::Button( "Step single update (F6)" ) )
-			{
-				StepSingleUpdate_ = BcTrue;
-			}
-
-			if( ImGui::TreeNode( "Scene Hierarchy" ) )
-			{
-				BcU32 Idx = 0;
-				while( ScnEntityRef Entity = getEntity( Idx++ ) )
-				{
-					if( Entity->getParentEntity() == nullptr )
-					{
-						RecurseNode( Entity );
-					}
-				}
-				ImGui::TreePop();
-			}
-		} );
-
-	DsCore::pImpl()->registerPanel(
-		"Scene", "Component Editor", "Ctrl+Shift+E", [ this ]( BcU32 )->void
-		{
-			ImGui::Text( "Components editing: %u", DebugComponents_.size() );
-			ImGui::Separator();
-			for( auto Component : DebugComponents_ )
-			{
-				static int Gizmo = 0;
-				ImGui::RadioButton( "Translate", &Gizmo, 0 );
-				ImGui::RadioButton( "Scale", &Gizmo, 1 );
-				ImGui::RadioButton( "Rotate", &Gizmo, 2 );
-				
-				ImGui::Text( "Components editing: %u", DebugComponents_.size() );
-				ImGui::Separator();
-				for( auto Component : DebugComponents_ )
-				{
-					auto UpperClass = Component->getClass();
-					auto Class = UpperClass;
-
-					// Find editor.
-					DsImGuiFieldEditor* FieldEditor = nullptr;
-					while( FieldEditor == nullptr && Class != nullptr )
-					{
-						FieldEditor = Class->getAttribute< DsImGuiFieldEditor >();
-						Class = Class->getSuper();
-
-					}
-					if( FieldEditor )
-					{
-						FieldEditor->onEdit( "", Component, UpperClass, bcRFF_NONE );
-					}
-
-				}
-
-				if( DebugComponents_.size() == 1 )
-				{
-					auto Component = DebugComponents_[0];
-					auto Entity = ScnEntityRef( Component );
-
-					auto getParent = []( ScnEntity* Entity )
-					{
-						if( Entity->getParentEntity() )
-						{
-							return Entity->getParentEntity()->getWorldMatrix();
-						}
-						return MaMat4d();
-					};
-
-					if( Entity )
-					{
-						auto Parent = getParent( Entity );
-						auto ParentInverse = Parent;
-						ParentInverse.inverse();
-
-						auto Matrix = Entity->getLocalMatrix();
-						
-						if( Gizmo == 0 )
-						{
-							ImGuizmo::Translate( Matrix );
-						}
-						if( Gizmo == 1 )
-						{
-							ImGuizmo::Scale( Matrix );
-						}
-						if( Gizmo == 2 )
-						{
-							ImGuizmo::Rotate( Matrix );
-						}
-
-						Entity->setLocalMatrix( Matrix );
-					}
-				}
-			}
-		} );
-
-	DsCore::pImpl()->registerPanel(
-		"Scene", "Component Process Funcs", "Ctrl+Shift+P", [ this ]( BcU32 )->void
-		{
-			static bool ShowUnused = false;
-			ImGui::Checkbox( "Show unused", &ShowUnused );
-
-			for( auto& ComponentProcessFunc : ComponentProcessFuncs_ )
-			{
-				auto ComponentListIdx = ComponentClassIndexMap_[ ComponentProcessFunc.Class_ ];
-				auto& ComponentList = ComponentLists_[ ComponentListIdx ];
-				if( ComponentList.size() > 0 || ShowUnused )
-				{
-					ImGui::Text( "%s::%s", 
-						(*ComponentProcessFunc.Class_->getName()).c_str(),
-						ComponentProcessFunc.Name_.c_str() );
-					ImGui::Text( "- Priority : %i", 
-						ComponentProcessFunc.Priority_ );
-					ImGui::Text( "- Components : %u", 
-						ComponentList.size() );
-				}
-			}
 		} );
 #endif // !PSY_PRODUCTION
 
@@ -692,13 +533,6 @@ void ScnCore::processPendingComponents()
 			Component->onDetach( Component->getParentEntity() );
 			BcAssertMsg( Component->isFlagSet( scnCF_PENDING_DETACH ) == BcFalse, 
 				"Have you called Super::onDetach in type %s?", (*Component->getTypeName()).c_str() );
-
-			// Remove from debug components.
-			auto FoundIt = std::find( DebugComponents_.begin(), DebugComponents_.end(), Component );
-			if( FoundIt != DebugComponents_.end() )
-			{
-				DebugComponents_.erase( FoundIt );
-			}
 		}
 
 		// Handle destruction.

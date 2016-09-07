@@ -16,6 +16,7 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Debug/DsCore.h"
+#include "System/Debug/DsUtils.h"
 
 #include "System/SysKernel.h"
 
@@ -121,9 +122,8 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "DownsampleUniformBlock_", &ScnDeferredRendererComponent::DownsampleUniformBlock_, bcRFF_IMPORTER ),
 		new ReField( "ReflectionCubemap_", &ScnDeferredRendererComponent::ReflectionCubemap_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "UseEnvironmentProbes_", &ScnDeferredRendererComponent::UseEnvironmentProbes_, bcRFF_IMPORTER ),
-				
-		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_SHALLOW_COPY /* | bcRFF_TRANSIENT*/ ),
-	};	
+		new ReField( "Textures_", &ScnDeferredRendererComponent::Textures_, bcRFF_SHALLOW_COPY | bcRFF_CONST ),
+	};
 	
 	auto& Class = ReRegisterClass< ScnDeferredRendererComponent, Super >( Fields );
 	Class.addAttribute( new ScnComponentProcessor() );
@@ -1390,6 +1390,14 @@ void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& Rende
 		// end transparent
 		downsampleHDR( RenderContext );
 		calculateBloom( RenderContext );
+
+		// Do debug rendering.
+		Debug::Render(
+			RenderContext.pFrame_,
+			RenderContext.pViewComponent_->getFrameBuffer(),
+			RenderContext.pViewComponent_->getViewport(),
+			RenderContext.pViewComponent_->getViewUniformBuffer(),
+			RenderContext.Sort_ );
 	}
 	else if( RenderContext.pViewComponent_ == OverlayView_ )
 	{

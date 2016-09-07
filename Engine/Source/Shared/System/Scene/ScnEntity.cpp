@@ -28,8 +28,6 @@
 #include "System/Scene/Import/ScnEntityImport.h"
 #endif
 
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
-
 #include <algorithm>
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,7 +43,7 @@ void ScnEntity::StaticRegisterClass()
 		new ReField( "Components_",		&ScnEntity::Components_, bcRFF_OWNER ),
 #if SCNENTITY_USES_EVTPUBLISHER
 		new ReField( "pEventProxy_",	&ScnEntity::pEventProxy_, bcRFF_TRANSIENT ),
-#endif
+#endif  
 	};
 	
 	using namespace std::placeholders;
@@ -60,7 +58,7 @@ void ScnEntity::StaticRegisterClass()
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnEntityImport::StaticGetClass(), 0, 200 ) );
+		ScnEntityImport::StaticGetClass(), 1, 200 ) );
 #endif
 }
 

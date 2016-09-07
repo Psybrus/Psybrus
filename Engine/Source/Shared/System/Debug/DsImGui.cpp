@@ -1,5 +1,6 @@
 #include "System/Debug/DsImGui.h"
 
+// TODO: Use RsProgram directly.
 #include "System/Scene/Rendering/ScnShader.h"
 
 #include "System/Renderer/RsCore.h"
@@ -493,7 +494,7 @@ namespace Psybrus
 			RsBufferDesc( 
 				RsResourceBindFlags::VERTEX_BUFFER,
 				RsResourceCreationFlags::STREAM, 
-				65536 * VertexDeclaration_->getDesc().getMinimumStride() ),
+				512 * 1024 * VertexDeclaration_->getDesc().getMinimumStride() ),
 			"DsImGui" );
 
 		IndexBuffer_ = RsCore::pImpl()->createBuffer( 

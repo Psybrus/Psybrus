@@ -322,6 +322,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 
 	configuration "*"
 		PsyAddEngineLinks {
+		   "Editor",
 		   "System_Sound",
 		   "System_Scene",
 		   "System_Renderer",

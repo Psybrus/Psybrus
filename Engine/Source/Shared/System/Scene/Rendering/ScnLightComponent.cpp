@@ -19,8 +19,6 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
-
 #include "Base/BcMath.h"
 
 //////////////////////////////////////////////////////////////////////////

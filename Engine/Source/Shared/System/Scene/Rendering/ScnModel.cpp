@@ -31,12 +31,7 @@
 #include "System/Scene/Import/ScnModelImport.h"
 #endif
 
-#define DEBUG_RENDER_NODES ( 0 )
 #define MAX_INSTANCES ( 128 )
-
-#if DEBUG_RENDER_NODES
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
-#endif // DEBUG_RENDER_NODES
 
 //////////////////////////////////////////////////////////////////////////
 // ScnModelUniforms
@@ -899,6 +894,14 @@ void ScnModelProcessor::debugDraw( const ScnComponentList& Components )
 				{
 					ParentTransform = ModelComponent->getNodeWorldTransform( ParentIdx );
 				}
+
+#if 0 // Pushed too many vertices to ImGui. Revisit later.
+				auto ModelName = (*ModelComponent->Model_->pNodePropertyData_[ Idx ].Name_);
+				if( ModelName.size() > 0 )
+				{
+					Debug::DrawShadowedText( Transform.translation(), RsColour::WHITE, ModelName.c_str() );
+				}
+#endif
 				Debug::DrawLine( Transform.translation(), ParentTransform.translation(), RsColour::GREEN );
 				Debug::DrawMatrix( Transform );
 			}

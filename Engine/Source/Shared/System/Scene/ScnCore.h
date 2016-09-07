@@ -157,9 +157,6 @@ private:
 
 	BcU32 EntitySpawnID_;
 	EntitySpawnDataMap EntitySpawnMap_;
-
-	// Debug components.
-	ScnComponentList DebugComponents_;
 };
 
 template < class _Ty >

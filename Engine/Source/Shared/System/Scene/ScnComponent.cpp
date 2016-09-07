@@ -36,7 +36,7 @@ void ScnComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "ComponentFlags_", &ScnComponent::ComponentFlags_, bcRFF_TRANSIENT ),
-		new ReField( "ParentEntity_", &ScnComponent::ParentEntity_, bcRFF_SHALLOW_COPY ),
+		new ReField( "ParentEntity_", &ScnComponent::ParentEntity_, bcRFF_SHALLOW_COPY | bcRFF_CONST ),
 	};
 	
 	auto& Class = ReRegisterClass< ScnComponent, Super >( Fields );
@@ -45,7 +45,7 @@ void ScnComponent::StaticRegisterClass()
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnComponentImport::StaticGetClass(), 0, 100 ) );
+		ScnComponentImport::StaticGetClass(), 1, 100 ) );
 #endif
 }
 

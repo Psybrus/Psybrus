@@ -11,7 +11,8 @@
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
 #include "System/Renderer/RsTypes.h"
-#include "DsCore.h"
+
+#include "System/Debug/DsCore.h"
 
 #include <functional>
 #include <map>

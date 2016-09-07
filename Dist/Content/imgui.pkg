@@ -25,6 +25,7 @@
 
 			"includepermutations" : [
 				"MESH_STATIC_2D",
+				"MESH_STATIC_3D",
 				"PASS_MAIN"
 			],
 
@@ -59,6 +60,7 @@
 
 			"includepermutations" : [
 				"MESH_STATIC_2D",
+				"MESH_STATIC_3D",
 				"PASS_MAIN"
 			],
 
