@@ -137,7 +137,8 @@ void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, 
 	// Add components to output list.
 	for( auto* Leaf : LeafList_ )
 	{
-		if( Leaf->AABB_.isEmpty() ||
+		if( View == nullptr ||
+			Leaf->AABB_.isEmpty() ||
 			View->intersect( Leaf->AABB_ ) )
 		{
 			OutLeaves.push_back( Leaf );
@@ -150,7 +151,7 @@ void ScnViewVisibilityTreeNode::gatherView( const class ScnViewComponent* View, 
 		for( BcU32 i = 0; i < 8; ++i )
 		{
 			ScnViewVisibilityTreeNode* ChildNode = static_cast< ScnViewVisibilityTreeNode* >( pChild( i ) );
-			if( View->intersect( ChildNode->getAABB() ) )
+			if( View == nullptr || View->intersect( ChildNode->getAABB() ) )
 			{
 				ChildNode->gatherView( View, OutLeaves );
 			}

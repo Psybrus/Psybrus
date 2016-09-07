@@ -36,6 +36,8 @@ BcU32 GResolutionHeight = 720;
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/SysKernel.h"
 
+#include "Editor/Editor.h"
+
 #include "Base/BcFile.h"
 #include "Base/BcProfiler.h"
 
@@ -421,5 +423,9 @@ void MainShared()
 	{
 		BcProfiler::pImpl()->setCurrentThreadName( "Main Thread" );
 	}
+#endif
+
+#if !PSY_PRODUCTION
+	Editor::Init();
 #endif
 }

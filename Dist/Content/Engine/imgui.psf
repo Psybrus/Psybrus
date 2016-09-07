@@ -18,7 +18,7 @@ VS_OUT_END
 VS_MAIN( vertexMain )
 {
 	VS_ENTER;
-    OUT_POSITION = mul( ClipTransform_, float4( IN( InPosition_ ).xy, 0.0, 1.0 ) );
+	PSY_MAKE_CLIP_SPACE_VERTEX( OUT_POSITION, IN( InPosition_ ) );
     OUT( VsTexCoord0 ) = IN( InTexCoord_ );
     OUT( VsColour0 ) = IN( InColour_ );
     VS_EXIT;

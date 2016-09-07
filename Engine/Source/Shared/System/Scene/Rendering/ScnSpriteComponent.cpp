@@ -48,24 +48,24 @@ void ScnSpriteComponent::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "MaterialName_", &ScnSpriteComponent::MaterialName_, bcRFF_IMPORTER ),
-		new ReField( "Position_", &ScnSpriteComponent::Position_ , bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
-		new ReField( "Size_", &ScnSpriteComponent::Size_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
-		new ReField( "Colour_", &ScnSpriteComponent::Colour_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
-		new ReField( "Index_", &ScnSpriteComponent::Index_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
-		new ReField( "Layer_", &ScnSpriteComponent::Layer_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
-		new ReField( "Centre_", &ScnSpriteComponent::Centre_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
-		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT  ),
-		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
-		new ReField( "Animation_", &ScnSpriteComponent::Animation_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
-		new ReField( "Animations_", &ScnSpriteComponent::Animations_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT ),
+		new ReField( "Position_", &ScnSpriteComponent::Position_ , bcRFF_IMPORTER ),
+		new ReField( "Size_", &ScnSpriteComponent::Size_, bcRFF_IMPORTER ),
+		new ReField( "Colour_", &ScnSpriteComponent::Colour_, bcRFF_IMPORTER ),
+		new ReField( "Index_", &ScnSpriteComponent::Index_, bcRFF_IMPORTER ),
+		new ReField( "Layer_", &ScnSpriteComponent::Layer_, bcRFF_IMPORTER ),
+		new ReField( "Centre_", &ScnSpriteComponent::Centre_, bcRFF_IMPORTER ),
+		new ReField( "IsScreenSpace_", &ScnSpriteComponent::IsScreenSpace_, bcRFF_IMPORTER ),
+		new ReField( "AnimationRate_", &ScnSpriteComponent::AnimationRate_, bcRFF_IMPORTER ),
+		new ReField( "Animation_", &ScnSpriteComponent::Animation_, bcRFF_IMPORTER ),
+		new ReField( "Animations_", &ScnSpriteComponent::Animations_, bcRFF_IMPORTER ),
 
 		// Deprecated fields.
-		new ReField( "Center_", &ScnSpriteComponent::Centre_, bcRFF_IMPORTER | bcRFF_DEBUG_EDIT | bcRFF_DEPRECATED ),
+		new ReField( "Center_", &ScnSpriteComponent::Centre_, bcRFF_IMPORTER  | bcRFF_DEPRECATED ),
 
 		new ReField( "AnimationTimer_", &ScnSpriteComponent::AnimationTimer_, bcRFF_TRANSIENT ),
 		new ReField( "Canvas_", &ScnSpriteComponent::Canvas_, bcRFF_TRANSIENT ),
 		new ReField( "Material_", &ScnSpriteComponent::Material_, bcRFF_TRANSIENT ),
-		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_, bcRFF_DEBUG_EDIT ),
+		new ReField( "CurrKey_", &ScnSpriteComponent::CurrKey_ ),
 	};
 	
 	using namespace std::placeholders;

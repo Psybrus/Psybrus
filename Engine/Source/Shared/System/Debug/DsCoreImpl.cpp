@@ -5,6 +5,7 @@
 #include "System/Debug/DsTemplate.h"
 #include "System/Debug/DsProfilerChromeTracing.h"
 #include "System/Debug/DsProfilerRemotery.h"
+#include "System/Debug/DsUtils.h"
 
 #include "Base/BcBuildInfo.h"
 #include "Base/BcFile.h"
@@ -22,7 +23,7 @@
 
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
+
 #if USE_WEBBY
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
@@ -345,6 +346,8 @@ void DsCoreImpl::open()
 			if( OsCore::pImpl()->getClient( 0 ) )
 			{
 				ImGui::Psybrus::Init();
+				Debug::Init( 1024 * 64 );
+
 			}
 			return evtRET_REMOVE;
 		} );
@@ -388,7 +391,7 @@ void DsCoreImpl::open()
 			PSY_PROFILER_SECTION( UpdateImGui, "ImGui" );
 			if( OsCore::pImpl()->getClient( 0 ) )
 			{
-				if ( ImGui::Psybrus::NewFrame() )
+				if( ImGui::Psybrus::NewFrame() )
 				{
 					// Setup window.
 					MaVec2d ClientSize( OsCore::pImpl()->getClient( 0 )->getWidth(), OsCore::pImpl()->getClient( 0 )->getHeight() );
@@ -444,24 +447,21 @@ void DsCoreImpl::open()
 							{
 								if( ImGui::BeginMenu( "Debug Rendering" ) )
 								{
-									if( ScnDebugRenderComponent::pImpl() )
-									{
-										BcU32 CategoryMask = ScnDebugRenderComponent::pImpl()->getDrawCategoryMask();
+									BcU32 CategoryMask = Debug::GetDrawCategoryMask();
 
-										std::array< const char*, 32 > CategoryNames;
-										std::array< BcU32, 32 > CategoryMasks;
-										size_t NumCategories = ScnDebugRenderComponent::pImpl()->getCategories( 
-											CategoryNames.data(), CategoryMasks.data(), CategoryNames.size() );
-										for( auto Idx = 0; Idx < NumCategories; ++Idx )
+									std::array< const char*, 32 > CategoryNames;
+									std::array< BcU32, 32 > CategoryMasks;
+									size_t NumCategories = Debug::GetDrawCategories( 
+										CategoryNames.data(), CategoryMasks.data(), CategoryNames.size() );
+									for( auto Idx = 0; Idx < NumCategories; ++Idx )
+									{
+										if( ImGui::MenuItem( CategoryNames[ Idx ], nullptr, 
+											!!( CategoryMasks[ Idx ] & CategoryMask ), true) )
 										{
-											if( ImGui::MenuItem( CategoryNames[ Idx ], nullptr, 
-												!!( CategoryMasks[ Idx ] & CategoryMask ), true) )
-											{
-												CategoryMask ^= CategoryMasks[ Idx ];
-											}
+											CategoryMask ^= CategoryMasks[ Idx ];
 										}
-										ScnDebugRenderComponent::pImpl()->setDrawCategoryMask( CategoryMask );
 									}
+									Debug::SetDrawCategoryMask( CategoryMask );
 									ImGui::EndMenu();
 								}
 
@@ -536,6 +536,11 @@ void DsCoreImpl::open()
 							View.row3( MaVec4d( 0.0f, 0.0f, 0.0f, 1.0f ) );
 							MaMat4d ClipTransform = View * ViewInfo.Proj_;
 
+							DrawList->PushClipRect( 
+								MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() ),
+								MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() ) +
+									MaVec2d( ViewInfo.Viewport_.width(), ViewInfo.Viewport_.height() ) );
+
 							auto getScreenPos = [ & ]( MaVec4d WorldPos )
 							{
 								MaVec4d ScreenSpace = WorldPos * ClipTransform;
@@ -566,6 +571,11 @@ void DsCoreImpl::open()
 							DrawList->AddLine( SC, SX, 0xff0000ff, 4.0f );
 							DrawList->AddLine( SC, SY, 0xff00ff00, 4.0f );
 							DrawList->AddLine( SC, SZ, 0xffff0000, 4.0f );
+
+
+							Debug::DrawViewOverlay( DrawList, ViewInfo.View_, ViewInfo.Proj_, ViewInfo.Viewport_, nullptr );
+
+							DrawList->PopClipRect();
 						}
 					}
 
@@ -583,6 +593,8 @@ void DsCoreImpl::open()
 				}
 			}
 			ViewInfos_.clear();
+
+			Debug::NextFrame();
 			return evtRET_PASS;
 		} );
 	}
@@ -845,7 +857,6 @@ BcU32 DsCoreImpl::registerPanel( const char* Category, const char* Name, const c
 		} );
 
 	return Handle;
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2043,6 +2054,7 @@ void DsCoreImpl::cmdWADL( DsParameters params, BcHtmlNode& Output, std::string P
 
 void DsCoreImpl::cmdJsonSerialiser( DsParameters params, BcHtmlNode& Output, std::string PostContent )
 {
+#if 0
 	std::string EntityId = "";
 
 	EntityId = params[ 0 ];
@@ -2168,6 +2180,7 @@ void DsCoreImpl::cmdJsonSerialiser( DsParameters params, BcHtmlNode& Output, std
 	}
 	root[ "classes" ] = ( classes );
 	Output.setContents( root.toStyledString() );
+#endif
 }
 
 void DsCoreImpl::cmdViewFunctions( DsParameters params, BcHtmlNode& Output, std::string PostContent )

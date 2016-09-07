@@ -21,7 +21,6 @@
 #include "System/Content/CsCore.h"
 #include "System/Debug/DsCore.h"
 #include "System/Debug/DsUtils.h"
-#include "System/Scene/Rendering/ScnDebugRenderComponent.h"
 
 #include "System/SysKernel.h"
 
@@ -42,31 +41,26 @@ public:
 		DebugMode_ = 
 			btIDebugDraw::DBG_DrawWireframe |
 			btIDebugDraw::DBG_DrawContactPoints |
-			btIDebugDraw::DBG_DrawConstraints;
+			btIDebugDraw::DBG_DrawConstraints | 
+			btIDebugDraw::DBG_DrawText;
 	}
 
 	virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
 	{
-		if( ScnDebugRenderComponent::pImpl() )
-		{
-			Debug::DrawCategory Category( CategoryMask_ );
-			Debug::DrawLine(
-				MaVec3d( from.x(), from.y(), from.z() ),
-				MaVec3d( to.x(), to.y(), to.z() ),
-				RsColour( color.x(), color.y(), color.z(), 1.0f ) );
-		}
+		Debug::DrawCategory Category( CategoryMask_ );
+		Debug::DrawLine(
+			MaVec3d( from.x(), from.y(), from.z() ),
+			MaVec3d( to.x(), to.y(), to.z() ),
+			RsColour( color.x(), color.y(), color.z(), 1.0f ) );
 	}
 
 	virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)
 	{
-		if( ScnDebugRenderComponent::pImpl() )
-		{
-			Debug::DrawCategory Category( CategoryMask_ );
-			Debug::DrawLine(
-				ScnPhysicsFromBullet( PointOnB ) - ScnPhysicsFromBullet( normalOnB ),
-				ScnPhysicsFromBullet( PointOnB ) + ScnPhysicsFromBullet( normalOnB ),
-				RsColour( color.x(), color.y(), color.z(), 1.0f ) );
-		}
+		Debug::DrawCategory Category( CategoryMask_ );
+		Debug::DrawLine(
+			ScnPhysicsFromBullet( PointOnB ) - ScnPhysicsFromBullet( normalOnB ),
+			ScnPhysicsFromBullet( PointOnB ) + ScnPhysicsFromBullet( normalOnB ),
+			RsColour( color.x(), color.y(), color.z(), 1.0f ) );
 	}
 
 	virtual void reportErrorWarning(const char* warningString)
@@ -76,7 +70,7 @@ public:
 
 	virtual void draw3dText(const btVector3& location,const char* textString)
 	{
-
+		Debug::DrawShadowedText( ScnPhysicsFromBullet( location ), RsColour::WHITE, textString );
 	}
 	
 	virtual void setDebugMode(int debugMode)
@@ -480,11 +474,8 @@ void ScnPhysicsWorldComponent::debugDraw( const ScnComponentList& Components )
 		auto* WorldComponent = static_cast< ScnPhysicsWorldComponent* >( Component.get() );
 
 #if !PSY_PRODUCTION
-		if( ScnDebugRenderComponent::pImpl() )
-		{
-			gDebugRenderer.CategoryMask_ = ScnDebugRenderComponent::pImpl()->getCategoryMask( "Physics" );
-			WorldComponent->DebugDrawWorld_ = !!( ScnDebugRenderComponent::pImpl()->getDrawCategoryMask() & gDebugRenderer.CategoryMask_ );
-		}
+		gDebugRenderer.CategoryMask_ = Debug::GetDrawCategoryMask( "Physics" );
+		WorldComponent->DebugDrawWorld_ = !!Debug::CanDraw( "Physics" );
 #endif
 		if( WorldComponent->DebugDrawWorld_ )
 		{

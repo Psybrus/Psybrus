@@ -92,6 +92,11 @@ private:
 	};
 
 	/**
+	 * Will do debug drawing.
+	 */
+	void debugDraw( const ScnComponentList& Components );	
+
+	/**
 	 * Will render everything visible to all views.
 	 */
 	void renderViews( const ScnComponentList& Components );	
@@ -164,6 +169,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnViewComponent, ScnComponent );
 
 	ScnViewComponent();
+	ScnViewComponent( bool Enabled );
 	ScnViewComponent( size_t NoofRTs, ScnTextureRef* RTs, ScnTextureRef DS,
 		BcU32 RenderMask, ScnShaderPermutationFlags RenderPermutation, RsRenderSortPassFlags Passes,
 		bool Enabled );
@@ -240,8 +246,9 @@ public:
 
 	ScnTextureRef getRenderTarget( BcU32 Idx ) const { return RenderTarget_[ Idx ]; }
 	ScnTextureRef getDepthStencilTarget() const { return DepthStencilTarget_; }
-	ScnTextureRef getReflectionCubemap() const { return ReflectionCubemap_; }
 
+	void setReflectionCubemap( ScnTextureRef ReflectionCubemap ) { ReflectionCubemap_ = ReflectionCubemap; }
+	ScnTextureRef getReflectionCubemap() const { return ReflectionCubemap_; }
 
 private:
 	void recreateFrameBuffer();
