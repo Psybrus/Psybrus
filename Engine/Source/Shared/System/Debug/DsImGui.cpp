@@ -275,7 +275,10 @@ namespace
 									RecreateProgramBinding |= ProgramBindingDesc_.setShaderResourceView( TextureSlot, Texture );
 									RecreateProgramBinding |= ProgramBindingDesc_.setSamplerState( SamplerSlot, SamplerState );
 								}
-								RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData )  );
+								if( UniformBufferSlot != BcErrorCode )
+								{
+									RecreateProgramBinding |= ProgramBindingDesc_.setUniformBuffer( UniformBufferSlot, UniformBuffer_.get(), 0, sizeof( ScnShaderViewUniformBlockData )  );
+								}
 							}
 
 							if( RecreateProgramBinding && ProgramBinding_ )
