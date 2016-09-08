@@ -52,6 +52,11 @@ public:
 	virtual BcU32 getHeight() const = 0;
 
 	/**
+	 * Get DPI.
+	 */
+	virtual BcU32 getDPI() const = 0;
+
+	/**
 	 * Is client active?
 	 */
 	virtual bool isActive() const = 0;

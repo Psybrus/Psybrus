@@ -24,6 +24,9 @@
 #include <android/keycodes.h>
 #include <android/window.h>
 
+#include <android/configuration.h>
+#include <android_native_app_glue.h>
+#include <android/native_activity.h>
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
@@ -204,6 +207,18 @@ BcU32 OsClientAndroid::getHeight() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getDPI
+BcU32 OsClientWindows::getDPI() const
+{
+	extern android_app* GAndroidApp;
+	AConfiguration* Config = AConfiguration_new();
+	AConfiguration_fromAssetManager( Config, GAndroidApp->activity->assetManager );
+	int32_t Density = AConfiguration_getDensity( Config );
+	AConfiguration_delete( Config );
+	return Density;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // isActive
 bool OsClientAndroid::isActive() const
 {
@@ -307,8 +322,8 @@ BcBool OsClientAndroid::handleInput( struct AInputEvent* Event )
 			// Regular touch event.
 			OsEventInputTouch TouchEvent;
 			TouchEvent.TouchID_ = TouchID;
-			TouchEvent.TouchX_ = AMotionEvent_getX( Event, 0 );
-			TouchEvent.TouchY_ = AMotionEvent_getY( Event, 0 );
+			TouchEvent.TouchX_ = AMotionEvent_getX( Event, TouchID );
+			TouchEvent.TouchY_ = AMotionEvent_getY( Event, TouchID );
 
 			if( ActionType == AMOTION_EVENT_ACTION_DOWN )
 			{
