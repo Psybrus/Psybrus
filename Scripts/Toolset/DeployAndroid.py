@@ -136,7 +136,6 @@ class DeployAndroid( Deploy ):
 			self.sign_build( keystore_path, apk_path )
 
 	def install( self, _config ):
-		return
 		antConfig = "debug"
 		if _config == "production":
 			antConfig + "release"
@@ -187,6 +186,7 @@ class DeployAndroid( Deploy ):
 
 			manifestFile.write( "  <uses-feature android:glEsVersion=\"" + self.android_config["es_version"] + "\" />\n" )
 			manifestFile.write( "  <application android:label=\"@string/app_name\"\n" )
+			manifestFile.write( "               android:theme=\"@android:style/Theme.Holo.NoActionBar.Fullscreen\"\n" )
 			manifestFile.write( "               android:debuggable=\"true\">\n" )
 
 			if self.android_config.has_key( "metadata" ):

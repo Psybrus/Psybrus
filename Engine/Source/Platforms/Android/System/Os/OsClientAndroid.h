@@ -40,7 +40,7 @@ public:
 	void setMouseLock( BcBool Enabled ) override;
 	void maximise() override;
 
-	BcU32 getDPI() const;
+	BcU32 getDPI() const override;
 
 public:
 	void setSize( BcU32 Width, BcU32 Height );

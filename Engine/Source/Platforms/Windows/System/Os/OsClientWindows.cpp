@@ -384,7 +384,7 @@ BcU32 OsClientWindows::getHeight() const
 // getDPI
 BcU32 OsClientWindows::getDPI() const
 {
-	return 300; // TODO.
+	return 96; // TODO.
 }
 
 //////////////////////////////////////////////////////////////////////////

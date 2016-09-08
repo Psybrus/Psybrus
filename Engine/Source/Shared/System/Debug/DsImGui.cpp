@@ -585,7 +585,7 @@ namespace Psybrus
 		RenderStateDesc.BlendState_.RenderTarget_[ 0 ].WriteMask_ = 0xf;
 		RenderStateDesc.DepthStencilState_.DepthTestEnable_ = BcFalse;
 		RenderStateDesc.DepthStencilState_.DepthWriteEnable_ = BcFalse;
-		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcFalse;
+		RenderStateDesc.RasteriserState_.ScissorEnable_ = BcTrue;
 		RenderStateDesc.RasteriserState_.FillMode_ = RsFillMode::SOLID;
 		RenderStateDesc.RasteriserState_.CullMode_ = RsCullMode::NONE;
 		RenderState_ = RsCore::pImpl()->createRenderState( RenderStateDesc, "DsImGui" );

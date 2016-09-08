@@ -228,42 +228,45 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 	ANativeWindow* Window = static_cast< ANativeWindow* >( pClient_->getWindowHandle() );
 	BcAssert( Window != nullptr );
 
-	if( Width != Width_ || Height != Height_ || EGLWindow_ != Window )
+	if( Width_ > 0 && Height_ > 0 )
 	{
-		EGLWindow_ = Window;
-
-		// Destroy old surface.
-		if( EGLSurface_ != nullptr )
+		if( Width != Width_ || Height != Height_ || EGLWindow_ != Window )
 		{
-			if( !eglDestroySurface( EGLSurface_, EGLContext_ ) )
+			EGLWindow_ = Window;
+
+			// Destroy old surface.
+			if( EGLSurface_ != nullptr )
 			{
-				PSY_LOG( "eglDestroySurface() returned error %d", eglGetError() );
+				if( !eglDestroySurface( EGLSurface_, EGLContext_ ) )
+				{
+					PSY_LOG( "eglDestroySurface() returned error %d", eglGetError() );
+				}
 			}
-		}
 
-		ANativeWindow_setBuffersGeometry( Window, 0, 0, EGLFormat_ );
+			ANativeWindow_setBuffersGeometry( Window, 0, 0, EGLFormat_ );
 
-		// Recreate EGL surface for new window.
-		if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
-		{
-			PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
-			return;
-		}
-		else
-		{
-			PSY_LOG( "eglCreateWindowSurface() success" );
-		}
+			// Recreate EGL surface for new window.
+			if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
+			{
+				PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
+				return;
+			}
+			else
+			{
+				PSY_LOG( "eglCreateWindowSurface() success" );
+			}
 
 
-		// Make context current with new surface.
-		if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
-		{
-			PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
-			return;
-		}
-		else
-		{
-			PSY_LOG( "eglMakeCurrent() success" );
+			// Make context current with new surface.
+			if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
+			{
+				PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
+				return;
+			}
+			else
+			{
+				PSY_LOG( "eglMakeCurrent() success" );
+			}
 		}
 	}
 
@@ -721,8 +724,6 @@ void RsContextGL::create()
 		PSY_LOG( "eglQuerySurface() success. %u x %u", EGLWidth_, EGLHeight_ );
 		OsClientAndroid* Client = static_cast< OsClientAndroid* >( pClient_ );
 		Client->setSize( EGLWidth_, EGLHeight_ );
-		Width_ = EGLWidth_;
-		Height_ = EGLHeight_;
 	}
 
 #endif
@@ -812,9 +813,13 @@ void RsContextGL::create()
 	BackBufferFB_->setHandle( 0 );
 
 	// Ensure all buffers are cleared to black first.
+#if PLATFORM_ANDROID
+	resizeBackBuffer( EGLWidth_, EGLHeight_ );
+#else
 	const BcU32 Width = pClient_->getWidth();
 	const BcU32 Height = pClient_->getHeight();
 	resizeBackBuffer( Width, Height );
+#endif
 	for( BcU32 Idx = 0; Idx < 3; ++Idx )
 	{
 		beginFrame();
@@ -2244,8 +2249,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 		BcAssert( RT.Texture_ );
 		FBWidth = std::max( BcU32( 1 ), RT.Texture_->getDesc().Width_ >> RT.Level_ );
 		FBHeight = std::max( BcU32( 1 ), RT.Texture_->getDesc().Height_ >> RT.Level_ );
-
-		PSY_LOG( "Fbl: %u" , RT.Level_ );
 	}
 
 	RsViewport FullViewport( 0, 0, FBWidth, FBHeight );
@@ -2253,8 +2256,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 
 	BcAssert( FBWidth > 0 );
 	BcAssert( FBHeight > 0 );
-
-	PSY_LOG( "Fb: %u, %u" , FBWidth, FBHeight );
 
 	if( BoundFrameBuffer_ != FrameBuffer )
 	{
@@ -2271,9 +2272,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 	// Setup scissor rect if null.
 	ScissorRect = ScissorRect != nullptr ? ScissorRect : &FullScissorRect;
 
-	PSY_LOG( "Vi: %u, %u" , Viewport->x(), Viewport->y(), Viewport->width(), Viewport->height() );
-	PSY_LOG( "Sc: %u, %u" , ScissorRect->X_, ScissorRect->Y_, ScissorRect->Width_, ScissorRect->Height_ );
-
 	if( BoundViewport_ != *Viewport )
 	{
 		const auto VX = Viewport->x();
@@ -2282,8 +2280,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 		const auto VH = Viewport->height();
 		GL( Viewport( VX, VY, VW, VH ) );
 		BoundViewport_ = *Viewport;
-
-		PSY_LOG( "Vp: %u, %u, %u, %u" , VX, VY, VW, VH );
 	}
 
 	if( BoundScissorRect_ != *ScissorRect )
@@ -2295,8 +2291,6 @@ void RsContextGL::bindFrameBuffer( const RsFrameBuffer* FrameBuffer, const RsVie
 
 		GL( Scissor( SX, SY, SW, SH ) );
 		BoundScissorRect_ = *ScissorRect;
-
-		PSY_LOG( "Sr: %u, %u, %u, %u" , SX, SY, SW, SH );
 	}
 }
 

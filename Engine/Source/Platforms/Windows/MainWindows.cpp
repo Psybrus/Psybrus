@@ -163,9 +163,10 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		BcLog::pImpl()->setCategorySuppression( "RsCore", BcTrue );
 		BcLog::pImpl()->setCategorySuppression( "SsCore", BcTrue );
 		
-		// Setup basic log Category.
-		BcLogScopedCategory LogCategory( "Main" );
 	}
+
+	// Setup basic log Category.
+	BcLogScopedCategory LogCategory( "Main" );
 
 	// Initialise RNG.
 #if !PSY_DEBUG

@@ -208,7 +208,7 @@ BcU32 OsClientAndroid::getHeight() const
 
 //////////////////////////////////////////////////////////////////////////
 // getDPI
-BcU32 OsClientWindows::getDPI() const
+BcU32 OsClientAndroid::getDPI() const
 {
 	extern android_app* GAndroidApp;
 	AConfiguration* Config = AConfiguration_new();
@@ -317,32 +317,49 @@ BcBool OsClientAndroid::handleInput( struct AInputEvent* Event )
 		{
 			auto Action = AMotionEvent_getAction( Event );
 			auto ActionType = Action & AMOTION_EVENT_ACTION_MASK;
-			auto TouchID = ( Action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+			auto TouchIdx = ( Action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK ) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
-			// Regular touch event.
 			OsEventInputTouch TouchEvent;
-			TouchEvent.TouchID_ = TouchID;
-			TouchEvent.TouchX_ = AMotionEvent_getX( Event, TouchID );
-			TouchEvent.TouchY_ = AMotionEvent_getY( Event, TouchID );
+			switch( ActionType )
+			{
+			case AMOTION_EVENT_ACTION_UP:
+			case AMOTION_EVENT_ACTION_POINTER_UP:
+				{
+					auto PointerID = AMotionEvent_getPointerId( Event, TouchIdx );
+					TouchEvent.TouchID_ = PointerID;
+					TouchEvent.TouchX_ = AMotionEvent_getX( Event, PointerID );
+					TouchEvent.TouchY_ = AMotionEvent_getY( Event, PointerID );
+					OsCore::pImpl()->publish( osEVT_INPUT_TOUCHUP, TouchEvent ); // TODO: REMOVE OLD!
+					EvtPublisher::publish( osEVT_INPUT_TOUCHUP, TouchEvent );
+				}
+				break;
+			case AMOTION_EVENT_ACTION_DOWN:
+			case AMOTION_EVENT_ACTION_POINTER_DOWN:
+				{
+					auto PointerID = AMotionEvent_getPointerId( Event, TouchIdx );
+					TouchEvent.TouchID_ = PointerID;
+					TouchEvent.TouchX_ = AMotionEvent_getX( Event, PointerID );
+					TouchEvent.TouchY_ = AMotionEvent_getY( Event, PointerID );
+					OsCore::pImpl()->publish( osEVT_INPUT_TOUCHDOWN, TouchEvent ); // TODO: REMOVE OLD!
+					EvtPublisher::publish( osEVT_INPUT_TOUCHDOWN, TouchEvent );
+				}
+				break;
+			}
 
-			if( ActionType == AMOTION_EVENT_ACTION_DOWN )
+			auto PointerCount = AMotionEvent_getPointerCount( Event );
+			for( int PointerIdx = 0; PointerIdx < PointerCount; ++PointerIdx )
 			{
-				OsCore::pImpl()->publish( osEVT_INPUT_TOUCHDOWN, TouchEvent ); // TODO: REMOVE OLD!
-				EvtPublisher::publish( osEVT_INPUT_TOUCHDOWN, TouchEvent );
-			}
-			else if( ActionType == AMOTION_EVENT_ACTION_UP )
-			{
-				OsCore::pImpl()->publish( osEVT_INPUT_TOUCHUP, TouchEvent ); // TODO: REMOVE OLD!
-				EvtPublisher::publish( osEVT_INPUT_TOUCHUP, TouchEvent );
-			}
-			else
-			{
+				auto PointerID = AMotionEvent_getPointerId( Event, PointerIdx );
+				TouchEvent.TouchID_ = PointerID;
+				TouchEvent.TouchX_ = AMotionEvent_getX( Event, PointerID );
+				TouchEvent.TouchY_ = AMotionEvent_getY( Event, PointerID );
+
 				OsCore::pImpl()->publish( osEVT_INPUT_TOUCHMOVE, TouchEvent ); // TODO: REMOVE OLD!
 				EvtPublisher::publish( osEVT_INPUT_TOUCHMOVE, TouchEvent );
 			}
 
 			// Emulated mouse event.
-			if( TouchID == 0 )
+			if( TouchIdx == 0 )
 			{
 				OsEventInputMouse MouseEvent;
 				MouseEvent.MouseX_ = AMotionEvent_getX( Event, 0 );
@@ -371,7 +388,7 @@ BcBool OsClientAndroid::handleInput( struct AInputEvent* Event )
 					EvtPublisher::publish( osEVT_INPUT_MOUSEMOVE, MouseEvent );
 				}
 			}
-			return BcTrue;
+			//return BcTrue;
 		}
 		break;
 	}

@@ -107,7 +107,15 @@ void PsyAndroidMain( struct android_app* State )
 	}
 
 	// Some default suppression.
-	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+	if( BcLog::pImpl() != nullptr )
+	{
+		BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+
+		// Render & sound are noisy.
+		BcLog::pImpl()->setCategorySuppression( "RsCore", BcTrue );
+		BcLog::pImpl()->setCategorySuppression( "SsCore", BcTrue );
+		
+	}
 
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );

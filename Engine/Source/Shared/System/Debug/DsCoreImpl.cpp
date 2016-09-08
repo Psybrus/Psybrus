@@ -407,7 +407,7 @@ void DsCoreImpl::open()
 
 						std::array< char, 1024 > TestBuffer;
 						auto Font = ImGui::GetWindowFont();
-						auto TextHeightIncr = MaVec2d( 0.0f, Font->FontSize + 2.0f );
+						auto TextHeightIncr = MaVec2d( 0.0f, Font->FontSize + 2.0f ) * ImGui::GetIO().FontGlobalScale;
 						auto ShadowOff = MaVec2d( 1.0f, 1.0f );
 
 						auto TextPos = MaVec2d( 16.0f, ClientSize.y() - ( 16.0f + TextHeightIncr.y() * 4.0f ) );
@@ -434,8 +434,9 @@ void DsCoreImpl::open()
 						}
 
 						// TODO: Per view perhaps?
-						ImGui::SetNextWindowPos( MaVec2d( ClientSize.x() - 32.0f, 0.0f ) );
-						if( ImGui::Begin( "Engine Internal 2", NULL, MaVec2d( 32.0f, 32.0f ), 0.0f,
+						float Size = 32 * ImGui::GetIO().FontGlobalScale;
+						ImGui::SetNextWindowPos( MaVec2d( ClientSize.x() - Size * 2.0f, Size ) );
+						if( ImGui::Begin( "Engine Internal 2", NULL, MaVec2d( Size,  Size ), 0.0f,
 							ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | 
 							ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing ) )
 						{
@@ -599,12 +600,21 @@ void DsCoreImpl::open()
 		} );
 	}
 
-#if PLATFORM_ANDROID
-		auto& Style = ImGui::GetStyle();
-		Style.FramePadding.x *= 2.0f;
-		Style.FramePadding.y *= 2.0f;
-		Style.GrabMinSize *= 2.0f;
-#endif
+	// Scale for DPI.
+	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )
+	{
+		auto Client = OsCore::pImpl()->getClient( 0 );
+		if( Client )
+		{
+			auto Scale = BcMax( 1.0f, BcFloor( BcF32( Client->getDPI() ) / 96.0f ) ) ;
+			auto& Style = ImGui::GetStyle();
+			Style.GrabMinSize *= Scale;
+			ImGui::GetIO().FontGlobalScale = BcMax( 1.0f, Scale * 0.75f );
+		}
+
+		return evtRET_PASS;
+	} );
 
 	// Setup toggle of debug panels.
 	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN, this,
