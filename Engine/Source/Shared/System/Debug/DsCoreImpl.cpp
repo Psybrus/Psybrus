@@ -355,6 +355,7 @@ void DsCoreImpl::open()
 		{
 			if( OsCore::pImpl()->getClient( 0 ) )
 			{
+				Debug::Shutdown();
 				ImGui::Psybrus::Shutdown();
 			}
 			return evtRET_REMOVE;

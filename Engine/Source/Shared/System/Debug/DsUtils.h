@@ -34,6 +34,7 @@ namespace Debug
 	};
 
 	void Init( size_t NoofVertices );
+	void Shutdown();
 	void DrawViewOverlay( ImDrawList* DrawList, const MaMat4d& View, const MaMat4d& Projection, const RsViewport& Viewport, RsContext* Context );
 	void Render( class RsFrame* Frame, class RsFrameBuffer* FrameBuffer, const RsViewport& Viewport, class RsBuffer* ViewUniformBuffer, RsRenderSort Sort );
 	void NextFrame();

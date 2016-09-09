@@ -44,7 +44,6 @@ namespace Debug
 	RsBufferUPtr VertexBuffer_;
 	RsGeometryBindingUPtr GeometryBinding_;
 	RsBufferUPtr UniformBuffer_;
-	ScnShaderObjectUniformBlockData	ObjectUniforms_;
 
 	// Submission data.
 	std::vector< TextSection > TextSections_;
@@ -219,6 +218,21 @@ namespace Debug
 				Program_ = Shader->getProgram( Permutation );
 				BcAssert( Program_ );
 			}, 0 );
+	}
+
+	void Shutdown()
+	{
+		delete [] pWorkingVertices_;
+		pWorkingVertices_ = nullptr;
+
+		VertexDeclaration_.reset();
+		VertexBuffer_.reset();
+		GeometryBinding_.reset();
+		UniformBuffer_.reset();
+		ProgramBinding_.reset();
+		RenderState_.reset();
+		Package_->release();
+		Package_ = nullptr;
 	}
 
 	void DrawViewOverlay( ImDrawList* DrawList, const MaMat4d& View, const MaMat4d& Projection, const RsViewport& Viewport, RsContext* Context )

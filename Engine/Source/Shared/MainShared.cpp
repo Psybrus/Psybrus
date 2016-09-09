@@ -247,34 +247,41 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 
 			GraphPointIdx = ( GraphPointIdx + 1 ) % GameTimeGraphPoints.size();
 
+			BcF32 Scale = 1.0f;
+			auto Client = OsCore::pImpl()->getClient( 0 );
+			if( Client )
+			{
+				Scale = BcMax( 1.0f, BcFloor( BcF32( Client->getDPI() ) / 96.0f ) ) ;
+			}
+
 			ImGui::Text( "Worker count: %u", 
 				(BcU32)SysKernel::pImpl()->workerCount() );
 
 			if( ImGui::TreeNode( "Game", "Game time: %.2fms (%.2fms avg.)", 
 				SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 
 			if( ImGui::TreeNode( "Render", "Render time: %.2fms (%.2fms avg.)", 
 				RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 
 			if( ImGui::TreeNode( "GPU", "GPU time: %.2fms (%.2fms avg.)", 
 				ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f, GPUTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", GPUTimeGraphPoints.data(), GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::PlotLines( "", GPUTimeGraphPoints.data(), GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 
 			if( ImGui::TreeNode( "Frame", "Frame time: %.2fms (%.2fms avg.)", 
 				SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) );
+				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 		} );
