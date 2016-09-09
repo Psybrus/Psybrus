@@ -194,7 +194,7 @@ void ScnParticleSystemComponent::render( ScnRenderContext& RenderContext )
 							CornerD = CornerD * Rotation;
 						}
 
-						const BcU32 Colour = Particle.Colour_.asABGR();
+						const BcU32 Colour = Particle.Colour_.asRGBA();
 
 						// Grab vertices.
 						ScnParticleVertex& VertexA = *pVertex++;

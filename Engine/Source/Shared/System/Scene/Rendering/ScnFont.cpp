@@ -66,42 +66,42 @@ namespace
 		pVert->Y_ = CornerMin.y();
 		pVert->U_ = UV0.x();
 		pVert->V_ = UV0.y();
-		pVert->ABGR_ = Colour;
+		pVert->RGBA_ = Colour;
 		++pVert;
 		
 		pVert->X_ = CornerMax.x();
 		pVert->Y_ = CornerMin.y();
 		pVert->U_ = UV1.x();
 		pVert->V_ = UV0.y();
-		pVert->ABGR_ = Colour;
+		pVert->RGBA_ = Colour;
 		++pVert;
 		
 		pVert->X_ = CornerMin.x();
 		pVert->Y_ = CornerMax.y();
 		pVert->U_ = UV0.x();
 		pVert->V_ = UV1.y();
-		pVert->ABGR_ = Colour;
+		pVert->RGBA_ = Colour;
 		++pVert;
 		
 		pVert->X_ = CornerMax.x();
 		pVert->Y_ = CornerMin.y();
 		pVert->U_ = UV1.x();
 		pVert->V_ = UV0.y();
-		pVert->ABGR_ = Colour;
+		pVert->RGBA_ = Colour;
 		++pVert;
 		
 		pVert->X_ = CornerMax.x();
 		pVert->Y_ = CornerMax.y();
 		pVert->U_ = UV1.x();
 		pVert->V_ = UV1.y();
-		pVert->ABGR_ = Colour;
+		pVert->RGBA_ = Colour;
 		++pVert;
 		
 		pVert->X_ = CornerMin.x();
 		pVert->Y_ = CornerMax.y();
 		pVert->U_ = UV0.x();
 		pVert->V_ = UV1.y();
-		pVert->ABGR_ = Colour;
+		pVert->RGBA_ = Colour;
 		++pVert;
 
 		return 6;

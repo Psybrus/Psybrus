@@ -16,6 +16,7 @@
 
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
+#include "System/Renderer/RsColour.h"
 #include "System/Renderer/RsTypes.h"
 #include "Import/Img/Img.h"
 

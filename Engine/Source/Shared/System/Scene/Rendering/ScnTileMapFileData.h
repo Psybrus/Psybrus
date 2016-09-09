@@ -2,6 +2,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcRelativePtr.h"
+#include "System/Renderer/RsColour.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ScnTileMapOrientation

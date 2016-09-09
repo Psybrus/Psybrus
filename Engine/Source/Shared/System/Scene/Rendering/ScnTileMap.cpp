@@ -309,7 +309,7 @@ void ScnTileMapComponent::draw()
 
 					Canvas_->setMaterialComponent( Material.first );
 					const ScnRect& Rect = Material.second;
-					BcU32 ABGR = RsColour( 1.0f, 1.0f, 1.0f, Layer.Opacity_ ).asABGR();
+					BcU32 ABGR = RsColour( 1.0f, 1.0f, 1.0f, Layer.Opacity_ ).asRGBA();
 					
 					Vert->X_ = PositionTL.x();
 					Vert->Y_ = PositionTL.y();
@@ -317,7 +317,7 @@ void ScnTileMapComponent::draw()
 					Vert->W_ = 1.0f;
 					Vert->U_ = Rect.X_;
 					Vert->V_ = Rect.Y_;
-					Vert->ABGR_ = ABGR;
+					Vert->RGBA_ = ABGR;
 					Vert++;
 					Vert->X_ = PositionBR.x();
 					Vert->Y_ = PositionTL.y();
@@ -325,7 +325,7 @@ void ScnTileMapComponent::draw()
 					Vert->W_ = 1.0f;
 					Vert->U_ = Rect.X_ + Rect.W_;
 					Vert->V_ = Rect.Y_;
-					Vert->ABGR_ = ABGR;
+					Vert->RGBA_ = ABGR;
 					Vert++;
 					Vert->X_ = PositionTL.x();
 					Vert->Y_ = PositionBR.y();
@@ -333,7 +333,7 @@ void ScnTileMapComponent::draw()
 					Vert->W_ = 1.0f;
 					Vert->U_ = Rect.X_;
 					Vert->V_ = Rect.Y_ + Rect.H_;
-					Vert->ABGR_ = ABGR;
+					Vert->RGBA_ = ABGR;
 					Vert++;
 					Vert->X_ = PositionTL.x();
 					Vert->Y_ = PositionBR.y();
@@ -341,7 +341,7 @@ void ScnTileMapComponent::draw()
 					Vert->W_ = 1.0f;
 					Vert->U_ = Rect.X_;
 					Vert->V_ = Rect.Y_ + Rect.H_;
-					Vert->ABGR_ = ABGR;
+					Vert->RGBA_ = ABGR;
 					Vert++;
 					Vert->X_ = PositionBR.x();
 					Vert->Y_ = PositionTL.y();
@@ -349,7 +349,7 @@ void ScnTileMapComponent::draw()
 					Vert->W_ = 1.0f;
 					Vert->U_ = Rect.X_ + Rect.W_;
 					Vert->V_ = Rect.Y_;
-					Vert->ABGR_ = ABGR;
+					Vert->RGBA_ = ABGR;
 					Vert++;
 					Vert->X_ = PositionBR.x();
 					Vert->Y_ = PositionBR.y();
@@ -357,7 +357,7 @@ void ScnTileMapComponent::draw()
 					Vert->W_ = 1.0f;
 					Vert->U_ = Rect.X_ + Rect.W_;
 					Vert->V_ = Rect.Y_ + Rect.H_;
-					Vert->ABGR_ = ABGR;
+					Vert->RGBA_ = ABGR;
 					Vert++;
 
 					NoofVerts += 6;

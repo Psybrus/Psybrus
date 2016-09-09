@@ -14,6 +14,7 @@
 #ifndef __RSCONTEXT_H__
 #define __RSCONTEXT_H__
 
+#include "System/Renderer/RsColour.h"
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsFeatures.h"
 #include "System/Renderer/RsResource.h"

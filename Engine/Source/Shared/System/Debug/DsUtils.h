@@ -30,7 +30,7 @@ namespace Debug
 	struct Vertex
 	{
 		BcF32 X_, Y_, Z_, W_;
-		BcU32 ABGR_;
+		BcU32 RGBA_;
 	};
 
 	void Init( size_t NoofVertices );

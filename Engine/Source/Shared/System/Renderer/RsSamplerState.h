@@ -14,6 +14,7 @@
 #ifndef __RSSAMPLERSTATE_H__
 #define __RSSAMPLERSTATE_H__
 
+#include "System/Renderer/RsColour.h"
 #include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsResource.h"
 

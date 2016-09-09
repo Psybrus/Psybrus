@@ -168,10 +168,11 @@ private:
 	void						webbyConnected( WebbyConnection *connection );
 	void						webbyClosed( WebbyConnection *connection );
 	int							webbyFrame( WebbyConnection *connection, const WebbyWsFrame *frame );
-	std::vector<std::string>	getIPAddresses();
 #endif // USE_WEBBY
 
-protected:
+private:
+	std::vector< std::string >	getIPAddresses();
+
 	bool DrawStats_ = true;
 	bool DrawViews_ = true;
 	std::vector< DsPanelDefinition > PanelFunctions_;
@@ -193,6 +194,8 @@ protected:
 	};
 
 	std::vector< ViewInfo > ViewInfos_;
+
+	std::vector< std::string > IPAddresses_;
 };
 
 

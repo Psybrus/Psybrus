@@ -281,7 +281,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 ABGR = Colour.asABGR();
+		BcU32 ABGR = Colour.asRGBA();
 		
 		pVertices->X_ = PointA.x();
 		pVertices->Y_ = PointA.y();
@@ -289,7 +289,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = UV.x();
 		pVertices->V_ = UV.y();
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = PointB.x();
@@ -298,7 +298,7 @@ void ScnCanvasComponent::drawLine( const MaVec2d& PointA, const MaVec2d& PointB,
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = UV.x();
 		pVertices->V_ = UV.y();
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 
 		// Quickly check last primitive.
 		BcBool AddNewPrimitive = BcTrue;
@@ -358,7 +358,7 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 	if( pVertices != NULL )
 	{	
 		// Now copy in data.
-		BcU32 ABGR = Colour.asABGR();
+		BcU32 ABGR = Colour.asRGBA();
 
 		for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 		{
@@ -368,7 +368,7 @@ void ScnCanvasComponent::drawLines( const MaVec2d* pPoints, BcU32 NoofLines, con
 			pVertices->W_ = 1.0f;
 			pVertices->U_ = UV.x();
 			pVertices->V_ = UV.y();
-			pVertices->ABGR_ = ABGR;
+			pVertices->RGBA_ = ABGR;
 			++pVertices;
 		}
 		
@@ -413,7 +413,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 ABGR = Colour.asABGR();
+		BcU32 ABGR = Colour.asRGBA();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
@@ -421,7 +421,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = UV.x();
 		pVertices->V_ = UV.y();
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -430,7 +430,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = UV.x();
 		pVertices->V_ = UV.y();
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerA.x();
@@ -439,7 +439,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = UV.x();
 		pVertices->V_ = UV.y();
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -448,7 +448,7 @@ void ScnCanvasComponent::drawBox( const MaVec2d& CornerA, const MaVec2d& CornerB
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = UV.x();
 		pVertices->V_ = UV.y();
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		
 		// Add primitive.	
 		addPrimitive( RsTopologyType::TRIANGLE_STRIP, pFirstVertex, 4, Layer, BcTrue );
@@ -471,7 +471,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 	if( pVertices != NULL )
 	{
 		// Now copy in data.
-		BcU32 ABGR = Colour.asABGR();
+		BcU32 ABGR = Colour.asRGBA();
 		
 		pVertices->X_ = CornerA.x();
 		pVertices->Y_ = CornerA.y();
@@ -479,7 +479,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerB.x();
@@ -488,7 +488,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -497,7 +497,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 		
 		pVertices->X_ = CornerA.x();
@@ -506,7 +506,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -515,7 +515,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_;
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		++pVertices;
 
 		pVertices->X_ = CornerB.x();
@@ -524,7 +524,7 @@ void ScnCanvasComponent::drawSprite( const MaVec2d& Position, const MaVec2d& Siz
 		pVertices->W_ = 1.0f;
 		pVertices->U_ = Rect.X_ + Rect.W_;
 		pVertices->V_ = Rect.Y_ + Rect.H_;
-		pVertices->ABGR_ = ABGR;
+		pVertices->RGBA_ = ABGR;
 		
 		// Quickly check last primitive.
 		BcBool AddNewPrimitive = BcTrue;

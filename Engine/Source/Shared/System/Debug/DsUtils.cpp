@@ -424,19 +424,19 @@ namespace Debug
 		if( pVertices != NULL )
 		{
 			// Now copy in data.
-			BcU32 ABGR = Colour.asABGR();
+			BcU32 RGBA = Colour.asRGBA();
 		
 			pVertices->X_ = PointA.x();
 			pVertices->Y_ = PointA.y();
 			pVertices->Z_ = PointA.z();
 			pVertices->W_ = 1.0f;
-			pVertices->ABGR_ = ABGR;
+			pVertices->RGBA_ = RGBA;
 			++pVertices;
 			pVertices->X_ = PointB.x();
 			pVertices->Y_ = PointB.y();
 			pVertices->Z_ = PointB.z();
 			pVertices->W_ = 1.0f;
-			pVertices->ABGR_ = ABGR;
+			pVertices->RGBA_ = RGBA;
 
 			// Quickly check last primitive.
 			BcBool AddNewPrimitive = BcTrue;
@@ -479,7 +479,7 @@ namespace Debug
 		if( pVertices != NULL )
 		{	
 			// Now copy in data.
-			BcU32 ABGR = Colour.asABGR();
+			BcU32 RGBA = Colour.asRGBA();
 
 			for( BcU32 Idx = 0; Idx < NoofVertices; ++Idx )
 			{
@@ -487,7 +487,7 @@ namespace Debug
 				pVertices->Y_ = pPoints[ Idx ].y();
 				pVertices->Z_ = pPoints[ Idx ].z();
 				pVertices->W_ = 1.0f;
-				pVertices->ABGR_ = ABGR;
+				pVertices->RGBA_ = RGBA;
 				++pVertices;
 			}
 		

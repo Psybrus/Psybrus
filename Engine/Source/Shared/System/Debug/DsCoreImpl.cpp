@@ -24,10 +24,8 @@
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
 
-#if USE_WEBBY
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
-#endif
 #include "Psybrus.h"
 
 #include "Import/Img/Img.h"
@@ -287,6 +285,7 @@ DsCoreImpl::~DsCoreImpl()
 //virtual
 void DsCoreImpl::open()
 {
+	IPAddresses_ = getIPAddresses();
 #if USE_WEBBY
 	int memory_size;
 	WebbyServerConfig config;
@@ -303,8 +302,7 @@ void DsCoreImpl::open()
 		}
 	}
 #endif
-	std::vector<std::string> bindAddresses = getIPAddresses();
-	for ( int i = 0; i < bindAddresses.size(); ++i )
+	for ( int i = 0; i < IPAddresses_.size(); ++i )
 	{
 		PSY_LOG( "Binding to %s", bindAddresses[ i ].c_str() );
 		memset( &config, 0, sizeof config );
@@ -410,7 +408,8 @@ void DsCoreImpl::open()
 						auto TextHeightIncr = MaVec2d( 0.0f, Font->FontSize + 2.0f ) * ImGui::GetIO().FontGlobalScale;
 						auto ShadowOff = MaVec2d( 1.0f, 1.0f );
 
-						auto TextPos = MaVec2d( 16.0f, ClientSize.y() - ( 16.0f + TextHeightIncr.y() * 4.0f ) );
+						auto NumLines = 4.0f + 1.0f * IPAddresses_.size();
+						auto TextPos = MaVec2d( 16.0f, ClientSize.y() - ( 16.0f + TextHeightIncr.y() * NumLines ) );
 
 						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Build: %s-%s-%s", 
 								BUILD_ACTION,
@@ -425,6 +424,12 @@ void DsCoreImpl::open()
 						ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "Date/Time: %s %s", 
 								BUILD_DATE, BUILD_TIME );
 						TextPos += TextHeightIncr;
+						
+						for( const auto& IPAddress : IPAddresses_ )
+						{
+							ImGui::AddShadowedText( DrawList, TextPos, 0xffffffff, "IP: %s", IPAddress.c_str() );
+							TextPos += TextHeightIncr;
+						}
 
 						auto ScreenshotProcessing = ScreenshotUtil::TotalFramesRemaining.load();
 						if( ScreenshotProcessing > 0 )
@@ -827,11 +832,12 @@ int DsCoreImpl::externalWebbyFrame( WebbyConnection *connection, const WebbyWsFr
 	return static_cast<DsCoreImpl*>( DsCore::pImpl() )->webbyFrame( connection, frame );
 }
 
+#endif // USE_WEBBY
+
 std::vector< std::string > DsCoreImpl::getIPAddresses()
 {
 	std::vector< std::string > result;
 #if !PLATFORM_WINPHONE
-	result.push_back( "127.0.0.1" );
 	RakNet::RakPeerInterface* peer = NULL;
 	peer = RakNet::RakPeerInterface::GetInstance();
 
@@ -851,7 +857,6 @@ std::vector< std::string > DsCoreImpl::getIPAddresses()
 #endif
 	return result;
 }
-#endif // USE_WEBBY
 
 //////////////////////////////////////////////////////////////////////////
 // registerPanel
