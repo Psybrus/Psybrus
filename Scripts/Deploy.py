@@ -19,5 +19,5 @@ if platform == None:
 	print "Unable to find platform \"" + args.toolset + "\"."
 	exit(1)
 
-platform.deploy_tool.package_build( args.config )
-platform.deploy_tool.install( args.config )
+platform.deploy_tool.package_build( args.config.strip() )
+platform.deploy_tool.install( args.config.strip() )

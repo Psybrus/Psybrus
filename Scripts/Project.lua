@@ -77,7 +77,7 @@ function PsyProjectCommon( _name, _lang )
 
 	-- Linux config defines.
 	configuration "linux-*"
-		defines { "linux", "__linux" }
+		defines { "linux", "__linux", "__linux__" }
 
 	-- Common visual studio crap.
 	configuration "vs*"
@@ -362,6 +362,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		  "glslang",
 		  "glsl-optimizer",
 		  "glew",
+                  "remotery",
 		  "ThinkGear",
 	   }
 

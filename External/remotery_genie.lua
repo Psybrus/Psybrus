@@ -1,4 +1,4 @@
-if PsyProjectExternalLib( "remotery", "C++" ) then
+if PsyProjectExternalLib( "remotery", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_PROJECT_KIND )
 		files { 

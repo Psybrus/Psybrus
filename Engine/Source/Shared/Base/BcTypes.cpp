@@ -38,6 +38,7 @@ void BcTypes_UnitTest()
 // Temporary until better demangling is setup.
 #if ( COMPILER_GCC || COMPILER_CLANG )
 #include <cxxabi.h>
+#include <stdlib.h>
 
 namespace CompilerUtility
 {

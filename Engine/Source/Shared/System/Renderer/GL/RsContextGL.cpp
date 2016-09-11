@@ -565,8 +565,8 @@ void RsContextGL::create()
 	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-	auto RTFormat = RsResourceFormat::R8G8B8A8;
-	auto DSFormat = RsResourceFormat::D24S8;
+	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;
+	auto DSFormat = RsResourceFormat::D24_UNORM_S8_UINT;
 
 	BcAssert( pParent_ == nullptr );
 	SDL_Window* Window = reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() );
@@ -738,8 +738,8 @@ void RsContextGL::create()
 	ProfileCreated = true;
 
 #  if PLATFORM_HTML5
-	auto RTFormat = RsResourceFormat::R8G8B8A8;
-	auto DSFormat = RsResourceFormat::D24S8;
+	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;
+	auto DSFormat = RsResourceFormat::D24_UNORM_S8_UINT;
 #  endif
 #endif
 

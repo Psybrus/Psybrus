@@ -36,6 +36,7 @@ public:
 	BcHandle getWindowHandle() override;
 	BcU32 getWidth() const override;
 	BcU32 getHeight() const override;
+	BcU32 getDPI() const override;
 	bool isActive() const override;
 	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;

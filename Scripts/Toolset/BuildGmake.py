@@ -42,7 +42,8 @@ class BuildGmake( Build ):
 		self.launch( "clean" )
 
 	def build( self, _config ):
-		self.launch( " -j {0} config={1}".format( CPU_COUNT, _config ) )
+		Log.write( "config: \"" + _config + "\"" )
+		self.launch( "-j{0} config={1}".format( CPU_COUNT, _config ) )
 
 	def launch( self, _params ):
 		env = copy.deepcopy( os.environ )
@@ -51,14 +52,21 @@ class BuildGmake( Build ):
 
 		gmake_command = self.tool + " " + _params
 
-		Log.write( "Launching: " + gmake_command )
+		Log.write( "Launching: \"" + gmake_command + "\"" )
 
 		cwd = os.getcwd()
+		retVal = 0
 		try:
 			os.chdir( self.root_path )
-			subprocess.Popen( gmake_command, env=env, shell=True ).communicate()
+			retVal = subprocess.Popen( gmake_command, env=env, shell=True ).wait()
 		except KeyboardInterrupt:
 			Log.write( "Build cancelled. Exiting." )
+			os.chdir( cwd )
 			exit(1)
 		finally:
 			os.chdir( cwd )
+
+		if retVal != 0:
+			Log.write( "Error from build: " + str(retVal) )
+			exit(retVal)
+

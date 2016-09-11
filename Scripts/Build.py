@@ -14,12 +14,10 @@ parser.add_argument( "--toolset", "-t", type=str, help="Toolset to build " + str
 parser.add_argument( "--config", "-c", type=str, help="Config to build " + str(Toolset.getConfigs()), required=True )
 args = parser.parse_args()
 
-
-
-platform = Toolset.findPlatform( args.toolset )
+platform = Toolset.findPlatform( args.toolset.strip() )
 if platform == None:
-	print "Unable to find platform \"" + args.toolset + "\"."
+	print "Unable to find platform \"" + args.toolset.strip() + "\"."
 	exit(1)
 
 platform.build_tool.generate()
-platform.build_tool.build( args.config )
+platform.build_tool.build( args.config.strip() )

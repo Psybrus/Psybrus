@@ -4,6 +4,7 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnCoreCallback.h"
 
+#include <float.h>
 #include <deque>
 
 //////////////////////////////////////////////////////////////////////////
