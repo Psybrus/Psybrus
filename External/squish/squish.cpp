@@ -32,6 +32,8 @@
 #include "alpha.h"
 #include "singlecolourfit.h"
 
+#include <string.h>
+
 namespace squish {
 
 static int FixFlags( int flags )
