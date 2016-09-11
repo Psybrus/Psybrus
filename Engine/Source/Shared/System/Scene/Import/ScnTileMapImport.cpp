@@ -328,7 +328,7 @@ void ScnTileMapImport::parseImage(
 				auto TextureImporter = CsResourceImporterUPtr(
 					new ScnTextureImport( 
 						TexSourcePath.c_str(), "ScnTextureAtlas",
-						TexSourcePath.c_str(), RsResourceFormat::R8G8B8A8_UNORM,
+						TexSourcePath.c_str(), "TILEMAP",
 						TileSet->TileWidth_,
 						TileSet->TileHeight_ ) );
 
@@ -540,9 +540,7 @@ CsCrossRefId ScnTileMapImport::findMaterialMatch( const std::string& Path )
 	// Can't find match? Throw exception.
 	if( RetVal == CSCROSSREFID_INVALID )
 	{
-		auto ErrorString = std::string( "Unable to find match for \"" ) + Path + std::string( "\"" );
-		
-		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
+		CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Unable to find match for \"%s\"", Path.c_str() );
 	}
 #endif // PSY_IMPORT_PIPELINE
 	return RetVal;

@@ -1,8 +1,13 @@
 #ifndef __PSYBRUSTYPES_PSH__
 #define __PSYBRUSTYPES_PSH__
 
-
 #include <PsybrusVersion.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Disable warning: pow(f, e) will not work for negative f.
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_D3D11
+#pragma warning( disable : 3571 )
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Setup HLSL types
@@ -58,5 +63,6 @@ float3x3 getFloat3x3( float3 Row0, float3 Row1, float3 Row2 )
 #define PIMUL4 (12.5663706143591720)
 #define PIDIV2 (1.57079632679489660)
 #define PIDIV4 (0.78539816339744828)
+
 
 #endif // __PSYBRUSTYPES_PSH__

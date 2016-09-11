@@ -179,8 +179,15 @@ const CsResourceImporterAttribute* CsResourceImporter::getImporterAttribute() co
 
 //////////////////////////////////////////////////////////////////////////
 // addMessage
-void CsResourceImporter::addMessage( CsMessageCategory Category, const std::string& Message )
+void CsResourceImporter::addMessage( CsMessageCategory Category, const char* Message, ... )
 {
+	std::array< char, 1024 > FormattedMessage;
+	va_list Args;
+	va_start( Args, Message );
+	BcVSPrintf( FormattedMessage.data(), FormattedMessage.size(), Message, Args ); 
+	va_end( Args );
+
+
 	static std::array< const char*, (size_t)CsMessageCategory::MAX > Categories =
 	{
 		"INFO",
@@ -195,7 +202,7 @@ void CsResourceImporter::addMessage( CsMessageCategory Category, const std::stri
 	// Increment number of types of messages.
 	MessageCount_[ CategoryIdx ]++;
 
-	PSY_LOG( "%s: %s\n", CategoryMsg, Message.c_str() );
+	PSY_LOG( "%s: %s\n", CategoryMsg, FormattedMessage.data() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -206,6 +213,18 @@ size_t CsResourceImporter::getMessageCount( CsMessageCategory Category ) const
 
 	return MessageCount_[ CategoryIdx ];
 }
+
+//////////////////////////////////////////////////////////////////////////
+// addImport
+const ReObject* CsResourceImporter::getImportParams( const ReClass* Class ) const
+{
+#if PSY_IMPORT_PIPELINE
+	return Importer_->getParams().getImportParams( Class );
+#else
+	return nullptr;
+#endif
+}
+
 	
 //////////////////////////////////////////////////////////////////////////
 // addImport

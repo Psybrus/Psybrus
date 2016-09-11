@@ -110,13 +110,24 @@ public:
 	/**
 	 * Add message.
 	 */
-	void addMessage( CsMessageCategory Category, const std::string& Message );
+	void addMessage( CsMessageCategory Category, const char* Message, ... );
 
 	/**
 	 * Get message count.
 	 */
 	size_t getMessageCount( CsMessageCategory Category ) const;
 
+	/**
+	 * Get import params.
+	 */
+	const ReObject* getImportParams( const ReClass* Class ) const;
+	template< class _Ty >
+	const _Ty* getImportParams() const
+	{
+		return static_cast< const _Ty* >( getImportParams( _Ty::StaticGetClass() ) );
+	}
+	
+	
 protected:
 	/**
 	 * Add import.
@@ -181,4 +192,3 @@ private:
 };
 
 #endif // __CSRESOURCEIMPORTER_H__
-#include <json/json.h>

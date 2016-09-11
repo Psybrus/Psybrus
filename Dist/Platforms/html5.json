@@ -6,16 +6,40 @@
 			"name" : "html5",
 			"filters" : [
 				// Platform
-				"html5",
-
-				// Assumed compressed texture formats.
-				"dxt1",
-				"dxt3",
-				"dxt5"
+				"desktop",
+				"html5"
 			],
 
 			"intermediatepath" : "Intermediate/html5",
-			"packedcontentpath" : "PackedContent/html5"
+			"packedcontentpath" : "PackedContent/html5",
+
+			"importparams" : [
+				{
+					"$Class" : "ScnTextureImportParams",
+					"$ID" : "",
+
+					// Formats to remap.
+					"formats" : {
+						"R" : "BC1_UNORM",
+						"RG" : "BC1_UNORM",
+						"RGB" : "BC1_UNORM",
+						"RGBA" : "BC3_UNORM",
+
+						"ALBEDO" : "BC1_UNORM",
+						"NORMAL" : "BC1_UNORM",
+						"METALLIC" : "BC1_UNORM",
+						"ROUGHNESS" : "BC1_UNORM",
+
+						"SPECULAR" : "BC1_UNORM",
+
+						"FONT" : "BC1_UNORM",
+						"GUI" : "BC3_UNORM",
+						"SPRITE" : "BC3_UNORM",
+						"TILEMAP" : "BC1_UNORM"
+					}
+				}
+			]
+
 		}
 	],
 	"$RootID" : ""

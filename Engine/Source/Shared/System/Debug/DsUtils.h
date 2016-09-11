@@ -75,7 +75,8 @@ namespace Debug
 	size_t GetDrawCategories( const char** OutCategoryNames, BcU32* OutCategoryMasks, size_t MaxCategories );
 
 
-	bool CanDraw( const char* CategoryName = nullptr );
+	bool CanDraw( const char* CategoryName );
+	bool CanDraw( BcU32 CategoryMask );
 	void DrawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 	void DrawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );
 	void DrawMatrix( const MaMat4d& Matrix, const RsColour& Colour = RsColour::WHITE, BcU32 Layer = 0 );

@@ -924,9 +924,7 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 	// Can't find match? Throw exception.
 	if( RetVal == CSCROSSREFID_INVALID )
 	{
-		auto ErrorString = std::string( "Unable to find match for \"" ) + MaterialName + std::string( "\"" );
-		
-		CsResourceImporter::addMessage( CsMessageCategory::ERROR, ErrorString );
+		CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Unable to find match for \"%s\"", MaterialName.c_str() );
 	}
 #endif
 	return RetVal;
@@ -984,34 +982,36 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			// Pass up unresolved texture path, it will resolve later.
 			auto TextureImporter = new ScnTextureImport(
 					Path.C_Str(), "ScnTexture",
-					TexturePath.c_str(), RsResourceFormat::UNKNOWN );
+					TexturePath.c_str(), "UNKNOWN" );
 
 			// Setup some default texture formats.
+			auto Params = getImportParams< ScnTextureImportParams >();
+			if( !Params )
+			{
+				addMessage( CsMessageCategory::ERROR, "Unable to find ScnTextureImportParams in platform config." );
+			}
+
 			switch( Type )
 			{
 			case aiTextureType_NORMALS:
-				// TODO: BC5
-				TextureImporter->setFormat( RsResourceFormat::R8G8B8A8_UINT );
+				TextureImporter->setFormat( "NORMAL" );
 				break;
 			case aiTextureType_AMBIENT: // METALLIC
-				// TODO: BC4.
-				TextureImporter->setFormat( RsResourceFormat::R8G8B8A8_UINT );
+				TextureImporter->setFormat( "METALLIC" );
 				break;
 			case aiTextureType_SHININESS: // ROUGHNESS
-				// TODO: BC4.
-				TextureImporter->setFormat( RsResourceFormat::R8G8B8A8_UINT );
+				TextureImporter->setFormat( "ROUGHNESS" );
 				break;
 			default:
 				break;
 			}
-
 
 			TextureRef = addImport( CsResourceImporterUPtr( TextureImporter ) );
 			MaterialImport->addTexture( Name, TextureRef, SamplerState );
 		}
 		else
 		{
-			addMessage( CsMessageCategory::WARNING, "Unable to find texture " + *TexturePath );
+			addMessage( CsMessageCategory::WARNING, "Unable to find texture \"%s\"", (*TexturePath).c_str() );
 		}
 	}
 

@@ -12,7 +12,8 @@ struct CsPlatformParams
 {
 	REFLECTION_DECLARE_BASIC( CsPlatformParams );
 
-	CsPlatformParams(){};
+	CsPlatformParams();
+	~CsPlatformParams();
 
 	/**
 	 * Check filter string vs import filters.
@@ -42,6 +43,11 @@ struct CsPlatformParams
 	 */
 	BcPath getPackagePackedPath( const BcName& Package ) const;
 
+	/**
+	 * Get import params.
+	 */
+	const ReObject* getImportParams( const ReClass* Class ) const;
+
 	/// Name.
 	std::string Name_;
 
@@ -53,5 +59,8 @@ struct CsPlatformParams
 
 	/// Packed content path.
 	std::string PackedContentPath_;
+
+	/// Import params.
+	std::vector< ReObject* > ImportParams_;
 };
 

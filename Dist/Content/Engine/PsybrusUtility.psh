@@ -1,7 +1,7 @@
 #ifndef __PSYBRUSUTILITY_PSH__
 #define __PSYBRUSUTILITY_PSH__
 
-#include <PsybrusVersion.psh>
+#include <PsybrusTypes.psh>
 
 // Generated header.
 #include <UniformView.psh>

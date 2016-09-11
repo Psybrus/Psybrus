@@ -21,6 +21,22 @@
 #include "Import/Img/Img.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnTextureImportParams
+class ScnTextureImportParams:
+	public ReObject
+{
+public:
+	REFLECTION_DECLARE_DERIVED( ScnTextureImportParams, ReObject );
+
+	ScnTextureImportParams();
+	virtual ~ScnTextureImportParams();
+
+	RsResourceFormat getFormat( const char* FormatName ) const;
+
+	std::unordered_map< std::string, RsResourceFormat > Formats_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnTextureImport
 class ScnTextureImport:
 	public CsResourceImporter
@@ -35,13 +51,13 @@ public:
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsResourceFormat Format,
+		const char* Format,
 		ImgEncodeFormat EncodeFormat = ImgEncodeFormat::UNKNOWN );
 	ScnTextureImport( 
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsResourceFormat Format,
+		const char* Format,
 		BcU32 TileWidth,
 		BcU32 TileHeight );
 	virtual ~ScnTextureImport();
@@ -54,7 +70,7 @@ public:
 	/**
 	 * Set format.
 	 */
-	void setFormat( RsResourceFormat Format ) { Format_ = Format; }
+	void setFormat( std::string Format ) { Format_ = Format; }
 
 private:
 	bool loadDDS( const char* FileName );
@@ -70,7 +86,7 @@ private:
 
 private:
 	std::vector< std::string > Source_;
-	RsResourceFormat Format_;  // TODO: Use.
+	std::string Format_;
 	ImgEncodeFormat EncodeFormat_;
 	BcBool RenderTarget_;
 	BcBool DepthStencilTarget_;
@@ -87,7 +103,7 @@ private:
 	BcBool RoundDownPowerOfTwo_;
 	
 	RsTextureType TextureType_;
-	BcS32 Width_;
+	BcS32 Width_; 
 	BcS32 Height_;
 	BcU32 Depth_;
 	BcU32 Levels_;

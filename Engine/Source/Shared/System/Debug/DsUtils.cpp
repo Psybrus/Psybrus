@@ -379,12 +379,17 @@ namespace Debug
 	{
 		if( CategoryName != nullptr )
 		{
-			auto CategoryMask = GetDrawCategoryMask( CategoryName );
-			return !!( CategoryMask & GetDrawCategoryMask() );
+			return CanDraw( GetDrawCategoryMask( CategoryName ) );
 		}
 		return true;
 	}
+
 	
+	bool CanDraw( BcU32 CategoryMask )
+	{
+		return !!( CategoryMask & GetDrawCategoryMask() );
+	}
+
 
 	BcU32 ConvertVertexPointerToIndex( Vertex* pVertex )
 	{
@@ -426,7 +431,7 @@ namespace Debug
 
 	void DrawLine( const MaVec3d& PointA, const MaVec3d& PointB, const RsColour& Colour, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -480,7 +485,7 @@ namespace Debug
 
 	void DrawLines( const MaVec3d* pPoints, BcU32 NoofLines, const RsColour& Colour, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -512,7 +517,7 @@ namespace Debug
 
 	void DrawMatrix( const MaMat4d& Matrix, const RsColour& Colour, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -529,7 +534,7 @@ namespace Debug
 
 	void DrawGrid( const MaVec3d& Position, const MaVec3d& Size, BcF32 StepSize, BcF32 SubDivideMultiple, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -602,7 +607,7 @@ namespace Debug
 
 	void DrawEllipsoid( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -643,7 +648,7 @@ namespace Debug
 
 	void DrawCircle( const MaVec3d& Position, const MaVec3d& Size, const RsColour& Colour, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -684,7 +689,7 @@ namespace Debug
 
 	void DrawAABB( const MaAABB& AABB, const RsColour& Colour, BcU32 Layer )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}
@@ -707,7 +712,7 @@ namespace Debug
 
 	void DrawShadowedText( const MaVec3d& WorldPosition, const RsColour& Colour, const char* Text, ... )
 	{
-		if( !CanDraw() )
+		if( !CanDraw( CurrCategoryMask_ ) )
 		{
 			return;
 		}

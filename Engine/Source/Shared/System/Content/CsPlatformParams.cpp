@@ -21,10 +21,28 @@ void CsPlatformParams::StaticRegisterClass()
 		new ReField( "Filters_", &CsPlatformParams::Filters_ ),
 		new ReField( "IntermediatePath_", &CsPlatformParams::IntermediatePath_ ),
 		new ReField( "PackedContentPath_", &CsPlatformParams::PackedContentPath_ ),
+		new ReField( "ImportParams_", &CsPlatformParams::ImportParams_ ),
 	};
 
 	ReRegisterClass< CsPlatformParams >( Fields );
 };
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+CsPlatformParams::CsPlatformParams()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+CsPlatformParams::~CsPlatformParams()
+{
+	for( auto ImportParams : ImportParams_ )
+	{
+		delete ImportParams;
+	}
+	ImportParams_.clear();
+}
 
 //////////////////////////////////////////////////////////////////////////
 // checkFilterString
@@ -85,4 +103,18 @@ BcPath CsPlatformParams::getPackagePackedPath( const BcName& Package ) const
 		Path = PackedContentPath_;
 	}
 	return Path;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getImportParams
+const ReObject* CsPlatformParams::getImportParams( const ReClass* Class ) const
+{
+	for( auto ImportParams : ImportParams_ )
+	{
+		if( ImportParams->isTypeOf( Class ) )
+		{
+			return ImportParams;
+		}
+	}
+	return nullptr;
 }

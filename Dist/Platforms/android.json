@@ -6,14 +6,40 @@
 			"name" : "android",
 			"filters" : [
 				// Platform
-				"android",
-
-				// Assumed compressed texture formats.
-				"etc1"
+				"mobile",
+				"android"
 			],
 
 			"intermediatepath" : "Intermediate/android",
-			"packedcontentpath" : "PackedContent/android"
+			"packedcontentpath" : "PackedContent/android",
+
+			"importparams" : [
+				{
+					"$Class" : "ScnTextureImportParams",
+					"$ID" : "",
+
+					// Formats to remap.
+					"formats" : {
+						"R" : "ETC1",
+						"RG" : "ETC1",
+						"RGB" : "ETC1",
+						"RGBA" : "R8G8B8A8",
+
+						"ALBEDO" : "ETC1",
+						"NORMAL" : "ETC1",
+						"METALLIC" : "ETC1",
+						"ROUGHNESS" : "ETC1",
+
+						"SPECULAR" : "ETC1",
+
+						"FONT" : "ETC1",
+						"GUI" : "R8G8B8A8",
+						"SPRITE" : "R8G8B8A8",
+						"TILEMAP" : "ETC1"
+					}
+				}
+			]
+
 		}
 	],
 	"$RootID" : ""

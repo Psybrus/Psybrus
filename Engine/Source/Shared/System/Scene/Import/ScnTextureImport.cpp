@@ -29,6 +29,53 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
+REFLECTION_DEFINE_DERIVED( ScnTextureImportParams )
+
+void ScnTextureImportParams::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "Formats_", &ScnTextureImportParams::Formats_, bcRFF_IMPORTER ),
+	};
+		
+	ReRegisterClass< ScnTextureImportParams, Super >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnTextureImportParams::ScnTextureImportParams()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnTextureImportParams::~ScnTextureImportParams()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getFormat
+RsResourceFormat ScnTextureImportParams::getFormat( const char* FormatName ) const
+{
+	// Search for format in table.
+	if( Formats_.find( FormatName ) != Formats_.end() )
+	{
+		return Formats_.find( FormatName )->second;
+	}
+
+	// Fall back to RsResourceFormat.
+	if( auto EnumConstant = ReManager::GetEnum( "RsResourceFormat" )->getEnumConstant( FormatName ) )
+	{
+		return static_cast< RsResourceFormat >( EnumConstant->getValue() );
+	}
+
+	// Can't find, fall back to unknown.
+	return RsResourceFormat::UNKNOWN;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Reflection
 REFLECTION_DEFINE_DERIVED( ScnTextureImport )
 	
 void ScnTextureImport::StaticRegisterClass()
@@ -63,7 +110,7 @@ void ScnTextureImport::StaticRegisterClass()
 // Ctor
 ScnTextureImport::ScnTextureImport():
 	Source_(),
-	Format_( RsResourceFormat::UNKNOWN ),
+	Format_(),
 	EncodeFormat_( ImgEncodeFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
@@ -90,7 +137,7 @@ ScnTextureImport::ScnTextureImport():
 // Ctor
 ScnTextureImport::ScnTextureImport( ReNoInit ):
 	Source_(),
-	Format_( RsResourceFormat::UNKNOWN ),
+	Format_(),
 	EncodeFormat_( ImgEncodeFormat::UNKNOWN ),
 	RenderTarget_( BcFalse ),
 	DepthStencilTarget_( BcFalse ),
@@ -119,7 +166,7 @@ ScnTextureImport::ScnTextureImport(
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsResourceFormat Format,
+		const char* Format,
 		BcU32 TileWidth,
 		BcU32 TileHeight ):
 	CsResourceImporter( Name, Type ),
@@ -152,7 +199,7 @@ ScnTextureImport::ScnTextureImport(
 		const std::string Name,
 		const std::string Type,
 		const std::string Source,
-		RsResourceFormat Format,
+		const char* Format,
 		ImgEncodeFormat EncodeFormat ):
 	CsResourceImporter( Name, Type ),
 	Format_( Format ),
@@ -200,6 +247,14 @@ BcBool ScnTextureImport::import()
 	// Add type dependencies.
 	CsResourceImporter::addDependency( ReManager::GetEnum( "RsResourceFormat" ) );
 	CsResourceImporter::addDependency( ReManager::GetEnum( "RsTextureType" ) );
+
+	// Find texture import params.
+	auto Params = getImportParams< ScnTextureImportParams > ();
+	if( !Params )
+	{
+		addMessage( CsMessageCategory::ERROR, "Unable to find ScnTextureImportParams in platform config." );
+		return BcFalse;
+	}
 
 	// Check if it's a DDS, avoid all processing for those.
 	if( Source_.size() == 1 && Source_[ 0 ].rfind( ".dds" ) != std::string::npos )
@@ -354,30 +409,45 @@ BcBool ScnTextureImport::import()
 		}
 
 		// Automatically determine the best format if we specify unknown.
-		if( Format_ == RsResourceFormat::UNKNOWN || Format_ == RsResourceFormat::INVALID )
+		auto ResourceFormat = Params->getFormat( Format_.c_str() );
+		if( ResourceFormat == RsResourceFormat::UNKNOWN || ResourceFormat == RsResourceFormat::INVALID )
 		{
-			// Default to a catch all which is 32 bit RGBA.
-			Format_ = RsResourceFormat::R8G8B8A8_UNORM;
-
-#if 0 // TODO: Platform defaults.
-			// In a non-debug build, check if we should
-			// use texture compression (to speed up build times).
-			if( TextureType_ == RsTextureType::TEX2D )
+			if( !Format_.empty() )
 			{
-				if( MipImages[ 0 ]->width() % 4 == 0 && 
-					MipImages[ 0 ]->height() % 4 == 0 )
-				{
-					if( MipImages[ 0 ]->hasAlpha( 8 ) == BcFalse )
-					{
-						Format_ = RsResourceFormat::BC1_UNORM;
-					}
-					else
-					{
-						Format_ = RsResourceFormat::BC3_UNORM;
-					}
-				}
+				CsResourceImporter::addMessage( CsMessageCategory::ERROR, "Texture format \"%s\" is unknown.", Format_.c_str() );
 			}
-#endif
+
+			// Default to a catch all which is 32 bit RGBA.
+			ResourceFormat = Params->getFormat( "R8G8B8A8_UNORM" );
+			RsResourceFormat DesiredFormat = ResourceFormat;
+
+			// Grab appropriate format from params.
+			if( MipImages[ 0 ]->hasAlpha( 2 ) == BcFalse )
+			{
+				DesiredFormat = Params->getFormat( "RGB" );
+			}
+			else
+			{
+				DesiredFormat = Params->getFormat( "RGBA" );
+			}
+
+			auto BlockInfo = RsTextureBlockInfo( ResourceFormat );
+			if( MipImages[ 0 ]->width() % BlockInfo.Width_ == 0 && 
+				MipImages[ 0 ]->height() % BlockInfo.Height_ == 0 )
+			{
+				ResourceFormat = DesiredFormat;
+			}
+
+			if( Format_.empty() )
+			{
+				CsResourceImporter::addMessage( CsMessageCategory::WARNING, "Texture format is not specified. Automatically selected \"%s\"",
+					(*ReManager::GetEnumValueName( ResourceFormat )).c_str() );
+			}
+		}
+
+		if( ResourceFormat == RsResourceFormat::UNKNOWN )
+		{
+			// 
 		}
 
 		// Streams.
@@ -396,7 +466,7 @@ BcBool ScnTextureImport::import()
 				ImgEncodeFormat EncodeFormat = EncodeFormat_;
 				if( EncodeFormat == ImgEncodeFormat::UNKNOWN )
 				{
-					switch( Format_ ) 
+					switch( ResourceFormat ) 
 					{
 					case RsResourceFormat::R8_UNORM:
 					case RsResourceFormat::R8_UINT:
@@ -461,7 +531,7 @@ BcBool ScnTextureImport::import()
 				else
 				{
 					PSY_LOG( "Failed to encode image, falling back to R8G8B8A8_UNORM\n" );
-					Format_ = RsResourceFormat::R8G8B8A8_UNORM;
+					ResourceFormat = RsResourceFormat::R8G8B8A8_UNORM;
 					AllMipsSucceeded = BcFalse;
 				}
 			}
@@ -498,7 +568,7 @@ BcBool ScnTextureImport::import()
 			0,
 			(BcU32)MipImages.size(),
 			TextureType_,
-			Format_,
+			ResourceFormat,
 			BcFalse,
 			BindFlags,
 		};
@@ -535,6 +605,8 @@ BcBool ScnTextureImport::import()
 			BindFlags |= RsResourceBindFlags::DEPTH_STENCIL;
 		}
 
+		auto ResourceFormat = Params->getFormat( Format_.c_str() );
+
 		// User created texture.
 		ScnTextureHeader Header = 
 		{ 
@@ -543,7 +615,7 @@ BcBool ScnTextureImport::import()
 			Depth_, 
 			Levels_,
 			TextureType_, 
-			Format_, 
+			ResourceFormat,
 			!RenderTarget_ && !DepthStencilTarget_, // If we're not a render target and not a depth stencil target, we're editable.
 			BindFlags
 		};

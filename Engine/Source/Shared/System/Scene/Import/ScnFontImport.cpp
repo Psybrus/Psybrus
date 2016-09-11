@@ -224,11 +224,19 @@ BcBool ScnFontImport::import()
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
 					// Create texture importer.
+					RsResourceFormat Format = RsResourceFormat::UNKNOWN;
+					auto Params = getImportParams< ScnTextureImportParams >();
+					if( !Params )
+					{
+						addMessage( CsMessageCategory::ERROR, "Unable to find ScnTextureImportParams in platform config." );
+						return BcFalse;
+					}
+					
 					auto TextureImporter = CsResourceImporterUPtr(
 						new ScnTextureImport( 
 							FontTextureName, "ScnTexture",
 							FontTextureFileName, 
-							DistanceField_ ? RsResourceFormat::R8G8B8A8_UNORM : RsResourceFormat::R8G8B8A8_UNORM, // TODO: BC4
+							"FONT",
 							ImgEncodeFormat::UNKNOWN ) );
 					
 					// Build data.

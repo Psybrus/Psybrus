@@ -1158,12 +1158,13 @@ BcBool ScnShaderImport::buildPermutationHLSL( const ScnShaderPermutationJobParam
 	{
 		std::lock_guard< std::mutex > Lock( BuildingMutex_ );
 		std::string Errors;
+
+		PSY_LOG( "Log for %s:\n", Params.ShaderSource_.c_str() );
 		for( auto& Error : ErrorMessages_ )
 		{
-			Errors += Error;
+			PSY_LOG( "%s\n", Error.c_str() );
 		}
 
-		PSY_LOG( "%s\n%s\n", Params.ShaderSource_.c_str(), Errors.c_str() );
 		//throw CsImportException( Source_.c_str(), Errors.c_str() );
 	}
 
