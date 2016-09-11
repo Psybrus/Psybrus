@@ -20,7 +20,6 @@ function PsySetupToolchain()
 			description = "Choose toolchain",
 			allowed = {
 				-- Linux targets
-				{ "linux-gcc",			"Linux (GCC compiler)"				},
 				{ "linux-clang",		"Linux (Clang 3.7 compiler)"		},
 
 				-- OSX targets
@@ -34,19 +33,6 @@ function PsySetupToolchain()
 				{ "android-clang-x86", 	"Android x86 (Clang compiler)"		},
 			},
 		}
-
-			
-		-- Linux gcc.
-		if _OPTIONS[ "toolchain" ] == "linux-gcc" then
-			premake.gcc.cc = "ccache gcc"
-			premake.gcc.cxx = "ccache g++"
-			premake.gcc.ar = "ar"
-			location ( "Projects/" .. _ACTION .. "-linux-gcc" )
-
-			linkoptions {
-				"-Wl,-export-dynamic"
-			}
-		end
 
 		-- Linux clang.
 		if _OPTIONS[ "toolchain" ] == "linux-clang" then
@@ -68,14 +54,6 @@ function PsySetupToolchain()
 			premake.gcc.ar = "ar"
 						
 			location ( "Projects/" .. _ACTION .. "-osx-clang" )
-		end
-
-		-- Windows mingw gcc.
-		if _OPTIONS[ "toolchain" ] == "windows-mingw-gcc" then
-			premake.gcc.cc = "x86_64-w64-mingw32-gcc"
-			premake.gcc.cxx = "x86_64-w64-mingw32-g++"
-			premake.gcc.ar = "x86_64-w64-mingw32-ar"
-			location ( "Projects/" .. _ACTION .. "-windows-mingw-gcc" )
 		end
 
 		-- asmjs.
@@ -213,16 +191,6 @@ function PsySetupToolchain()
 		targetdir ( "Build/" .. _ACTION .. "/bin" )
 		objdir ( "Build/" .. _ACTION .. "/obj" )
 
-		configuration { "linux-gcc", "x32" }
-			targetdir ( "Build/" .. _ACTION .. "-linux32-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-linux32-gcc/obj" )
-			buildoptions { "-m32" }
-
-		configuration { "linux-gcc", "x64" }
-			targetdir ( "Build/" .. _ACTION .. "-linux64-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-linux64-gcc/obj" )
-			buildoptions { "-m64" }
-
 		configuration { "linux-clang", "x32" }
 			targetdir ( "Build/" .. _ACTION .. "-linux32-clang/bin" )
 			objdir ( "Build/" .. _ACTION .. "-linux32-clang/obj" )
@@ -231,16 +199,6 @@ function PsySetupToolchain()
 		configuration { "linux-clang", "x64" }
 			targetdir ( "Build/" .. _ACTION .. "-linux64-clang/bin" )
 			objdir ( "Build/" .. _ACTION .. "-linux64-clang/obj" )
-			buildoptions { "-m64" }
-
-		configuration { "windows-mingw-gcc", "x32" }
-			targetdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows32-mingw-gcc/obj" )
-			buildoptions { "-m32" }
-
-		configuration { "windows-mingw-gcc", "x64" }
-			targetdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows64-mingw-gcc/obj" )
 			buildoptions { "-m64" }
 
 		configuration { "html5-clang-asmjs" }
@@ -281,13 +239,12 @@ function PsySetupToolchain()
 	end
 
 
-	if _ACTION == "vs2013" or _ACTION == "vs2015" then
+	if _ACTION == "vs2015" then
 		newoption {
 			trigger = "toolchain",
 			value = "toolchain",
 			description = "Choose toolchain",
 			allowed = {
-				{ "windows-vs-v120",		"Windows (VS2013 compiler)" },
 				{ "windows-vs-v140",		"Windows (VS2015 compiler)" },
 				{ "winphone-vs-v120_wp81",	"Windows Phone (8.1)"}
 			},
@@ -307,12 +264,6 @@ function PsySetupToolchain()
 			windowstargetplatformversion "10.0.10240.0"
 		end
 
-		-- win-vs-v120
-		if _OPTIONS[ "toolchain" ] == "windows-vs-v120" then
-			premake.vstudio.toolset = "v120"
-			location ( "Projects/" .. _ACTION .. "-windows-vs-v120" )
-		end
-
 		-- win-vs-v140
 		if _OPTIONS[ "toolchain" ] == "windows-vs-v140" then
 			premake.vstudio.toolset = "v140"
@@ -328,10 +279,6 @@ function PsySetupToolchain()
 		end
 
 		-- Configurations
-		configuration { "windows-vs-v120" }
-			targetdir ( "Build/" .. _ACTION .. "-windows-vs-v120/bin" )
-			objdir ( "Build/" .. _ACTION .. "-windows-vs-v120/obj" )
-
 		configuration { "windows-vs-v140" }
 			targetdir ( "Build/" .. _ACTION .. "-windows-vs-v140/bin" )
 			objdir ( "Build/" .. _ACTION .. "-windows-vs-v140/obj" )
