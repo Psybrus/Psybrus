@@ -32,12 +32,6 @@ void EdPanelComponentEditor::operator()( BcU32 )
 {
 	ImGui::Text( "Components editing: %u", SceneContext_.DebugComponents_.size() );
 	ImGui::Separator();
-	static int Gizmo = 0;
-	ImGui::RadioButton( "Translate", &Gizmo, 0 );
-	ImGui::SameLine();
-	ImGui::RadioButton( "Scale", &Gizmo, 1 );
-	ImGui::SameLine();
-	ImGui::RadioButton( "Rotate", &Gizmo, 2 );
 
 	for( auto Component : SceneContext_.DebugComponents_ )
 	{
@@ -51,6 +45,7 @@ void EdPanelComponentEditor::operator()( BcU32 )
 			{
 				auto UpperClass = Component->getClass();
 				auto Class = UpperClass;
+
 				// Find editor.
 				DsImGuiFieldEditor* FieldEditor = nullptr;
 				while( FieldEditor == nullptr && Class != nullptr )
@@ -103,30 +98,5 @@ void EdPanelComponentEditor::operator()( BcU32 )
 			}
 			return MaMat4d();
 		};
-
-		// Test move stuff.
-		if( Entity )
-		{
-			auto Parent = getParent( Entity );
-			auto ParentInverse = Parent;
-			ParentInverse.inverse();
-
-			auto Matrix = Entity->getLocalMatrix();
-						
-			if( Gizmo == 0 )
-			{
-				ImGuizmo::Translate( Matrix );
-			}
-			if( Gizmo == 1 )
-			{
-				ImGuizmo::Scale( Matrix );
-			}
-			if( Gizmo == 2 )
-			{
-				ImGuizmo::Rotate( Matrix );
-			}
-
-			Entity->setLocalMatrix( Matrix );
-		}
 	}
 }

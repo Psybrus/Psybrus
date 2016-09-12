@@ -33,13 +33,13 @@ public:
 			class ScnViewComponent* pViewComponent,
 			class RsFrame* pFrame,
 			RsRenderSort Sort ):
-		pViewComponent_( pViewComponent ),
+		View_( pViewComponent ),
 		ViewRenderData_( nullptr ),
 		pFrame_( pFrame ),
 		Sort_( Sort )
 	{}
 
-	class ScnViewComponent* pViewComponent_;
+	class ScnViewComponent* View_;
 	class ScnViewRenderData* ViewRenderData_;
 	class RsFrame* pFrame_;
 	RsRenderSort Sort_;

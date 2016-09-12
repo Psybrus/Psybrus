@@ -69,6 +69,16 @@ public:
 	void deregisterRenderInterface( const ReClass* Class, ScnViewRenderInterface* Interface );
 
 	/**
+	 * Register view callbacks.
+	 */
+	void registerViewCallback( ScnViewCallback* ViewCallback );
+
+	/**
+	 * Deregister view callbacks.
+	 */
+	void deregisterViewCallback( ScnViewCallback* ViewCallback );
+
+	/**
 	 * Reset view render data.
 	 */
 	void resetViewRenderData( class ScnComponent* Component );
@@ -105,6 +115,7 @@ private:
 	 * Render single view.
 	 */
 	void renderView( ViewData* ViewData, class RsFrame* Frame, RsRenderSort Sort, bool DoGather );
+
 
 	void initialise() override;
 	void shutdown() override;
@@ -148,6 +159,8 @@ private:
 	BcU64 StartFrameTime_ = 0;
 	BcU64 EndFrameTime_ = 0;
 	BcF64 FrameTime_ = 0.0f;
+
+	std::vector< ScnViewCallback* > ViewCallbacks_;
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -56,12 +56,15 @@ void ScnMaterial::StaticRegisterClass()
 				auto Material = static_cast< ScnMaterial* >( Object );
 				if( ImGui::TreeNode( Material, "%s", Name.c_str() ) )
 				{
+					ImGui::ScopedID ScopedID( Material );
 					for( auto Iter( Material->AutomaticUniformBlocks_.begin() ); Iter != Material->AutomaticUniformBlocks_.end(); ++Iter )
 					{
 						if( ImGui::TreeNode( Material, "Uniform Block: %s", (*Iter->first).c_str() ) )
 						{
 							auto Data = Iter->second.getData< BcU8 >();
 							auto DataSize = Iter->second.getDataSize();
+
+							ImGui::ScopedID ScopedID( Data );
 
 							DsCore::pImpl()->drawObjectEditor(
 								ThisFieldEditor, 
@@ -283,11 +286,23 @@ RsBufferUPtr ScnMaterial::createUniformBuffer( const ReClass* UniformBuffer, con
 #else
 	const char* DebugNameCStr = DebugName;
 #endif
-	return RsCore::pImpl()->createBuffer( 
+	auto Buffer = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
 			RsResourceBindFlags::UNIFORM_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			UniformBuffer->getSize() ), DebugNameCStr );	
+
+	// Put default data into buffer.
+	// NOTE: Inefficient.
+	RsCore::pImpl()->updateBuffer( Buffer.get(), 0, UniformBuffer->getSize(), RsResourceUpdateFlags::ASYNC,
+		[ UniformBuffer ]( RsBuffer* Buffer, const RsBufferLock& BufferLock )
+		{
+			auto Data = UniformBuffer->create< void >();
+			BcMemCopy( BufferLock.Buffer_, Data, UniformBuffer->getSize() );
+			UniformBuffer->destroy( Data );
+		} );
+
+	return Buffer;
 }
 
 //////////////////////////////////////////////////////////////////////////

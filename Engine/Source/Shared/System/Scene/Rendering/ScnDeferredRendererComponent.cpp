@@ -586,7 +586,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 
 	// TODO: Use ScnLightProcessor when implemented.
 	// Gather lights that intersect with our view.
-	ScnCore::pImpl()->visitView( this, RenderContext.pViewComponent_ );
+	ScnCore::pImpl()->visitView( this, RenderContext.View_ );
 
 
 	// Render all lights.
@@ -610,8 +610,8 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 				GeometryBinding = GeometryBinding_.get(),
 				ProgramBinding = ProgramBinding,
 				RenderState = AdditiveRenderState_.get(),
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-				Viewport = RenderContext.pViewComponent_->getViewport()
+				FrameBuffer = RenderContext.View_->getFrameBuffer(),
+				Viewport = RenderContext.View_->getViewport()
 			]
 			( RsContext* Context )
 			{
@@ -699,7 +699,7 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 			GeometryBinding = GeometryBinding_.get(),
 			ProgramBinding = ReflectionProgramBinding_.get(),
 			RenderState = AdditiveRenderState_.get(),
-			FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer()
+			FrameBuffer = RenderContext.View_->getFrameBuffer()
 		]
 		( RsContext* Context )
 		{
@@ -1359,17 +1359,17 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 // onViewDrawPreRender
 void ScnDeferredRendererComponent::onViewDrawPreRender( ScnRenderContext& RenderContext )
 {
-	if( RenderContext.pViewComponent_ == OpaqueView_ )
+	if( RenderContext.View_ == OpaqueView_ )
 	{
 		// begin opaque
 	}
-	else if( RenderContext.pViewComponent_ == TransparentView_ )
+	else if( RenderContext.View_ == TransparentView_ )
 	{
 		// begin transparent
 		renderLights( RenderContext );
 		renderReflection( RenderContext );
 	}
-	else if( RenderContext.pViewComponent_ == OverlayView_ )
+	else if( RenderContext.View_ == OverlayView_ )
 	{
 		// begin overlay
 		renderResolve( RenderContext );
@@ -1380,12 +1380,12 @@ void ScnDeferredRendererComponent::onViewDrawPreRender( ScnRenderContext& Render
 // onViewDrawPostRender
 void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& RenderContext )
 {
-	if( RenderContext.pViewComponent_ == OpaqueView_ )
+	if( RenderContext.View_ == OpaqueView_ )
 	{
 		// end opaque
 
 	}
-	else if( RenderContext.pViewComponent_ == TransparentView_ )
+	else if( RenderContext.View_ == TransparentView_ )
 	{
 		// end transparent
 		downsampleHDR( RenderContext );
@@ -1394,12 +1394,12 @@ void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& Rende
 		// Do debug rendering.
 		Debug::Render(
 			RenderContext.pFrame_,
-			RenderContext.pViewComponent_->getFrameBuffer(),
-			RenderContext.pViewComponent_->getViewport(),
-			RenderContext.pViewComponent_->getViewUniformBuffer(),
+			RenderContext.View_->getFrameBuffer(),
+			RenderContext.View_->getViewport(),
+			RenderContext.View_->getViewUniformBuffer(),
 			RenderContext.Sort_ );
 	}
-	else if( RenderContext.pViewComponent_ == OverlayView_ )
+	else if( RenderContext.View_ == OverlayView_ )
 	{
 #if !PSY_PRODUCTION
 		if( Enabled_ && DsCore::pImpl() )

@@ -97,6 +97,7 @@ namespace ImGui
 namespace ImGuizmo
 {
 	void SetMatrices( const MaMat4d& View, const MaMat4d& Projection );
+	void DrawCube( const MaMat4d& Matrix );
 	void Translate( MaMat4d& Matrix, MaMat4d* DeltaMatrix = nullptr );
 	void Scale( MaMat4d& Matrix, MaMat4d* DeltaMatrix = nullptr );
 	void Rotate( MaMat4d& Matrix, MaMat4d* DeltaMatrix = nullptr );
