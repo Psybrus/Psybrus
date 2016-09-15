@@ -32,6 +32,7 @@ void ScnPhysicsMesh::StaticRegisterClass()
 	ReField* Fields[] = 
 	{
 		new ReField( "Header_", &ScnPhysicsMesh::Header_, bcRFF_CHUNK_DATA ),
+		new ReField( "OwnsData_", &ScnPhysicsMesh::OwnsData_, bcRFF_TRANSIENT )
 	};
 		
 	auto& Class = ReRegisterClass< ScnPhysicsMesh, Super >( Fields );
@@ -40,7 +41,7 @@ void ScnPhysicsMesh::StaticRegisterClass()
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnPhysicsMeshImport::StaticGetClass(), 1 ) );
+		ScnPhysicsMeshImport::StaticGetClass(), 2 ) );
 #endif
 }
 
@@ -51,8 +52,26 @@ ScnPhysicsMesh::ScnPhysicsMesh():
 	Triangles_( nullptr ),
 	Vertices_( nullptr ),
 	MeshInterface_( nullptr ),
-	OptimizedBvh_( nullptr )
+	OptimizedBvh_( nullptr ),
+	OwnsData_( BcFalse )
 {
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnPhysicsMesh::ScnPhysicsMesh( const ScnPhysicsMeshHeader& Header, 
+		const ScnPhysicsMeshPart* MeshParts,
+		const ScnPhysicsTriangle* Triangles, 
+		const ScnPhysicsVertex* Vertices ):
+	Header_( Header ),
+	MeshParts_( MeshParts ),
+	Triangles_( Triangles ),
+	Vertices_( Vertices ),
+	MeshInterface_( nullptr ),
+	OptimizedBvh_( nullptr ),
+	OwnsData_( BcTrue )
+{
+	markCreate();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,6 +143,17 @@ void ScnPhysicsMesh::destroy()
 
 	delete MeshInterface_;
 	delete OptimizedBvh_;
+
+	if( OwnsData_ )
+	{
+		delete [] MeshParts_;
+		delete [] Triangles_;
+		delete [] Vertices_;
+
+		MeshParts_ = nullptr;
+		Triangles_ = nullptr;
+		Vertices_ = nullptr;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

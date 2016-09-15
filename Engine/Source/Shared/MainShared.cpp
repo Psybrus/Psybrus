@@ -175,6 +175,12 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 		bool ScrollToBottom_ = false;
 	};
 
+	DsCore::pImpl()->registerPanel(
+		"Engine", "ImGui Demo", nullptr, []( BcU32 )->void
+		{
+			ImGui::ShowTestWindow();
+		} );
+
 	DsCore::pImpl()->registerPanel( 
 		"Engine", "Log", "Ctrl+Alt+L", EngineLog() );
 

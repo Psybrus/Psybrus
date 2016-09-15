@@ -639,9 +639,7 @@ namespace Psybrus
 					ScnShaderPermutationFlags::MESH_STATIC_2D;
 
 				Program_ = Textured->getProgram( Permutation );
-
-
-
+				
 				BcAssert( Program_ );
 			}, 0 );
 		return true;
@@ -751,7 +749,7 @@ namespace ImGuizmo
 	MaMat4d View_;
 	MaMat4d Projection_;
 
-	void Manipulate(OPERATION operation, MODE mode, float *matrix, float *deltaMatrix)
+	void Manipulate( OPERATION operation, MODE mode, float *matrix, float *deltaMatrix )
 	{
 		Manipulate( &View_[0][0], &Projection_[0][0], operation, mode, matrix, deltaMatrix);
 	}
@@ -760,6 +758,11 @@ namespace ImGuizmo
 	{
 		View_ = View;
 		Projection_ = Projection;
+	}
+
+	void DrawCube( const MaMat4d& Matrix )
+	{
+		DrawCube( &View_[0][0], &Projection_[0][0], (float*)&Matrix[0][0] );
 	}
 
 	void Translate( MaMat4d& Matrix, MaMat4d* DeltaMatrix )

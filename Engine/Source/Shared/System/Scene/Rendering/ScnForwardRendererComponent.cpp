@@ -188,9 +188,9 @@ void ScnForwardRendererComponent::onViewDrawPostRender( ScnRenderContext& Render
 
 		Debug::Render(
 			RenderContext.pFrame_,
-			RenderContext.pViewComponent_->getFrameBuffer(),
-			RenderContext.pViewComponent_->getViewport(),
-			RenderContext.pViewComponent_->getViewUniformBuffer(),
+			RenderContext.View_->getFrameBuffer(),
+			RenderContext.View_->getViewport(),
+			RenderContext.View_->getViewUniformBuffer(),
 			RenderContext.Sort_ );
 	}
 #endif

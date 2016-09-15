@@ -941,11 +941,20 @@ void DsCoreImpl::drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Da
 					{
 						if ( FieldEditor )
 						{
-							if ( ImGui::TreeNode( Value, "%s", ( *Field->getName() ).c_str() ) )
+							ImGui::ScopedID ScopedID( Value );
+							if( FieldType->hasBaseClass( ReObject::StaticGetClass() ) )
 							{
-								FieldEditor->onEdit( " ", Value, UpperFieldType,
+								if ( ImGui::TreeNode( Value, "%s", ( *Field->getName() ).c_str() ) )
+								{
+									FieldEditor->onEdit( " ", Value, UpperFieldType,
+										ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
+									ImGui::TreePop();
+								}
+							}
+							else
+							{
+								FieldEditor->onEdit( ( *Field->getName() ), Value, UpperFieldType,
 									ReFieldFlags( FieldAccessor.getFlags() | ( Flags & bcRFF_CONST ) ) );
-								ImGui::TreePop();
 							}
 						}
 					}

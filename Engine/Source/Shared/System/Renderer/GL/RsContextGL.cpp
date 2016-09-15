@@ -499,7 +499,8 @@ void RsContextGL::create()
 
 	// Init GLEW.
 	glewExperimental = 1;
-	GL( ewInit() );
+	glewInit();
+	Version_.logVersionInfo();
 	
 	HGLRC ParentContext = pParent_ != NULL ? pParent_->WindowRC_ : NULL;
 	for( auto Version : Versions )
@@ -532,6 +533,7 @@ void RsContextGL::create()
 				Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
 				Version.Major_, 
 				Version.Minor_ );
+			Version_.logVersionInfo();
 			ProfileCreated = true;
 			break;
 		}
@@ -602,6 +604,7 @@ void RsContextGL::create()
 				Version.Major_, 
 				Version.Minor_ );
 			ProfileCreated = true;
+			Version_.logVersionInfo();
 			break;
 		}
 	}
@@ -736,6 +739,7 @@ void RsContextGL::create()
 		Version_.Major_, 
 		Version_.Minor_ );
 	ProfileCreated = true;
+	Version_.logVersionInfo();
 
 #  if PLATFORM_HTML5
 	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;

@@ -32,6 +32,15 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnPhysicsMesh, CsResource );
 	
 	ScnPhysicsMesh();
+
+	/**
+	 * Create physics mesh with data.
+	 * Data pass in here will be owned by this, and freed upon destruction.
+	 */
+	ScnPhysicsMesh( const ScnPhysicsMeshHeader& Header, 
+		const ScnPhysicsMeshPart* MeshParts,
+		const ScnPhysicsTriangle* Triangles, 
+		const ScnPhysicsVertex* Vertices );
 	virtual ~ScnPhysicsMesh();
 	
 	void create() override;
@@ -48,6 +57,8 @@ protected:
 	const ScnPhysicsMeshPart* MeshParts_;
 	const ScnPhysicsTriangle* Triangles_;
 	const ScnPhysicsVertex* Vertices_;
+
+	BcBool OwnsData_;
 
 	class btTriangleIndexVertexArray* MeshInterface_;
 	class btOptimizedBvh* OptimizedBvh_;

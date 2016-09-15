@@ -320,8 +320,8 @@ void ScnParticleSystemComponent::render( ScnRenderContext& RenderContext )
 				GeometryBinding = GeometryBinding_.get(),
 				ProgramBinding = ViewRenderData->ProgramBinding_.get(),
 				RenderState = ViewRenderData->RenderState_,
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-				Viewport = RenderContext.pViewComponent_->getViewport(),
+				FrameBuffer = RenderContext.View_->getFrameBuffer(),
+				Viewport = RenderContext.View_->getViewport(),
 				NoofParticlesToRender 
 			]
 			( RsContext* Context )

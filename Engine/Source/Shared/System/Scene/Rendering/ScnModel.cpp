@@ -506,7 +506,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 			LastModelComponent = Component;
 
 			// Determine if we can instance.
-			auto ViewModelPair = std::make_pair( RenderContext.pViewComponent_, Model );
+			auto ViewModelPair = std::make_pair( RenderContext.View_, Model );
 			auto InstancingDataIt = InstancingData_.find( ViewModelPair );
 			if( InstancingDataIt != InstancingData_.end() )
 			{
@@ -649,8 +649,8 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 								GeometryBinding = pMeshRuntime->GeometryBinding_,
 								DrawProgramBinding = InstancedMaterialBinding.ProgramBinding_,
 								RenderState = InstancedMaterialBinding.RenderState_,
-								FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-								Viewport = RenderContext.pViewComponent_->getViewport(),
+								FrameBuffer = RenderContext.View_->getFrameBuffer(),
+								Viewport = RenderContext.View_->getViewport(),
 								PrimitiveType = pMeshData->Type_,
 								NoofIndices = pMeshData->NoofIndices_,
 								IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
@@ -729,8 +729,8 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 						GeometryBinding = pMeshRuntime->GeometryBinding_,
 						DrawProgramBinding = MaterialBinding.ProgramBinding_,
 						RenderState = MaterialBinding.RenderState_,
-						FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-						Viewport = RenderContext.pViewComponent_->getViewport(),
+						FrameBuffer = RenderContext.View_->getFrameBuffer(),
+						Viewport = RenderContext.View_->getViewport(),
 						PrimitiveType = pMeshData->Type_,
 						NoofIndices = pMeshData->NoofIndices_,
 						IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
@@ -918,13 +918,13 @@ void ScnModel::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
-		new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA),
-		new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
-		new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA ),
+		new ReField( "pHeader_", &ScnModel::pHeader_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
+		new ReField( "pNodeTransformData_", &ScnModel::pNodeTransformData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
+		new ReField( "pNodePropertyData_", &ScnModel::pNodePropertyData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
+		new ReField( "pVertexBufferData_", &ScnModel::pVertexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
+		new ReField( "pIndexBufferData_", &ScnModel::pIndexBufferData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
+		new ReField( "pVertexElements_", &ScnModel::pVertexElements_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
+		new ReField( "pMeshData_", &ScnModel::pMeshData_, bcRFF_SHALLOW_COPY | bcRFF_CHUNK_DATA | bcRFF_TRANSIENT ),
 		//TODO: move support. new ReField( "MeshRuntimes_", &ScnModel::MeshRuntimes_, bcRFF_TRANSIENT ),
 	};
 		
@@ -946,6 +946,7 @@ void ScnModel::StaticRegisterClass()
 				{
 					for( auto& MeshRuntime : Model->MeshRuntimes_ )
 					{
+						ImGui::ScopedID ScopedID( &MeshRuntime );
 						DsImGuiFieldEditor* FieldEditor = DsImGuiFieldEditor::Get( MeshRuntime.MaterialRef_->getClass() );
 						if( FieldEditor )
 						{

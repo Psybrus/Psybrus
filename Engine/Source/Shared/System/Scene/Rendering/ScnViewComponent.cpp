@@ -251,8 +251,18 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 		// HACK: Set view transforms for ImGuizmo. At some point setup a proper callback system for it.
 		if( ViewData_.size() > 0 )
 		{
-			auto View = ViewData_[ViewData_.size() - 1]->View_;
-			ImGuizmo::SetMatrices( View->getViewMatrix(), View->getProjectionMatrix() );		
+			for( const auto& ViewData : ViewData_ )
+			{
+				auto View = ViewData->View_;
+				if( View->Enabled_ )
+				{
+					if( BcContainsAllFlags( View->getPasses(), RsRenderSortPassFlags::TRANSPARENT ) )
+					{
+						ImGuizmo::SetMatrices( View->getViewMatrix(), View->getProjectionMatrix() );
+						break;
+					}
+				}
+			}
 		}
 
 		// End time query.
@@ -314,12 +324,12 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 
 		GatheredVisibleLeaves_.clear();
 		BroadGather_.clear();
-		SpatialTree_->gatherView( RenderContext.pViewComponent_, BroadGather_ );
+		SpatialTree_->gatherView( RenderContext.View_, BroadGather_ );
 
 		// Trim down based on render mask.
 		for( auto Leaf : BroadGather_ )
 		{
-			if( RenderContext.pViewComponent_->getRenderMask() & Leaf->RenderMask_ )
+			if( RenderContext.View_->getRenderMask() & Leaf->RenderMask_ )
 			{
 				GatheredVisibleLeaves_.push_back( Leaf );
 			}
@@ -382,15 +392,26 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 		PSY_PROFILER_SECTION( RootSort, "Render visible components" );
 
 		// Do pre render.
-		for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
+		for( auto ViewCallback : ViewCallbacks_ )
 		{
 			ViewCallback->onViewDrawPreRender( RenderContext );
 		}
 
+		for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
+		{
+			ViewCallback->onViewDrawPreRender( RenderContext );
+		}
+		
 		// Iterate over components.
 		for( auto Group : ProcessingGroups_ )
 		{
 			Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
+		}
+		
+		// Do post render.
+		for( auto ViewCallback : ViewCallbacks_ )
+		{
+			ViewCallback->onViewDrawPostRender( RenderContext );
 		}
 
 		for( auto ViewCallback : ViewData->View_->ViewCallbacks_ )
@@ -398,6 +419,22 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 			ViewCallback->onViewDrawPostRender( RenderContext );
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// registerViewCallback
+void ScnViewProcessor::registerViewCallback( ScnViewCallback* ViewCallback )
+{
+	ViewCallbacks_.push_back( ViewCallback );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// deregisterViewCallback
+void ScnViewProcessor::deregisterViewCallback( ScnViewCallback* ViewCallback )
+{
+	auto It = std::find( ViewCallbacks_.begin(), ViewCallbacks_.end(), ViewCallback );
+	BcAssert( It != ViewCallbacks_.end() );
+	ViewCallbacks_.erase( It );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -766,11 +803,14 @@ void ScnViewComponent::getWorldPosition( const MaVec2d& ScreenPosition, MaVec3d&
 // getScreenPosition
 MaVec2d ScnViewComponent::getScreenPosition( const MaVec3d& WorldPosition ) const
 {
-	MaVec4d ScreenSpace = MaVec4d( WorldPosition, 1.0f ) * ViewUniformBlock_.ClipTransform_;
-	MaVec2d ScreenPosition = MaVec2d( ScreenSpace.x() / ScreenSpace.w(), -ScreenSpace.y() / ScreenSpace.w() );
-
-	BcF32 HalfW = BcF32( Viewport_.width() ) * 0.5f;
-	BcF32 HalfH = BcF32( Viewport_.height() ) * 0.5f;
+	const MaVec4d ScreenSpace = MaVec4d( WorldPosition, 1.0f ) * ViewUniformBlock_.ClipTransform_;
+	if( ScreenSpace.z() < 0.0f )
+	{
+		return MaVec2d( FLT_MAX, FLT_MAX );
+	}
+	const MaVec2d ScreenPosition = MaVec2d( ScreenSpace.x() / ScreenSpace.w(), -ScreenSpace.y() / ScreenSpace.w() );
+	const BcF32 HalfW = BcF32( Viewport_.width() ) * 0.5f;
+	const BcF32 HalfH = BcF32( Viewport_.height() ) * 0.5f;
 	return MaVec2d( ( ScreenPosition.x() * HalfW ), ( ScreenPosition.y() * HalfH ) );
 }
 

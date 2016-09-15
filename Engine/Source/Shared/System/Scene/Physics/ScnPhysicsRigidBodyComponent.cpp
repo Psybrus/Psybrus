@@ -63,6 +63,20 @@ ScnPhysicsRigidBodyComponent::ScnPhysicsRigidBodyComponent():
 
 //////////////////////////////////////////////////////////////////////////
 // Dtor
+ScnPhysicsRigidBodyComponent::ScnPhysicsRigidBodyComponent( const ScnPhysicsRigidBodyParams& Params ):
+	RigidBody_( nullptr ),
+	Mass_ ( Params.Mass_ ),
+	IsTrigger_( Params.IsTrigger_ ),
+	RollingFriction_( Params.RollingFriction_ ),
+	Friction_( Params.Friction_ ),
+	Restitution_( Params.Restitution_ ),
+	LinearSleepingThreshold_( 0.8f ), // bullet default.
+	AngularSleepingThreshold_( 1.0f ) // bullet default.
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
 //virtual
 ScnPhysicsRigidBodyComponent::~ScnPhysicsRigidBodyComponent()
 {

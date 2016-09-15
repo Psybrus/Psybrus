@@ -668,8 +668,8 @@ void ScnCanvasComponent::render( ScnRenderContext& RenderContext )
 				GeometryBinding = GeometryBinding_.get(),
 				ProgramBinding = PrimitiveSection->MaterialComponent_->getProgramBinding(),
 				RenderState = PrimitiveSection->MaterialComponent_->getRenderState(),
-				FrameBuffer = RenderContext.pViewComponent_->getFrameBuffer(),
-				Viewport = RenderContext.pViewComponent_->getViewport(),
+				FrameBuffer = RenderContext.View_->getFrameBuffer(),
+				Viewport = RenderContext.View_->getViewport(),
 				PrimitiveSection 
 			]
 			( RsContext* Context )

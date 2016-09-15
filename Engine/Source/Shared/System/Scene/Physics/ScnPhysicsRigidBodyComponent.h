@@ -19,6 +19,32 @@
 #include "Math/MaQuat.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnPhysicsRigidBodyParams
+struct ScnPhysicsRigidBodyParams
+{
+	/// Mass of rb. 0.0f for static body.
+	BcF32 Mass_ = 0.0f;
+
+	/// Is rigid body a trigger?
+	BcBool IsTrigger_ = BcFalse;
+
+	/// What collision group we belong to.
+	BcU16 CollisionGroup_ = BcU16( 1 );
+
+	/// What collision groups we collide with.
+	BcU16 CollisionMask_ = BcU16( -1 );
+
+	/// Coefficient of friction.
+	BcF32 Friction_ = 0.5f;
+
+	/// Rolling friction to prevent objects rolling forever.
+	BcF32 RollingFriction_ = 0.1f;
+
+	/// Coefficient of restitution.
+	BcF32 Restitution_ = 0.0f;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnPhysicsRigidBodyComponent
 class ScnPhysicsRigidBodyComponent:
 	public ScnComponent
@@ -27,6 +53,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnPhysicsRigidBodyComponent, ScnComponent );
 	
 	ScnPhysicsRigidBodyComponent();
+	ScnPhysicsRigidBodyComponent( const ScnPhysicsRigidBodyParams& Params );
 	virtual ~ScnPhysicsRigidBodyComponent();
 
 	void applyTorque( const MaVec3d& Torque );

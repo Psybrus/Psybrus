@@ -6,6 +6,7 @@ if PsyProjectExternalLib( "imgui", "C++" ) then
 			"./imgui/imgui_internal.h", 
 			"./imgui/imgui.cpp",
 			"./imgui/imgui_draw.cpp",
+			"./imgui/imgui_demo.cpp",
 			"./imgui/stb_rect_pack.h", 
 			"./imgui/stb_textedit.h", 
 			"./imgui/stb_truetype.h"

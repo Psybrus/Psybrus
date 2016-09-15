@@ -188,7 +188,7 @@ MaAABB ScnPostProcessComponent::getAABB() const
 // render
 void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 {
-	auto* InputFrameBuffer = RenderContext.pViewComponent_->getFrameBuffer();
+	auto* InputFrameBuffer = RenderContext.View_->getFrameBuffer();
 	RsRenderSort Sort = RenderContext.Sort_;
 	Sort.Layer_ = 0;
 	RenderFence_.increment();
