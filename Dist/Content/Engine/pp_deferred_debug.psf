@@ -1,0 +1,24 @@
+#include "pp_shared.psh"
+
+#include <UniformToneMapping.psh>
+
+//////////////////////////////////////////////////////////////////////////
+// Pixel shader
+#if PIXEL_SHADER
+
+PS_IN_BEGIN
+	DECLARE_IN( float4, VsTexCoord0, TEXCOORD0 );
+PS_IN_END
+#include <PsybrusOutput.psh>
+PSY_SAMPLER_2D( InputTex );
+
+PS_MAIN( pixelMain )
+{
+	PS_ENTER;
+	float4 Colour = PSY_SAMPLE_2D( InputTex, IN( VsTexCoord0 ).xy );
+	outputFrag[0] = float4( Colour.xyz, 1.0 );
+	PS_EXIT;
+}
+
+#endif
+

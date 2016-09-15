@@ -79,6 +79,21 @@ ScnPhysicsMesh::ScnPhysicsMesh( const ScnPhysicsMeshHeader& Header,
 //virtual
 ScnPhysicsMesh::~ScnPhysicsMesh()
 {
+	BuildingBvhFence_.wait();
+
+	delete MeshInterface_;
+	delete OptimizedBvh_;
+
+	if( OwnsData_ )
+	{
+		delete [] MeshParts_;
+		delete [] Triangles_;
+		delete [] Vertices_;
+
+		MeshParts_ = nullptr;
+		Triangles_ = nullptr;
+		Vertices_ = nullptr;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -139,21 +154,6 @@ void ScnPhysicsMesh::create()
 //virtual
 void ScnPhysicsMesh::destroy()
 {
-	BuildingBvhFence_.wait();
-
-	delete MeshInterface_;
-	delete OptimizedBvh_;
-
-	if( OwnsData_ )
-	{
-		delete [] MeshParts_;
-		delete [] Triangles_;
-		delete [] Vertices_;
-
-		MeshParts_ = nullptr;
-		Triangles_ = nullptr;
-		Vertices_ = nullptr;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -94,6 +94,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 {
 	ReField* Fields[] = 
 	{
+		new ReField( "DebugDrawMode_", &ScnDeferredRendererComponent::DebugDrawMode_, 0 ),
 		new ReField( "Enabled_", &ScnDeferredRendererComponent::Enabled_, bcRFF_IMPORTER ),
 		new ReField( "Width_", &ScnDeferredRendererComponent::Width_, bcRFF_IMPORTER ),
 		new ReField( "Height_", &ScnDeferredRendererComponent::Height_, bcRFF_IMPORTER ),
@@ -109,6 +110,7 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 		new ReField( "BloomVBlurShader_", &ScnDeferredRendererComponent::BloomVBlurShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ReflectionShader_", &ScnDeferredRendererComponent::ReflectionShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveShader_", &ScnDeferredRendererComponent::ResolveShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
+		new ReField( "DebugShader_", &ScnDeferredRendererComponent::DebugShader_, bcRFF_SHALLOW_COPY | bcRFF_IMPORTER ),
 		new ReField( "ResolveX_", &ScnDeferredRendererComponent::ResolveX_, bcRFF_IMPORTER ),
 		new ReField( "ResolveY_", &ScnDeferredRendererComponent::ResolveY_, bcRFF_IMPORTER ),
 		new ReField( "ResolveW_", &ScnDeferredRendererComponent::ResolveW_, bcRFF_IMPORTER ),
@@ -1022,16 +1024,18 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContext )
 {
 	// HACK: Create resolve.
-	if( ResolveProgramBinding_ == nullptr )
+	const ScnShaderPermutationFlags Permutation = 
+		ScnShaderPermutationFlags::RENDER_POST_PROCESS |
+		ScnShaderPermutationFlags::PASS_MAIN |
+		ScnShaderPermutationFlags::MESH_STATIC_2D;
+	auto ResolveProgram = ResolveShader_->getProgram( Permutation );
+	if( ResolveProgramBinding_ == nullptr || ResolveProgramBinding_->getProgram() != ResolveProgram || DebugDrawMode_ != 0 )
 	{
 		// Create program binding for lighting view.
-		const ScnShaderPermutationFlags Permutation = 
-			ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-			ScnShaderPermutationFlags::PASS_MAIN |
-			ScnShaderPermutationFlags::MESH_STATIC_2D;
-		
 		RsProgramBindingDesc ProgramBindingDesc;
-		auto Program = ResolveShader_->getProgram( Permutation );
+		auto Program = DebugDrawMode_== 0 ? 
+			ResolveShader_->getProgram( Permutation ) : 
+			DebugShader_->getProgram( Permutation );
 
 		setTextures( Program, ProgramBindingDesc );
 		OpaqueView_->setViewResources( Program, ProgramBindingDesc );
@@ -1040,6 +1044,15 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 		if( UniformSlot != BcErrorCode )
 		{
 			ProgramBindingDesc.setUniformBuffer( UniformSlot, ToneMappingUniformBuffer_.get(), 0, sizeof( ScnShaderToneMappingUniformBlockData ) );
+		}
+
+		if( DebugDrawMode_ != 0 )
+		{
+			BcU32 InputSlot = Program->findShaderResourceSlot( "aInputTex" );
+			if( DebugDrawMode_ > 0 && DebugDrawMode_ <= TEX_MAX )
+			{
+				ProgramBindingDesc.setShaderResourceView( InputSlot, Textures_[ DebugDrawMode_ - 1 ]->getTexture() );
+			}
 		}
 
 		ResolveProgramBinding_ = RsCore::pImpl()->createProgramBinding( Program, ProgramBindingDesc, getFullName().c_str() );

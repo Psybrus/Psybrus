@@ -471,6 +471,44 @@
 
 		{
 			"type"			: "ScnShader",
+			"name"			: "pp_deferred_debug",
+			"sources" 		: {
+				"D3D11_4_0" : "Engine/pp_deferred_debug.psf",
+				"GLSL_430" : "Engine/pp_deferred_debug.psf",
+				"GLSL_330" : "Engine/pp_deferred_debug.psf",
+				"GLSL_ES_100" : "Engine/pp_deferred_debug.psf"
+			},
+
+
+			"@(android)" 		: {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/pp_deferred_debug.psf"
+				}
+			},
+
+			"@(html5)" 		: {
+				"sources" 		: {
+					"GLSL_ES_100" : "Engine/pp_deferred_debug.psf"
+				}
+			},
+
+			"includepermutations" : [
+				"RENDER_POST_PROCESS",
+				"PASS_MAIN",
+				"MESH_STATIC_2D"
+			],
+
+			"excludepermutations" : [
+			],
+
+			"entrypoints"		: {
+				"vertex" : 		"vertexMain",
+				"pixel" :		"pixelMain"
+			}
+		},
+
+		{
+			"type"			: "ScnShader",
 			"name"			: "pp_deferred_resolve_envmap",
 			"sources" 		: {
 				"D3D11_4_0" : "Engine/pp_deferred_resolve_envmap.psf",

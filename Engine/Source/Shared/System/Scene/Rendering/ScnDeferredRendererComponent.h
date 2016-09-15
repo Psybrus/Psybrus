@@ -78,6 +78,7 @@ protected:
 	void onViewDrawPostRender( ScnRenderContext& RenderContext ) override;
 
 protected:
+	BcU32 DebugDrawMode_ = 0;
 	BcBool Enabled_ = BcTrue;
 	BcS32 Width_ = 0;
 	BcS32 Height_ = 0;
@@ -98,6 +99,7 @@ protected:
 
 	ScnShaderRef ReflectionShader_;
 	ScnShaderRef ResolveShader_;
+	ScnShaderRef DebugShader_;
 
 	// Final resolve to the backbuffer (or other target)
 	BcF32 ResolveX_ = 0.0f;

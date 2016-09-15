@@ -44,7 +44,8 @@
 					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
 
 					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
-					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)",
+					"debugshader" : "$(ScnShader:pp_shaders.pp_deferred_debug)"
 				}
 			]
 		},
@@ -92,7 +93,8 @@
 					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
 
 					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
-					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)",
+					"debugshader" : "$(ScnShader:pp_shaders.pp_deferred_debug)"
 				}
 			]
 		},
@@ -138,7 +140,8 @@
 					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
 
 					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
-					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)",
+					"debugshader" : "$(ScnShader:pp_shaders.pp_deferred_debug)"
 				}
 			]
 		},
@@ -185,7 +188,8 @@
 					"bloomvblurshader" : "$(ScnShader:pp_shaders.pp_bloom_v_blur)",
 
 					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
-					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)"
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve)",
+					"debugshader" : "$(ScnShader:pp_shaders.pp_deferred_debug)"
 				}
 			]
 		},
@@ -230,7 +234,8 @@
 					"downsampleshader" : "$(ScnShader:pp_shaders.pp_downsample)",
 
 					"reflectionshader" : "$(ScnShader:pp_shaders.pp_deferred_reflection)",
-					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve_envmap)"
+					"resolveshader" : "$(ScnShader:pp_shaders.pp_deferred_resolve_envmap)",
+					"debugshader" : "$(ScnShader:pp_shaders.pp_deferred_debug)"
 				}
 			]
 		}
