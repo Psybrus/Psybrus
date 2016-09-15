@@ -24,6 +24,7 @@
 
 			"includepermutations" : [
 				"RENDER_FORWARD",
+				"RENDER_DEFERRED",
 				"PASS_OPAQUE",
 				"PASS_MAIN"
 			],
