@@ -166,6 +166,11 @@ struct RsOpenGLVersion
 	RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, RsShaderCodeType MaxCodeType );
 
 	/**
+	 * Log version info.
+	 */
+	void logVersionInfo();
+
+	/**
 	 * Will setup feature support + query extensions for active context and setup all the features supported.
 	 */
 	void setupFeatureSupport();

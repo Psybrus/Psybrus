@@ -47,6 +47,15 @@ ScnPhysicsMeshCollisionComponent::ScnPhysicsMeshCollisionComponent():
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnPhysicsMeshCollisionComponent::ScnPhysicsMeshCollisionComponent( class ScnPhysicsMesh* Mesh, MaVec3d Size, BcF32 Margin ):
+	Mesh_( Mesh ),
+	Size_( Size ),
+	Margin_( Margin )
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 //virtual
 ScnPhysicsMeshCollisionComponent::~ScnPhysicsMeshCollisionComponent()

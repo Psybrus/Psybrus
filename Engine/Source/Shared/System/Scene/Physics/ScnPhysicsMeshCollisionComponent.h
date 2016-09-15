@@ -26,6 +26,7 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnPhysicsMeshCollisionComponent, ScnPhysicsCollisionComponent );
 	
 	ScnPhysicsMeshCollisionComponent();
+	ScnPhysicsMeshCollisionComponent( class ScnPhysicsMesh* Mesh, MaVec3d Size, BcF32 Margin );
 	virtual ~ScnPhysicsMeshCollisionComponent();
 
 	void onAttach( ScnEntityWeakRef Parent ) override;
