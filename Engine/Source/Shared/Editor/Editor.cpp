@@ -18,12 +18,16 @@ namespace Editor
 	{
 		BcU32 ID_ = 0;
 		const char* Name_ = nullptr;
-		MaVec3d Position_;
+		MaVec3d PointA_;
+		MaVec3d PointB_;
+		bool IsLine_ = false;
+		BcF32 Size_ = 32.0f;
+
 		BcU32 CombinedID_ = 0;
 	};
 	std::vector< EditableHandle > EditableHandles_;
 
-	BcU32 SelectedID_ = 0;
+	HandleResult SelectedResult_;
 
 	// View callback.
 	class ViewCallback : public ScnViewCallback
@@ -47,26 +51,84 @@ namespace Editor
 				auto DrawList = ImGui::GetWindowDrawList();
 				ImGui::End();
 
+				// Sort all lines under other handles.
+				std::sort( EditableHandles_.begin(), EditableHandles_.end(), 
+					[]( const EditableHandle& A, const EditableHandle& B )
+					{
+						return A.IsLine_ > B.IsLine_;
+					} );
+
+				MaVec2d MousePos( ImGui::GetIO().MousePos );
+
 				for( const auto& Handle : EditableHandles_ )
 				{
-					const BcF32 HandleRadius = 8.0f;
-					const auto ScreenPosition = ( RenderContext.View_->getScreenPosition( Handle.Position_ ) +
+					const BcF32 HandleSize = std::max( 4.0f, Handle.Size_ );
+					const auto ScreenA = ( RenderContext.View_->getScreenPosition( Handle.PointA_ ) +
+						MaVec2d( ImGui::GetIO().DisplaySize ) * 0.5f );
+					const auto ScreenB = ( RenderContext.View_->getScreenPosition( Handle.PointB_ ) +
 						MaVec2d( ImGui::GetIO().DisplaySize ) * 0.5f );
 
-					bool MouseOver = false;
-					const auto Distance = ( ScreenPosition - ImGui::GetIO().MousePos ).magnitude();
-					if( Distance < HandleRadius )
+					if( Handle.IsLine_ == false )
 					{
-						MouseOver = true;
+						bool MouseOver = false;
+						const auto Distance = ( ScreenA - MousePos ).magnitude();
+						if( Distance < HandleSize )
+						{
+							MouseOver = true;
+						}
+
+						DrawList->AddCircleFilled( ScreenA, HandleSize, MouseOver ? RsColour::GREEN.asRGBA() : RsColour::WHITE.asRGBA() );
+						DrawList->AddCircle( ScreenA, HandleSize, RsColour::BLACK.asRGBA() );
+
+						if( !ImGui::IsPosHoveringAnyWindow( MousePos ) )
+						{
+							for( int ButtonIdx = 0; ButtonIdx < 3; ++ButtonIdx )
+							{
+								if( ImGui::GetIO().MouseClicked[ ButtonIdx ] && MouseOver )
+								{
+									SelectedResult_.WasClicked_ = true;
+									SelectedResult_.SelectedID_ = Handle.CombinedID_;
+									SelectedResult_.ButtonClicked_ = ButtonIdx;
+									SelectedResult_.ScreenPosition_ = MousePos;
+									SelectedResult_.WorldPosition_ = Handle.PointA_;
+								}
+							}
+						}
 					}
-
-					DrawList->AddCircleFilled( ScreenPosition, HandleRadius, MouseOver ? RsColour::GREEN.asRGBA() : RsColour::WHITE.asRGBA() );
-					DrawList->AddCircle( ScreenPosition, HandleRadius, RsColour::BLACK.asRGBA() );
-
-					if( ImGui::GetIO().MouseClicked[0] && MouseOver )
+					else
 					{
-						SelectedID_ = Handle.CombinedID_;
-					}					
+						bool MouseOver = false;
+						MaVec2d MousePos( ImGui::GetIO().MousePos );
+						MaVec2d AP = MousePos - ScreenA;
+						MaVec2d AB = ScreenB - ScreenA;
+						BcF32 AB2 = AB.dot( AB );
+						BcF32 APAB = AB.dot( AP );
+						BcF32 T = BcClamp( APAB / AB2, 0.0f, 1.0f );
+						MaVec2d PointOnLine = ( ScreenA + AB * T );
+						BcF32 PositionToLine = ( MousePos - PointOnLine ).magnitudeSquared();
+						if( PositionToLine < HandleSize )
+						{
+							MouseOver = true;
+						}
+
+						DrawList->AddLine( ScreenA, ScreenB, RsColour::BLACK.asRGBA(), HandleSize );
+						DrawList->AddLine( ScreenA, ScreenB, MouseOver ? RsColour::GREEN.asRGBA() : RsColour::WHITE.asRGBA(), HandleSize - 2.0f );
+
+						if( !ImGui::IsPosHoveringAnyWindow( MousePos ) )
+						{
+							for( int ButtonIdx = 0; ButtonIdx < 3; ++ButtonIdx )
+							{
+								if( ImGui::GetIO().MouseClicked[ ButtonIdx ] && MouseOver )
+								{
+									SelectedResult_.WasClicked_ = true;
+									SelectedResult_.SelectedID_ = Handle.CombinedID_;
+									SelectedResult_.ButtonClicked_ = ButtonIdx;
+									SelectedResult_.ScreenPosition_ = MousePos;
+									SelectedResult_.WorldPosition_.lerp( Handle.PointA_, Handle.PointB_, BcClamp( T, 0.0f, 1.0f ) );
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -104,22 +166,53 @@ namespace Editor
 		}
 	}
 
-	bool Handle( BcU32 ID, const char* Name, const MaVec3d Position )
+	HandleResult Handle( BcU32 ID, const char* Name, const MaVec3d Position, BcF32 Size )
 	{
 		EditableHandle EditableHandle;
 		EditableHandle.ID_ = ID;
 		EditableHandle.Name_ = Name;
-		EditableHandle.Position_ = Position;
+		EditableHandle.PointA_ = Position;
+		EditableHandle.PointB_ = Position;
+		EditableHandle.Size_ = Size;
+		EditableHandle.IsLine_ = false;
 		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, &ID, sizeof( ID ) );
 		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, Name, BcStrLength( Name ) );
 
-		// No need to push handle into list if it's selected.
-		if( EditableHandle.CombinedID_ == SelectedID_ )
+		EditableHandles_.push_back( EditableHandle );
+
+		if( EditableHandle.CombinedID_ == SelectedResult_.SelectedID_ )
 		{
-			return true;
+			return SelectedResult_;
 		}
 
+		return HandleResult();
+	}
+
+	HandleResult Handle( BcU32 ID, const char* Name, const MaVec3d PointA, const MaVec3d PointB, BcF32 Size )
+	{
+		EditableHandle EditableHandle;
+		EditableHandle.ID_ = ID;
+		EditableHandle.Name_ = Name;
+		EditableHandle.PointA_ = PointA;
+		EditableHandle.PointB_ = PointB;
+		EditableHandle.Size_ = Size;
+		EditableHandle.IsLine_ = true;
+		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, &ID, sizeof( ID ) );
+		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, Name, BcStrLength( Name ) );
+
 		EditableHandles_.push_back( EditableHandle );
-		return false;
+
+		if( EditableHandle.CombinedID_ == SelectedResult_.SelectedID_ )
+		{
+			return SelectedResult_;
+		}
+
+		return HandleResult();
+	}
+
+	void DeselectHandle()
+	{
+		SelectedResult_.SelectedID_ = 0;
+		SelectedResult_.WasClicked_ = false;
 	}
 }
