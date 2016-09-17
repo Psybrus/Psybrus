@@ -1,20 +1,22 @@
 #include "Editor/Editor.h"
 
-#include "Editor/EdPanelComponentEditor.h"
-#include "Editor/EdPanelSceneHierarchy.h"
+#include "Editor/PanelComponentEditor.h"
+#include "Editor/PanelSceneHierarchy.h"
 
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 
+#include "System/Os/OsCore.h"
+
 #include <vector>
 
 namespace Editor
 {	
-	EdSceneContext SceneContext_;
+	SceneContext SceneContext_;
 
 
-	struct EditableHandle
+	struct EditorHandle
 	{
 		BcU32 ID_ = 0;
 		const char* Name_ = nullptr;
@@ -25,7 +27,21 @@ namespace Editor
 
 		BcU32 CombinedID_ = 0;
 	};
-	std::vector< EditableHandle > EditableHandles_;
+	std::vector< EditorHandle > EditorHandles_;
+
+
+	struct EditorAction
+	{
+		BcU32 ID_ = 0;
+		const char* Name_ = nullptr;
+		ActionCallback Do_;
+		ActionCallback Undo_;
+
+		BcU32 CombinedID_ = 0;
+	};
+	EditorAction ActiveAction_;
+	std::deque< EditorAction > UndoStack_;
+	std::deque< EditorAction > RedoStack_;
 
 	HandleResult SelectedResult_;
 
@@ -52,15 +68,15 @@ namespace Editor
 				ImGui::End();
 
 				// Sort all lines under other handles.
-				std::sort( EditableHandles_.begin(), EditableHandles_.end(), 
-					[]( const EditableHandle& A, const EditableHandle& B )
+				std::sort( EditorHandles_.begin(), EditorHandles_.end(), 
+					[]( const EditorHandle& A, const EditorHandle& B )
 					{
 						return A.IsLine_ > B.IsLine_;
 					} );
 
 				MaVec2d MousePos( ImGui::GetIO().MousePos );
 
-				for( const auto& Handle : EditableHandles_ )
+				for( const auto& Handle : EditorHandles_ )
 				{
 					const BcF32 HandleSize = std::max( 4.0f, Handle.Size_ );
 					const auto ScreenA = ( RenderContext.View_->getScreenPosition( Handle.PointA_ ) +
@@ -86,11 +102,19 @@ namespace Editor
 							{
 								if( ImGui::GetIO().MouseClicked[ ButtonIdx ] && MouseOver )
 								{
-									SelectedResult_.WasClicked_ = true;
-									SelectedResult_.SelectedID_ = Handle.CombinedID_;
-									SelectedResult_.ButtonClicked_ = ButtonIdx;
-									SelectedResult_.ScreenPosition_ = MousePos;
-									SelectedResult_.WorldPosition_ = Handle.PointA_;
+									Action( Handle.CombinedID_, "Select",
+										[ Handle, ButtonIdx, MousePos ]()
+										{
+											SelectedResult_.WasClicked_ = true;
+											SelectedResult_.SelectedID_ = Handle.CombinedID_;
+											SelectedResult_.ButtonClicked_ = ButtonIdx;
+											SelectedResult_.ScreenPosition_ = MousePos;
+											SelectedResult_.WorldPosition_ = Handle.PointA_;
+										},
+										[ SelectedResult = SelectedResult_ ]()
+										{
+											SelectedResult_ = SelectedResult;
+										} );	
 								}
 							}
 						}
@@ -98,7 +122,6 @@ namespace Editor
 					else
 					{
 						bool MouseOver = false;
-						MaVec2d MousePos( ImGui::GetIO().MousePos );
 						MaVec2d AP = MousePos - ScreenA;
 						MaVec2d AB = ScreenB - ScreenA;
 						BcF32 AB2 = AB.dot( AB );
@@ -120,11 +143,19 @@ namespace Editor
 							{
 								if( ImGui::GetIO().MouseClicked[ ButtonIdx ] && MouseOver )
 								{
-									SelectedResult_.WasClicked_ = true;
-									SelectedResult_.SelectedID_ = Handle.CombinedID_;
-									SelectedResult_.ButtonClicked_ = ButtonIdx;
-									SelectedResult_.ScreenPosition_ = MousePos;
-									SelectedResult_.WorldPosition_.lerp( Handle.PointA_, Handle.PointB_, BcClamp( T, 0.0f, 1.0f ) );
+									Action( Handle.CombinedID_, "Select",
+										[ Handle, ButtonIdx, MousePos, T ]()
+										{
+											SelectedResult_.WasClicked_ = true;
+											SelectedResult_.SelectedID_ = Handle.CombinedID_;
+											SelectedResult_.ButtonClicked_ = ButtonIdx;
+											SelectedResult_.ScreenPosition_ = MousePos;
+											SelectedResult_.WorldPosition_.lerp( Handle.PointA_, Handle.PointB_, BcClamp( T, 0.0f, 1.0f ) );
+										},
+										[ SelectedResult = SelectedResult_ ]()
+										{
+											SelectedResult_ = SelectedResult;
+										} );	
 								}
 							}
 						}
@@ -144,8 +175,8 @@ namespace Editor
 			ScnCore::pImpl()->addCallback( &SceneContext_ );
 
 			// Register panels.
-			EdPanelComponentEditor::Register( SceneContext_ );
-			EdPanelSceneHierarchy::Register( SceneContext_ );
+			PanelComponentEditor::Register( SceneContext_ );
+			PanelSceneHierarchy::Register( SceneContext_ );
 
 			// Register for view callback.
 			ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN,
@@ -159,28 +190,43 @@ namespace Editor
 			ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE,
 				[]( EvtID, const EvtBaseEvent& )
 				{
-					EditableHandles_.clear();
+					EditorHandles_.clear();
 					return evtRET_PASS;
 				} );
-			
 		}
+
+		// Subscribe to F2 & F3 for screenshot
+		OsCore::pImpl()->subscribe( osEVT_INPUT_KEYDOWN,
+			[]( EvtID ID, const EvtBaseEvent& Event )
+			{
+				const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
+				if( KeyEvent.KeyCode_ == 'Z' )
+				{
+					UndoAction();
+				}
+				if( KeyEvent.KeyCode_ == 'Y' )
+				{
+					RedoAction();
+				}
+				return evtRET_PASS;
+			} );
 	}
 
 	HandleResult Handle( BcU32 ID, const char* Name, const MaVec3d Position, BcF32 Size )
 	{
-		EditableHandle EditableHandle;
-		EditableHandle.ID_ = ID;
-		EditableHandle.Name_ = Name;
-		EditableHandle.PointA_ = Position;
-		EditableHandle.PointB_ = Position;
-		EditableHandle.Size_ = Size;
-		EditableHandle.IsLine_ = false;
-		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, &ID, sizeof( ID ) );
-		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, Name, BcStrLength( Name ) );
+		EditorHandle EditorHandle;
+		EditorHandle.ID_ = ID;
+		EditorHandle.Name_ = Name;
+		EditorHandle.PointA_ = Position;
+		EditorHandle.PointB_ = Position;
+		EditorHandle.Size_ = Size;
+		EditorHandle.IsLine_ = false;
+		EditorHandle.CombinedID_ = BcHash::GenerateCRC32( EditorHandle.CombinedID_, &ID, sizeof( ID ) );
+		EditorHandle.CombinedID_ = BcHash::GenerateCRC32( EditorHandle.CombinedID_, Name, BcStrLength( Name ) );
 
-		EditableHandles_.push_back( EditableHandle );
+		EditorHandles_.push_back( EditorHandle );
 
-		if( EditableHandle.CombinedID_ == SelectedResult_.SelectedID_ )
+		if( EditorHandle.CombinedID_ == SelectedResult_.SelectedID_ )
 		{
 			return SelectedResult_;
 		}
@@ -190,19 +236,19 @@ namespace Editor
 
 	HandleResult Handle( BcU32 ID, const char* Name, const MaVec3d PointA, const MaVec3d PointB, BcF32 Size )
 	{
-		EditableHandle EditableHandle;
-		EditableHandle.ID_ = ID;
-		EditableHandle.Name_ = Name;
-		EditableHandle.PointA_ = PointA;
-		EditableHandle.PointB_ = PointB;
-		EditableHandle.Size_ = Size;
-		EditableHandle.IsLine_ = true;
-		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, &ID, sizeof( ID ) );
-		EditableHandle.CombinedID_ = BcHash::GenerateCRC32( EditableHandle.CombinedID_, Name, BcStrLength( Name ) );
+		EditorHandle EditorHandle;
+		EditorHandle.ID_ = ID;
+		EditorHandle.Name_ = Name;
+		EditorHandle.PointA_ = PointA;
+		EditorHandle.PointB_ = PointB;
+		EditorHandle.Size_ = Size;
+		EditorHandle.IsLine_ = true;
+		EditorHandle.CombinedID_ = BcHash::GenerateCRC32( EditorHandle.CombinedID_, &ID, sizeof( ID ) );
+		EditorHandle.CombinedID_ = BcHash::GenerateCRC32( EditorHandle.CombinedID_, Name, BcStrLength( Name ) );
 
-		EditableHandles_.push_back( EditableHandle );
+		EditorHandles_.push_back( EditorHandle );
 
-		if( EditableHandle.CombinedID_ == SelectedResult_.SelectedID_ )
+		if( EditorHandle.CombinedID_ == SelectedResult_.SelectedID_ )
 		{
 			return SelectedResult_;
 		}
@@ -212,7 +258,103 @@ namespace Editor
 
 	void DeselectHandle()
 	{
-		SelectedResult_.SelectedID_ = 0;
-		SelectedResult_.WasClicked_ = false;
+		Action( SelectedResult_.SelectedID_, "Deselect",
+			[]()
+			{
+				SelectedResult_.SelectedID_ = 0;
+				SelectedResult_.WasClicked_ = false;
+			},
+			[ SelectedResult = SelectedResult_ ]()
+			{
+				SelectedResult_ = SelectedResult;
+			} );	
+	}
+
+	void Action( BcU32 ID, const char* Name, ActionCallback Do, ActionCallback Undo, bool Commit )
+	{
+		BcU32 CombinedID = 0;
+		CombinedID = BcHash::GenerateCRC32( CombinedID, &ID, sizeof( ID ) );
+		CombinedID = BcHash::GenerateCRC32( CombinedID, Name, BcStrLength( Name ) );
+
+		if( CombinedID != ActiveAction_.CombinedID_ )
+		{
+			if( ActiveAction_.CombinedID_ != 0 )
+			{
+				CommitAction();
+			}
+
+			ActiveAction_.Undo_ = Undo;
+		}
+
+		ActiveAction_.Do_ = Do;
+		ActiveAction_.ID_ = ID;
+		ActiveAction_.Name_ = Name;
+		ActiveAction_.CombinedID_ = CombinedID;
+
+		Do();
+		RedoStack_.clear();
+
+		if( Commit )
+		{
+			CommitAction();
+		}
+	}
+
+	void CancelAction()
+	{
+		PSY_LOGSCOPEDCATEGORY( Editor );
+		if( ActiveAction_ .CombinedID_ != 0 )
+		{
+			PSY_LOG( "CancelAction: %u, %s", ActiveAction_.ID_, ActiveAction_.Name_ );
+		}
+
+		if( ActiveAction_.Undo_ )
+		{
+			ActiveAction_.Undo_();
+		}
+
+		ActiveAction_ = EditorAction();
+	}
+
+	void CommitAction()
+	{
+		PSY_LOGSCOPEDCATEGORY( Editor );
+		if( ActiveAction_ .CombinedID_ != 0 )
+		{
+			PSY_LOG( "CommitAction: %u, %s", ActiveAction_.ID_, ActiveAction_.Name_ );
+		}
+
+		if( ActiveAction_.CombinedID_ != 0 )
+		{
+			UndoStack_.push_back( ActiveAction_ );
+			ActiveAction_ = EditorAction();
+		}
+	}
+
+	void UndoAction()
+	{
+		PSY_LOG( "UndoAction: %u", UndoStack_.size() );
+		CommitAction();
+		if( UndoStack_.size() > 0 )
+		{
+			ActiveAction_ = UndoStack_.back();
+			RedoStack_.push_back( ActiveAction_ );
+			UndoStack_.pop_back();
+			CancelAction();
+		}
+	}
+
+	void RedoAction()
+	{
+		PSY_LOG( "RedoAction: %u", RedoStack_.size() );
+		CommitAction();
+		if( RedoStack_.size() > 0 )
+		{
+			ActiveAction_ = RedoStack_.back();
+			RedoStack_.pop_back();
+			ActiveAction_.Do_();
+			CommitAction();
+		}
+
 	}
 }

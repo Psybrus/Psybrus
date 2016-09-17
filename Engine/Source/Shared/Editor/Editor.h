@@ -8,6 +8,11 @@ namespace Editor
 	void Init();
 
 	/**
+	 * Callback for actions.
+	 */
+	typedef std::function< void() > ActionCallback;
+
+	/**
 	 * Result from handle with interaction details.
 	 */
 	struct HandleResult 
@@ -23,11 +28,11 @@ namespace Editor
 			return WasClicked_;
 		}
 	};
-	
+
 	/**
 	 * Setup handle in world.
-	 * @param ID ID to associate with anchor.
-	 * @param Name of anchor. Included as part of the ID. Must be persistent until next frame.
+	 * @param ID ID to associate with handle.
+	 * @param Name of handle. Included as part of the ID. Must be persistent until next frame.
 	 * @param Position Position in world.
 	 * @return Handle result.
 	 */
@@ -35,8 +40,8 @@ namespace Editor
 
 	/**
 	 * Setup handle in world between two points.
-	 * @param ID ID to associate with anchor.
-	 * @param Name of anchor. Included as part of the ID. Must be persistent until next frame.
+	 * @param ID ID to associate with handle.
+	 * @param Name of handle. Included as part of the ID. Use string literal, or permenant allocation.
 	 * @param PointA Start position in world.
 	 * @param PointB End position in world.
 	 * @return Handle result.
@@ -47,4 +52,40 @@ namespace Editor
 	 * Deselect currently selected handle.
 	 */
 	void DeselectHandle();
+
+	/**
+	 * Setup action.
+	 * This will add (and perform) an action. If the ID & Name are persistent with the last one, then 
+	 * the first @a Undo callback will be kept, and only @a Do will be executed.
+	 * @param ID ID to associate with handle.
+	 * @param Name of action. Included as part of the ID. Use string literal, or permenant allocation.
+	 * @param Do Callback to perform action.
+	 * @param Undo Callback to undo action.
+	 * @param Commit Should commit after action.
+	 */
+	void Action( BcU32 ID, const char* Name, ActionCallback Do, ActionCallback Undo, bool Commit = true );
+
+	/**
+	 * Cancel action.
+	 * This will execute the undo step of the currently active action.
+	 */
+	void CancelAction();
+
+	/**
+	 * Commit action.
+	 * Will push the currently active action into the undo/redo stack.
+	 */
+	void CommitAction();
+
+	/**
+	 * Undo action.
+	 */
+	void UndoAction();
+
+	/**
+	 * Redo action.
+	 */
+	void RedoAction();
+
+
 }
