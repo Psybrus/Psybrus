@@ -1227,7 +1227,8 @@ void ScnModelComponent::StaticRegisterClass()
 		new ReField( "Position_", &ScnModelComponent::Position_, bcRFF_IMPORTER ),
 		new ReField( "Scale_", &ScnModelComponent::Scale_, bcRFF_IMPORTER ),
 		new ReField( "Rotation_", &ScnModelComponent::Rotation_, bcRFF_IMPORTER ),
-		new ReField( "Uniforms_", &ScnModelComponent::Uniforms_, bcRFF_IMPORTER ),
+		
+		new ReField( "Uniforms_", &ScnModelComponent::Uniforms_, bcRFF_TRANSIENT ),
 
 		new ReField( "BaseTransform_", &ScnModelComponent::BaseTransform_ ),
 		new ReField( "RenderMask_", &ScnModelComponent::RenderMask_, bcRFF_IMPORTER ),

@@ -129,12 +129,19 @@ public:
 	void							removeNotifier( ReIObjectNotify* ObjectNotify ) const;
 
 	/**
-	 *@brief Gets flags for resource
-	*/
-	inline const BcU32				getObjectFlags() const
-	{
-		return ObjectFlags_;
-	}
+	 * @brief Adds flag for resource
+	 */
+	inline void						addObjectFlags( BcU32 Flag ) { ObjectFlags_ |= Flag; }
+
+	/**
+	 * @brief Removes flag for resource
+	 */
+	inline void						removeObjectFlags( BcU32 Flag ) { ObjectFlags_ = ObjectFlags_ & ~Flag; }
+	
+	/**
+	 * @brief Gets flags for resource
+	 */
+	inline const BcU32				getObjectFlags() const { return ObjectFlags_; }
 
 	/**
 	 * Get unique identifier for resource

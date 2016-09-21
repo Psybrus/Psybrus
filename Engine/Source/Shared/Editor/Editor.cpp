@@ -63,7 +63,8 @@ namespace Editor
 			if( BcContainsAllFlags( RenderContext.View_->getPasses(), RsRenderSortPassFlags::TRANSPARENT ) )
 			{				
 				// TODO: Multiple view support.
-				ImGui::Begin( "#editor", nullptr, ImGui::GetIO().DisplaySize, 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus );
+				ImGui::Begin( "#editor", nullptr, ImGui::GetIO().DisplaySize, 0, 
+					ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus );
 				auto DrawList = ImGui::GetWindowDrawList();
 				ImGui::End();
 
@@ -96,10 +97,12 @@ namespace Editor
 						DrawList->AddCircleFilled( ScreenA, HandleSize, MouseOver ? RsColour::GREEN.asRGBA() : RsColour::WHITE.asRGBA() );
 						DrawList->AddCircle( ScreenA, HandleSize, RsColour::BLACK.asRGBA() );
 
-						if( !ImGui::IsPosHoveringAnyWindow( MousePos ) )
+						if( !ImGui::IsMouseHoveringAnyWindow() )
 						{
 							for( int ButtonIdx = 0; ButtonIdx < 3; ++ButtonIdx )
 							{
+								if( MouseOver )
+
 								if( ImGui::GetIO().MouseClicked[ ButtonIdx ] && MouseOver )
 								{
 									Action( Handle.CombinedID_, "Select",
@@ -333,6 +336,7 @@ namespace Editor
 
 	void UndoAction()
 	{
+		PSY_LOGSCOPEDCATEGORY( Editor );
 		PSY_LOG( "UndoAction: %u", UndoStack_.size() );
 		CommitAction();
 		if( UndoStack_.size() > 0 )
@@ -346,6 +350,7 @@ namespace Editor
 
 	void RedoAction()
 	{
+		PSY_LOGSCOPEDCATEGORY( Editor );
 		PSY_LOG( "RedoAction: %u", RedoStack_.size() );
 		CommitAction();
 		if( RedoStack_.size() > 0 )

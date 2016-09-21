@@ -266,6 +266,18 @@ BcU32 CsResourceImporter::addPackageCrossRef(
 }
 
 //////////////////////////////////////////////////////////////////////////
+// addAllPackageCrossRefs
+void CsResourceImporter::addAllPackageCrossRefs( 
+	Json::Value& Root )
+{
+#if PSY_IMPORT_PIPELINE
+	BcAssert( Importer_ != nullptr );
+	Importer_->addAllPackageCrossRefs( Root );
+#else
+#endif // PSY_IMPORT_PIPELINE
+}
+
+//////////////////////////////////////////////////////////////////////////
 // addChunk
 BcU32 CsResourceImporter::addChunk( 
 	BcU32 ID, 

@@ -122,7 +122,7 @@ public:
     template< typename _Ty >
     SeISerialiser& operator << ( _Ty*& Input )
     {
-        Input = internalSerialise( reinterpret_cast< void* >( Input ), _Ty::StaticGetClass() );
+        Input = reinterpret_cast< _Ty* >( internalSerialise( reinterpret_cast< void* >( Input ), _Ty::StaticGetClass() ) );
         return (*this);
     }
 

@@ -18,7 +18,13 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-ScnEntitySpawnParams::ScnEntitySpawnParams()
+ScnEntitySpawnParams::ScnEntitySpawnParams():
+	InstanceName_( BcName::INVALID ),
+	Package_( BcName::INVALID ),
+	Name_( BcName::INVALID ),
+	Template_( nullptr ),
+	Transform_( MaMat4d() ),
+	Parent_()
 {
 
 }
@@ -30,6 +36,7 @@ ScnEntitySpawnParams::ScnEntitySpawnParams(
 	InstanceName_( InstanceName ),
 	Package_( Package ),
 	Name_( Name ),
+	Template_( nullptr ),
 	Transform_( Transform ),
 	Parent_( Parent )
 {
@@ -41,8 +48,9 @@ ScnEntitySpawnParams::ScnEntitySpawnParams(
 ScnEntitySpawnParams::ScnEntitySpawnParams( 
 		BcName InstanceName, ScnEntity* Template, const MaMat4d& Transform, ScnEntity* Parent ):
 	InstanceName_( InstanceName ),
-	Package_( Template->getPackage()->getName() ),
-	Name_( Template->getName() ),
+	Package_(),
+	Name_(),
+	Template_( Template ),
 	Transform_( Transform ),
 	Parent_( Parent )
 {

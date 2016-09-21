@@ -82,9 +82,11 @@ struct ScnEntitySpawnParams
 	BcName InstanceName_;
 	BcName Package_;
 	BcName Name_;
+	ScnEntity* Template_;
 	MaMat4d Transform_;
 	ScnEntityRef Parent_;
 	ScnEntityOnSpawn OnSpawn_;
+
 };
 
 #endif

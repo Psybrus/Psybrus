@@ -46,6 +46,13 @@ void SeJsonReader::setRootValue( const Json::Value& Value )
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getRootValue
+const Json::Value& SeJsonReader::getRootValue() const
+{
+	return RootValue_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // load
 BcBool SeJsonReader::load( std::string FileName )
 {

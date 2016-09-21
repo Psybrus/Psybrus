@@ -364,10 +364,20 @@ inline bool BcContainsAllFlags( _Enum Value, _Enum Flags )
 	return ( (int)Value & (int)Flags ) == (int)Flags;
 }
 
+inline bool BcContainsAllFlags( BcU32 Value, BcU32 Flags )
+{
+	return ( (int)Value & (int)Flags ) == (int)Flags;
+}
+
 template< typename _Enum >
 inline bool BcContainsAnyFlags( _Enum Value, _Enum Flags )
 {
 	static_assert( sizeof( _Enum ) <= sizeof( int ), "Enum size too large." );
+	return ( (int)Value & (int)Flags ) != 0;
+}
+
+inline bool BcContainsAnyFlags( BcU32 Value, BcU32 Flags )
+{
 	return ( (int)Value & (int)Flags ) != 0;
 }
 

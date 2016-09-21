@@ -234,24 +234,37 @@ Json::Value SeJsonWriter::serialisePointer( void* pData, const ReClass* pClass, 
 			pClass = Object->getClass();
 		}
 			
-		// Add to list to serialise if it hasn't been added.
-		if( ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
+		// If object has transient flag, skip it.
+		if( pClass->hasBaseClass( ReObject::StaticGetClass() ) )
 		{
-			if( ( ParentFlags & bcRFF_OWNER ) == 0 )
+			if( BcContainsAllFlags( static_cast< ReObject* >( pData )->getObjectFlags(),
+				bcRFF_TRANSIENT ) )
 			{
-				auto ClassToSerialise = SerialiseClass( pData, pClass );
-				if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
-				{
-					SerialiseClasses_.push_back( ClassToSerialise );
-				}
-			}
-			else
-			{	
-				auto ClassValue = serialiseClass( pData, pClass, 0, true );
-				ObjectValueMap_[ PointerValue.asString() ] = ClassValue;
+				PointerValue = Json::nullValue;
 			}
 		}
 
+		// Add to list to serialise if it hasn't been added.
+		if( ObjectCodec_->shouldSerialiseContents( pData, pClass ) )
+		{
+			if( PointerValue != Json::nullValue )
+			{
+				if( ( ParentFlags & bcRFF_OWNER ) == 0 )
+				{
+					auto ClassToSerialise = SerialiseClass( pData, pClass );
+					if( std::find( SerialiseClasses_.begin(), SerialiseClasses_.end(), ClassToSerialise ) == SerialiseClasses_.end() )
+					{
+						SerialiseClasses_.push_back( ClassToSerialise );
+					}
+				}
+				else
+				{	
+					auto ClassValue = serialiseClass( pData, pClass, 0, true );
+					ObjectValueMap_[ PointerValue.asString() ] = ClassValue;
+				}
+			}
+		}
+		
 		return PointerValue;
 	}
 
@@ -284,7 +297,10 @@ Json::Value SeJsonWriter::serialiseArray( void* pData, const ReField* pField, Bc
 			ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
 		}
 
-		ArrayValue.append( ClassValue );
+		if( ClassValue != Json::nullValue )
+		{
+			ArrayValue.append( ClassValue );
+		}
 
 		pReadIterator->next();
 	}
@@ -351,7 +367,11 @@ Json::Value SeJsonWriter::serialiseDict( void* pData, const ReField* pField, BcU
 				void* pPointerValueData = *reinterpret_cast< void** >( pValueData );
 				ClassValue = serialisePointer( pPointerValueData, static_cast< const ReClass* >( pFieldValueType ), ParentFlags );
 			}
-			DictValue[ OutKeyString ] = ClassValue;
+
+			if( ClassValue != Json::nullValue )
+			{
+				DictValue[ OutKeyString ] = ClassValue;
+			}
 		}
 		else
 		{

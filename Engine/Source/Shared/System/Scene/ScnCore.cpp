@@ -301,26 +301,33 @@ ScnEntity* ScnCore::spawnEntity( const ScnEntitySpawnParams& Params )
 	BcAssert( BcIsGameThread() );
 
 	// Get package and acquire.
-	CsPackage* pPackage = CsCore::pImpl()->requestPackage( Params.Package_ );
-
-	if( pPackage->isReady() )
+	if( Params.Template_ != nullptr )
 	{
 		return internalSpawnEntity( Params );
 	}
 	else
 	{
-		pPackage->acquire();
-	
-		// Register for ready callback.
-		EntitySpawnMap_[ EntitySpawnID_ ] = Params;
-		using namespace std::placeholders;
-		CsCore::pImpl()->requestPackageReadyCallback( 
-			Params.Package_, 
-			std::bind( &ScnCore::onSpawnEntityPackageReady, this, _1, _2 ), 
-			EntitySpawnID_ );
+		CsPackage* pPackage = CsCore::pImpl()->requestPackage( Params.Package_ );
 
-		// Advance spawn ID.
-		++EntitySpawnID_;
+		if( pPackage->isReady() )
+		{
+			return internalSpawnEntity( Params );
+		}
+		else
+		{
+			pPackage->acquire();
+	
+			// Register for ready callback.
+			EntitySpawnMap_[ EntitySpawnID_ ] = Params;
+			using namespace std::placeholders;
+			CsCore::pImpl()->requestPackageReadyCallback( 
+				Params.Package_, 
+				std::bind( &ScnCore::onSpawnEntityPackageReady, this, _1, _2 ), 
+				EntitySpawnID_ );
+
+			// Advance spawn ID.
+			++EntitySpawnID_;
+		}
 	}
 
 	return NULL;
@@ -557,7 +564,20 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	PSY_PROFILE_FUNCTION;
 
 	// Create entity.
-	ScnEntity* Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
+	ScnEntity* Entity = nullptr;
+	if( Params.Template_ )
+	{
+		Entity = ReConstructObject< ScnEntity >(
+			Params.InstanceName_ == BcName::INVALID ? 
+				*Params.Template_->getClass()->getName().getUnique() :
+				*Params.InstanceName_,
+			Params.Template_->getPackage(),
+			Params.Template_ );
+	}
+	else
+	{
+		Entity = createEntity( Params.Package_, Params.Name_, Params.InstanceName_ );
+	}
 
 	if( Entity == nullptr )
 	{

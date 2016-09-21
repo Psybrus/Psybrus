@@ -14,6 +14,7 @@ public:
 	SeJsonReader( 
 		SeISerialiserObjectCodec* ObjectCodec );
 	void setRootValue( const Json::Value& Value );
+	const Json::Value& getRootValue() const;
 	BcBool load( std::string FileName );
 	virtual ~SeJsonReader();
 

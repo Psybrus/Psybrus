@@ -22,6 +22,13 @@
 #include <memory>
 
 //////////////////////////////////////////////////////////////////////////
+// Forward declarations.
+namespace Json
+{
+	class Value;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Typedef
 struct CsResourceImporterDeleter
 {
@@ -148,6 +155,13 @@ protected:
 	 */
 	BcU32 addPackageCrossRef( 
 		const BcChar* pFullName );
+
+	/**
+	 * Search through Json value hierarchy
+	 * and add all package crossrefs.
+	 */
+	void addAllPackageCrossRefs( 
+		Json::Value& Root );
 
 	/**
 	 * Add chunk.

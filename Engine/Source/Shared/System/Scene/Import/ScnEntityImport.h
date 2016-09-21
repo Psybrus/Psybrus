@@ -39,6 +39,8 @@ public:
 	BcBool import() override;
 
 private:
+	std::string Entity_;
+
 	MaMat4d LocalTransform_;
 	std::vector< class ScnComponent* > Components_;
 };
