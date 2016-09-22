@@ -189,12 +189,20 @@ struct OsEventInputKeyboard: OsEventInput< OsEventInputKeyboard >
 		KEYCODE_PLAY,
 		KEYCODE_ZOOM,
 		KEYCODE_VOLUME_UP,
-		KEYCODE_VOLUME_DOWN
+		KEYCODE_VOLUME_DOWN,
 	};
 
-	BcU32			KeyCode_;			///!< Key code.
-	BcU32			ScanCode_;			///!< Scan code.
-	BcU32			AsciiCode_;			///!< ASCII code.
+	enum
+	{
+		MODIFIER_CTRL = 0x1,
+		MODIFIER_ALT = 0x2,
+		MODIFIER_SHIFT = 0x4,
+	};
+
+	BcU32			KeyCode_ = 0;			///!< Key code.
+	BcU32			ScanCode_ = 0;			///!< Scan code.
+	BcU32			AsciiCode_ = 0;			///!< ASCII code.
+	BcU32			Modifiers_ = 0;			///!< Modifier.
 };
 
 ////////////////////////////////////////////////////////////////////////////////

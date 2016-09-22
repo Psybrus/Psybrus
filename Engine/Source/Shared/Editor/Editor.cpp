@@ -203,11 +203,11 @@ namespace Editor
 			[]( EvtID ID, const EvtBaseEvent& Event )
 			{
 				const auto& KeyEvent = Event.get< OsEventInputKeyboard >();
-				if( KeyEvent.KeyCode_ == 'Z' )
+				if( KeyEvent.KeyCode_ == 'Z' && BcContainsAnyFlags( KeyEvent.Modifiers_, OsEventInputKeyboard::MODIFIER_CTRL ) )
 				{
 					UndoAction();
 				}
-				if( KeyEvent.KeyCode_ == 'Y' )
+				if( KeyEvent.KeyCode_ == 'Y' && BcContainsAnyFlags( KeyEvent.Modifiers_, OsEventInputKeyboard::MODIFIER_CTRL ) )
 				{
 					RedoAction();
 				}

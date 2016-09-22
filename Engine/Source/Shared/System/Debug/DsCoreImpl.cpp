@@ -628,9 +628,9 @@ void DsCoreImpl::open()
 	{
 		const auto& Event = InEvent.get< OsEventInputKeyboard >();
 
-		CtrlModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL ) ? 1 : 0;
-		AltModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT ) ? 1 : 0;
-		ShiftModifier_ |= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_SHIFT ) ? 1 : 0;
+		const bool CtrlModifier = BcContainsAllFlags( Event.Modifiers_, OsEventInputKeyboard::MODIFIER_CTRL );
+		const bool AltModifier = BcContainsAllFlags( Event.Modifiers_, OsEventInputKeyboard::MODIFIER_ALT );
+		const bool ShiftModifier = BcContainsAllFlags( Event.Modifiers_, OsEventInputKeyboard::MODIFIER_SHIFT );
 
 		// Check if a shortcut combo has been pressed.
 		if( ShortcutLookup_.find( Event.KeyCode_ ) != ShortcutLookup_.end() )
@@ -644,9 +644,9 @@ void DsCoreImpl::open()
 					bool AltRequired = Panel.Shortcut_.find( "Alt" ) != std::string::npos;
 					bool ShiftRequired = Panel.Shortcut_.find( "Shift" ) != std::string::npos;
 				
-					if( CtrlRequired == !!CtrlModifier_ &&
-						AltRequired == !!AltModifier_ &&
-						ShiftRequired == !!ShiftModifier_ )
+					if( CtrlRequired == !!CtrlModifier &&
+						AltRequired == !!AltModifier &&
+						ShiftRequired == !!ShiftModifier )
 					{
 						std::string Shortcut = ShortcutLookup_[ Event.KeyCode_ ];
 						if( CtrlRequired || AltRequired || ShiftRequired )
@@ -664,16 +664,6 @@ void DsCoreImpl::open()
 			}
 		}
 
-		return evtRET_PASS;
-	} );
-
-	OsCore::pImpl()->subscribe( osEVT_INPUT_KEYUP, this,
-		[ this ]( EvtID, const EvtBaseEvent& InEvent )
-	{
-		auto Event = InEvent.get< OsEventInputKeyboard >();
-		CtrlModifier_ &= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_CONTROL ) ? 0 : 1;
-		AltModifier_ &= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_ALT ) ? 0 : 1;
-		ShiftModifier_ &= ( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_SHIFT ) ? 0 : 1;
 		return evtRET_PASS;
 	} );
 

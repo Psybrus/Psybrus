@@ -518,6 +518,21 @@ void OsClientWindows::mapKeyEvent( OsEventInputKeyboard& Event, WPARAM wParam )
 	{
 		Event.KeyCode_ = (*It).second;
 	}
+
+	// Modifiers.
+	if( ::GetKeyState( VK_CONTROL ) & 0x8000 )
+	{
+		Event.Modifiers_ |= OsEventInputKeyboard::MODIFIER_CTRL;
+	}
+	if( ::GetKeyState( VK_MENU ) & 0x8000 )
+	{
+		Event.Modifiers_ |= OsEventInputKeyboard::MODIFIER_ALT;
+	}
+	if( ::GetKeyState( VK_SHIFT ) & 0x8000 )
+	{
+		Event.Modifiers_ |= OsEventInputKeyboard::MODIFIER_SHIFT;
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////

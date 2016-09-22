@@ -288,6 +288,20 @@ void OsClientSDL::handleKeyEvent( const SDL_Event& SDLEvent )
 	Event.ScanCode_ = SDLEvent.key.keysym.scancode;
 	Event.AsciiCode_ = SDLEvent.key.keysym.sym; // TODO.
 
+	// Modifiers.
+	if( SDLEvent.key.keysym.mod & KMOD_CTRL )
+	{
+		Event.Modifiers_ |= OsEventInputKeyboard::MODIFIER_CTRL;
+	}
+	if( SDLEvent.key.keysym.mod & KMOD_ALT )
+	{
+		Event.Modifiers_ |= OsEventInputKeyboard::MODIFIER_ALT;
+	}
+	if( SDLEvent.key.keysym.mod & KMOD_SHIFT )
+	{
+		Event.Modifiers_ |= OsEventInputKeyboard::MODIFIER_SHIFT;
+	}
+
 	// Get key code, or pass through virtual.
 	TKeyCodeMapIterator It( KeyCodeMap_.find( Event.KeyCode_ ) );
 	if( It != KeyCodeMap_.end() )

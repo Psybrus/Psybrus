@@ -180,10 +180,6 @@ private:
 	std::vector< DsFunctionDefinition > ButtonFunctions_;
 	BcU32 NextHandle_;
 
-	int CtrlModifier_ = 0;
-	int AltModifier_ = 0;
-	int ShiftModifier_ = 0;
-
 	std::unordered_map< BcU32, std::string > ShortcutLookup_;
 
 	struct ViewInfo
