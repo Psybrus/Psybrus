@@ -17,6 +17,8 @@
 
 #include "Base/BcString.h"
 
+#include "Reflection/ReReflection.h"
+
 void MaQuat::StaticRegisterClass()
 {
 	class MaQuatSerialiser:

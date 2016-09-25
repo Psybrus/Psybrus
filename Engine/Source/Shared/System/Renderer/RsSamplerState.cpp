@@ -13,6 +13,8 @@
 
 #include "System/Renderer/RsSamplerState.h"
 
+#include "Reflection/ReReflection.h"
+
 #include <limits>
 
 //////////////////////////////////////////////////////////////////////////

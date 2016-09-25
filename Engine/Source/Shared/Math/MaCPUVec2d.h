@@ -14,7 +14,8 @@
 #ifndef __BCCPUVEC2D_H__
 #define __BCCPUVEC2D_H__
 
-#include "Reflection/ReReflection.h"
+#include "Base/BcTypes.h"
+#include "Reflection/ReUtility.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec2d

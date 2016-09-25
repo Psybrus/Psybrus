@@ -15,7 +15,7 @@
 #define __BCMAT3D_H__
 
 #include "Math/MaVec3d.h"
-#include "Reflection/ReReflection.h"
+#include "Reflection/ReUtility.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaMat3d

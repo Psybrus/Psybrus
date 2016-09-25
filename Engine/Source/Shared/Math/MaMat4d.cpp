@@ -19,6 +19,8 @@
 
 #include "Base/BcMath.h"
 
+#include "Reflection/ReReflection.h"
+
 REFLECTION_DEFINE_BASIC( MaMat4d );
 
 void MaMat4d::StaticRegisterClass()

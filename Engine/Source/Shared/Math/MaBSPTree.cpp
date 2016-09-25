@@ -333,7 +333,7 @@ void MaBSPTree::splitNode( MaBSPNode* pNode )
 		pNode->pFront_ = (*FList_.begin());
 		FList_.erase( FList_.begin() );
 
-		MaBSPNode* pSwappedNode = NULL;
+		pSwappedNode = nullptr;
 		for( BcBSPNodeList::iterator It( FList_.begin() ); It != FList_.end(); )
 		{
 			pSwappedNode = (*It);
@@ -350,7 +350,7 @@ void MaBSPTree::splitNode( MaBSPNode* pNode )
 		pNode->pBack_ = (*BList_.begin());
 		BList_.erase( BList_.begin() );
 
-		MaBSPNode* pSwappedNode = NULL;
+		pSwappedNode = nullptr;
 		for( BcBSPNodeList::iterator It( BList_.begin() ); It != BList_.end(); )
 		{
 			pSwappedNode = (*It);

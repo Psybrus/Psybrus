@@ -13,6 +13,8 @@
 
 #include "Math/MaMat3d.h"
 
+#include "Reflection/ReReflection.h"
+
 REFLECTION_DEFINE_BASIC( MaMat3d );
 
 void MaMat3d::StaticRegisterClass()

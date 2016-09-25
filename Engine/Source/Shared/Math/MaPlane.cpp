@@ -15,6 +15,8 @@
 
 #include "Base/BcMath.h"
 
+#include "Reflection/ReReflection.h"
+
 const BcF32 gPlaneEpsilon = BcVecEpsilon;
 
 REFLECTION_DEFINE_BASIC( MaPlane );

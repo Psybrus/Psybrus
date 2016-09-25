@@ -2,6 +2,8 @@
 
 #include "Base/BcMath.h"
 
+#include "Reflection/ReReflection.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Reflection
 void RsColour::StaticRegisterClass()

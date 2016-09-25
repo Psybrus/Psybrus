@@ -15,7 +15,6 @@
 #define __RSRENDERNODE_H__
 
 #include "Base/BcMath.h"
-#include "System/Renderer/RsTypes.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Forward Declarations

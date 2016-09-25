@@ -19,6 +19,7 @@
 
 #include "Base/BcString.h"
 
+#include "Reflection/ReReflection.h"
 
 void MaCPUVec3d::StaticRegisterClass()
 {
