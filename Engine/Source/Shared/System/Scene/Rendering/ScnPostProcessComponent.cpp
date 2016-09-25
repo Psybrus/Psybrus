@@ -14,6 +14,8 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnEntity.h"
 
+#include "Editor/Editor.h"
+
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
 
@@ -91,14 +93,14 @@ void ScnPostProcessNode::StaticRegisterClass()
 				auto Node = static_cast< ScnPostProcessNode* >( Object );
 				for( auto& Uniforms : Node->Uniforms_ )
 				{
-					DsCore::pImpl()->drawObjectEditor( 
+					Editor::ObjectEditor( 
 						ThisFieldEditor, 
 						Uniforms.Data_.getData< BcU8 >(),
 						ReManager::GetClass( Uniforms.Name_ ), Flags );
 				}
 
 				// Defaults.
-				DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Object, Class, Flags );
+				Editor::ObjectEditor( ThisFieldEditor, Object, Class, Flags );
 			} ) );
 }
 

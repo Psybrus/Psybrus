@@ -25,6 +25,8 @@
 #include "System/Scene/Import/ScnMaterialImport.h"
 #endif
 
+#include "Editor/Editor.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Define resource internals.
 REFLECTION_DEFINE_DERIVED( ScnMaterial );
@@ -66,7 +68,7 @@ void ScnMaterial::StaticRegisterClass()
 
 							ImGui::ScopedID ScopedID( Data );
 
-							DsCore::pImpl()->drawObjectEditor(
+							Editor::ObjectEditor(
 								ThisFieldEditor, 
 								Data,
 								ReManager::GetClass( Iter->first ), Flags );

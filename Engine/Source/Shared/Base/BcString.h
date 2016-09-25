@@ -31,7 +31,7 @@ const BcChar* BcStrStr( const BcChar* pStr, const BcChar* pSubStr );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCopy
-void BcStrCopy( BcChar* pDest, BcU32 DestSize, const BcChar* pSrc );
+void BcStrCopy( BcChar* pDest, size_t DestSize, const BcChar* pSrc );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCompare
@@ -39,7 +39,7 @@ BcBool BcStrCompare( const BcChar* pStr1, const BcChar* pStr2 );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrNCompare
-BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
+BcBool BcStrCompareN( const BcChar* pStr1, const BcChar* pStr2, size_t Count );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCompareCaseInsensitive
@@ -47,7 +47,7 @@ BcBool BcStrCompareCaseInsensitive( const BcChar* pStr1, const BcChar* pStr2 );
 
 //////////////////////////////////////////////////////////////////////////
 // BcStrCompareCaseInsensitiveN
-BcBool BcStrCompareCaseInsensitiveN( const BcChar* pStr1, const BcChar* pStr2, BcU32 Count );
+BcBool BcStrCompareCaseInsensitiveN( const BcChar* pStr1, const BcChar* pStr2, size_t Count );
 
 //////////////////////////////////////////////////////////////////////////
 // BcSPrintf

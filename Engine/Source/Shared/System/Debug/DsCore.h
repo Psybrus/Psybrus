@@ -73,14 +73,6 @@ public:
 	 */
 	virtual void addViewOverlay( const class MaMat4d& View, const class MaMat4d& Proj, const struct RsViewport& Viewport ) = 0;
 
-	/**
-	 * Draw obejct editor.
-	 * Will handle any type represented by ReClass, will draw the default
-	 * object editor. Will handle upcasting ReObject types.
-	 */
-	virtual void drawObjectEditor( 
-		DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) = 0;
-
 	virtual BcU32 registerPage( 
 		std::string regex, 
 		std::vector< std::string > namedCaptures, 

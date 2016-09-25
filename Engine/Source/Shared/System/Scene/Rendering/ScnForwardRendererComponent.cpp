@@ -20,6 +20,7 @@
 
 #include "System/SysKernel.h"
 
+#include "Editor/Editor.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -58,7 +59,7 @@ void ScnForwardRendererComponent::StaticRegisterClass()
 				ScnForwardRendererComponent* Value = (ScnForwardRendererComponent*)Object;
 				if( Value != nullptr )
 				{
-					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Value, Value->getClass(), Flags );
+					Editor::ObjectEditor( ThisFieldEditor, Value, Value->getClass(), Flags );
 				}
 			} ) );
 

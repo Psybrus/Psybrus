@@ -20,6 +20,7 @@
 
 #include "System/SysKernel.h"
 
+#include "Editor/Editor.h"
 
 #include "Base/BcMath.h"
 #include "Base/BcProfiler.h"
@@ -130,7 +131,8 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 	auto& Class = ReRegisterClass< ScnDeferredRendererComponent, Super >( Fields );
 	Class.addAttribute( new ScnComponentProcessor() );
 
-		// Add editor.
+	// TODO: Move into editor only file.
+	// Add editor.
 	Class.addAttribute( 
 		new DsImGuiFieldEditor( 
 			[]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
@@ -138,9 +140,9 @@ void ScnDeferredRendererComponent::StaticRegisterClass()
 				ScnDeferredRendererComponent* Value = (ScnDeferredRendererComponent*)Object;
 				if( Value != nullptr )
 				{
-					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, &Value->BloomUniformBlock_, ScnShaderBloomUniformBlockData::StaticGetClass(), Flags );
-					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, &Value->ToneMappingUniformBlock_, ScnShaderToneMappingUniformBlockData::StaticGetClass(), Flags );
-					DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Value, Value->getClass(), Flags );
+					Editor::ObjectEditor( ThisFieldEditor, &Value->BloomUniformBlock_, ScnShaderBloomUniformBlockData::StaticGetClass(), Flags );
+					Editor::ObjectEditor( ThisFieldEditor, &Value->ToneMappingUniformBlock_, ScnShaderToneMappingUniformBlockData::StaticGetClass(), Flags );
+					Editor::ObjectEditor( ThisFieldEditor, Value, Value->getClass(), Flags );
 				}
 			} ) );
 

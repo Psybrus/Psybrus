@@ -113,7 +113,6 @@ public:
 	BcU32 registerPanel( const char* Category, const char* Name, const char* Shortcut, std::function< void( BcU32 )> Func ) override;
 	void deregisterPanel( BcU32 Handle ) override;
 	void addViewOverlay( const MaMat4d& View, const MaMat4d& Proj, const RsViewport& Viewport ) override;
-	void drawObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void( DsParameters, BcHtmlNode&, std::string )> fn, std::string display ) override;
 	BcU32 registerPage( std::string regex, std::vector< std::string > namedCaptures, std::function < void( DsParameters, BcHtmlNode&, std::string )> fn ) override;
 	BcU32 registerPageNoHtml( std::string regex, std::vector<std::string> namedCaptures, std::function < void( DsParameters, BcHtmlNode&, std::string )> fn ) override;
@@ -122,7 +121,6 @@ public:
 	void deregisterFunction( BcU32 Handle ) override;
 
 private:
-	void setupReflectionEditorAttributes();
 	char* handleFile( std::string Uri, int& FileSize, std::string Content );
 	std::string loadHtmlFile( std::string Uri, std::string Content );
 	std::string loadTemplateFile( std::string TemplateName );

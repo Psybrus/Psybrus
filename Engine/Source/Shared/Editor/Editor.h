@@ -3,15 +3,22 @@
 #include "Base/BcTypes.h"
 #include "Math/MaMat4d.h"
 
+class DsImGuiFieldEditor;
+
 namespace Editor
 {
 	void Init();
 
 	/**
+	 * Object ID.
+	 */
+	using ObjectID = BcU32;
+
+	/**
 	 * Callback for actions.
 	 */
-	typedef std::function< void() > ActionCallback;
-
+	using ActionCallback = std::function< void( ObjectID ) >;
+	
 	/**
 	 * Result from handle with interaction details.
 	 */
@@ -28,6 +35,13 @@ namespace Editor
 			return WasClicked_;
 		}
 	};
+
+	/**
+	 * Draw obejct editor.
+	 * Will handle any type represented by ReClass, will draw the default
+	 * object editor. Will handle upcasting ReObject types.
+	 */
+	void ObjectEditor( DsImGuiFieldEditor* ThisFieldEditor, void* Data, const ReClass* Class, BcU32 Flags );
 
 	/**
 	 * Setup handle in world.
@@ -59,11 +73,12 @@ namespace Editor
 	 * the first @a Undo callback will be kept, and only @a Do will be executed.
 	 * @param ID ID to associate with handle.
 	 * @param Name of action. Included as part of the ID. Use string literal, or permenant allocation.
+	 * @param ObjectID Object on which the action is being performed.
 	 * @param Do Callback to perform action.
 	 * @param Undo Callback to undo action.
 	 * @param Commit Should commit after action.
 	 */
-	void Action( BcU32 ID, const char* Name, ActionCallback Do, ActionCallback Undo, bool Commit = true );
+	void Action( BcU32 ID, const char* Name, ObjectID Object, ActionCallback Do, ActionCallback Undo, bool Commit = true );
 
 	/**
 	 * Cancel action.
@@ -87,5 +102,24 @@ namespace Editor
 	 */
 	void RedoAction();
 
+	/**
+	 * Get an object ID for an object.
+	 * @param Object Object we want an ID for.
+	 * @param ID If non-zero, will replace existing object.
+	 * @param ID.
+	 */
+	ObjectID GetObjectID( void* Object, ObjectID ID = 0 );
 
+	/**
+	 * Remove an object ID. Call when object has been removed.
+	 * @param Object object to unregister.
+	 * @param ID ID of object ot unregister. Can be zero.
+	 */
+	void RemoveObjectID( void* Object, ObjectID ID = 0 );
+
+	/**
+	 * Get an object.
+	 * @param ID ID of object.
+	 */
+	void* GetObject( ObjectID ID );
 }

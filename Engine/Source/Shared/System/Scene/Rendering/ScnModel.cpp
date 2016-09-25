@@ -25,6 +25,8 @@
 #include "System/Content/CsCore.h"
 #include "System/SysKernel.h"
 
+#include "Editor/Editor.h"
+
 #include "Base/BcProfiler.h"
 
 #ifdef PSY_IMPORT_PIPELINE
@@ -958,7 +960,7 @@ void ScnModel::StaticRegisterClass()
 				}
 
 				// Defaults.
-				DsCore::pImpl()->drawObjectEditor( ThisFieldEditor, Object, Class, Flags );
+				Editor::ObjectEditor( ThisFieldEditor, Object, Class, Flags );
 			} ) );
 }
 
