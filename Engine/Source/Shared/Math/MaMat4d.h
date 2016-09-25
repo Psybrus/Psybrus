@@ -17,7 +17,7 @@
 #include "Math/MaVec2d.h"
 #include "Math/MaVec3d.h"
 #include "Math/MaVec4d.h"
-#include "Reflection/ReReflection.h"
+#include "Reflection/ReUtility.h"
 
 //////////////////////////////////////////////////////////////////////////
 // MaMat4d

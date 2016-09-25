@@ -156,7 +156,7 @@ BcBool MaAABB::lineIntersect( const MaVec3d& Start, const MaVec3d& End, MaVec3d*
 		// If its valid, check distance.
 		if( Valid )
 		{
-			BcF32 Distance = ( Start - Intersects[i] ).magnitudeSquared();
+			Distance = ( Start - Intersects[i] ).magnitudeSquared();
 
 			if( Distance < Nearest )
 			{

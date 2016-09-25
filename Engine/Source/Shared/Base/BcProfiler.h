@@ -115,7 +115,7 @@ class BcProfilerSectionScope
 {
 public:
 	BcProfilerSectionScope( const char* Tag, ... ):
-		Tag_( { 0 } )
+		Tag_()
 	{
 		if( Tag )
 		{
@@ -123,9 +123,9 @@ public:
 			{
 				va_list Args;
 				va_start( Args, Tag );
-				BcVSPrintf( Tag_.data(), Tag_.size(), Tag, Args ); 
+				BcVSPrintf( Tag_, BcArraySize( Tag_ ), Tag, Args ); 
 				va_end( Args );
-				BcProfiler::pImpl()->enterSection( Tag_.data() );
+				BcProfiler::pImpl()->enterSection( Tag_ );
 			}
 		}
 	}
@@ -134,12 +134,12 @@ public:
 	{
 		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
 		{
-			BcProfiler::pImpl()->exitSection( Tag_.data() );
+			BcProfiler::pImpl()->exitSection( Tag_ );
 		}
 	}
 
 private:
-	std::array< char, 128 > Tag_;
+	char Tag_[ 128 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ class BcProfilerGPUSectionScope
 {
 public:
 	BcProfilerGPUSectionScope( const char* Tag, ... ):
-		Tag_( { 0 } )
+		Tag_()
 	{
 		if( Tag )
 		{
@@ -156,9 +156,9 @@ public:
 			{
 				va_list Args;
 				va_start( Args, Tag );
-				BcVSPrintf( Tag_.data(), Tag_.size(), Tag, Args ); 
+				BcVSPrintf( Tag_, BcArraySize( Tag_ ), Tag, Args ); 
 				va_end( Args );
-				BcProfiler::pImpl()->enterGPUSection( Tag_.data() );
+				BcProfiler::pImpl()->enterGPUSection( Tag_ );
 			}
 		}
 	}
@@ -167,12 +167,12 @@ public:
 	{
 		if( BcProfiler::pImpl() != nullptr && Tag_[ 0 ] != 0 )
 		{
-			BcProfiler::pImpl()->exitGPUSection( Tag_.data() );
+			BcProfiler::pImpl()->exitGPUSection( Tag_ );
 		}
 	}
 
 private:
-	std::array< char, 128 > Tag_;
+	char Tag_[ 128 ];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -245,9 +245,9 @@ public:
 		{
 			if( BcProfiler::pImpl() != nullptr )
 			{
-				std::array< char, 128 > Buffer = { 0 };
-				BcSPrintf( Buffer.data(), Buffer.size() - 1, "%s[%p]", Tag, Data );
-				BcProfiler::pImpl()->instantEvent( Buffer.data() );
+				char Buffer[ 128 ] = { 0 };
+				BcSPrintf( Buffer, BcArraySize( Buffer ), "%s[%p]", Tag, Data );
+				BcProfiler::pImpl()->instantEvent( Buffer );
 			}
 		}
 	}
@@ -256,9 +256,9 @@ public:
 	{
 		if( BcProfiler::pImpl() != nullptr )
 		{
-			std::array< char, 128 > Buffer = { 0 };
-			BcSPrintf( Buffer.data(), Buffer.size() - 1, "%s[%p]", Tag.c_str(), Data );
-			BcProfiler::pImpl()->instantEvent( Buffer.data() );
+			char Buffer[ 128 ] = { 0 };
+			BcSPrintf( Buffer, BcArraySize( Buffer ), "%s[%p]", Tag.c_str(), Data );
+			BcProfiler::pImpl()->instantEvent( Buffer );
 		}
 	}
 };

@@ -9,6 +9,7 @@
 #include "Reflection/ReMacros.h"
 #include "Reflection/ReObjectRef.h"
 
+#include <array>
 #include <typeinfo>
 #include <limits>
 #include <vector>

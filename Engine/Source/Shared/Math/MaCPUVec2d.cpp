@@ -17,6 +17,8 @@
 
 #include "Base/BcString.h"
 
+#include "Reflection/ReReflection.h"
+
 void MaCPUVec2d::StaticRegisterClass()
 {
 	class MaCPUVec2dSerialiser:

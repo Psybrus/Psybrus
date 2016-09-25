@@ -14,8 +14,10 @@
 #ifndef __BCCPUVEC4D_H__
 #define __BCCPUVEC4D_H__
 
-#include "Reflection/ReReflection.h"
+#include "Base/BcTypes.h"
+#include "Reflection/ReUtility.h"
 #include "MaVec3d.h"
+
 #define DECLARE_SWIZZLE3( T, X, Y, Z ) inline T X ## Y ## Z() const { return T( X(), Y(), Z() ); }
 //////////////////////////////////////////////////////////////////////////
 // MaCPUVec4d

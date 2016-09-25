@@ -5,7 +5,6 @@
 #include "Math/MaMat4d.h"
 #include "Math/MaVec3d.h"
 #include "System/Renderer/RsContext.h"
-#include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsRenderNode.h"
 #include "System/Renderer/RsViewport.h"
 

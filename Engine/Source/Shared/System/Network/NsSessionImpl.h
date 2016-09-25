@@ -6,6 +6,7 @@
 #include "System/Network/NsSession.h"
 #include "System/SysFence.h"
 
+#include <array>
 #include <set>
 #include <thread>
 

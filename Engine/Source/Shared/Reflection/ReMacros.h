@@ -1,8 +1,6 @@
 #ifndef __REFLECTION_MACROS_H__
 #define __REFLECTION_MACROS_H__
 
-#include <string>
-
 //////////////////////////////////////////////////////////////////////////
 // Reflection Defines
 
@@ -11,7 +9,7 @@
  */
 #define __REFLECTION_DECLARE_BASIC( _Type )										\
 	public:																		\
-	static BcName StaticGetTypeName();								\
+	static BcName StaticGetTypeName();											\
 	static BcU32 StaticGetTypeNameHash();										\
 	static const ReClass* StaticGetClass();										\
 	static void StaticRegisterClass();											\
@@ -21,9 +19,9 @@
  * Internal
  */
 #define __REFLECTION_DEFINE_BASIC( _Type )										\
-	BcName _Type::StaticGetTypeName()								\
+	BcName _Type::StaticGetTypeName()											\
 	{																			\
-		static std::string Name( ReTypeTraits< _Type >::Name() );				\
+		static BcName Name( ReTypeTraits< _Type >::Name() );					\
 		return Name;															\
 	}																			\
 																				\

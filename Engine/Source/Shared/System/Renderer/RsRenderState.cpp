@@ -13,6 +13,8 @@
 
 #include "System/Renderer/RsRenderState.h"
 
+#include "Reflection/ReReflection.h"
+
 #include <type_traits>
 
 //////////////////////////////////////////////////////////////////////////

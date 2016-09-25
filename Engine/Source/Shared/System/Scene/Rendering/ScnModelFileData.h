@@ -14,7 +14,6 @@
 #ifndef __SCNMODELFILEDATA__
 #define __SCNMODELFILEDATA__
 
-#include "System/Renderer/RsTypes.h"
 #include "System/Renderer/RsUniquePointers.h"
 #include "System/Scene/Rendering/ScnMaterial.h" // TODO: Get rid of this reference.
 
