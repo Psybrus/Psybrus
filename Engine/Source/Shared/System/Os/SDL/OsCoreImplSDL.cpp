@@ -43,7 +43,13 @@ void OsCoreImplSDL::open()
 	if ( SDL_Init( SDL_INIT_EVERYTHING ) != 0 )
 	{
 		PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
-		BcBreakpoint;
+
+		// Try fallback to just timer & events. We may just be running a server build.
+		if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_EVENTS ) != 0 )
+		{
+			PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
+			BcBreakpoint;
+		}
 	}
 
 	// Create default input devices.
