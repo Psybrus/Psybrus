@@ -1,0 +1,10 @@
+--if PsyProjectExternalLib( "Catch", "C++" ) then
+--	configuration "*"
+--		kind ( EXTERNAL_PROJECT_KIND )
+--		files { 
+--			"./Catch/include/**.hpp"
+--		}
+--		includedirs { 
+--			"./Catch/include/"
+--		}
+--end

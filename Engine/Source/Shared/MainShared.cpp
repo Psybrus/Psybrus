@@ -46,38 +46,39 @@ BcU32 GResolutionHeight = 720;
 #include <chrono>
 
 //////////////////////////////////////////////////////////////////////////
-// MainUnitTests
-void MainUnitTests()
+// Unit test setup.
+#if !PSY_PRODUCTION
+#define CATCH_CONFIG_RUNNER
+#include <catch.hpp>
+#include <reporters/catch_reporter_teamcity.hpp>
+
+int MainUnitTests()
 {
 	PSY_LOG( "============================================================================\n" );
 	PSY_LOG( "MainUnitTests:\n" );
-
 	BcAssertScopedHandler AssertHandler(
 		[]( const BcChar* Message, const BcChar* File, int Line )
 		{
-			BcPrintf( "Caught assertion: \"%s\" in %s on line %u.\n", Message, File, Line );
+			std::array< char, 256 > Buffer;
+			BcSPrintf( Buffer.data(), Buffer.size(), "Caught assertion: \"%s\" in %s on line %u.\n", Message, File, Line );
+			FAIL( Buffer.data() );
 			return BcFalse;
 		} );
 
-	// Types unit test.
-	extern void BcTypes_UnitTest();
-	BcTypes_UnitTest();
-	
-#if !PLATFORM_ANDROID
-	// Fixed unit test.
-	extern void BcFixed_UnitTest();
-	BcFixed_UnitTest();
+	auto RetVal = Catch::Session().run( GCommandLine_.getArgc(), GCommandLine_.getArgv() );
 
-	// Relative ptr unit test.
-	extern void BcRelativePtr_UnitTest();
-	BcRelativePtr_UnitTest();
+#if PLATFORM_WINDOWS
+	if( RetVal != 0 && ::IsDebuggerPresent() )
+	{
+		BcBreakpoint;
+	}
 #endif
 
-	// SysKernel unit test.
-	extern void SysKernel_UnitTest();
-	SysKernel_UnitTest();
+	return RetVal;
 }
 
+#endif // !PSY_PRODUCTION
+ 
 //////////////////////////////////////////////////////////////////////////
 // onCsCoreOpened
 #if !PLATFORM_ANDROID && !PLATFORM_HTML5

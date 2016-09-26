@@ -132,9 +132,6 @@ void PsyAndroidMain( struct android_app* State )
 	// Create reflection database
 	ReManager::Init();
 
-	//extern void MainUnitTests();
-	//MainUnitTests();
-
 	// Create kernel.
 	new SysKernel( GPsySetupParams.TickRate_ );
 

@@ -67,6 +67,13 @@ BcCommandLine::BcCommandLine( const char* CmdLine ):
 	{
 		Args_.push_back( std::move( Arg ) );
 	}
+
+	// Setup CArgs.
+	CArgs_.reserve( Args_.size() );
+	for( const auto& Arg : Args_ )
+	{
+		CArgs_.push_back( Arg.c_str() );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,6 +89,13 @@ BcCommandLine::BcCommandLine( int Argc, const char* Argv[] )
 			FullCommandline_ += " ";
 		}
 		FullCommandline_ += Argv[ Idx ];
+	}
+
+	// Setup CArgs.
+	CArgs_.reserve( Args_.size() );
+	for( const auto& Arg : Args_ )
+	{
+		CArgs_.push_back( Arg.c_str() );
 	}
 }
 

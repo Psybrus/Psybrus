@@ -16,21 +16,25 @@
 #include "Base/BcDebug.h"
 
 //////////////////////////////////////////////////////////////////////////
-// BcTypes_UnitTest
-void BcTypes_UnitTest()
+// Unit tests.
+#if !PSY_PRODUCTION
+#include <catch.hpp>
+
+TEST_CASE( "BcTypes-TypeSizes")
 {
-	// TODO: Move this into a types unit test.
-	BcUnitTest( sizeof( BcU8 ) == 1 );
-	BcUnitTest( sizeof( BcS8 ) == 1 );
-	BcUnitTest( sizeof( BcU16 ) == 2 );
-	BcUnitTest( sizeof( BcS16 ) == 2 );
-	BcUnitTest( sizeof( BcU32 ) == 4 );
-	BcUnitTest( sizeof( BcS32 ) == 4 );
-	BcUnitTest( sizeof( BcU64 ) == 8 );
-	BcUnitTest( sizeof( BcS64 ) == 8 );
-	BcUnitTest( sizeof( BcF32 ) == 4 );
-	BcUnitTest( sizeof( BcF64 ) == 8 );
+	REQUIRE( sizeof( BcU8 ) == 1 );
+	REQUIRE( sizeof( BcS8 ) == 1 );
+	REQUIRE( sizeof( BcU16 ) == 2 );
+	REQUIRE( sizeof( BcS16 ) == 2 );
+	REQUIRE( sizeof( BcU32 ) == 4 );
+	REQUIRE( sizeof( BcS32 ) == 4 );
+	REQUIRE( sizeof( BcU64 ) == 8 );
+	REQUIRE( sizeof( BcS64 ) == 8 );
+	REQUIRE( sizeof( BcF32 ) == 4 );
+	REQUIRE( sizeof( BcF64 ) == 8 );
 }
+
+#endif // !PSY_PRODUCTION
 
 //////////////////////////////////////////////////////////////////////////
 // TODO: Move this to a better place...

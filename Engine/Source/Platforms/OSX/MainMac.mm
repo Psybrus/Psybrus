@@ -94,9 +94,7 @@ int main(int argc, const char* argv[])
 	// Unit tests prior to full kernel initialisation.
 	if( GCommandLine_.hasArg( '\0', "unittest" ) )
 	{
-		extern void MainUnitTests();
-		MainUnitTests();
-		return 0;
+		return MainUnitTests();
 	}
 
 	// Create kernel.

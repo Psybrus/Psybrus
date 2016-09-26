@@ -42,7 +42,18 @@ public:
 	 */
 	const char* c_str() const { return FullCommandline_.c_str(); }
 
+	/**
+	 * @return Argc, as would have came from int main().
+	 */
+	const int getArgc() const { return int( CArgs_.size() ); }
+
+	/**
+	 * @return Argv, as would have came from int main().
+	 */
+	const char* const* getArgv() const { return CArgs_.data(); }
+
 private:
 	std::string FullCommandline_;
 	std::vector< std::string > Args_;
+	std::vector< const char* > CArgs_;
 };

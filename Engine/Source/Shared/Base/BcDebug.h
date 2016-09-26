@@ -181,27 +181,5 @@ extern BcBool BcVerifyInternal( const BcChar* pMessage, const BcChar* pFile, int
 #  define BcVerify( Condition )
 #endif
 
-
-//////////////////////////////////////////////////////////////////////////
-// BcUnitTest
-#if 1
-#  define BcUnitTest( a )							\
-	BcPrintf( "- Test: %s\n", #a );					\
-	if( a )											\
-	{ BcPrintf( "- - Passed. %s:%u\n", __FILE__, __LINE__ );	} \
-	else											\
-	{ BcPrintf( "- - FAILED. %s:%u\n", __FILE__, __LINE__ ); BcBreakpoint; } 
-
-#  define BcUnitTestMsg( a, b )						\
-	BcPrintf( "- Test (%s): %s\n", b, #a );			\
-	if( a )											\
-	{ BcPrintf( "- - Passed. %s:%u\n", __FILE__, __LINE__ ); } \
-	else											\
-	{ BcPrintf( "- - FAILED. %s:%u\n", __FILE__, __LINE__ ); BcBreakpoint; } 
-#else
-#  define BcUnitTest( a )
-#  define BcUnitTestMsg( a, b )
-#endif
-
 #endif
 

@@ -34,3 +34,6 @@
 [submodule "External/ImGuizmo"]
 	path = External/ImGuizmo
 	url = https://github.com/Psybrus/ImGuizmo
+[submodule "External/Catch"]
+	path = External/Catch
+	url = https://github.com/Psybrus/Catch

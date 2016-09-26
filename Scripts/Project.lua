@@ -14,6 +14,7 @@ function PsyPlatformIncludes()
 
 	-- External includes.
 	includedirs { 
+	   "../Psybrus/External/Catch/include",
 	   "../Psybrus/External/imgui", 
 	   "../Psybrus/External/ImGuizmo", 
 	   "../Psybrus/External/jsoncpp/include", 
@@ -192,6 +193,7 @@ function PsyProjectCommonEngine( _name )
 	-- Add default include paths.
 	configuration( "*" )
 		includedirs {
+			"../../External/Catch/include",
 			"../../External/imgui",
 			"../../External/ImGuizmo"
 		}

@@ -12,6 +12,8 @@
 #include "System/Os/OsClientWindows.h"
 #include "System/Os/OsMinidumpWindows.h"
 
+#include <iostream>
+
 BcHandle GInstance_ = NULL;
 
 eEvtReturn OnPreOsUpdate_PumpMessages( EvtID, const EvtBaseEvent& )
@@ -127,6 +129,22 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		new OsMinidumpWindows();
 	}
 #endif
+	
+#if !PSY_PRODUCTION
+	if( ::AllocConsole() )
+	{
+		freopen("CONIN$", "r", stdin);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+
+		std::wcout.clear();
+		std::cout.clear();
+		std::wcerr.clear();
+		std::cerr.clear();
+		std::wcin.clear();
+		std::cin.clear();
+	}
+#endif
 
 #if PLATFORM_WINDOWS
 	// Setup for more accurate timing.
@@ -191,9 +209,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Unit tests prior to full kernel initialisation.
 	if( GCommandLine_.hasArg( 'u', "unittest" ) )
 	{
-		extern void MainUnitTests();
-		MainUnitTests();
-		return 0;
+		return MainUnitTests();
 	}
 
 	// Create kernel.

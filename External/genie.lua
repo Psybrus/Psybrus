@@ -10,6 +10,7 @@ EXTERNAL_PROJECT_PREFIX = "External_"
 EXTERNAL_PROJECT_KIND = "StaticLib"
 
 dofile ("bullet_genie.lua")
+dofile ("catch_genie.lua")
 dofile ("freetype_genie.lua")
 dofile ("imgui_genie.lua")
 dofile ("imguizmo_genie.lua")

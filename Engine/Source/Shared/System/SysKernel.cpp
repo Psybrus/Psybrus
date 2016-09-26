@@ -27,33 +27,29 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-// Reflection
-REFLECTION_DEFINE_BASE( SysKernel );
+// Unit tests.
+#if !PSY_PRODUCTION
+#include <catch.hpp>
 
-void SysKernel::StaticRegisterClass()
+TEST_CASE( "SysKernel-CreateJobQueues" )
 {
-	ReField* Fields[] = 
+	SysKernel Kernel;
+	Kernel.startWorkers();
+
+	// Setup job queues.
+	size_t JobQueues[] = 
 	{
-		new ReField( "SystemList_",			&SysKernel::SystemList_ ),
-		new ReField( "ShuttingDown_",		&SysKernel::ShuttingDown_ ),
-		new ReField( "IsThreaded_",			&SysKernel::IsThreaded_ ),
-		new ReField( "MainTimer_",			&SysKernel::MainTimer_ ),
-		new ReField( "SleepAccumulator_",	&SysKernel::SleepAccumulator_ ),
-		new ReField( "TickRate_",			&SysKernel::TickRate_ ),
-		new ReField( "FrameTime_",			&SysKernel::FrameTime_ ),
-		new ReField( "GameThreadTime_",		&SysKernel::GameThreadTime_ ),
+		Kernel.createJobQueue( 1, 1 ),
+		Kernel.createJobQueue( 2, 1 ),
+		Kernel.createJobQueue( 3, 1 ),
+		Kernel.createJobQueue( 4, 1 )
 	};
-		
-	ReRegisterClass< SysKernel >( Fields );
 }
 
-//////////////////////////////////////////////////////////////////////////
-// SysKernel_UnitTest
-void SysKernel_UnitTest()
+TEST_CASE( "SysKernel-TestQueues-NoQueues" )
 {
-	PSY_LOG( "SysKernel_UnitTest:\n" );
-
 	SysKernel Kernel;
+	Kernel.startWorkers();
 
 	// Setup job queues.
 	size_t JobQueues[] = 
@@ -95,8 +91,41 @@ void SysKernel_UnitTest()
 	ThisTime = Timer.time() * 1000.0f;
 	TotalTime += ThisTime;
 	PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
-	BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "Main thread test." );
+	REQUIRE( IncDecAtomic.load( std::memory_order_seq_cst ) == 0 );
+}
 
+TEST_CASE( "SysKernel-TestQueues-Individually" )
+{
+	SysKernel Kernel;
+	Kernel.startWorkers();
+
+	// Setup job queues.
+	size_t JobQueues[] = 
+	{
+		Kernel.createJobQueue( 1, 1 ),
+		Kernel.createJobQueue( 2, 1 ),
+		Kernel.createJobQueue( 3, 1 ),
+		Kernel.createJobQueue( 4, 1 )
+	};
+
+	std::atomic< BcU32 > IncDecAtomic( 0 );
+
+	auto TestIncJob = [ &IncDecAtomic ]()
+	{
+		BcSleep( 0.005f );
+		++IncDecAtomic;
+	};
+
+	auto TestDecJob = [ &IncDecAtomic ]()
+	{
+		BcSleep( 0.006f );
+		--IncDecAtomic;
+	};
+
+	BcU32 NoofJobs = 100;
+	BcF64 TotalTime = 0.0f;
+	BcF64 ThisTime = 0.0f;
+	BcTimer Timer;
 
 	// Test each queue individually.
 	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
@@ -112,8 +141,42 @@ void SysKernel_UnitTest()
 		ThisTime = Timer.time() * 1000.0f;
 		TotalTime += ThisTime;
 		PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
-		BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "Job queue w/ workers test." );
+		REQUIRE( IncDecAtomic.load( std::memory_order_seq_cst ) == 0 );
 	}
+}
+
+TEST_CASE( "SysKernel-TestQueues-Simultaneously" )
+{
+	SysKernel Kernel;
+	Kernel.startWorkers();
+
+	// Setup job queues.
+	size_t JobQueues[] = 
+	{
+		Kernel.createJobQueue( 1, 1 ),
+		Kernel.createJobQueue( 2, 1 ),
+		Kernel.createJobQueue( 3, 1 ),
+		Kernel.createJobQueue( 4, 1 )
+	};
+
+	std::atomic< BcU32 > IncDecAtomic( 0 );
+
+	auto TestIncJob = [ &IncDecAtomic ]()
+	{
+		BcSleep( 0.005f );
+		++IncDecAtomic;
+	};
+
+	auto TestDecJob = [ &IncDecAtomic ]()
+	{
+		BcSleep( 0.006f );
+		--IncDecAtomic;
+	};
+
+	BcU32 NoofJobs = 100;
+	BcF64 TotalTime = 0.0f;
+	BcF64 ThisTime = 0.0f;
+	BcTimer Timer;
 
 	// Test all queues simultaneously.
 	PSY_LOG( "Begin: queues all\n" );
@@ -130,7 +193,30 @@ void SysKernel_UnitTest()
 	ThisTime = Timer.time() * 1000.0f;
 	TotalTime += ThisTime;
 	PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
-	BcUnitTestMsg( IncDecAtomic.load( std::memory_order_seq_cst ) == 0, "All job queues." );
+	REQUIRE( IncDecAtomic.load( std::memory_order_seq_cst ) == 0 );
+}
+
+#endif // !PSY_PRODUCTION
+
+//////////////////////////////////////////////////////////////////////////
+// Reflection
+REFLECTION_DEFINE_BASE( SysKernel );
+
+void SysKernel::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "SystemList_",			&SysKernel::SystemList_ ),
+		new ReField( "ShuttingDown_",		&SysKernel::ShuttingDown_ ),
+		new ReField( "IsThreaded_",			&SysKernel::IsThreaded_ ),
+		new ReField( "MainTimer_",			&SysKernel::MainTimer_ ),
+		new ReField( "SleepAccumulator_",	&SysKernel::SleepAccumulator_ ),
+		new ReField( "TickRate_",			&SysKernel::TickRate_ ),
+		new ReField( "FrameTime_",			&SysKernel::FrameTime_ ),
+		new ReField( "GameThreadTime_",		&SysKernel::GameThreadTime_ ),
+	};
+		
+	ReRegisterClass< SysKernel >( Fields );
 }
 
 
