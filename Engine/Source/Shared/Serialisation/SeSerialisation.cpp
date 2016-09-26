@@ -32,8 +32,20 @@ namespace TestData
 
 		std::string serialiseAsStringRef( void* InData, const ReClass* InType )
 		{
+			BcU32 ID = ID_;
+			if( IDMap_.find( InData ) == IDMap_.end() )
+			{
+				ID_++;
+				IDMap_[ InData ] = ID_;
+				ID = ID_;
+			}
+			else
+			{
+				ID = IDMap_[ InData ];
+			}
+
 			std::array< char, 128 > Buffer;
-			BcSPrintf( Buffer.data(), Buffer.size(), "%llu", (unsigned long long)InData );
+			BcSPrintf( Buffer.data(), Buffer.size(), "%u", ID );
 			return Buffer.data();
 		}
 	
@@ -63,6 +75,9 @@ namespace TestData
 			OutObject = nullptr;
 			return BcFalse;
 		}
+
+		int ID_ = 0;
+		std::map< void*, int > IDMap_;
 	};
 
 
@@ -192,6 +207,88 @@ namespace TestData
 			IsRegistered = true;
 		}
 	}
+
+	class TestBasePointers2
+	{
+	public:
+		REFLECTION_DECLARE_BASE_NOAUTOREG( TestBasePointers2 );
+
+		TestBasePointers2()
+		{
+		}
+
+		~TestBasePointers2()
+		{
+			delete A_;
+			delete B_;
+			A2_ = nullptr;
+			B2_ = nullptr;
+		}
+
+		bool operator == ( const TestBasePointers2& Other ) const
+		{
+			bool RetVal = true;
+			if( A_ && Other.A_ )
+			{
+				RetVal &= *A_ == *Other.A_;
+			}
+			else
+			{
+				RetVal &= A_ == Other.A_;
+			}
+			if( B_ && Other.B_ )
+			{
+				RetVal &= *B_ == *Other.B_;
+			}
+			else
+			{
+				RetVal &= B_ == Other.B_;
+			}
+			if( A2_ && Other.A2_ )
+			{
+				RetVal &= *A2_ == *Other.A2_;
+			}
+			else
+			{
+				RetVal &= A2_ == Other.A2_;
+			}
+			if( B2_ && Other.B2_ )
+			{
+				RetVal &= *B2_ == *Other.B2_;
+			}
+			else
+			{
+				RetVal &= B2_ == Other.B2_;
+			}
+			return RetVal;
+		}
+
+		TestBase* A_ = nullptr;
+		TestBase* B_ = nullptr;
+		TestBase* A2_ = nullptr;
+		TestBase* B2_ = nullptr;
+	};
+
+	REFLECTION_DEFINE_BASE( TestBasePointers2 );
+
+	void TestBasePointers2::StaticRegisterClass()
+	{
+		static bool IsRegistered = false;
+		if( IsRegistered == false )
+		{
+			ReField* Fields[] = 
+			{
+				new ReField( "A_", &TestBasePointers2::A_, bcRFF_IMPORTER | bcRFF_OWNER ),
+				new ReField( "B_", &TestBasePointers2::B_, bcRFF_IMPORTER | bcRFF_OWNER ),
+				new ReField( "A2_", &TestBasePointers2::A2_, bcRFF_IMPORTER | bcRFF_OWNER ),
+				new ReField( "B2_", &TestBasePointers2::B2_, bcRFF_IMPORTER | bcRFF_OWNER ),
+			};
+	
+			ReRegisterClass< TestBasePointers2 >( Fields );
+
+			IsRegistered = true;
+		}
+	}
 }
 
 
@@ -304,6 +401,76 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers" )
 	}
 }
 
+
+TEST_CASE( "Serialisation-JsonWriter-Base-Pointers-Duplicated" )
+{
+	using namespace TestData;
+
+	// Register.
+	TestBase::StaticRegisterClass();
+	TestBasePointers2::StaticRegisterClass();
+
+	// Create object to save.
+	TestBasePointers2 JsonWriterTestBasePointers_;
+	JsonWriterTestBasePointers_.A_ = new TestBase( false );
+	JsonWriterTestBasePointers_.B_ = new TestBase( true );
+	JsonWriterTestBasePointers_.A2_ = JsonWriterTestBasePointers_.A_;
+	JsonWriterTestBasePointers_.B2_ = JsonWriterTestBasePointers_.B_;
+
+	// Write Json out.
+	ObjectCodecBasic ObjectCodec;
+	SeJsonWriter Writer( &ObjectCodec );
+	Writer.serialise( &JsonWriterTestBasePointers_, JsonWriterTestBasePointers_.getClass() );
+
+	INFO( Writer.getOutput() );
+
+	const auto& Value = Writer.getValue();
+
+	// Basic checks.
+	REQUIRE( Value.type() == Json::objectValue );
+	REQUIRE( Value[ SeISerialiser::SerialiserVersionString ].type() == Json::intValue );
+	REQUIRE( Value[ SeISerialiser::SerialiserVersionString ].asUInt() == SERIALISER_VERSION );
+	REQUIRE( Value[ SeISerialiser::ObjectsString ].type() == Json::arrayValue );
+	REQUIRE( Value[ SeISerialiser::ObjectsString ].size() == 3 );
+	REQUIRE( Value[ SeISerialiser::RootIDString ].type() == Json::stringValue );
+
+	// Object check.
+	const auto& Object = Value[ SeISerialiser::ObjectsString ][ 0 ];
+	REQUIRE( Object.type() == Json::objectValue );
+
+	// Check of the contained objects.
+	{
+		const auto& Object = Value[ SeISerialiser::ObjectsString ][ 1 ];
+		REQUIRE( Object.type() == Json::objectValue );
+
+		TestBase TestBaseObject( false );
+		REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
+		REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
+		REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
+		REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
+		REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == TestBaseObject.E_ );
+		REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == TestBaseObject.F_ );
+		REQUIRE( TestBaseObject.G_ == Object[ "G_" ].asCString() );
+		REQUIRE( TestBaseObject.H_ == Object[ "H_" ].asCString() );
+	}
+
+	{
+		const auto& Object = Value[ SeISerialiser::ObjectsString ][ 2 ];
+		REQUIRE( Object.type() == Json::objectValue );
+
+		TestBase TestBaseObject( true );
+		REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
+		REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
+		REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
+		REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
+		REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == TestBaseObject.E_ );
+		REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == TestBaseObject.F_ );
+		REQUIRE( TestBaseObject.G_ == Object[ "G_" ].asCString() );
+		REQUIRE( TestBaseObject.H_ == Object[ "H_" ].asCString() );
+	}
+}
+
+
 TEST_CASE( "Serialisation-JsonReader-Base" )
 {
 	using namespace TestData;
@@ -359,6 +526,39 @@ TEST_CASE( "Serialisation-JsonReader-Base-Pointers" )
 
 	REQUIRE( Object == JsonWriterTestBasePointers_ );
 
+}
+
+TEST_CASE( "Serialisation-JsonReader-Base-Pointers-Duplicated" )
+{
+	using namespace TestData;
+
+	// Register.
+	TestBase::StaticRegisterClass();
+	TestBasePointers2::StaticRegisterClass();
+
+	// Create object to save.
+	TestBasePointers2 JsonWriterTestBasePointers_;
+	JsonWriterTestBasePointers_.A_ = new TestBase( false );
+	JsonWriterTestBasePointers_.B_ = new TestBase( true );
+	JsonWriterTestBasePointers_.A2_ = JsonWriterTestBasePointers_.A_;
+	JsonWriterTestBasePointers_.B2_ = JsonWriterTestBasePointers_.B_;
+	
+	// Write Json out.
+	ObjectCodecBasic ObjectCodec;
+	SeJsonWriter Writer( &ObjectCodec );
+	Writer.serialise( &JsonWriterTestBasePointers_, JsonWriterTestBasePointers_.getClass() );
+
+	INFO( Writer.getOutput() );
+
+	// Read Json in.
+	SeJsonReader Reader( &ObjectCodec );
+	TestBasePointers2 Object;
+	Reader.setRootValue( Writer.getValue() );
+	Reader.serialise( &Object, Object.getClass() );
+
+	REQUIRE( Object == JsonWriterTestBasePointers_ );
+	REQUIRE( Object.A_ == Object.A2_ );
+	REQUIRE( Object.B_ == Object.B2_ );
 }
 
 #endif // !PSY_PRODUCTION
