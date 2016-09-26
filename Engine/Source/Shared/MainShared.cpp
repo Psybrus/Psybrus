@@ -54,11 +54,10 @@ BcU32 GResolutionHeight = 720;
 
 int MainUnitTests()
 {
-	PSY_LOG( "============================================================================\n" );
-	PSY_LOG( "MainUnitTests:\n" );
 	BcAssertScopedHandler AssertHandler(
 		[]( const BcChar* Message, const BcChar* File, int Line )
 		{
+			BcPrintBacktrace( BcBacktrace() );
 			std::array< char, 256 > Buffer;
 			BcSPrintf( Buffer.data(), Buffer.size(), "Caught assertion: \"%s\" in %s on line %u.\n", Message, File, Line );
 			FAIL( Buffer.data() );

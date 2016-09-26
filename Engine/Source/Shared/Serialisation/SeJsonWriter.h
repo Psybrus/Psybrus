@@ -19,6 +19,8 @@ public:
     virtual BcU32 getVersion() const;
     virtual BcU32 getFileVersion() const;
 
+	const char* getOutput() const { return Output_.c_str(); }
+
 protected:
     virtual void* internalSerialise( void* pData, const ReClass* pType );
     virtual std::string internalSerialiseString( void* pData, const ReClass* pType );

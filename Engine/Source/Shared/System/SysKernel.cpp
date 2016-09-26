@@ -64,13 +64,13 @@ TEST_CASE( "SysKernel-TestQueues-NoQueues" )
 
 	auto TestIncJob = [ &IncDecAtomic ]()
 	{
-		BcSleep( 0.005f );
+		BcSleep( 0.001f );
 		++IncDecAtomic;
 	};
 
 	auto TestDecJob = [ &IncDecAtomic ]()
 	{
-		BcSleep( 0.006f );
+		BcSleep( 0.002f );
 		--IncDecAtomic;
 	};
 
@@ -80,7 +80,6 @@ TEST_CASE( "SysKernel-TestQueues-NoQueues" )
 	BcTimer Timer;
 
 	// Test no queues.
-	PSY_LOG( "Begin: Main thread\n" );
 	Timer.mark();
 	for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
 	{
@@ -90,7 +89,6 @@ TEST_CASE( "SysKernel-TestQueues-NoQueues" )
 	Kernel.flushAllJobQueues();
 	ThisTime = Timer.time() * 1000.0f;
 	TotalTime += ThisTime;
-	PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
 	REQUIRE( IncDecAtomic.load( std::memory_order_seq_cst ) == 0 );
 }
 
@@ -112,13 +110,13 @@ TEST_CASE( "SysKernel-TestQueues-Individually" )
 
 	auto TestIncJob = [ &IncDecAtomic ]()
 	{
-		BcSleep( 0.005f );
+		BcSleep( 0.001f );
 		++IncDecAtomic;
 	};
 
 	auto TestDecJob = [ &IncDecAtomic ]()
 	{
-		BcSleep( 0.006f );
+		BcSleep( 0.002f );
 		--IncDecAtomic;
 	};
 
@@ -130,7 +128,6 @@ TEST_CASE( "SysKernel-TestQueues-Individually" )
 	// Test each queue individually.
 	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
 	{
-		PSY_LOG( "Begin: Workers %u\n", QueueIdx + 1 );
 		Timer.mark();
 		for( BcU32 JobIdx = 0; JobIdx < NoofJobs; ++JobIdx )
 		{
@@ -140,7 +137,6 @@ TEST_CASE( "SysKernel-TestQueues-Individually" )
 		Kernel.flushAllJobQueues();
 		ThisTime = Timer.time() * 1000.0f;
 		TotalTime += ThisTime;
-		PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
 		REQUIRE( IncDecAtomic.load( std::memory_order_seq_cst ) == 0 );
 	}
 }
@@ -163,13 +159,13 @@ TEST_CASE( "SysKernel-TestQueues-Simultaneously" )
 
 	auto TestIncJob = [ &IncDecAtomic ]()
 	{
-		BcSleep( 0.005f );
+		BcSleep( 0.001f );
 		++IncDecAtomic;
 	};
 
 	auto TestDecJob = [ &IncDecAtomic ]()
 	{
-		BcSleep( 0.006f );
+		BcSleep( 0.002f );
 		--IncDecAtomic;
 	};
 
@@ -179,7 +175,6 @@ TEST_CASE( "SysKernel-TestQueues-Simultaneously" )
 	BcTimer Timer;
 
 	// Test all queues simultaneously.
-	PSY_LOG( "Begin: queues all\n" );
 	Timer.mark();
 	for( BcU32 QueueIdx = 0; QueueIdx < 4; ++QueueIdx )
 	{
@@ -192,7 +187,6 @@ TEST_CASE( "SysKernel-TestQueues-Simultaneously" )
 	Kernel.flushAllJobQueues();
 	ThisTime = Timer.time() * 1000.0f;
 	TotalTime += ThisTime;
-	PSY_LOG( "Time: %fms, (%fms total)\n", ThisTime, TotalTime );
 	REQUIRE( IncDecAtomic.load( std::memory_order_seq_cst ) == 0 );
 }
 
