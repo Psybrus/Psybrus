@@ -82,6 +82,10 @@ void BcStrItoa( BcS32 value, BcChar* pStr, BcU32 base = 10 );
 BcS32 BcStrAtoi( const BcChar* str );
 
 //////////////////////////////////////////////////////////////////////////
+// 
+BcF32 BcStrAtof( const BcChar* str );
+
+//////////////////////////////////////////////////////////////////////////
 // Is string a number?
 BcBool BcStrIsNumber( const BcChar* pStr );
 
