@@ -30,7 +30,7 @@ namespace TestData
 			return BcTrue;
 		}
 
-		std::string serialiseAsStringRef( void* InData, const ReClass* InType )
+		std::string serialiseAsStringRef( void* InData, const ReClass* InType ) override
 		{
 			BcU32 ID = ID_;
 			if( IDMap_.find( InData ) == IDMap_.end() )
@@ -49,7 +49,7 @@ namespace TestData
 			return Buffer.data();
 		}
 	
-		BcBool isMatchingField( const class ReField* Field, const std::string& Name )
+		BcBool isMatchingField( const class ReField* Field, const std::string& Name ) override
 		{
 			std::string FieldName = *Field->getName();
 			if( *Field->getName() == Name )
@@ -113,12 +113,12 @@ namespace TestData
 				G_ == Other.G_ && H_ == Other.H_;
 		}
 
-		int A_ = 0;
-		int B_ = 1;
-		unsigned int C_ = 2;
-		unsigned int D_ = 3;
-		float E_ = 0.0f; 
-		float F_ = 2.0f; 
+		BcU8 A_ = 1;
+		BcS8 B_ = -1;
+		BcU32 C_ = 2;
+		BcS32 D_ = -2;
+		BcF32 E_ = 0.0f; 
+		BcF64 F_ = 2.0f; 
 		std::string G_ = "TestG"; 
 		std::string H_ = "TestH"; 
 	};
@@ -324,10 +324,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base" )
 	REQUIRE( Object.type() == Json::objectValue );
 
 	// Check members.
-	REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == JsonWriterTestBase_.A_ );
-	REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == JsonWriterTestBase_.B_ );
-	REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == JsonWriterTestBase_.C_ );
-	REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == JsonWriterTestBase_.D_ );
+	REQUIRE( (BcU8)BcStrAtoi( Object[ "A_" ].asCString() ) == JsonWriterTestBase_.A_ );
+	REQUIRE( (BcS8)BcStrAtoi( Object[ "B_" ].asCString() ) == JsonWriterTestBase_.B_ );
+	REQUIRE( (BcU32)BcStrAtoi( Object[ "C_" ].asCString() ) == JsonWriterTestBase_.C_ );
+	REQUIRE( (BcS32)BcStrAtoi( Object[ "D_" ].asCString() ) == JsonWriterTestBase_.D_ );
 	REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == JsonWriterTestBase_.E_ );
 	REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == JsonWriterTestBase_.F_ );
 	REQUIRE( JsonWriterTestBase_.G_ == Object[ "G_" ].asCString() );
@@ -375,10 +375,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers" )
 		REQUIRE( Object.type() == Json::objectValue );
 
 		TestBase TestBaseObject( false );
-		REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
-		REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
+		REQUIRE( (BcU8)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
+		REQUIRE( (BcS8)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
+		REQUIRE( (BcU32)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
+		REQUIRE( (BcS32)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
 		REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == TestBaseObject.E_ );
 		REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == TestBaseObject.F_ );
 		REQUIRE( TestBaseObject.G_ == Object[ "G_" ].asCString() );
@@ -390,10 +390,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers" )
 		REQUIRE( Object.type() == Json::objectValue );
 
 		TestBase TestBaseObject( true );
-		REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
-		REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
+		REQUIRE( (BcU8)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
+		REQUIRE( (BcS8)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
+		REQUIRE( (BcU32)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
+		REQUIRE( (BcS32)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
 		REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == TestBaseObject.E_ );
 		REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == TestBaseObject.F_ );
 		REQUIRE( TestBaseObject.G_ == Object[ "G_" ].asCString() );
@@ -444,10 +444,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers-Duplicated" )
 		REQUIRE( Object.type() == Json::objectValue );
 
 		TestBase TestBaseObject( false );
-		REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
-		REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
+		REQUIRE( (BcU8)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
+		REQUIRE( (BcS8)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
+		REQUIRE( (BcU32)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
+		REQUIRE( (BcS32)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
 		REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == TestBaseObject.E_ );
 		REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == TestBaseObject.F_ );
 		REQUIRE( TestBaseObject.G_ == Object[ "G_" ].asCString() );
@@ -459,10 +459,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers-Duplicated" )
 		REQUIRE( Object.type() == Json::objectValue );
 
 		TestBase TestBaseObject( true );
-		REQUIRE( (int)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
-		REQUIRE( (int)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
-		REQUIRE( (unsigned int)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
+		REQUIRE( (BcU8)BcStrAtoi( Object[ "A_" ].asCString() ) == TestBaseObject.A_ );
+		REQUIRE( (BcS8)BcStrAtoi( Object[ "B_" ].asCString() ) == TestBaseObject.B_ );
+		REQUIRE( (BcU32)BcStrAtoi( Object[ "C_" ].asCString() ) == TestBaseObject.C_ );
+		REQUIRE( (BcS32)BcStrAtoi( Object[ "D_" ].asCString() ) == TestBaseObject.D_ );
 		REQUIRE( BcStrAtof( Object[ "E_" ].asCString() ) == TestBaseObject.E_ );
 		REQUIRE( BcStrAtof( Object[ "F_" ].asCString() ) == TestBaseObject.F_ );
 		REQUIRE( TestBaseObject.G_ == Object[ "G_" ].asCString() );
