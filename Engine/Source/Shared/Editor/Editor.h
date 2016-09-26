@@ -122,4 +122,9 @@ namespace Editor
 	 * @param ID ID of object.
 	 */
 	void* GetObject( ObjectID ID );
+	template< typename _Ty >
+	_Ty* GetObjectByType( ObjectID ID )
+	{
+		return reinterpret_cast< _Ty* >( GetObject( ID ) );
+	}
 }
