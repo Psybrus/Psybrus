@@ -49,8 +49,6 @@ RsOpenGLVersion::RsOpenGLVersion( BcS32 Major, BcS32 Minor, RsOpenGLType Type, R
 	SupportDrawInstancedBaseInstance_( false ),
 	SupportBlitFrameBuffer_( false ),
 	SupportCopyImageSubData_( false ),
-	MaxVaryingFloats_( 0 ),
-	MaxTextureSlots_( 0 ),
 	MaxTextureAnisotropy_( 0.0f )
 {
 
@@ -331,6 +329,8 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 	// General shared.
 	Features_.ComputeShaders_ = SupportComputeShaders_;
+
+	GL( GetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &MaxTextureAnisotropy_ ) );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

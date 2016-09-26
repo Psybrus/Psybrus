@@ -217,8 +217,6 @@ struct RsOpenGLVersion
 	bool SupportDrawInstancedBaseInstance_;
 	bool SupportBlitFrameBuffer_;
 	bool SupportCopyImageSubData_;
-	GLint MaxVaryingFloats_;
-	GLint MaxTextureSlots_;
 	GLfloat MaxTextureAnisotropy_;
 
 };
