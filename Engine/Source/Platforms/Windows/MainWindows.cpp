@@ -130,22 +130,6 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 #endif
 	
-#if !PSY_PRODUCTION
-	if( ::AllocConsole() )
-	{
-		freopen("CONIN$", "r", stdin);
-		freopen("CONOUT$", "w", stdout);
-		freopen("CONOUT$", "w", stderr);
-
-		std::wcout.clear();
-		std::cout.clear();
-		std::wcerr.clear();
-		std::cerr.clear();
-		std::wcin.clear();
-		std::cin.clear();
-	}
-#endif
-
 #if PLATFORM_WINDOWS
 	// Setup for more accurate timing.
 	timeBeginPeriod( 1 );

@@ -451,8 +451,11 @@ function PsyProjectGameExe( _name )
 	print( "Adding Game Executable: " .. _name )
 
 	configuration "html5-* or linux-* or osx-* or windows-* or winphone-*"
-		kind "WindowedApp"
+		kind "ConsoleApp"
 		language "C++"
+
+	configuration "Production"
+		kind "WindowedApp"
 
 	configuration "*"
 		files { 
