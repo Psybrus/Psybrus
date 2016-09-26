@@ -893,17 +893,17 @@ CsCrossRefId ScnModelImport::findMaterialMatch( aiMaterial* Material )
 							this->getResourceName() + "/" + MaterialName, this, MaterialEntry.TemplateMaterial_ ) );
 
 					// Attempt to find textures.
-					auto DiffuseRef = addTexture( Material, MaterialImport, "aDiffuseTex", aiTextureType_DIFFUSE, 0 );
-					auto SpecularRef = addTexture( Material, MaterialImport, "aSpecularTex", aiTextureType_SPECULAR, 0 );
-					auto MetallicRef = addTexture( Material, MaterialImport, "aMetallicTex", aiTextureType_AMBIENT, 0 );
-					auto EmissiveRef = addTexture( Material, MaterialImport, "aEmissiveTex", aiTextureType_EMISSIVE, 0 );
-					auto HeightRef = addTexture( Material, MaterialImport, "aHeightTex", aiTextureType_HEIGHT, 0 );
-					auto NormalRef = addTexture( Material, MaterialImport, "aNormalTex", aiTextureType_NORMALS, 0 );
-					auto RoughnessRef = addTexture( Material, MaterialImport, "aRoughnessTex", aiTextureType_SHININESS, 0 );
-					auto OpacityRef = addTexture( Material, MaterialImport, "aOpacityTex", aiTextureType_OPACITY, 0 );
-					auto DisplacementRef = addTexture( Material, MaterialImport, "aDisplacementTex", aiTextureType_DISPLACEMENT, 0 );
-					auto LightmapRef = addTexture( Material, MaterialImport, "aLightmapTex", aiTextureType_LIGHTMAP, 0 );
-					auto ReflectionRef = addTexture( Material, MaterialImport, "aReflectionTex", aiTextureType_REFLECTION, 0 );
+					addTexture( Material, MaterialImport, "aDiffuseTex", aiTextureType_DIFFUSE, 0 );
+					addTexture( Material, MaterialImport, "aSpecularTex", aiTextureType_SPECULAR, 0 );
+					addTexture( Material, MaterialImport, "aMetallicTex", aiTextureType_AMBIENT, 0 );
+					addTexture( Material, MaterialImport, "aEmissiveTex", aiTextureType_EMISSIVE, 0 );
+					addTexture( Material, MaterialImport, "aHeightTex", aiTextureType_HEIGHT, 0 );
+					addTexture( Material, MaterialImport, "aNormalTex", aiTextureType_NORMALS, 0 );
+					addTexture( Material, MaterialImport, "aRoughnessTex", aiTextureType_SHININESS, 0 );
+					addTexture( Material, MaterialImport, "aOpacityTex", aiTextureType_OPACITY, 0 );
+					addTexture( Material, MaterialImport, "aDisplacementTex", aiTextureType_DISPLACEMENT, 0 );
+					addTexture( Material, MaterialImport, "aLightmapTex", aiTextureType_LIGHTMAP, 0 );
+					addTexture( Material, MaterialImport, "aReflectionTex", aiTextureType_REFLECTION, 0 );
 
 					RetVal = addImport( CsResourceImporterUPtr( MaterialImport ) );
 					AddedMaterials_[ MaterialName ] = RetVal;
@@ -982,7 +982,7 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 			// Pass up unresolved texture path, it will resolve later.
 			auto TextureImporter = new ScnTextureImport(
 					Path.C_Str(), "ScnTexture",
-					TexturePath.c_str(), "UNKNOWN" );
+					TexturePath.c_str(), "ALBEDO" );
 
 			// Setup some default texture formats.
 			auto Params = getImportParams< ScnTextureImportParams >();
