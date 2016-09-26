@@ -21,9 +21,11 @@
 
 #if PLATFORM_LINUX || PLATFORM_OSX
 #include <dirent.h>
+#include <array>
 #elif PLATFORM_WINDOWS
 #include <filesystem>
 #endif
+
 
 #if COMPILER_MSVC
 

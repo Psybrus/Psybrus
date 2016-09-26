@@ -151,9 +151,9 @@ public:
 	{
 		auto GetEventTypeHash = []()
 		{
-			std::array< char, 64 > EventName;
-			CompilerUtility::Demangle( typeid( _Ty ).name(), EventName.data(), EventName.size() );
-			return BcHash( EventName.data() );
+			char EventName[ 64 ];
+			CompilerUtility::Demangle( typeid( _Ty ).name(), EventName, BcArraySize( EventName ) );
+			return BcHash( EventName );
 		};
 		
 		static const BcU32 EventTypeHash = GetEventTypeHash();
