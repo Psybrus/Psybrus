@@ -77,11 +77,6 @@ int MainUnitTests()
 	return RetVal;
 }
 
-TEST_CASE( "MainShared-TestFailure" )
-{
-	BcAssert( false );
-}
-
 #endif // !PSY_PRODUCTION
  
 //////////////////////////////////////////////////////////////////////////
