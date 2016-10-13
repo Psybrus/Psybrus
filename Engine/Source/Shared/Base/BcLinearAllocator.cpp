@@ -32,7 +32,7 @@ void* BcLinearAllocator::allocate( size_t Bytes )
 	size_t ThisOffset = Offset_.fetch_add( Bytes );
 	if( ( ThisOffset + Bytes ) < Size_ )
 	{
-		return &Base_.get()[ ThisOffset ];
+		return &Base_[ ThisOffset ];
 	}
 	return nullptr;
 }

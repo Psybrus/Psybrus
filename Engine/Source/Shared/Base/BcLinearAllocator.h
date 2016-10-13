@@ -36,7 +36,7 @@ public:
 	}
 
 private:
-	std::unique_ptr< BcU8 > Base_;
+	std::unique_ptr< BcU8[] > Base_;
 	size_t Size_;
 	size_t Alignment_;
 	std::atomic< size_t > Offset_;
