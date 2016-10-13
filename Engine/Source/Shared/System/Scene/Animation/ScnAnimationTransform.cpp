@@ -15,6 +15,10 @@
 
 #include <cmath>
 
+#if COMPILER_MSVC
+#pragma warning(disable : 4456)
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 ScnAnimationTransform::ScnAnimationTransform()
