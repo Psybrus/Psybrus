@@ -16,6 +16,7 @@
 #include "System/Scene/ScnEntity.h"
 
 #include "System/Scene/Rendering/ScnLightingVisitor.h"
+#include "System/Scene/Rendering/ScnRenderMesh.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
 #include "System/Scene/Rendering/ScnViewRenderData.h"
 
@@ -213,7 +214,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 		ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
 		auto Material = pMeshRuntime->MaterialRef_;
 
-		if( Material.isValid() )
+		if( Material != nullptr )
 		{
 			BcAssert( Material->isReady() );
 
@@ -310,7 +311,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 			ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ Idx ];
 			auto Material = pMeshRuntime->MaterialRef_;
 
-			if( Material.isValid() )
+			if( Material != nullptr )
 			{
 				BcAssert( Material->isReady() );
 
@@ -523,7 +524,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 				for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 				{
 					ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
-					ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
+					ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIdx_ ];
 					auto& InstancedMaterialBinding = ViewRenderData->InstancedMaterialBindings_[ PrimitiveIdx ];
 					BcAssert( InstancedMaterialBinding.ProgramBinding_ );
 					BcAssert( InstancedMaterialBinding.RenderState_ );
@@ -592,7 +593,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 									auto UniformBuffer = UniformBufferIt->second;
 
 									ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( UniformBuffer.UploadBuffer_ + Offset );
-									ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIndex_ ];
+									ScnModelNodeTransformData* pNodeTransformData = &InstancedComponent->pNodeTransformData_[ pMeshData->NodeIdx_ ];
 
 									// World matrix.
 									ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;
@@ -648,32 +649,31 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 						// Render primitive.
 						RenderContext.pFrame_->queueRenderNode( Sort,
 							[
-								GeometryBinding = pMeshRuntime->GeometryBinding_,
 								DrawProgramBinding = InstancedMaterialBinding.ProgramBinding_,
 								RenderState = InstancedMaterialBinding.RenderState_,
 								FrameBuffer = RenderContext.View_->getFrameBuffer(),
 								Viewport = RenderContext.View_->getViewport(),
-								PrimitiveType = pMeshData->Type_,
-								NoofIndices = pMeshData->NoofIndices_,
-								IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
-								VertexBufferOffset = pMeshRuntime->VertexBufferOffset_,
+								PrimitiveType = pMeshRuntime->RenderMeshRef_->getHeader().ToplogyType_,
+								RenderMesh = pMeshRuntime->RenderMeshRef_,
+								DrawIdx = pMeshData->DrawIdx_,
 								NoofInstances
 							]
 							( RsContext* Context )
 							{
 								PSY_PROFILE_FUNCTION;
 								PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnModelProcessor::render" );
+								auto Draw = RenderMesh->getDraw( DrawIdx );
 								Context->drawIndexedPrimitives(
-									GeometryBinding,
+									RenderMesh->getGeometryBinding(),
 									DrawProgramBinding, 
 									RenderState, 
 									FrameBuffer, 
 									&Viewport,
 									nullptr,
 									PrimitiveType,
-									static_cast< BcU32 >( IndexBuffereOffset ), 
-									static_cast< BcU32 >( NoofIndices ), 
-									static_cast< BcU32 >( VertexBufferOffset ),
+									Draw.IndexOffset_, 
+									Draw.NoofIndices_, 
+									Draw.VertexOffset_,
 									0, NoofInstances );
 							} );
 						++DrawCalls_;
@@ -722,36 +722,35 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 			for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < MeshRuntimes.size(); ++PrimitiveIdx )
 			{
 				ScnModelMeshRuntime* pMeshRuntime = &MeshRuntimes[ PrimitiveIdx ];
-				ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIndex_ ];
+				ScnModelMeshData* pMeshData = &pMeshDatas[ pMeshRuntime->MeshDataIdx_ ];
 				auto& MaterialBinding = ViewRenderData->MaterialBindings_[ PrimitiveIdx ];
 		
 				// Render primitive.
 				RenderContext.pFrame_->queueRenderNode( Sort,
 					[
-						GeometryBinding = pMeshRuntime->GeometryBinding_,
 						DrawProgramBinding = MaterialBinding.ProgramBinding_,
 						RenderState = MaterialBinding.RenderState_,
 						FrameBuffer = RenderContext.View_->getFrameBuffer(),
 						Viewport = RenderContext.View_->getViewport(),
-						PrimitiveType = pMeshData->Type_,
-						NoofIndices = pMeshData->NoofIndices_,
-						IndexBuffereOffset = pMeshRuntime->IndexBufferOffset_,
-						VertexBufferOffset = pMeshRuntime->VertexBufferOffset_
+						PrimitiveType = pMeshRuntime->RenderMeshRef_->getHeader().ToplogyType_,
+						RenderMesh = pMeshRuntime->RenderMeshRef_,
+						DrawIdx = pMeshData->DrawIdx_
 					]
 					( RsContext* Context )
 					{
 						PSY_PROFILE_FUNCTION;
+						auto Draw = RenderMesh->getDraw( DrawIdx );
 						Context->drawIndexedPrimitives(
-							GeometryBinding,
+							RenderMesh->getGeometryBinding(),
 							DrawProgramBinding, 
 							RenderState, 
 							FrameBuffer, 
 							&Viewport,
 							nullptr,
 							PrimitiveType,
-							static_cast< BcU32 >( IndexBuffereOffset ), 
-							static_cast< BcU32 >( NoofIndices ), 
-							static_cast< BcU32 >( VertexBufferOffset ),
+							Draw.IndexOffset_, 
+							Draw.NoofIndices_, 
+							Draw.VertexOffset_,
 							0, 1 );
 					} );
 				++DrawCalls_;
@@ -936,7 +935,7 @@ void ScnModel::StaticRegisterClass()
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnModelImport::StaticGetClass(), 0 ) );
+		ScnModelImport::StaticGetClass(), 1 ) );
 #endif
 
 	Class.addAttribute( 
@@ -997,137 +996,27 @@ void ScnModel::create()
 	// Setup primitive runtime.
 	MeshRuntimes_.reserve( pHeader_->NoofPrimitives_ );
 	
-	BcU8* pVertexBufferData = pVertexBufferData_;
-	BcU8* pIndexBufferData = pIndexBufferData_;
-
-	size_t VertexBufferSize = 0;
-	size_t IndexBufferSize = 0;
-	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
-	{
-		ScnModelMeshData* pMeshData = &pMeshData_[ PrimitiveIdx ];
-		VertexBufferSize += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
-		IndexBufferSize += pMeshData->NoofIndices_ * sizeof( BcU16 );
-	}
-
-	// Create large VB + IBs.
-	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
-		RsBufferDesc( 
-			RsResourceBindFlags::VERTEX_BUFFER, 
-			RsResourceCreationFlags::STATIC,
-			VertexBufferSize ),
-		getFullName().c_str() );
-
-	RsCore::pImpl()->updateBuffer( 
-		VertexBuffer_.get(), 0, VertexBufferSize, 
-		RsResourceUpdateFlags::ASYNC,
-		[ pVertexBufferData, VertexBufferSize ]
-		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-		{
-			BcAssert( Buffer->getDesc().SizeBytes_ == VertexBufferSize );
-			BcMemCopy( BufferLock.Buffer_, pVertexBufferData, 
-				VertexBufferSize );
-		} );
-
-	IndexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsResourceBindFlags::INDEX_BUFFER, 
-				RsResourceCreationFlags::STATIC, 
-				IndexBufferSize ),
-			getFullName().c_str() );
-
-	RsCore::pImpl()->updateBuffer( 
-		IndexBuffer_.get(), 0, IndexBufferSize, 
-		RsResourceUpdateFlags::ASYNC,
-		[ pIndexBufferData, IndexBufferSize ]
-		( RsBuffer* Buffer, const RsBufferLock& BufferLock )
-		{
-			BcAssert( Buffer->getDesc().SizeBytes_ == IndexBufferSize );
-			BcMemCopy( BufferLock.Buffer_, pIndexBufferData, 
-				IndexBufferSize );
-		} );
-
-	size_t VertexBufferOffset = 0;
-	size_t IndexBufferOffset = 0;
-	size_t BindVertexBufferBase = 0;
-	size_t BindIndexBufferBase = 0;
-
-	RsVertexDeclaration* PrevVertexDeclaration = nullptr;
-	RsVertexDeclaration* VertexDeclaration = nullptr;
-	RsGeometryBinding* GeometryBinding = nullptr;
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < pHeader_->NoofPrimitives_; ++PrimitiveIdx )
 	{
 		ScnModelMeshData* pMeshData = &pMeshData_[ PrimitiveIdx ];
 		
-		//ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pMeshData->NodeIndex_ ];
-		
-		// Create GPU resources.
-		RsVertexDeclarationDesc VertexDeclarationDesc( pMeshData_->NoofVertexElements_ );
-		for( BcU32 Idx = 0; Idx < pMeshData->NoofVertexElements_; ++Idx )
-		{
-			VertexDeclarationDesc.addElement( pMeshData_->VertexElements_[ Idx ] );
-		}
-
-		// Find or create vertex declaration.
-		{
-			for( const auto& CurrVertexDecl : VertexDeclarations_ )
-			{
-				if( CurrVertexDecl->getDesc().getHash() == VertexDeclarationDesc.getHash() )
-				{
-					VertexDeclaration = CurrVertexDecl.get();
-					break;
-				}
-			}		
-			if( VertexDeclaration == nullptr )
-			{
-				RsVertexDeclarationUPtr NewVertexDeclaration(
-					RsCore::pImpl()->createVertexDeclaration( VertexDeclarationDesc,
-						getFullName().c_str() ) );
-				VertexDeclaration = NewVertexDeclaration.get();
-				VertexDeclarations_.emplace_back( std::move( NewVertexDeclaration ) );
-			}
-		}
-
-		// Create geometry binding if need be.
-		if( VertexDeclaration != PrevVertexDeclaration )
-		{
-			PrevVertexDeclaration = VertexDeclaration;
-
-			RsGeometryBindingDesc GeometryBindingDesc;
-			GeometryBindingDesc.setIndexBuffer( IndexBuffer_.get(), 2, static_cast< BcU32 >( BindIndexBufferBase ) );
-			GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), pMeshData->VertexStride_, static_cast< BcU32 >( BindVertexBufferBase ) );
-			GeometryBindingDesc.setVertexDeclaration( VertexDeclaration );
-			RsGeometryBindingUPtr NewGeometryBinding( 
-				RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, getFullName().c_str() ) );
-			GeometryBinding = NewGeometryBinding.get();
-			GeometryBindings_.emplace_back( std::move( NewGeometryBinding ) );
-
-			VertexBufferOffset = 0;
-			IndexBufferOffset = 0;
-		}
-
-		BcAssert( GeometryBinding );
-
 		// Setup runtime structure.
 		ScnModelMeshRuntime MeshRuntime;
-		MeshRuntime.MeshDataIndex_ = PrimitiveIdx;
-		MeshRuntime.GeometryBinding_ = GeometryBinding;
-		MeshRuntime.VertexBufferOffset_ = VertexBufferOffset;
-		MeshRuntime.IndexBufferOffset_ = IndexBufferOffset;
+		MeshRuntime.MeshDataIdx_ = PrimitiveIdx;
+		MeshRuntime.RenderMeshRef_ = nullptr;
 		MeshRuntime.MaterialRef_ = nullptr;
 		
-		// Get resource.
-		auto Resource = getPackage()->getCrossRefResource( pMeshData->MaterialRef_ );
-		MeshRuntime.MaterialRef_ = Resource;
-		BcAssertMsg( MeshRuntime.MaterialRef_.isValid(), "ScnModel: Material reference is invalid. Packing error." );
+		// Get resources
+		MeshRuntime.RenderMeshRef_ = static_cast< ScnRenderMesh* >( 
+			getPackage()->getCrossRefResource( pMeshData->RenderMeshRef_ ) );
+		BcAssertMsg( MeshRuntime.RenderMeshRef_ && MeshRuntime.RenderMeshRef_->isTypeOf< ScnRenderMesh >(), "ScnModel: Render mesh reference is invalid. Packing error." );
+
+		MeshRuntime.MaterialRef_ = static_cast< ScnMaterial* >( 
+			getPackage()->getCrossRefResource( pMeshData->MaterialRef_ ) );
+		BcAssertMsg( MeshRuntime.MaterialRef_ && MeshRuntime.MaterialRef_->isTypeOf< ScnMaterial >(), "ScnModel: Material reference is invalid. Packing error." );
 
 		// Push into array.
 		MeshRuntimes_.emplace_back( std::move( MeshRuntime ) );
-		
-		// Advance vertex and index buffer bases
-		VertexBufferOffset += pMeshData->NoofVertices_;
-		IndexBufferOffset += pMeshData->NoofIndices_;
-		BindVertexBufferBase += pMeshData->NoofVertices_ * pMeshData->VertexStride_;
-		BindIndexBufferBase += pMeshData->NoofIndices_ * sizeof( BcU16 );
 	}
 
 	// Mark as ready.
@@ -1151,9 +1040,6 @@ void ScnModel::fileReady()
 	requestChunk( 1 );
 	requestChunk( 2 );
 	requestChunk( 3 );
-	requestChunk( 4 );
-	requestChunk( 5 );
-	requestChunk( 6 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1187,31 +1073,9 @@ void ScnModel::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			markupName( pNodePropertyNode->Name_ );
 		}
 	}
-	else if( ChunkID == BcHash( "vertexdata" ) )
-	{
-		BcAssert( pVertexBufferData_ == NULL || pVertexBufferData_ == pData );
-		pVertexBufferData_ = (BcU8*)pData;
-	}
-	else if( ChunkID == BcHash( "indexdata" ) )
-	{
-		BcAssert( pIndexBufferData_ == NULL || pIndexBufferData_ == pData );
-		pIndexBufferData_ = (BcU8*)pData;
-	}
-	else if( ChunkID == BcHash( "vertexelements" ) )
-	{
-		pVertexElements_ = (RsVertexElement*)pData;
-	}
 	else if( ChunkID == BcHash( "meshdata" ) )
 	{
-		pMeshData_ = (ScnModelMeshData*)pData;
-
-		RsVertexElement* pVertexElements = pVertexElements_;
-		for( size_t Idx = 0; Idx < pHeader_->NoofPrimitives_; ++Idx )
-		{
-			pMeshData_->VertexElements_ = pVertexElements;
-			pVertexElements += pMeshData_->NoofVertexElements_;
-		}
-		
+		pMeshData_ = (ScnModelMeshData*)pData;		
 		markCreate(); // All data loaded, time to create.
 	}
 }
@@ -1483,13 +1347,13 @@ void ScnModelComponent::updateNodes( const MaMat4d& RootMatrix )
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
 		ScnModelMeshRuntime* pNodeMeshRuntime = &Model_->MeshRuntimes_[ PrimitiveIdx ];
-		const ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		const ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIdx_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 
 		// Special case the skinned models for now.
 		if( pNodeMeshData->IsSkinned_ == BcFalse )
 		{
-			const ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
+			const ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIdx_ ];
 			
 			MaAABB AABB = pNodeMeshData->AABB_.transform( pNodeTransformData->WorldTransform_ );
 			FullAABB.expandBy( AABB );
@@ -1537,7 +1401,7 @@ void ScnModelComponent::updateNodes( const MaMat4d& RootMatrix )
 	for( BcU32 PrimitiveIdx = 0; PrimitiveIdx < NoofPrimitives; ++PrimitiveIdx )
 	{
 		ScnModelMeshRuntime* pNodeMeshRuntime = &Model_->MeshRuntimes_[ PrimitiveIdx ];
-		ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIndex_ ];
+		ScnModelMeshData* pNodeMeshData = &Model_->pMeshData_[ pNodeMeshRuntime->MeshDataIdx_ ];
 		TPerComponentMeshData& PerComponentMeshData = PerComponentMeshDataList_[ PrimitiveIdx ];
 
 		UploadFence_.increment();
@@ -1575,7 +1439,7 @@ void ScnModelComponent::updateNodes( const MaMat4d& RootMatrix )
 				{
 					PSY_PROFILE_FUNCTION;
 					ScnShaderObjectUniformBlockData* ObjectUniformBlock = reinterpret_cast< ScnShaderObjectUniformBlockData* >( Lock.Buffer_ );
-					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIndex_ ];
+					ScnModelNodeTransformData* pNodeTransformData = &pNodeTransformData_[ pNodeMeshData->NodeIdx_ ];
 
 					// World matrix.
 					ObjectUniformBlock->WorldTransform_ = pNodeTransformData->WorldTransform_;

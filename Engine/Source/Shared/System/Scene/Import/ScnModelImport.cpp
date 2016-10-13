@@ -14,6 +14,7 @@
 #include "ScnModelImport.h"
 #include "ScnMaterialImport.h"
 #include "ScnTextureImport.h"
+#include "System/Scene/Rendering/ScnRenderMeshImport.h"
 #include "Reflection/ReReflection.h"
 
 #include "Base/BcMath.h"
@@ -195,9 +196,6 @@ ScnModelImport::ScnModelImport():
 	HeaderStream_(),
 	NodeTransformDataStream_( BcFalse, 65536, 65536 ),
 	NodePropertyDataStream_( BcFalse, 65536, 65536 ),
-	VertexDataStream_( BcFalse, 1024 * 1024, 1024 * 1024 ),
-	IndexDataStream_( BcFalse, 1024 * 1024, 1024 * 1024 ),
-	VertexElementStream_( BcFalse, 65536, 65536 ),
 	MeshDataStream_( BcFalse, 65536, 65536 )
 {
 }
@@ -264,7 +262,11 @@ BcBool ScnModelImport::import()
 			aiProcess_ConvertToLeftHanded;
 	if( FlattenHierarchy_ )
 	{
-		Flags |= aiProcess_OptimizeGraph;
+		Flags |= aiProcess_OptimizeGraph | aiProcess_RemoveComponent;
+		aiSetImportPropertyInteger( PropertyStore, AI_CONFIG_PP_RVC_FLAGS, 
+			aiComponent_ANIMATIONS |
+			aiComponent_LIGHTS |
+			aiComponent_CAMERAS );
 	}
 
 	Scene_ = aiImportFileExWithProperties( 
@@ -320,18 +322,42 @@ BcBool ScnModelImport::import()
 			//
 			NodePropertyDataStream_ << NodePropertyData;
 		}
+		
+		// Build new mesh data whilst importing render meshes.
+		std::vector< ScnModelMeshData > MeshDatas;
 
-		// Serialise vertex elements.
-		for( const auto& VertexDecl : VertexDeclarations_ )
+		// Add render meshes to importer.
+		for( auto& RenderMesh : RenderMeshes_ )
 		{
-			for( const auto& VertexElement : VertexDecl.Elements_ )
+			BcAssert( RenderMesh.NoofVertices_ > 0 );
+			auto RenderMeshImporter = new ScnRenderMeshImport(
+					*getName() + "/RenderMesh",
+					RenderMesh.TopologyType_,
+					RenderMesh.NoofVertices_,
+					RenderMesh.VertexDeclaration_.getMinimumStride(),
+					RenderMesh.NoofIndices_,
+					RenderMesh.IndexStride_,
+					RenderMesh.VertexDeclaration_.Elements_.size(),
+					RenderMesh.VertexDeclaration_.Elements_.data(),
+					RenderMesh.Draws_.size(),
+					RenderMesh.Draws_.data(),
+					std::move( RenderMesh.VertexData_ ),
+					std::move( RenderMesh.IndexData_ ) );
+			auto RenderMeshRef = addImport( CsResourceImporterUPtr( RenderMeshImporter ) );
+
+			// Patch references in mesh data and build new mesh data list.
+			for( auto MeshData : MeshData_ )
 			{
-				VertexElementStream_ << VertexElement;
+				if( MeshData.RenderMeshRef_ == RenderMesh.ID_ )
+				{
+					MeshData.RenderMeshRef_ = RenderMeshRef;
+					MeshDatas.push_back( MeshData );
+				}
 			}
 		}
-
+	
 		// Serialise mesh data.
-		for( const auto& MeshData : MeshData_ )
+		for( const auto& MeshData : MeshDatas )
 		{
 			MeshDataStream_ << MeshData;
 		}
@@ -340,9 +366,6 @@ BcBool ScnModelImport::import()
 		CsResourceImporter::addChunk( BcHash( "header" ), HeaderStream_.pData(), HeaderStream_.dataSize() );
 		CsResourceImporter::addChunk( BcHash( "nodetransformdata" ), NodeTransformDataStream_.pData(), NodeTransformDataStream_.dataSize() );
 		CsResourceImporter::addChunk( BcHash( "nodepropertydata" ), NodePropertyDataStream_.pData(), NodePropertyDataStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "vertexdata" ), VertexDataStream_.pData(), VertexDataStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "indexdata" ), IndexDataStream_.pData(), IndexDataStream_.dataSize() );
-		CsResourceImporter::addChunk( BcHash( "vertexelements" ), VertexElementStream_.pData(), VertexElementStream_.dataSize() );
 		CsResourceImporter::addChunk( BcHash( "meshdata" ), MeshDataStream_.pData(), MeshDataStream_.dataSize() );
 		
 		//
@@ -483,21 +506,26 @@ void ScnModelImport::serialiseMesh(
 				4, VertexFormat_.Binormal_, RsVertexUsage::BINORMAL, 0 ) );
 		}
 
-		if( Mesh->HasTextureCoords( 0 ) )
+		for( BcU32 Idx = 0; Idx < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++Idx )
 		{
-			VertexDeclarationDesc.addElement( RsVertexElement( 
-				0, VertexDeclarationDesc.getMinimumStride(), 
-				2, VertexFormat_.TexCoord0_, RsVertexUsage::TEXCOORD, 0 ) );
+			if( Mesh->HasTextureCoords( Idx ) )
+			{
+				VertexDeclarationDesc.addElement( RsVertexElement( 
+					0, VertexDeclarationDesc.getMinimumStride(), 
+					2, VertexFormat_.TexCoord0_, RsVertexUsage::TEXCOORD, Idx ) );
+			}
 		}
 
 		// Always export channel 0 to save on shader permutations.
-		// Should optimise out later.
-		//if( Mesh->HasVertexColors( 0 ) )
+		for( BcU32 Idx = 0; Idx < AI_MAX_NUMBER_OF_COLOR_SETS; ++Idx )
 		{
-			VertexDeclarationDesc.addElement( RsVertexElement( 
-				0, VertexDeclarationDesc.getMinimumStride(), 4, VertexFormat_.Colour_, RsVertexUsage::COLOUR, 0 ) );
+			if( Mesh->HasVertexColors( Idx ) || Idx == 0 )
+			{
+				VertexDeclarationDesc.addElement( RsVertexElement( 
+					0, VertexDeclarationDesc.getMinimumStride(), 4, VertexFormat_.Colour_, RsVertexUsage::COLOUR, Idx ) );
+			}
 		}
-		
+
 		// Add bones to vertex declaration if they exist.
 		if( Mesh->HasBones() )
 		{
@@ -511,52 +539,43 @@ void ScnModelImport::serialiseMesh(
 				4, VertexFormat_.BlendWeights_, RsVertexUsage::BLENDWEIGHTS, 0 ) );
 		}
 
-		VertexDeclarations_.push_back( VertexDeclarationDesc );
-
-
-		// NOTE: This next section needs to be picky to be optimal. Optimise later :)
-		ScnModelMeshData MeshData = 
-		{
-			static_cast< BcU32 >( ParentIndex ),
-			BcFalse,
-			RsTopologyType::TRIANGLE_LIST,	
-			ShaderPermutation,
-			0,
-			BcErrorCode,
-			0, // padding0
-			0, // padding1
-			MaAABB(),
-			Mesh->mNumVertices,
-			static_cast< BcU32 >( VertexDeclarationDesc.Elements_.size() ),
-			static_cast< BcU32 >( VertexDeclarationDesc.getMinimumStride() ),
-			0
-		};
+		RsTopologyType TopologyType = RsTopologyType::TRIANGLE_LIST;
 
 		// Grab primitive type.
 		switch( Mesh->mPrimitiveTypes )
 		{
 		case aiPrimitiveType_POINT:
-			MeshData.NoofIndices_ = Mesh->mNumFaces;
-			MeshData.Type_ = RsTopologyType::POINTS;
+			TopologyType = RsTopologyType::POINTS;
 			break;
 		case aiPrimitiveType_LINE:
-			MeshData.NoofIndices_ = Mesh->mNumFaces * 2;
-			MeshData.Type_ = RsTopologyType::LINE_LIST;
+			TopologyType = RsTopologyType::LINE_LIST;
 			break;
 		case aiPrimitiveType_TRIANGLE:
-			MeshData.NoofIndices_ = Mesh->mNumFaces * 3;
-			MeshData.Type_ = RsTopologyType::TRIANGLE_LIST;
+			TopologyType = RsTopologyType::TRIANGLE_LIST;
 			break;
 		default:
 			BcBreakpoint;
 		}
-		
-		MeshData.NoofVertexElements_ = static_cast< BcU32 >( VertexDeclarationDesc.Elements_.size() );
+	
+		// Get packed mesh.
+		RenderMesh& RenderMesh = getRenderMesh( TopologyType, VertexDeclarationDesc, 2 );
+
+		// Setup mesh data.
+		ScnModelMeshData MeshData = 
+		{
+			MaAABB(),
+			static_cast< BcU32 >( ParentIndex ),
+			BcFalse,
+			ShaderPermutation,
+			0, // Draw idx.
+			RenderMesh.ID_,
+			BcErrorCode, // Material.
+			0, // padding0
+			0, // padding1
+		};
+
+		// Is skinned?
 		MeshData.IsSkinned_ = Mesh->HasBones();
-
-		// Calculate stride.
-		MeshData.VertexStride_ = VertexDeclarationDesc.getMinimumStride();
-
 		if( Mesh->HasBones() )
 		{
 			// Setup bone palette + bind poses for primitive.
@@ -569,14 +588,30 @@ void ScnModelImport::serialiseMesh(
 				MeshData.BonePalette_[ BoneIdx ] = static_cast< BcU32 >( findNodeIndex( Bone->mName.C_Str(), Scene_->mRootNode, NodeBaseIndex ) );
 				MeshData.BoneInverseBindpose_[ BoneIdx ] = MaMat4d( Bone->mOffsetMatrix[ 0 ] ).transposed();
 			}
-		}	
+		}
+
+		// Setup draw for this bit of the mesh.
+		ScnRenderMeshDraw Draw;
 
 		// Export vertices.
-		serialiseVertices( Mesh, 
+		Draw.VertexOffset_ = RenderMesh.NoofVertices_;
+		Draw.NoofVertices_ = serialiseVertices( Mesh, 
 			&VertexDeclarationDesc.Elements_[ 0 ], 
 			VertexDeclarationDesc.Elements_.size(), 
-			MeshData.AABB_ );
-		
+			MeshData.AABB_,
+			RenderMesh.VertexData_ );
+		RenderMesh.NoofVertices_ += Draw.NoofVertices_; 
+
+		// Export indices.
+		Draw.IndexOffset_ = RenderMesh.NoofIndices_;
+		Draw.NoofIndices_ = serialiseIndices( Mesh,
+			RenderMesh.IndexData_ );
+		RenderMesh.NoofIndices_ += Draw.NoofIndices_;
+
+		// Add draw to render mesh.
+		RenderMesh.Draws_.push_back( Draw );
+		MeshData.DrawIdx_ = (BcU32)( RenderMesh.Draws_.size() - 1 );
+
 		// Grab material name.
 		std::string MaterialName;
 		aiMaterial* Material = Scene_->mMaterials[ Mesh->mMaterialIndex ];
@@ -584,23 +619,6 @@ void ScnModelImport::serialiseMesh(
 		// Import material.
 		MeshData.MaterialRef_ = findMaterialMatch( Material );	
 		MeshData_.push_back( MeshData );
-
-		// Export indices.
-		BcU32 TotalIndices = 0;
-		for( BcU32 FaceIdx = 0; FaceIdx < Mesh->mNumFaces; ++FaceIdx )
-		{
-			const auto& Face = Mesh->mFaces[ FaceIdx ];
-			for( BcU32 IndexIdx = 0; IndexIdx < Face.mNumIndices; ++ IndexIdx )
-			{
-				BcU32 Index = Face.mIndices[ IndexIdx ];
-				BcAssert( Index < 0x10000 );
-				IndexDataStream_ << BcU16( Index );
-				++TotalIndices;
-			}
-		}
-
-		// Verify indices.
-		BcAssert( TotalIndices == MeshData.NoofIndices_ );
 		
 		// Update primitive index.
 		++PrimitiveIndex;
@@ -610,11 +628,12 @@ void ScnModelImport::serialiseMesh(
 
 //////////////////////////////////////////////////////////////////////////
 // serialiseVertices
-void ScnModelImport::serialiseVertices( 
+BcU32 ScnModelImport::serialiseVertices( 
 	struct aiMesh* Mesh,
 	RsVertexElement* pVertexElements,
 	size_t NoofVertexElements,
-	MaAABB& AABB )
+	MaAABB& AABB,
+	BcStream& Stream ) const
 {
 #if PSY_IMPORT_PIPELINE
 	AABB.empty();
@@ -828,9 +847,35 @@ void ScnModelImport::serialiseVertices(
 			};
 		}
 
-		VertexDataStream_.push( VertexData.data(), VertexData.size() );
+		Stream.push( VertexData.data(), VertexData.size() );
 	}
+	return Mesh->mNumVertices;
+#else
+	return 0;
 #endif
+}
+
+//////////////////////////////////////////////////////////////////////////
+// serialiseIndices
+BcU32 ScnModelImport::serialiseIndices( 
+		struct aiMesh* Mesh,
+		BcStream& Stream ) const
+{
+	BcU32 TotalIndices = 0;
+#if PSY_IMPORT_PIPELINE
+	for( BcU32 FaceIdx = 0; FaceIdx < Mesh->mNumFaces; ++FaceIdx )
+	{
+		const auto& Face = Mesh->mFaces[ FaceIdx ];
+		for( BcU32 IndexIdx = 0; IndexIdx < Face.mNumIndices; ++ IndexIdx )
+		{
+			BcU32 Index = Face.mIndices[ IndexIdx ];
+			BcAssert( Index < 0x10000 );
+			Stream << BcU16( Index );
+			++TotalIndices;
+		}
+	}
+#endif // PSY_IMPORT_PIPELINE
+	return TotalIndices;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1032,4 +1077,29 @@ CsCrossRefId ScnModelImport::addTexture( aiMaterial* Material, ScnMaterialImport
 	}
 #endif
 	return TextureRef;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getRenderMesh
+ScnModelImport::RenderMesh& ScnModelImport::getRenderMesh( RsTopologyType TopologyType, const RsVertexDeclarationDesc& VertexDeclaration, BcU32 IndexStride )
+{
+	auto It = std::find_if( RenderMeshes_.begin(), RenderMeshes_.end(),
+		[&]( const RenderMesh& Mesh )
+		{
+			return Mesh.TopologyType_ == TopologyType &&
+				Mesh.VertexDeclaration_ == VertexDeclaration &&
+				Mesh.IndexStride_ == IndexStride;
+		} );
+	if( It == RenderMeshes_.end() )
+	{
+		RenderMesh Mesh;
+		Mesh.TopologyType_ = TopologyType;
+		Mesh.VertexDeclaration_ = VertexDeclaration;
+		Mesh.IndexStride_ = IndexStride;
+		Mesh.ID_ = (BcU32)RenderMeshes_.size();
+		RenderMeshes_.emplace_back( std::move( Mesh ) );
+		It = RenderMeshes_.begin() + ( RenderMeshes_.size() - 1 );
+	}
+
+	return *It;
 }

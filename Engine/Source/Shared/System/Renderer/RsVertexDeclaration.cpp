@@ -81,12 +81,42 @@ BcU32 RsVertexElement::getElementSize() const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// RsVertexElement
+bool RsVertexElement::operator ==( const RsVertexElement& Other ) const
+{
+	return StreamIdx_ == Other.StreamIdx_ &&
+		Offset_ == Other.Offset_ &&
+		Components_ == Other.Components_ &&
+		DataType_ == Other.DataType_ &&
+		Usage_ == Other.Usage_ &&
+		UsageIdx_ == Other.UsageIdx_;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // RsVertexDeclarationDesc
-RsVertexDeclarationDesc::RsVertexDeclarationDesc( BcU32 NoofElements )
+bool RsVertexElement::operator !=( const RsVertexElement& Other ) const
+{
+	return !(*this == Other);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RsVertexDeclarationDesc
+RsVertexDeclarationDesc::RsVertexDeclarationDesc( size_t NoofElements )
 {
 	if( NoofElements > 0 )
 	{
 		Elements_.reserve( NoofElements );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// RsVertexDeclarationDesc
+RsVertexDeclarationDesc::RsVertexDeclarationDesc( RsVertexElement* Elements, size_t NoofElements ):
+	RsVertexDeclarationDesc( NoofElements )
+{
+	for( size_t Idx = 0; Idx < NoofElements; ++Idx )
+	{
+		addElement( Elements[ Idx ] );
 	}
 }
 
@@ -96,6 +126,31 @@ RsVertexDeclarationDesc& RsVertexDeclarationDesc::addElement( const RsVertexElem
 {
 	Elements_.push_back( Element );
 	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// operator ==
+bool RsVertexDeclarationDesc::operator ==( const RsVertexDeclarationDesc& Other ) const
+{
+	if( Elements_.size() == Other.Elements_.size() )
+	{
+		for( size_t Idx = 0; Idx < Elements_.size(); ++Idx )
+		{
+			if( Elements_[ Idx ] != Other.Elements_[ Idx ] )
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// operator !=
+bool RsVertexDeclarationDesc::operator !=( const RsVertexDeclarationDesc& Other ) const
+{
+	return !( *this == Other );
 }
 
 //////////////////////////////////////////////////////////////////////////

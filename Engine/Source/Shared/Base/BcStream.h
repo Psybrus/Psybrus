@@ -22,7 +22,7 @@
 class BcStream
 {
 private:
-	BcStream( const BcStream& ){};
+	BcStream( const BcStream& ) = delete;
 
 public:
 	template< typename _Ty >

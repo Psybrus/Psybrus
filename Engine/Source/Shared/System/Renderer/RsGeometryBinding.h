@@ -13,7 +13,7 @@ public:
 	/**
 	 * Set vertex declaration to use for geometry binding.
 	 */
-	void setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
+	RsGeometryBindingDesc& setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration );
 
 	/**
 	 * Set vertex buffer to use.
@@ -22,7 +22,7 @@ public:
 	 * @param Stride Stride per vertex in buffer.
 	 * @param Offset Offset from start of buffer in bytes to bind from.
 	 */
-	void setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, BcU32 Stride, BcU32 Offset = 0 );
+	RsGeometryBindingDesc& setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, BcU32 Stride, BcU32 Offset = 0 );
 
 	/**
 	 * Set index buffer to use.
@@ -30,7 +30,7 @@ public:
 	 * @param BytesPerIndex Bytes per index. 2, or 4 bytes.
 	 * @param Offset Offset from start of buffer in bytes to bind from.
 	 */
-	void setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex = 2, BcU32 Offset = 0 );
+	RsGeometryBindingDesc& setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex = 2, BcU32 Offset = 0 );
 
 
 	class RsVertexDeclaration* VertexDeclaration_ = nullptr;

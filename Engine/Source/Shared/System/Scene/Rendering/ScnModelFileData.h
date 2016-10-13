@@ -14,6 +14,7 @@
 #ifndef __SCNMODELFILEDATA__
 #define __SCNMODELFILEDATA__
 
+#include "System/Content/CsTypes.h"
 #include "System/Renderer/RsUniquePointers.h"
 #include "System/Scene/Rendering/ScnMaterial.h" // TODO: Get rid of this reference.
 
@@ -50,23 +51,15 @@ struct ScnModelNodePropertyData
 // ScnModelMeshData
 struct ScnModelMeshData
 {
-	BcU32 NodeIndex_;
+	MaAABB AABB_;
+	BcU32 NodeIdx_;
 	BcBool IsSkinned_;
-	RsTopologyType Type_;
 	ScnShaderPermutationFlags ShaderPermutation_;
-	BcU32 NoofIndices_;
-	BcU32 MaterialRef_;
+	BcU32 DrawIdx_;
+	CsCrossRefId RenderMeshRef_;
+	CsCrossRefId MaterialRef_;
 	BcU32 Padding0_;
 	BcU32 Padding1_;
-	MaAABB AABB_;
-	BcU32 NoofVertices_;
-	BcU32 NoofVertexElements_;
-	BcU32 VertexStride_;
-	union
-	{
-		BcU64 VertexElementsId_;
-		RsVertexElement* VertexElements_;
-	};
 	BcU32 BonePalette_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 	MaMat4d BoneInverseBindpose_[ SCN_MODEL_BONE_PALETTE_SIZE ];
 };
@@ -75,11 +68,9 @@ struct ScnModelMeshData
 // ScnModelMeshRuntime
 struct ScnModelMeshRuntime
 {
-	BcU32 MeshDataIndex_ = BcErrorCode;
-	RsGeometryBinding* GeometryBinding_ = nullptr;
-	size_t VertexBufferOffset_ = 0;
-	size_t IndexBufferOffset_ = 0;
-	ScnMaterialRef MaterialRef_ = nullptr; // TODO: Don't use ref, just use pointer.
+	BcU32 MeshDataIdx_ = 0;
+	class ScnRenderMesh* RenderMeshRef_ = nullptr;
+	class ScnMaterial* MaterialRef_ = nullptr;
 };
 
 //////////////////////////////////////////////////////////////////////////

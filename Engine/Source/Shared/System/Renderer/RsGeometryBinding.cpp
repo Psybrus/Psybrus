@@ -10,28 +10,31 @@ RsGeometryBindingDesc::RsGeometryBindingDesc()
 
 //////////////////////////////////////////////////////////////////////////
 // setVertexDeclaration
-void RsGeometryBindingDesc::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
+RsGeometryBindingDesc& RsGeometryBindingDesc::setVertexDeclaration( class RsVertexDeclaration* VertexDeclaration )
 {
 	VertexDeclaration_ = VertexDeclaration;
+	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setVertexBuffer
-void RsGeometryBindingDesc::setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, BcU32 Stride, BcU32 Offset )
+RsGeometryBindingDesc& RsGeometryBindingDesc::setVertexBuffer( BcU32 Idx, class RsBuffer* Buffer, BcU32 Stride, BcU32 Offset )
 {
 	VertexBuffers_[ Idx ].Buffer_ = Buffer;
 	VertexBuffers_[ Idx ].Stride_ = Stride;
 	VertexBuffers_[ Idx ].Offset_ = Offset;
+	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // setIndexBuffer
-void RsGeometryBindingDesc::setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex, BcU32 Offset )
+RsGeometryBindingDesc& RsGeometryBindingDesc::setIndexBuffer( class RsBuffer* Buffer, BcU32 BytesPerIndex, BcU32 Offset )
 {
-	BcAssert( BytesPerIndex == 2 || BytesPerIndex == 4 );
+	BcAssert( ( BytesPerIndex == 2 || BytesPerIndex == 4 ) || ( Buffer == nullptr && BytesPerIndex == 0 ) );
 	IndexBuffer_.Buffer_ = Buffer;
 	IndexBuffer_.Stride_ = BytesPerIndex;
 	IndexBuffer_.Offset_ = Offset;
+	return *this;
 }
 
 //////////////////////////////////////////////////////////////////////////

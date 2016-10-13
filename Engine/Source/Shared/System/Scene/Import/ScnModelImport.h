@@ -17,6 +17,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsResourceImporter.h"
 #include "System/Scene/Rendering/ScnModelFileData.h"
+#include "System/Scene/Rendering/ScnRenderMeshFileData.h"
 
 #include "Base/BcStream.h"
 
@@ -93,17 +94,37 @@ private:
 		size_t& NodeIndex,
 		size_t& PrimitiveIndex );
 
-	void serialiseVertices( 
+	BcU32 serialiseVertices( 
 		struct aiMesh* Mesh,
 		RsVertexElement* pVertexElements,
 		size_t NoofVertexElements,
-		MaAABB& AABB );
+		MaAABB& AABB,
+		BcStream& Stream ) const;
+
+	BcU32 serialiseIndices( 
+		struct aiMesh* Mesh,
+		BcStream& Stream ) const;
 
 	size_t findNodeIndex( std::string Name, aiNode* RootSearchNode, size_t& BaseIndex ) const;
 
 private:
 	CsCrossRefId findMaterialMatch( struct aiMaterial* Material );
 	CsCrossRefId addTexture( struct aiMaterial* Material, class ScnMaterialImport* MaterialImport, std::string Name, BcU32 Type, BcU32 Idx );
+
+	struct RenderMesh
+	{
+		RsTopologyType TopologyType_ = RsTopologyType::TRIANGLE_LIST;
+		BcStream VertexData_ = BcStream( BcFalse, 1024 * 64, 0 );
+		BcStream IndexData_ = BcStream( BcFalse, 1024 * 64, 0 );
+		BcU32 NoofVertices_ = 0;
+		BcU32 NoofIndices_ = 0;
+		RsVertexDeclarationDesc VertexDeclaration_ = RsVertexDeclarationDesc( 0 );
+		BcU32 IndexStride_ = 0;
+		BcU32 ID_ = 0;
+		std::vector< ScnRenderMeshDraw > Draws_;
+	};
+
+	RenderMesh& getRenderMesh( RsTopologyType TopologyType, const RsVertexDeclarationDesc& VertexDeclaration, BcU32 IndexStride );
 
 private:
 	std::string Source_;
@@ -115,9 +136,6 @@ private:
 	BcStream HeaderStream_;
 	BcStream NodeTransformDataStream_;
 	BcStream NodePropertyDataStream_;
-	BcStream VertexDataStream_;
-	BcStream IndexDataStream_;
-	BcStream VertexElementStream_;
 	BcStream MeshDataStream_;
 
 	const struct aiScene* Scene_;
@@ -125,8 +143,9 @@ private:
 	std::vector< ScnModelNodeTransformData > NodeTransformData_;
 	std::vector< ScnModelNodePropertyData > NodePropertyData_;
 	std::vector< ScnModelMeshData > MeshData_;
-	std::vector< RsVertexDeclarationDesc > VertexDeclarations_;
 	std::vector< MaMat4d > InverseBindposes_;
+
+	std::vector< RenderMesh > RenderMeshes_;
 
 	ScnModelVertexFormat VertexFormat_;
 

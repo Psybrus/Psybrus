@@ -215,7 +215,7 @@ struct ScnShaderBoneUniformBlockData
 	REFLECTION_DECLARE_BASIC( ScnShaderBoneUniformBlockData );
 	ScnShaderBoneUniformBlockData(){};
 
-	static const BcU32 MAX_BONES = 24;
+	static const BcU32 MAX_BONES = 64;
 
 	MaMat4d BoneTransform_[ MAX_BONES ];
 };

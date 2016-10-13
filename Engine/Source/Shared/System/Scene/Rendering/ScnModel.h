@@ -131,11 +131,6 @@ protected:
 	RsVertexElement* pVertexElements_;
 	ScnModelMeshData* pMeshData_;
 	ScnModelMeshRuntimeList MeshRuntimes_;
-
-	RsBufferUPtr VertexBuffer_;
-	RsBufferUPtr IndexBuffer_;
-	std::vector< RsVertexDeclarationUPtr > VertexDeclarations_;
-	std::vector< RsGeometryBindingUPtr > GeometryBindings_;
 };
 
 //////////////////////////////////////////////////////////////////////////

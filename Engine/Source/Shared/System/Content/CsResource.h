@@ -19,7 +19,7 @@
 #include <atomic>
 
 #include "Base/BcName.h"
-#include "Reflection/ReReflection.h"
+#include "Reflection/ReObject.h"
 
 #ifdef PSY_IMPORT_PIPELINE
 #include <json/json.h>

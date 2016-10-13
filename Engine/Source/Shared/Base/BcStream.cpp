@@ -29,7 +29,8 @@ BcStream::BcStream( BcBool bSwapEndian, BcSize AllocSize, BcSize InitialSize ):
 
 //////////////////////////////////////////////////////////////////////////
 // Move ctor
-BcStream::BcStream( BcStream&& Other )
+BcStream::BcStream( BcStream&& Other ):
+	BcStream()
 {
 	std::swap( bSwapEndian_, Other.bSwapEndian_ );
 	std::swap( AllocSize_, Other.AllocSize_ );

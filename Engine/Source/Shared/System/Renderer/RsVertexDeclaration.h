@@ -33,6 +33,9 @@ struct RsVertexElement
 	                 RsVertexUsage Usage,
 	                 BcU32 UsageIdx );
 
+	bool operator==( const RsVertexElement& Other ) const;
+	bool operator!=( const RsVertexElement& Other ) const;
+
 	BcU32 getElementSize() const;
 
 
@@ -49,9 +52,13 @@ struct RsVertexElement
  */
 struct RsVertexDeclarationDesc
 {
-	RsVertexDeclarationDesc( BcU32 NoofElements = 0 );
+	RsVertexDeclarationDesc( size_t NoofElements = 0 );
+	RsVertexDeclarationDesc( RsVertexElement* Elements, size_t NoofElements );
 
 	RsVertexDeclarationDesc& addElement( const RsVertexElement& Element );
+
+	bool operator ==( const RsVertexDeclarationDesc& Other ) const;
+	bool operator !=( const RsVertexDeclarationDesc& Other ) const;
 
 	BcU32 getHash() const;
 	BcU32 getMinimumStride() const;
