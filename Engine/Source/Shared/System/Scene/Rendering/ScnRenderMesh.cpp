@@ -24,12 +24,26 @@ ScnRenderMesh::ScnRenderMesh()
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnRenderMesh::ScnRenderMesh( ScnRenderMeshFileData Header,
+		BcBinaryData VertexData, BcBinaryData IndexData, 
+		std::unique_ptr< struct RsVertexElement[] > VertexElements, 
+		std::unique_ptr< ScnRenderMeshDraw[] > Draws ):
+	Header_( Header ),
+	VertexData_( std::move( VertexData ) ),
+	IndexData_( std::move( IndexData ) ),
+	VertexElements_( std::move( VertexElements ) ),
+	Draws_( std::move( Draws ) )
+{
+	BcAssert( VertexElements_ != nullptr );
+	BcAssert( Draws_ != nullptr );
+	markCreate();
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Dtor
 ScnRenderMesh::~ScnRenderMesh()
 {
-	BcAssert( VertexData_ == nullptr );
-	BcAssert( IndexData_ == nullptr );
-	BcAssert( VertexElements_ == nullptr );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,7 +68,7 @@ void ScnRenderMesh::create()
 		RsResourceUpdateFlags::ASYNC, 
 		[ this, &UpdateFence ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 		{
-			memcpy( Lock.Buffer_, VertexData_, Buffer->getDesc().SizeBytes_ );
+			memcpy( Lock.Buffer_, VertexData_.getData< BcU8 >(), Buffer->getDesc().SizeBytes_ );
 			UpdateFence.decrement();
 		} );
 
@@ -68,7 +82,7 @@ void ScnRenderMesh::create()
 			RsResourceUpdateFlags::ASYNC, 
 			[ this, &UpdateFence ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 			{
-				memcpy( Lock.Buffer_, IndexData_, Buffer->getDesc().SizeBytes_ );
+				memcpy( Lock.Buffer_, IndexData_.getData< BcU8 >(), Buffer->getDesc().SizeBytes_ );
 				UpdateFence.decrement();
 			} );
 	}
@@ -85,10 +99,8 @@ void ScnRenderMesh::create()
 	UpdateFence.wait();
 
 	// Free data now that we're done with it.
-	BcMemFree( VertexData_ );
-	VertexData_ = nullptr;
-	BcMemFree( IndexData_ );
-	IndexData_ = nullptr;
+	VertexData_ = BcBinaryData();
+	IndexData_ = BcBinaryData();
 	VertexElements_.reset();
 	VertexElements_ = nullptr;
 
@@ -121,26 +133,26 @@ void ScnRenderMesh::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	if( ChunkID == BcHash( "header" ) )
 	{
 		// Allocate all data.
-		VertexData_ = BcMemAlign( Header_.NoofVertices_ * Header_.VertexStride_, 16 );
-		IndexData_ = BcMemAlign( Header_.NoofIndices_ * Header_.IndexStride_, 16 );
+		VertexData_ = BcBinaryData( Header_.NoofVertices_ * Header_.VertexStride_ );
+		IndexData_ = BcBinaryData( Header_.NoofIndices_ * Header_.IndexStride_ );
 		VertexElements_.reset( new RsVertexElement[ Header_.NoofVertexElements_ ] );
 		Draws_.reset( new ScnRenderMeshDraw[ Header_.NoofDraws_ ] );
 		BcU32 Idx = 1;
-		requestChunk( Idx++, VertexData_ );
+		requestChunk( Idx++, VertexData_.getData< BcU8 >() );
 		if( Header_.NoofIndices_ > 0 )
 		{
-			requestChunk( Idx++, IndexData_ );
+			requestChunk( Idx++, IndexData_.getData< BcU8 >() );
 		}
 		requestChunk( Idx++, VertexElements_.get() );
 		requestChunk( Idx++, Draws_.get() );
 	}
 	else if( ChunkID == BcHash( "vertices" ) )
 	{
-		BcAssert( VertexData_ == pData );
+		BcAssert( VertexData_.getData< BcU8 >() == pData );
 	}
 	else if( ChunkID == BcHash( "indices" ) )
 	{
-		BcAssert( IndexData_ == pData );
+		BcAssert( IndexData_.getData< BcU8 >() == pData );
 	}
 	else if( ChunkID == BcHash( "vertexelements" ) )
 	{

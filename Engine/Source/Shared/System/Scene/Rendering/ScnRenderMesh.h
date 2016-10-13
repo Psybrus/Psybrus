@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base/BcBinaryData.h"
 #include "System/Content/CsResource.h"
 #include "System/Renderer/RsUniquePointers.h"
 #include "System/Scene/Rendering/ScnRenderMeshFileData.h"
@@ -12,10 +13,18 @@ public:
 	REFLECTION_DECLARE_DERIVED( ScnRenderMesh, CsResource );
 
 	ScnRenderMesh();
+
+	/**
+	 * Construct a render mesh.
+	 */
+	ScnRenderMesh( ScnRenderMeshFileData Header,
+		BcBinaryData VertexData, BcBinaryData IndexData, 
+		std::unique_ptr< struct RsVertexElement[] > VertexElements, 
+		std::unique_ptr< ScnRenderMeshDraw[] > Draws );
 	virtual ~ScnRenderMesh();
 
 	ScnRenderMeshFileData getHeader() const { return Header_; }
-	ScnRenderMeshDraw getDraw( size_t Idx ) const { BcAssert( Idx < Header_.NoofDraws_ ); return Draws_.get()[ Idx ]; }
+	ScnRenderMeshDraw getDraw( size_t Idx ) const { BcAssert( Idx < Header_.NoofDraws_ ); return Draws_[ Idx ]; }
 	class RsGeometryBinding* getGeometryBinding() const { return GeometryBinding_.get(); }
 
 private:
@@ -27,10 +36,10 @@ private:
 
 private:
 	ScnRenderMeshFileData Header_;
-	void* VertexData_ = nullptr;
-	void* IndexData_ = nullptr;
-	std::unique_ptr< struct RsVertexElement > VertexElements_;
-	std::unique_ptr< ScnRenderMeshDraw > Draws_;
+	BcBinaryData VertexData_;
+	BcBinaryData IndexData_;
+	std::unique_ptr< struct RsVertexElement[] > VertexElements_;
+	std::unique_ptr< ScnRenderMeshDraw[] > Draws_;
 
 	RsBufferUPtr VertexBuffer_;
 	RsBufferUPtr IndexBuffer_;
