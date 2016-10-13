@@ -8,6 +8,8 @@
 #include "System/Os/OsCore.h"
 #include "System/Os/SDL/OsClientSDL.h"
 
+#include "System/Renderer/RsCore.h"
+
 #include "System/SysProfilerChromeTracing.h"
 
 #include <iostream>

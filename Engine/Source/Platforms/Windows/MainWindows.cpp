@@ -12,6 +12,8 @@
 #include "System/Os/OsClientWindows.h"
 #include "System/Os/OsMinidumpWindows.h"
 
+#include "System/Renderer/RsCore.h"
+
 #include <iostream>
 
 BcHandle GInstance_ = NULL;

@@ -323,7 +323,7 @@ void ScnDeferredRendererComponent::recreateResources()
 
 	LuminanceFrameBuffers_.clear();
 	LuminanceFrameBuffers_.resize( LuminanceLevels + 1 );
-	for( size_t Idx = 0; Idx < LuminanceLevels; ++Idx )
+	for( BcU32 Idx = 0; Idx < LuminanceLevels; ++Idx )
 	{
 		LuminanceFrameBuffers_[ Idx ] = RsCore::pImpl()->createFrameBuffer( RsFrameBufferDesc( 1 )
 			.setRenderTarget( 0, Textures_[ TEX_LUMINANCE ]->getTexture(), Idx ), "Luminance" );
@@ -972,12 +972,6 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 
 		// Transfer luminance to 2nd target.
 		{
-			MaVec2d UVSize( 1.0f, 1.0f );
-			auto AlbedoTex = Textures_[ TEX_GBUFFER_ALBEDO ];
-			auto Rect = AlbedoTex->getRect( 0 );			
-			UVSize.x( Rect.W_ );
-			UVSize.y( Rect.H_ );
-
 			auto* LuminanceTransferProgram = LuminanceTransferShader_->getProgram( Permutation );
 			auto InputSRVSlot = LuminanceTransferProgram->findShaderResourceSlot( "aLuminanceTexture" );
 			RsProgramBindingDesc BindingDesc;

@@ -558,12 +558,12 @@ void NsSessionImpl::addClient( NsGUID GUID )
 		}
 
 		PeerInterface_->Send(
-			ClientAddPacket.data(), Size,
+			ClientAddPacket.data(), (const int)Size,
 			HIGH_PRIORITY, RELIABLE_ORDERED, 0,
 			RakNet::UNASSIGNED_SYSTEM_ADDRESS,
 			true, 0 );
 
-		PeerInterface_->SendLoopback( ClientAddPacket.data(), ClientAddPacket.size() );
+		PeerInterface_->SendLoopback( ClientAddPacket.data(), (const int)ClientAddPacket.size() );
 	}
 }
 
@@ -579,12 +579,12 @@ void NsSessionImpl::removeClient( NsGUID GUID )
 		ClientRemovePacket[ 1 ] = 1;
 		memcpy( &ClientRemovePacket[ 2 ], &GUID, sizeof( GUID ) );
 		PeerInterface_->Send(
-			ClientRemovePacket.data(), ClientRemovePacket.size(),
+			ClientRemovePacket.data(), (const int)ClientRemovePacket.size(),
 			HIGH_PRIORITY, RELIABLE_ORDERED, 0,
 			RakNet::UNASSIGNED_SYSTEM_ADDRESS,
 			true, 0 );
 
-		PeerInterface_->SendLoopback( ClientRemovePacket.data(), ClientRemovePacket.size() );
+		PeerInterface_->SendLoopback( ClientRemovePacket.data(), (const int)ClientRemovePacket.size() );
 	}
 }
 

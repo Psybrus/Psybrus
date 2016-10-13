@@ -69,10 +69,10 @@ bool BcFileSystemExists( const char* Path )
 	{
 		return true;
 	}
+    return false;
 #elif PLATFORM_WINDOWS
 	return std::experimental::filesystem::exists( Path );
 #endif
-    return false;
 }
 
 //////////////////////////////////////////////////////////////////////////

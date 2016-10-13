@@ -110,7 +110,7 @@ std::future< int > BcProcessLaunch(
 				for(;;)
 				{
 					ReadBuffer.fill( 0 );
-					if( !::ReadFile( OutputHandle, ReadBuffer.data(), ReadBuffer.size() - 1, &BytesRead, NULL ) || BytesRead == 0 )
+					if( !::ReadFile( OutputHandle, ReadBuffer.data(), (DWORD)(ReadBuffer.size() - 1), &BytesRead, NULL ) || BytesRead == 0 )
 					{
 						auto LastError = ::GetLastError();
 						if( LastError ==  ERROR_BROKEN_PIPE )
@@ -143,7 +143,7 @@ std::future< int > BcProcessLaunch(
 
 				::CloseHandle( OutputHandle );
 				::WaitForSingleObject( ProcessInfo.hProcess, INFINITE );
-				DWORD ExitCode = -1;
+				DWORD ExitCode = (DWORD)-1;
 				::GetExitCodeProcess( ProcessInfo.hProcess, &ExitCode );
 				return static_cast< int >( ExitCode );
 			}

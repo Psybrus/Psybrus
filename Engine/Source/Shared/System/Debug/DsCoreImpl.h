@@ -11,6 +11,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Scene/ScnCore.h"
 #include "System/Renderer/RsTypes.h"
+#include "System/Renderer/RsViewport.h"
 
 #include "System/Debug/DsCore.h"
 

@@ -14,14 +14,9 @@
 #ifndef __ScnComponent_H__
 #define __ScnComponent_H__
 
-#include "System/Renderer/RsCore.h"
 #include "System/Content/CsResource.h"
 
 #include "System/Scene/ScnTypes.h"
-#include "System/Scene/ScnVisitor.h"
-#include "System/Scene/ScnViewVisibilityTree.h"
-
-#include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
 // ScnComponentFlags

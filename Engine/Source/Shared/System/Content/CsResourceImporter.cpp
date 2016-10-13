@@ -313,7 +313,7 @@ CsFileHash CsResourceImporter::addFile(
 	{
 		auto Bytes = InFile.readAllBytes();
 		CSHA1 Hasher;
-		Hasher.Update( Bytes.get(), InFile.size() );
+		Hasher.Update( Bytes.get(), (unsigned int)InFile.size() );
 		Hasher.Final();
 		if( Hasher.GetHash( reinterpret_cast< unsigned char* >( &FileHash.Hash_[ 0 ] ) ) )
 		{

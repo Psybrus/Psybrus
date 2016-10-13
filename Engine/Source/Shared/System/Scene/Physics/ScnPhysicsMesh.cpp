@@ -15,9 +15,18 @@
 
 #include "System/SysKernel.h"
 
+#if COMPILER_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4456) // declaration of 'dist' hides previous local declaration
+#endif
+
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
+
+#if COMPILER_MSVC
+#pragma warning(pop)
+#endif
 
 #ifdef PSY_IMPORT_PIPELINE
 #include "System/Scene/Physics/ScnPhysicsMeshImport.h"

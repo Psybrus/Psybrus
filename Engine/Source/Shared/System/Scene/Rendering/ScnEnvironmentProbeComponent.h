@@ -4,8 +4,15 @@
 #include "System/Scene/ScnComponentProcessor.h"
 #include "System/Scene/ScnCoreCallback.h"
 
+#include "System/Renderer/RsRenderNode.h"
+#include "System/Renderer/RsUniquePointers.h"
+
 #include <float.h>
 #include <deque>
+
+//////////////////////////////////////////////////////////////////////////
+// Forward Declarations.
+enum class RsTextureFace : BcU32;
 
 //////////////////////////////////////////////////////////////////////////
 // ScnEnvironmentFilterUniformBlock
@@ -36,7 +43,7 @@ private:
 	void shutdown() override;
 	void updateProbes( const ScnComponentList& Components );
 
-	void generateMipLevel( RsFrame* Frame, RsRenderSort Sort, RsTexture* Texture, size_t Level, RsTextureFace Face );
+	void generateMipLevel( class RsFrame* Frame, RsRenderSort Sort, RsTexture* Texture, BcU32 Level, RsTextureFace Face );
 
 	// ScnCoreCallback
 	void onAttachComponent( ScnComponent* Component ) override;

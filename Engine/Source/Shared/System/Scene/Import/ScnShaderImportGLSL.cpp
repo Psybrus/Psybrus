@@ -178,7 +178,6 @@ namespace
 
 		static void cbError( void* UserData, char* Format, va_list VarArgs )
 		{
-			FCPPInterface* This = static_cast< FCPPInterface* >( UserData );
 			std::array< char, 4096 > ErrorBuffer;
 			ErrorBuffer.fill( 0 );
 			BcVSPrintf( ErrorBuffer.data(), ErrorBuffer.size() - 1, Format, VarArgs );
@@ -208,7 +207,7 @@ namespace
 		static void cbOutput( int Char, void* UserData )
 		{
 			FCPPInterface* This = static_cast< FCPPInterface* >( UserData );
-			This->Output_ += Char;
+			This->Output_ += (char)Char;
 		}
 
 		static void cbDependency( char* Dependency, void* UserData )
@@ -782,7 +781,6 @@ namespace
 					return 0;
 				}
 			}
-			return 0;
 		}
 
 		// Convert uniform type into GL uniform type.
@@ -1109,7 +1107,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 								VertexAttributeNames.emplace_back( Name );
 
 								auto VertexAttr = semanticToVertexAttribute( 
-									VertexAttributes.size(),
+									(BcU32)VertexAttributes.size(),
 									Semantic,
 									std::atoi( Index.c_str() ) );
 								VertexAttributes.emplace_back( VertexAttr );
@@ -1135,7 +1133,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							VertexAttributeNames.emplace_back( Name );
 
 							auto VertexAttr = semanticToVertexAttribute( 
-								VertexAttributes.size(),
+								(BcU32)VertexAttributes.size(),
 								Semantic,
 								std::atoi( Index.c_str() ) );
 							VertexAttributes.emplace_back( VertexAttr );
@@ -1345,11 +1343,11 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					if( !Shader->parse( &Resources, 100, false, EShMsgDefault ) )
 					{
 						PSY_LOG( "Compile errors:" );
-						std::istringstream Stream( Shader->getInfoLog() );
-						std::string Line;
-						while( std::getline( Stream, Line ) )
+						std::istringstream LogStream( Shader->getInfoLog() );
+						std::string LogLine;
+						while( std::getline( LogStream, LogLine ) )
 						{
-							PSY_LOG( "%s", Line.c_str() );
+							PSY_LOG( "%s", LogLine.c_str() );
 						}
 
 						logSource( ProcessedSourceData );
@@ -1453,7 +1451,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				}
 			}
 
-			BcU32 MaxParameters = 0;
+			size_t MaxParameters = 0;
 			MaxParameters += Reflection.UniformBlocks_.size();
 			MaxParameters += Reflection.Uniforms_.size();
 			MaxParameters += Reflection.Samplers_.size();
@@ -1538,7 +1536,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 				}
 			}
 
-			ProgramHeaderGLSL.NoofParameters_ = Parameters.size();
+			ProgramHeaderGLSL.NoofParameters_ = (BcU32)Parameters.size();
 
 			// Should we build SPIR-V?
 			if( BuildSPIRV )
@@ -1567,7 +1565,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						BcSPrintf( OutFileName, sizeof( OutFileName ) - 1, "%s/%s-%x-%u.spv",
 							getIntermediatePath().c_str(), 
 							getResourceName().c_str(),
-							ProgramHeaderSPIRV.ProgramPermutationFlags_, Idx );
+							ProgramHeaderSPIRV.ProgramPermutationFlags_, (BcU32)Idx );
 						glslang::OutputSpv( SpvOutput, OutFileName );
 
 #if 0

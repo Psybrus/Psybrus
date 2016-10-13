@@ -43,8 +43,8 @@ struct RsUAVSlot
 struct RsUBSlot
 {
 	class RsBuffer* Buffer_ = nullptr;
-	BcU32 Offset_ = 0;
-	BcU32 Size_ = 0;
+	size_t Offset_ = 0;
+	size_t Size_ = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ public:
 	 * Set uniform buffer.
 	 * @return true if slot has changed, false if not.
 	 */
-	bool setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer, BcU32 Offset, BcU32 Size );
+	bool setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer, size_t Offset, size_t Size );
 
 	/**
 	 * Set sampler state.

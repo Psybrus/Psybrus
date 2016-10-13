@@ -398,7 +398,7 @@ bool OsClientWindows::isActive() const
 // isFocused
 bool OsClientWindows::isFocused() const
 {
-	return IsFocused_;
+	return !!IsFocused_;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -646,7 +646,7 @@ LRESULT OsClientWindows::wndProcInternal( HWND hWnd,
 			OsEventInputText Event;
 			Event.DeviceID_ = 0;
 			memset( Event.Text_, 0, sizeof( Event.Text_ ) );
-			Event.Text_[ 0 ] = wParam;
+			Event.Text_[ 0 ] = (char)( wParam & 0xff );
 			OsCore::pImpl()->publish( osEVT_INPUT_TEXT, Event ); // TODO: REMOVE OLD!
 			EvtPublisher::publish( osEVT_INPUT_TEXT, Event );
 			return 0;

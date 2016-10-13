@@ -103,7 +103,7 @@ public:
 	/**
 	 * Visit bounds.
 	 */
-	void visitBounds( class ScnVisitor* pVisitor, const MaAABB& Bounds );
+	void visitBounds( class ScnVisitor* pVisitor, const class MaAABB& Bounds );
 
 	/**
 	 * Get component list.

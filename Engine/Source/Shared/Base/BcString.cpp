@@ -146,7 +146,7 @@ BcS32 BcStrAtoi( const BcChar* str )
 //
 BcF32 BcStrAtof( const BcChar* str )
 {
-	return atof( str );
+	return (BcF32)atof( str );
 }
 
 //////////////////////////////////////////////////////////////////////////

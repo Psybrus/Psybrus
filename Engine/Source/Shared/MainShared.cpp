@@ -187,14 +187,14 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 	DsCore::pImpl()->registerPanel( 
 		"Engine", "Stat Overlay", "Ctrl+Alt+S", []( BcU32 )->void
 		{
-			static BcF32 GameTimeTotal = 0.0f;
-			static BcF32 RenderTimeTotal = 0.0f;
-			static BcF32 GPUTimeTotal = 0.0f;
-			static BcF32 FrameTimeTotal = 0.0f;
-			static BcF32 GameTimeAccum = 0.0f;
-			static BcF32 RenderTimeAccum = 0.0f;
-			static BcF32 GPUTimeAccum = 0.0f;
-			static BcF32 FrameTimeAccum = 0.0f;
+			static BcF64 GameTimeTotal = 0.0f;
+			static BcF64 RenderTimeTotal = 0.0f;
+			static BcF64 GPUTimeTotal = 0.0f;
+			static BcF64 FrameTimeTotal = 0.0f;
+			static BcF64 GameTimeAccum = 0.0f;
+			static BcF64 RenderTimeAccum = 0.0f;
+			static BcF64 GPUTimeAccum = 0.0f;
+			static BcF64 FrameTimeAccum = 0.0f;
 			static int CaptureAmount = 60;
 			static int CaptureAccum = 0;
 
@@ -225,10 +225,10 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 				CaptureAccum = 0;
 			}
 
-			GameTimeGraphPoints[ GraphPointIdx ] = SysKernel::pImpl()->getGameThreadTime() * 1000.0f;
-			RenderTimeGraphPoints[ GraphPointIdx ] = RsCore::pImpl()->getFrameTime() * 1000.0f;
-			GPUTimeGraphPoints[ GraphPointIdx ] = ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f;
-			FrameTimeGraphPoints[ GraphPointIdx ] = SysKernel::pImpl()->getFrameTime() * 1000.0f;
+			GameTimeGraphPoints[ GraphPointIdx ] = (BcF32)SysKernel::pImpl()->getGameThreadTime() * 1000.0f;
+			RenderTimeGraphPoints[ GraphPointIdx ] = (BcF32)RsCore::pImpl()->getFrameTime() * 1000.0f;
+			GPUTimeGraphPoints[ GraphPointIdx ] = (BcF32)ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f;
+			FrameTimeGraphPoints[ GraphPointIdx ] = (BcF32)SysKernel::pImpl()->getFrameTime() * 1000.0f;
 			
 			GraphScale = std::max( GraphScale, 33.0f );
 			BcF32 TargetGraphScale = 33.0f;
@@ -266,28 +266,28 @@ eEvtReturn onDsCoreOpened( EvtID ID, const EvtBaseEvent& Event )
 			if( ImGui::TreeNode( "Game", "Game time: %.2fms (%.2fms avg.)", 
 				SysKernel::pImpl()->getGameThreadTime() * 1000.0f, GameTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", GameTimeGraphPoints.data(), GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
+				ImGui::PlotLines( "", GameTimeGraphPoints.data(), (int)GameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 
 			if( ImGui::TreeNode( "Render", "Render time: %.2fms (%.2fms avg.)", 
 				RsCore::pImpl()->getFrameTime() * 1000.0f, RenderTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
+				ImGui::PlotLines( "", RenderTimeGraphPoints.data(), (int)RenderTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 
 			if( ImGui::TreeNode( "GPU", "GPU time: %.2fms (%.2fms avg.)", 
 				ScnViewProcessor::pImpl()->getFrameTime() * 1000.0f, GPUTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", GPUTimeGraphPoints.data(), GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
+				ImGui::PlotLines( "", GPUTimeGraphPoints.data(), (int)GPUTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 
 			if( ImGui::TreeNode( "Frame", "Frame time: %.2fms (%.2fms avg.)", 
 				SysKernel::pImpl()->getFrameTime() * 1000.0f, FrameTimeTotal * 1000.0f ) )
 			{
-				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
+				ImGui::PlotLines( "", FrameTimeGraphPoints.data(), (int)FrameTimeGraphPoints.size(), GraphPointIdx, nullptr, 0.0f, GraphScale, MaVec2d( 256.0f, 64.0f ) * Scale );
 				ImGui::TreePop();
 			}
 		} );

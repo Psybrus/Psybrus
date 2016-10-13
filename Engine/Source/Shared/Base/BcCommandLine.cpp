@@ -70,9 +70,9 @@ BcCommandLine::BcCommandLine( const char* CmdLine ):
 
 	// Setup CArgs.
 	CArgs_.reserve( Args_.size() );
-	for( const auto& Arg : Args_ )
+	for( const auto& CArg : Args_ )
 	{
-		CArgs_.push_back( Arg.c_str() );
+		CArgs_.push_back( CArg.c_str() );
 	}
 }
 

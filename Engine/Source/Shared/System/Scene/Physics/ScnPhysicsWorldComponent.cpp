@@ -24,10 +24,19 @@
 
 #include "System/SysKernel.h"
 
+#if COMPILER_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4456) // declaration of 'dist' hides previous local declaration
+#endif
+
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
+
+#if COMPILER_MSVC
+#pragma warning(pop)
+#endif
 
 #include "LinearMath/btIDebugDraw.h"
 
@@ -209,8 +218,6 @@ void ScnPhysicsWorldComponent::onAttach( ScnEntityWeakRef Parent )
 	DynamicsWorld_->setInternalTickCallback(
 		[]( btDynamicsWorld* DynamicsWorld, btScalar Tick )->void
 		{
-			ScnPhysicsWorldComponent* World = static_cast< ScnPhysicsWorldComponent* >( DynamicsWorld->getWorldUserInfo() );
-
 			// TODO: Physics tick should go here.
 
 		}, this, true );

@@ -25,7 +25,19 @@
 #include "Psybrus.h"
 
 #include "Import/Img/Img.h"
+
+#if COMPILER_MSVC
+#pragma warning( push )
+#pragma warning( disable : 4244 ) // '=': conversion from 'uint32_t' to 'uint8_t', possible loss of data
+#pragma warning( disable : 4334 ) // '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
+#endif
+
 #include "Import/Img/gif.h"
+
+
+#if COMPILER_MSVC
+#pragma warning( pop )
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Screenshot utility.
@@ -389,7 +401,7 @@ void DsCoreImpl::open()
 				if( ImGui::Psybrus::NewFrame() )
 				{
 					// Setup window.
-					MaVec2d ClientSize( OsCore::pImpl()->getClient( 0 )->getWidth(), OsCore::pImpl()->getClient( 0 )->getHeight() );
+					MaVec2d ClientSize( (BcF32)OsCore::pImpl()->getClient( 0 )->getWidth(), (BcF32)OsCore::pImpl()->getClient( 0 )->getHeight() );
 					ImGui::Begin( "Engine Internal", NULL, ClientSize, 0, 
 						ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | 
 						ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing );
@@ -399,8 +411,6 @@ void DsCoreImpl::open()
 					// Draw stats.
 					if( DrawStats_ )
 					{
-
-						std::array< char, 1024 > TestBuffer;
 						auto Font = ImGui::GetWindowFont();
 						auto TextHeightIncr = MaVec2d( 0.0f, Font->FontSize + 2.0f ) * ImGui::GetIO().FontGlobalScale;
 						auto ShadowOff = MaVec2d( 1.0f, 1.0f );
@@ -512,7 +522,6 @@ void DsCoreImpl::open()
 									}
 									if( MenuOpen )
 									{
-										bool IsSelected = false;
 										if( ImGui::MenuItem( Panel.Name_.c_str(), Panel.Shortcut_.c_str(), Panel.IsVisible_ ) )
 										{
 											Panel.IsVisible_ = !Panel.IsVisible_; 
@@ -540,9 +549,9 @@ void DsCoreImpl::open()
 							MaMat4d ClipTransform = View * ViewInfo.Proj_;
 
 							DrawList->PushClipRect( 
-								MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() ),
-								MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() ) +
-									MaVec2d( ViewInfo.Viewport_.width(), ViewInfo.Viewport_.height() ) );
+								MaVec2d( (BcF32)ViewInfo.Viewport_.x(), (BcF32)ViewInfo.Viewport_.y() ),
+								MaVec2d( (BcF32)ViewInfo.Viewport_.x(), (BcF32)ViewInfo.Viewport_.y() ) +
+									MaVec2d( (BcF32)ViewInfo.Viewport_.width(), (BcF32)ViewInfo.Viewport_.height() ) );
 
 							auto getScreenPos = [ & ]( MaVec4d WorldPos )
 							{
@@ -565,7 +574,7 @@ void DsCoreImpl::open()
 
 							auto S = 64.0f;
 							MaVec2d SO = MaVec2d( ViewInfo.Viewport_.width() - S, ViewInfo.Viewport_.height() - S );
-							SO += MaVec2d( ViewInfo.Viewport_.x(), ViewInfo.Viewport_.y() );
+							SO += MaVec2d( (BcF32)ViewInfo.Viewport_.x(), (BcF32)ViewInfo.Viewport_.y() );
 							SC = ( SC * S * 3.0f ) + SO;
 							SX = ( SX * S * 3.0f ) + SO;
 							SY = ( SY * S * 3.0f ) + SO;
@@ -824,7 +833,7 @@ std::vector< std::string > DsCoreImpl::getIPAddresses()
 	RakNet::RakPeerInterface* peer = NULL;
 	peer = RakNet::RakPeerInterface::GetInstance();
 
-	int port = 1337;
+	short port = 1337;
 
 	RakNet::SocketDescriptor sd( port, 0 );
 
@@ -1335,13 +1344,13 @@ void DsCoreImpl::cmdResource( DsParameters params, BcHtmlNode& Output, std::stri
 
 			for ( BcU32 Idx = 0; Idx < pClass->getNoofFields(); ++Idx )
 			{
-				BcHtmlNode row = tbl.createChildNode( "tr" );
+				BcHtmlNode row2 = tbl.createChildNode( "tr" );
 				ReFieldAccessor SrcFieldAccessor( Resource, pClass->getField( Idx ) );
 				auto Field = pClass->getField( Idx );
 
-				row.createChildNode( "td" ).setContents( Field->getName().getValue() );
-				row.createChildNode( "td" ).setContents( Field->getType()->getName().getValue() );
-				BcHtmlNode fValue = row.createChildNode( "td" );
+				row2.createChildNode( "td" ).setContents( Field->getName().getValue() );
+				row2.createChildNode( "td" ).setContents( Field->getType()->getName().getValue() );
+				BcHtmlNode fValue = row2.createChildNode( "td" );
 
 				if ( !SrcFieldAccessor.isContainerType() )
 				{

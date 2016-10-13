@@ -34,7 +34,7 @@ public:
 	void setAABB( const MaAABB& AABB );
 
 	MaOctTreeNode* pParent();
-	MaOctTreeNode* pChild( BcU32 iChild );
+	MaOctTreeNode* pChild( size_t iChild );
 
 	MaOctTree* pTree();
 
@@ -90,7 +90,7 @@ inline MaOctTreeNode* MaOctTreeNode::pParent()
 	return pParent_;
 }
 
-inline MaOctTreeNode* MaOctTreeNode::pChild( BcU32 iChild )
+inline MaOctTreeNode* MaOctTreeNode::pChild( size_t iChild )
 {
 	return aChildNodes_[ iChild ];
 }

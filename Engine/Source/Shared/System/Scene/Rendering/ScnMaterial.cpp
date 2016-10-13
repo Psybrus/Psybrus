@@ -66,7 +66,7 @@ void ScnMaterial::StaticRegisterClass()
 							auto Data = Iter->second.getData< BcU8 >();
 							auto DataSize = Iter->second.getDataSize();
 
-							ImGui::ScopedID ScopedID( Data );
+							ImGui::ScopedID ScopedID2( Data );
 
 							Editor::ObjectEditor(
 								ThisFieldEditor, 

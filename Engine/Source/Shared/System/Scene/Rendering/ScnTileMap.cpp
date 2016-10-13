@@ -65,8 +65,8 @@ bool ScnTileMap::isTileValid( BcU32 LayerIdx, BcS32 X, BcS32 Y ) const
 	if( LayerIdx < TileMapData_->NoofLayers_ )
 	{
 		auto& Layer = TileMapData_->Layers_[ LayerIdx ];
-		if( X >= 0 && X < Layer.Width_ && 
-		    Y >= 0 && Y < Layer.Height_ )
+		if( X >= 0 && X < (BcS32)Layer.Width_ && 
+		    Y >= 0 && Y < (BcS32)Layer.Height_ )
 		{
 			return true;
 		}
@@ -153,8 +153,8 @@ ScnTileMapComponent::~ScnTileMapComponent()
 const ScnTileMapTile* ScnTileMapComponent::getTileLocalPosition( 
 		BcU32 LayerIdx, const MaVec2d& LocalPosition ) const
 {	
-	BcS32 X = LocalPosition.x();
-	BcS32 Y = LocalPosition.y();
+	BcS32 X = (BcS32)LocalPosition.x();
+	BcS32 Y = (BcS32)LocalPosition.y();
 	if( TileMap_->isTileValid( LayerIdx, X, Y ) )
 	{
 		return TileMap_->getTile( LayerIdx, X, Y );
@@ -235,7 +235,7 @@ void ScnTileMapComponent::draw()
 
 	const MaMat4d& Transform = getParentEntity()->getWorldMatrix();
 
-	MaVec2d TileSize( TileMapData->TileWidth_, TileMapData->TileHeight_ );
+	MaVec2d TileSize( (BcF32)TileMapData->TileWidth_, (BcF32)TileMapData->TileHeight_ );
 
 	// Grab first vertex availible.
 	auto* FirstVert = Canvas_->allocVertices( 0 );
@@ -246,7 +246,7 @@ void ScnTileMapComponent::draw()
 	for( BcU32 LayerIdx = 0; LayerIdx < TileMapData->NoofLayers_; ++LayerIdx )
 	{
 		auto& Layer = TileMapData->Layers_[ LayerIdx ];
-		auto LayerSize = MaVec2d( Layer.Width_, Layer.Height_ );
+		auto LayerSize = MaVec2d( (BcF32)Layer.Width_, (BcF32)Layer.Height_ );
 
 		for( BcU32 Y = 0; Y < Layer.Height_; ++Y )
 		{
@@ -258,7 +258,7 @@ void ScnTileMapComponent::draw()
 					const auto& Material = TileMaterials_[ Tile.GID_ ];
 					const auto& TileSet = TileMapData->TileSets_[ TileTileSets_[ Tile.GID_ ] ];
 
-					MaVec2d TileSetTileSize( TileSet.TileWidth_, TileSet.TileHeight_ );
+					MaVec2d TileSetTileSize( (BcF32)TileSet.TileWidth_, (BcF32)TileSet.TileHeight_ );
 					MaVec2d PositionTL( 0.0f, 0.0f );
 					MaVec2d PositionBR( 0.0f, 0.0f );
 
@@ -277,7 +277,7 @@ void ScnTileMapComponent::draw()
 					case ScnTileMapOrientation::HEXAGONAL:
 						{
 							BcF32 SideLengthX = 0.0f;//TileMapData->HexSideLength_;
-							BcF32 SideLengthY = TileMapData->HexSideLength_;
+							BcF32 SideLengthY = (BcF32)TileMapData->HexSideLength_;
 							BcF32 SideOffsetX = ( TileSize.x() - SideLengthX ) / 2.0f;
 							BcF32 SideOffsetY = ( TileSize.y() - SideLengthY ) / 2.0f;
 

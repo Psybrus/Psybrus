@@ -371,8 +371,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers" )
 	REQUIRE( Value[ SeISerialiser::RootIDString ].type() == Json::stringValue );
 
 	// Object check.
-	const auto& Object = Value[ SeISerialiser::ObjectsString ][ 0 ];
-	REQUIRE( Object.type() == Json::objectValue );
+	{
+		const auto& Object = Value[ SeISerialiser::ObjectsString ][ 0 ];
+		REQUIRE( Object.type() == Json::objectValue );
+	}
 
 	// Check of the contained objects.
 	{
@@ -426,8 +428,10 @@ TEST_CASE( "Serialisation-JsonWriter-Base-Pointers-Duplicated" )
 	REQUIRE( Value[ SeISerialiser::RootIDString ].type() == Json::stringValue );
 
 	// Object check.
-	const auto& Object = Value[ SeISerialiser::ObjectsString ][ 0 ];
-	REQUIRE( Object.type() == Json::objectValue );
+	{
+		const auto& Object = Value[ SeISerialiser::ObjectsString ][ 0 ];
+		REQUIRE( Object.type() == Json::objectValue );
+	}
 
 	// Check of the contained objects.
 	{

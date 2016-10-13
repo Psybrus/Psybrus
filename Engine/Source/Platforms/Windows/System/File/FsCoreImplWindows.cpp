@@ -33,7 +33,7 @@ FsCoreImplWindows::FsCoreImplWindows()
 {
 	if( GCommandLine_.hasArg( '\0', "nofilethread" ) )
 	{
-		FsCore::JOB_QUEUE_ID = -1;
+		FsCore::JOB_QUEUE_ID = (size_t)-1;
 	}
 	else
 	{

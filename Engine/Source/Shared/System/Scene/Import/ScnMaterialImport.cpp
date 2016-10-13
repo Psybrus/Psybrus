@@ -75,7 +75,6 @@ BcBool ScnMaterialImport::import()
 	
 	ScnMaterialHeader Header;
 	ScnMaterialTextureHeader TextureHeader;
-	ScnMaterialUniformBlockName UniformBlockName;
 	
 	// Make header.
 	Header.ShaderRef_ = Shader_;

@@ -61,7 +61,7 @@ void ScnTexture::StaticRegisterClass()
 				{
 					auto StateStorage = ImGui::GetStateStorage();
 					int MinWidth = 256;
-					ImGui::PushItemWidth( MinWidth );
+					ImGui::PushItemWidth( (float)MinWidth );
 					ImGui::Text( "Width: %u", Value->Width_ );
 					ImGui::Text( "Height: %u", Value->Height_ );
 					ImGui::Text( "Depth: %u", Value->Depth_ );
@@ -83,7 +83,7 @@ void ScnTexture::StaticRegisterClass()
 						{
 							StateStorage->SetInt( FlipYID, FlipY ? 1 : 0 );
 						}
-						MaVec2d Size( Value->Width_, Value->Height_);
+						MaVec2d Size( (BcF32)Value->Width_, (BcF32)Value->Height_);
 						MaVec2d UV0( 0.0f, 0.0f );
 						MaVec2d UV1( 1.0f, 1.0f );
 						if( FlipY )
@@ -482,7 +482,7 @@ void ScnTexture::recreate()
 		BcU32 Depth = InternalDepth_;
 		for( BcU32 LevelIdx = 0; LevelIdx < StagingTexture->getDesc().Levels_; ++LevelIdx )
 		{
-			const auto NoofFaces = Header_.Type_ == RsTextureType::TEXCUBE ? 6 : 1;
+			const BcU32 NoofFaces = Header_.Type_ == RsTextureType::TEXCUBE ? 6 : 1;
 
 			const auto SourcePitch = 
 				RsTexturePitch( Header_.Format_, Width, Height );

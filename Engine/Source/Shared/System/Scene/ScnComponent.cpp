@@ -247,9 +247,9 @@ void ScnComponent::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 			// Serialise from json.
 			// TODO: Serialise from binary.
 			CsSerialiserPackageObjectCodec ObjectCodec( getPackage(), bcRFF_IMPORTER, bcRFF_NONE, bcRFF_IMPORTER );
-			SeJsonReader Reader( &ObjectCodec );
-			Reader.setRootValue( Root );
-			Reader.serialise( this, getClass() );
+			SeJsonReader JsonReader( &ObjectCodec );
+			JsonReader.setRootValue( Root );
+			JsonReader.serialise( this, getClass() );
 			
 			// Now reinitialise.
 			initialise();

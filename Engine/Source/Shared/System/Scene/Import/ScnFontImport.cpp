@@ -224,7 +224,6 @@ BcBool ScnFontImport::import()
 					Img::save( FontTextureFileName.c_str(), pAtlasImage.get() );
 					
 					// Create texture importer.
-					RsResourceFormat Format = RsResourceFormat::UNKNOWN;
 					auto Params = getImportParams< ScnTextureImportParams >();
 					if( !Params )
 					{

@@ -212,7 +212,7 @@ BcU32 BcCountLeadingZeros( BcU64 Mask )
 {
 #if COMPILER_MSVC
 	unsigned long Index;
-	auto Return = _BitScanReverse( &Index, Mask );
+	auto Return = _BitScanReverse64( &Index, Mask );
 	return Return ? 63 - Index : 64;
 #elif COMPILER_GCC || COMPILER_CLANG
 	return __builtin_clzll( Mask );

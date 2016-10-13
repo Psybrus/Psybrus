@@ -219,18 +219,13 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 				Context->copyTexture( FrameBuffer->getDesc().RenderTargets_[ 0 ].Texture_, InputTexture );
 			}
 
-			ScnShaderPermutationFlags Permutation = 
-				ScnShaderPermutationFlags::RENDER_POST_PROCESS |
-				ScnShaderPermutationFlags::PASS_MAIN |
-				ScnShaderPermutationFlags::MESH_STATIC_2D;
-
 			// Iterate over nodes to process.
 			for( size_t NodeIdx = 0; NodeIdx < Nodes_.size(); ++NodeIdx )
 			{
  				auto& Node = Nodes_[ NodeIdx ];
- 				auto& FrameBuffer = FrameBuffers_[ NodeIdx ];
- 				auto& RenderState = RenderStates_[ NodeIdx ];
- 				auto& ProgramBinding = ProgramBindings_[ NodeIdx ];
+ 				auto& NodeFrameBuffer = FrameBuffers_[ NodeIdx ];
+ 				auto& NodeRenderState = RenderStates_[ NodeIdx ];
+ 				auto& NodeProgramBinding = ProgramBindings_[ NodeIdx ];
 
 				// Grab first input texture for size data.
 				MaVec2d UVSize( 1.0f, 1.0f );
@@ -298,7 +293,8 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 						{
 							const auto& Desc = RenderTarget->getDesc();
 							ConfigUniformBlock->OutputDimensions_[ Idx ] = 
-								MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
+								MaVec4d( (BcF32)Desc.Width_, (BcF32)Desc.Height_, 
+									(BcF32)Desc.Depth_, (BcF32)Desc.Levels_ );
 						}
 					}
 					Context->updateBuffer( 
@@ -314,9 +310,9 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 				// Draw.
 				Context->drawPrimitives( 
 					GeometryBinding_.get(),
-					ProgramBinding.get(),
-					RenderState.get(),
-					FrameBuffer.get(),
+					NodeProgramBinding.get(),
+					NodeRenderState.get(),
+					NodeFrameBuffer.get(),
 					nullptr,
 					nullptr,
 					RsTopologyType::TRIANGLE_STRIP, 0, 4, 0, 1  );
@@ -337,8 +333,6 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 // recreateResources
 void ScnPostProcessComponent::recreateResources()
 {
-	RsContext* Context = RsCore::pImpl()->getContext( nullptr );
-
 	if( VertexDeclaration_ == nullptr )
 	{
 		VertexDeclaration_ = RsCore::pImpl()->createVertexDeclaration(
@@ -402,7 +396,6 @@ void ScnPostProcessComponent::recreateResources()
 		{
 			ConfigUniformBlock = FoundConfigBlockIt->Data_.getData< ScnShaderPostProcessConfigData >();
 		}
-		BcU32 TextureIdx = 0;
 		for( auto& InputTexture : Node.InputTextures_ )
 		{
 			BcU32 Slot = Program->findShaderResourceSlot( InputTexture.first.c_str() );
@@ -411,9 +404,10 @@ void ScnPostProcessComponent::recreateResources()
 			// TODO: Deprecate, handle in render system.
 			if( ConfigUniformBlock && Slot != BcErrorCode )
 			{
-				const auto& Desc = InputTexture.second->getTexture()->getDesc();
+				const auto& TextureDesc = InputTexture.second->getTexture()->getDesc();
 				ConfigUniformBlock->InputDimensions_[ Slot ] = 
-					MaVec4d( Desc.Width_, Desc.Height_, Desc.Depth_, Desc.Levels_ );
+					MaVec4d( (BcF32)TextureDesc.Width_, (BcF32)TextureDesc.Height_, 
+						(BcF32)TextureDesc.Depth_, (BcF32)TextureDesc.Levels_ );
 			}
 		}
 

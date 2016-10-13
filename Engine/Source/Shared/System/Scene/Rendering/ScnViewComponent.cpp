@@ -18,6 +18,7 @@
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsRenderNode.h"
 
+#include "System/Scene/ScnViewVisibilityTree.h"
 #include "System/Scene/Rendering/ScnMaterial.h"
 #include "System/Scene/Rendering/ScnRenderableComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"
@@ -405,7 +406,7 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 		// Iterate over components.
 		for( auto Group : ProcessingGroups_ )
 		{
-			Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, Group.Noof_, RenderContext );
+			Group.RenderInterface_->render( ViewComponentRenderDatas_.data() + Group.Base_, (BcU32)Group.Noof_, RenderContext );
 		}
 		
 		// Do post render.

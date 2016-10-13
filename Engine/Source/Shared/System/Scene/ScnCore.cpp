@@ -29,6 +29,7 @@
 
 #include "System/Sound/SsCore.h"
 
+#include "System/Scene/ScnVisitor.h"
 #include "System/Scene/ScnViewVisibilityTree.h"
 #include "System/Scene/Rendering/ScnLightComponent.h"
 #include "System/Scene/Rendering/ScnViewComponent.h"

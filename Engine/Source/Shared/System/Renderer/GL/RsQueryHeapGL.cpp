@@ -10,13 +10,12 @@ RsQueryHeapGL::RsQueryHeapGL( RsQueryHeap* Parent, const RsOpenGLVersion& Versio
 {
 	Parent_->setHandle( this );
 	const auto& QueryHeapDesc = Parent_->getDesc();
-	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
 
 #if !defined( RENDER_USE_GLES )
 
 	Handles_.resize( QueryHeapDesc.NoofQueries_ );
 
-	GL( GenQueries( Handles_.size(), Handles_.data() ) );
+	GL( GenQueries( (GLsizei)Handles_.size(), Handles_.data() ) );
 #endif
 
 #if !defined( RENDER_USE_GLES ) && !PSY_PRODUCTION
@@ -36,7 +35,7 @@ RsQueryHeapGL::RsQueryHeapGL( RsQueryHeap* Parent, const RsOpenGLVersion& Versio
 RsQueryHeapGL::~RsQueryHeapGL()
 {
 #if !defined( RENDER_USE_GLES )
-	GL( DeleteQueries( Handles_.size(), Handles_.data() ) );
+	GL( DeleteQueries( (GLsizei)Handles_.size(), Handles_.data() ) );
 #endif
 	Handles_.clear();
 }

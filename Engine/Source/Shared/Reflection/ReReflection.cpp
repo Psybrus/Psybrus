@@ -457,7 +457,6 @@ void ReVisitRecursively(
 
 			if( Field->isContainer() )
 			{
-				BcU32 ItIdx = 0;
 				auto It = Field->newReadIterator( Field->getData< void >( InData ) );
 				while( It->isValid() )
 				{

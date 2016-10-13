@@ -124,7 +124,7 @@ BcBool ScnEntityImport::import()
 	BcStream Stream;
 	ScnEntityHeader Header;
 	Header.LocalTransform_ = LocalTransform_;
-	Header.NoofComponents_ = Components_.size();
+	Header.NoofComponents_ = (BcU32)Components_.size();
 	Stream << Header;
 	for( auto* Component : Components_ )
 	{

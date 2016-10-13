@@ -55,7 +55,7 @@ RsCoreImpl::RsCoreImpl():
 {
 	if( GCommandLine_.hasArg( '\0', "norenderthread" ) )
 	{
-		RsCore::JOB_QUEUE_ID = -1;
+		RsCore::JOB_QUEUE_ID = (size_t)-1;
 	}
 	else
 	{
@@ -570,7 +570,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 	// Check for holes in slots.
 	{
 		bool FoundNull = ProgramBindingDesc.ShaderResourceSlots_[0].Resource_ == nullptr;
-		for( size_t Idx = 0; Idx < ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < (BcU32)ProgramBindingDesc.ShaderResourceSlots_.size(); ++Idx )
 		{
 			const auto& SRVSlot = ProgramBindingDesc.ShaderResourceSlots_[ Idx ]; 
 			if( FoundNull )
@@ -585,7 +585,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 
 	{
 		bool FoundNull = ProgramBindingDesc.UnorderedAccessSlots_[0].Resource_ == nullptr;
-		for( size_t Idx = 0; Idx < ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < (BcU32)ProgramBindingDesc.UnorderedAccessSlots_.size(); ++Idx )
 		{
 			const auto& UAVSlot = ProgramBindingDesc.UnorderedAccessSlots_[ Idx ]; 
 			if( FoundNull )
@@ -600,7 +600,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 
 	{
 		bool FoundNull = ProgramBindingDesc.UniformBuffers_[0].Buffer_ == nullptr;
-		for( size_t Idx = 0; Idx < ProgramBindingDesc.UniformBuffers_.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < (BcU32)ProgramBindingDesc.UniformBuffers_.size(); ++Idx )
 		{
 			const auto& UniformBufferSlot = ProgramBindingDesc.UniformBuffers_[ Idx ]; 
 			if( FoundNull )
@@ -615,7 +615,7 @@ RsProgramBindingUPtr RsCoreImpl::createProgramBinding(
 
 	{
 		bool FoundNull = ProgramBindingDesc.SamplerStates_[0] == nullptr;
-		for( size_t Idx = 0; Idx < ProgramBindingDesc.SamplerStates_.size(); ++Idx )
+		for( BcU32 Idx = 0; Idx < (BcU32)ProgramBindingDesc.SamplerStates_.size(); ++Idx )
 		{
 			const auto& SamplerSlot = ProgramBindingDesc.SamplerStates_[ Idx ]; 
 			if( FoundNull )

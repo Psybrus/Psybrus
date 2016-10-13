@@ -281,7 +281,7 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 
 			// Generate mip map chain.
 			auto Texture = ProbeComponent->Texture_->getTexture();
-			for( size_t Idx = 1; Idx < Texture->getDesc().Levels_; ++Idx )
+			for( BcU32 Idx = 1; Idx < Texture->getDesc().Levels_; ++Idx )
 			{
 				generateMipLevel( Frame, Sort, Texture, Idx, RsTextureFace::POSITIVE_X );
 				generateMipLevel( Frame, Sort, Texture, Idx, RsTextureFace::NEGATIVE_X );
@@ -299,7 +299,7 @@ void ScnEnvironmentProbeProcessor::updateProbes( const ScnComponentList& Compone
 
 //////////////////////////////////////////////////////////////////////////
 // generateMipLevel
-void ScnEnvironmentProbeProcessor::generateMipLevel( RsFrame* Frame, RsRenderSort Sort, RsTexture* Texture, size_t Level, RsTextureFace Face )
+void ScnEnvironmentProbeProcessor::generateMipLevel( RsFrame* Frame, RsRenderSort Sort, RsTexture* Texture, BcU32 Level, RsTextureFace Face )
 {
 	BcAssert( Texture );
 	BcAssert( Level > 0 );

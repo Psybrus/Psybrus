@@ -130,8 +130,8 @@ private:
 	ScnViewRenderInterface* getRenderInterface( const ReClass* Class );
 
 	std::unique_ptr< class ScnViewVisibilityTree > SpatialTree_;
-	std::vector< ScnViewVisibilityLeaf* > GatheredVisibleLeaves_;
-	std::vector< ScnViewVisibilityLeaf* > BroadGather_;
+	std::vector< struct ScnViewVisibilityLeaf* > GatheredVisibleLeaves_;
+	std::vector< struct ScnViewVisibilityLeaf* > BroadGather_;
 	std::vector< ScnViewComponentRenderData > ViewComponentRenderDatas_;
 
 	std::set< ScnComponent* > PendingViewDataReset_;

@@ -316,7 +316,7 @@ void RsContextGL::beginFrame()
 void RsContextGL::endFrame()
 {
 	PSY_PROFILE_FUNCTION;
-	PSY_PROFILER_GPU_SECTION( endFrame );
+	PSY_PROFILER_GPU_SECTION( endFrame, "endFrame" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 1 );
 	--InsideBeginEnd_;
@@ -2200,7 +2200,6 @@ bool RsContextGL::isQueryResultAvailible( class RsQueryHeap* QueryHeap, size_t I
 
 #if !defined( RENDER_USE_GLES )
 	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
-	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
 
 	GLuint Handle = QueryHeapGL->getHandle( Idx );
 	GLint QueryAvailible = 0;
@@ -2219,7 +2218,6 @@ void RsContextGL::resolveQueries( class RsQueryHeap* QueryHeap, size_t Offset, s
 
 #if !defined( RENDER_USE_GLES )
 	auto QueryHeapGL = QueryHeap->getHandle< RsQueryHeapGL* >();
-	auto QueryType = RsUtilsGL::GetQueryType( QueryHeap->getDesc().QueryType_ );
 
 	for( size_t Idx = 0; Idx < NoofQueries; ++Idx )
 	{
@@ -2746,9 +2744,9 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 					auto& BindingInfo = ImageBindingInfo_[ SRVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != SRVSlot.Resource_ ||
 						BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Level_ != SRVSlot.MostDetailedMip_FirstElement_ ||
+						BindingInfo.Level_ != (GLint)SRVSlot.MostDetailedMip_FirstElement_ ||
 						BindingInfo.Layered_ != SRVSlot.ArraySize_ == 0 ||
-						BindingInfo.Layer_ != SRVSlot.FirstArraySlice_ ||
+						BindingInfo.Layer_ != (GLint)SRVSlot.FirstArraySlice_ ||
 						BindingInfo.Access_ != GL_READ_ONLY ||
 						BindingInfo.Format_ != Format.InternalFormat_ )
 					{
@@ -2823,9 +2821,9 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 					auto& BindingInfo = ImageBindingInfo_[ UAVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||
 						BindingInfo.Texture_ != TextureGL->getHandle() ||
-						BindingInfo.Level_ != UAVSlot.MipSlice_FirstElement_ ||
+						BindingInfo.Level_ != (GLint)UAVSlot.MipSlice_FirstElement_ ||
 						BindingInfo.Layered_ != UAVSlot.ArraySize_ == 0 ||
-						BindingInfo.Layer_ != UAVSlot.FirstArraySlice_NumElements_ ||
+						BindingInfo.Layer_ != (GLint)UAVSlot.FirstArraySlice_NumElements_ ||
 						BindingInfo.Access_ != GL_READ_WRITE ||
 						BindingInfo.Format_ != Format.InternalFormat_ )
 					{

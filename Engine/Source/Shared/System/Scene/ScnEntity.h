@@ -14,8 +14,7 @@
 #ifndef __ScnEntity_H__
 #define __ScnEntity_H__
 
-#include "System/Content/CsResource.h"
-#include "System/Content/CsPackage.h"
+#include "Events/EvtPublisher.h"
 
 #include "System/Scene/ScnTypes.h"
 #include "System/Scene/ScnComponent.h"

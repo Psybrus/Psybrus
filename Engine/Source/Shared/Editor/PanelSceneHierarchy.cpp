@@ -3,6 +3,8 @@
 #include "System/Debug/DsCore.h"
 #include "System/Scene/ScnCore.h"
 
+#include "System/Renderer/RsColour.h"
+
 namespace Editor
 {
 	//////////////////////////////////////////////////////////////////////////

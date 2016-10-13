@@ -176,7 +176,7 @@ namespace
 			[ CachedDrawData, Width, Height ]( RsContext* Context )
 			{
 				RsFrameBuffer* BackBuffer = Context->getBackBuffer();
-				RsViewport Viewport( 0, 0, Width, Height );
+				RsViewport Viewport( 0, 0, (BcU32)Width, (BcU32)Height );
 
 				// Update constant buffr.
 				Context->updateBuffer( 
@@ -230,7 +230,7 @@ namespace
 						for ( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
 						{
 							const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
-							for( BcU32 Idx = 0; Idx < CmdList->IdxBuffer.size(); ++Idx )
+							for( int Idx = 0; Idx < CmdList->IdxBuffer.size(); ++Idx )
 							{
 								BcU32 Index = VertexOffset + static_cast< BcU32 >( CmdList->IdxBuffer[ Idx ] );
 								BcAssert( Index < 0xffff );
@@ -248,7 +248,7 @@ namespace
 				{
 					const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
 
-					for( size_t CmdIdx = 0; CmdIdx < CmdList->CmdBuffer.size(); ++CmdIdx )
+					for( int CmdIdx = 0; CmdIdx < CmdList->CmdBuffer.size(); ++CmdIdx )
 					{
 						const ImDrawCmd* Cmd = &CmdList->CmdBuffer[ CmdIdx ];
 						if( Cmd->UserCallback )
@@ -547,8 +547,8 @@ namespace Psybrus
 		RsCore::pImpl()->updateTexture( FontTexture_.get(), Slice, RsResourceUpdateFlags::ASYNC,
 			[ Pixels, Width, Height ]( class RsTexture*, const RsTextureLock& Lock )
 			{
-				const BcU32 SourcePitch = Width * 4;
-				for( BcU32 Row = 0; Row < Height; ++Row )
+				const int SourcePitch = Width * 4;
+				for( int Row = 0; Row < Height; ++Row )
 				{
 					BcU8* DestData = reinterpret_cast< BcU8* >( Lock.Buffer_ ) + ( Lock.Pitch_ * Row );
 					memcpy( DestData, Pixels + ( SourcePitch * Row ), SourcePitch );
@@ -665,7 +665,7 @@ namespace Psybrus
 			{
 				OsClient* Client = OsCore::pImpl()->getClient( 0 );
 				BcAssert( Client );
-				IO.DisplaySize = ImVec2( Client->getWidth(), Client->getHeight() );
+				IO.DisplaySize = ImVec2( (BcF32)Client->getWidth(), (BcF32)Client->getHeight() );
 			}
 
 			// Update mouse wheel.

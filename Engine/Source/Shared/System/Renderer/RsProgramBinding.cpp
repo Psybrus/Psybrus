@@ -11,7 +11,7 @@ RsProgramBindingDesc::RsProgramBindingDesc()
 
 //////////////////////////////////////////////////////////////////////////
 // setUniformBuffer
-bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer, BcU32 Offset, BcU32 Size )
+bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer, size_t Offset, size_t Size )
 {
 	BcAssert( Size > 0 );
 	BcAssert( ( Offset + Size ) <= Buffer->getDesc().SizeBytes_ );
@@ -70,7 +70,7 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Bu
 			ShaderResourceSlots_[ Slot ].Buffer_ = Buffer;
 			ShaderResourceSlots_[ Slot ].MostDetailedMip_FirstElement_ = FirstElement;
 			ShaderResourceSlots_[ Slot ].MipLevels_NumElements_ = NumElements > 0 ? 
-				NumElements : BcU32( Buffer->getDesc().SizeBytes_ ) / Buffer->getDesc().StructureStride_;
+				NumElements : BcU32( Buffer->getDesc().SizeBytes_ ) / BcU32( Buffer->getDesc().StructureStride_ );
 		}
 		else
 		{

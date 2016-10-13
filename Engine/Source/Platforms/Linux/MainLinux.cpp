@@ -10,6 +10,8 @@
 
 #include "System/Os/OsInputMindwaveLinux.h"
 
+#include "System/Renderer/RsCore.h"
+
 #include "System/Debug/DsProfilerChromeTracing.h"
 
 #include <iostream>

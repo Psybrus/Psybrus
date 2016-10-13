@@ -12,7 +12,7 @@ public:
 		ResourceFormat(
 				BcBool Compressed,
 				BcBool DepthStencil,
-				GLint InternalFormat,
+				GLenum InternalFormat,
 				GLenum Format,
 				GLenum Type ):
 			Compressed_( Compressed ),
@@ -24,7 +24,7 @@ public:
 
 		BcBool Compressed_;
 		BcBool DepthStencil_;
-		GLint InternalFormat_;
+		GLenum InternalFormat_;
 		GLenum Format_;
 		GLenum Type_;
 	};

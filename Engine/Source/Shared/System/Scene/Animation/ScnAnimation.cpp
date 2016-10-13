@@ -163,15 +163,15 @@ void ScnAnimation::decodePoseAtIndexTyped(
 		const _Ty* pTransformKeys = reinterpret_cast< const _Ty* >( pKeyData );
 
 		ScnAnimationTransform Transform;
-		for( BcU32 Idx = 0; Idx < Header_.NoofNodes_; ++Idx )
+		for( BcU32 NodeIdx = 0; NodeIdx < Header_.NoofNodes_; ++NodeIdx )
 		{
-			pTransformKeys[ Idx ].unpack( Transform.R_, Transform.S_, Transform.T_ );
+			pTransformKeys[ NodeIdx ].unpack( Transform.R_, Transform.S_, Transform.T_ );
 
 			// Find matching output node.
 			// TODO: Have a mapping object rather than doing this each decode step.
 			for( BcU32 TargetIdx = 0; TargetIdx < pOutputPose->getNoofNodes(); ++TargetIdx )
 			{
-				if( TargetNodesFileData[ TargetIdx ].Name_ == pNodeData_[ Idx ].Name_ )
+				if( TargetNodesFileData[ TargetIdx ].Name_ == pNodeData_[ NodeIdx ].Name_ )
 				{
 					pOutputPose->setTransform( TargetIdx, Transform );
 					break;
