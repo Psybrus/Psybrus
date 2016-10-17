@@ -124,8 +124,8 @@ const ImgColour& ImgImage::getPixel( BcU32 X, BcU32 Y ) const
 const ImgColour& ImgImage::getPixelClamped( BcU32 X, BcU32 Y ) const
 {
 	BcAssertMsg( pPixelData_ != NULL, "ImgImage: Pixel data is NULL." );
-	X = BcMax( X, Width_ - 1 );
-	Y = BcMax( Y, Height_ - 1 );
+	X = BcMin( X, Width_ - 1 );
+	Y = BcMin( Y, Height_ - 1 );
 	BcU32 Index = X + ( Y * Width_ );
 	return pPixelData_[ Index ];
 }
