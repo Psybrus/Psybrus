@@ -120,6 +120,17 @@ const ImgColour& ImgImage::getPixel( BcU32 X, BcU32 Y ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
+// getPixelClamped
+const ImgColour& ImgImage::getPixelClamped( BcU32 X, BcU32 Y ) const
+{
+	BcAssertMsg( pPixelData_ != NULL, "ImgImage: Pixel data is NULL." );
+	X = BcMax( X, Width_ - 1 );
+	Y = BcMax( Y, Height_ - 1 );
+	BcU32 Index = X + ( Y * Width_ );
+	return pPixelData_[ Index ];
+}
+
+//////////////////////////////////////////////////////////////////////////
 // clear
 void ImgImage::clear( const ImgColour& Colour )
 {
@@ -1192,74 +1203,68 @@ BcBool ImgImage::encodeAsBCn( ImgEncodeFormat Format, BcU8*& pOutData, BcU32& Ou
 // encodeAsETC1
 BcBool ImgImage::encodeAsETC1( BcU8*& pOutData, BcU32& OutSize )
 {
-	// Check if its a multiple of 4.
-	if( ( Width_ % 4 == 0 ) && ( Height_ % 4 ) == 0 )
+	// Initialise rg-etc1
+	static bool Initialised = false;
+	if( !Initialised )
 	{
-		// Initialise rg-etc1
-		static bool Initialised = false;
-		if( !Initialised )
-		{
-			rg_etc1::pack_etc1_block_init();
-			Initialised = true;
-		}
-
-		// Calculate output side.
-		OutSize = ( BcMax( Width_, 4 ) * BcMax( Height_, 4 ) ) / 2;
-		pOutData = new BcU8[ OutSize ];
-		BcU8* EncodedData = pOutData;
-
-		// Pack params. 
-		// TODO: Pass up with encoder.
-		rg_etc1::etc1_pack_params PackParams;
-		PackParams.m_quality = rg_etc1::cLowQuality;
-		PackParams.m_dithering = false;
-
-		// Source block to decode into.
-		ImgColour SrcBlock[ 4 * 4 ];
-
-		// Grab blocks and encode.
-		for( BcU32 Y = 0; Y < Height_; Y += 4 )
-		{
-			for( BcU32 X = 0; X < Width_; X += 4 )
-			{
-				SrcBlock[  0 ] = getPixel( X + 0, Y + 0 );
-				SrcBlock[  1 ] = getPixel( X + 1, Y + 0 );
-				SrcBlock[  2 ] = getPixel( X + 2, Y + 0 );
-				SrcBlock[  3 ] = getPixel( X + 3, Y + 0 );
-				SrcBlock[  4 ] = getPixel( X + 0, Y + 1 );
-				SrcBlock[  5 ] = getPixel( X + 1, Y + 1 );
-				SrcBlock[  6 ] = getPixel( X + 2, Y + 1 );
-				SrcBlock[  7 ] = getPixel( X + 3, Y + 1 );
-				SrcBlock[  8 ] = getPixel( X + 0, Y + 2 );
-				SrcBlock[  9 ] = getPixel( X + 1, Y + 2 );
-				SrcBlock[ 10 ] = getPixel( X + 2, Y + 2 );
-				SrcBlock[ 11 ] = getPixel( X + 3, Y + 2 );
-				SrcBlock[ 12 ] = getPixel( X + 0, Y + 3 );
-				SrcBlock[ 13 ] = getPixel( X + 1, Y + 3 );
-				SrcBlock[ 14 ] = getPixel( X + 2, Y + 3 );
-				SrcBlock[ 15 ] = getPixel( X + 3, Y + 3 );
-
-				// Ensure alpha is 255.
-				for( BcU32 Idx = 0; Idx < 16; ++Idx )
-				{
-					SrcBlock[ Idx ].A_ = 255;
-				}
-
-				rg_etc1::pack_etc1_block( 
-					EncodedData,
-					reinterpret_cast< const unsigned int* >( &SrcBlock[ 0 ] ), 
-					PackParams );
-
-				EncodedData += 8;
-			}
-		}
-		
-		BcAssert( EncodedData == pOutData + ( OutSize ) );
-			
-		//
-		return BcTrue;
+		rg_etc1::pack_etc1_block_init();
+		Initialised = true;
 	}
 
-	return BcFalse;
+	// Calculate output side.
+	OutSize = ( BcMax( Width_, 4 ) * BcMax( Height_, 4 ) ) / 2;
+	pOutData = new BcU8[ OutSize ];
+	BcU8* EncodedData = pOutData;
+
+	// Pack params. 
+	// TODO: Pass up with encoder.
+	rg_etc1::etc1_pack_params PackParams;
+	PackParams.m_quality = rg_etc1::cHighQuality;
+	PackParams.m_dithering = true;
+
+	// Source block to decode into.
+	ImgColour SrcBlock[ 4 * 4 ];
+
+	// Grab blocks and encode.
+	for( BcU32 Y = 0; Y < Height_; Y += 4 )
+	{
+		for( BcU32 X = 0; X < Width_; X += 4 )
+		{
+			SrcBlock[  0 ] = getPixelClamped( X + 0, Y + 0 );
+			SrcBlock[  1 ] = getPixelClamped( X + 1, Y + 0 );
+			SrcBlock[  2 ] = getPixelClamped( X + 2, Y + 0 );
+			SrcBlock[  3 ] = getPixelClamped( X + 3, Y + 0 );
+			SrcBlock[  4 ] = getPixelClamped( X + 0, Y + 1 );
+			SrcBlock[  5 ] = getPixelClamped( X + 1, Y + 1 );
+			SrcBlock[  6 ] = getPixelClamped( X + 2, Y + 1 );
+			SrcBlock[  7 ] = getPixelClamped( X + 3, Y + 1 );
+			SrcBlock[  8 ] = getPixelClamped( X + 0, Y + 2 );
+			SrcBlock[  9 ] = getPixelClamped( X + 1, Y + 2 );
+			SrcBlock[ 10 ] = getPixelClamped( X + 2, Y + 2 );
+			SrcBlock[ 11 ] = getPixelClamped( X + 3, Y + 2 );
+			SrcBlock[ 12 ] = getPixelClamped( X + 0, Y + 3 );
+			SrcBlock[ 13 ] = getPixelClamped( X + 1, Y + 3 );
+			SrcBlock[ 14 ] = getPixelClamped( X + 2, Y + 3 );
+			SrcBlock[ 15 ] = getPixelClamped( X + 3, Y + 3 );
+
+			// Ensure alpha is 255.
+			for( BcU32 Idx = 0; Idx < 16; ++Idx )
+			{
+				SrcBlock[ Idx ].A_ = 255;
+			}
+
+			rg_etc1::pack_etc1_block( 
+				EncodedData,
+				reinterpret_cast< const unsigned int* >( &SrcBlock[ 0 ] ), 
+				PackParams );
+
+			EncodedData += 8;
+		}
+	}
+		
+	BcAssert( EncodedData == pOutData + ( OutSize ) );
+			
+	//
+	return BcTrue;
 }
 

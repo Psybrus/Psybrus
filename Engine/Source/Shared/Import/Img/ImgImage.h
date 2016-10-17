@@ -70,6 +70,13 @@ public:
 	const ImgColour&		getPixel( BcU32 X, BcU32 Y ) const;
 
 	/**
+	*	Get pixel, but clamp to edge.
+	*	@param X X pos.
+	*	@param Y Y pos.
+	*/
+	const ImgColour&		getPixelClamped( BcU32 X, BcU32 Y ) const;
+
+	/**
 	 * Clear.
 	 */
 	void					clear( const ImgColour& Colour );
