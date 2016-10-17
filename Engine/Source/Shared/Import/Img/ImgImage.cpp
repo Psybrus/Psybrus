@@ -1219,8 +1219,13 @@ BcBool ImgImage::encodeAsETC1( BcU8*& pOutData, BcU32& OutSize )
 	// Pack params. 
 	// TODO: Pass up with encoder.
 	rg_etc1::etc1_pack_params PackParams;
-	PackParams.m_quality = rg_etc1::cHighQuality;
+#if PSY_DEBUG
+	PackParams.m_quality = rg_etc1::cLowQuality;
+	PackParams.m_dithering = false;
+#else
+	PackParams.m_quality = rg_etc1::cMediumQuality;
 	PackParams.m_dithering = true;
+#endif
 
 	// Source block to decode into.
 	ImgColour SrcBlock[ 4 * 4 ];
