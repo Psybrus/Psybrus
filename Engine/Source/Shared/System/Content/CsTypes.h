@@ -34,10 +34,11 @@
 class CsPaths
 {
 public:
-	static const BcPath PACKED_CONTENT;
-	static const BcPath INTERMEDIATE;
-	static const BcPath CONTENT;
-	static const BcPath PSYBRUS_CONTENT;
+	static BcPath PACKED_CONTENT;
+	static BcPath INTERMEDIATE;
+	static BcPath CONTENT;
+	static BcPath PSYBRUS_CONTENT;
+	static BcPath PLATFORM_CONFIG;
 
 	/**
 	 * Resolve content path. Will search CONTENT, followed by PSYBRUS_CONTENT,

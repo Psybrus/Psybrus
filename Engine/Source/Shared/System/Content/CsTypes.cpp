@@ -23,15 +23,17 @@
 //////////////////////////////////////////////////////////////////////////
 // Paths
 #if PLATFORM_LINUX | PLATFORM_WINDOWS | PLATFORM_OSX
-const BcPath CsPaths::PACKED_CONTENT( "PackedContent/pc" );
-const BcPath CsPaths::INTERMEDIATE( "Intermediate/pc" );
-const BcPath CsPaths::CONTENT( "Content" );
-const BcPath CsPaths::PSYBRUS_CONTENT( "../Psybrus/Dist/Content" );
+BcPath CsPaths::PACKED_CONTENT( "PackedContent/pc" );
+BcPath CsPaths::INTERMEDIATE( "Intermediate/pc" );
+BcPath CsPaths::CONTENT( "Content" );
+BcPath CsPaths::PSYBRUS_CONTENT( "../Psybrus/Dist/Content" );
+BcPath CsPaths::PLATFORM_CONFIG( "../Psybrus/Dist/Platforms/pc.json" );
 #else
-const BcPath CsPaths::PACKED_CONTENT( "PackedContent" );
-const BcPath CsPaths::INTERMEDIATE( "Intermediate" );
-const BcPath CsPaths::CONTENT( "Content" );
-const BcPath CsPaths::PSYBRUS_CONTENT( "../Psybrus/Dist/Content" );
+BcPath CsPaths::PACKED_CONTENT( "PackedContent" );
+BcPath CsPaths::INTERMEDIATE( "Intermediate" );
+BcPath CsPaths::CONTENT( "Content" );
+BcPath CsPaths::PSYBRUS_CONTENT( "../Psybrus/Dist/Content" );
+BcPath CsPaths::PLATFORM_CONFIG( "../Psybrus/Dist/Platforms/pc.json" );
 #endif
 
 //static

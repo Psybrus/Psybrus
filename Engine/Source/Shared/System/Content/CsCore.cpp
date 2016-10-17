@@ -14,11 +14,13 @@
 #include "System/Content/CsCore.h"
 #include "System/Content/CsSerialiserPackageObjectCodec.h"
 #include "System/Content/CsRedirector.h"
+#include "System/SysKernel.h"
 
 #include "System/File/FsCore.h"
 
 #include "Serialisation/SeJsonReader.h"
 #include "Base/BcProcess.h"
+
 
 SYS_CREATOR( CsCore );
 
@@ -44,6 +46,20 @@ void CsCore::open()
 {
 	// Register types for reflection.
 	//CsResource::StaticRegisterReflection();
+
+	// Setup paths.
+#if PLATFORM_LINUX | PLATFORM_WINDOWS | PLATFORM_OSX
+	std::string Platform;
+	bool HavePlatform = GCommandLine_.getArg( '\0', "platform", Platform );
+	if( HavePlatform )
+	{
+		CsPaths::PACKED_CONTENT = "PackedContent/" + Platform;
+		CsPaths::INTERMEDIATE = "Intermediate/" + Platform;
+		CsPaths::CONTENT = "Content";
+		CsPaths::PSYBRUS_CONTENT = "../Psybrus/Dist/Content";
+		CsPaths::PLATFORM_CONFIG = "../Psybrus/Dist/Platforms/" + Platform + ".json";
+	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -312,7 +328,7 @@ CsPackage* CsCore::requestPackage( const BcName& Package )
 			std::array< char, 1024 > Arguments;
 			BcSPrintf( Path.data(), Path.size(), "%s%s%s", 
 				Prefix, ImporterName, Suffix );
-			BcSPrintf( Arguments.data(), Arguments.size(), "-p %s.pkg", (*Package).c_str() );
+			BcSPrintf( Arguments.data(), Arguments.size(), "%s -c %s -p %s.pkg", Path.data(), CsPaths::PLATFORM_CONFIG.c_str(), (*Package).c_str() );
 
 			PSY_LOG( "Launching importer for package \"%s\" with commandline: %s %s", (*Package).c_str(), Path.data(), Arguments.data() );
 			auto RetCode = BcProcessLaunch( Path.data(),
