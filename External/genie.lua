@@ -8,6 +8,7 @@ newoption {
 -- Default library prefixes.
 EXTERNAL_PROJECT_PREFIX = "External_"
 EXTERNAL_PROJECT_KIND = "StaticLib"
+EXTERNAL_DLL_PROJECT_KIND = "SharedLib"
 
 dofile ("bullet_genie.lua")
 dofile ("catch_genie.lua")
@@ -21,6 +22,11 @@ dofile ("png_genie.lua")
 dofile ("remotery_genie.lua")
 dofile ("zlib_genie.lua")
 dofile ("SoLoud_genie.lua")
+
+-- Use ANGLE on Windows too.
+if _OPTIONS["with-angle"] then
+	dofile ("angle_genie.lua")
+end
 
 -- Stuff we don't want to build for asmjs (import pipeline or other stuff only)
 if _OPTIONS[ "toolchain" ] ~= "html5-clang-asmjs" then

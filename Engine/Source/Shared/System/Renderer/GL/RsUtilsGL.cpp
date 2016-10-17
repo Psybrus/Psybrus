@@ -121,16 +121,6 @@ GLenum RsUtilsGL::GetTextureFiltering( RsTextureFilteringMode V )
 		return GL_NEAREST;
 	case RsTextureFilteringMode::LINEAR:
 		return GL_LINEAR;
-#if defined( RENDER_USE_GLES )
-	case RsTextureFilteringMode::NEAREST_MIPMAP_NEAREST:
-		return GL_NEAREST;
-	case RsTextureFilteringMode::LINEAR_MIPMAP_NEAREST:
-		return GL_LINEAR;
-	case RsTextureFilteringMode::NEAREST_MIPMAP_LINEAR:
-		return GL_NEAREST;
-	case RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR:
-		return GL_LINEAR;
-#else
 	case RsTextureFilteringMode::NEAREST_MIPMAP_NEAREST:
 		return GL_NEAREST_MIPMAP_NEAREST;
 	case RsTextureFilteringMode::LINEAR_MIPMAP_NEAREST:
@@ -139,7 +129,6 @@ GLenum RsUtilsGL::GetTextureFiltering( RsTextureFilteringMode V )
 		return GL_NEAREST_MIPMAP_LINEAR;
 	case RsTextureFilteringMode::LINEAR_MIPMAP_LINEAR:
 		return GL_LINEAR_MIPMAP_LINEAR;
-#endif
 	default:
 		BcBreakpoint;
 	}

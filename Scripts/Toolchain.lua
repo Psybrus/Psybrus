@@ -251,6 +251,11 @@ function PsySetupToolchain()
 		}
 
 		newoption {
+			trigger = "with-angle",
+			description = "Build with ANGLE"
+		}
+
+		newoption {
 			trigger = "with-dx12",
 			description = "Build with DirectX 12"
 		}

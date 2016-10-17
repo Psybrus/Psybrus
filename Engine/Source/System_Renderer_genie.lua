@@ -49,7 +49,10 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Platforms/Linux/",
       }
 
-      defines { "WITH_GL=1" }
+      defines {
+        "WITH_GL=1",
+        "GL_USE_SDL=1",
+      }
 
 
   configuration "osx-*"
@@ -63,7 +66,10 @@ PsyProjectEngineLib( "System_Renderer" )
           "/usr/local/Cellar/sdl2/2.0.3/include" 
       }
 
-      defines { "WITH_GL=1" }
+      defines {
+        "WITH_GL=1",
+        "GL_USE_SDL=1",
+      }
 
   configuration "android-*"
     files {
@@ -75,7 +81,10 @@ PsyProjectEngineLib( "System_Renderer" )
         "./Platforms/Android/",
     }
 
-      defines { "WITH_GL=1" }
+      defines {
+        "WITH_GL=1",
+        "GL_USE_EGL=1",
+      }
 
   configuration "html5-clang-asmjs"
       files {
@@ -87,7 +96,10 @@ PsyProjectEngineLib( "System_Renderer" )
           "./Platforms/HTML5/",
       }
 
-      defines { "WITH_GL=1" }
+      defines {
+        "WITH_GL=1",
+        "GL_USE_SDL=1",
+      }
 
   configuration "windows-*"
       files {
@@ -100,9 +112,28 @@ PsyProjectEngineLib( "System_Renderer" )
             "./Platforms/Windows/",
       }
 
-      defines { "WITH_GL=1" }
+if _OPTIONS["with-angle"] then
+      includedirs {
+        "./Shared/",
+        "../../External/angle/include/",
+        "../../External/angle/src/",
+      }
 
-
+      defines {
+        "WITH_GL=1",
+        "GL_USE_EGL=1",
+        "GL_USE_ANGLE=1",
+        "GL_APICALL=__declspec(dllimport)",
+        "GL_APIENTRY=__stdcall",
+        "EGLAPI=__declspec(dllimport)",
+        "EGLAPIENTRY=__stdcall",
+      }
+else
+      defines {
+        "WITH_GL=1",
+        "GL_USE_WGL=1",
+      }
+end
 
 if _OPTIONS["with-dx12"] then
       files {
@@ -130,11 +161,6 @@ if _OPTIONS["with-vk"] then
 
       libdirs {
           VK_SDK_PATH .. "/Source/lib"
-      }
-
-      links {
-          "VKstatic.1",
-          "vulkan-1"
       }
 
       defines { "WITH_VK=1" }

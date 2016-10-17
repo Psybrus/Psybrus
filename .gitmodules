@@ -37,3 +37,6 @@
 [submodule "External/Catch"]
 	path = External/Catch
 	url = https://github.com/Psybrus/Catch
+[submodule "External/angle"]
+	path = External/angle
+	url = https://github.com/Psybrus/angle

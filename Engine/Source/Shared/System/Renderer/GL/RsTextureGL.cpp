@@ -11,6 +11,10 @@ RsTextureGL::RsTextureGL( RsTexture* Parent, RsTextureGL::ResourceType ResourceT
 	Parent_( Parent ),
 	ResourceType_( ResourceType )
 {
+	if( Parent->getDesc().Format_ == RsResourceFormat::ETC1_UNORM )
+	{
+		int a = 0; ++a;
+	}
 	Parent_->setHandle( this );
 	if( ResourceType_ == RsTextureGL::ResourceType::TEXTURE )
 	{
@@ -123,6 +127,10 @@ void RsTextureGL::loadTexture(
 		BcU32 DataSize,
 		void* Data )
 {
+	if( Slice.Level_ != 0 && Data )
+	{
+		int a = 0; ++a;
+	}
 	BcAssert( ResourceType_ == ResourceType::TEXTURE );
 	const auto& TextureDesc = Parent_->getDesc();
 	auto ContextGL = static_cast< RsContextGL* >( Parent_->getContext() );
@@ -205,6 +213,7 @@ void RsTextureGL::loadTexture(
 			break;
 
 		case RsTextureType::TEXCUBE:
+#if !defined( RENDER_USE_GLES )
 			GL( TexImage2D( 
 				RsUtilsGL::GetTextureFace( Slice.Face_ ),
 				Slice.Level_,
@@ -215,6 +224,18 @@ void RsTextureGL::loadTexture(
 				FormatGL.Format_,
 				FormatGL.Type_,
 				Data ) );
+#else
+			GL( TexImage2D( 
+				RsUtilsGL::GetTextureFace( Slice.Face_ ),
+				Slice.Level_,
+				FormatGL.Format_,
+				Width,
+				Height,
+				0,
+				FormatGL.Format_,
+				FormatGL.Type_,
+				Data ) );
+#endif
 			break;
 
 		default:

@@ -56,7 +56,7 @@
 #include <algorithm>
 #include <regex>
 
-#define ENABLE_DEBUG_OUTPUT ( 1 && !defined( PSY_PRODUCTION ) && !PLATFORM_HTML5 && !PLATFORM_ANDROID )
+#define ENABLE_DEBUG_OUTPUT ( 1 && !defined( PSY_PRODUCTION ) && !defined( RENDER_USE_GLES ) )
 
 //////////////////////////////////////////////////////////////////////////
 // Debug output.
@@ -223,9 +223,9 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 0 );
 
-#if PLATFORM_ANDROID
+#if GL_USE_EGL
 	//
-	ANativeWindow* Window = static_cast< ANativeWindow* >( pClient_->getWindowHandle() );
+	void* Window = pClient_->getWindowHandle();
 	BcAssert( Window != nullptr );
 
 	if( Width_ > 0 && Height_ > 0 )
@@ -237,18 +237,19 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 			// Destroy old surface.
 			if( EGLSurface_ != nullptr )
 			{
-				if( !eglDestroySurface( EGLSurface_, EGLContext_ ) )
+				if( !EGL( DestroySurface( EGLSurface_, EGLContext_ ) ) )
 				{
-					PSY_LOG( "eglDestroySurface() returned error %d", eglGetError() );
+					PSY_LOG( "eglDestroySurface() returned error %d", EGL( GetError() ) );
 				}
 			}
 
-			ANativeWindow_setBuffersGeometry( Window, 0, 0, EGLFormat_ );
-
+#if PLATFORM_ANDROID
+			ANativeWindow_setBuffersGeometry( static_cast< ANativeWindow* >( Window ), 0, 0, EGLFormat_ );
+#endif
 			// Recreate EGL surface for new window.
-			if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
+			if ( !( EGLSurface_ = EGL( CreateWindowSurface( EGLDisplay_, EGLConfig_, (EGLNativeWindowType)Window, 0 ) ) ) )
 			{
-				PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
+				PSY_LOG( "eglCreateWindowSurface() returned error %d", EGL( GetError() ) );
 				return;
 			}
 			else
@@ -256,11 +257,10 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 				PSY_LOG( "eglCreateWindowSurface() success" );
 			}
 
-
 			// Make context current with new surface.
-			if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
+			if ( !EGL( MakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) ) )
 			{
-				PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
+				PSY_LOG( "eglMakeCurrent() returned error %d", EGL( GetError() ) );
 				return;
 			}
 			else
@@ -269,8 +269,7 @@ void RsContextGL::resizeBackBuffer( BcU32 Width, BcU32 Height )
 			}
 		}
 	}
-
-#endif
+#endif // GL_USE_EGL
 
 	if( Width_ != Width || Height_ != Height )
 	{
@@ -376,31 +375,31 @@ void RsContextGL::present()
 	}
 	
 
-#if PLATFORM_WINDOWS
+#if GL_USE_WGL
 	{
 		PSY_PROFILER_SECTION( SwapRoot, "::SwapBuffers" );
 		::SwapBuffers( WindowDC_ );
 	}
 #endif
 
-#if PLATFORM_LINUX || PLATFORM_OSX
+#if ( PLATFORM_LINUX || PLATFORM_OSX ) && GL_USE_SDL
 	{
 		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapWindow" );
 		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
 	}
 #endif
 
-#if PLATFORM_HTML5
+#if PLATFORM_HTML5 && GL_USE_SDL
 	{
 		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapBuffers" );
 		SDL_GL_SwapBuffers();
 	}
 #endif
 
-#if PLATFORM_ANDROID
+#if GL_USE_EGL
 	{
 		PSY_PROFILER_SECTION( UpdateRoot, "SDL_eglSwapBuffers" );
-		eglSwapBuffers( EGLDisplay_, EGLSurface_ );
+		EGL( SwapBuffers( EGLDisplay_, EGLSurface_ ) );
 	}
 #endif
 }
@@ -449,7 +448,7 @@ void RsContextGL::create()
 		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
 	};
 
-#if PLATFORM_WINDOWS
+#if GL_USE_WGL
 	// Get client device handle.
 	WindowDC_ = (HDC)pClient_->getDeviceHandle();
 
@@ -558,7 +557,7 @@ void RsContextGL::create()
 	while( glGetError() != 0 );
 #endif
 
-#if PLATFORM_LINUX	|| PLATFORM_OSX
+#if GL_USE_SDL
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
 	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
@@ -617,7 +616,7 @@ void RsContextGL::create()
 	while( glGetError() != 0 );
 #endif
 
-#if PLATFORM_ANDROID
+#if GL_USE_EGL
 	// Use EGL to setup client.
 	const EGLint EGLConfigAttribs[] = {
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -638,9 +637,9 @@ void RsContextGL::create()
 		EGL_NONE
 	};
 
-	if ( ( EGLDisplay_ = eglGetDisplay( EGL_DEFAULT_DISPLAY ) ) == EGL_NO_DISPLAY )
+	if ( ( EGLDisplay_ = EGL( GetDisplay( EGL_DEFAULT_DISPLAY ) ) ) == EGL_NO_DISPLAY )
 	{
-		BcAssertMsg( false, "eglGetDisplay() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglGetDisplay() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -648,9 +647,9 @@ void RsContextGL::create()
 		BcPrintf( "eglGetDisplay() success" );
 	}
 
-	if ( !eglInitialize( EGLDisplay_, 0, 0 ) )
+	if ( !EGL( Initialize( EGLDisplay_, 0, 0 ) ) )
 	{
-		BcAssertMsg( false, "eglInitialize() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglInitialize() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -658,9 +657,9 @@ void RsContextGL::create()
 		BcPrintf( "eglInitialize() success" );
 	}
 
-	if ( !eglChooseConfig( EGLDisplay_, EGLConfigAttribs, &EGLConfig_, 1, &EGLNumConfigs_ ) )
+	if ( !EGL( ChooseConfig( EGLDisplay_, EGLConfigAttribs, &EGLConfig_, 1, &EGLNumConfigs_ ) ) )
 	{
-		BcAssertMsg( false, "eglChooseConfig() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglChooseConfig() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -668,9 +667,9 @@ void RsContextGL::create()
 		PSY_LOG( "eglChooseConfig() success" );
 	}
 
-	if ( !eglGetConfigAttrib( EGLDisplay_, EGLConfig_, EGL_NATIVE_VISUAL_ID, &EGLFormat_ ) ) 
+	if ( !EGL( GetConfigAttrib( EGLDisplay_, EGLConfig_, EGL_NATIVE_VISUAL_ID, &EGLFormat_ ) ) )
 	{
-		BcAssertMsg( false, "eglGetConfigAttrib() returned error %d", eglGetError() );
+		BcAssertMsg( false, "eglGetConfigAttrib() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -678,17 +677,18 @@ void RsContextGL::create()
 		PSY_LOG( "eglGetConfigAttrib() success" );
 	}
 
-	ANativeWindow* Window = static_cast< ANativeWindow* >( pClient_->getWindowHandle() );
+	BcHandle Window = pClient_->getWindowHandle();
 	BcAssert( Window != nullptr );
 	EGLWindow_ = Window;
 
-	ANativeWindow_setBuffersGeometry( Window, 0, 0, EGLFormat_ );
-	
+#if PLATFORM_ANDROID
+	ANativeWindow_setBuffersGeometry( static_cast< ANativeWindow* >( Window ), 0, 0, EGLFormat_ );
 	PSY_LOG( "ANativeWindow_setBuffersGeometry() success" );
+#endif
 
-		if ( !( EGLContext_ = eglCreateContext( EGLDisplay_, EGLConfig_, 0, EGContextAttribs ) ) )
+	if ( !( EGLContext_ = EGL( CreateContext( EGLDisplay_, EGLConfig_, 0, EGContextAttribs ) ) ) )
 	{
-		PSY_LOG( "eglCreateContext() returned error %d", eglGetError() );
+		PSY_LOG( "eglCreateContext() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -696,9 +696,9 @@ void RsContextGL::create()
 		PSY_LOG( "eglCreateContext() success" );
 	}
 	
-	if ( !( EGLSurface_ = eglCreateWindowSurface( EGLDisplay_, EGLConfig_, Window, 0 ) ) )
+	if ( !( EGLSurface_ = EGL( CreateWindowSurface( EGLDisplay_, EGLConfig_, (EGLNativeWindowType)Window, 0 ) ) ) )
 	{
-		PSY_LOG( "eglCreateWindowSurface() returned error %d", eglGetError() );
+		PSY_LOG( "eglCreateWindowSurface() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -706,9 +706,9 @@ void RsContextGL::create()
 		PSY_LOG( "eglCreateWindowSurface() success" );
 	}
 
-	if ( !eglMakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) )
+	if ( !EGL( MakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) ) )
 	{
-		PSY_LOG( "eglMakeCurrent() returned error %d", eglGetError() );
+		PSY_LOG( "eglMakeCurrent() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
@@ -716,20 +716,22 @@ void RsContextGL::create()
 		PSY_LOG( "eglMakeCurrent() success" );
 	}
 
-	if ( !eglQuerySurface( EGLDisplay_, EGLSurface_, EGL_WIDTH, &EGLWidth_ ) ||
-		 !eglQuerySurface( EGLDisplay_, EGLSurface_, EGL_HEIGHT, &EGLHeight_ ) ) 
+	if ( !EGL( QuerySurface( EGLDisplay_, EGLSurface_, EGL_WIDTH, &EGLWidth_ ) ) ||
+		 !EGL( QuerySurface( EGLDisplay_, EGLSurface_, EGL_HEIGHT, &EGLHeight_ ) ) ) 
 	{
-		PSY_LOG( "eglQuerySurface() returned error %d", eglGetError() );
+		PSY_LOG( "eglQuerySurface() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
 	{
 		PSY_LOG( "eglQuerySurface() success. %u x %u", EGLWidth_, EGLHeight_ );
+#if PLATFORM_ANDROID
 		OsClientAndroid* Client = static_cast< OsClientAndroid* >( pClient_ );
 		Client->setSize( EGLWidth_, EGLHeight_ );
+#endif
 	}
 
-#endif
+#endif // GL_USE_EGL
 
 #if defined( RENDER_USE_GLES )
 	Version_ = RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 );
@@ -868,7 +870,7 @@ void RsContextGL::destroy()
 	GL( DeleteFramebuffers( 2, TransferFBOs_ ) );
 
 	// Destroy global VAO.
-#if !PLATFORM_ANDROID
+#if !defined( RENDER_USE_GLES )
 	GL( BindVertexArray( 0 ) );
 	GL( DeleteVertexArrays( 1, &GlobalVAO_ ) );
 #endif
@@ -877,13 +879,13 @@ void RsContextGL::destroy()
 	destroyTexture( BackBufferRT_ );
 	destroyTexture( BackBufferDS_ );
 
-#if PLATFORM_WINDOWS
+#if GL_USE_WGL
 	// Destroy rendering context.
 	wglMakeCurrent( WindowDC_, NULL );
 	wglDeleteContext( WindowRC_ );
 #endif
 
-#if PLATFORM_LINUX || PLATFORM_OSX
+#if GL_USE_SDL
 	SDL_GL_DeleteContext( SDLGLContext_ );
 #endif
 
@@ -898,7 +900,7 @@ void RsContextGL::destroy()
 
 //////////////////////////////////////////////////////////////////////////
 // createProfile
-#if PLATFORM_WINDOWS
+#if GL_USE_WGL
 bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 {
 	// Setup pixel format.
@@ -991,7 +993,7 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 
 //////////////////////////////////////////////////////////////////////////
 // createProfile
-#if PLATFORM_LINUX || PLATFORM_OSX
+#if GL_USE_SDL
 bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
 {
 	switch( Version.Type_ )

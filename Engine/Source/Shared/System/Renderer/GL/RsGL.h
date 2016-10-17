@@ -15,6 +15,8 @@
 #  include "GLES3/gl3ext.h"
 #  include "GLES3/gl31.h"
 
+#define GL_USE_SDL ( 1 )
+
 #define GL_SAMPLER_1D 0x8B5D
 #define GL_SAMPLER_1D_SHADOW 0x8B61
 
@@ -42,8 +44,6 @@
 #  include "GLES3/gl3.h"
 #  include "GLES3/gl3ext.h"
 #  include "GLES3/gl31.h"
-
-#  include <EGL/egl.h>
 
 #define GL_SAMPLER_1D 0x8B5D
 #define GL_SAMPLER_1D_SHADOW 0x8B61
@@ -79,7 +79,6 @@
 #define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM 0x8E8D
 #define GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT 0x8E8E
 #define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT 0x8E8F
-
 
 #  define RENDER_USE_GLES
 
@@ -123,7 +122,65 @@
 #  define NOPROFILER      
 #  define NODEFERWINDOWPOS
 #  define NOMCX
+
+#if GL_USE_ANGLE
+#  include "GLES2/gl2.h"
+#  include "GLES2/gl2ext.h"
+#  include "GLES3/gl3.h"
+#  include "GLES3/gl3ext.h"
+#  include "GLES3/gl31.h"
+
+#define GL_SAMPLER_1D 0x8B5D
+#define GL_SAMPLER_1D_SHADOW 0x8B61
+
+#define GL_IMAGE_1D 0x904C
+#define GL_IMAGE_2D 0x904D
+#define GL_IMAGE_3D 0x904E
+#define GL_IMAGE_2D_RECT 0x904F
+#define GL_IMAGE_CUBE 0x9050
+#define GL_IMAGE_BUFFER 0x9051
+#define GL_IMAGE_1D_ARRAY 0x9052
+#define GL_IMAGE_2D_ARRAY 0x9053
+#define GL_IMAGE_CUBE_MAP_ARRAY 0x9054
+#define GL_IMAGE_2D_MULTISAMPLE 0x9055
+#define GL_IMAGE_2D_MULTISAMPLE_ARRAY 0x9056
+
+#define GL_UNSIGNED_INT_10_10_10_2 0x8036
+
+#define GL_R16 0x822A
+#define GL_R16_SNORM 0x8F98
+#define GL_RG16 0x822C
+#define GL_RG16_SNORM 0x822C
+#define GL_RGBA16_SNORM 0x8F9B
+#define GL_RGBA16 0x805B
+#define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT 0x8C4D
+#define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT 0x8C4E
+#define GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT 0x8C4F
+#define GL_COMPRESSED_RED_RGTC1 0x8DBB
+#define GL_COMPRESSED_SIGNED_RED_RGTC1 0x8DBC
+#define GL_COMPRESSED_RG_RGTC2 0x8DBD
+#define GL_COMPRESSED_SIGNED_RG_RGTC2 0x8DBE
+#define GL_COMPRESSED_RGBA_BPTC_UNORM 0x8E8C
+#define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM 0x8E8D
+#define GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT 0x8E8E
+#define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT 0x8E8F
+
+#  define RENDER_USE_GLES
+#  define RENDER_USE_GLES3
+
+#else
 #  include "GL/glew.h"
+#endif
+
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// EGL/WGL/SDL.
+#if GL_USE_EGL
+#  include <EGL/egl.h>
+#elif GL_USE_SDL
+#  include <SDL2/SDL.h>
+#elif GL_USE_WGL
 #  include "GL/wglew.h"
 #endif
 
@@ -144,9 +201,15 @@ GLuint RsReportGLErrors( const char* File, int Line, const char* CallString );
 #  define GL( _call ) \
 	gl##_call; RsReportGLErrors( __FILE__, __LINE__, #_call  )
 
+#  define EGL( _call ) \
+	egl##_call
+
 #else
 #  define GL( _call ) \
 	gl##_call
+
+#  define EGL( _call ) \
+	egl##_call
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

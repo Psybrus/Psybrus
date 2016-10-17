@@ -9,6 +9,12 @@ vs2015Platform = Platform(
 	"Psybrus/Dist/Platforms/pc.json",
 	[] )
 
+vs2015anglePlatform = Platform(
+	"windows-vs-v140", "Windows + ANGLE (VS2015)", "windows",
+	"x64", "windows", "vs2015", BuildMSBuild, Deploy, 
+	"Psybrus/Dist/Platforms/pc.json",
+	[ "--with-angle" ] )  # TODO: Have this as a subset of togglable options.
+
 vs2015dx12Platform = Platform(
 	"windows-vs-v140", "Windows + DX12 (VS2015)", "windows",
 	"x64", "windows", "vs2015", BuildMSBuild, Deploy, 
@@ -23,5 +29,6 @@ vs2015dx12vkPlatform = Platform(
 
 
 PLATFORMS.append( vs2015Platform )
+PLATFORMS.append( vs2015anglePlatform )
 PLATFORMS.append( vs2015dx12Platform )
 PLATFORMS.append( vs2015dx12vkPlatform )

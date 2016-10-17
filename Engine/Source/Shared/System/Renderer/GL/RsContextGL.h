@@ -12,10 +12,6 @@
 
 #include "Base/BcMisc.h"
 
-#if PLATFORM_LINUX || PLATFORM_OSX
-#include <SDL2/SDL.h>
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // RsContextGL
 class RsContextGL:
@@ -185,25 +181,25 @@ protected:
 	virtual void update();
 	virtual void destroy();	
 
-#if PLATFORM_WINDOWS
+#if GL_USE_WGL
 	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext );
 #endif
 
-#if PLATFORM_LINUX || PLATFORM_OSX
+#if GL_USE_SDL
 	bool createProfile( RsOpenGLVersion Version, SDL_Window* Window );
 #endif
 
 private:
-#if PLATFORM_WINDOWS
+#if GL_USE_WGL
 	HDC WindowDC_;
 	HGLRC WindowRC_;
 #endif
 
-#if PLATFORM_LINUX || PLATFORM_OSX
+#if GL_USE_SDL
 	SDL_GLContext SDLGLContext_;
 #endif
 
-#if PLATFORM_ANDROID
+#if GL_USE_EGL
 	EGLDisplay EGLDisplay_;
 	EGLConfig EGLConfig_; 
 	EGLint EGLNumConfigs_;
@@ -213,7 +209,7 @@ private:
 	EGLint EGLWidth_;
 	EGLint EGLHeight_;
 	GLfloat EGLRatio_;
-	struct ANativeWindow* EGLWindow_;
+	BcHandle EGLWindow_;
 #endif
 
 	RsContextGL* pParent_;

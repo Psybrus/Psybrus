@@ -2,8 +2,6 @@
 -- Common project creation functions.
 
 -- Locals
-local EXTERNAL_PREFIX = "External_"
-
 function PsyPlatformIncludes()
 	configuration "*"
 
@@ -354,7 +352,14 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		   "zlib",
 		}
 
+	if _OPTIONS["with-angle"] then
+	   PsyAddExternalDLL {
+		  "angle",
+	   }
+	end
+
 	PsyAddSystemLibs()
+
 
 	configuration { "windows-* or linux-* or osx-*" }
 	   PsyAddExternalLinks {
@@ -364,7 +369,7 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		  "glslang",
 		  "glsl-optimizer",
 		  "glew",
-                  "remotery",
+		  "remotery",
 		  "ThinkGear",
 	   }
 
@@ -661,10 +666,10 @@ function PsyProjectExternalLib( _name, _lang )
 	print( "Adding External Library: " .. _name )
 
 	configuration "Debug"
-		flags { "DebugRuntime", "Optimize"}
+		flags { "DebugRuntime", "Optimize" }
 
 	configuration "Release or Profile or Production"
-		flags { "ReleaseRuntime", "Optimize"}
+		flags { "ReleaseRuntime", "Optimize" }
 
 	-- External librarys should be built with no WinRT language extensions.
 	--configuration "winphone-*"
@@ -673,6 +678,29 @@ function PsyProjectExternalLib( _name, _lang )
 	-- Add STATICLIB define for libraries.
 	configuration "*"
 		defines{ "STATICLIB" }
+
+	-- Terminate project.
+	configuration "*"
+
+	return true;
+end
+
+-- Setup external lib project.
+function PsyProjectExternalDLL( _name, _lang )
+	group( "Psybrus External DLLs" )
+
+	-- Prepend "External_"
+	_name = _name
+
+	-- Setup common project stuff.
+	PsyProjectCommon( _name, _lang )
+	print( "Adding External DLL Library: " .. _name )
+
+	configuration "Debug"
+		flags { "DebugRuntime", "Optimize" }
+
+	configuration "Release or Profile or Production"
+		flags { "ReleaseRuntime", "Optimize" }
 
 	-- Terminate project.
 	configuration "*"
@@ -695,3 +723,9 @@ function PsyAddExternalLinks( _names )
 	end
 end
 
+-- Add external dll link.
+function PsyAddExternalDLL( _names )
+	for i, name in ipairs( _names ) do
+		links { name }
+	end
+end

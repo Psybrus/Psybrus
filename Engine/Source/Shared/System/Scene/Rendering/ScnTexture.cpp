@@ -451,6 +451,7 @@ void ScnTexture::recreate()
 			InternalHeight_ >> SkipMips,
 			InternalDepth_ ),
 		getFullName().c_str() );
+	BcAssert( Texture_ );
 
 #if DO_TEXTURE_COPY_TEST
 	auto StagingTexture = RsCore::pImpl()->createTexture( 

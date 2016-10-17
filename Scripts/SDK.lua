@@ -17,12 +17,17 @@ end
 		links {
 			"user32",
 			"gdi32",
-			"opengl32",
 			"winmm",
 			"ws2_32",
 			"IPHlpApi",
 			"xinput"
 		}
+
+if not _OPTIONS["with-angle"] then
+		links {
+			"opengl32",
+		}
+end
 
 	configuration "winphone-*"
 		links {
