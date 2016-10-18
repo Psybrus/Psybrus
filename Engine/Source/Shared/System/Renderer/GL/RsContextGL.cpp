@@ -642,41 +642,50 @@ void RsContextGL::create()
 		EGL_NONE
 	};
 
-	const EGLint EGContextAttribs_3[] = {
+	const EGLint EGLContextAttribs_3_1[] = {
+		EGL_CONTEXT_MAJOR_VERSION, 3,
+		EGL_CONTEXT_MINOR_VERSION, 1,
+		EGL_NONE
+	};
+
+	const EGLint EGLContextAttribs_3[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 3,
 		EGL_NONE
 	};
 
-	const EGLint EGContextAttribs_2[] = {
+	const EGLint EGLContextAttribs_2[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
 
 	struct EGLConfig
 	{
-		EGLConfig( const EGLint* ConfigAttribs, const EGLint* ContextAttribs, 
-				BcU32 MajorVersion, BcU32 MinorVersion, 
+		EGLConfig( 
+				EGLint EGLVersion, GLint GLVersion, 
+				const EGLint* ConfigAttribs, const EGLint* ContextAttribs, 
 				RsResourceFormat RTFormat, RsResourceFormat DSFormat ):
+			EGLVersion_( EGLVersion ),
+			GLVersion_( GLVersion ),
 			ConfigAttribs_( ConfigAttribs ),
 			ContextAttribs_( ContextAttribs ),
-			MajorVersion_( MajorVersion ),
-			MinorVersion_( MinorVersion ),
 			RTFormat_( RTFormat ),
 			DSFormat_( DSFormat )
 		{}
 
+		EGLint EGLVersion_;
+		GLint GLVersion_;
 		const EGLint* ConfigAttribs_;
 		const EGLint* ContextAttribs_;
-		BcU32 MajorVersion_;
-		BcU32 MinorVersion_;
 		RsResourceFormat RTFormat_;
 		RsResourceFormat DSFormat_;
 	};
 
-	const std::array< EGLConfig, 3 > EGLConfigAttribs = {
-		EGLConfig( EGLConfigAttribs_3, EGContextAttribs_3, 3, 0, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
-		EGLConfig( EGLConfigAttribs_2, EGContextAttribs_2, 3, 0, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
-		EGLConfig( EGLConfigAttribs_2_Low, EGContextAttribs_2, 2, 0, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D16_UNORM ), 
+	const std::array< EGLConfig, 5 > EGLConfigAttribs = {
+		EGLConfig( 0x00010005, 0x00030001, EGLConfigAttribs_3, EGLContextAttribs_3_1, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
+		EGLConfig( 0x00010005, 0x00030000, EGLConfigAttribs_3, EGLContextAttribs_3, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
+		EGLConfig( 0x00010004, 0x00030000, EGLConfigAttribs_3, EGLContextAttribs_3, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
+		EGLConfig( 0x00010000, 0x00020000, EGLConfigAttribs_2, EGLContextAttribs_2, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
+		EGLConfig( 0x00010000, 0x00020000, EGLConfigAttribs_2_Low, EGLContextAttribs_2, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D16_UNORM ), 
 	};
 
 	if ( ( EGLDisplay_ = EGL( GetDisplay( EGL_DEFAULT_DISPLAY ) ) ) == EGL_NO_DISPLAY )
@@ -698,16 +707,34 @@ void RsContextGL::create()
 	}
 	else
 	{
-		BcPrintf( "eglInitialize() success" );
+		PSY_LOG( "EGL version %d.%d initialised.", EGLMajor, EGLMinor );
 	}
+
+	EGLint EGLVersion = EGLMajor << 16 | EGLMinor;
 
 	EGLConfig_ = 0;
 
-	EGLConfig SelectedConfig( nullptr, nullptr, 0, 0, RsResourceFormat::UNKNOWN, RsResourceFormat::UNKNOWN );
+	EGLConfig SelectedConfig( 0x00000000, 0x00000000, nullptr, nullptr, RsResourceFormat::UNKNOWN, RsResourceFormat::UNKNOWN );
 
 	BcHandle Window = nullptr;
 	for( const auto& EGLConfigAttrib : EGLConfigAttribs )
 	{
+		// Minimum EGL version check.
+		if( EGLVersion < EGLConfigAttrib.EGLVersion_ )
+		{
+			continue;
+		}
+
+		// Check for GL version we want.
+		if( WantGLESVersion )
+		{
+			BcU32 Version = VersionMajor << 16 | VersionMinor;
+			if( EGLConfigAttrib.GLVersion_ != Version )
+			{
+				continue;
+			}
+		}
+
 		if ( !EGL( ChooseConfig( EGLDisplay_, EGLConfigAttrib.ConfigAttribs_, &EGLConfig_, 1, &EGLNumConfigs_ ) ) )
 		{
 			BcAssertMsg( false, "eglChooseConfig() returned error %d", EGL( GetError() ) );
@@ -795,15 +822,19 @@ void RsContextGL::create()
 #endif // GL_USE_EGL
 
 #if defined( RENDER_USE_GLES )
-	Version_ = RsOpenGLVersion( SelectedConfig.MajorVersion_, SelectedConfig.MinorVersion_, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100  );
+	Version_ = RsOpenGLVersion( SelectedConfig.GLVersion_ >> 16, SelectedConfig.GLVersion_ & 0xffff, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100  );
 
-	if( SelectedConfig.MajorVersion_ == 3 && SelectedConfig.MinorVersion_ == 1 )
+	if( SelectedConfig.GLVersion_ >= 0x00020000 )
 	{
-		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_310;
+		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_100;
 	}
-	else if( SelectedConfig.MajorVersion_ == 3 && SelectedConfig.MinorVersion_ == 0 )
+	if( SelectedConfig.GLVersion_ >= 0x00030000 )
 	{
 		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_300;
+	}
+	if( SelectedConfig.GLVersion_ >= 0x00030001 )
+	{
+		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_310;
 	}
 
 	Version_.setupFeatureSupport();
