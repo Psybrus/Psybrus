@@ -324,6 +324,20 @@ void RsOpenGLVersion::setupFeatureSupport()
 				HaveExtension( "ARB_base_instance" );
 		}
 
+		if( getCombinedVersion() >= 0x00030000 )
+		{
+			Features_.MRT_ = true;
+			Features_.NPOTTextures_ = true;
+			Features_.AnisotropicFiltering_ = true;
+				
+			Features_.Instancing_ = false; // TODO: Support it in ESSL shaders.
+
+			SupportSamplerStates_ = true;
+			SupportUniformBuffers_ = true;
+			SupportUniformBufferOffset_ = true;
+			SupportDrawInstanced_ = true;
+		}
+
 		break;
 	}
 

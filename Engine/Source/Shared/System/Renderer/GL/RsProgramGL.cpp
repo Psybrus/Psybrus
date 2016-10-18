@@ -130,7 +130,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			{
 				if( Version_.SupportUniformBuffers_ )
 				{
-#if !defined( RENDER_USE_GLES )
+#if !defined( RENDER_USE_GLES ) || defined( RENDER_USE_GLES3 )
 					auto Index = GL( GetUniformBlockIndex( Handle_, Parameter.Name_ ) );
 #if 0 // TODO: Nvidia drivers optimise out unused stuff. Should either not assert, or fix import pipeline.
 					BcAssertMsg( Index != -1,
@@ -145,9 +145,9 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 						UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
 						GL( UniformBlockBinding( Handle_, Index, InternalType.Binding_ ) );				
 					}
-#endif // !defined( RENDER_USE_GLES )
+#endif // !defined( RENDER_USE_GLES ) || defined( RENDER_USE_GLES3 )
 				}
-				else
+
 				{
 					BcU32 UBSlot = BcU32( UniformBufferBindInfo_.size() );
 					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );
@@ -422,7 +422,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 	}
 	
 	// If we don't support uniform buffers, setup uniform cache.
-	if( !Version_.SupportUniformBuffers_ )
+	if( UniformEntry.CachedOffset_ > 0 )
 	{
 		// Allocate a buffer to cache uniform values in.
 		CachedUniforms_.reset( new BcU8[ UniformEntry.CachedOffset_ ] );
