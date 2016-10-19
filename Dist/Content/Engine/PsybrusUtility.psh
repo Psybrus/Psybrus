@@ -250,7 +250,11 @@ float3x3 buildTBN( float3 InTangent, float3 InBinormal, float3 InNormal )
 
 //////////////////////////////////////////////////////////////////////////
 // Colour space conversion.
-#define ACCURATE_GAMMA_CONVERSION ( 1 )
+#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
+#  define FAST_GAMMA_CONVERSION ( 1 )
+#else
+#  define ACCURATE_GAMMA_CONVERSION ( 1 )
+#endif
 
 float3 gammaToLinear( float3 InputRGBA )
 {

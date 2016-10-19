@@ -22,6 +22,7 @@ function SetupAndroidProject()
 				"log",
 				"GLESv1_CM",
 				"GLESv2",
+				"GLESv3",
 				"EGL",
 				"OpenSLES",
 				"llvmcxxabi",

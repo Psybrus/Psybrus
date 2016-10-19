@@ -25,7 +25,8 @@
 #elif PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
 #pragma version 100
 #pragma extension GL_EXT_shader_texture_lod : enable
-precision mediump float;
+precision highp float;
+precision highp int;
 
 #endif
 #endif // !defined( SKIP_VERSION )

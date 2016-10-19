@@ -19,7 +19,7 @@ PS_MAIN( pixelMain_BrightPass )
 
 	float AvgLum = PSY_SAMPLE_2D( Luminance2Tex, float2( 0.0, 0.0 ) ).x;
 	float4 Colour = PSY_SAMPLE_2D( InputTexture, IN( VsTexCoord0 ).xy );
-	Colour -= float4( BloomThreshold_, BloomThreshold_, BloomThreshold_, 0.0f );
+	Colour -= float4( BloomThreshold_, BloomThreshold_, BloomThreshold_, 0.0 );
 	Colour = saturate( Colour / AvgLum );
 	outputFrag[0] = linearToGamma( Colour );
 
