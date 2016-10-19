@@ -177,9 +177,9 @@ public:
 private:
 
 protected:
-	virtual void create();
-	virtual void update();
-	virtual void destroy();	
+	void create() override;
+	void update() override;
+	void destroy() override;	
 
 #if GL_USE_WGL
 	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext, RsResourceFormat RTFormat, RsResourceFormat DSFormat );

@@ -2,6 +2,7 @@
 
 #include "Base/BcTypes.h"
 #include "Base/BcDebug.h"
+#include "Base/BcProfiler.h"
 #include "System/Renderer/RsFeatures.h"
 
 #include <tuple>
@@ -193,13 +194,12 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsGLCatchError
-#define PSY_GL_CATCH_ERRORS ( 1 && !PSY_PRODUCTION && !PLATFORM_HTML5 )
+#define PSY_GL_CATCH_ERRORS ( 1 && PSY_DEBUG && !PLATFORM_HTML5 )
 
 GLuint RsReportGLErrors( const char* File, int Line, const char* CallString );
 
 #if PSY_GL_CATCH_ERRORS
-#  define GL( _call ) \
-	gl##_call; RsReportGLErrors( __FILE__, __LINE__, #_call  )
+#  define GL( _call ) gl##_call; RsReportGLErrors( __FILE__, __LINE__, #_call  )
 
 #  define EGL( _call ) \
 	egl##_call

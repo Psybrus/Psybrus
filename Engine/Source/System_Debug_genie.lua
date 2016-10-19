@@ -64,3 +64,8 @@ PsyProjectEngineLib( "System_Debug" )
         includedirs {
             "./Platforms/Windows/",
         }
+
+  configuration "android-*"
+        defines {
+            "RMT_ENABLED=0",
+        }

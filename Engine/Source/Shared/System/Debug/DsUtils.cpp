@@ -11,8 +11,11 @@
 #include "System/Renderer/RsFrameBuffer.h"
 #include "System/Renderer/RsViewport.h"
 
+#include "Base/BcProfiler.h"
+
 //////////////////////////////////////////////////////////////////////////
 // Debug utilities.
+#if !PSY_PRODUCTION
 namespace Debug
 {
 	struct TextSection
@@ -344,6 +347,7 @@ namespace Debug
 
 	void NextFrame()
 	{
+		PSY_PROFILE_FUNCTION;
 		// Wait for vertex buffer to finish uploading.
 		UploadFence_.wait();
 
@@ -732,3 +736,4 @@ namespace Debug
 
 
 }
+#endif // !PSY_PRODUCTION

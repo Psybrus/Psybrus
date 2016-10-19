@@ -185,8 +185,10 @@ function PsyProjectCommonEngine( _name )
 
 	-- Import pipeline.
 	configuration { "Debug or Release", "windows-* or linux-* or osx-*" }
-		defines { "PSY_USE_PROFILER=1" }
 		defines { "PSY_IMPORT_PIPELINE" }
+
+	configuration { "Debug or Release", "windows-* or linux-* or osx-* or android-*" }
+		defines { "PSY_USE_PROFILER=1" }
 
 	-- Add default include paths.
 	configuration( "*" )

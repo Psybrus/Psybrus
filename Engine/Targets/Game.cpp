@@ -30,6 +30,7 @@ void PsyToolMain()
 #include "System/Content/CsCore.h"
 #include "System/Os/OsClientAndroid.h"
 #include "System/Os/OsCore.h"
+#include "System/Renderer/RsCore.h"
 
 #include <android_native_app_glue.h>
 #include <android/log.h>

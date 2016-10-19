@@ -272,8 +272,8 @@ public:
 	BcProfilerSectionScope _ProfilerFunction_##__LINE__( __PRETTY_FUNCTION__ ) 
 #endif
 
-#define PSY_PROFILER_SECTION( _LocalName, ... ) BcProfilerSectionScope _LocalName##CPU( __VA_ARGS__ ) 
-#define PSY_PROFILER_GPU_SECTION( _LocalName, ... ) BcProfilerGPUSectionScope _LocalName##GPU( __VA_ARGS__ ) 
+#define PSY_PROFILER_SECTION(  ... ) BcProfilerSectionScope _LocalName##__LINE__##CPU( __VA_ARGS__ ) 
+#define PSY_PROFILER_GPU_SECTION( ... ) BcProfilerGPUSectionScope _LocalName##__LINE__##GPU( __VA_ARGS__ ) 
 #define PSY_PROFILER_START_ASYNC( _Tag, _Data ) BcProfilerStartAsync( _Tag, _Data )
 #define PSY_PROFILER_STEP_ASYNC( _Tag, _Data ) BcProfilerStepAsync( _Tag, _Data )
 #define PSY_PROFILER_FINISH_ASYNC( _Tag, _Data ) BcProfilerEndAsync( _Tag, _Data )

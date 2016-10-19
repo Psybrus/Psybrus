@@ -552,7 +552,7 @@ void ScnEntity::setupComponents()
 //static
 void ScnEntity::update( const ScnComponentList& Components )
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "ScnEntity::update" );
+	PSY_PROFILER_SECTION( "ScnEntity::update" );
 
 	for( auto Component : Components )
 	{

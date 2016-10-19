@@ -313,6 +313,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 
 			SupportVAOs_ |= HaveExtension( "OES_vertex_array_object" );
 
+#if 0 // TODO: Not handled in RsContextGL
 			SupportDrawElementsBaseVertex_ |= HaveExtension( "EXT_draw_elements_base_vertex" );
 
 			SupportDrawInstanced_ |= 
@@ -322,6 +323,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 			SupportDrawInstancedBaseInstance_ |= 
 				HaveExtension( "ARB_base_instance" ) ||
 				HaveExtension( "ARB_base_instance" );
+#endif
 		}
 
 		if( getCombinedVersion() >= 0x00030000 )
@@ -450,7 +452,7 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 // RsGLCatchError
 GLuint RsReportGLErrors( const char* File, int Line, const char* CallString )
 {
-	PSY_PROFILER_SECTION( CatchRoot, "RsReportGLErrors" );
+	PSY_PROFILER_SECTION( "RsReportGLErrors" );
 	BcAssert( File );
 	BcAssert( Line > 0 );
 	BcAssert( CallString );

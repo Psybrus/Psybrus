@@ -17,7 +17,17 @@
 //////////////////////////////////////////////////////////////////////////
 // ImGui includes.
 #include "imgui.h"
+
+#if COMPILER_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wbackslash-newline-escape"
+#endif
+
 #include "ImGuizmo.h"
+
+#if COMPILER_CLANG
+#pragma clang diagnostic pop
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Forward declarations.

@@ -18,6 +18,11 @@
 #include <sstream>
 #include <fstream>
 
+#if PLATFORM_ANDROID
+#include <android_native_app_glue.h>
+#include <android/native_activity.h>
+#endif
+
 #if PSY_USE_PROFILER
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,9 +122,15 @@ void DsProfilerChromeTracing::endProfiling()
 		auto LocalTime = *std::localtime( &Time );
 		std::array< char, 1024 > FileName = { 0 };
 #if PLATFORM_ANDROID
-		strftime( FileName.data(), FileName.size() - 1, "/sdcard/Pictures/chrome_tracing_%Y-%m-%d-%H-%M-%S.json", &LocalTime );
+		extern android_app* GAndroidApp;
+		const char* InternalPath = GAndroidApp->activity->externalDataPath;
+
+		std::array< char, 1024 > Buffer = { 0 };
+		strftime( Buffer.data(), Buffer.size(), "chrome_tracing_%Y-%m-%d-%H-%M-%S.json", &LocalTime );
+		BcSPrintf( FileName.data(), FileName.size(), "%s/%s", InternalPath, Buffer.data() );
+
 #else
-		strftime( FileName.data(), FileName.size() - 1, "chrome_tracing_%Y-%m-%d-%H-%M-%S.json", &LocalTime );
+		strftime( FileName.data(), FileName.size(), "chrome_tracing_%Y-%m-%d-%H-%M-%S.json", &LocalTime );
 #endif
 
 		std::array< char, 1024 > LineBuffer = { 0 };

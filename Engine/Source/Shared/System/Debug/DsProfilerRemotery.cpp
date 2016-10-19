@@ -48,7 +48,9 @@ void DsProfilerRemotery::initialiseGraphics( const char* API, void* Context, voi
 	if( BcStrCompare( API, "GL" ) )
 	{
 		UseGL_ = true;
+#if RMT_ENABLED && RMT_USE_OPENGL
 		_rmt_BindOpenGL();
+#endif
 	}
 
 	if( BcStrCompare( API, "D3D11" ) )
@@ -94,7 +96,9 @@ void DsProfilerRemotery::endProfiling()
 //virtual
 void DsProfilerRemotery::enterSection( const char* Tag )
 {
+#if RMT_ENABLED
 	_rmt_BeginCPUSample( Tag, 0, nullptr );
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,7 +106,9 @@ void DsProfilerRemotery::enterSection( const char* Tag )
 //virtual
 void DsProfilerRemotery::exitSection( const char* Tag )
 {
+#if RMT_ENABLED
 	_rmt_EndCPUSample();
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,14 +118,14 @@ void DsProfilerRemotery::enterGPUSection( const char* Tag )
 {
 	if( UseGL_ )
 	{
-#if RMT_USE_OPENGL
+#if RMT_ENABLED && RMT_USE_OPENGL
 		_rmt_BeginOpenGLSample( Tag, nullptr );
 #endif
 	}
 
 	if( UseD3D11_ )
 	{
-#if RMT_USE_D3D11
+#if RMT_ENABLED && RMT_USE_D3D11
 		_rmt_BeginD3D11Sample( Tag );
 #endif
 	}
@@ -132,14 +138,14 @@ void DsProfilerRemotery::exitGPUSection( const char* Tag )
 {
 	if( UseGL_ )
 	{
-#if RMT_USE_OPENGL
+#if RMT_ENABLED && RMT_USE_OPENGL
 		_rmt_EndOpenGLSample();
 #endif
 	}
 
 	if( UseD3D11_ )
 	{
-#if RMT_USE_D3D11
+#if RMT_ENABLED && RMT_USE_D3D11
 		_rmt_EndD3D11Sample();
 #endif
 	}

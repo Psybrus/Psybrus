@@ -64,13 +64,13 @@ public:
 		Position_ = aOffset;
 	}
 
-	unsigned int pos()
+	unsigned int pos() override
 	{
 		return Position_;
 	}
 	
-	virtual FILE * getFilePtr() { return 0; }
-	virtual unsigned char * getMemPtr() { return 0; }
+	FILE * getFilePtr() override { return 0; }
+	unsigned char * getMemPtr() override { return 0; }
 
 private:
 	FsFile File_;

@@ -84,7 +84,7 @@ BcU32 ScnAnimation::getNodeIndexByName( BcName Name ) const
 // findPoseIndexAtTime
 BcU32 ScnAnimation::findPoseIndexAtTime( BcF32 Time ) const 
 {
-	PSY_PROFILER_SECTION( TickRoot, "ScnAnimation::findPoseIndexAtTime" );
+	PSY_PROFILER_SECTION( "ScnAnimation::findPoseIndexAtTime" );
 
 	// Setup indices.
 	BcU32 MinIdx = 0;
@@ -188,7 +188,7 @@ void ScnAnimation::decodePoseAtIndex(
 	ScnAnimationPose* pOutputPose,
 	ScnAnimationNodeFileData* TargetNodesFileData ) const
 {
-	PSY_PROFILER_SECTION( TickRoot, "ScnAnimation::decodePoseAtIndex" );
+	PSY_PROFILER_SECTION( "ScnAnimation::decodePoseAtIndex" );
 
 	switch( Header_.Packing_ )
 	{

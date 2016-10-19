@@ -117,7 +117,7 @@ private:
 			SetConsoleTextAttribute( HConsole, WIN_COLOR_RED );
 			printf( "%s", pText );
 #elif PLATFORM_ANDROID
-			__android_log_print( ANDROID_LOG_ERROR, LOG_TAG, pText );
+			__android_log_print( ANDROID_LOG_ERROR, LOG_TAG, "%s", pText );
 #else
 			printf( ANSI_COLOR_RED "%s", pText );
 #endif
@@ -128,7 +128,7 @@ private:
 			SetConsoleTextAttribute( HConsole, WIN_COLOR_GREEN );
 			printf( "%s", pText );
 #elif PLATFORM_ANDROID
-			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, "%s", pText );
 #else
 			printf( ANSI_COLOR_GREEN "%s", pText );
 #endif
@@ -139,7 +139,7 @@ private:
 			SetConsoleTextAttribute( HConsole, WIN_COLOR_YELLOW );
 			printf( "%s", pText );
 #elif PLATFORM_ANDROID
-			__android_log_print( ANDROID_LOG_WARN, LOG_TAG, pText );
+			__android_log_print( ANDROID_LOG_WARN, LOG_TAG, "%s", pText );
 #else
 			printf( ANSI_COLOR_YELLOW "%s", pText );
 #endif
@@ -151,7 +151,7 @@ private:
 			SetConsoleTextAttribute( HConsole, WIN_COLOR_CYAN );
 			printf( "%s", pText );
 #elif PLATFORM_ANDROID
-			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, "%s", pText );
 #else
 			printf( ANSI_COLOR_CYAN "%s", pText );
 #endif
@@ -162,7 +162,7 @@ private:
 			SetConsoleTextAttribute( HConsole, WIN_COLOR_RESET );
 			printf( "%s", pText );
 #elif PLATFORM_ANDROID
-			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, pText );
+			__android_log_print( ANDROID_LOG_INFO, LOG_TAG, "%s", pText );
 #else
 			printf( ANSI_COLOR_RESET "%s", pText );
 #endif

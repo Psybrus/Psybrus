@@ -620,7 +620,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent::renderLights" );
+				PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent::renderLights" );
 
 				setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 					GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -651,7 +651,7 @@ void ScnDeferredRendererComponent::renderLights( ScnRenderContext& RenderContext
 //////////////////////////////////////////////////////////////////////////
 // renderReflection
 void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderContext )
-{
+{\
 	// Update reflection.
 	if( UseEnvironmentProbes_ )
 	{
@@ -708,7 +708,7 @@ void ScnDeferredRendererComponent::renderReflection( ScnRenderContext& RenderCon
 		( RsContext* Context )
 		{
 			PSY_PROFILE_FUNCTION;
-			PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent::renderReflection" );
+			PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent::renderReflection" );
 
 			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -772,7 +772,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
-					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent calc lum" );
+					PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent calc lum" );
 					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 				} );
 		}
@@ -802,7 +802,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 					( RsContext* Context )
 					{
 						PSY_PROFILE_FUNCTION;
-						PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
+						PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent downsample" );
 						Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 					} );
 			}
@@ -840,7 +840,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
-					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent transfer lum" );
+					PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent transfer lum" );
 					Context->dispatchCompute( ProgramBinding, XGroups, YGroups, 1 );
 				} );
 		}
@@ -866,7 +866,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent setup quad" );
+				PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent setup quad" );
 
 				setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 					GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -896,7 +896,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
-					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent calc lum" );
+					PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent calc lum" );
 			
 					Context->drawPrimitives( 
 						GeometryBinding,
@@ -946,7 +946,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 					( RsContext* Context )
 					{
 						PSY_PROFILE_FUNCTION;
-						PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
+						PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent downsample" );
 
 						Context->updateBuffer( DownsampleUniformBuffer, 0, sizeof( ScnShaderDownsampleUniformBlockData ), 
 							RsResourceUpdateFlags::ASYNC,
@@ -1000,7 +1000,7 @@ void ScnDeferredRendererComponent::downsampleHDR( ScnRenderContext& RenderContex
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
-					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent transfer lum" );
+					PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent transfer lum" );
 
 					Context->drawPrimitives( 
 						GeometryBinding,
@@ -1076,7 +1076,7 @@ void ScnDeferredRendererComponent::renderResolve( ScnRenderContext& RenderContex
 		( RsContext* Context )
 		{
 			PSY_PROFILE_FUNCTION;
-			PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent resolve" );
+			PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent resolve" );
 
 			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -1142,7 +1142,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 		( RsContext* Context )
 		{
 			PSY_PROFILE_FUNCTION;
-			PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent setup quad" );
+			PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent setup quad" );
 
 			setupQuad( Context, GeometryBinding->getDesc().VertexDeclaration_,
 				GeometryBinding->getDesc().VertexBuffers_[ 0 ].Buffer_,
@@ -1166,7 +1166,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample" );
+				PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent downsample" );
 
 				Context->updateBuffer( DownsampleUniformBuffer, 0, sizeof( ScnShaderDownsampleUniformBlockData ), 
 					RsResourceUpdateFlags::ASYNC,
@@ -1196,7 +1196,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
-					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample 0" );
+					PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent downsample 0" );
 
 					Context->drawPrimitives( 
 						GeometryBinding,
@@ -1226,7 +1226,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 				( RsContext* Context )
 				{
 					PSY_PROFILE_FUNCTION;
-					PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent downsample 1" );
+					PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent downsample 1" );
 
 					Context->drawPrimitives( 
 						GeometryBinding,
@@ -1268,7 +1268,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent bloom bright pass" );
+				PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent bloom bright pass" );
 			
 				Context->drawPrimitives( 
 					GeometryBinding,
@@ -1309,7 +1309,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent horizontal blur" );
+				PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent horizontal blur" );
 
 				Context->drawPrimitives( 
 					GeometryBinding,
@@ -1350,7 +1350,7 @@ void ScnDeferredRendererComponent::calculateBloom( ScnRenderContext& RenderConte
 			( RsContext* Context )
 			{
 				PSY_PROFILE_FUNCTION;
-				PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnDeferredRendererComponent vertical blur" );
+				PSY_PROFILER_GPU_SECTION( "ScnDeferredRendererComponent vertical blur" );
 
 				Context->drawPrimitives( 
 					GeometryBinding,
@@ -1401,12 +1401,14 @@ void ScnDeferredRendererComponent::onViewDrawPostRender( ScnRenderContext& Rende
 		calculateBloom( RenderContext );
 
 		// Do debug rendering.
+#if !PSY_PRODUCTION
 		Debug::Render(
 			RenderContext.pFrame_,
 			RenderContext.View_->getFrameBuffer(),
 			RenderContext.View_->getViewport(),
 			RenderContext.View_->getViewUniformBuffer(),
 			RenderContext.Sort_ );
+#endif // !PSY_PRODUCTION
 	}
 	else if( RenderContext.View_ == OverlayView_ )
 	{

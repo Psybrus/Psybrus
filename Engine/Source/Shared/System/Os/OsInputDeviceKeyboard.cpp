@@ -23,11 +23,11 @@ OsInputDeviceKeyboard::OsInputDeviceKeyboard()
 		[ this ]( EvtID ID, const EvtBaseEvent& InEvent ) -> eEvtReturn
 		{
 			const auto& Event = InEvent.get< OsEventInputKeyboard >();
-			if( Event.ScanCode_ >= 0 && Event.ScanCode_ < ( SCANCODE_END - SCANCODE_BEGIN ) )
+			if( Event.ScanCode_ < ( SCANCODE_END - SCANCODE_BEGIN ) )
 			{
 				ScancodeValues_[ Event.ScanCode_ ] = BcTrue;
 			}
-			if( Event.KeyCode_ >= 0 && Event.KeyCode_ < ( KEYCODE_END - KEYCODE_BEGIN ) )
+			if( Event.KeyCode_ < ( KEYCODE_END - KEYCODE_BEGIN ) )
 			{
 				KeycodeValues_[ Event.KeyCode_ ] = BcTrue;
 			}			
@@ -38,11 +38,11 @@ OsInputDeviceKeyboard::OsInputDeviceKeyboard()
 		[ this ]( EvtID ID, const EvtBaseEvent& InEvent ) -> eEvtReturn
 		{
 			const auto& Event = InEvent.get< OsEventInputKeyboard >();
-			if( Event.ScanCode_ >= 0 && Event.ScanCode_ < 0x1ff )
+			if( Event.ScanCode_ < 0x1ff )
 			{
 				ScancodeValues_[ Event.ScanCode_ ] = BcFalse;
 			}
-			if( Event.KeyCode_ >= 0 && Event.KeyCode_ < 0x1ff )
+			if( Event.KeyCode_ < 0x1ff )
 			{
 				KeycodeValues_[ Event.KeyCode_ ] = BcFalse;
 			}			

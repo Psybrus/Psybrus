@@ -139,7 +139,7 @@ void pixelAll( FRAMEBUFFER_INPUT )
 	Surface InSurface = SetupSurface( InMaterial, EyePosition.xyz, IN( VsWorldPosition ).xyz, Normal.xyz );
 
 	// Handle lighting.
-	for( int LightIdx = 0; LightIdx < 4; ++LightIdx )
+	for( int LightIdx = 0; LightIdx < NOOF_FORWARD_LIGHTS; ++LightIdx )
 	{
 		Light InLight;
 #if defined( INSTANCED_DRAW )
@@ -155,10 +155,12 @@ void pixelAll( FRAMEBUFFER_INPUT )
 	}
 
 	// Handle reflection.
+#if 0
 	int ReflectionLevels = textureQueryLevels( aReflectionTex );
 	float MipLevel = float( ReflectionLevels ) * InMaterial.Roughness_;
 	float3 ReflectionColour = gammaToLinear( PSY_SAMPLE_CUBE_LOD( ReflectionTex, reflect( normalize( IN( VsWorldPosition ).xyz - EyePosition ), Normal.xyz ), MipLevel ).xyz );
 	TotalSurface += ApplyReflection( InSurface, ReflectionColour );
+#endif
 
 	TotalSurface = min( float3( 1.0, 1.0, 1.0 ), TotalSurface );
 	TotalSurface = linearToGamma( TotalSurface );

@@ -163,7 +163,7 @@ void SysJobWorker::execute()
 				// If we can pop, execute and break out.
 				if( JobQueue->popJob( Job ) )
 				{
-					PSY_PROFILER_SECTION( ExecuteJob_Profiler, "ExecuteJob" );
+					PSY_PROFILER_SECTION(  "ExecuteJob" );
 
 					// Execute.
 #if !PSY_PRODUCTION

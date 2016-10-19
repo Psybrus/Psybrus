@@ -42,7 +42,7 @@ public:
 	void beginFrame() override;
 	void endFrame() override;
 	void present() override;
-	void takeScreenshot( RsScreenshotFunc ScreenshotFunc );
+	void takeScreenshot( RsScreenshotFunc ScreenshotFunc ) override;
 
 	void clear( 
 		const RsFrameBuffer* FrameBuffer,
@@ -131,9 +131,9 @@ public:
 
 
 protected:
-	virtual void create();
-	virtual void update();
-	virtual void destroy();	
+	void create() override;
+	void update() override;
+	void destroy() override;
 
 private:
 	RsContextNull* pParent_;

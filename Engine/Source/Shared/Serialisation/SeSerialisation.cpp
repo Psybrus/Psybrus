@@ -13,8 +13,6 @@
 
 #include "Base/BcString.h"
 
-extern int SeUnitTest_init = 0;
-
 namespace TestData
 {
 	class ObjectCodecBasic:

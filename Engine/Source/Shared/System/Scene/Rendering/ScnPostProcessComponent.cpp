@@ -201,7 +201,7 @@ void ScnPostProcessComponent::render( ScnRenderContext& RenderContext )
 		]
 		( RsContext* Context )
 		{
-			PSY_PROFILER_SECTION( RenderRoot, "ScnPostProcessComponentRenderNode::render" );
+			PSY_PROFILER_SECTION( "ScnPostProcessComponentRenderNode::render" );
 
 			auto InputTexture = Input_ != nullptr ? Input_->getTexture() : nullptr;
 			auto OutputTexture = Output_ != nullptr ? Output_->getTexture() : nullptr;

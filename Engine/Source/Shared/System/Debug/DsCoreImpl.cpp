@@ -196,6 +196,10 @@ DsCoreImpl::DsCoreImpl() :
 	{
 		new DsProfilerRemotery();
 	}
+
+#if PLATFORM_ANDROID
+	//new DsProfilerChromeTracing();
+#endif
 #endif
 
 
@@ -343,6 +347,7 @@ void DsCoreImpl::open()
 	}
 #endif
 
+#if !PSY_PRODUCTION
 	if( ScnCore::pImpl() )
 	{
 		// Setup init/deinit hooks.
@@ -395,7 +400,7 @@ void DsCoreImpl::open()
 		ScnCore::pImpl()->subscribe( sysEVT_SYSTEM_PRE_UPDATE, this,
 			[ this ]( EvtID, const EvtBaseEvent& )
 		{
-			PSY_PROFILER_SECTION( UpdateImGui, "ImGui" );
+			PSY_PROFILER_SECTION( "ImGui" );
 			if( OsCore::pImpl()->getClient( 0 ) )
 			{
 				if( ImGui::Psybrus::NewFrame() )
@@ -672,6 +677,7 @@ void DsCoreImpl::open()
 		return evtRET_PASS;
 	} );
 
+#endif // !PSY_PRODUCTION
 	// Start screenshot util.
 	ScreenshotUtil::Init();
 }
@@ -684,7 +690,7 @@ void DsCoreImpl::update()
 #if USE_WEBBY
 	for ( unsigned int Idx = 0; Idx < Servers_.size(); ++Idx )
 	{
-		PSY_PROFILER_SECTION( UpdateWebby, "WebbyServerUpdate" );
+		PSY_PROFILER_SECTION( "WebbyServerUpdate" );
 
 		WebbyServerUpdate( Servers_[ Idx ] );
 	}

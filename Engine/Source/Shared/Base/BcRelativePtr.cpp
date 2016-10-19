@@ -180,5 +180,5 @@ TEST_CASE( "BcRelativePtr-TestAssertions")
 	REQUIRE( GotAssert == false );
 }
 
-#endif !PSY_PRODUCTION
+#endif // !PSY_PRODUCTION
 

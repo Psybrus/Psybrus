@@ -133,11 +133,11 @@ void ScnViewProcessor::debugDraw( const ScnComponentList& Components )
 // renderViews
 void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 {
-	PSY_PROFILER_SECTION( RenderRoot, "ScnViewProcessor::renderViews" );
+	PSY_PROFILER_SECTION( "ScnViewProcessor::renderViews" );
 
 	if( PendingViewDataReset_.size() > 0 )
 	{
-		PSY_PROFILER_SECTION( RootSort, "Pending view data resets." );
+		PSY_PROFILER_SECTION( "Pending view data resets." );
 		auto PendingViewDataReset = std::move( PendingViewDataReset_ );
 		for( auto Component : PendingViewDataReset )
 		{
@@ -148,7 +148,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 	}
 
 	{
-		PSY_PROFILER_SECTION( RootSort, "Update all components in visibility tree" );
+		PSY_PROFILER_SECTION( "Update all components in visibility tree" );
 		for( auto It : VisibilityLeaves_ )
 		{
 			auto* Leaf = It.second;
@@ -221,7 +221,7 @@ void ScnViewProcessor::renderViews( const ScnComponentList& Components )
 			{
 				bool DoGather = true;
 				{
-					PSY_PROFILER_SECTION( RootSort, "Check last view component for reuse." );
+					PSY_PROFILER_SECTION( "Check last view component for reuse." );
 
 					if( LastView != nullptr && ViewData->View_ != LastView )
 					{
@@ -315,13 +315,13 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 	ScnRenderContext RenderContext( ViewData->View_, Frame, Sort );
 
 	{
-		PSY_PROFILER_SECTION( RootSort, "Setup view" );
+		PSY_PROFILER_SECTION( "Setup view" );
 		ViewData->View_->setup( Frame, Sort );
 	}
 
 	if( DoGather )
 	{
-		PSY_PROFILER_SECTION( RootSort, "Gather all visible leaves." );
+		PSY_PROFILER_SECTION( "Gather all visible leaves." );
 
 		GatheredVisibleLeaves_.clear();
 		BroadGather_.clear();
@@ -338,7 +338,7 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 	}
 
 	{
-		PSY_PROFILER_SECTION( RootSort, "Sort visible components by render interface" );
+		PSY_PROFILER_SECTION( "Sort visible components by render interface" );
 
 		// Sort by render interface.
 		// TODO: Put into correct buckets by type.
@@ -350,7 +350,7 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 	}
 
 	{
-		PSY_PROFILER_SECTION( RootSort, "Build processing list." );
+		PSY_PROFILER_SECTION( "Build processing list." );
 
 		ProcessingGroups_.clear();
 		ViewComponentRenderDatas_.clear();
@@ -390,7 +390,7 @@ void ScnViewProcessor::renderView( ViewData* ViewData, class RsFrame* Frame, RsR
 	}
 
 	{
-		PSY_PROFILER_SECTION( RootSort, "Render visible components" );
+		PSY_PROFILER_SECTION( "Render visible components" );
 
 		// Do pre render.
 		for( auto ViewCallback : ViewCallbacks_ )
@@ -1094,7 +1094,7 @@ void ScnViewComponent::setup( RsFrame* pFrame, RsRenderSort Sort )
 	pFrame->queueRenderNode( Sort,
 		[ FrameBuffer, Viewport, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil ]( RsContext* Context )
 		{
-			PSY_PROFILER_SECTION( RenderRoot, "ScnViewComponentViewport::render" );
+			PSY_PROFILER_SECTION( "ScnViewComponentViewport::render" );
 			Context->clear( FrameBuffer, ClearColour, EnableClearColour, EnableClearDepth, EnableClearStencil );
 		} );
 }

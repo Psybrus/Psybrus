@@ -140,7 +140,7 @@ void ScnCore::open()
 //virtual
 void ScnCore::update()
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "ScnCore::update" );
+	PSY_PROFILER_SECTION( "ScnCore::update" );
 
 	// Update scene only if we have focus.
 	if( OsCore::pImpl()->getClient( 0 ) && OsCore::pImpl()->getClient( 0 )->isActive() )
@@ -601,7 +601,7 @@ ScnEntity* ScnCore::internalSpawnEntity(
 
 	// Visit hierarchy and attach all components.
 	{
-		PSY_PROFILER_SECTION( Root, "Visit hierarchy" );
+		PSY_PROFILER_SECTION( "Visit hierarchy" );
 		Entity->visitHierarchy(
 			ScnComponentVisitType::BOTTOM_UP,
 			Params.Parent_,
@@ -639,7 +639,7 @@ ScnEntity* ScnCore::internalSpawnEntity(
 	// Call on spawn callback.
 	if( Params.OnSpawn_ != nullptr )
 	{
-		PSY_PROFILER_SECTION( Root, "On spawn" );
+		PSY_PROFILER_SECTION( "On spawn" );
 		Params.OnSpawn_( Entity );
 	}
 

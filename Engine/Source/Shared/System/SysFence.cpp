@@ -49,7 +49,7 @@ size_t SysFence::decrement( size_t Value )
 // wait
 void SysFence::wait( size_t Value, const char* DebugName ) const
 {
-	PSY_PROFILER_SECTION( FenceProfiler, DebugName );
+	PSY_PROFILER_SECTION( DebugName );
 
 	while( Count_ > Value )
 	{

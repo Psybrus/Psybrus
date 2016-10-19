@@ -20,6 +20,7 @@
 #include "System/SysFence.h"
 
 #include "Base/BcMath.h"
+#include "Base/BcProfiler.h"
 
 //////////////////////////////////////////////////////////////////////////
 // Cast operators.
@@ -53,14 +54,18 @@ ImVec4::operator MaCPUVec4d() const
 // Private.
 namespace 
 {
+	/// Number of frames to buffer.
+	const size_t NOOF_FRAMES_TO_BUFFER = 2;
+	/// Current frame we're rendering.
+	size_t CurrentFrameIdx_ = 0;
 	/// Vertex declarartion.
 	RsVertexDeclarationUPtr VertexDeclaration_;
 	/// Vertex buffer used by internal implementation.
-	RsBufferUPtr VertexBuffer_;
+	std::array< RsBufferUPtr, NOOF_FRAMES_TO_BUFFER > VertexBuffer_;
 	/// Index buffer used by internal implementation.
-	RsBufferUPtr IndexBuffer_;
+	std::array< RsBufferUPtr, NOOF_FRAMES_TO_BUFFER > IndexBuffer_;
 	/// Geometry binding.
-	RsGeometryBindingUPtr GeometryBinding_;
+	std::array< RsGeometryBindingUPtr, NOOF_FRAMES_TO_BUFFER > GeometryBinding_;
 	/// Font sampler.
 	RsSamplerStateUPtr FontSampler_;
 	/// Font texture.
@@ -191,9 +196,19 @@ namespace
 				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
 				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
 
+				// Calculate size of updates.
+				BcU32 VBUpdateSize = 0;
+				BcU32 IBUpdateSize = 0;
+				for ( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
+				{
+					const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
+					VBUpdateSize += CmdList->VtxBuffer.size() * sizeof( ImDrawVert );
+					IBUpdateSize += CmdList->IdxBuffer.size() * sizeof( ImDrawIdx );
+				}
+
 				// Update vertex buffer.
 				Context->updateBuffer( 
-					VertexBuffer_.get(), 0, VertexBuffer_->getDesc().SizeBytes_, 
+					VertexBuffer_[ CurrentFrameIdx_ ].get(), 0, VBUpdateSize, 
 					RsResourceUpdateFlags::NONE,
 					[ CachedDrawData, UniformBufferSlot ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
@@ -219,7 +234,7 @@ namespace
 
 				// Update index buffer.
 				Context->updateBuffer( 
-					IndexBuffer_.get(), 0, IndexBuffer_->getDesc().SizeBytes_, 
+					IndexBuffer_[ CurrentFrameIdx_ ].get(), 0, IBUpdateSize, 
 					RsResourceUpdateFlags::NONE,
 					[ CachedDrawData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
@@ -294,7 +309,7 @@ namespace
 							}
 
 							Context->drawIndexedPrimitives( 
-								GeometryBinding_.get(),
+								GeometryBinding_[ CurrentFrameIdx_ ].get(),
 								ProgramBinding_.get(),
 								RenderState_.get(),
 								BackBuffer,
@@ -308,6 +323,10 @@ namespace
 						IndexOffset += Cmd->ElemCount;
 					}
 				}
+
+				// Advance to next frame.
+				CurrentFrameIdx_ = ( CurrentFrameIdx_ + 1 ) % NOOF_FRAMES_TO_BUFFER; 
+
 				RenderThreadFence_.decrement();
 			} );
 	}
@@ -493,25 +512,36 @@ namespace Psybrus
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ),
 			"DsImGui" );
 
-		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsResourceBindFlags::VERTEX_BUFFER,
-				RsResourceCreationFlags::STREAM, 
-				512 * 1024 * VertexDeclaration_->getDesc().getMinimumStride() ),
-			"DsImGui" );
+#if PLATFORM_ANDROID
+		BcU32 NoofVertices = 16 * 1024;
+		BcU32 NoofIndices = 16 * 1024;
+#else
+		BcU32 NoofVertices = 512 * 1024;
+		BcU32 NoofIndices = 128 * 1024;
+#endif
 
-		IndexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsResourceBindFlags::INDEX_BUFFER,
-				RsResourceCreationFlags::STREAM, 
-				128 * 1024 * sizeof( BcU16 ) ),
-			"DsImGui" );
+		for( size_t Idx = 0; Idx < NOOF_FRAMES_TO_BUFFER; ++Idx )
+		{
+			VertexBuffer_[ Idx ] = RsCore::pImpl()->createBuffer( 
+				RsBufferDesc( 
+					RsResourceBindFlags::VERTEX_BUFFER,
+					RsResourceCreationFlags::STREAM, 
+					NoofVertices * VertexDeclaration_->getDesc().getMinimumStride() ),
+				"DsImGui" );
 
-		RsGeometryBindingDesc GeometryBindingDesc;
-		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
-		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( ImDrawVert ) );
-		GeometryBindingDesc.setIndexBuffer( IndexBuffer_.get() );
-		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "DsImGui" );
+			IndexBuffer_[ Idx ] = RsCore::pImpl()->createBuffer( 
+				RsBufferDesc( 
+					RsResourceBindFlags::INDEX_BUFFER,
+					RsResourceCreationFlags::STREAM, 
+					NoofIndices * sizeof( BcU16 ) ),
+				"DsImGui" );
+
+			RsGeometryBindingDesc GeometryBindingDesc;
+			GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+			GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_[ Idx ].get(), sizeof( ImDrawVert ) );
+			GeometryBindingDesc.setIndexBuffer( IndexBuffer_[ Idx ].get() );
+			GeometryBinding_[ Idx ] = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "DsImGui" );
+		}
 
 		UniformBuffer_ = RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
@@ -524,6 +554,8 @@ namespace Psybrus
 		SamplerStateDesc.AddressU_ = RsTextureSamplingMode::CLAMP;
 		SamplerStateDesc.AddressV_ = RsTextureSamplingMode::CLAMP;
 		SamplerStateDesc.AddressW_ = RsTextureSamplingMode::CLAMP;
+		SamplerStateDesc.MinFilter_ = RsTextureFilteringMode::LINEAR;
+		SamplerStateDesc.MagFilter_ = RsTextureFilteringMode::LINEAR;
 		FontSampler_ = RsCore::pImpl()->createSamplerState( SamplerStateDesc, "DsImGui" );
 		unsigned char* Pixels = nullptr;
 		int Width, Height;
@@ -647,6 +679,7 @@ namespace Psybrus
 
 	void WaitFrame()
 	{
+		PSY_PROFILE_FUNCTION;
 		PSY_LOGSCOPEDCATEGORY( ImGui );
 		// Wait till render thread has done the last frame.
 		RenderThreadFence_.wait();
@@ -654,6 +687,7 @@ namespace Psybrus
 
 	bool NewFrame()
 	{
+		PSY_PROFILE_FUNCTION;
 		PSY_LOGSCOPEDCATEGORY( ImGui );
 		if( Package_ != nullptr )
 		{
@@ -729,11 +763,14 @@ namespace Psybrus
 		BcAssert( DrawContext_ == nullptr );
 		BcAssert( DrawFrame_ == nullptr );
 		DestroyProgramBindings_.clear();
-		GeometryBinding_.reset();
 		ProgramBinding_.reset();
 		VertexDeclaration_.reset();
-		VertexBuffer_.reset();
-		IndexBuffer_.reset();
+		for( size_t Idx = 0; Idx < NOOF_FRAMES_TO_BUFFER; ++Idx )
+		{
+			GeometryBinding_[ Idx ].reset();
+			VertexBuffer_[ Idx ].reset();
+			IndexBuffer_[ Idx ].reset();
+		}
 		UniformBuffer_.reset();
 		RenderState_.reset();
 		FontSampler_.reset();

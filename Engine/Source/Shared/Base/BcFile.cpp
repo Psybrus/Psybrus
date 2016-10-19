@@ -1,3 +1,4 @@
+
 /**************************************************************************
 *
 * File:		BcFile.h
@@ -72,6 +73,9 @@ bool BcFileSystemExists( const char* Path )
     return false;
 #elif PLATFORM_WINDOWS
 	return std::experimental::filesystem::exists( Path );
+#else
+	PSY_LOG( "Unimplemented on this platform!" );
+	return false;
 #endif
 }
 
@@ -83,6 +87,9 @@ bool BcFileSystemRemove( const char* Path )
 	return remove( Path ) == 0;
 #elif PLATFORM_WINDOWS
 	return std::experimental::filesystem::remove( Path );
+#else
+	PSY_LOG( "Unimplemented on this platform!" );
+	return false;
 #endif
 }
 
@@ -95,6 +102,9 @@ bool BcFileSystemRename( const char* SrcPath, const char* DestPath )
 #elif PLATFORM_WINDOWS
 	std::experimental::filesystem::rename( SrcPath, DestPath );
 	return true;
+#else
+	PSY_LOG( "Unimplemented on this platform!" );
+	return false;
 #endif
 }
 
@@ -148,6 +158,9 @@ bool BcFileSystemCreateDirectories( const char* Path )
 	return true;
 #elif PLATFORM_WINDOWS
 	return std::experimental::filesystem::create_directories( Path );
+#else
+	PSY_LOG( "Unimplemented on this platform!" );
+	return false;
 #endif
 }
 
@@ -160,6 +173,9 @@ bool BcFileSystemChangeDirectory( const char* Path )
 #elif PLATFORM_WINDOWS
 	std::experimental::filesystem::current_path( Path );
 	return true;
+#else
+	PSY_LOG( "Unimplemented on this platform!" );
+	return false;
 #endif
 }
 

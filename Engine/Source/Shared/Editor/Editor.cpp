@@ -285,7 +285,7 @@ namespace Editor
 			[ ]( DsImGuiFieldEditor* ThisFieldEditor, std::string Name, void* Object, const ReClass* Class, ReFieldFlags Flags )
 			{
 				size_t* Value = ( size_t* ) Object;
-				if( *Value >= 0 && *Value <= INT_MAX )
+				if( *Value <= INT_MAX )
 				{
 					int ValueInt = int( *Value );
 					if ( ImGui::InputInt( Name.c_str(), &ValueInt, 1, 100 ) && ( Flags & bcRFF_CONST ) == bcRFF_NONE )

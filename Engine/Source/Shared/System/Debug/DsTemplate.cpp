@@ -73,6 +73,6 @@ std::string DsTemplate::loadTemplateFile( std::string filename )
 	BcMemZero(data, file.size() + 1);
 	file.read(data, file.size());
 	std::string output = data;
-	delete data;
+	delete [] data;
 	return output;
 }

@@ -64,7 +64,7 @@ ScnAnimationPose::~ScnAnimationPose()
 // Assignment
 ScnAnimationPose& ScnAnimationPose::operator = ( const ScnAnimationPose& Pose )
 {
-	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::operator =" );
+	PSY_PROFILER_SECTION(  "ScnAnimationPose::operator =" );
 
 	Transforms_ = Pose.Transforms_;
 	return (*this);
@@ -74,7 +74,7 @@ ScnAnimationPose& ScnAnimationPose::operator = ( const ScnAnimationPose& Pose )
 // blend
 void ScnAnimationPose::blend( const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T )
 {
-	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::blend" );
+	PSY_PROFILER_SECTION( "ScnAnimationPose::blend" );
 
 	BcAssert( A.Transforms_.size() == Transforms_.size() );
 	BcAssert( B.Transforms_.size() == Transforms_.size() );
@@ -89,7 +89,7 @@ void ScnAnimationPose::blend( const ScnAnimationPose& A, const ScnAnimationPose&
 // add
 void ScnAnimationPose::add( const ScnAnimationPose& Reference, const ScnAnimationPose& A, const ScnAnimationPose& B, BcF32 T )
 {
-	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::add" );
+	PSY_PROFILER_SECTION( "ScnAnimationPose::add" );
 
 	BcAssert( Reference.Transforms_.size() == Transforms_.size() );
 	BcAssert( A.Transforms_.size() == Transforms_.size() );
@@ -105,7 +105,7 @@ void ScnAnimationPose::add( const ScnAnimationPose& Reference, const ScnAnimatio
 // normalise
 void ScnAnimationPose::normalise()
 {
-	PSY_PROFILER_SECTION( TickRoot, "ScnAnimationPose::normalise" );
+	PSY_PROFILER_SECTION( "ScnAnimationPose::normalise" );
 
 	for( size_t Idx = 0; Idx < Transforms_.size(); ++Idx )
 	{

@@ -463,6 +463,12 @@ RsProgramGL::~RsProgramGL()
 // copyUniformBuffersToUniforms
 void RsProgramGL::copyUniformBuffersToUniforms( size_t NoofBuffers, const RsUBSlot* UBSlots )
 {
+	if( UniformEntries_.size() == 0 )
+	{
+		return;
+	}
+
+	PSY_PROFILER_SECTION( "RsProgramGL::copyUniformBuffersToUniforms( %u )", NoofBuffers );
 #if PSY_DEBUG
 	if( UniformEntries_.size() > 0 )
 	{

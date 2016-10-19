@@ -101,7 +101,7 @@ void RsCoreImpl::open()
 //virtual
 void RsCoreImpl::update()
 {
-	PSY_PROFILER_SECTION( UpdateRoot, "RsCoreImpl::update" );
+	PSY_PROFILER_SECTION( "RsCoreImpl::update" );
 
 	BcAssert( BcIsGameThread() );
 

@@ -661,7 +661,7 @@ void ScnModelProcessor::render( const ScnViewComponentRenderData* ComponentRende
 							( RsContext* Context )
 							{
 								PSY_PROFILE_FUNCTION;
-								PSY_PROFILER_GPU_SECTION( UpdateRoot, "ScnModelProcessor::render" );
+								PSY_PROFILER_GPU_SECTION( "ScnModelProcessor::render" );
 								auto Draw = RenderMesh->getDraw( DrawIdx );
 								Context->drawIndexedPrimitives(
 									RenderMesh->getGeometryBinding(),
@@ -869,7 +869,9 @@ void ScnModelProcessor::updateModels( const ScnComponentList& Components )
 	Fence.wait();
 	ModelsRendered_ = 0;
 	DrawCalls_ = 0;
+#if !PSY_PRODUCTION
 	UpdateTime_ = Timer.time();
+#endif
 	SortingTime_ = 0.0f;
 	NoofComponents_ = Components.size();
 }

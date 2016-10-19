@@ -315,7 +315,7 @@ void RsContextGL::beginFrame()
 void RsContextGL::endFrame()
 {
 	PSY_PROFILE_FUNCTION;
-	PSY_PROFILER_GPU_SECTION( endFrame, "endFrame" );
+	PSY_PROFILER_GPU_SECTION( "endFrame" );
 	BcAssertMsg( BcCurrentThreadId() == OwningThread_, "Calling context calls from invalid thread." );
 	BcAssert( InsideBeginEnd_ == 1 );
 	--InsideBeginEnd_;
@@ -377,29 +377,29 @@ void RsContextGL::present()
 
 #if GL_USE_WGL
 	{
-		PSY_PROFILER_SECTION( SwapRoot, "::SwapBuffers" );
+		PSY_PROFILER_SECTION( "::SwapBuffers" );
 		::SwapBuffers( WindowDC_ );
 	}
 #endif
 
 #if ( PLATFORM_LINUX || PLATFORM_OSX ) && GL_USE_SDL
 	{
-		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapWindow" );
+		PSY_PROFILER_SECTION( "SDL_GL_SwapWindow" );
 		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
 	}
 #endif
 
 #if PLATFORM_HTML5 && GL_USE_SDL
 	{
-		PSY_PROFILER_SECTION( UpdateRoot, "SDL_GL_SwapBuffers" );
+		PSY_PROFILER_SECTION( "SDL_GL_SwapBuffers" );
 		SDL_GL_SwapBuffers();
 	}
 #endif
 
 #if GL_USE_EGL
 	{
-		PSY_PROFILER_SECTION( UpdateRoot, "SDL_eglSwapBuffers" );
-		EGL( SwapBuffers( EGLDisplay_, EGLSurface_ ) );
+		PSY_PROFILER_SECTION( "SDL_eglSwapBuffers" );
+		eglSwapBuffers( EGLDisplay_, EGLSurface_ );
 	}
 #endif
 }
@@ -1833,8 +1833,10 @@ void RsContextGL::drawPrimitives(
 		RsTopologyType TopologyType, BcU32 VertexOffset, BcU32 NoofVertices,
 		BcU32 FirstInstance, BcU32 NoofInstances )
 {
-	PSY_PROFILE_FUNCTION;
-	PSY_PROFILER_GPU_SECTION( UpdateRoot, "RsContextGL::drawPrimitives" );
+	PSY_PROFILER_SECTION( "RsContextGL::drawPrimitives( %s, %s, %s, %u, %u )", 
+		GeometryBinding->getDebugName(), ProgramBinding->getDebugName(), RenderState->getDebugName(),
+		NoofVertices, NoofInstances );
+	PSY_PROFILER_GPU_SECTION( "RsContextGL::drawPrimitives" );
 
 	++NoofDrawCalls_;
 
@@ -1905,8 +1907,10 @@ void RsContextGL::drawIndexedPrimitives(
 		RsTopologyType TopologyType, BcU32 IndexOffset, BcU32 NoofIndices, BcU32 VertexOffset,
 		BcU32 FirstInstance, BcU32 NoofInstances )
 {
-	PSY_PROFILE_FUNCTION;
-	PSY_PROFILER_GPU_SECTION( UpdateRoot, "RsContextGL::drawIndexedPrimitives" );
+	PSY_PROFILER_SECTION( "RsContextGL::drawIndexedPrimitives( %s, %s, %s, %u, %u )", 
+		GeometryBinding->getDebugName(), ProgramBinding->getDebugName(), RenderState->getDebugName(),
+		NoofIndices, NoofInstances );
+	PSY_PROFILER_GPU_SECTION( "RsContextGL::drawIndexedPrimitives" );
 	++NoofDrawCalls_;
 
 	const auto& ProgramBindingDesc = ProgramBinding->getDesc();
@@ -1917,7 +1921,8 @@ void RsContextGL::drawIndexedPrimitives(
 	bindProgram( Program );
 	ProgramGL->copyUniformBuffersToUniforms( ProgramBindingDesc.UniformBuffers_.size(), ProgramBindingDesc.UniformBuffers_.data() );
 
-	if( Version_.SupportDrawElementsBaseVertex_ )
+	if( ( NoofInstances <= 1 && Version_.SupportDrawElementsBaseVertex_ ) ||
+		( NoofInstances > 1 && Version_.SupportDrawInstancedBaseInstance_ ) )
 	{
 		bindGeometry( Program, GeometryBinding, 0 );
 	}
@@ -2401,6 +2406,9 @@ void RsContextGL::bindProgram( const RsProgram* Program )
 // bindGeometry
 void RsContextGL::bindGeometry( const RsProgram* Program, const RsGeometryBinding* GeometryBinding, BcU32 VertexOffset )
 {
+	PSY_PROFILER_SECTION( "RsContextGL::bindGeometry( %s, %s )",
+		Program->getDebugName(), GeometryBinding->getDebugName() );
+
 	if( BoundGeometryBinding_ != GeometryBinding || 
 		BoundVertexOffset_ != VertexOffset )
 	{
@@ -3003,10 +3011,12 @@ void RsContextGL::bindSamplerStates( const RsProgram* Program, const RsProgramBi
 				GL( ActiveTexture( GL_TEXTURE0 + SamplerStateSlotGL.Binding_ ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_MIN_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MinFilter_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_MAG_FILTER, RsUtilsGL::GetTextureFiltering( SamplerStateDesc.MagFilter_ ) ) );
+#if !PLATFORM_ANDROID
 				if( Version_.MaxTextureAnisotropy_ > 0.0f )
 				{
 					GL( TexParameterf( TextureType, GL_TEXTURE_MAX_ANISOTROPY_EXT, Version_.MaxTextureAnisotropy_ ) );
 				}
+#endif
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_S, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressU_ ) ) );
 				GL( TexParameteri( TextureType, GL_TEXTURE_WRAP_T, RsUtilsGL::GetTextureSampling( SamplerStateDesc.AddressV_ ) ) );	
 #if !defined( RENDER_USE_GLES )
