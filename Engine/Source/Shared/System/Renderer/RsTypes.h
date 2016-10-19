@@ -287,12 +287,26 @@ enum class RsResourceFormat : BcU32
 // RsTextureBlockInfo
 struct RsBlockInfo
 {
-	BcU32 Width_;
-	BcU32 Height_;
-	BcU32 Bits_;
+	BcU32 Width_ = 0;
+	BcU32 Height_ = 0;
+	BcU32 Bits_ = 0;
 };
 
 extern RsBlockInfo RsTextureBlockInfo( RsResourceFormat TextureFormat );
+
+//////////////////////////////////////////////////////////////////////////
+// RsTextureFormatInfo
+struct RsFormatInfo
+{
+	BcU32 RBits_ = 0;
+	BcU32 GBits_ = 0;
+	BcU32 BBits_ = 0;
+	BcU32 ABits_ = 0;
+	BcU32 DepthBits_ = 0;
+	BcU32 StencilBits_ = 0;
+};
+
+extern RsFormatInfo RsResourceFormatInfo( RsResourceFormat TextureFormat );
 
 //////////////////////////////////////////////////////////////////////////
 // RsResourceFormatSize

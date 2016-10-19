@@ -251,6 +251,116 @@ RsBlockInfo RsTextureBlockInfo( RsResourceFormat TextureFormat )
 
 ////////////////////////////////////////////////////////////////////////////////
 // RsResourceFormatSize
+RsFormatInfo RsResourceFormatInfo( RsResourceFormat TextureFormat )
+{
+	RsFormatInfo Info;
+	switch( TextureFormat )
+	{
+	case RsResourceFormat::R8_UNORM:
+	case RsResourceFormat::R8_UINT:
+	case RsResourceFormat::R8_SNORM:
+	case RsResourceFormat::R8_SINT:
+		Info.RBits_ = 8;
+		break;
+	case RsResourceFormat::R8G8_UNORM:
+	case RsResourceFormat::R8G8_UINT:
+	case RsResourceFormat::R8G8_SNORM:
+	case RsResourceFormat::R8G8_SINT:
+		Info.RBits_ = 8;
+		Info.GBits_ = 8;
+		break;
+	case RsResourceFormat::R8G8B8A8_UNORM:
+	case RsResourceFormat::R8G8B8A8_UNORM_SRGB:
+	case RsResourceFormat::R8G8B8A8_UINT:
+	case RsResourceFormat::R8G8B8A8_SNORM:
+	case RsResourceFormat::R8G8B8A8_SINT:
+		Info.RBits_ = 8;
+		Info.GBits_ = 8;
+		Info.BBits_ = 8;
+		Info.ABits_ = 8;
+		break;
+	case RsResourceFormat::R16_FLOAT:
+	case RsResourceFormat::R16_UNORM:
+	case RsResourceFormat::R16_UINT:
+	case RsResourceFormat::R16_SNORM:
+	case RsResourceFormat::R16_SINT:
+		Info.RBits_ = 16;
+		break;
+	case RsResourceFormat::R16G16_FLOAT:
+	case RsResourceFormat::R16G16_UNORM:
+	case RsResourceFormat::R16G16_UINT:
+	case RsResourceFormat::R16G16_SNORM:
+	case RsResourceFormat::R16G16_SINT:
+		Info.RBits_ = 16;
+		Info.GBits_ = 16;
+		break;
+	case RsResourceFormat::R16G16B16A16_FLOAT:
+	case RsResourceFormat::R16G16B16A16_UNORM:
+	case RsResourceFormat::R16G16B16A16_UINT:
+	case RsResourceFormat::R16G16B16A16_SNORM:
+	case RsResourceFormat::R16G16B16A16_SINT:
+		Info.RBits_ = 16;
+		Info.GBits_ = 16;
+		Info.BBits_ = 16;
+		Info.ABits_ = 16;
+		break;
+	case RsResourceFormat::R32_FLOAT:
+	case RsResourceFormat::R32_UINT:
+	case RsResourceFormat::R32_SINT:
+		Info.RBits_ = 32;
+		break;
+	case RsResourceFormat::R32G32_FLOAT:
+	case RsResourceFormat::R32G32_UINT:
+	case RsResourceFormat::R32G32_SINT:
+		Info.RBits_ = 32;
+		Info.GBits_ = 32;
+		break;
+	case RsResourceFormat::R32G32B32_FLOAT:
+	case RsResourceFormat::R32G32B32_UINT:
+	case RsResourceFormat::R32G32B32_SINT:
+		Info.RBits_ = 32;
+		Info.GBits_ = 32;
+		Info.BBits_ = 32;
+		break;
+	case RsResourceFormat::R32G32B32A32_FLOAT:
+	case RsResourceFormat::R32G32B32A32_UINT:
+	case RsResourceFormat::R32G32B32A32_SINT:
+		Info.RBits_ = 32;
+		Info.GBits_ = 32;
+		Info.BBits_ = 32;
+		Info.ABits_ = 32;
+		break;
+	case RsResourceFormat::R10G10B10A2_UNORM:
+	case RsResourceFormat::R10G10B10A2_UINT:
+		Info.RBits_ = 10;
+		Info.GBits_ = 10;
+		Info.BBits_ = 10;
+		Info.ABits_ = 2;
+		break;
+	case RsResourceFormat::R11G11B10_FLOAT:
+		Info.RBits_ = 11;
+		Info.GBits_ = 11;
+		Info.BBits_ = 10;
+		break;
+	case RsResourceFormat::D16_UNORM:
+		Info.DepthBits_ = 16;
+		break;
+	case RsResourceFormat::D32_FLOAT:
+		Info.DepthBits_ = 32;
+		break;
+	case RsResourceFormat::D24_UNORM_S8_UINT:
+		Info.DepthBits_ = 24;
+		Info.StencilBits_ = 8;
+		break;
+	default:
+		BcBreakpoint; // Format not defined.
+		break;
+	}
+	return Info;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// RsResourceFormatSize
 BcU32 RsResourceFormatSize( RsResourceFormat ResourceFormat, BcU32 Width, BcU32 Height, BcU32 Depth, BcU32 Levels )
 {
 	BcU32 Size = 0;

@@ -182,11 +182,15 @@ protected:
 	virtual void destroy();	
 
 #if GL_USE_WGL
-	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext );
+	bool createProfile( RsOpenGLVersion Version, HGLRC ParentContext, RsResourceFormat RTFormat, RsResourceFormat DSFormat );
 #endif
 
 #if GL_USE_SDL
-	bool createProfile( RsOpenGLVersion Version, SDL_Window* Window );
+	bool createProfile( RsOpenGLVersion Version, SDL_Window* Window, RsResourceFormat RTFormat, RsResourceFormat DSFormat );
+#endif
+
+#if GL_USE_EGL
+	bool createProfile( RsOpenGLVersion Version, RsResourceFormat RTFormat, RsResourceFormat DSFormat );
 #endif
 
 private:
@@ -201,6 +205,9 @@ private:
 
 #if GL_USE_EGL
 	EGLDisplay EGLDisplay_;
+	EGLint EGLMajor_ = 0;
+	EGLint EGLMinor_ = 0;
+	bool EGLCreateContextExt_ = false;
 	EGLConfig EGLConfig_; 
 	EGLint EGLNumConfigs_;
 	EGLint EGLFormat_;

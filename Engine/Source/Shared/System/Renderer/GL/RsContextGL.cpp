@@ -617,77 +617,6 @@ void RsContextGL::create()
 #endif
 
 #if GL_USE_EGL
-	// Use EGL to setup client.
-	const EGLint EGLConfigAttribs_3[] = {
-		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
-		EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
-		EGL_DEPTH_SIZE, 24, EGL_STENCIL_SIZE, 8,
-		EGL_NONE
-	};
-
-	const EGLint EGLConfigAttribs_2[] = {
-		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-		EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
-		EGL_DEPTH_SIZE, 24, EGL_STENCIL_SIZE, 8,
-		EGL_NONE
-	};
-
-	const EGLint EGLConfigAttribs_2_Low[] = {
-		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-		EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
-		EGL_DEPTH_SIZE, 16, EGL_STENCIL_SIZE, 0,
-		EGL_NONE
-	};
-
-	const EGLint EGLContextAttribs_3_1[] = {
-		EGL_CONTEXT_MAJOR_VERSION, 3,
-		EGL_CONTEXT_MINOR_VERSION, 1,
-		EGL_NONE
-	};
-
-	const EGLint EGLContextAttribs_3[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 3,
-		EGL_NONE
-	};
-
-	const EGLint EGLContextAttribs_2[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE
-	};
-
-	struct EGLConfig
-	{
-		EGLConfig( 
-				EGLint EGLVersion, GLint GLVersion, 
-				const EGLint* ConfigAttribs, const EGLint* ContextAttribs, 
-				RsResourceFormat RTFormat, RsResourceFormat DSFormat ):
-			EGLVersion_( EGLVersion ),
-			GLVersion_( GLVersion ),
-			ConfigAttribs_( ConfigAttribs ),
-			ContextAttribs_( ContextAttribs ),
-			RTFormat_( RTFormat ),
-			DSFormat_( DSFormat )
-		{}
-
-		EGLint EGLVersion_;
-		GLint GLVersion_;
-		const EGLint* ConfigAttribs_;
-		const EGLint* ContextAttribs_;
-		RsResourceFormat RTFormat_;
-		RsResourceFormat DSFormat_;
-	};
-
-	const std::array< EGLConfig, 5 > EGLConfigAttribs = {
-		EGLConfig( 0x00010005, 0x00030001, EGLConfigAttribs_3, EGLContextAttribs_3_1, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
-		EGLConfig( 0x00010005, 0x00030000, EGLConfigAttribs_3, EGLContextAttribs_3, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
-		EGLConfig( 0x00010004, 0x00030000, EGLConfigAttribs_3, EGLContextAttribs_3, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
-		EGLConfig( 0x00010000, 0x00020000, EGLConfigAttribs_2, EGLContextAttribs_2, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D24_UNORM_S8_UINT ), 
-		EGLConfig( 0x00010000, 0x00020000, EGLConfigAttribs_2_Low, EGLContextAttribs_2, RsResourceFormat::R8G8B8A8_UNORM, RsResourceFormat::D16_UNORM ), 
-	};
-
 	if ( ( EGLDisplay_ = EGL( GetDisplay( EGL_DEFAULT_DISPLAY ) ) ) == EGL_NO_DISPLAY )
 	{
 		BcAssertMsg( false, "eglGetDisplay() returned error %d", EGL( GetError() ) );
@@ -698,156 +627,68 @@ void RsContextGL::create()
 		BcPrintf( "eglGetDisplay() success" );
 	}
 
-	EGLint EGLMajor = 0;
-	EGLint EGLMinor = 0;
-	if ( !EGL( Initialize( EGLDisplay_, &EGLMajor, &EGLMinor ) ) )
+	if ( !EGL( Initialize( EGLDisplay_, &EGLMajor_, &EGLMinor_ ) ) )
 	{
 		BcAssertMsg( false, "eglInitialize() returned error %d", EGL( GetError() ) );
 		return;
 	}
 	else
 	{
-		PSY_LOG( "EGL version %d.%d initialised.", EGLMajor, EGLMinor );
+		PSY_LOG( "EGL version %d.%d initialised.", EGLMajor_, EGLMinor_ );
 	}
 
-	EGLint EGLVersion = EGLMajor << 16 | EGLMinor;
+	// Check for create context extension.
+	EGLCreateContextExt_ = strstr( eglQueryString( EGLDisplay_, EGL_EXTENSIONS ), "KHR_create_context" ) != nullptr;
 
-	EGLConfig_ = 0;
+	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;
+	auto DSFormat = RsResourceFormat::D24_UNORM_S8_UINT;
 
-	EGLConfig SelectedConfig( 0x00000000, 0x00000000, nullptr, nullptr, RsResourceFormat::UNKNOWN, RsResourceFormat::UNKNOWN );
+	std::array< RsResourceFormat, 2 > DSFormats = { 
+		RsResourceFormat::D24_UNORM_S8_UINT,
+		RsResourceFormat::D16_UNORM
+	};
 
-	BcHandle Window = nullptr;
-	for( const auto& EGLConfigAttrib : EGLConfigAttribs )
+	// Iterate over depth stencil formats. 
+	for( auto TestDSFormat : DSFormats )
 	{
-		// Minimum EGL version check.
-		if( EGLVersion < EGLConfigAttrib.EGLVersion_ )
+		if( !ProfileCreated )
 		{
-			continue;
-		}
+			DSFormat = TestDSFormat;
 
-		// Check for GL version we want.
-		if( WantGLESVersion )
-		{
-			BcU32 Version = VersionMajor << 16 | VersionMinor;
-			if( EGLConfigAttrib.GLVersion_ != Version )
+			// Iterate over versions and attempt to create a profile of the highest matching.
+			for( auto Version : Versions )
 			{
-				continue;
+				// Check profile.
+				if( Version.Type_ != RsOpenGLType::ES )
+				{
+					continue;
+				}
+		
+				// Check version.
+				if( VersionMajor != 0 )
+				{
+					if( VersionMajor != Version.Major_ || VersionMinor != Version.Minor_ )
+					{
+						continue;
+					}
+				}
+
+				if( createProfile( Version, RTFormat, DSFormat ) )
+				{
+					Version_ = Version;
+					Version_.setupFeatureSupport();
+					PSY_LOG( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
+						Version.Type_ == RsOpenGLType::CORE ? "Core" : ( Version.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
+						Version.Major_, 
+						Version.Minor_ );
+					ProfileCreated = true;
+					Version_.logVersionInfo();
+					break;
+				}
 			}
 		}
-
-		if ( !EGL( ChooseConfig( EGLDisplay_, EGLConfigAttrib.ConfigAttribs_, &EGLConfig_, 1, &EGLNumConfigs_ ) ) )
-		{
-			BcAssertMsg( false, "eglChooseConfig() returned error %d", EGL( GetError() ) );
-			continue;
-		}
-		else
-		{
-			PSY_LOG( "eglChooseConfig() success" );
-		}
-
-		if ( !EGL( GetConfigAttrib( EGLDisplay_, EGLConfig_, EGL_NATIVE_VISUAL_ID, &EGLFormat_ ) ) )
-		{
-			BcAssertMsg( false, "eglGetConfigAttrib() returned error %d", EGL( GetError() ) );
-			return;
-		}
-		else
-		{
-			PSY_LOG( "eglGetConfigAttrib() success" );
-		}
-
-		Window = pClient_->getWindowHandle();
-		BcAssert( Window != nullptr );
-		EGLWindow_ = Window;
-
-#if PLATFORM_ANDROID
-		ANativeWindow_setBuffersGeometry( static_cast< ANativeWindow* >( Window ), 0, 0, EGLFormat_ );
-		PSY_LOG( "ANativeWindow_setBuffersGeometry() success" );
-#endif
-
-		if ( !( EGLContext_ = EGL( CreateContext( EGLDisplay_, EGLConfig_, 0, EGLConfigAttrib.ContextAttribs_ ) ) ) )
-		{
-			PSY_LOG( "eglCreateContext() returned error %d", EGL( GetError() ) );
-			continue;
-		}
-		else
-		{
-			PSY_LOG( "eglCreateContext() success" );
-
-			SelectedConfig = EGLConfigAttrib; 
-			break;
-		}
 	}
-
-	if( SelectedConfig.ConfigAttribs_ == nullptr )
-	{
-		PSY_LOG( "No EGLConfig." );
-		return;
-	}
-
-	if ( !( EGLSurface_ = EGL( CreateWindowSurface( EGLDisplay_, EGLConfig_, (EGLNativeWindowType)Window, 0 ) ) ) )
-	{
-		PSY_LOG( "eglCreateWindowSurface() returned error %d", EGL( GetError() ) );
-		return;
-	}
-	else
-	{
-		PSY_LOG( "eglCreateWindowSurface() success" );
-	}
-
-	if ( !EGL( MakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) ) )
-	{
-		PSY_LOG( "eglMakeCurrent() returned error %d", EGL( GetError() ) );
-		return;
-	}
-	else
-	{
-		PSY_LOG( "eglMakeCurrent() success" );
-	}
-
-	if ( !EGL( QuerySurface( EGLDisplay_, EGLSurface_, EGL_WIDTH, &EGLWidth_ ) ) ||
-		 !EGL( QuerySurface( EGLDisplay_, EGLSurface_, EGL_HEIGHT, &EGLHeight_ ) ) ) 
-	{
-		PSY_LOG( "eglQuerySurface() returned error %d", EGL( GetError() ) );
-		return;
-	}
-	else
-	{
-		PSY_LOG( "eglQuerySurface() success. %u x %u", EGLWidth_, EGLHeight_ );
-#if PLATFORM_ANDROID
-		OsClientAndroid* Client = static_cast< OsClientAndroid* >( pClient_ );
-		Client->setSize( EGLWidth_, EGLHeight_ );
-#endif
-	}
-
 #endif // GL_USE_EGL
-
-#if defined( RENDER_USE_GLES )
-	Version_ = RsOpenGLVersion( SelectedConfig.GLVersion_ >> 16, SelectedConfig.GLVersion_ & 0xffff, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100  );
-
-	if( SelectedConfig.GLVersion_ >= 0x00020000 )
-	{
-		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_100;
-	}
-	if( SelectedConfig.GLVersion_ >= 0x00030000 )
-	{
-		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_300;
-	}
-	if( SelectedConfig.GLVersion_ >= 0x00030001 )
-	{
-		Version_.MaxCodeType_ = RsShaderCodeType::GLSL_ES_310;
-	}
-
-	Version_.setupFeatureSupport();
-	PSY_LOG( "RsContextGL: Created OpenGL %s %u.%u Profile.\n", 
-		Version_.Type_ == RsOpenGLType::CORE ? "Core" : ( Version_.Type_ == RsOpenGLType::COMPATIBILITY ? "Compatibility" : "ES" ),
-		Version_.Major_, 
-		Version_.Minor_ );
-	ProfileCreated = true;
-	Version_.logVersionInfo();
-
-	auto RTFormat = SelectedConfig.RTFormat_;
-	auto DSFormat = SelectedConfig.DSFormat_;
-#endif
 
 	if( ProfileCreated == false )
 	{
@@ -1001,8 +842,11 @@ void RsContextGL::destroy()
 //////////////////////////////////////////////////////////////////////////
 // createProfile
 #if GL_USE_WGL
-bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
+bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext, RsResourceFormat RTFormat, RsResourceFormat DSFormat )
 {
+	const auto RTInfo = RsResourceFormatInfo( RTFormat );
+	const auto DSInfo = RsResourceFormatInfo( DSFormat );
+
 	// Setup pixel format.
 	const int PixelFormatAttribs[] =
 	{
@@ -1010,13 +854,13 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
 		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-		WGL_COLOR_BITS_ARB, 32,
-		WGL_DEPTH_BITS_ARB, 24,
-		WGL_STENCIL_BITS_ARB, 8,
-		WGL_RED_BITS_ARB, 8,
-		WGL_GREEN_BITS_ARB, 8,
-		WGL_BLUE_BITS_ARB, 8,
-		WGL_ALPHA_BITS_ARB, 8,
+		WGL_COLOR_BITS_ARB, RTInfo.RBits_ + RTInfo.GBits_ + RTInfo.BBits_ + RTInfo.ABits_,
+		WGL_DEPTH_BITS_ARB, DSInfo.DepthBits_,
+		WGL_STENCIL_BITS_ARB, DSInfo.StencilBits_,
+		WGL_RED_BITS_ARB, RTInfo.RBits_,
+		WGL_GREEN_BITS_ARB, RTInfo.GBits_,
+		WGL_BLUE_BITS_ARB, RTInfo.BBits_,
+		WGL_ALPHA_BITS_ARB, RTInfo.ABits_,
 		0,
 	};
 
@@ -1094,8 +938,11 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, HGLRC ParentContext )
 //////////////////////////////////////////////////////////////////////////
 // createProfile
 #if GL_USE_SDL
-bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
+bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window, RsResourceFormat RTFormat, RsResourceFormat DSFormat )
 {
+	const auto RTInfo = RsResourceFormatInfo( RTFormat );
+	const auto DSInfo = RsResourceFormatInfo( DSFormat );
+
 	switch( Version.Type_ )
 	{
 	case RsOpenGLType::CORE:
@@ -1126,6 +973,140 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window )
 }
 #endif
 
+
+#if GL_USE_EGL
+//////////////////////////////////////////////////////////////////////////
+// createProfile
+bool RsContextGL::createProfile( RsOpenGLVersion Version, RsResourceFormat RTFormat, RsResourceFormat DSFormat )
+{
+	const auto RTInfo = RsResourceFormatInfo( RTFormat );
+	const auto DSInfo = RsResourceFormatInfo( DSFormat );
+
+	EGLint EGLVersion = EGLMajor_ << 16 | EGLMinor_;
+
+	// Can only do ES.
+	if( Version.Type_ != RsOpenGLType::ES )
+	{
+		return false;
+	}
+
+	// If we don't have EGL 1.3, can't continue.
+	if( EGLVersion < 0x00010003 )
+	{
+		return false;
+	}
+
+	// If we don't have EGL 1.5 or the create context extension, we can't do ES 3.0.
+	if( Version.Major_ > 2 && !( EGLVersion >= 0x00010005 || EGLCreateContextExt_ ) )
+	{
+		return false;
+	}
+
+	std::array< EGLint, 64 > EGLConfigAttribs;
+	std::array< EGLint, 64 > EGLContextAttribs;
+	size_t Idx = 0;
+
+	// Setup config attribs.
+	EGLConfigAttribs[ Idx++ ] = EGL_SURFACE_TYPE;
+	EGLConfigAttribs[ Idx++ ] = EGL_WINDOW_BIT;
+	
+	if( Version.Major_ == 2 )
+	{
+		EGLConfigAttribs[ Idx++ ] = EGL_RENDERABLE_TYPE;
+		EGLConfigAttribs[ Idx++ ] = EGL_OPENGL_ES2_BIT;
+	}
+	else if( Version.Major_ == 3 )
+	{
+		EGLConfigAttribs[ Idx++ ] = EGL_RENDERABLE_TYPE;
+		EGLConfigAttribs[ Idx++ ] = EGL_OPENGL_ES3_BIT;
+	}
+
+	EGLConfigAttribs[ Idx++ ] = EGL_RED_SIZE;
+	EGLConfigAttribs[ Idx++ ] = RTInfo.RBits_;
+	EGLConfigAttribs[ Idx++ ] = EGL_GREEN_SIZE;
+	EGLConfigAttribs[ Idx++ ] = RTInfo.GBits_;
+	EGLConfigAttribs[ Idx++ ] = EGL_BLUE_SIZE;
+	EGLConfigAttribs[ Idx++ ] = RTInfo.BBits_;
+	EGLConfigAttribs[ Idx++ ] = EGL_ALPHA_SIZE;
+	EGLConfigAttribs[ Idx++ ] = RTInfo.ABits_;
+	EGLConfigAttribs[ Idx++ ] = EGL_DEPTH_SIZE;
+	EGLConfigAttribs[ Idx++ ] = DSInfo.DepthBits_;
+	EGLConfigAttribs[ Idx++ ] = EGL_STENCIL_SIZE;
+	EGLConfigAttribs[ Idx++ ] = DSInfo.StencilBits_;
+
+	EGLConfigAttribs[ Idx++ ] = EGL_NONE;
+
+	// Context attribs.
+	Idx = 0;
+
+	if( Version.Major_ >= 3 )
+	{
+		EGLContextAttribs[ Idx++ ] = EGL_CONTEXT_MAJOR_VERSION;
+		EGLContextAttribs[ Idx++ ] = Version.Major_;
+		EGLContextAttribs[ Idx++ ] = EGL_CONTEXT_MINOR_VERSION;
+		EGLContextAttribs[ Idx++ ] = Version.Minor_;
+	}
+	else
+	{
+		EGLContextAttribs[ Idx++ ] = EGL_CONTEXT_CLIENT_VERSION;
+		EGLContextAttribs[ Idx++ ] = Version.Major_;
+	}
+	EGLContextAttribs[ Idx++ ] = EGL_NONE;
+
+	EGLConfig_ = 0;
+	BcHandle Window = nullptr;
+
+
+	if ( !EGL( ChooseConfig( EGLDisplay_, EGLConfigAttribs.data(), &EGLConfig_, 1, &EGLNumConfigs_ ) ) )
+	{
+		return false;
+	}
+
+	if ( !EGL( GetConfigAttrib( EGLDisplay_, EGLConfig_, EGL_NATIVE_VISUAL_ID, &EGLFormat_ ) ) )
+	{
+		return false;
+	}
+
+	Window = pClient_->getWindowHandle();
+	BcAssert( Window != nullptr );
+	EGLWindow_ = Window;
+
+#if PLATFORM_ANDROID
+	ANativeWindow_setBuffersGeometry( static_cast< ANativeWindow* >( Window ), 0, 0, EGLFormat_ );
+#endif
+
+	if ( !( EGLContext_ = EGL( CreateContext( EGLDisplay_, EGLConfig_, 0, EGLContextAttribs.data() ) ) ) )
+	{
+		return false;
+	}
+
+	if ( !( EGLSurface_ = EGL( CreateWindowSurface( EGLDisplay_, EGLConfig_, (EGLNativeWindowType)Window, 0 ) ) ) )
+	{
+		return false;
+	}
+
+	if ( !EGL( MakeCurrent( EGLDisplay_, EGLSurface_, EGLSurface_, EGLContext_ ) ) )
+	{
+		return false;
+	}
+
+	if ( !EGL( QuerySurface( EGLDisplay_, EGLSurface_, EGL_WIDTH, &EGLWidth_ ) ) ||
+		 !EGL( QuerySurface( EGLDisplay_, EGLSurface_, EGL_HEIGHT, &EGLHeight_ ) ) ) 
+	{
+		BcAssertMsg( false, "eglQuerySurface() returned error %d", EGL( GetError() ) );
+		return false;
+	}
+	else
+	{
+#if PLATFORM_ANDROID
+		OsClientAndroid* Client = static_cast< OsClientAndroid* >( pClient_ );
+		Client->setSize( EGLWidth_, EGLHeight_ );
+#endif
+	}
+	return true;
+}
+
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // createRenderState
