@@ -65,7 +65,7 @@ void ScnShader::StaticRegisterClass()
 #ifdef PSY_IMPORT_PIPELINE
 	// Add importer attribute to class for resource system to use.
 	Class.addAttribute( new CsResourceImporterAttribute( 
-		ScnShaderImport::StaticGetClass(), 0 ) );
+		ScnShaderImport::StaticGetClass(), 1 ) );
 #endif
 }
 
@@ -156,8 +156,8 @@ RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 		}
 	}
 	
-	// We should have found one.
-	if( BestIter != ProgramMap_.end() )
+	// We should have found one, must contain all requested permutations.
+	if( BestIter != ProgramMap_.end() && BcContainsAllFlags( BestIter->first, PermutationFlags ) )
 	{
 		auto& ProgramData = BestIter->second;
 
@@ -175,6 +175,44 @@ RsProgram* ScnShader::getProgram( ScnShaderPermutationFlags PermutationFlags )
 	}
 
 	return nullptr;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// getShader
+ScnShaderComplexity ScnShader::getComplexity( RsShaderType ShaderType, ScnShaderPermutationFlags PermutationFlags )
+{
+	// Find best matching permutation.
+	auto BestIter = ProgramMap_.find( PermutationFlags );
+	
+	if( BestIter == ProgramMap_.end() )
+	{
+		// Iterate over map and find best matching permutation (most matching bits).
+		BcU32 BestFlagsSet = 0;
+		for( auto Iter = ProgramMap_.begin(); Iter != ProgramMap_.end(); ++Iter )
+		{
+			BcU32 FlagsSet = BcBitsSet( (BcU32)(*Iter).first & (BcU32)PermutationFlags );
+			if( FlagsSet > BestFlagsSet )
+			{
+				BestIter = Iter;
+				BestFlagsSet = FlagsSet;
+			}
+		}
+	}
+	
+	// We should have found one, must contain all requested permutations.
+	if( BestIter != ProgramMap_.end() && BcContainsAllFlags( BestIter->first, PermutationFlags ) )
+	{
+		auto& ProgramData = BestIter->second;
+
+		auto& Shaders = ShaderMappings_[ (BcU32)ShaderType ].Shaders_;
+		auto ShaderHash = ProgramData.Header_->ShaderHashes_[ (BcU32)ShaderType ];
+		auto ShaderIt = Shaders.find( ShaderHash );
+		BcAssert( ShaderIt != Shaders.end() );
+
+		return ShaderIt->second.Header_->Complexity_;
+	}
+
+	return ScnShaderComplexity();
 }
 
 //////////////////////////////////////////////////////////////////////////

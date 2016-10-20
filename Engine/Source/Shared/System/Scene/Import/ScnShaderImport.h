@@ -108,6 +108,8 @@ struct ScnShaderBuiltData
 	RsShaderType ShaderType_;
 	RsShaderCodeType CodeType_;
 	BcBinaryData Code_;
+	// Not for comparison.
+	ScnShaderComplexity Complexity_;
 };
 
 struct ScnShaderPermutationJobParams

@@ -45,7 +45,8 @@ public:
 	
 	bool hasPermutation( ScnShaderPermutationFlags PermutationFlags );
 	RsProgram* getProgram( ScnShaderPermutationFlags PermutationFlags );
-	
+	ScnShaderComplexity getComplexity( RsShaderType ShaderType, ScnShaderPermutationFlags PermutationFlags );	
+
 private:
 	struct ShaderData
 	{

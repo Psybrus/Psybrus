@@ -95,6 +95,15 @@ DEFINE_ENUM_CLASS_FLAG_OPERATOR( ScnShaderPermutationFlags, & );
 DEFINE_ENUM_CLASS_UNARY_FLAG_OPERATOR( ScnShaderPermutationFlags, ~ );
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderComplexity
+struct ScnShaderComplexity
+{
+	BcU32 ApproxMathOps_ = 0;
+	BcU32 ApproxTexOps_ = 0;
+	BcU32 ApproxFlowOps_ = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // ScnShaderHeader
 struct ScnShaderHeader
 {
@@ -112,6 +121,7 @@ struct ScnShaderUnitHeader
 	RsShaderCodeType ShaderCodeType_;
 	BcU32 ShaderHash_;
 	ScnShaderPermutationFlags PermutationFlags_;
+	ScnShaderComplexity Complexity_;
 };
 
 //////////////////////////////////////////////////////////////////////////

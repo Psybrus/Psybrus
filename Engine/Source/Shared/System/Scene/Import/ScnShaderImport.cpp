@@ -287,7 +287,7 @@ BcBool ScnShaderImport::import()
 			ShaderUnit.ShaderCodeType_ = ShaderData.second.CodeType_;
 			ShaderUnit.ShaderHash_ = ShaderData.second.Hash_;
 			ShaderUnit.PermutationFlags_ = ScnShaderPermutationFlags::NONE;
-
+			ShaderUnit.Complexity_ = ShaderData.second.Complexity_;
 			Stream.clear();
 			Stream.push( &ShaderUnit, sizeof( ShaderUnit ) );
 			Stream.push( ShaderData.second.Code_.getData< BcU8* >(), ShaderData.second.Code_.getDataSize() );

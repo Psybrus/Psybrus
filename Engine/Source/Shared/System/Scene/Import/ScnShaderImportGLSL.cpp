@@ -1302,14 +1302,13 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 						RetVal = BcFalse;
 					}
 
-#if PSY_DEBUG
 					int ApproxMath, ApproxTex, ApproxFlow;
 					glslopt_shader_get_stats(
 						GlslOptShader,
 						&ApproxMath, &ApproxTex, &ApproxFlow );
-					PSY_LOG( "glsl-optimizer shader stats (approx): %u math, %u tex, %u flow.",
-						ApproxMath, ApproxTex, ApproxFlow );
-#endif
+					BuiltShaderGLSL.Complexity_.ApproxMathOps_ = (BcU32)ApproxMath;
+					BuiltShaderGLSL.Complexity_.ApproxTexOps_ = (BcU32)ApproxTex;
+					BuiltShaderGLSL.Complexity_.ApproxFlowOps_ = (BcU32)ApproxFlow;
 
 					glslopt_cleanup( GlslOptContext );
 
