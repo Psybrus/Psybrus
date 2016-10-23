@@ -61,7 +61,7 @@ void ScnRenderMesh::create()
 	SysFence UpdateFence( 2 );
 
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
-		RsBufferDesc( RsResourceBindFlags::VERTEX_BUFFER, RsResourceCreationFlags::STATIC,
+		RsBufferDesc( RsBindFlags::VERTEX_BUFFER, RsResourceCreationFlags::STATIC,
 			Header_.NoofVertices_ * Header_.VertexStride_, 0 ), DebugNameCStr );
 
 	RsCore::pImpl()->updateBuffer( VertexBuffer_.get(), 0, Header_.NoofVertices_ * Header_.VertexStride_, 
@@ -75,7 +75,7 @@ void ScnRenderMesh::create()
 	if( Header_.NoofIndices_ > 0 )
 	{
 		IndexBuffer_ = RsCore::pImpl()->createBuffer(
-			RsBufferDesc( RsResourceBindFlags::INDEX_BUFFER, RsResourceCreationFlags::STATIC,
+			RsBufferDesc( RsBindFlags::INDEX_BUFFER, RsResourceCreationFlags::STATIC,
 				Header_.NoofIndices_ * Header_.IndexStride_, 0 ), DebugNameCStr );
 
 		RsCore::pImpl()->updateBuffer( IndexBuffer_.get(), 0, Header_.NoofIndices_ * Header_.IndexStride_, 

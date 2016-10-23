@@ -41,7 +41,7 @@ public:
 	static GLboolean GetVertexDataNormalised( RsVertexDataType V );
 	static GLint GetVertexDataSize( RsVertexDataType V );
 	static GLenum GetTopologyType( RsTopologyType V );
-	static GLenum GetBufferType( RsResourceBindFlags V );
+	static GLenum GetBufferType( RsBindFlags V );
 	static ResourceFormat GetResourceFormat( RsResourceFormat V );
 	static GLenum GetShaderType( RsShaderType V );
 	static GLenum GetQueryType( RsQueryType Query );

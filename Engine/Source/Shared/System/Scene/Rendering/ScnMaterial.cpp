@@ -290,7 +290,7 @@ RsBufferUPtr ScnMaterial::createUniformBuffer( const ReClass* UniformBuffer, con
 #endif
 	auto Buffer = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc(
-			RsResourceBindFlags::UNIFORM_BUFFER,
+			RsBindFlags::UNIFORM_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			UniformBuffer->getSize() ), DebugNameCStr );	
 

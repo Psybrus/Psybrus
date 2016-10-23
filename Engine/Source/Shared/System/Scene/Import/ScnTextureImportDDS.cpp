@@ -469,7 +469,7 @@ bool ScnTextureImport::loadDDS( const char* FileName )
 
 	OutHeader.Format_ = DDS::GetResourceFormat( DDS::D3DFORMAT( DDSHeader.ddspf.dwFourCC ) );
 	OutHeader.Editable_ = BcFalse;
-	OutHeader.BindFlags_ = RsResourceBindFlags::SHADER_RESOURCE;
+	OutHeader.BindFlags_ = RsBindFlags::SHADER_RESOURCE;
 
 	// Check for DX10 format.
 	if( BcContainsAllFlags( DDSHeader.ddspf.dwFlags, BcU32( DDPF_FOURCC ) ) &&

@@ -195,5 +195,23 @@ void writeVelocity( FRAMEBUFFER_INPUT, in float2 Velocity )
 
 #  endif // PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
 
+
+#if defined( INTERNAL_PIXEL_COMPLEXITY )
+//////////////////////////////////////////////////////////////////////////
+// internalPixelComplexity
+PS_MAIN( internalPixelComplexity )
+{
+	PS_ENTER;
+	float4 Albedo = float4( INTERNAL_PIXEL_COMPLEXITY, INTERNAL_PIXEL_COMPLEXITY, INTERNAL_PIXEL_COMPLEXITY, 1.0 );
+	writeFrag( FRAMEBUFFER_OUTPUT, Albedo, float3( 0.0, 0.0, 1.0 ), float3( 1.0, 1.0, 1.0 ) );
+	pixelAll( FRAMEBUFFER_OUTPUT );
+	PS_EXIT;
+}
+#endif // defined( INTERNAL_PIXEL_COMPLEXITY )
+
 #endif // PIXEL_SHADER
+
+
+
+
 #endif // __PSYBRUSOUTPUT_PSH__

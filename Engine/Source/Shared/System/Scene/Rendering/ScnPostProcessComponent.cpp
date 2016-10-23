@@ -347,7 +347,7 @@ void ScnPostProcessComponent::recreateResources()
 		BcU32 VertexBufferSize = 4 * VertexDeclaration_->getDesc().getMinimumStride();
 		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsResourceBindFlags::VERTEX_BUFFER,
+				RsBindFlags::VERTEX_BUFFER,
 				RsResourceCreationFlags::STREAM, 
 				VertexBufferSize ),
 			getFullName().c_str() );
@@ -425,7 +425,7 @@ void ScnPostProcessComponent::recreateResources()
 
 			auto& BlockData = Uniforms.Data_;
 			auto BufferDesc = RsBufferDesc( 
-				RsResourceBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::DYNAMIC, BlockData.getDataSize() );
+				RsBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::DYNAMIC, BlockData.getDataSize() );
 			RsBufferUPtr Buffer( RsCore::pImpl()->createBuffer( BufferDesc, getFullName().c_str() ) );
 			ProgramBindingDesc.setUniformBuffer( Slot, Buffer.get(), 0, Buffer->getDesc().SizeBytes_ );
 			Uniforms.Buffer_ = Buffer.get();

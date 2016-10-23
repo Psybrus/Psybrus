@@ -25,7 +25,7 @@ struct RsTextureDesc
 	RsTextureDesc( 
 		RsTextureType Type,
 		RsResourceCreationFlags CreationFlags,
-		RsResourceBindFlags BindFlags,
+		RsBindFlags BindFlags,
 		RsResourceFormat Format,
 		BcU32 Levels,
 		BcU32 Width, 
@@ -34,7 +34,7 @@ struct RsTextureDesc
 
 	RsTextureType Type_;
 	RsResourceCreationFlags CreationFlags_;
-	RsResourceBindFlags BindFlags_;
+	RsBindFlags BindFlags_;
 	RsResourceFormat Format_;
 	BcU32 Levels_;
 	BcU32 Width_;

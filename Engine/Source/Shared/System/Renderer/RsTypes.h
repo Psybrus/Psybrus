@@ -18,6 +18,10 @@
 #include "Math/MaVec4d.h"
 
 //////////////////////////////////////////////////////////////////////////
+// Constants.
+static const size_t MAX_FRAMES_AHEAD = 2;
+
+//////////////////////////////////////////////////////////////////////////
 // Domain is used by us. Undefine it.
 #ifdef DOMAIN
 #undef DOMAIN
@@ -649,7 +653,7 @@ enum class RsResourceCreationFlags : BcU32
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceCreationFlags, | );
 DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceCreationFlags, & );
 
-enum class RsResourceBindFlags : BcU32
+enum class RsBindFlags : BcU32
 {
 	NONE				= 0x00000000,
 	VERTEX_BUFFER		= 0x00000001,
@@ -664,8 +668,8 @@ enum class RsResourceBindFlags : BcU32
 	TRANSIENT			= 0x00000200
 };
 
-DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceBindFlags, | );
-DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsResourceBindFlags, & );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsBindFlags, | );
+DEFINE_ENUM_CLASS_FLAG_OPERATOR( RsBindFlags, & );
 
 enum class RsResourceUpdateFlags : BcU32
 {
@@ -767,6 +771,20 @@ enum class RsQueryType : BcU32
 	OCCLUSION,
 	OCCLUSION_BINARY,
 	TIMESTAMP,
+};
+
+//////////////////////////////////////////////////////////////////////////
+// RsBufferAlloc
+struct RsBufferAlloc
+{
+	class RsBuffer* Buffer_ = nullptr;
+	BcU32 Offset_ = 0;
+	BcU32 Size_ = 0;
+
+	operator bool() const
+	{
+		return !!Buffer_;
+	}
 };
 
 

@@ -21,7 +21,7 @@ bool RsProgramBindingDesc::setUniformBuffer( BcU32 Slot, class RsBuffer* Buffer,
 	{
 		if( Buffer )
 		{
-			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE );
+			BcAssert( ( Buffer->getDesc().BindFlags_ & RsBindFlags::UNIFORM_BUFFER ) != RsBindFlags::NONE );
 		}
 		RetVal |= UniformBuffers_[ Slot ].Buffer_ != Buffer || UniformBuffers_[ Slot ].Offset_ != Offset || UniformBuffers_[ Slot ].Size_ != Size;
 		UniformBuffers_[ Slot ].Buffer_ = Buffer;
@@ -64,7 +64,7 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsBuffer* Bu
 	{
 		if( Buffer )
 		{
-			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+			BcAssert( ( Buffer->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) != RsBindFlags::NONE );
 			RetVal |= ShaderResourceSlots_[ Slot ].Buffer_ != Buffer;
 			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::BUFFER;
 			ShaderResourceSlots_[ Slot ].Buffer_ = Buffer;
@@ -99,7 +99,7 @@ bool RsProgramBindingDesc::setShaderResourceView( BcU32 Slot, class RsTexture* T
 		{
 			BcAssert( MostDetailedMip < Texture->getDesc().Levels_ );
 			BcAssert( ( MostDetailedMip + MipLevels ) <= Texture->getDesc().Levels_ );
-			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) != RsBindFlags::NONE );
 			RetVal |= ShaderResourceSlots_[ Slot ].Texture_ != Texture;
 			ShaderResourceSlots_[ Slot ].Type_ = RsShaderResourceType::TEXTURE;
 			ShaderResourceSlots_[ Slot ].Texture_ = Texture;
@@ -132,7 +132,7 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsBuffer* B
 	{
 		if( Buffer )
 		{
-			BcAssert( ( Buffer->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
+			BcAssert( ( Buffer->getDesc().BindFlags_ & RsBindFlags::UNORDERED_ACCESS ) != RsBindFlags::NONE );
 			RetVal |= ShaderResourceSlots_[ Slot ].Buffer_ != Buffer;
 			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::BUFFER;
 			UnorderedAccessSlots_[ Slot ].Buffer_ = Buffer;
@@ -165,7 +165,7 @@ bool RsProgramBindingDesc::setUnorderedAccessView( BcU32 Slot, class RsTexture* 
 	{
 		if( Texture )
 		{
-			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsBindFlags::UNORDERED_ACCESS ) != RsBindFlags::NONE );
 			RetVal |= UnorderedAccessSlots_[ Slot ].Texture_ != Texture;
 			UnorderedAccessSlots_[ Slot ].Type_ = RsUnorderedAccessType::TEXTURE;
 			UnorderedAccessSlots_[ Slot ].Texture_ = Texture;

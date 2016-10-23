@@ -524,14 +524,14 @@ namespace Psybrus
 		{
 			VertexBuffer_[ Idx ] = RsCore::pImpl()->createBuffer( 
 				RsBufferDesc( 
-					RsResourceBindFlags::VERTEX_BUFFER,
+					RsBindFlags::VERTEX_BUFFER,
 					RsResourceCreationFlags::STREAM, 
 					NoofVertices * VertexDeclaration_->getDesc().getMinimumStride() ),
 				"DsImGui" );
 
 			IndexBuffer_[ Idx ] = RsCore::pImpl()->createBuffer( 
 				RsBufferDesc( 
-					RsResourceBindFlags::INDEX_BUFFER,
+					RsBindFlags::INDEX_BUFFER,
 					RsResourceCreationFlags::STREAM, 
 					NoofIndices * sizeof( BcU16 ) ),
 				"DsImGui" );
@@ -545,7 +545,7 @@ namespace Psybrus
 
 		UniformBuffer_ = RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
-				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsBindFlags::UNIFORM_BUFFER,
 				RsResourceCreationFlags::STREAM,
 				sizeof( UniformBlock_ ) ),
 			"DsImGui" );
@@ -567,7 +567,7 @@ namespace Psybrus
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC,
-				RsResourceBindFlags::SHADER_RESOURCE,
+				RsBindFlags::SHADER_RESOURCE,
 				RsResourceFormat::R8G8B8A8_UNORM,
 				1,
 				Width, 
@@ -591,7 +591,7 @@ namespace Psybrus
 			RsTextureDesc( 
 				RsTextureType::TEX2D,
 				RsResourceCreationFlags::STATIC,
-				RsResourceBindFlags::SHADER_RESOURCE,
+				RsBindFlags::SHADER_RESOURCE,
 				RsResourceFormat::R8G8B8A8_UNORM,
 				1,
 				1, 

@@ -550,14 +550,14 @@ BcBool ScnTextureImport::import()
 		}
 
 
-		RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
+		RsBindFlags BindFlags = RsBindFlags::SHADER_RESOURCE;
 		if( RenderTarget_ )
 		{
-			BindFlags |= RsResourceBindFlags::RENDER_TARGET;
+			BindFlags |= RsBindFlags::RENDER_TARGET;
 		}
 		else if ( DepthStencilTarget_ )
 		{
-			BindFlags |= RsResourceBindFlags::DEPTH_STENCIL;
+			BindFlags |= RsBindFlags::DEPTH_STENCIL;
 		}
 
 		// Write header.
@@ -595,14 +595,14 @@ BcBool ScnTextureImport::import()
 			return BcFalse;
 		}
 
-		RsResourceBindFlags BindFlags = RsResourceBindFlags::SHADER_RESOURCE;
+		RsBindFlags BindFlags = RsBindFlags::SHADER_RESOURCE;
 		if( RenderTarget_ )
 		{
-			BindFlags |= RsResourceBindFlags::RENDER_TARGET;
+			BindFlags |= RsBindFlags::RENDER_TARGET;
 		}
 		else if ( DepthStencilTarget_ )
 		{
-			BindFlags |= RsResourceBindFlags::DEPTH_STENCIL;
+			BindFlags |= RsBindFlags::DEPTH_STENCIL;
 		}
 
 		auto ResourceFormat = Params->getFormat( Format_.c_str() );

@@ -348,21 +348,21 @@ GLenum RsUtilsGL::GetTopologyType( RsTopologyType V )
 
 ////////////////////////////////////////////////////////////////////////////////
 // GetBufferType
-GLenum RsUtilsGL::GetBufferType( RsResourceBindFlags V )
+GLenum RsUtilsGL::GetBufferType( RsBindFlags V )
 {
-	if( ( V & RsResourceBindFlags::VERTEX_BUFFER ) != RsResourceBindFlags::NONE )
+	if( ( V & RsBindFlags::VERTEX_BUFFER ) != RsBindFlags::NONE )
 	{
 		return GL_ARRAY_BUFFER;
 	}
-	else if( ( V & RsResourceBindFlags::INDEX_BUFFER ) != RsResourceBindFlags::NONE )
+	else if( ( V & RsBindFlags::INDEX_BUFFER ) != RsBindFlags::NONE )
 	{
 		return GL_ELEMENT_ARRAY_BUFFER;
 	}
-	else if( ( V & RsResourceBindFlags::UNIFORM_BUFFER ) != RsResourceBindFlags::NONE )
+	else if( ( V & RsBindFlags::UNIFORM_BUFFER ) != RsBindFlags::NONE )
 	{
 		return GL_UNIFORM_BUFFER;
 	}
-	else if( ( V & RsResourceBindFlags::STREAM_OUTPUT ) != RsResourceBindFlags::NONE )
+	else if( ( V & RsBindFlags::STREAM_OUTPUT ) != RsBindFlags::NONE )
 	{
 		return GL_TRANSFORM_FEEDBACK_BUFFER;
 	}

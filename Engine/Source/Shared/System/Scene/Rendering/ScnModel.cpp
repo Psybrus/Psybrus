@@ -236,6 +236,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 
 					auto* Attribute = Uniform.Class_->getAttribute< ScnShaderDataAttribute >();
 					IsInstancable &= Attribute->isInstancable();
+					IsInstancable &= Program->findUniformBufferSlot( (*Uniform.Class_->getName() + "Instanced" ).c_str() ) != BcErrorCode;
 				}
 			}
 
@@ -248,6 +249,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 
 					auto* Attribute = ScnShaderBoneUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
 					IsInstancable &= Attribute->isInstancable();
+					IsInstancable &= Program->findUniformBufferSlot( "ScnShaderBoneUniformBlockDataInstanced" ) != BcErrorCode;
 				}
 			}
 			else
@@ -259,13 +261,14 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 
 					auto* Attribute = ScnShaderObjectUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
 					IsInstancable &= Attribute->isInstancable();
+					IsInstancable &= Program->findUniformBufferSlot( "ScnShaderObjectUniformBlockDataInstanced" ) != BcErrorCode;
 				}
 			}
 
 			{
 				auto Slot = Program->findUniformBufferSlot( "ScnShaderLightUniformBlockData" );
 				if( Slot != BcErrorCode )
-				{	
+				{
 					// Try create lighting uniform buffer if we need to.
 					if( PerComponentMeshData.LightingUniformBuffer_ == nullptr )
 					{
@@ -276,6 +279,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 
 					auto* Attribute = ScnShaderLightUniformBlockData::StaticGetClass()->getAttribute< ScnShaderDataAttribute >();
 					IsInstancable &= Attribute->isInstancable();
+					IsInstancable &= Program->findUniformBufferSlot( "ScnShaderLightUniformBlockDataInstanced" ) != BcErrorCode;
 				}
 				else
 				{
@@ -343,7 +347,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 								{
 									UniformBuffer.Buffer_ = RsCore::pImpl()->createBuffer(
 										RsBufferDesc(
-											RsResourceBindFlags::UNIFORM_BUFFER,
+											RsBindFlags::UNIFORM_BUFFER,
 											RsResourceCreationFlags::STREAM,
 											Size ), DebugNameCStr ).release();
 									UniformBuffers.insert( std::make_pair( Uniform.Class_, UniformBuffer ) );
@@ -368,7 +372,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 								{
 									UniformBuffer.Buffer_ = RsCore::pImpl()->createBuffer(
 										RsBufferDesc(
-											RsResourceBindFlags::UNIFORM_BUFFER,
+											RsBindFlags::UNIFORM_BUFFER,
 											RsResourceCreationFlags::STREAM,
 											Size ), DebugNameCStr ).release();
 									UniformBuffers.insert( std::make_pair( Class, UniformBuffer ) );
@@ -393,7 +397,7 @@ class ScnViewRenderData* ScnModelProcessor::createViewRenderData( class ScnCompo
 								{
 									UniformBuffer.Buffer_ = RsCore::pImpl()->createBuffer(
 										RsBufferDesc(
-											RsResourceBindFlags::UNIFORM_BUFFER,
+											RsBindFlags::UNIFORM_BUFFER,
 											RsResourceCreationFlags::STREAM,
 											Size ), DebugNameCStr ).release();
 									UniformBuffers.insert( std::make_pair( Class, UniformBuffer ) );
@@ -1256,7 +1260,7 @@ void ScnModelComponent::setUniforms( const ReClass* UniformClass, const void* Un
 		Uniform.Data_ = std::move( BcBinaryData( Size ) );
 		Uniform.Buffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc(
-				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsBindFlags::UNIFORM_BUFFER,
 				RsResourceCreationFlags::STREAM,
 				Size ), DebugNameCStr );	
 		Uniforms_.emplace_back( std::move( Uniform ) );
@@ -1515,7 +1519,7 @@ void ScnModelComponent::onAttach( ScnEntityWeakRef Parent )
 		{
 			Uniform.Buffer_ = RsCore::pImpl()->createBuffer( 
 				RsBufferDesc(
-					RsResourceBindFlags::UNIFORM_BUFFER,
+					RsBindFlags::UNIFORM_BUFFER,
 					RsResourceCreationFlags::STREAM,
 					Size ), DebugNameCStr );	
 		}

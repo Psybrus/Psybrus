@@ -262,6 +262,14 @@ public:
 		RsTextureUpdateFunc UpdateFunc ) = 0;	
 public:
 	/**
+	 *	Allocate from transient buffer.
+	 *	This will allocate space in a buffer that will be valid for the frame.
+	 *	@param BindFlags Bind flags requested.
+	 *	@param Size Number of bytes to allocate.
+	 */
+	virtual RsBufferAlloc allocTransientBuffer( RsBindFlags BindFlags, BcU32 Size ) = 0;
+
+	/**
 	 *	Allocate a frame for rendering.
 	 *	GAME FUCTION: Called to get a frame prior to queuing up render objects.
 	 *	@param pContext Rendering context to allocate frame for use with.

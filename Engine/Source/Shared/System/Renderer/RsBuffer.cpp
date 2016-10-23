@@ -21,7 +21,7 @@ RsBufferDesc::RsBufferDesc()
 
 //////////////////////////////////////////////////////////////////////////
 // Ctor
-RsBufferDesc::RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride ):
+RsBufferDesc::RsBufferDesc( RsBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride ):
 	BindFlags_( BindFlags ),
 	Flags_( Flags ),
 	SizeBytes_( SizeBytes ),

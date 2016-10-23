@@ -15,6 +15,7 @@
 #define __RsCoreImpl_H__
 
 #include "System/Renderer/RsCore.h"
+#include "System/Renderer/RsBufferAllocator.h"
 
 #include <mutex>
 #include <unordered_set>
@@ -164,6 +165,7 @@ private:
 	void createResource( RsResource* pResource );
 
 public:
+	RsBufferAlloc allocTransientBuffer( RsBindFlags BindFlags, BcU32 Size ) override;
 	RsFrame* allocateFrame( RsContext* pContext, bool ShouldPresent ) override;
 	void queueFrame( RsFrame* pFrame ) override;
 	BcF64 getFrameTime() const override;
@@ -191,6 +193,9 @@ protected:
 #endif
 
 	BcF64 FrameTime_;
+
+	std::vector< std::unique_ptr< RsBufferAllocator > > BufferAllocators_;
+
 };
 
 #endif

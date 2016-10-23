@@ -22,9 +22,9 @@
 struct RsBufferDesc
 {
 	RsBufferDesc();
-	RsBufferDesc( RsResourceBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride = 0 );
+	RsBufferDesc( RsBindFlags BindFlags, RsResourceCreationFlags Flags, size_t SizeBytes, size_t StructureStride = 0 );
 	
-	RsResourceBindFlags BindFlags_ = RsResourceBindFlags::NONE;
+	RsBindFlags BindFlags_ = RsBindFlags::NONE;
 	RsResourceCreationFlags Flags_ = RsResourceCreationFlags::NONE;
 	size_t SizeBytes_ = 0;
 	size_t StructureStride_ = 0;

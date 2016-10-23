@@ -69,13 +69,13 @@ void ScnTexture::StaticRegisterClass()
 					ImGui::Text( "Format: %s", (*ReManager::GetEnumValueName( Value->Header_.Format_ )).c_str() );
 
 					// Render if we can.
-					if( BcContainsAllFlags( Value->getTexture()->getDesc().BindFlags_, RsResourceBindFlags::SHADER_RESOURCE ) )
+					if( BcContainsAllFlags( Value->getTexture()->getDesc().BindFlags_, RsBindFlags::SHADER_RESOURCE ) )
 					{
 						const auto& Features = RsCore::pImpl()->getContext( nullptr )->getFeatures();
 						bool ShouldFlip = false;
 						if( Features.RTOrigin_ != RsFeatureRenderTargetOrigin::TOP_LEFT )
 						{
-							ShouldFlip = BcContainsAnyFlags( Value->getTexture()->getDesc().BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL );
+							ShouldFlip = BcContainsAnyFlags( Value->getTexture()->getDesc().BindFlags_, RsBindFlags::RENDER_TARGET | RsBindFlags::DEPTH_STENCIL );
 						}
 						auto FlipYID = ImGui::GetID( "Flip Y" );
 						bool FlipY = !!StateStorage->GetInt( FlipYID, ShouldFlip );
@@ -165,7 +165,7 @@ ScnTexture* ScnTexture::New( const RsTextureDesc& Desc, const char* DebugName )
 //////////////////////////////////////////////////////////////////////////
 // New1D
 //static
-ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsResourceFormat Format, RsBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -187,7 +187,7 @@ ScnTexture* ScnTexture::New1D( BcS32 Width, BcU32 Levels, RsResourceFormat Forma
 //////////////////////////////////////////////////////////////////////////
 // New2D
 //static
-ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsResourceFormat Format, RsBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -209,7 +209,7 @@ ScnTexture* ScnTexture::New2D( BcS32 Width, BcS32 Height, BcU32 Levels, RsResour
 //////////////////////////////////////////////////////////////////////////
 // New3D
 //static
-ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Levels, RsResourceFormat Format, RsBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -231,7 +231,7 @@ ScnTexture* ScnTexture::New3D( BcS32 Width, BcS32 Height, BcS32 Depth, BcU32 Lev
 //////////////////////////////////////////////////////////////////////////
 // NewCube
 //static
-ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsResourceFormat Format, RsResourceBindFlags BindFlags, const char* DebugName )
+ScnTexture* ScnTexture::NewCube( BcS32 Width, BcS32 Height, BcU32 Levels, RsResourceFormat Format, RsBindFlags BindFlags, const char* DebugName )
 {
 	auto Texture = ReConstructObject< ScnTexture >( DebugName );
 	Texture->pTextureData_ = nullptr;
@@ -375,7 +375,7 @@ void ScnTexture::recreate()
 	Depth_ = Header_.Depth_;
 	
 	// If a target, use negative width + height as multiples of resolution.
-	if( BcContainsAnyFlags( Header_.BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL ) )
+	if( BcContainsAnyFlags( Header_.BindFlags_, RsBindFlags::RENDER_TARGET | RsBindFlags::DEPTH_STENCIL ) )
 	{
 		auto* Client = Context->getClient();
 		if( Header_.Width_ <= 0 )
@@ -458,7 +458,7 @@ void ScnTexture::recreate()
 		RsTextureDesc( 
 			Header_.Type_, 
 			RsResourceCreationFlags::STREAM,
-			RsResourceBindFlags::NONE,
+			RsBindFlags::NONE,
 			Header_.Format_,
 			Levels - SkipMips,
 			InternalWidth_ >> SkipMips,
@@ -585,7 +585,7 @@ void ScnTexture::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 		*/
 
 		if( Header_.Editable_ == BcFalse &&
-			!BcContainsAnyFlags( Header_.BindFlags_, RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::DEPTH_STENCIL ) )
+			!BcContainsAnyFlags( Header_.BindFlags_, RsBindFlags::RENDER_TARGET | RsBindFlags::DEPTH_STENCIL ) )
 		{
 			requestChunk( ++ChunkIdx );
 		}

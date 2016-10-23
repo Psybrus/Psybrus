@@ -27,7 +27,7 @@ struct ScnTextureHeader
 	RsTextureType Type_;
 	RsResourceFormat Format_;
 	BcBool Editable_;
-	RsResourceBindFlags BindFlags_;
+	RsBindFlags BindFlags_;
 };
 
 #endif

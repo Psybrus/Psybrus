@@ -15,6 +15,7 @@
 
 #include "Base/BcProfiler.h"
 
+#include "System/Renderer/RsBufferAllocator.h"
 #include "System/Renderer/RsFrame.h"
 #include "System/Renderer/RsShader.h"
 #include "System/Renderer/RsProgram.h"
@@ -94,6 +95,15 @@ void RsCoreImpl::open()
 		} );
 
 	SysKernel::pImpl()->flushJobQueue( RsCore::JOB_QUEUE_ID );
+
+	// Create transient buffers.
+	const BcU32 DEFAULT_VB_SIZE = 1024 * 1024 * 8;
+	const BcU32 DEFAULT_IB_SIZE = 1024 * 1024;
+	const BcU32 DEFAULT_UB_SIZE = 1024 * 1024;
+
+	BufferAllocators_.emplace_back( std::make_unique< RsBufferAllocator >( RsBindFlags::VERTEX_BUFFER, DEFAULT_VB_SIZE, "TransientVB" ) );
+	BufferAllocators_.emplace_back( std::make_unique< RsBufferAllocator >( RsBindFlags::INDEX_BUFFER, DEFAULT_IB_SIZE, "TransientIB" ) );
+	BufferAllocators_.emplace_back( std::make_unique< RsBufferAllocator >( RsBindFlags::UNIFORM_BUFFER, DEFAULT_UB_SIZE, "TransientUB" ) );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -116,8 +126,14 @@ void RsCoreImpl::update()
 			RenderSyncFence_.decrement();
 		} );
 
-	// Wait for frames if we fall more than 1 update cycle behind.
-	RenderSyncFence_.wait( 1 );
+	// Advance transient buffer allocators.
+	for( auto& Allocator : BufferAllocators_ )
+	{
+		Allocator->nextFrame();
+	}
+
+	// Wait for frames.
+	RenderSyncFence_.wait( MAX_FRAMES_AHEAD - 1 );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1195,8 +1211,8 @@ bool RsCoreImpl::updateTexture(
 	RsTextureUpdateFunc UpdateFunc )
 {
 	BcAssert( Texture != nullptr );
-	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) == RsResourceBindFlags::NONE );
-	BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::DEPTH_STENCIL ) == RsResourceBindFlags::NONE );
+	BcAssert( ( Texture->getDesc().BindFlags_ & RsBindFlags::RENDER_TARGET ) == RsBindFlags::NONE );
+	BcAssert( ( Texture->getDesc().BindFlags_ & RsBindFlags::DEPTH_STENCIL ) == RsBindFlags::NONE );
 	BcAssert( Slice.Level_ < Texture->getDesc().Levels_ );
 	BcAssert( Slice.Face_ == RsTextureFace::NONE || Texture->getDesc().Type_ == RsTextureType::TEXCUBE );
 
@@ -1246,6 +1262,22 @@ void RsCoreImpl::createResource( RsResource* pResource )
 		{
 			pResource->create();
 		} );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// allocTransientBuffer
+RsBufferAlloc RsCoreImpl::allocTransientBuffer( RsBindFlags BindFlags, BcU32 Size )
+{
+	RsBufferAlloc RetVal;
+	for( auto& Allocator : BufferAllocators_ )
+	{
+		if( BcContainsAllFlags( Allocator->getBindFlags(), BindFlags ) )
+		{
+			RetVal = Allocator->alloc( Size );
+			break;
+		}
+	}
+	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -524,7 +524,7 @@ void RsContextGL::create()
 			}
 		}
 
-		if( createProfile( Version, ParentContext ) )
+		if( createProfile( Version, ParentContext, RTFormat, DSFormat ) )
 		{
 			Version_ = Version;
 			Version_.setupFeatureSupport();
@@ -738,7 +738,7 @@ void RsContextGL::create()
 	// Setup BB RT + DS.
 	BackBufferRTDesc_ = RsTextureDesc( RsTextureType::TEX2D,
 		RsResourceCreationFlags::STATIC,
-		RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::PRESENT,
+		RsBindFlags::RENDER_TARGET | RsBindFlags::PRESENT,
 		RTFormat,
 		1, 1, 1, 1 );
 	BackBufferRT_ = new RsTexture( this, BackBufferRTDesc_ );
@@ -747,7 +747,7 @@ void RsContextGL::create()
 
 	BackBufferDSDesc_ = RsTextureDesc( RsTextureType::TEX2D,
 		RsResourceCreationFlags::STATIC,
-		RsResourceBindFlags::DEPTH_STENCIL,
+		RsBindFlags::DEPTH_STENCIL,
 		DSFormat,
 		1, 1, 1, 1 );
 	BackBufferDS_ = new RsTexture( this, BackBufferDSDesc_ );
@@ -1283,10 +1283,10 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 				BcAssertMsg( false, "Unsupported texture type for RsFrameBuffer \"%s\"", FrameBuffer->getDebugName() );
 			}
 
-			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) !=
-				RsResourceBindFlags::NONE );
-			BcAssert( ( Texture->getDesc().BindFlags_ & RsResourceBindFlags::RENDER_TARGET ) !=
-				RsResourceBindFlags::NONE );
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) !=
+				RsBindFlags::NONE );
+			BcAssert( ( Texture->getDesc().BindFlags_ & RsBindFlags::RENDER_TARGET ) !=
+				RsBindFlags::NONE );
 			RsTextureGL* TextureGL = Texture->getHandle< RsTextureGL* >();
 			GL( FramebufferTexture2D( 
 				GL_FRAMEBUFFER, 
@@ -1335,8 +1335,8 @@ bool RsContextGL::createFrameBuffer( class RsFrameBuffer* FrameBuffer )
 			break;
 		}
 
-		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsResourceBindFlags::SHADER_RESOURCE ) );
-		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsResourceBindFlags::DEPTH_STENCIL ) );
+		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsBindFlags::SHADER_RESOURCE ) );
+		BcAssert( BcContainsAllFlags( Desc.DepthStencilTarget_->getDesc().BindFlags_, RsBindFlags::DEPTH_STENCIL ) );
 
 		RsTextureGL* TextureGL = Desc.DepthStencilTarget_->getHandle< RsTextureGL* >();
 		GL( FramebufferTexture2D( 
@@ -1428,7 +1428,7 @@ bool RsContextGL::updateBuffer(
 	// Validate size.
 	const auto& BufferDesc = Buffer->getDesc();
 	BcAssertMsg( ( Offset + Size ) <= BufferDesc.SizeBytes_, "Typing to update buffer outside of range." );
-	BcAssertMsg( BufferDesc.BindFlags_ != RsResourceBindFlags::NONE, "Buffer bind flags are unknown" );
+	BcAssertMsg( BufferDesc.BindFlags_ != RsBindFlags::NONE, "Buffer bind flags are unknown" );
 
 	auto BufferGL = Buffer->getHandle< RsBufferGL* >();
 	BcAssert( BufferGL );
@@ -1872,8 +1872,8 @@ void RsContextGL::drawPrimitives(
 			BcAssert( Version_.SupportDrawInstancedBaseInstance_ );
 			GL( DrawArraysInstancedBaseInstance( RsUtilsGL::GetTopologyType( TopologyType ), VertexOffset, NoofVertices, NoofInstances, FirstInstance ) );
 		}
-	else
 #elif !defined( RENDER_USE_GLES ) || defined( RENDER_USE_GLES3 )
+		if( FirstInstance == 0 )
 		{
 			BcAssert( FirstInstance == 0 );
 			BcAssert( Version_.SupportDrawInstanced_ );
@@ -2825,7 +2825,7 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 			case RsProgramBindTypeGL::TEXTURE:
 				{
 					// TODO: Redundant state checking.
-					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) != RsBindFlags::NONE );
 					bindTexture( SRVSlotGL.Binding_, SRVSlot.Texture_ );
 				}
 				break;
@@ -2833,7 +2833,7 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 			case RsProgramBindTypeGL::IMAGE:
 				{
 					// TODO: Redundant state checking.
-					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					BcAssert( ( SRVSlot.Texture_->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) != RsBindFlags::NONE );
 					RsTextureGL* TextureGL = SRVSlot.Texture_->getHandle< RsTextureGL* >();
 					const auto Format = RsUtilsGL::GetResourceFormat( SRVSlot.Texture_->getDesc().Format_ );
 					auto& BindingInfo = ImageBindingInfo_[ SRVSlotGL.Binding_ ];
@@ -2861,7 +2861,7 @@ void RsContextGL::bindSRVs( const RsProgram* Program, const RsProgramBindingDesc
 			case RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT:
 				{
 					// TODO: Redundant state checking.
-					BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					BcAssert( ( SRVSlot.Buffer_->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) != RsBindFlags::NONE );
 					RsBufferGL* BufferGL = SRVSlot.Buffer_->getHandle< RsBufferGL* >();
 					auto& BindingInfo = ShaderStorageBufferBindingInfo_[ SRVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != SRVSlot.Resource_ ||
@@ -2910,7 +2910,7 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 			case RsProgramBindTypeGL::IMAGE:
 				{
 					// TODO: Redundant state checking.
-					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsResourceBindFlags::SHADER_RESOURCE ) != RsResourceBindFlags::NONE );
+					BcAssert( ( UAVSlot.Texture_->getDesc().BindFlags_ & RsBindFlags::SHADER_RESOURCE ) != RsBindFlags::NONE );
 					RsTextureGL* TextureGL = UAVSlot.Texture_->getHandle< RsTextureGL* >(); 
 					const auto Format = RsUtilsGL::GetResourceFormat( UAVSlot.Texture_->getDesc().Format_ );
 					auto& BindingInfo = ImageBindingInfo_[ UAVSlotGL.Binding_ ];
@@ -2940,7 +2940,7 @@ void RsContextGL::bindUAVs( const RsProgram* Program, const RsProgramBindingDesc
 			case RsProgramBindTypeGL::SHADER_STORAGE_BUFFER_OBJECT:
 				{
 					// TODO: Redundant state checking.
-					BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsResourceBindFlags::UNORDERED_ACCESS ) != RsResourceBindFlags::NONE );
+					BcAssert( ( UAVSlot.Buffer_->getDesc().BindFlags_ & RsBindFlags::UNORDERED_ACCESS ) != RsBindFlags::NONE );
 					RsBufferGL* BufferGL = UAVSlot.Buffer_->getHandle< RsBufferGL* >(); 
 					auto& BindingInfo = ShaderStorageBufferBindingInfo_[ UAVSlotGL.Binding_ ];
 					if( BindingInfo.Resource_ != UAVSlot.Resource_ ||

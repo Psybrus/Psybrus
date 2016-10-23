@@ -167,7 +167,7 @@ namespace Debug
 		// Allocate render side vertex buffer.
 		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsResourceBindFlags::VERTEX_BUFFER,
+				RsBindFlags::VERTEX_BUFFER,
 				RsResourceCreationFlags::STREAM,
 				NoofVertices_ * sizeof( Vertex ) ),
 			"Debug" );
@@ -180,7 +180,7 @@ namespace Debug
 		// Allocate uniform buffer object.
 		UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
-				RsResourceBindFlags::UNIFORM_BUFFER,
+				RsBindFlags::UNIFORM_BUFFER,
 				RsResourceCreationFlags::STREAM,
 				sizeof( ScnShaderObjectUniformBlockData ) ),
 			"Debug" );

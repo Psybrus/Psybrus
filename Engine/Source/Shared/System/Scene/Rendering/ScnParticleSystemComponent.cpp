@@ -398,7 +398,7 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 	// Allocate vertex buffer.
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsResourceBindFlags::VERTEX_BUFFER, 
+			RsBindFlags::VERTEX_BUFFER, 
 			RsResourceCreationFlags::STREAM, 
 			NoofVertices * sizeof( ScnParticleVertex ) ),
 		getFullName().c_str() );
@@ -410,7 +410,7 @@ void ScnParticleSystemComponent::onAttach( ScnEntityWeakRef Parent )
 
 	UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsResourceBindFlags::UNIFORM_BUFFER,
+			RsBindFlags::UNIFORM_BUFFER,
 			RsResourceCreationFlags::STREAM,
 			sizeof( ObjectUniforms_ ) ),
 		getFullName().c_str() );

@@ -100,7 +100,7 @@ void ScnEnvironmentProbeProcessor::initialise()
 	Sampler_ = RsCore::pImpl()->createSamplerState( SamplerDesc, "pp_compute_filter_r8g8b8a8" );
 
 	FilterUniform_ = RsCore::pImpl()->createBuffer( RsBufferDesc( 
-		RsResourceBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::STREAM, 
+		RsBindFlags::UNIFORM_BUFFER, RsResourceCreationFlags::STREAM, 
 		sizeof( ScnEnvironmentFilterUniformBlock ) ), "pp_compute_filter_r8g8b8a8" );
 	
 	// Create render state.
@@ -122,7 +122,7 @@ void ScnEnvironmentProbeProcessor::initialise()
 	BcU32 VertexBufferSize = 4 * VertexDeclaration_->getDesc().getMinimumStride();
 	VertexBuffer_ = RsCore::pImpl()->createBuffer( 
 		RsBufferDesc( 
-			RsResourceBindFlags::VERTEX_BUFFER,
+			RsBindFlags::VERTEX_BUFFER,
 			RsResourceCreationFlags::STREAM, 
 			VertexBufferSize ),
 		getFullName().c_str() );
@@ -517,7 +517,7 @@ void ScnEnvironmentProbeComponent::onAttach( ScnEntityWeakRef Parent )
 	// Don't want tail mips 1x1, 2x2 and 4x4.
 	Levels = std::max( 1, Levels - 3 );
 	Texture_ = ScnTexture::NewCube( Renderer->getWidth(), Renderer->getHeight(), Levels, RsResourceFormat::R8G8B8A8_UNORM, 
-		RsResourceBindFlags::SHADER_RESOURCE | RsResourceBindFlags::RENDER_TARGET | RsResourceBindFlags::UNORDERED_ACCESS, (*getName()).c_str() );
+		RsBindFlags::SHADER_RESOURCE | RsBindFlags::RENDER_TARGET | RsBindFlags::UNORDERED_ACCESS, (*getName()).c_str() );
 
 	// Generate cubemaps.
 	RsFrameBufferDesc Desc( 1 );

@@ -20,7 +20,7 @@
 RsTextureDesc::RsTextureDesc():
 	Type_( RsTextureType::UNKNOWN ),
 	CreationFlags_( RsResourceCreationFlags::NONE ),
-	BindFlags_( RsResourceBindFlags::NONE ),
+	BindFlags_( RsBindFlags::NONE ),
 	Format_( RsResourceFormat::INVALID ),
 	Width_( 0 ),
 	Height_( 0 ),
@@ -34,7 +34,7 @@ RsTextureDesc::RsTextureDesc():
 RsTextureDesc::RsTextureDesc( 
 		RsTextureType Type, 
 		RsResourceCreationFlags CreationFlags,
-		RsResourceBindFlags BindFlags,
+		RsBindFlags BindFlags,
 		RsResourceFormat Format,
 		BcU32 Levels, 
 		BcU32 Width, 

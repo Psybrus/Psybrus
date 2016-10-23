@@ -332,7 +332,7 @@ void RsOpenGLVersion::setupFeatureSupport()
 			Features_.NPOTTextures_ = true;
 			Features_.AnisotropicFiltering_ = true;
 				
-			Features_.Instancing_ = false; // TODO: Support it in ESSL shaders.
+			Features_.Instancing_ = true;
 
 			SupportSamplerStates_ = true;
 			SupportUniformBuffers_ = true;
