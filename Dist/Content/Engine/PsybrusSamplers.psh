@@ -32,7 +32,7 @@
 #  define PSY_SAMPLE_3D_LOD( _n, _c, _l ) a##_n.SampleLevel( s##_n, _c, _l )
 #  define PSY_SAMPLE_CUBE_LOD( _n, _c, _l ) a##_n.SampleLevel( s##_n, _c, _l )
 
-#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL ||  PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 #  define PSY_SAMPLER_1D( _n ) \
 		uniform sampler1D a##_n									
 
@@ -45,7 +45,7 @@
 #  define PSY_SAMPLER_CUBE( _n ) \
 		uniform samplerCube a##_n								
 
-#  if ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_INPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_ES_300 )
+#  if ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE >= PSY_CODE_TYPE_GLSL_140 ) || ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL && PSY_INPUT_CODE_TYPE >= PSY_CODE_TYPE_ESSL_300 )
 #    define PSY_SAMPLE_1D( _n, _c ) texture( a##_n, _c )
 #    define PSY_SAMPLE_2D( _n, _c ) texture( a##_n, _c )
 #    define PSY_SAMPLE_3D( _n, _c ) texture( a##_n, _c )

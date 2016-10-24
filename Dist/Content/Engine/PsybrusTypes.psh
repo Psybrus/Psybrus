@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Setup HLSL types
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 #define float2 vec2
 #define float3 vec3
 #define float4 vec4
@@ -25,7 +25,7 @@
 #define fmod mod
 #endif
 
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 #define uint int
 #endif
 
@@ -43,7 +43,7 @@ float3x3 getFloat3x3( float3 Row0, float3 Row1, float3 Row2 )
 	return transpose( float3x3( Row0, Row1, Row2 ) );
 }
 
-#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 float3x3 getFloat3x3( float4x4 Matrix )
 {
 	return float3x3( Matrix );

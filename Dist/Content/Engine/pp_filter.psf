@@ -18,7 +18,7 @@ PS_MAIN( pixelMain )
 
 	float3 Total = float3( 0.0, 0.0, 0.0 );
 	float3 N = getCubemapNormal( EnvironmentFilterCubeFace_, ( IN( VsTexCoord0 ).xy ) * 2.0 - float2( 1.0, 1.0 ) );
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 	// TODO: Test.
 	Total = PSY_SAMPLE_CUBE( EnvTexture, N ).xyz;
 #else

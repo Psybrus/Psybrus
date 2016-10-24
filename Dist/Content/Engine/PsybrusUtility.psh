@@ -8,7 +8,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // transpose & mul
-#if ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_150 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_ES_300 )
+#if ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_150 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_ESSL_300 )
 float3x3 transpose( float3x3 In )
 {
 	return float3x3( 
@@ -25,9 +25,9 @@ float4x4 transpose( float4x4 In )
 		float4( In[0].z, In[1].z, In[2].z, In[3].z ),
 		float4( In[0].w, In[1].w, In[2].w, In[3].w ) );
 }
-#endif // ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_150 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_ES_300 )
+#endif // ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL && PSY_INPUT_CODE_TYPE < PSY_CODE_TYPE_GLSL_150 ) || ( PSY_OUTPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL && PSY_OUTPUT_CODE_TYPE < PSY_CODE_TYPE_ESSL_300 )
 
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 float3 mul( float3x3 M, float3 V )
 {
 	return M * V;
@@ -48,7 +48,7 @@ float4x4 mul( float4x4 M, float4x4 V )
 	return M * V;
 }
 
-#endif // PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#endif // PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 
 #if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL
 uint reversebits( uint Bits )
@@ -221,7 +221,7 @@ int textureQueryLevels( samplerCube Sampler )
 	return MipCount;
 }
 
-#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#elif PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 
 int textureQueryLevels( sampler2D Sampler )
 {
@@ -250,7 +250,7 @@ float3x3 buildTBN( float3 InTangent, float3 InBinormal, float3 InNormal )
 
 //////////////////////////////////////////////////////////////////////////
 // Colour space conversion.
-#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
+#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_ESSL_100
 #  define FAST_GAMMA_CONVERSION ( 1 )
 #else
 #  define ACCURATE_GAMMA_CONVERSION ( 1 )
@@ -304,7 +304,7 @@ float4 linearToGamma( float4 InputRGBA )
 
 //////////////////////////////////////////////////////////////////////////
 // HLSL functions
-#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 float saturate( float X )
 {
 	return clamp( X, 0.0, 1.0 );

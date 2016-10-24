@@ -23,7 +23,7 @@ VS_MAIN( vertexMain )
 }
 #endif
 
-#if PSY_INPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
+#if PSY_INPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_ESSL
 
 float2 hammersley( uint Index, uint NumSamples )
 {
@@ -32,7 +32,7 @@ float2 hammersley( uint Index, uint NumSamples )
 	return float2( X, Y );
 }
 
-#endif // PSY_INPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_GLSL_ES
+#endif // PSY_INPUT_BACKEND_TYPE != PSY_BACKEND_TYPE_ESSL
 
 // http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
 float3 importanceSampleGGX( float2 Xi, float Roughness, float3 N )

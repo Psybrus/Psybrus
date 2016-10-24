@@ -109,6 +109,40 @@ namespace
 
 //////////////////////////////////////////////////////////////////////////
 // Reflection
+REFLECTION_DEFINE_DERIVED( ScnShaderImportParams );
+
+void ScnShaderImportParams::StaticRegisterClass()
+{
+	ReField* Fields[] = 
+	{
+		new ReField( "CodeTypes_", &ScnShaderImportParams::CodeTypes_, bcRFF_IMPORTER ),
+	};
+		
+	ReRegisterClass< ScnShaderImportParams, Super >( Fields );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Ctor
+ScnShaderImportParams::ScnShaderImportParams()
+{
+	// Sensible defaults.
+	CodeTypes_.insert( RsShaderCodeType::GLSL_330 );
+	CodeTypes_.insert( RsShaderCodeType::GLSL_410 );
+	CodeTypes_.insert( RsShaderCodeType::GLSL_430 );
+	CodeTypes_.insert( RsShaderCodeType::ESSL_100 );
+	CodeTypes_.insert( RsShaderCodeType::ESSL_300 );
+	CodeTypes_.insert( RsShaderCodeType::D3D11_5_0 );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Dtor
+//virtual
+ScnShaderImportParams::~ScnShaderImportParams()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Reflection
 REFLECTION_DEFINE_DERIVED( ScnShaderImport )
 	
 void ScnShaderImport::StaticRegisterClass()
@@ -226,16 +260,23 @@ BcBool ScnShaderImport::import()
 	// Cache intermediate path.
 	IntermediatePath_ = getIntermediatePath();
 
-	// Do appropriate pipeline.
-	BcBool RetVal = BcFalse;
+	// If source is specified, use platform config to setup Sources_.
 	if( !Source_.empty() )
 	{
-		RetVal = oldPipeline();
+		auto Params = getImportParams< ScnShaderImportParams > ();
+		if( !Params )
+		{
+			addMessage( CsMessageCategory::ERROR, "Unable to find ScnShaderImportParams in platform config." );
+			return BcFalse;
+		}
+
+		for( auto CodeType : Params->CodeTypes_ )
+		{
+			Sources_[ CodeType ] = Source_;
+		}
 	}
-	else
-	{
-		RetVal = newPipeline();
-	}
+
+	BcBool RetVal = newPipeline();
 
 	// Wait for permutation building jobs.
 	while( PendingPermutations_ > 0 )
@@ -430,7 +471,7 @@ void ScnShaderImport::regenerateShaderDataHeader()
 			}
 			break;
 
-			case RsShaderBackendType::GLSL_ES:
+			case RsShaderBackendType::ESSL:
 			{
 				for( const auto* Field : Class->getFields() )
 				{
@@ -456,7 +497,7 @@ void ScnShaderImport::regenerateShaderDataHeader()
 	{
 		std::array< RsShaderBackendType, 3 > OutputBackends = 
 		{
-			RsShaderBackendType::GLSL_ES,
+			RsShaderBackendType::ESSL,
 			RsShaderBackendType::GLSL,
 			RsShaderBackendType::D3D11,
 		};
@@ -586,7 +627,7 @@ void ScnShaderImport::writeField( std::string& OutString, const ReClass* InClass
 	}
 	else
 	{
-		if( OutputBackend == RsShaderBackendType::GLSL_ES )
+		if( OutputBackend == RsShaderBackendType::ESSL )
 		{
 			if( NumElements == 1 )
 			{
@@ -629,115 +670,6 @@ void ScnShaderImport::writeField( std::string& OutString, const ReClass* InClass
 
 		OutString += OutBuffer.data();
 	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// oldPipeline
-BcBool ScnShaderImport::oldPipeline()
-{
-	BcBool RetVal = BcFalse;
-#if PSY_IMPORT_PIPELINE
-	// Read in source.
-	if( !Source_.empty() )
-	{
-		BcFile SourceFile;
-		if( SourceFile.open( Source_.c_str(), bcFM_READ ) )
-		{
-			std::vector< char > FileData( SourceFile.size() + 1 );
-			BcMemZero( FileData.data(), FileData.size() );
-			SourceFile.read( FileData.data(), FileData.size() );
-			SourceFileData_ = FileData.data();
-
-			addDependency( Source_.c_str() );
-		}
-	}
-	else
-	{
-		return BcFalse;
-	}
-
-	// Generate permutations.
-	generatePermutations( 0, GNoofPermutationGroups, GPermutationGroups, getDefaultPermutation() );
-
-	// Sort input types from lowest to highest.
-	std::sort( CodeTypes_.begin(), CodeTypes_.end(), 
-		[]( RsShaderCodeType A, RsShaderCodeType B )
-		{
-			return A < B;
-		} );
-
-	// Backend types. If it's empty, default to all.
-	if( BackendTypes_.empty() )
-	{
-		BackendTypes_.push_back( RsShaderBackendType::D3D11 );
-		BackendTypes_.push_back( RsShaderBackendType::GLSL );
-		BackendTypes_.push_back( RsShaderBackendType::GLSL_ES );
-	}
-
-	// Kick off all permutation building jobs.
-	for( auto& Permutation : Permutations_ )
-	{
-		for( const auto& InputCodeType : CodeTypes_ )
-		{
-			// Setup entries for input code type.
-			std::vector< ScnShaderLevelEntry > Entries;
-			for( auto& ShaderLevelEntry : GShaderLevelEntries )
-			{
-				const auto& Entry = Entrypoints_[ ShaderLevelEntry.Type_ ];
-				if( ShaderLevelEntry.CodeType_ == InputCodeType &&
-					!Entry.empty() )
-				{
-					ScnShaderLevelEntry NewEntry = ShaderLevelEntry;
-					Entries.push_back( NewEntry );
-				}
-			}
-
-			// If we've got valid entries, continue.
-			if( Entries.size() > 0 )
-			{
-				for( const auto& BackendType : BackendTypes_ )
-				{
-					RsShaderCodeType OutputCodeType = RsConvertCodeTypeToBackendCodeType( InputCodeType, BackendType );
-
-					// If it isn't invalid, add and build.
-					if( OutputCodeType != RsShaderCodeType::INVALID )
-					{
-						// Add output code type.
-						if( std::find( OutputCodeTypes_.begin(), OutputCodeTypes_.end(), OutputCodeType ) == OutputCodeTypes_.end() )
-						{
-							OutputCodeTypes_.push_back( OutputCodeType );
-						}
-
-						// Build on a job.
-						ScnShaderPermutationJobParams JobParams =
-						{
-							InputCodeType,
-							OutputCodeType,
-							CsPaths::resolveContent( Source_.c_str() ).c_str(),
-							SourceFileData_,
-							Permutation,
-							Entries
-						};
-
-						++PendingPermutations_;
-
-						SysKernel::pImpl()->pushFunctionJob( 
-							0,
-							[ this, JobParams ]()
-							{
-								if( buildPermutation( JobParams ) == BcFalse )
-								{
-									;
-								}
-							} );
-					}
-				}
-			}
-		}
-	}
-	RetVal = BcTrue;
-#endif
-	return RetVal;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -804,7 +736,7 @@ BcBool ScnShaderImport::newPipeline()
 		{
 			std::vector< ScnShaderLevelEntry > Entries;
 			if( RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL ||
-				RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::GLSL_ES )
+				RsShaderCodeTypeToBackendType( InputCodeType ) == RsShaderBackendType::ESSL )
 			{
 				// Setup entries for input code type.
 				std::vector< ScnShaderLevelEntry > GLSLEntries = 
@@ -1020,7 +952,7 @@ BcBool ScnShaderImport::buildPermutation( ScnShaderPermutationJobParams Params )
 		return buildPermutationHLSL( Params );
 		break;
 	case RsShaderBackendType::GLSL:
-	case RsShaderBackendType::GLSL_ES:
+	case RsShaderBackendType::ESSL:
 		return buildPermutationGLSL( Params );
 		break;
 	default:

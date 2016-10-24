@@ -292,7 +292,7 @@ void RsCore::StaticRegisterClass()
 	ReEnumConstant* RsShaderBackendTypeEnumConstants[] = 
 	{
 		new ReEnumConstant( "GLSL", RsShaderBackendType::GLSL ),
-		new ReEnumConstant( "GLSL_ES", RsShaderBackendType::GLSL_ES ),
+		new ReEnumConstant( "ESSL", RsShaderBackendType::ESSL ),
 		new ReEnumConstant( "D3D11", RsShaderBackendType::D3D11 ),
 		new ReEnumConstant( "D3D12", RsShaderBackendType::D3D12 ),
 		new ReEnumConstant( "SPIRV", RsShaderBackendType::SPIRV ),
@@ -310,9 +310,9 @@ void RsCore::StaticRegisterClass()
 		new ReEnumConstant( "GLSL_430", RsShaderCodeType::GLSL_430 ),
 		new ReEnumConstant( "GLSL_440", RsShaderCodeType::GLSL_440 ),
 		new ReEnumConstant( "GLSL_450", RsShaderCodeType::GLSL_450 ),
-		new ReEnumConstant( "GLSL_ES_100", RsShaderCodeType::GLSL_ES_100 ),
-		new ReEnumConstant( "GLSL_ES_300", RsShaderCodeType::GLSL_ES_300 ),
-		new ReEnumConstant( "GLSL_ES_310", RsShaderCodeType::GLSL_ES_310 ),
+		new ReEnumConstant( "ESSL_100", RsShaderCodeType::ESSL_100 ),
+		new ReEnumConstant( "ESSL_300", RsShaderCodeType::ESSL_300 ),
+		new ReEnumConstant( "ESSL_310", RsShaderCodeType::ESSL_310 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_1", RsShaderCodeType::D3D11_4_0_LEVEL_9_1 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_2", RsShaderCodeType::D3D11_4_0_LEVEL_9_2 ),
 		new ReEnumConstant( "D3D11_4_0_LEVEL_9_3", RsShaderCodeType::D3D11_4_0_LEVEL_9_3 ),

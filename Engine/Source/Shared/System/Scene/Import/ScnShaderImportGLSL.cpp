@@ -943,7 +943,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 	BcBool RetVal = BcFalse;
 #if PSY_IMPORT_PIPELINE
 	BcAssertMsg( RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::GLSL ||
-		RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::GLSL_ES, "Expecting GLSL or GLSL_ES code input." );
+		RsShaderCodeTypeToBackendType( Params.InputCodeType_ ) == RsShaderBackendType::ESSL, "Expecting GLSL or ESSL code input." );
 
 	// Initialise GLSLang
 	// TODO: Move out of here. Nasty code.
@@ -1024,7 +1024,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 		BcAssert( !Entrypoint.empty() );
 
 		if( RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL ||
-			RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::GLSL_ES )
+			RsShaderCodeTypeToBackendType( Params.OutputCodeType_ ) == RsShaderBackendType::ESSL )
 		{
 			// Preprocess it:
 			try
@@ -1098,7 +1098,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 								const auto Semantic = Match.str( 4 );
 								const auto Index = Match.str( 5 );
 
-								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+								if( Params.InputCodeType_ == RsShaderCodeType::ESSL_100 )
 								{
 									Keyword = "attribute";
 								}
@@ -1148,7 +1148,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 								const auto Semantic = Match.str( 4 );
 								const auto Index = Match.str( 5 );
 
-								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+								if( Params.InputCodeType_ == RsShaderCodeType::ESSL_100 )
 								{
 									Keyword = "varying";
 								}
@@ -1169,7 +1169,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 								const auto Semantic = Match.str( 4 );
 								const auto Index = Match.str( 5 );
 
-								if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+								if( Params.InputCodeType_ == RsShaderCodeType::ESSL_100 )
 								{
 									Keyword = "varying";
 								}
@@ -1255,8 +1255,8 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 					}
 				}
 
-				// Run glsl-optimizer for ES (Only GLSL_ES_100)
-				if( Params.InputCodeType_ == RsShaderCodeType::GLSL_ES_100 )
+				// Run glsl-optimizer for ES (Only ESSL_100)
+				if( Params.InputCodeType_ == RsShaderCodeType::ESSL_100 )
 				{
 					// HACK: glsl-optimizer is not thread safe.
 					static std::mutex Mutex;

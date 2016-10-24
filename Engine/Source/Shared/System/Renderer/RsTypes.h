@@ -483,7 +483,7 @@ enum class RsAPI : BcU32
 enum class RsShaderBackendType : BcU32
 {
 	GLSL,
-	GLSL_ES,
+	ESSL,
 	D3D11,
 	D3D12,
 	SPIRV,
@@ -507,10 +507,10 @@ enum class RsShaderCodeType : BcU32
 	GLSL_440,		// GL 4.4+
 	GLSL_450,		// GL 4.5+
 	
-	// GLSL ES
-	GLSL_ES_100,	// GL ES 2.0+
-	GLSL_ES_300,	// GL ES 3.0+
-	GLSL_ES_310,	// GL ES 3.0+
+	// ESSL
+	ESSL_100,	// GL ES 2.0+
+	ESSL_300,	// GL ES 3.0+
+	ESSL_310,	// GL ES 3.1+
 
 	// D3D11
 	D3D11_4_0_LEVEL_9_1,

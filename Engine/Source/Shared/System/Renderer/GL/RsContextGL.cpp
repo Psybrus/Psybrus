@@ -442,10 +442,10 @@ void RsContextGL::create()
 		RsOpenGLVersion( 4, 0, RsOpenGLType::CORE, RsShaderCodeType::GLSL_400 ),
 		RsOpenGLVersion( 3, 3, RsOpenGLType::CORE, RsShaderCodeType::GLSL_330 ),
 		RsOpenGLVersion( 3, 2, RsOpenGLType::CORE, RsShaderCodeType::GLSL_150 ),
-		RsOpenGLVersion( 3, 2, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_310 ),
-		RsOpenGLVersion( 3, 1, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_310 ),
-		RsOpenGLVersion( 3, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_300 ),
-		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::GLSL_ES_100 ),
+		RsOpenGLVersion( 3, 2, RsOpenGLType::ES, RsShaderCodeType::ESSL_310 ),
+		RsOpenGLVersion( 3, 1, RsOpenGLType::ES, RsShaderCodeType::ESSL_310 ),
+		RsOpenGLVersion( 3, 0, RsOpenGLType::ES, RsShaderCodeType::ESSL_300 ),
+		RsOpenGLVersion( 2, 0, RsOpenGLType::ES, RsShaderCodeType::ESSL_100 ),
 	};
 
 #if GL_USE_WGL

@@ -15,6 +15,14 @@
 
 			"importparams" : [
 				{
+					"$Class" : "ScnShaderImportParams",
+					"$ID" : "",
+
+					"codetypes" : [
+						"ESSL_100"
+					]
+				},
+				{
 					"$Class" : "ScnTextureImportParams",
 					"$ID" : "",
 

@@ -53,9 +53,9 @@
 #  define PS_ENTER PS_OUTPUT_INTERNAL o = (PS_OUTPUT_INTERNAL)0
 #  define PS_EXIT return o
 
-#elif ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES )
+#elif ( PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL || PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL )
 #  define VsPosition gl_Position
-#  if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_GLSL_ES
+#  if PSY_INPUT_BACKEND_TYPE == PSY_BACKEND_TYPE_ESSL
 #    define GInstanceID 0
 #  else
 #    define GInstanceID gl_InstanceID
@@ -205,7 +205,7 @@
  * @param _o Output vertex. Should be float4.
  * @param _v Input vertex. Should be float4.
   */
-#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_GLSL_ES_100
+#if PSY_INPUT_CODE_TYPE == PSY_CODE_TYPE_ESSL_100
 #  define PSY_MAKE_WORLD_SPACE_VERTEX( _o, _v ) \
 	_o = mul( WorldTransform_, _v )
 #  define PSY_MAKE_WORLD_SPACE_NORMAL( _o, _v ) \

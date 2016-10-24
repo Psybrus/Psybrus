@@ -3,25 +3,7 @@
 		{
 			"type"			: "ScnShader",
 			"name"			: "default_shader",
-
-			"sources" 		: {
-				"D3D11_4_0" : "Engine/imgui.psf",
-				"GLSL_430" : "Engine/imgui.psf",
-				"GLSL_330" : "Engine/imgui.psf",
-				"GLSL_ES_100" : "Engine/imgui.psf"
-			},
-
-			"@(android)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/imgui.psf"
-				}
-			},
-
-			"@(html5)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/imgui.psf"
-				}
-			},
+			"source" 		: "Engine/imgui.psf",
 
 			"includepermutations" : [
 				"MESH_STATIC_2D",
@@ -38,27 +20,9 @@
 		{
 			"type"			: "ScnShader",
 			"name"			: "textured_shader",
+			"source" 		: "Engine/imgui.psf",
 
-			"sources" 		: {
-				"D3D11_4_0" : "Engine/imgui.psf",
-				"GLSL_430" : "Engine/imgui.psf",
-				"GLSL_330" : "Engine/imgui.psf",
-				"GLSL_ES_100" : "Engine/imgui.psf"
-			},
-
-			"@(android)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/imgui.psf"
-				}
-			},
-
-			"@(html5)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/imgui.psf"
-				}
-			},
-
-			"includepermutations" : [
+					"includepermutations" : [
 				"MESH_STATIC_2D",
 				"MESH_STATIC_3D",
 				"PASS_MAIN"

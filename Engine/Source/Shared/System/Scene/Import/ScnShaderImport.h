@@ -20,6 +20,20 @@
 #include "Base/BcStream.h"
 
 //////////////////////////////////////////////////////////////////////////
+// ScnShaderImportParams
+class ScnShaderImportParams:
+	public ReObject
+{
+public:
+	REFLECTION_DECLARE_DERIVED( ScnShaderImportParams, ReObject );
+
+	ScnShaderImportParams();
+	virtual ~ScnShaderImportParams();
+
+	std::set< RsShaderCodeType > CodeTypes_;
+};
+
+//////////////////////////////////////////////////////////////////////////
 // Import structures.
 struct ScnShaderPermutationEntry
 {
@@ -155,7 +169,6 @@ private:
 	void regenerateShaderDataHeader();
 	void writeField( std::string& OutString, const ReClass* InClass, const ReField* Field, std::string Indentation, RsShaderBackendType OutputBackend );
 
-	BcBool oldPipeline();
 	BcBool newPipeline();
 	ScnShaderPermutation getDefaultPermutation();
 

@@ -3,24 +3,7 @@
 		{
 			"type"			: "ScnShader",
 			"name"			: "default",
-			"sources" 		: {
-				"D3D11_4_0" : "Engine/default.psf",
-				"GLSL_430" : "Engine/default.psf",
-				"GLSL_330" : "Engine/default.psf",
-				"GLSL_ES_100" : "Engine/default.psf"
-			},
-
-			"@(gles)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/default.psf"
-				}
-			},
-
-			"@(html5)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/default.psf"
-				}
-			},
+			"source" 		: "Engine/default.psf",
 
 			"includepermutations" : [
 				"RENDER_FORWARD",

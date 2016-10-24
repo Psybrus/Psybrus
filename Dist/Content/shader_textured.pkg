@@ -3,24 +3,7 @@
 		{
 			"type"			: "ScnShader",
 			"name"			: "textured",
-			"sources" 		: {
-				"D3D11_4_0" : "Engine/textured.psf",
-				"GLSL_430" : "Engine/textured.psf",
-				"GLSL_330" : "Engine/textured.psf",
-				"GLSL_ES_100" : "Engine/textured.psf"
-			},
-
-			"@(android)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/textured.psf"
-				}
-			},
-
-			"@(html5)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/textured.psf"
-				}
-			},
+			"source" 		: "Engine/textured.psf",
 
 			"includepermutations" : [
 				"RENDER_FORWARD",
@@ -41,24 +24,7 @@
 		{
 			"type"			: "ScnShader",
 			"name"			: "textured_mask",
-			"sources" 		: {
-				"D3D11_4_0" : "Engine/textured.psf",
-				"GLSL_430" : "Engine/textured.psf",
-				"GLSL_330" : "Engine/textured.psf",
-				"GLSL_ES_100" : "Engine/textured.psf"
-			},
-
-			"@(android)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/textured.psf"
-				}
-			},
-
-			"@(html5)" : {
-				"sources" 		: {
-					"GLSL_ES_100" : "Engine/textured.psf"
-				}
-			},
+			"source" 		: "Engine/textured.psf",
 
 			"includepermutations" : [
 				"RENDER_FORWARD",

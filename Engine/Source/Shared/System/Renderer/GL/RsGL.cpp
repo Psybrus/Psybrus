@@ -420,21 +420,21 @@ BcBool RsOpenGLVersion::isShaderCodeTypeSupported( RsShaderCodeType CodeType ) c
 			return BcTrue;
 		}
 		break;
-	case RsShaderCodeType::GLSL_ES_100:
+	case RsShaderCodeType::ESSL_100:
 		if( CombinedVersion >= 0x00020000 &&
 			Type_ == RsOpenGLType::ES )
 		{
 			return BcTrue;
 		}
 		break;
-	case RsShaderCodeType::GLSL_ES_300:
+	case RsShaderCodeType::ESSL_300:
 		if( CombinedVersion >= 0x00030000 &&
 			Type_ == RsOpenGLType::ES )
 		{
 			return BcTrue;
 		}
 		break;
-	case RsShaderCodeType::GLSL_ES_310:
+	case RsShaderCodeType::ESSL_310:
 		if( CombinedVersion >= 0x00030001 &&
 			Type_ == RsOpenGLType::ES )
 		{
