@@ -1565,8 +1565,7 @@ BcBool ScnShaderImport::buildPermutationGLSL( const ScnShaderPermutationJobParam
 							getIntermediatePath().c_str(), 
 							getResourceName().c_str(),
 							ProgramHeaderSPIRV.ProgramPermutationFlags_, (BcU32)Idx );
-						glslang::OutputSpv( SpvOutput, OutFileName );
-
+						glslang::OutputSpvBin( SpvOutput, OutFileName );
 #if 0
 						spv::spirvbin_t SpvRemapper;
 						SpvRemapper.remap( SpvOutput, spv::spirvbin_t::OPT_ALL | spv::spirvbin_t::DCE_ALL );
