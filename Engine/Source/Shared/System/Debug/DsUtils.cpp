@@ -44,8 +44,6 @@ namespace Debug
 	};
 
 	RsVertexDeclarationUPtr VertexDeclaration_;
-	RsBufferUPtr VertexBuffer_;
-	RsGeometryBindingUPtr GeometryBinding_;
 	RsBufferUPtr UniformBuffer_;
 
 	// Submission data.
@@ -164,19 +162,6 @@ namespace Debug
 				.addElement( RsVertexElement( 0, 16,			4,		RsVertexDataType::UBYTE_NORM,	RsVertexUsage::COLOUR,			0 ) ),
 			"Debug" );
 	
-		// Allocate render side vertex buffer.
-		VertexBuffer_ = RsCore::pImpl()->createBuffer( 
-			RsBufferDesc( 
-				RsBindFlags::VERTEX_BUFFER,
-				RsResourceCreationFlags::STREAM,
-				NoofVertices_ * sizeof( Vertex ) ),
-			"Debug" );
-
-		RsGeometryBindingDesc GeometryBindingDesc;
-		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
-		GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_.get(), sizeof( Vertex ) );
-		GeometryBinding_ = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "Debug" );
-
 		// Allocate uniform buffer object.
 		UniformBuffer_ = RsCore::pImpl()->createBuffer( 
 			RsBufferDesc( 
@@ -229,8 +214,6 @@ namespace Debug
 		pWorkingVertices_ = nullptr;
 
 		VertexDeclaration_.reset();
-		VertexBuffer_.reset();
-		GeometryBinding_.reset();
 		UniformBuffer_.reset();
 		ProgramBinding_.reset();
 		RenderState_.reset();
@@ -274,12 +257,13 @@ namespace Debug
 		}
 
 		// Upload.
-		size_t VertexDataSize = VertexIndex_ * sizeof( Vertex );
+		BcSize VertexDataSize = VertexIndex_ * sizeof( Vertex );
+		RsBufferAlloc VBAlloc = RsCore::pImpl()->allocTransientBuffer( RsBindFlags::VERTEX_BUFFER, (BcU32)VertexDataSize );
 		if( VertexDataSize > 0 )
 		{
 			UploadFence_.increment();
 			RsCore::pImpl()->updateBuffer( 
-				VertexBuffer_.get(), 0, VertexDataSize, 
+				VBAlloc.Buffer_, VBAlloc.Offset_, VBAlloc.Size_, 
 				RsResourceUpdateFlags::ASYNC,
 				[ VertexDataSize ]
 				( RsBuffer* Buffer, const RsBufferLock& BufferLock )
@@ -307,11 +291,17 @@ namespace Debug
 			BcMemZero( PrimSection, sizeof( PrimitiveSection ) );
 			*PrimSection = PrimitiveSectionList_[ Idx ];
 		
+			// Allocate geometry binding.
+			RsGeometryBindingDesc GeometryBindingDesc;
+			GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+			GeometryBindingDesc.setVertexBuffer( 0, VBAlloc.Buffer_, sizeof( Vertex ), VBAlloc.Offset_ );
+			auto GeometryBinding = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "Debug" );
+
 			// Add to frame.
 			UploadFence_.increment();
 			Frame->queueRenderNode( Sort,
 				[
-					GeometryBinding = GeometryBinding_.get(),
+					GeometryBinding = GeometryBinding.get(),
 					ProgramBinding = ProgramBinding_.get(),
 					RenderState = RenderState_.get(),
 					FrameBuffer = FrameBuffer,

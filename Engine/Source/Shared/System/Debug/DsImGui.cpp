@@ -56,16 +56,8 @@ namespace
 {
 	/// Number of frames to buffer.
 	const size_t NOOF_FRAMES_TO_BUFFER = 2;
-	/// Current frame we're rendering.
-	size_t CurrentFrameIdx_ = 0;
 	/// Vertex declarartion.
 	RsVertexDeclarationUPtr VertexDeclaration_;
-	/// Vertex buffer used by internal implementation.
-	std::array< RsBufferUPtr, NOOF_FRAMES_TO_BUFFER > VertexBuffer_;
-	/// Index buffer used by internal implementation.
-	std::array< RsBufferUPtr, NOOF_FRAMES_TO_BUFFER > IndexBuffer_;
-	/// Geometry binding.
-	std::array< RsGeometryBindingUPtr, NOOF_FRAMES_TO_BUFFER > GeometryBinding_;
 	/// Font sampler.
 	RsSamplerStateUPtr FontSampler_;
 	/// Font texture.
@@ -175,10 +167,37 @@ namespace
 		// Destroy last frames program bindings.
 		DestroyProgramBindings_.clear();
 
+		// Calculate size of updates.
+		BcU32 VBUpdateSize = 0;
+		BcU32 IBUpdateSize = 0;
+		for ( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
+		{
+			const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
+			VBUpdateSize += CmdList->VtxBuffer.size() * sizeof( ImDrawVert );
+			IBUpdateSize += CmdList->IdxBuffer.size() * sizeof( ImDrawIdx );
+		}
+
+		// Allocate index & vertex buffers.
+		RsBufferAlloc VBAlloc;					
+		RsBufferAlloc IBAlloc;
+		BcVerify( VBAlloc = RsCore::pImpl()->allocTransientBuffer( RsBindFlags::VERTEX_BUFFER, VBUpdateSize ) );
+		BcVerify( IBAlloc = RsCore::pImpl()->allocTransientBuffer( RsBindFlags::INDEX_BUFFER, IBUpdateSize ) );
+
+		// Create geometry binding.
+		RsGeometryBindingDesc GeometryBindingDesc;
+		GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
+		GeometryBindingDesc.setVertexBuffer( 0, VBAlloc.Buffer_, sizeof( ImDrawVert ), VBAlloc.Offset_ );
+		GeometryBindingDesc.setIndexBuffer( IBAlloc.Buffer_, 2, IBAlloc.Offset_ );
+		auto GeometryBinding = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "DsImGui" );
+
 		auto Width = IO.DisplaySize.x;
 		auto Height = IO.DisplaySize.y;
 		DrawFrame_->queueRenderNode( Sort,
-			[ CachedDrawData, Width, Height ]( RsContext* Context )
+			[ 
+				CachedDrawData, Width, Height, VBAlloc, IBAlloc,
+				GeometryBinding = GeometryBinding.get()
+			]
+			( RsContext* Context )
 			{
 				RsFrameBuffer* BackBuffer = Context->getBackBuffer();
 				RsViewport Viewport( 0, 0, (BcU32)Width, (BcU32)Height );
@@ -196,19 +215,9 @@ namespace
 				const BcU32 TextureSlot = Program_->findShaderResourceSlot( "aDiffuseTex" );
 				const BcU32 SamplerSlot = Program_->findSamplerSlot( "aDiffuseTex" );
 
-				// Calculate size of updates.
-				BcU32 VBUpdateSize = 0;
-				BcU32 IBUpdateSize = 0;
-				for ( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
-				{
-					const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
-					VBUpdateSize += CmdList->VtxBuffer.size() * sizeof( ImDrawVert );
-					IBUpdateSize += CmdList->IdxBuffer.size() * sizeof( ImDrawIdx );
-				}
-
 				// Update vertex buffer.
 				Context->updateBuffer( 
-					VertexBuffer_[ CurrentFrameIdx_ ].get(), 0, VBUpdateSize, 
+					VBAlloc.Buffer_, VBAlloc.Offset_, VBAlloc.Size_, 
 					RsResourceUpdateFlags::NONE,
 					[ CachedDrawData, UniformBufferSlot ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
@@ -234,7 +243,7 @@ namespace
 
 				// Update index buffer.
 				Context->updateBuffer( 
-					IndexBuffer_[ CurrentFrameIdx_ ].get(), 0, IBUpdateSize, 
+					IBAlloc.Buffer_, IBAlloc.Offset_, IBAlloc.Size_, 
 					RsResourceUpdateFlags::NONE,
 					[ CachedDrawData ]( RsBuffer* Buffer, const RsBufferLock& Lock )
 					{
@@ -258,7 +267,7 @@ namespace
 						}
 					} );
 
- 				BcU32 IndexOffset = 0;
+				BcU32 IndexOffset = 0;
 				for( int CmdListIdx = 0; CmdListIdx < CachedDrawData.CmdListsCount; ++CmdListIdx )
 				{
 					const ImDrawList* CmdList = CachedDrawData.CmdLists[ CmdListIdx ];
@@ -309,7 +318,7 @@ namespace
 							}
 
 							Context->drawIndexedPrimitives( 
-								GeometryBinding_[ CurrentFrameIdx_ ].get(),
+								GeometryBinding,
 								ProgramBinding_.get(),
 								RenderState_.get(),
 								BackBuffer,
@@ -323,9 +332,6 @@ namespace
 						IndexOffset += Cmd->ElemCount;
 					}
 				}
-
-				// Advance to next frame.
-				CurrentFrameIdx_ = ( CurrentFrameIdx_ + 1 ) % NOOF_FRAMES_TO_BUFFER; 
 
 				RenderThreadFence_.decrement();
 			} );
@@ -511,37 +517,6 @@ namespace Psybrus
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->uv), 2, RsVertexDataType::FLOAT32, RsVertexUsage::TEXCOORD, 0 ) )
 				.addElement( RsVertexElement( 0, (size_t)(&((ImDrawVert*)0)->col), 4, RsVertexDataType::UBYTE_NORM, RsVertexUsage::COLOUR, 0 ) ),
 			"DsImGui" );
-
-#if PLATFORM_ANDROID
-		BcU32 NoofVertices = 16 * 1024;
-		BcU32 NoofIndices = 16 * 1024;
-#else
-		BcU32 NoofVertices = 512 * 1024;
-		BcU32 NoofIndices = 128 * 1024;
-#endif
-
-		for( size_t Idx = 0; Idx < NOOF_FRAMES_TO_BUFFER; ++Idx )
-		{
-			VertexBuffer_[ Idx ] = RsCore::pImpl()->createBuffer( 
-				RsBufferDesc( 
-					RsBindFlags::VERTEX_BUFFER,
-					RsResourceCreationFlags::STREAM, 
-					NoofVertices * VertexDeclaration_->getDesc().getMinimumStride() ),
-				"DsImGui" );
-
-			IndexBuffer_[ Idx ] = RsCore::pImpl()->createBuffer( 
-				RsBufferDesc( 
-					RsBindFlags::INDEX_BUFFER,
-					RsResourceCreationFlags::STREAM, 
-					NoofIndices * sizeof( BcU16 ) ),
-				"DsImGui" );
-
-			RsGeometryBindingDesc GeometryBindingDesc;
-			GeometryBindingDesc.setVertexDeclaration( VertexDeclaration_.get() );
-			GeometryBindingDesc.setVertexBuffer( 0, VertexBuffer_[ Idx ].get(), sizeof( ImDrawVert ) );
-			GeometryBindingDesc.setIndexBuffer( IndexBuffer_[ Idx ].get() );
-			GeometryBinding_[ Idx ] = RsCore::pImpl()->createGeometryBinding( GeometryBindingDesc, "DsImGui" );
-		}
 
 		UniformBuffer_ = RsCore::pImpl()->createBuffer(
 			RsBufferDesc(
@@ -765,12 +740,6 @@ namespace Psybrus
 		DestroyProgramBindings_.clear();
 		ProgramBinding_.reset();
 		VertexDeclaration_.reset();
-		for( size_t Idx = 0; Idx < NOOF_FRAMES_TO_BUFFER; ++Idx )
-		{
-			GeometryBinding_[ Idx ].reset();
-			VertexBuffer_[ Idx ].reset();
-			IndexBuffer_[ Idx ].reset();
-		}
 		UniformBuffer_.reset();
 		RenderState_.reset();
 		FontSampler_.reset();
