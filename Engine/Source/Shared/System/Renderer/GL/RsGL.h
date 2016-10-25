@@ -184,7 +184,7 @@
 #if GL_USE_EGL
 #  include <EGL/egl.h>
 #elif GL_USE_SDL
-#  include <SDL2/SDL.h>
+#  include "System/Os/SDL/OsSDL.h"
 #elif GL_USE_WGL
 #  include "GL/wglew.h"
 #endif

@@ -382,7 +382,7 @@ void RsContextGL::present()
 	}
 #endif
 
-#if ( PLATFORM_LINUX || PLATFORM_OSX ) && GL_USE_SDL
+#if !PLATFORM_HTML5 && GL_USE_SDL
 	{
 		PSY_PROFILER_SECTION( "SDL_GL_SwapWindow" );
 		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
@@ -450,7 +450,8 @@ void RsContextGL::create()
 
 #if GL_USE_WGL
 	// Get client device handle.
-	WindowDC_ = (HDC)pClient_->getDeviceHandle();
+	auto WindowHandle = (HWND)pClient_->getWindowHandle();
+	WindowDC_ = ::GetDC( WindowHandle );
 
 	// Pixel format.
 	static  PIXELFORMATDESCRIPTOR pfd =                 // pfd Tells Windows How We Want Things To Be
@@ -558,14 +559,6 @@ void RsContextGL::create()
 #endif
 
 #if GL_USE_SDL
-	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8 );
-	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8 );
-	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8 );
-	SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 );
-	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
-	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 );
-	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-
 	auto RTFormat = RsResourceFormat::R8G8B8A8_UNORM;
 	auto DSFormat = RsResourceFormat::D24_UNORM_S8_UINT;
 
@@ -594,7 +587,7 @@ void RsContextGL::create()
 			}
 		}
 
-		if( createProfile( Version, Window ) )
+		if( createProfile( Version, Window, RTFormat, DSFormat ) )
 		{
 			Version_ = Version;
 			Version_.setupFeatureSupport();
@@ -942,6 +935,14 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window, Rs
 {
 	const auto RTInfo = RsResourceFormatInfo( RTFormat );
 	const auto DSInfo = RsResourceFormatInfo( DSFormat );
+
+	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, RTInfo.RBits_ );
+	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, RTInfo.GBits_ );
+	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, RTInfo.BBits_ );
+	SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, RTInfo.ABits_ );
+	SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, DSInfo.DepthBits_ );
+	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, DSInfo.StencilBits_ );
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
 	switch( Version.Type_ )
 	{

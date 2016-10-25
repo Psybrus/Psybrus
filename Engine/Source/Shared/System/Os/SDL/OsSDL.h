@@ -17,7 +17,13 @@
 #if PLATFORM_HTML5
 #  include <SDL/SDL.h>
 #else
-#  include <SDL2/SDL.h>
+#  if LOCAL_SDL_LIBRARY
+#    include <SDL.h>
+#    include <SDL_syswm.h>
+#  else
+#    include <SDL2/SDL.h>
+#    include <SDL2/SDL_syswm.h>
+#  endif
 #endif
 
 #endif

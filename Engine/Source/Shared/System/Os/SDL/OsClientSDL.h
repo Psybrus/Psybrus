@@ -16,7 +16,6 @@
 
 #include "Base/BcTypes.h"
 #include "Math/MaVec2d.h"
-#include "System/Os/SDL/OsSDL.h"
 #include "System/Os/OsClient.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,13 +49,13 @@ public:
 	/**
 	 * Handle event. Called from OsCoreImplSDL.
 	 */
-	void handleEvent( const SDL_Event& SDLEvent );
+	void handleEvent( const union SDL_Event& SDLEvent );
 
 private:
-	void handleKeyEvent( const SDL_Event& SDLEvent );
-	void handleTextInputEvent( const SDL_Event& SDLEvent );
-	void handleMouseEvent( const SDL_Event& SDLEvent );
-	void handleWindowEvent( const SDL_Event& SDLEvent );
+	void handleKeyEvent( const union SDL_Event& SDLEvent );
+	void handleTextInputEvent( const union SDL_Event& SDLEvent );
+	void handleMouseEvent( const union SDL_Event& SDLEvent );
+	void handleWindowEvent( const union SDL_Event& SDLEvent );
 	void setWindowSize();
 
 	typedef std::map< BcU64, BcU16 > TKeyCodeMap;
@@ -72,7 +71,7 @@ private:
 	MaVec2d MouseDelta_;
 	MaVec2d MousePos_;
 
-	SDL_Window* SDLWindow_;
+	struct SDL_Window* SDLWindow_;
 	BcU32 Width_;
 	BcU32 Height_;
 };

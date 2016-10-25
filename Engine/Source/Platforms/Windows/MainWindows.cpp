@@ -9,6 +9,7 @@
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
 
+#include "System/Os/SDL/OsClientSDL.h"
 #include "System/Os/OsClientWindows.h"
 #include "System/Os/OsMinidumpWindows.h"
 
@@ -51,8 +52,7 @@ extern BcU32 GResolutionHeight;
 
 eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 {
-#if PLATFORM_WINDOWS
-	OsClientWindows* pMainWindow = new OsClientWindows();
+	OsClientSDL* pMainWindow = new OsClientSDL();
 	if( pMainWindow->create( GPsySetupParams.Name_.c_str(), GInstance_, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 	{
 		BcAssertMsg( BcFalse, "Failed to create client!" );
@@ -66,7 +66,6 @@ eEvtReturn OnPostOsOpen_CreateClient( EvtID, const EvtBaseEvent& )
 		BcAssertMsg( pContext != NULL, "Failed to create render context!" );
 		BcUnusedVar( pContext );
 	}
-#endif
 	return evtRET_REMOVE;
 }
 
@@ -203,7 +202,7 @@ int PASCAL WinMain ( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Register systems for creation.
 #if PLATFORM_WINDOWS
-	SYS_REGISTER( "OsCore", OsCoreImplWindows );
+	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplWindows );
 #endif
 	SYS_REGISTER( "CsCore", CsCore );

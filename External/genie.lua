@@ -38,6 +38,7 @@ if _OPTIONS[ "toolchain" ] ~= "html5-clang-asmjs" then
 	dofile ("rapidxml_genie.lua")
 	dofile ("rg-etc1_genie.lua")
 	dofile ("squish_genie.lua")
+	dofile ("SDL_genie.lua")
 	dofile ("ThinkGear_genie.lua")
 	dofile ("webby_genie.lua")
 end

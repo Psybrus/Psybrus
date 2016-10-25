@@ -14,6 +14,7 @@
 #include "System/Os/SDL/OsClientSDL.h"
 
 #include "System/Os/OsCore.h"
+#include "System/Os/SDL/OsSDL.h"
 
 #include "Base/BcString.h"
 #include "Base/BcMath.h"
@@ -114,10 +115,14 @@ OsClientSDL::~OsClientSDL()
 // create
 BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width, BcU32 Height, BcBool Fullscreen, BcBool Visible )
 {
-	BcU32 Flags = SDL_WINDOW_OPENGL;
+	BcU32 Flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	if( Visible )
 	{
 		Flags |= SDL_WINDOW_SHOWN;
+		if( Fullscreen )
+		{
+			Flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+		}
 	}
 	else
 	{
@@ -172,7 +177,17 @@ BcHandle OsClientSDL::getDeviceHandle()
 //virtual
 BcHandle OsClientSDL::getWindowHandle()
 {
-	return (BcHandle)SDLWindow_;
+	SDL_SysWMinfo WMInfo = {};
+	SDL_GetWindowWMInfo( SDLWindow_, &WMInfo );
+#if PLATFORM_WINDOWS
+	return (BcHandle)WMInfo.info.win.window;
+#elif PLATFORM_LINUX
+	return (BcHandle)WMInfo.info.x11.window;
+#elif PLATFORM_OSX
+	return (BcHandle)WMInfo.info.cocoa.window;
+#elif PLATFORM_ANDROID
+	return (BcHandle)WMInfo.info.android.window;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////

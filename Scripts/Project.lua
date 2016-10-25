@@ -313,8 +313,6 @@ function PsyProjectPsybrusExe( _name, _exeName )
 	configuration "windows-* or linux-* or osx-*"
 		targetdir ( "../Dist" )
 
-	debugdir "../Dist"
-
 	configuration "*"
 		links {
 			_name .. "Lib"
@@ -373,6 +371,10 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		  "glew",
 		  "remotery",
 		  "ThinkGear",
+	   }
+
+	   PsyAddExternalDLL {
+		  "SDL",
 	   }
 
 	configuration { "windows-* or linux-* or osx-* or android-*" }
@@ -526,6 +528,7 @@ function PsyProjectGameExe( _name )
 		}
 		includedirs {
 			"../Psybrus/Engine/Source/Platforms/Windows/",
+			"../Psybrus/External/SDL-mirror/include/",
 		}
 
 	-- Add natvis for VS.
@@ -619,6 +622,7 @@ function PsyProjectImporterExe( _name )
 			}
 			includedirs {
 				"../Psybrus/Engine/Source/Platforms/Windows/",
+				"../Psybrus/External/SDL-mirror/include/",
 			}
 
 		-- Add natvis for VS.

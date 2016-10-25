@@ -40,3 +40,6 @@
 [submodule "External/angle"]
 	path = External/angle
 	url = https://github.com/Psybrus/angle
+[submodule "External/SDL-mirror"]
+	path = External/SDL-mirror
+	url = https://github.com/Psybrus/SDL-mirror

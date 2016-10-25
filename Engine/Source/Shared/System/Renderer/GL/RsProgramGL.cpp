@@ -128,6 +128,7 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 			break;
 		case RsProgramParameterStorageGL::UNIFORM_BLOCK:
 			{
+				bool HaveUniformBlock = false;
 				if( Version_.SupportUniformBuffers_ )
 				{
 #if !defined( RENDER_USE_GLES ) || defined( RENDER_USE_GLES3 )
@@ -144,10 +145,12 @@ RsProgramGL::RsProgramGL( class RsProgram* Parent, const RsOpenGLVersion& Versio
 						Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );
 						UniformBufferBindInfo_.emplace_back( RsProgramBindInfoGL( RsProgramBindTypeGL::UNIFORM_BLOCK, InternalType.Binding_ ) );
 						GL( UniformBlockBinding( Handle_, Index, InternalType.Binding_ ) );				
+						HaveUniformBlock = true;
 					}
 #endif // !defined( RENDER_USE_GLES ) || defined( RENDER_USE_GLES3 )
 				}
 
+				if( !HaveUniformBlock )
 				{
 					BcU32 UBSlot = BcU32( UniformBufferBindInfo_.size() );
 					Parent_->addUniformBufferSlot( Parameter.Name_, UBSlot, Parameter.Size_ );

@@ -1,6 +1,7 @@
 if PsyProjectExternalDLL( "angle", "C++" ) then
 	configuration "*"
 		kind ( EXTERNAL_DLL_PROJECT_KIND )
+		targetdir ( "../../Dist" )
 		defines {
 			"ANGLE_ENABLE_ESSL=1",
 			"ANGLE_ENABLE_GLSL=1",
@@ -72,6 +73,4 @@ if PsyProjectExternalDLL( "angle", "C++" ) then
 		links {
 			"dxguid"
 		}
-
-		targetdir ( "../../Dist" )
 end

@@ -17,6 +17,9 @@ PsyProjectEngineLib( "System_Os" )
     }
 
   configuration "linux-*"
+    defines { 
+      "OS_USE_SDL=1",
+    }
     files {
       "./Shared/System/Os/SDL/*.h", 
       "./Shared/System/Os/SDL/*.inl", 
@@ -31,6 +34,9 @@ PsyProjectEngineLib( "System_Os" )
     }
 
   configuration "osx-*"
+    defines { 
+      "OS_USE_SDL=1",
+    }
     files {
       "./Shared/System/Os/SDL/*.h", 
       "./Shared/System/Os/SDL/*.inl", 
@@ -46,6 +52,9 @@ PsyProjectEngineLib( "System_Os" )
     }
 
   configuration "android-*"
+    defines { 
+      "OS_USE_SDL=0",
+    }
     files {
       "./Platforms/Android/System/Os/*.h", 
       "./Platforms/Android/System/Os/*.inl", 
@@ -66,14 +75,22 @@ PsyProjectEngineLib( "System_Os" )
     }
 
   configuration "windows-*"
+    defines { 
+      "OS_USE_SDL=1",
+      "LOCAL_SDL_LIBRARY=1",
+    }
     files {
+      "./Shared/System/Os/SDL/*.h", 
+      "./Shared/System/Os/SDL/*.inl", 
+      "./Shared/System/Os/SDL/*.cpp", 
       "./Platforms/Windows/System/Os/*.h", 
       "./Platforms/Windows/System/Os/*.inl", 
       "./Platforms/Windows/System/Os/*.cpp", 
     }
     includedirs {
       "./Platforms/Windows/",
-   }
+      "../../External/SDL-mirror/include/",
+    }
 
   configuration "winphone-*"
     includedirs {

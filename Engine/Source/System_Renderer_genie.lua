@@ -109,7 +109,8 @@ PsyProjectEngineLib( "System_Renderer" )
       }
 
       includedirs {
-            "./Platforms/Windows/",
+          "./Platforms/Windows/",
+          "../../External/SDL-mirror/include/",
       }
 
 if _OPTIONS["with-angle"] then
@@ -131,7 +132,8 @@ if _OPTIONS["with-angle"] then
 else
       defines {
         "WITH_GL=1",
-        "GL_USE_WGL=1",
+        "GL_USE_SDL=1",
+        "LOCAL_SDL_LIBRARY=1",
       }
 end
 

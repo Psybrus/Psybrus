@@ -40,7 +40,7 @@ OsCoreImplSDL::~OsCoreImplSDL()
 //virtual
 void OsCoreImplSDL::open()
 {
-	if ( SDL_Init( SDL_INIT_EVERYTHING ) != 0 )
+	if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER ) != 0 )
 	{
 		PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
 

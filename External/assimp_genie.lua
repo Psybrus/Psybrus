@@ -10,13 +10,13 @@ local version = "00" -- ( inVersion:read() )
 local branch = "local" -- ( inBranch:read() )
 --inBranch:close()
 
-local revisionFile = assert( io.open( "./assimp/revision.h", "w+" ) )
-revisionFile:write( "#ifndef ASSIMP_REVISION_H_INC\n" )
-revisionFile:write( "#define ASSIMP_REVISION_H_INC\n" )
-revisionFile:write( string.format( "#define GitVersion 0x%s\n", version ) )
-revisionFile:write( string.format( "#define GitBranch \"%s\"\n", branch ) )
-revisionFile:write( "#endif // ASSIMP_REVISION_H_INC\n" )
-revisionFile:close()
+--local revisionFile = assert( io.open( "./assimp/revision.h", "w+" ) )
+--revisionFile:write( "#ifndef ASSIMP_REVISION_H_INC\n" )
+--revisionFile:write( "#define ASSIMP_REVISION_H_INC\n" )
+--revisionFile:write( string.format( "#define GitVersion 0x%s\n", version ) )
+--revisionFile:write( string.format( "#define GitBranch \"%s\"\n", branch ) )
+--revisionFile:write( "#endif // ASSIMP_REVISION_H_INC\n" )
+--revisionFile:close()
 
 if PsyProjectExternalLib( "assimp", "C++" ) then
 	kind ( EXTERNAL_PROJECT_KIND )
@@ -28,6 +28,7 @@ if PsyProjectExternalLib( "assimp", "C++" ) then
 		}
 
 		includedirs { 
+			"./autogen/assimp",
 			"./assimp",
 			"./assimp/include",
 			"./assimp/code",
