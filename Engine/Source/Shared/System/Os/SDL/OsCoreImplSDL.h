@@ -40,6 +40,7 @@ private:
 
 	std::unique_ptr< OsInputDeviceKeyboard > InputKeyboard_;
 	std::unique_ptr< OsInputDeviceMouse > InputMouse_;
+	std::vector< std::unique_ptr< class OsInputDeviceGameControllerSDL > > InputGameControllers_;
 };
 
 #endif

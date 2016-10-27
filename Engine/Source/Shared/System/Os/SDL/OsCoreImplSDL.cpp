@@ -13,6 +13,7 @@
 
 #include "System/Os/SDL/OsCoreImplSDL.h"
 #include "System/Os/SDL/OsClientSDL.h"
+#include "System/Os/SDL/OsInputDeviceGameControllerSDL.h"
 
 #include "System/SysKernel.h"
 
@@ -89,6 +90,57 @@ void OsCoreImplSDL::update()
 					if( SDLClient->getWindowId() == Event.window.windowID )
 					{
 						SDLClient->handleEvent( Event );
+					}
+				}
+				break;
+
+			case SDL_CONTROLLERAXISMOTION:
+				for( auto& GameController : InputGameControllers_ )
+				{
+					if( GameController->getPlayerID() == (BcU32)Event.caxis.which )
+					{
+						GameController->handleEvent( Event );
+					}
+				}
+				break;
+			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_CONTROLLERBUTTONUP:
+				for( auto& GameController : InputGameControllers_ )
+				{
+					if( GameController->getPlayerID() == (BcU32)Event.cbutton.which )
+					{
+						GameController->handleEvent( Event );
+					}
+				}
+				break;
+			case SDL_CONTROLLERDEVICEADDED:
+				{
+					bool HasFound = false;
+					for( auto& GameController : InputGameControllers_ )
+					{
+						if( GameController->getPlayerID() == (BcU32)Event.cdevice.which )
+						{
+							HasFound = true;
+							GameController->handleEvent( Event );
+							break;
+						}
+					}
+
+					if( HasFound == false )
+					{
+						auto GameController = new OsInputDeviceGameControllerSDL( Event.cdevice.which );
+						registerInputDevice( GameController );
+						GameController->handleEvent( Event );
+					}
+				}
+				break;
+			case SDL_CONTROLLERDEVICEREMOVED:
+			case SDL_CONTROLLERDEVICEREMAPPED:
+				for( auto& GameController : InputGameControllers_ )
+				{
+					if( GameController->getPlayerID() == (BcU32)Event.cdevice.which )
+					{
+						GameController->handleEvent( Event );
 					}
 				}
 				break;
