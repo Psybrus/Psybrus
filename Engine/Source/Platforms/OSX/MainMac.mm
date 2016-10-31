@@ -10,8 +10,6 @@
 
 #include "System/Renderer/RsCore.h"
 
-#include "System/SysProfilerChromeTracing.h"
-
 #include <iostream>
 
 namespace
@@ -78,12 +76,20 @@ int main(int argc, const char* argv[])
 		new BcLogImpl();
 	}
 
-	// Some default suppression.
-	BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
-
 	// Setup basic log Category.
 	BcLogScopedCategory LogCategory( "Main" );
 #endif
+
+	// Some default suppression.
+	if( BcLog::pImpl() != nullptr )
+	{
+		BcLog::pImpl()->setCategorySuppression( "Reflection", BcTrue );
+
+		// Render & sound are noisy.
+		BcLog::pImpl()->setCategorySuppression( "RsCore", BcTrue );
+		BcLog::pImpl()->setCategorySuppression( "SsCore", BcTrue );
+		
+	}
 
 	// Initialise RNG.
 #if !PSY_DEBUG

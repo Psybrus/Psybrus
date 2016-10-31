@@ -353,9 +353,9 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		}
 
 	if _OPTIONS["with-angle"] then
-	   PsyAddExternalDLL {
+	   PsyAddExternalDLL( {
 		  "angle",
-	   }
+	   }, _exeName )
 	end
 
 	PsyAddSystemLibs()
@@ -373,9 +373,9 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		  "ThinkGear",
 	   }
 
-	   PsyAddExternalDLL {
+	   PsyAddExternalDLL( {
 		  "SDL",
-	   }
+	   }, _exeName )
 
 	configuration { "windows-* or linux-* or osx-* or android-*" }
 	   PsyAddExternalLinks {
@@ -497,7 +497,7 @@ function PsyProjectGameExe( _name )
 		}
 		includedirs {
 			"../Psybrus/Engine/Source/Platforms/OSX/",
-			"/usr/local/Cellar/sdl2/2.0.3/include" 
+			"../Psybrus/External/SDL-mirror/include/",
 		}
 
 	configuration "android-*"
@@ -591,7 +591,7 @@ function PsyProjectImporterExe( _name )
 			}
 			includedirs {
 				"../Psybrus/Engine/Source/Platforms/OSX/",
-				"/usr/local/Cellar/sdl2/2.0.3/include" 
+				"../Psybrus/External/SDL-mirror/include/",
 			}
 
 		configuration "android-*"
@@ -730,8 +730,24 @@ function PsyAddExternalLinks( _names )
 end
 
 -- Add external dll link.
-function PsyAddExternalDLL( _names )
+function PsyAddExternalDLL( _names, _exeName )
 	for i, name in ipairs( _names ) do
 		links { name }
+
+	-- Setup install_name_tool calls for OSX.
+	configuration { "osx-*", "Debug" }
+		postbuildcommands {
+			"install_name_tool -change ../../Dist/lib" .. name .. "Debug.dylib @executable_path/lib" .. name .. "Debug.dylib ../../Dist/" .. _exeName .. "-Debug"
+		}
+
+	configuration { "osx-*", "Release" }
+		postbuildcommands {
+			"install_name_tool -change ../../Dist/lib" .. name .. "Release.dylib @executable_path/lib" .. name .. "Release.dylib ../../Dist/" .. _exeName .. "-Release"
+		}
+
+	configuration { "osx-*", "Production" }
+		postbuildcommands {
+			"install_name_tool -change ../../Dist/lib" .. name .. "Production.dylib @executable_path/lib" .. name .. "Production.dylib ../../Dist/" .. _exeName .. "-Production"
+		}
 	end
 end

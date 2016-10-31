@@ -22,7 +22,7 @@
 static const size_t MAX_FRAMES_AHEAD = 2;
 
 //////////////////////////////////////////////////////////////////////////
-// Domain is used by us. Undefine it.
+// Domain is used by us. Undefine it and redefine it.
 #ifdef DOMAIN
 #undef DOMAIN
 #endif

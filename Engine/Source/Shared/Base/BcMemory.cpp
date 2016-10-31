@@ -24,6 +24,10 @@
 #include <malloc.h>
 #endif
 
+#if PLATFORM_OSX
+#include <stdlib.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // Ctor
 BcMemoryAllocator::BcMemoryAllocator()

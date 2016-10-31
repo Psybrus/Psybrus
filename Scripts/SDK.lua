@@ -52,11 +52,7 @@ end
 			"AppKit.framework",
 			"CoreFoundation.framework",
 			"OpenGL.framework",
-			"SDL2",
 			"pthread",
 			"dl"
-		}
-		libdirs {
-			"/usr/local/Cellar/sdl2/2.0.3/lib"
 		}
 end

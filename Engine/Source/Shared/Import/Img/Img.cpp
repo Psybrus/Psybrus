@@ -12,13 +12,10 @@
 **************************************************************************/
 
 #include "Img.h"
+#include "Base/BcMemory.h"
 #include "Base/BcString.h"
 
 #include "png.h"
-
-#if PLATFORM_WINDOWS || PLATFORM_LINUX
-#include "malloc.h"
-#endif
 
 #if PLATFORM_WINDOWS
 #pragma  warning( disable : 4611 )
@@ -361,7 +358,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 	png_write_info( pPngWrite, pPngInfo );
 	
 	// Set up the row pointer from the original data
-	png_bytepp ppRows = ( png_bytepp ) malloc( sizeof( png_bytep ) * pImage->height() );
+	png_bytepp ppRows = new png_bytep[ pImage->height() ];
 	const ImgColour* pPixels = pImage->getImageData();
 	for ( int iY = 0; iY < (int)pImage->height(); ++iY )
 	{
@@ -374,7 +371,7 @@ BcBool Img::savePNG( const BcChar* Filename, ImgImage* pImage )
 	// Tidy up
 	png_write_end( pPngWrite, pPngInfo );
 	png_destroy_write_struct( &pPngWrite, &pPngInfo );
-	free( ppRows );
+	delete [] ppRows;
 	
 	fclose( pFile );
 	

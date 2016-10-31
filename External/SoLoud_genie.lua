@@ -63,7 +63,7 @@ local opensles_root    = android_ndk .. "/platforms/arch-arm/usr"
 -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< -- 8< --
 
 if _OPTIONS[ "toolchain" ] == "osx-clang" then
-	sdl_root = "/usr/local/Cellar/sdl2/2.0.3"	
+	sdl_root = "./SDL-mirror/include/"
 end
 
 local sdl_include       = sdl_root .. "/include"      

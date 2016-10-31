@@ -63,7 +63,7 @@ PsyProjectEngineLib( "System_Renderer" )
       }
       includedirs {
           "./Platforms/OSX/",
-          "/usr/local/Cellar/sdl2/2.0.3/include" 
+          "../Psybrus/External/SDL-mirror/include/",
       }
 
       defines {
