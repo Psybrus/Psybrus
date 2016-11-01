@@ -20,8 +20,9 @@ dofile ("libb64_genie.lua")
 dofile ("fcpp_genie.lua")
 dofile ("png_genie.lua")
 dofile ("remotery_genie.lua")
-dofile ("zlib_genie.lua")
+dofile ("SDL_genie.lua")
 dofile ("SoLoud_genie.lua")
+dofile ("zlib_genie.lua")
 
 -- Use ANGLE on Windows too.
 if _OPTIONS["with-angle"] then
@@ -38,7 +39,6 @@ if _OPTIONS[ "toolchain" ] ~= "html5-clang-asmjs" then
 	dofile ("rapidxml_genie.lua")
 	dofile ("rg-etc1_genie.lua")
 	dofile ("squish_genie.lua")
-	dofile ("SDL_genie.lua")
 	dofile ("ThinkGear_genie.lua")
 	dofile ("webby_genie.lua")
 end

@@ -1,7 +1,6 @@
 if PsyProjectExternalDLL( "SDL", "C" ) then
 	configuration "*"
 		kind ( EXTERNAL_DLL_PROJECT_KIND )
-		targetdir ( "../../Dist" )
 		includedirs {
 			"SDL-mirror/include",
 			"SDL-mirror/src",
@@ -164,12 +163,22 @@ if PsyProjectExternalDLL( "SDL", "C" ) then
 			"ForceFeedback.framework",
 			"IOKit.framework",
 			"OpenGL.framework",
-			"SDL2",
 			"pthread",
 			"dl"
 		}
 
+	configuration "windows-* or linux-* or osx-*"
+		targetdir ( "../../Dist" )
+
 	configuration "html5-*"
+		kind ( EXTERNAL_PROJECT_KIND )
+		defines { 
+			"SDL_AUDIO_DRIVER_EMSCRIPTEN=1",
+			"SDL_JOYSTICK_EMSCRIPTEN=1",
+			"SDL_VIDEO_DRIVER_EMSCRIPTEN=1",
+			"SDL_VIDEO_OPENGL_EGL=1",
+			"SDL_VIDEO_OPENGL_ES2=1",
+		}
 		files {
 			"SDL-mirror/src/audio/emscripten/*.c",
 			"SDL-mirror/src/audio/emscripten/*.h",

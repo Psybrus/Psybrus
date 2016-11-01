@@ -187,6 +187,8 @@ BcHandle OsClientSDL::getWindowHandle()
 	return (BcHandle)WMInfo.info.cocoa.window;
 #elif PLATFORM_ANDROID
 	return (BcHandle)WMInfo.info.android.window;
+#else
+	return (BcHandle)WMInfo.info.dummy;
 #endif
 }
 

@@ -48,7 +48,7 @@ PsyProjectEngineLib( "System_Os" )
     }
     includedirs {
       "./Platforms/OSX/",
-      "../Psybrus/External/SDL-mirror/include/",
+      "../../External/SDL-mirror/include/",
     }
 
   configuration "android-*"
@@ -65,13 +65,21 @@ PsyProjectEngineLib( "System_Os" )
     }
     
   configuration "html5-clang-asmjs"
+    defines { 
+      "OS_USE_SDL=1",
+      "LOCAL_SDL_LIBRARY=1",
+    }
     files {
-      "./Platforms/HTML5/System/Os/*.h", 
-      "./Platforms/HTML5/System/Os/*.inl", 
-    "./Platforms/HTML5/System/Os/*.cpp", 
+      "./Shared/System/Os/SDL/*.h", 
+      "./Shared/System/Os/SDL/*.inl", 
+      "./Shared/System/Os/SDL/*.cpp", 
+      --"./Platforms/HTML5/System/Os/*.h", 
+      --"./Platforms/HTML5/System/Os/*.inl", 
+      --"./Platforms/HTML5/System/Os/*.cpp", 
     }
     includedirs {
-      "./Platforms/HTML5/",
+      --"./Platforms/HTML5/",
+      "../../External/SDL-mirror/include/",
     }
 
   configuration "windows-*"

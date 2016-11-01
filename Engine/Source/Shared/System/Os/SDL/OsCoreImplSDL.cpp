@@ -41,14 +41,19 @@ OsCoreImplSDL::~OsCoreImplSDL()
 //virtual
 void OsCoreImplSDL::open()
 {
-	if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER ) != 0 )
+	int Flags = SDL_INIT_EVENTS | SDL_INIT_VIDEO;
+#if !PLATFORM_HTML5
+	Flags |= SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
+#endif
+
+	if ( SDL_Init( Flags ) != 0 )
 	{
-		PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
+		PSY_LOG( "SDL_Init Error: %s\n", SDL_GetError() );
 
 		// Try fallback to just timer & events. We may just be running a server build.
-		if ( SDL_Init( SDL_INIT_TIMER | SDL_INIT_EVENTS ) != 0 )
+		if ( SDL_Init( SDL_INIT_EVENTS ) != 0 )
 		{
-			PSY_LOG( "SDL_Init Error: %u\n", SDL_GetError() );
+			PSY_LOG( "SDL_Init Error: %s\n", SDL_GetError() );
 			BcBreakpoint;
 		}
 	}

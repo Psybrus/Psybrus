@@ -235,9 +235,9 @@ int main()
 #include "System/SysKernel.h"
 #include "System/Content/CsCore.h"
 #include "System/Os/OsCore.h"
-#include "System/Os/OsClientHTML5.h"
+#include "System/Os/SDL/OsClientSDL.h"
 #include "System/Scene/ScnCore.h"
-
+#include "System/Renderer/RsCore.h"
 
 #include <emscripten.h>
 
@@ -279,7 +279,7 @@ int main(int argc, char** argv)
 	new SysKernel( GPsySetupParams.TickRate_ );
 
 	// Register systems for creation.
-	SYS_REGISTER( "OsCore", OsCoreImplHTML5 );
+	SYS_REGISTER( "OsCore", OsCoreImplSDL );
 	SYS_REGISTER( "FsCore", FsCoreImplHTML5 );
 	SYS_REGISTER( "CsCore", CsCore );
 	SYS_REGISTER( "RsCore", RsCoreImpl );
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
 	OsCore::pImpl()->subscribe( sysEVT_SYSTEM_POST_OPEN, 
 		[]( EvtID, const EvtBaseEvent& )
 		{
-			OsClientHTML5* pMainWindow = new OsClientHTML5();
+			OsClientSDL* pMainWindow = new OsClientSDL();
 			if( pMainWindow->create( GPsySetupParams.Name_.c_str(), 0, GResolutionWidth, GResolutionHeight, BcFalse, GPsySetupParams.Flags_ & psySF_WINDOW ? BcTrue : BcFalse ) == BcFalse )
 			{
 				BcAssertMsg( BcFalse, "Failed to create client!" );

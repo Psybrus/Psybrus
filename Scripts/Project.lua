@@ -383,6 +383,11 @@ function PsyProjectPsybrusExe( _name, _exeName )
 		  "webby",
 	   }
 
+	configuration { "html5-clang-asmjs" }
+	   PsyAddExternalDLL( {
+		  "SDL",
+	   }, _exeName )
+
 	-- asmjs post build.
 	configuration { "html5-clang-asmjs", "Debug" }
 		postbuildcommands {

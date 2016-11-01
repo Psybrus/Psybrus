@@ -134,7 +134,10 @@ void ScnRenderMesh::fileChunkReady( BcU32 ChunkIdx, BcU32 ChunkID, void* pData )
 	{
 		// Allocate all data.
 		VertexData_ = BcBinaryData( Header_.NoofVertices_ * Header_.VertexStride_ );
-		IndexData_ = BcBinaryData( Header_.NoofIndices_ * Header_.IndexStride_ );
+		if( Header_.NoofIndices_ > 0 )
+		{
+			IndexData_ = BcBinaryData( Header_.NoofIndices_ * Header_.IndexStride_ );
+		}
 		VertexElements_.reset( new RsVertexElement[ Header_.NoofVertexElements_ ] );
 		Draws_.reset( new ScnRenderMeshDraw[ Header_.NoofDraws_ ] );
 		BcU32 Idx = 1;

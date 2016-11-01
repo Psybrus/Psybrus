@@ -20,8 +20,11 @@
 #include "System/Scene/ScnCore.h"
 #include "System/Scene/Rendering/ScnTexture.h"
 
+#if !PLATFORM_WINPHONE && !PLATFORM_HTML5
 #include "RakPeerInterface.h"
 #include "RakNetTypes.h"
+#endif
+
 #include "Psybrus.h"
 
 #include "Import/Img/Img.h"
@@ -835,7 +838,7 @@ int DsCoreImpl::externalWebbyFrame( WebbyConnection *connection, const WebbyWsFr
 std::vector< std::string > DsCoreImpl::getIPAddresses()
 {
 	std::vector< std::string > result;
-#if !PLATFORM_WINPHONE
+#if !PLATFORM_WINPHONE && !PLATFORM_HTML5
 	RakNet::RakPeerInterface* peer = NULL;
 	peer = RakNet::RakPeerInterface::GetInstance();
 

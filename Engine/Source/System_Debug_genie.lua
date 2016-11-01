@@ -30,6 +30,9 @@ PsyProjectEngineLib( "System_Debug" )
     PsyAddExternalLinks { "remotery" }
     includedirs { "../../External/Remotery/lib" }
 
+  configuration { "html5-*" }
+    includedirs { "../../External/Remotery/lib" }
+
   configuration { "windows-* or linux-* or osx-* or android-*" }
     PsyAddExternalLinks { "webby" }    
     includedirs { "../../External/webby/" }

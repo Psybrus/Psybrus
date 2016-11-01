@@ -43,10 +43,6 @@
 
 #include "System/SysKernel.h"
 
-#if PLATFORM_HTML5
-#include "System/Os/OsHTML5.h"
-#endif
-
 #if PLATFORM_ANDROID
 #include "System/Os/OsClientAndroid.h"
 
@@ -382,17 +378,10 @@ void RsContextGL::present()
 	}
 #endif
 
-#if !PLATFORM_HTML5 && GL_USE_SDL
+#if GL_USE_SDL
 	{
 		PSY_PROFILER_SECTION( "SDL_GL_SwapWindow" );
 		SDL_GL_SwapWindow( reinterpret_cast< SDL_Window* >( pClient_->getDeviceHandle() ) );
-	}
-#endif
-
-#if PLATFORM_HTML5 && GL_USE_SDL
-	{
-		PSY_PROFILER_SECTION( "SDL_GL_SwapBuffers" );
-		SDL_GL_SwapBuffers();
 	}
 #endif
 
@@ -603,10 +592,12 @@ void RsContextGL::create()
 
 	BcAssert( SDLGLContext_ != nullptr );
 
+#if !PLATFORM_HTML5
 	// Init GLEW.
 	glewExperimental = 1;
 	glewInit();
 	while( glGetError() != 0 );
+#endif
 #endif
 
 #if GL_USE_EGL
@@ -969,6 +960,10 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, SDL_Window* Window, Rs
 		SDL_GL_MakeCurrent( Window, SDLGLContext_ );
 		SDL_GL_SetSwapInterval( 1 );
 	}
+	else
+	{
+		PSY_LOG( "SDL_GL_CreateContext Error: %s\n", SDL_GetError() );
+	}
 
 	return SDLGLContext_ != nullptr;
 }
@@ -994,12 +989,14 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, RsResourceFormat RTFor
 	// If we don't have EGL 1.3, can't continue.
 	if( EGLVersion < 0x00010003 )
 	{
+		PSY_LOG( "EGL version is not 1.3+" );
 		return false;
 	}
 
 	// If we don't have EGL 1.5 or the create context extension, we can't do ES 3.0.
 	if( Version.Major_ > 2 && !( EGLVersion >= 0x00010005 || EGLCreateContextExt_ ) )
 	{
+		PSY_LOG( "EGL version is not 1.5+, or have CreateContext extension when creating a GL ES 3.0+ context" );
 		return false;
 	}
 
@@ -1016,11 +1013,13 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, RsResourceFormat RTFor
 		EGLConfigAttribs[ Idx++ ] = EGL_RENDERABLE_TYPE;
 		EGLConfigAttribs[ Idx++ ] = EGL_OPENGL_ES2_BIT;
 	}
+#if defined( RENDER_USE_GLES3 )
 	else if( Version.Major_ == 3 )
 	{
 		EGLConfigAttribs[ Idx++ ] = EGL_RENDERABLE_TYPE;
 		EGLConfigAttribs[ Idx++ ] = EGL_OPENGL_ES3_BIT;
 	}
+#endif
 
 	EGLConfigAttribs[ Idx++ ] = EGL_RED_SIZE;
 	EGLConfigAttribs[ Idx++ ] = RTInfo.RBits_;
@@ -1040,6 +1039,7 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, RsResourceFormat RTFor
 	// Context attribs.
 	Idx = 0;
 
+#if defined( RENDER_USE_GLES3 )
 	if( Version.Major_ >= 3 )
 	{
 		EGLContextAttribs[ Idx++ ] = EGL_CONTEXT_MAJOR_VERSION;
@@ -1048,6 +1048,7 @@ bool RsContextGL::createProfile( RsOpenGLVersion Version, RsResourceFormat RTFor
 		EGLContextAttribs[ Idx++ ] = Version.Minor_;
 	}
 	else
+#endif
 	{
 		EGLContextAttribs[ Idx++ ] = EGL_CONTEXT_CLIENT_VERSION;
 		EGLContextAttribs[ Idx++ ] = Version.Major_;

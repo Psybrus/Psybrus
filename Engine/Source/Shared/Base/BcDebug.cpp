@@ -13,6 +13,7 @@
 
 #include "Base/BcDebug.h"
 #include "Base/BcString.h"
+#include <array>
 #include <mutex>
 
 #include <cstdarg>

@@ -63,7 +63,7 @@ PsyProjectEngineLib( "System_Renderer" )
       }
       includedirs {
           "./Platforms/OSX/",
-          "../Psybrus/External/SDL-mirror/include/",
+          "../../External/SDL-mirror/include/",
       }
 
       defines {
@@ -72,14 +72,14 @@ PsyProjectEngineLib( "System_Renderer" )
       }
 
   configuration "android-*"
-    files {
+      files {
           "./Shared/System/Renderer/GL/*.h", 
           "./Shared/System/Renderer/GL/*.inl", 
           "./Shared/System/Renderer/GL/*.cpp", 
-    }
-    includedirs {
+      }
+      includedirs {
         "./Platforms/Android/",
-    }
+      }
 
       defines {
         "WITH_GL=1",
@@ -94,11 +94,13 @@ PsyProjectEngineLib( "System_Renderer" )
       }
       includedirs {
           "./Platforms/HTML5/",
+          "../../External/SDL-mirror/include/",
       }
 
       defines {
         "WITH_GL=1",
         "GL_USE_SDL=1",
+        "LOCAL_SDL_LIBRARY=1",
       }
 
   configuration "windows-*"

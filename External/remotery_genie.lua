@@ -10,7 +10,7 @@ if PsyProjectExternalLib( "remotery", "C" ) then
 		}
 		includedirs { "./Remotery/lib" }
 
-	configuration "android-*"
+	configuration "android-* or html5-*"
 		defines {
 			"RMT_ENABLED=0",
 		}
