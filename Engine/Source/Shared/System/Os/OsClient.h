@@ -76,6 +76,15 @@ public:
 	 */
 	virtual void maximise() = 0;
 
+	/**
+	 * Set fullscreen.
+	 */
+	virtual void setFullscreen( bool Fullscreen ) {}
+
+	/**
+	 * Is fullscreen?
+	 */
+	virtual bool isFullscreen() const { return false; }
 };
 
 #endif

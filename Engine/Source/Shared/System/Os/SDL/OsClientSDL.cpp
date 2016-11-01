@@ -145,6 +145,20 @@ BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width
 	SDL_GetWindowSize( SDLWindow_, &W, &H );
 	Width_ = W;
 	Height_ = H;
+
+	// Subscribe for Alt-Enter.
+	EvtPublisher::subscribe( osEVT_INPUT_KEYDOWN, this,
+		[ this ]( EvtID, const EvtBaseEvent& InEvent )
+		{
+			const auto& Event = InEvent.get< OsEventInputKeyboard >();
+			if( Event.KeyCode_ == OsEventInputKeyboard::KEYCODE_RETURN &&
+				Event.Modifiers_ == OsEventInputKeyboard::MODIFIER_ALT )
+			{
+				setFullscreen( !isFullscreen() );
+				return evtRET_BLOCK;
+			}
+			return evtRET_PASS;
+		} );
 	
 	return BcTrue;
 }
@@ -153,6 +167,7 @@ BcBool OsClientSDL::create( const BcChar* pTitle, BcHandle Instance, BcU32 Width
 // destroy
 void OsClientSDL::destroy()
 {	
+	EvtPublisher::unsubscribeAll( this );
 	SDL_DestroyWindow( SDLWindow_ );
 	SDLWindow_ = nullptr;
 }
@@ -243,6 +258,24 @@ void OsClientSDL::setMouseLock( BcBool Enabled )
 void OsClientSDL::maximise()
 {
 	PSY_LOG("OsClientSDL::maximise: UNIMPLEMENTED!" );
+}
+
+//////////////////////////////////////////////////////////////////////////
+// setFullscreen
+void OsClientSDL::setFullscreen( bool Fullscreen )
+{
+	int Flags = Fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
+	if( 0 != SDL_SetWindowFullscreen( SDLWindow_, Flags ) )
+	{
+		PSY_LOG( "ERROR: SDL_SetWindowFullscreen failed: %s", SDL_GetError() );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// isFullscreen
+bool OsClientSDL::isFullscreen() const
+{
+	return !!(SDL_GetWindowFlags( SDLWindow_ ) & SDL_WINDOW_FULLSCREEN );
 }
 
 //////////////////////////////////////////////////////////////////////////

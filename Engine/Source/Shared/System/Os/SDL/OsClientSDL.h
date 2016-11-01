@@ -40,6 +40,8 @@ public:
 	bool isFocused() const override;
 	void setMouseLock( BcBool Enabled ) override;
 	void maximise() override;
+	void setFullscreen( bool Fullscreen ) override;
+	bool isFullscreen() const override;
 
 	/**
 	 * Get Window ID.
